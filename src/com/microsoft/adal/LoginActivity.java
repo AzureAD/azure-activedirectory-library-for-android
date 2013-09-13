@@ -1,59 +1,86 @@
 /**
  * Copyright (c) Microsoft Corporation. All rights reserved. 
  */
+
 package com.microsoft.adal;
 
 import java.io.UnsupportedEncodingException;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.http.SslError;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 
 /**
- * TODO: overwrite webview functions
- * TODO: when url is reached call the complete to "setresult" for the calling activity
- * Activity will launch webview that is defined static. It will set the result back to calling activity.
+ * TODO: overwrite webview functions TODO: when url is reached call the complete
+ * to "setresult" for the calling activity Activity will launch webview that is
+ * defined static. It will set the result back to calling activity.
+ * 
  * @author omercan
- *
  */
 public class LoginActivity extends Activity {
 
     private final String TAG = "com.microsoft.adal.LoginActivity";
     private Button btnCancel;
-    private WebView wv;    
-    
+    private WebView wv;
+    private ProgressDialog spinner;
+
+    private String redirectUrl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        
+
         // Get the message from the intent
         Intent intent = getIntent();
-        final AuthenticationRequest request = (AuthenticationRequest) intent.getSerializableExtra(AuthenticationContext.BROWSER_REQUEST_MESSAGE);
+        final AuthenticationRequest request = (AuthenticationRequest) intent
+                .getSerializableExtra(AuthenticationContext.BROWSER_REQUEST_MESSAGE);
+        redirectUrl = request.getRedirectUri();
+        Log.d(TAG, "OnCreate redirect"+redirectUrl);
         
-     // cancel action will send the request back to onActivityResult method
-        btnCancel = (Button)findViewById(R.id.btnCancel);
-        
+        // cancel action will send the request back to onActivityResult method
+        btnCancel = (Button) findViewById(R.id.btnCancel);
+
         btnCancel.setOnClickListener(new View.OnClickListener() {
-            
+
             @Override
             public void onClick(View v) {
                 Intent resultIntent = new Intent();
-                setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);    
+                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
             }
         });
-        
+
+        spinner = new ProgressDialog(this);
+        spinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        spinner.setMessage(this.getText(R.string.app_loading));
+        spinner.setOnCancelListener(new OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                Intent resultIntent = new Intent();
+                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+            }
+        });
+
+        spinner.show();
         
         // Create the Web View to show the login page
-        wv = (WebView)findViewById(R.id.webView1);
+        wv = (WebView) findViewById(R.id.webView1);
         wv.getSettings().setJavaScriptEnabled(true);
         wv.requestFocus(View.FOCUS_DOWN);
 
@@ -72,47 +99,129 @@ public class LoginActivity extends Activity {
             }
         });
 
-        wv.getSettings().setJavaScriptEnabled(true);
         wv.getSettings().setLoadWithOverviewMode(true);
         wv.getSettings().setDomStorageEnabled(true);
         wv.getSettings().setUseWideViewPort(true);
         wv.getSettings().setBuiltInZoomControls(true);
         wv.getSettings().setPluginState(WebSettings.PluginState.ON);
-        wv.getSettings().setPluginsEnabled(true);     
-        wv.setWebViewClient(new WebViewClient(){
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, final String url) {
-                Log.d(TAG, "Override:"+url);
-                
-                view.loadUrl(url);
-                return true;
-            }
-        });
-        
-        String startUrl = "about:blank";    
-        wv.loadUrl(startUrl);
+        wv.getSettings().setPluginsEnabled(true);
+        wv.setWebViewClient(new CustomWebViewClient());
+
+//        wv.setVisibility(View.INVISIBLE);
+
+        final Activity currentActivity = this;
+        String startUrl = "about:blank";
         
         try {
             startUrl = request.getCodeRequestUrl();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             Log.d(TAG, e.getMessage());
-            
+
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_REQUEST, request);
-            setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);  
+            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
-        
-        wv.loadUrl(startUrl);
+
+        final String postUrl = startUrl;
+        wv.post( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                wv.loadUrl( postUrl );
+            }
+        } );
+
     }
 
-   
+    private void ReturnToCaller(int resultCode, Intent data)
+    {
+        Log.d(TAG, "ReturnToCaller=" + resultCode);
+        setResult(resultCode, data);
+        this.finish();
+    }
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.login, menu);
         return true;
+    }
+
+    private class CustomWebViewClient extends WebViewClient {
+        @Override
+        @SuppressWarnings("deprecation")
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+
+            Log.d(TAG, "shouldOverrideUrlLoading:url=" + url);
+            if (!spinner.isShowing()) {
+                spinner.show();
+            }
+            
+            if (url.startsWith(redirectUrl)) {
+                Log.d(TAG, "shouldOverrideUrlLoading: reached redirect");
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_FINAL_URL, url);
+                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
+                view.stopLoading();
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public void onReceivedError(WebView view, int errorCode,
+                String description, String failingUrl) {
+            super.onReceivedError(view, errorCode, description, failingUrl);
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_CODE, errorCode);
+            resultIntent
+                    .putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_MESSAGE, description);
+            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+
+        }
+
+        @Override
+        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+            if (AuthenticationSettings.getInstance().getIgnoreSSLErrors()) {
+                handler.proceed();
+            } else {
+                super.onReceivedSslError(view, handler, error);
+
+                handler.cancel();
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_CODE,
+                        ERROR_FAILED_SSL_HANDSHAKE);
+                resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_MESSAGE,
+                        error.toString());
+                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            }
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+
+            super.onPageStarted(view, url, favicon);
+            Log.d(TAG,"Page started:"+url);
+            if (!spinner.isShowing()) {
+                spinner.show();
+            }
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            Log.d(TAG,"Page finished"+url);
+            if (spinner.isShowing()) {
+                spinner.dismiss();
+            }
+            /*
+             * Once web view is fully loaded,set to visible
+             */
+            wv.setVisibility(View.VISIBLE);
+        }
     }
 
 }

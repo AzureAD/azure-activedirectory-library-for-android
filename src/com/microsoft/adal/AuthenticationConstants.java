@@ -74,4 +74,6 @@ final public class AuthenticationConstants
     static final String AUTH_FAILED_NO_TOKEN        = "The requested access token could not be found";
     static final String AUTH_FAILED_CANCELLED       = "The user cancelled the authorization request";
     static final String AUTH_FAILED_INTERNAL_ERROR  = "Invalid parameters for authorization operation";
+
+    public static final int DEFAULT_EXPIRATION_TIME_SEC  = 3600;
 }

@@ -3,17 +3,19 @@
  * Copyright (c) Microsoft Corporation. All rights reserved. 
  * ----------------------------------------------------------------
  */
+
 package com.microsoft.adal;
 
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
+import android.test.suitebuilder.TestSuiteBuilder.FailedToCreateTests;
 
 
 /**
- * Serializable properties Mark temp properties as Transient if you dont want to
- * keep them in serialization
+ * Result class to keep code, token and other info Serializable properties Mark
+ * temp properties as Transient if you dont want to keep them in serialization
  * 
  * @author omercan
  */
@@ -37,12 +39,22 @@ public class AuthenticationResult implements Serializable {
     private String mAccessTokenType;
     private Date mExpires;
     private String mResponseType;
-    private String mErrorCode; //Oauth
-    private String mErrorDescription; //Oauth
-    
+    private String mErrorCode; // Oauth
+    private String mErrorDescription; // Oauth
+    private boolean mBroadRefreshToken = false;
+    private IdToken mIdToken;
+    AuthenticationStatus mStatus = AuthenticationStatus.Failed;
+
+    public enum AuthenticationStatus
+    {
+        Cancelled, Failed, Succeeded,
+    }
+
     public AuthenticationResult() {
         mAccessToken = null;
         mRefreshToken = null;
+        setBroadRefreshToken(false);
+        mStatus = AuthenticationStatus.Succeeded;
     }
 
     public AuthenticationResult(String authority, String clientId, String resource,
@@ -54,6 +66,8 @@ public class AuthenticationResult implements Serializable {
         mClientId = clientId;
         mResource = resource;
         mRedirectUri = redirectUri;
+        setBroadRefreshToken(false);
+        mStatus = AuthenticationStatus.Succeeded;
     }
 
     public AuthenticationResult(AuthenticationContext authenticationContext, String resource) {
@@ -63,13 +77,28 @@ public class AuthenticationResult implements Serializable {
         mClientId = authenticationContext.getClientId();
         mResource = resource;
         mRedirectUri = authenticationContext.getRedirectUri();
+        setBroadRefreshToken(false);
+        mStatus = AuthenticationStatus.Succeeded;
     }
 
-   
+    public AuthenticationResult(AuthenticationRequest request)
+    {
+        mAuthority = request.getAuthority();
+        mClientId = request.getClientId();
+        mResource = request.getResource();
+        mRedirectUri = request.getRedirectUri();
+        setBroadRefreshToken(false);
+        mStatus = AuthenticationStatus.Succeeded;
+    }
+
+    public AuthenticationResult(String errocode, String errDescription) {
+        setErrorCode(errocode);
+        setErrorDescription(errDescription);
+        mStatus = AuthenticationStatus.Failed;
+    }
 
     /**
-     * Returns key that helps to find access token info
-     * resource and scope
+     * Returns key that helps to find access token info resource and scope
      * 
      * @return
      */
@@ -77,12 +106,12 @@ public class AuthenticationResult implements Serializable {
         return String.format("%s:%s:%s:%s:%s", mAuthority, mResource, mClientId, mRedirectUri,
                 (mScope == null || mScope.isEmpty()) ? "" : mScope);
     }
-    
+
     public String getAccessToken() {
         return mAccessToken;
     }
 
-    public void setmccessToken(String mAccessToken) {
+    public void setAccessToken(String mAccessToken) {
         this.mAccessToken = mAccessToken;
     }
 
@@ -196,5 +225,46 @@ public class AuthenticationResult implements Serializable {
 
     public boolean isRefreshable() {
         return null != mRefreshToken;
+    }
+
+    public boolean IsBroadRefreshToken() {
+        return mBroadRefreshToken;
+    }
+
+    public void setBroadRefreshToken(boolean mBroadRefreshToken) {
+        this.mBroadRefreshToken = mBroadRefreshToken;
+    }
+
+    public IdToken getIdToken() {
+        return mIdToken;
+    }
+
+    public void setIdToken(IdToken mIdToken) {
+        this.mIdToken = mIdToken;
+    }
+
+    public AuthenticationStatus getStatus() {
+        // TODO Auto-generated method stub
+        if(mStatus != AuthenticationStatus.Failed && 
+                (getAccessToken() != null || getCode() != null))
+            return AuthenticationStatus.Succeeded;
+        
+        return AuthenticationStatus.Failed;
+    }
+
+    public String getErrorCode() {
+        return mErrorCode;
+    }
+
+    public void setErrorCode(String mErrorCode) {
+        this.mErrorCode = mErrorCode;
+    }
+
+    public String getErrorDescription() {
+        return mErrorDescription;
+    }
+
+    public void setErrorDescription(String mErrorDescription) {
+        this.mErrorDescription = mErrorDescription;
     }
 }
