@@ -9,17 +9,27 @@ package com.microsoft.adal;
  */
 final public class AuthenticationConstants
 {
+    public static final String BROWSER_REQUEST_MESSAGE = "com.microsoft.adal:BrowserRequestMessage";
+    public static final String BROWSER_RESPONSE_ERROR_REQUEST = "com.microsoft.adal:BrowserErrorRequestInfo";
+    public static final String BROWSER_RESPONSE_ERROR_CODE = "com.microsoft.adal:BrowserErrorCode";
+    public static final String BROWSER_RESPONSE_ERROR_MESSAGE = "com.microsoft.adal:BrowserErrorCode";
+    public static final String BROWSER_RESPONSE_FINAL_URL = "com.microsoft.adal:BrowserFinalUrl";
+    
+    public static final String BROKER_RESPONSE = "com.microsoft.adal:BrokerResponse";
     public static final class UIResponse
     {
     static final int BROWSER_CODE_CANCEL = 2001;
     static final int BROWSER_CODE_ERROR = 2002;
     static final int BROWSER_CODE_COMPLETE = 2003;
     
+    //  Broker returns full response
+    static final int TOKEN_BROKER_RESPONSE = 2004;
     }
     
     public static final class UIRequest
     {
         static final int BROWSER_FLOW = 1001;
+        public static final int TOKEN_FLOW = 1002;
     }
     
     
@@ -28,6 +38,9 @@ final public class AuthenticationConstants
         /** Core OAuth2 strings */
         public static final String ACCESS_TOKEN      = "access_token";
         public static final String AUTHORIZATION_CODE = "authorization_code";
+        
+        
+        
         public static final String CLIENT_ID         = "client_id";
         public static final String CLIENT_SECRET     = "client_secret";
         public static final String CODE              = "code";

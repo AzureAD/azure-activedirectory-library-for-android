@@ -16,6 +16,7 @@ public class AuthenticationSettings {
     private String mResourcePackage = "com.microsoft.protection.authentication";
     private boolean mIgnoreSSLErrors = false;
     private boolean mValidateAuthority = true;
+    private boolean mEnableInstallRedirect = false;
 
     /**
      * RequestAuthEndpoint to append in authority url
@@ -128,5 +129,15 @@ public class AuthenticationSettings {
     public void setEnableTokenCaching(boolean value)
     {
         mEnableTokenCaching = value;
+    }
+
+    public boolean getEnableInstallRedirect() {
+        // TODO Auto-generated method stub
+        return mEnableInstallRedirect;
+    }
+    
+    public void setEnableInstallRedirect(boolean val) {
+        // TODO Auto-generated method stub
+        mEnableInstallRedirect = val;
     }
 }

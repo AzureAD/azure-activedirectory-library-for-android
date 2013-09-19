@@ -17,6 +17,10 @@
             android:name="com.microsoft.adal.LoginActivity"
             android:label="@string/title_activity_login" >
         </activity>
+        <activity
+            android:name="com.microsoft.adal.TokenActivity"
+            android:label="@string/title_activity_token" >
+        </activity>
     </application>
 
 </manifest>

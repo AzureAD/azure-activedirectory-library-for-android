@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Date;
+import java.util.UUID;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -35,7 +36,8 @@ public class AuthenticationRequest implements Serializable {
     private String mResponseType;
     private String mLoginHint;
     private int mRequestCode;
-
+    private UUID mCorrelationId;
+    
     public AuthenticationRequest(String authority, String client, String resource, String scope,
             String redirect, String loginhint)
     {
@@ -202,5 +204,15 @@ public class AuthenticationRequest implements Serializable {
 
     private void setRequestCode(int mRequestCode) {
         this.mRequestCode = mRequestCode;
+    }
+
+    public UUID getCorrelationId() {
+        // TODO Auto-generated method stub
+        return this.mCorrelationId;
+    }
+    
+    public void setCorrelationId(UUID val) {
+        // TODO Auto-generated method stub
+        this.mCorrelationId = val;
     }
 }

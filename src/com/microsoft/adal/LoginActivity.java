@@ -50,7 +50,7 @@ public class LoginActivity extends Activity {
         // Get the message from the intent
         Intent intent = getIntent();
         final AuthenticationRequest request = (AuthenticationRequest) intent
-                .getSerializableExtra(AuthenticationContext.BROWSER_REQUEST_MESSAGE);
+                .getSerializableExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE);
         redirectUrl = request.getRedirectUri();
         Log.d(TAG, "OnCreate redirect"+redirectUrl);
         
@@ -119,7 +119,7 @@ public class LoginActivity extends Activity {
             Log.d(TAG, e.getMessage());
 
             Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_REQUEST, request);
+            resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_REQUEST, request);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
 
@@ -162,7 +162,7 @@ public class LoginActivity extends Activity {
             if (url.startsWith(redirectUrl)) {
                 Log.d(TAG, "shouldOverrideUrlLoading: reached redirect");
                 Intent resultIntent = new Intent();
-                resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_FINAL_URL, url);
+                resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_FINAL_URL, url);
                 ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
                 view.stopLoading();
                 return true;
@@ -176,9 +176,9 @@ public class LoginActivity extends Activity {
                 String description, String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
             Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_CODE, errorCode);
+            resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE, errorCode);
             resultIntent
-                    .putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_MESSAGE, description);
+                    .putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE, description);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
 
         }
@@ -192,9 +192,9 @@ public class LoginActivity extends Activity {
 
                 handler.cancel();
                 Intent resultIntent = new Intent();
-                resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_CODE,
+                resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE,
                         ERROR_FAILED_SSL_HANDSHAKE);
-                resultIntent.putExtra(AuthenticationContext.BROWSER_RESPONSE_ERROR_MESSAGE,
+                resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE,
                         error.toString());
                 ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
             }

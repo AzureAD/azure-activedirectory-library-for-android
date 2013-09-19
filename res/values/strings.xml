@@ -7,5 +7,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="button_cancel">Cancel</string>
     <string name="app_loading">App is loading...</string>
+    <string name="title_activity_token">TokenActivity</string>
 
 </resources>
