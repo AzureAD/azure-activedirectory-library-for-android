@@ -10,9 +10,9 @@ import java.io.StringWriter;
 /**
  * A helper for getting logging info out of an Exception
  */
-final class ExceptionExtensions
+public final class ExceptionExtensions
 {
-    static String getExceptionMessage( Exception ex )
+    public static String getExceptionMessage( Exception ex )
     {
         String message = ex.getMessage();
         

@@ -11,7 +11,7 @@ import java.util.Map;
  * MOVED from Hervey's code
  * A simple class that represents the response from an HttpWebRequeset
  */
-class HttpWebResponse
+public class HttpWebResponse
 {
     private int                       _statusCode;
     private byte[]                    _responseBody;
@@ -24,7 +24,12 @@ class HttpWebResponse
         _responseHeaders = responseHeaders;
     }
 
-    int getStatusCode()
+    HttpWebResponse( int statusCode )
+    {
+        _statusCode      = statusCode;
+    }
+    
+    public int getStatusCode()
     {
         return _statusCode;
     }
@@ -34,7 +39,7 @@ class HttpWebResponse
         return _responseHeaders;
     }
 
-    byte[] getBody()
+    public byte[] getBody()
     {
         return _responseBody;
     }

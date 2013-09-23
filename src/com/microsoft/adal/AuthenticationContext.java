@@ -52,7 +52,7 @@ public class AuthenticationContext {
     private String mRedirectUri;
     private String mLoginHint;
     private String mBroadRefreshToken;
-    private transient Context mContext;
+    private Context mContext;
     private transient ActivityDelegate mActivityDelegate;
     private transient AuthenticationCallback mExternalCallback;
     static AuthenticationRequest pendingRequest;
@@ -108,19 +108,19 @@ public class AuthenticationContext {
         Log.d(TAG, "Make context from request");
     }
 
-    public void acquireToken(Activity activity, String resource, UUID correlationID,
+    public void acquireToken(Context activity, String resource, UUID correlationID,
             AuthenticationCallback callback) {
     
         verifyParams(activity, callback);
-        
+        mContext = activity;
         boolean hasbroker = appInstalledOrNot("com.microsoft.broker");
         boolean askforinstall = getSettings().getEnableInstallRedirect();
-        mContext = activity.getApplicationContext();
+        
         setTokenActivityDelegate(activity);
         
         if(hasbroker)
         {
-
+            
             final AuthenticationRequest request = new AuthenticationRequest(this, resource);
             mExternalCallback = callback;
             pendingRequest = request;
@@ -192,7 +192,7 @@ public class AuthenticationContext {
         downloadDialog.show();
     }
     
-    public void acquireTokenLocal(Activity activity, String resource, UUID correlationID,
+    public void acquireTokenLocal(Context activity, String resource, UUID correlationID,
             AuthenticationCallback callback) {
 
         verifyParams(activity, callback);
@@ -219,11 +219,11 @@ public class AuthenticationContext {
         }
     }
 
-    private void verifyParams(Activity activity, AuthenticationCallback callback) {
+    private void verifyParams(Context context, AuthenticationCallback callback) {
         if (callback == null)
             throw new IllegalArgumentException("listener is null");
 
-        if (activity == null)
+        if (context == null)
             throw new IllegalArgumentException("context is null");
 
         
@@ -239,19 +239,19 @@ public class AuthenticationContext {
         ValidateAuthority();
     }
 
-    private void setTokenActivityDelegate(Activity activity)
+    private void setTokenActivityDelegate(Context context)
     {
-        final Activity callingActivity = activity;
+        final Context callingActivity = context;
         mActivityDelegate = new ActivityDelegate() {
             @Override
             public void startActivityForResult(Intent intent, int requestCode) {
                 Log.d(TAG, "Delegate calling startActivityForResult");
-                callingActivity.startActivityForResult(intent, requestCode);
+                ((Activity) callingActivity).startActivityForResult(intent, requestCode);
             }
 
             @Override
             public Activity getActivityContext() {
-                return callingActivity;
+                return (Activity) callingActivity;
             }
 
             @Override
@@ -514,7 +514,7 @@ public class AuthenticationContext {
 
             webRequest.getRequestHeaders().put("Accept", "application/json");
 
-            webRequest.sendAsync(
+            webRequest.sendAsyncPost(
                     body.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded",
                     new HttpWebRequestCallback() {

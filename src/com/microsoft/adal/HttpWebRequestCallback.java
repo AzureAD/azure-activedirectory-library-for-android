@@ -8,7 +8,7 @@ package com.microsoft.adal;
  * MOVED from Hervey's code
  * Interface for callbacks used in asynchronous HttpWebRequest operations
  */
-interface HttpWebRequestCallback
+public interface HttpWebRequestCallback
 {
     void onComplete( Exception ex, HttpWebResponse response );
 }

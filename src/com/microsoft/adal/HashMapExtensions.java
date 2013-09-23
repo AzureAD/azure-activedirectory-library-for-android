@@ -13,7 +13,7 @@ import java.util.StringTokenizer;
  * MOVED from Hervey's code
  * A helper class for URLFormEncode and URLFormDecode of HashMap<string,string> objects
  */
-final class HashMapExtensions
+public final class HashMapExtensions
 {
     /**
      * URL form decode a string into a HashMap<String, String>

@@ -72,12 +72,12 @@ final public class AuthenticationConstants
 
 
     /** The Constant ENCODING_UTF8. */
-    static final String ENCODING_UTF8               = "UTF_8";
+    public static final String ENCODING_UTF8               = "UTF_8";
     
     public static final String BUNDLE_MESSAGE				= "Message";
     /** Error string constants, matched to other implementations */
     
-    static final String AUTH_FAILED                 = "Authorization Failed";
+    public static final String AUTH_FAILED                 = "Authorization Failed";
     static final String AUTH_FAILED_ERROR_CODE      = "Authorization Failed: %d";
     static final String AUTH_FAILED_SERVER_ERROR    = "The Authorization Server returned an unrecognized response";
     static final String AUTH_FAILED_NO_CONTROLLER   = "The Application does not have a current ViewController";
