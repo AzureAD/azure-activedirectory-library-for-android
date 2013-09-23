@@ -84,7 +84,6 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
                     Log.d(TAG, "setting header" + header);
                     _connection.setRequestProperty(header, _requestHeaders.get(header));
                 }
-                Log.d(TAG, "request method" + _requestMethod);
                 _connection.setInstanceFollowRedirects(false);
                 _connection.setUseCaches(false);
                 _connection.setRequestMethod(_requestMethod);

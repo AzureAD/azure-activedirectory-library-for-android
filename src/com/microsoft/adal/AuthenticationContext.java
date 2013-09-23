@@ -25,6 +25,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 
 /*
  *TODO: error messages define
@@ -44,7 +46,7 @@ public class AuthenticationContext {
      * TAG to check messages
      */
     private final static String TAG = "AuthenticationContext";
-   
+
     static final int GET_AUTHORIZATION = 1;
 
     private String mAuthority;
@@ -57,14 +59,14 @@ public class AuthenticationContext {
     private transient AuthenticationCallback mExternalCallback;
     static AuthenticationRequest pendingRequest;
 
-    private static AuthenticationContext sInstance;
-
     /**
-     * Delegate to use for starting browser flow from activity
+     * Delegate to use for starting browser flow from activity's context
      */
     public interface ActivityDelegate {
         public void startActivityForResult(Intent intent, int requestCode);
+
         public void startActivity(Intent intent);
+
         public Activity getActivityContext();
     }
 
@@ -98,7 +100,7 @@ public class AuthenticationContext {
         mRedirectUri = redirectUri;
         mLoginHint = loginHint;
     }
-    
+
     public AuthenticationContext(AuthenticationRequest previousRequest)
     {
         mAuthority = previousRequest.getAuthority();
@@ -110,26 +112,24 @@ public class AuthenticationContext {
 
     public void acquireToken(Context activity, String resource, UUID correlationID,
             AuthenticationCallback callback) {
-    
+
         verifyParams(activity, callback);
         mContext = activity;
         boolean hasbroker = appInstalledOrNot("com.microsoft.broker");
         boolean askforinstall = getSettings().getEnableInstallRedirect();
-        
+
         setTokenActivityDelegate(activity);
-        
-        if(hasbroker)
+
+        if (hasbroker)
         {
-            
             final AuthenticationRequest request = new AuthenticationRequest(this, resource);
             mExternalCallback = callback;
             pendingRequest = request;
             // Broker app needs to expose token activity to call from other apps
             Log.d(TAG, "start token activity");
             startTokenActivity(request);
-         
         }
-        else if(askforinstall)
+        else if (askforinstall)
         {
             askUserToInstallBroker();
         }
@@ -145,11 +145,13 @@ public class AuthenticationContext {
         Intent intent = getTokenActivityIntent(request);
 
         if (!resolveIntent(intent)) {
-            mExternalCallback.onError(new AuthException(request, "intent resolve failure", "failed to resolve intent"));
+            mExternalCallback.onError(new AuthException(request, "intent resolve failure",
+                    "failed to resolve intent"));
         }
 
         try {
-            // Start activity from callers context so that caller can intercept when it is done
+            // Start activity from callers context so that caller can intercept
+            // when it is done
             getTokenActivityDelegate().startActivityForResult(intent,
                     AuthenticationConstants.UIRequest.TOKEN_FLOW);
         } catch (ActivityNotFoundException e) {
@@ -159,16 +161,17 @@ public class AuthenticationContext {
     }
 
     private void askUserToInstallBroker() {
-        //implement prompt dialog asking user to download the package
+        // implement prompt dialog asking user to download the package
         AlertDialog.Builder downloadDialog = new AlertDialog.Builder(mContext);
         downloadDialog.setTitle("Download that bro");
         downloadDialog.setMessage("Really get that now!");
         downloadDialog.setPositiveButton("yes",
-                new DialogInterface.OnClickListener() 
+                new DialogInterface.OnClickListener()
                 {
-                    public void onClick(DialogInterface dialogInterface, int i) 
+                    public void onClick(DialogInterface dialogInterface, int i)
                     {
-                        Uri uri = Uri.parse("market://search?q=pname:com.google.zxing.client.android");
+                        Uri uri = Uri
+                                .parse("market://search?q=pname:com.google.zxing.client.android");
                         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                         try
                         {
@@ -176,22 +179,49 @@ public class AuthenticationContext {
                         }
                         catch (ActivityNotFoundException e)
                         {
-                            Log.d(TAG,"ERROR Google Play Market not found!");
+                            Log.d(TAG, "ERROR Google Play Market not found!");
                             mExternalCallback.onError(e);
                         }
                     }
                 });
         downloadDialog.setNegativeButton("no",
-                new DialogInterface.OnClickListener() 
+                new DialogInterface.OnClickListener()
                 {
-                    public void onClick(DialogInterface dialog, int i) 
+                    public void onClick(DialogInterface dialog, int i)
                     {
                         dialog.dismiss();
                     }
                 });
         downloadDialog.show();
     }
-    
+
+    public static void invalidateToken(String authority, String clientid, String redirect,
+            String resource, String scope, String loginHint)
+    {
+        final AuthenticationRequest request = new AuthenticationRequest(authority, clientid,
+                resource, scope, redirect, loginHint);
+
+        // Check cached authorization object
+        final AuthenticationResult cachedResult = getCachedResult(request.getCacheKey());
+
+        if (cachedResult != null) {
+            if (getSettings().getEnableTokenCaching())
+            {
+                getSettings().getCache().removeResult(request.getCacheKey());
+            }
+        }
+    }
+
+    public static void resetTokens()
+    {
+        if (getSettings().getEnableTokenCaching())
+        {
+            getSettings().getCache().removeAll();            
+            
+            
+        }
+    }
+
     public void acquireTokenLocal(Context activity, String resource, UUID correlationID,
             AuthenticationCallback callback) {
 
@@ -226,7 +256,6 @@ public class AuthenticationContext {
         if (context == null)
             throw new IllegalArgumentException("context is null");
 
-        
         if (pendingRequest != null) {
             throw new IllegalArgumentException("Attempted to get token while a request is pending.");
         }
@@ -274,7 +303,8 @@ public class AuthenticationContext {
         }
 
         try {
-            // Start activity from callers context so that caller can intercept when it is done
+            // Start activity from callers context so that caller can intercept
+            // when it is done
             getTokenActivityDelegate().startActivityForResult(intent,
                     AuthenticationConstants.UIRequest.BROWSER_FLOW);
         } catch (ActivityNotFoundException e) {
@@ -287,11 +317,12 @@ public class AuthenticationContext {
 
     /**
      * Resolve activity
+     * 
      * @param intent
      * @return
      */
     private boolean resolveIntent(Intent intent) {
-        
+
         ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
         if (resolveInfo == null) {
             return false;
@@ -311,9 +342,10 @@ public class AuthenticationContext {
         intent.putExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE, request);
         return intent;
     }
-    
+
     /**
      * Check if app installed on this device
+     * 
      * @param uri
      * @return
      */
@@ -331,10 +363,7 @@ public class AuthenticationContext {
         }
         return app_installed;
     }
-    
-    
-    
-    
+
     /**
      * Call from your onActivityResult method inside your activity that started
      * token request
@@ -358,12 +387,15 @@ public class AuthenticationContext {
                 pendingRequest = null;
                 AuthenticationRequest errRequest = (AuthenticationRequest) extras
                         .getSerializable(AuthenticationConstants.BROWSER_RESPONSE_ERROR_REQUEST);
-                String errCode = extras.getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE);
-                String errMessage = extras.getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE);
+                String errCode = extras
+                        .getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE);
+                String errMessage = extras
+                        .getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE);
                 mExternalCallback.onError(new AuthException(errRequest, errCode, errMessage));
-            } else if(resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE)
+            } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE)
             {
-                String endingUrl = extras.getString(AuthenticationConstants.BROWSER_RESPONSE_FINAL_URL);
+                String endingUrl = extras
+                        .getString(AuthenticationConstants.BROWSER_RESPONSE_FINAL_URL);
                 if (endingUrl.isEmpty())
                 {
                     Log.d(TAG, "ending url is empty");
@@ -373,11 +405,11 @@ public class AuthenticationContext {
                 Log.d(TAG, "Process this url");
                 processUIResponse(endingUrl);
                 // Clean any pending requests so that new browser flow can start
-                pendingRequest = null;         
+                pendingRequest = null;
             }
 
         }
-        else if(requestCode == AuthenticationConstants.UIRequest.TOKEN_FLOW)
+        else if (requestCode == AuthenticationConstants.UIRequest.TOKEN_FLOW)
         {
             Bundle extras = data.getExtras();
             if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL)
@@ -391,14 +423,17 @@ public class AuthenticationContext {
                 pendingRequest = null;
                 AuthenticationRequest errRequest = (AuthenticationRequest) extras
                         .getSerializable(AuthenticationConstants.BROWSER_RESPONSE_ERROR_REQUEST);
-                String errCode = extras.getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE);
-                String errMessage = extras.getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE);
+                String errCode = extras
+                        .getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE);
+                String errMessage = extras
+                        .getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE);
                 mExternalCallback.onError(new AuthException(errRequest, errCode, errMessage));
             } else
             {
                 pendingRequest = null;
-                AuthenticationResult resultback = (AuthenticationResult) data.getSerializableExtra(AuthenticationConstants.BROKER_RESPONSE);
-                if(resultback != null)
+                AuthenticationResult resultback = (AuthenticationResult) data
+                        .getSerializableExtra(AuthenticationConstants.BROKER_RESPONSE);
+                if (resultback != null)
                 {
                     mExternalCallback.onCompleted(resultback);
                 }
@@ -406,7 +441,7 @@ public class AuthenticationContext {
                 {
                     mExternalCallback.onError(new Exception("hello damn..broker did not work"));
                 }
-            }            
+            }
         }
     }
 
@@ -681,7 +716,8 @@ public class AuthenticationContext {
     }
 
     /*
-     * If refresh token is broad refresh token, this request will include resource in the message.
+     * If refresh token is broad refresh token, this request will include
+     * resource in the message.
      */
     private HashMap<String, String> buildRefreshTokenRequestMessage(
             AuthenticationResult cachedResult, String targetResource) {
@@ -691,17 +727,17 @@ public class AuthenticationContext {
         {
             throw new IllegalArgumentException("Refresh token is required");
         }
-        
+
         if (TextUtils.isEmpty(cachedResult.getRedirectUri()))
         {
             throw new IllegalArgumentException("RedirectUri is required");
         }
-        
+
         if (TextUtils.isEmpty(cachedResult.getClientId()))
         {
             throw new IllegalArgumentException("ClientId is required");
         }
-        
+
         reqParameters.put(AuthenticationConstants.OAuth2.GRANT_TYPE,
                 AuthenticationConstants.OAuth2.REFRESH_TOKEN);
 
@@ -710,18 +746,18 @@ public class AuthenticationContext {
 
         reqParameters.put(AuthenticationConstants.OAuth2.REDIRECT_URI,
                 cachedResult.getRedirectUri());
-        
+
         reqParameters.put(AuthenticationConstants.OAuth2.CLIENT_ID,
                 cachedResult.getClientId());
 
-        if(cachedResult.IsBroadRefreshToken())
+        if (cachedResult.IsBroadRefreshToken())
         {
             reqParameters.put(AuthenticationConstants.AAD.RESOURCE,
                     targetResource);
         }
         return reqParameters;
     }
-    
+
     /**
      * Callback to use for web ui login completed
      */
@@ -742,16 +778,20 @@ public class AuthenticationContext {
 
     /**
      * Refresh token based on cached result and targetresource.
-     * @param cachedResult     ClientId, Refreshtoken, RedirectUri are used from this result obj 
-     * @param targetResource   Resource to ask for refresh token 
-     * @param callback         Callback to be called for results
+     * 
+     * @param cachedResult ClientId, Refreshtoken, RedirectUri are used from
+     *            this result obj
+     * @param targetResource Resource to ask for refresh token
+     * @param callback Callback to be called for results
      */
-    public void refreshToken(AuthenticationResult cachedResult, String targetResource, AuthenticationCallback callback) {
-     // Same authority
+    public void refreshToken(AuthenticationResult cachedResult, String targetResource,
+            AuthenticationCallback callback) {
+        // Same authority
         final AuthenticationRequest request = new AuthenticationRequest(this, targetResource);
-        HashMap<String, String> tokenRequestMessage = buildRefreshTokenRequestMessage(cachedResult, targetResource);
+        HashMap<String, String> tokenRequestMessage = buildRefreshTokenRequestMessage(cachedResult,
+                targetResource);
         final AuthenticationCallback externalCallback = callback;
-        Log.d(TAG, "Calling sendrequest for refreshtoken");     
+        Log.d(TAG, "Calling sendrequest for refreshtoken");
 
         sendRequest(cachedResult.getTokenEndpoint(),
                 tokenRequestMessage, new OnResponseListener() {
@@ -774,7 +814,7 @@ public class AuthenticationContext {
                 });
     }
 
-    private AuthenticationResult getCachedResult(String cacheKey) {
+    private static AuthenticationResult getCachedResult(String cacheKey) {
         if (getSettings().getEnableTokenCaching())
         {
             return getSettings().getCache().getResult(cacheKey);
