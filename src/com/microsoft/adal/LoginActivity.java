@@ -7,6 +7,7 @@ package com.microsoft.adal;
 import java.io.UnsupportedEncodingException;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -140,6 +141,24 @@ public class LoginActivity extends Activity {
         Log.d(TAG, "ReturnToCaller=" + resultCode);
         setResult(resultCode, data);
         this.finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "Back button is pressed");
+        // Ask user if they rally want to cancel the flow
+        new AlertDialog.Builder(this)
+        .setTitle("Confirm?")
+        .setMessage("Are you sure you want to exit?")
+        .setNegativeButton(android.R.string.no, null)  
+        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+
+            public void onClick(DialogInterface arg0, int arg1) {
+                Intent resultIntent = new Intent();        
+                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+            }
+        }).create().show();
+        
     }
     
     @Override

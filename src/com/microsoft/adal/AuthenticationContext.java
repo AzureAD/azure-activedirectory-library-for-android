@@ -47,6 +47,8 @@ public class AuthenticationContext {
      */
     private final static String TAG = "AuthenticationContext";
 
+    private final static String BROKER_APP_PACKAGE = "com.microsoft.broker";
+    private final static String BROKER_APP_TOKEN_ACTION = "com.microsoft.broker.token";
     static final int GET_AUTHORIZATION = 1;
 
     private String mAuthority;
@@ -115,7 +117,7 @@ public class AuthenticationContext {
 
         verifyParams(activity, callback);
         mContext = activity;
-        boolean hasbroker = appInstalledOrNot("com.microsoft.broker");
+        boolean hasbroker = appInstalledOrNot(BROKER_APP_PACKAGE);
         boolean askforinstall = getSettings().getEnableInstallRedirect();
 
         setTokenActivityDelegate(activity);
@@ -316,7 +318,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * Resolve activity
+     * Resolve activity from the package
      * 
      * @param intent
      * @return
@@ -337,8 +339,11 @@ public class AuthenticationContext {
         return intent;
     }
 
+    /*
+     * It targets broker app's Token Activity. If it is not exposed in the broker app, it will fail.
+     */
     private Intent getTokenActivityIntent(AuthenticationRequest request) {
-        Intent intent = new Intent("com.microsoft.broker.token");
+        Intent intent = new Intent(BROKER_APP_TOKEN_ACTION);
         intent.putExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE, request);
         return intent;
     }
