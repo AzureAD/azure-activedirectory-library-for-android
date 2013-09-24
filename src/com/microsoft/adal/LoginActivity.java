@@ -40,7 +40,6 @@ public class LoginActivity extends Activity {
     private Button btnCancel;
     private WebView wv;
     private ProgressDialog spinner;
-
     private String redirectUrl;
 
     @Override
@@ -73,8 +72,7 @@ public class LoginActivity extends Activity {
         spinner.setOnCancelListener(new OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
-                Intent resultIntent = new Intent();
-                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+                confirmCancelRequest();
             }
         });
 
@@ -146,8 +144,32 @@ public class LoginActivity extends Activity {
     @Override
     public void onBackPressed() {
         Log.d(TAG, "Back button is pressed");
+        
         // Ask user if they rally want to cancel the flow
-        new AlertDialog.Builder(this)
+        if(!wv.canGoBack())
+        {
+            confirmCancelRequest();   
+        }
+        else
+        {
+            // Don't use default back pressed action, since user can go back in webview
+            wv.goBack();
+        }
+        
+    }
+        
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.login, menu);
+        return true;
+    }
+
+    
+    private void confirmCancelRequest()
+    {
+        new AlertDialog.Builder(LoginActivity.this)
         .setTitle("Confirm?")
         .setMessage("Are you sure you want to exit?")
         .setNegativeButton(android.R.string.no, null)  
@@ -158,16 +180,8 @@ public class LoginActivity extends Activity {
                 ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
             }
         }).create().show();
-        
     }
     
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.login, menu);
-        return true;
-    }
-
     private class CustomWebViewClient extends WebViewClient {
         @Override
         @SuppressWarnings("deprecation")
