@@ -153,6 +153,7 @@ public class LoginActivity extends Activity {
         else
         {
             // Don't use default back pressed action, since user can go back in webview
+            // super.onBackPressed sets the result.
             wv.goBack();
         }
         

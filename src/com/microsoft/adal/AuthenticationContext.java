@@ -59,7 +59,6 @@ public class AuthenticationContext {
     private Context mContext;
     private transient ActivityDelegate mActivityDelegate;
     private transient AuthenticationCallback mExternalCallback;
-    static AuthenticationRequest pendingRequest;
 
     /**
      * Delegate to use for starting browser flow from activity's context
@@ -112,6 +111,26 @@ public class AuthenticationContext {
         Log.d(TAG, "Make context from request");
     }
 
+    /**
+     * Get token for this resource if cached
+     * @param resource
+     */
+    public AuthenticationResult getToken(String resource) {
+        final AuthenticationRequest request = new AuthenticationRequest(this, resource);
+
+        // Check cached authorization object
+        final AuthenticationResult cachedResult = getCachedResult(request.getCacheKey());
+
+        if (cachedResult != null) {
+            if (!cachedResult.isExpired()) {
+                return cachedResult;
+            }
+        }
+
+        return null;
+    }
+    
+    
     public void acquireToken(Context activity, String resource, UUID correlationID,
             AuthenticationCallback callback) {
 
@@ -126,7 +145,6 @@ public class AuthenticationContext {
         {
             final AuthenticationRequest request = new AuthenticationRequest(this, resource);
             mExternalCallback = callback;
-            pendingRequest = request;
             // Broker app needs to expose token activity to call from other apps
             Log.d(TAG, "start token activity");
             startTokenActivity(request);
@@ -245,7 +263,6 @@ public class AuthenticationContext {
         } else {
             mExternalCallback = callback;
             setTokenActivityDelegate(activity);
-            pendingRequest = request;
             mContext = activity.getApplicationContext();
             startLoginActivity(request);
         }
@@ -257,10 +274,6 @@ public class AuthenticationContext {
 
         if (context == null)
             throw new IllegalArgumentException("context is null");
-
-        if (pendingRequest != null) {
-            throw new IllegalArgumentException("Attempted to get token while a request is pending.");
-        }
 
         // Check authority url
         ExtractUrl();
@@ -383,13 +396,9 @@ public class AuthenticationContext {
             Bundle extras = data.getExtras();
             if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL)
             {
-                // Clean any pending requests so that new browser flow can start
-                pendingRequest = null;
                 mExternalCallback.onCancelled();
             } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR)
             {
-                // Clean any pending requests so that new browser flow can start
-                pendingRequest = null;
                 AuthenticationRequest errRequest = (AuthenticationRequest) extras
                         .getSerializable(AuthenticationConstants.BROWSER_RESPONSE_ERROR_REQUEST);
                 String errCode = extras
@@ -409,8 +418,6 @@ public class AuthenticationContext {
 
                 Log.d(TAG, "Process this url");
                 processUIResponse(endingUrl);
-                // Clean any pending requests so that new browser flow can start
-                pendingRequest = null;
             }
 
         }
@@ -419,13 +426,9 @@ public class AuthenticationContext {
             Bundle extras = data.getExtras();
             if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL)
             {
-                // Clean any pending requests so that new browser flow can start
-                pendingRequest = null;
                 mExternalCallback.onCancelled();
             } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR)
             {
-                // Clean any pending requests so that new browser flow can start
-                pendingRequest = null;
                 AuthenticationRequest errRequest = (AuthenticationRequest) extras
                         .getSerializable(AuthenticationConstants.BROWSER_RESPONSE_ERROR_REQUEST);
                 String errCode = extras
@@ -435,7 +438,6 @@ public class AuthenticationContext {
                 mExternalCallback.onError(new AuthException(errRequest, errCode, errMessage));
             } else
             {
-                pendingRequest = null;
                 AuthenticationResult resultback = (AuthenticationResult) data
                         .getSerializableExtra(AuthenticationConstants.BROKER_RESPONSE);
                 if (resultback != null)
@@ -475,17 +477,15 @@ public class AuthenticationContext {
             String resource = stateUri.getQueryParameter("r");
             String scope = stateUri.getQueryParameter("s");
 
+            //TODO add more verification for the state if needed
             if (null != authorizationUri && !authorizationUri.isEmpty()
                     && null != resource && !resource.isEmpty()
-                    && resource.equalsIgnoreCase(pendingRequest.getResource())) {
+                    ) {
 
                 // ToDo: if token, ask to token endpoint and post the message
 
                 // Same authority
                 final AuthenticationRequest request = new AuthenticationRequest(this, resource);
-
-                // another browserflow can start now if requested
-                pendingRequest = null;
 
                 AuthenticationResult result = processUIResponseParams(
                         parameters, request);
@@ -539,9 +539,10 @@ public class AuthenticationContext {
     }
 
     /**
-     * Sends a request with the specified parameters to the given endpoint TODO:
-     * add correlationid headers TODO: abstract sendrequest to set headers,
+     * TODO: abstract sendrequest to set headers,
      * method type, data
+     * Sends a request with the specified parameters to the given endpoint TODO:
+     * add correlationid headers 
      */
     private static void sendRequest(final String endpoint,
             HashMap<String, String> requestData,
@@ -648,7 +649,7 @@ public class AuthenticationContext {
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             // Code response
             Calendar expires = new GregorianCalendar();
-            expires.add(Calendar.SECOND, 300);
+            expires.add(Calendar.SECOND, 300); //TODO check .net ADAL for skew time
             result.setAccessTokenType(null);
             result.setAccessTokenType(null);
             result.setCode(response
@@ -679,6 +680,8 @@ public class AuthenticationContext {
                 result.setRefreshToken(response
                         .get(AuthenticationConstants.OAuth2.REFRESH_TOKEN));
 
+                //TODO test broad refresh token
+                //TODO how to use this broad token
                 if (response.containsKey(AuthenticationConstants.AAD.RESOURCE))
                 {
                     result.setBroadRefreshToken(true);
@@ -696,6 +699,7 @@ public class AuthenticationContext {
     }
 
     /**
+     * TODO move token request message to outside
      * Build token request message which uses code to get token
      * 
      * @param result Authentication result which has code
