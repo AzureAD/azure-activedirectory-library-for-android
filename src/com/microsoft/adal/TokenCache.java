@@ -1,47 +1,62 @@
+
 package com.microsoft.adal;
+
 /**
  * Copyright (c) Microsoft Corporation. All rights reserved. 
  */
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.util.Log;
+
+import com.google.gson.Gson;
 
 /**
- * Does cache related actions such as putResult, getResult, removeResult for AuthenticationResult
+ * Does cache related actions such as putResult, getResult, removeResult
+ * This stores cache in SharedPreferences. It is not ideal for large number of tokens.
+ * Shared preferences are Thread-Safe, but not process safe. Each app writes to its own data. Multiple edits can be active within the app.
+ * TODO: watch for: If broker app is hosted in caller's process, this will make it complicated.
  * 
  * @author omercan
  */
 public class TokenCache implements ITokenCache {
 
-    private static TokenCache sSharedInstance = new TokenCache();
+    private static String SHARED_PREFERENCE_NAME = "com.microsoft.adal.cache";
 
-    public static TokenCache getInstance()
+    SharedPreferences mPrefs;
+    private Context mContext;
+    private Gson gson = new Gson();
+
+    TokenCache()
     {
-        return sSharedInstance;
+        mContext = null;
+        mPrefs = null;
     }
 
-    private HashMap<String, AuthenticationResult> mCache;
-    private Object mCacheLock;
-
-    private TokenCache()
+    TokenCache(Context context)
     {
-        mCache = new HashMap<String, AuthenticationResult>();
-        mCacheLock = new Object();
+        mContext = context;
+        mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME,
+                Activity.MODE_PRIVATE);
     }
-
+     
     /**
-     * Gets AuthenticationResult for a given key 
+     * Gets AuthenticationResult for a given key
      */
     public AuthenticationResult getResult(String key)
     {
         if (key == null || key.isEmpty())
             throw new IllegalArgumentException("key");
 
-        synchronized (mCacheLock)
+        if (mPrefs != null && mPrefs.contains(key))
         {
-            return mCache.get(key);
+            String json = mPrefs.getString(key, "");
+            return gson.fromJson(json, AuthenticationResult.class);
         }
+
+        return null;
     }
 
     /*
@@ -50,33 +65,66 @@ public class TokenCache implements ITokenCache {
      * @result Result which has min of access token, refresh token and expire
      * time
      */
-    public void putResult(String key, AuthenticationResult result)
+    public boolean putResult(String key, AuthenticationResult result)
     {
         if (key == null || key.isEmpty())
             throw new IllegalArgumentException("key");
 
-        synchronized (mCacheLock)
+        if (result == null)
+            throw new IllegalArgumentException("result");
+        
+        if (mPrefs != null)
         {
-            mCache.put(key, result);
+            String json = gson.toJson(result);
+            Editor prefsEditor = mPrefs.edit();
+            prefsEditor.putString(key, json);
+
+            // TODO: Check the source code for this editor
+            // when two editors are modifying preferences at the same time, the last one to call commit wins
+            if(!prefsEditor.commit())
+            {
+                return prefsEditor.commit();
+            }
         }
+        
+        return false;
     }
 
-    public void removeResult(String key)
+    /*
+     * remove result for this key from cache (non-Javadoc)
+     * @see com.microsoft.adal.ITokenCache#removeResult(java.lang.String)
+     */
+    public boolean removeResult(String key)
     {
         if (key == null || key.isEmpty())
             throw new IllegalArgumentException("key");
 
-        synchronized (mCacheLock)
+        if (mPrefs != null && mPrefs.contains(key))
         {
-            mCache.remove(key);
+            Editor prefsEditor = mPrefs.edit();
+            prefsEditor.remove(key);
+            return prefsEditor.commit();
         }
+        
+        return false;
     }
 
-    public void removeAll()
+    /*
+     * remove all objects (non-Javadoc)
+     * @see com.microsoft.adal.ITokenCache#removeAll()
+     */
+    public boolean removeAll()
     {
-        synchronized (mCacheLock)
+        if (mPrefs != null)
         {
-            mCache.clear();
+            Editor prefsEditor = mPrefs.edit();
+            prefsEditor.clear();
+            if (!prefsEditor.commit())
+            {
+                return prefsEditor.commit();
+            }
         }
+
+        return false;
     }
 }

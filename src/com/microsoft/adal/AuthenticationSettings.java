@@ -30,9 +30,6 @@ public class AuthenticationSettings {
 
     AuthenticationSettings()
     {
-        // Default cache is memory based
-        mCache = TokenCache.getInstance();
-        
         // Default discovery implementation
         mDiscovery = new Discovery();
     }

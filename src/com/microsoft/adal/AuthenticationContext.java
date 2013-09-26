@@ -93,17 +93,19 @@ public class AuthenticationContext {
      * @param redirectUri
      * @param loginHint
      */
-    public AuthenticationContext(String authority, String clientId, String redirectUri,
+    public AuthenticationContext(Context contextFromMainThread, String authority, String clientId, String redirectUri,
             String loginHint)
     {
+        mContext = contextFromMainThread;
         mAuthority = authority;
         mClientId = clientId;
         mRedirectUri = redirectUri;
         mLoginHint = loginHint;
     }
 
-    public AuthenticationContext(AuthenticationRequest previousRequest)
+    public AuthenticationContext(Context contextFromMainThread, AuthenticationRequest previousRequest)
     {
+        mContext = contextFromMainThread;
         mAuthority = previousRequest.getAuthority();
         mClientId = previousRequest.getClientId();
         mRedirectUri = previousRequest.getRedirectUri();
@@ -129,8 +131,17 @@ public class AuthenticationContext {
 
         return null;
     }
-    
-    
+   
+    /**
+     * acquire Token will start interactive flow if needed.
+     * It checks the cache to return existing result if not expired.
+     * It tries to use refresh token if available. If it fails to get token with refresh token, it will remove
+     * this refresh token from cache and return error without trying interactive flow.
+     * @param activity
+     * @param resource
+     * @param correlationID
+     * @param callback
+     */
     public void acquireToken(Context activity, String resource, UUID correlationID,
             AuthenticationCallback callback) {
 
@@ -215,7 +226,7 @@ public class AuthenticationContext {
         downloadDialog.show();
     }
 
-    public static void invalidateToken(String authority, String clientid, String redirect,
+    public void invalidateToken(String authority, String clientid, String redirect,
             String resource, String scope, String loginHint)
     {
         final AuthenticationRequest request = new AuthenticationRequest(authority, clientid,
@@ -232,13 +243,12 @@ public class AuthenticationContext {
         }
     }
 
-    public static void resetTokens()
+    public void resetTokens()
     {
-        if (getSettings().getEnableTokenCaching())
+        ITokenCache cache = getCache();
+        if (cache != null)
         {
-            getSettings().getCache().removeAll();            
-            
-            
+            cache.removeAll();            
         }
     }
 
@@ -793,7 +803,7 @@ public class AuthenticationContext {
      * @param targetResource Resource to ask for refresh token
      * @param callback Callback to be called for results
      */
-    public void refreshToken(AuthenticationResult cachedResult, String targetResource,
+    private void refreshToken(AuthenticationResult cachedResult, String targetResource,
             AuthenticationCallback callback) {
         // Same authority
         final AuthenticationRequest request = new AuthenticationRequest(this, targetResource);
@@ -814,6 +824,7 @@ public class AuthenticationContext {
                             externalCallback.onCompleted(result);
                         } else {
                             // did not get token
+                            
                             externalCallback
                                     .onError(new AuthException(request, result
                                             .getErrorCode(), result
@@ -822,11 +833,41 @@ public class AuthenticationContext {
                     }
                 });
     }
+    
+    /*
+     * Return cache from settings if it was set.
+     * Otherwise, return default impl.
+     */
+    private ITokenCache getCache()
+    {
+        // Default cache uses shared preferences and needs to be connected to
+        // the context
+        // Shared pref. handles synchronization
 
-    private static AuthenticationResult getCachedResult(String cacheKey) {
+        ITokenCache cache = null;
         if (getSettings().getEnableTokenCaching())
         {
-            return getSettings().getCache().getResult(cacheKey);
+            cache = getSettings().getCache();
+            if (cache == null)
+            {
+                // Context should be passed in 
+                if (mContext == null)
+                    throw new IllegalArgumentException("Context");
+
+                cache = new TokenCache(mContext);
+            }
+        }
+
+        return cache;
+    }
+
+    private AuthenticationResult getCachedResult(String cacheKey) {
+        if (getSettings().getEnableTokenCaching())
+        {
+            if(getCache() != null)
+            {
+                return getCache().getResult(cacheKey);
+            }
         }
 
         return null;
@@ -835,11 +876,26 @@ public class AuthenticationContext {
     private void setCachedResult(String cacheKey, AuthenticationResult result) {
         if (getSettings().getEnableTokenCaching())
         {
-            getSettings().getCache().putResult(cacheKey, result);
+            if (getCache() != null)
+            {
+                getCache().putResult(cacheKey, result);
+            }
         }
-
     }
 
+    private void removeCachedResult(String cacheKey) {
+        if (getSettings().getEnableTokenCaching())
+        {
+            if(!getCache().removeResult(cacheKey))
+            {
+                if(!getCache().removeResult(cacheKey))
+                {
+                    Log.e(TAG, "Cache remove failed!");
+                }
+            }
+        }
+    }
+    
     private void ValidateAuthority()
     {
         if (getSettings().getValidateAuthority())
