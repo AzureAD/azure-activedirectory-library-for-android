@@ -812,7 +812,7 @@ public class AuthenticationContext {
         final AuthenticationCallback externalCallback = callback;
         Log.d(TAG, "Calling sendrequest for refreshtoken");
 
-        sendRequest(cachedResult.getTokenEndpoint(),
+        sendRequest(request.getTokenEndpoint(),
                 tokenRequestMessage, new OnResponseListener() {
                     @Override
                     public void onComplete(HashMap<String, String> response) {
