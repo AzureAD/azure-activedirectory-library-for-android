@@ -93,7 +93,8 @@ public class AuthenticationContext {
      * @param redirectUri
      * @param loginHint
      */
-    public AuthenticationContext(Context contextFromMainThread, String authority, String clientId, String redirectUri,
+    public AuthenticationContext(Context contextFromMainThread, String authority, String clientId,
+            String redirectUri,
             String loginHint)
     {
         mContext = contextFromMainThread;
@@ -103,7 +104,8 @@ public class AuthenticationContext {
         mLoginHint = loginHint;
     }
 
-    public AuthenticationContext(Context contextFromMainThread, AuthenticationRequest previousRequest)
+    public AuthenticationContext(Context contextFromMainThread,
+            AuthenticationRequest previousRequest)
     {
         mContext = contextFromMainThread;
         mAuthority = previousRequest.getAuthority();
@@ -115,6 +117,7 @@ public class AuthenticationContext {
 
     /**
      * Get token for this resource if cached
+     * 
      * @param resource
      */
     public AuthenticationResult getToken(String resource) {
@@ -131,12 +134,14 @@ public class AuthenticationContext {
 
         return null;
     }
-   
+
     /**
-     * acquire Token will start interactive flow if needed.
-     * It checks the cache to return existing result if not expired.
-     * It tries to use refresh token if available. If it fails to get token with refresh token, it will remove
-     * this refresh token from cache and return error without trying interactive flow.
+     * acquire Token will start interactive flow if needed. It checks the cache
+     * to return existing result if not expired. It tries to use refresh token
+     * if available. If it fails to get token with refresh token, it will remove
+     * this refresh token from cache and return error without trying interactive
+     * flow.
+     * 
      * @param activity
      * @param resource
      * @param correlationID
@@ -170,62 +175,7 @@ public class AuthenticationContext {
             acquireTokenLocal(activity, resource, correlationID, callback);
         }
     }
-
-    private void startTokenActivity(AuthenticationRequest request) {
-        // TODO Auto-generated method stub
-        Intent intent = getTokenActivityIntent(request);
-
-        if (!resolveIntent(intent)) {
-            mExternalCallback.onError(new AuthException(request, "intent resolve failure",
-                    "failed to resolve intent"));
-        }
-
-        try {
-            // Start activity from callers context so that caller can intercept
-            // when it is done
-            getTokenActivityDelegate().startActivityForResult(intent,
-                    AuthenticationConstants.UIRequest.TOKEN_FLOW);
-        } catch (ActivityNotFoundException e) {
-            Log.d(TAG, "Activity login not found");
-            mExternalCallback.onError(e);
-        }
-    }
-
-    private void askUserToInstallBroker() {
-        // implement prompt dialog asking user to download the package
-        AlertDialog.Builder downloadDialog = new AlertDialog.Builder(mContext);
-        downloadDialog.setTitle("Download that bro");
-        downloadDialog.setMessage("Really get that now!");
-        downloadDialog.setPositiveButton("yes",
-                new DialogInterface.OnClickListener()
-                {
-                    public void onClick(DialogInterface dialogInterface, int i)
-                    {
-                        Uri uri = Uri
-                                .parse("market://search?q=pname:com.google.zxing.client.android");
-                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                        try
-                        {
-                            getTokenActivityDelegate().startActivity(intent);
-                        }
-                        catch (ActivityNotFoundException e)
-                        {
-                            Log.d(TAG, "ERROR Google Play Market not found!");
-                            mExternalCallback.onError(e);
-                        }
-                    }
-                });
-        downloadDialog.setNegativeButton("no",
-                new DialogInterface.OnClickListener()
-                {
-                    public void onClick(DialogInterface dialog, int i)
-                    {
-                        dialog.dismiss();
-                    }
-                });
-        downloadDialog.show();
-    }
-
+        
     public void invalidateToken(String authority, String clientid, String redirect,
             String resource, String scope, String loginHint)
     {
@@ -248,10 +198,17 @@ public class AuthenticationContext {
         ITokenCache cache = getCache();
         if (cache != null)
         {
-            cache.removeAll();            
+            cache.removeAll();
         }
     }
 
+    /**
+     * TODO: investigating broker call
+     * @param activity
+     * @param resource
+     * @param correlationID
+     * @param callback
+     */
     public void acquireTokenLocal(Context activity, String resource, UUID correlationID,
             AuthenticationCallback callback) {
 
@@ -276,120 +233,6 @@ public class AuthenticationContext {
             mContext = activity.getApplicationContext();
             startLoginActivity(request);
         }
-    }
-
-    private void verifyParams(Context context, AuthenticationCallback callback) {
-        if (callback == null)
-            throw new IllegalArgumentException("listener is null");
-
-        if (context == null)
-            throw new IllegalArgumentException("context is null");
-
-        // Check authority url
-        ExtractUrl();
-
-        // If user has enabled validation, it will call the discovery service to
-        // verify the instance
-        ValidateAuthority();
-    }
-
-    private void setTokenActivityDelegate(Context context)
-    {
-        final Context callingActivity = context;
-        mActivityDelegate = new ActivityDelegate() {
-            @Override
-            public void startActivityForResult(Intent intent, int requestCode) {
-                Log.d(TAG, "Delegate calling startActivityForResult");
-                ((Activity) callingActivity).startActivityForResult(intent, requestCode);
-            }
-
-            @Override
-            public Activity getActivityContext() {
-                return (Activity) callingActivity;
-            }
-
-            @Override
-            public void startActivity(Intent intent) {
-                Log.d(TAG, "Delegate calling startActivity");
-                callingActivity.startActivity(intent);
-            }
-        };
-    }
-
-    ActivityDelegate getTokenActivityDelegate() {
-        return mActivityDelegate;
-    }
-
-    private boolean startLoginActivity(AuthenticationRequest request) {
-        Intent intent = getLoginActivityIntent(request);
-
-        if (!resolveIntent(intent)) {
-            return false;
-        }
-
-        try {
-            // Start activity from callers context so that caller can intercept
-            // when it is done
-            getTokenActivityDelegate().startActivityForResult(intent,
-                    AuthenticationConstants.UIRequest.BROWSER_FLOW);
-        } catch (ActivityNotFoundException e) {
-            Log.d(TAG, "Activity login not found");
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Resolve activity from the package
-     * 
-     * @param intent
-     * @return
-     */
-    private boolean resolveIntent(Intent intent) {
-
-        ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
-        if (resolveInfo == null) {
-            return false;
-        }
-        return true;
-    }
-
-    private Intent getLoginActivityIntent(AuthenticationRequest request) {
-        Intent intent = new Intent();
-        intent.setClass(mContext, LoginActivity.class);
-        intent.putExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE, request);
-        return intent;
-    }
-
-    /*
-     * It targets broker app's Token Activity. If it is not exposed in the broker app, it will fail.
-     */
-    private Intent getTokenActivityIntent(AuthenticationRequest request) {
-        Intent intent = new Intent(BROKER_APP_TOKEN_ACTION);
-        intent.putExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE, request);
-        return intent;
-    }
-
-    /**
-     * Check if app installed on this device
-     * 
-     * @param uri
-     * @return
-     */
-    private boolean appInstalledOrNot(String name)
-    {
-        PackageManager pm = mContext.getPackageManager();
-        boolean app_installed = false;
-        try
-        {
-            pm.getPackageInfo(name, PackageManager.GET_ACTIVITIES);
-            app_installed = true;
-        } catch (PackageManager.NameNotFoundException e)
-        {
-            app_installed = false;
-        }
-        return app_installed;
     }
 
     /**
@@ -461,6 +304,384 @@ public class AuthenticationContext {
             }
         }
     }
+    
+    /**
+     * Callback to use for web ui login completed
+     */
+    interface WebLoginCallback {
+        /**
+         * Method to call if the operation finishes successfully
+         * 
+         * @param url The final login URL
+         * @param e An exception
+         */
+        void onCompleted(String url, Exception exception);
+
+        /*
+         * User or UI cancelled login
+         */
+        void onCancelled();
+    }
+
+    public static AuthenticationSettings getSettings() {
+        return AuthenticationSettings.getInstance();
+    }
+
+    public String getAuthority() {
+        return mAuthority;
+    }
+
+    public String getClientId() {
+        return mClientId;
+    }
+
+    public String getRedirectUri() {
+        return mRedirectUri;
+    }
+
+    /*
+     * 
+     *      Private methods
+     *  
+     */
+    private void verifyParams(Context context, AuthenticationCallback callback) {
+        if (callback == null)
+            throw new IllegalArgumentException("listener is null");
+
+        if (context == null)
+            throw new IllegalArgumentException("context is null");
+
+        // Check authority url
+        ExtractUrl();
+
+        // If user has enabled validation, it will call the discovery service to
+        // verify the instance
+        ValidateAuthority();
+    }
+
+    private void setTokenActivityDelegate(Context context)
+    {
+        final Context callingActivity = context;
+        mActivityDelegate = new ActivityDelegate() {
+            @Override
+            public void startActivityForResult(Intent intent, int requestCode) {
+                Log.d(TAG, "Delegate calling startActivityForResult");
+                ((Activity) callingActivity).startActivityForResult(intent, requestCode);
+            }
+
+            @Override
+            public Activity getActivityContext() {
+                return (Activity) callingActivity;
+            }
+
+            @Override
+            public void startActivity(Intent intent) {
+                Log.d(TAG, "Delegate calling startActivity");
+                callingActivity.startActivity(intent);
+            }
+        };
+    }
+
+    private ActivityDelegate getTokenActivityDelegate() {
+        return mActivityDelegate;
+    }
+
+    private boolean startLoginActivity(AuthenticationRequest request) {
+        Intent intent = getLoginActivityIntent(request);
+
+        if (!resolveIntent(intent)) {
+            return false;
+        }
+
+        try {
+            // Start activity from callers context so that caller can intercept
+            // when it is done
+            getTokenActivityDelegate().startActivityForResult(intent,
+                    AuthenticationConstants.UIRequest.BROWSER_FLOW);
+        } catch (ActivityNotFoundException e) {
+            Log.d(TAG, "Activity login not found");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Resolve activity from the package
+     * 
+     * @param intent
+     * @return
+     */
+    private boolean resolveIntent(Intent intent) {
+
+        ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
+        if (resolveInfo == null) {
+            return false;
+        }
+        return true;
+    }
+
+    private Intent getLoginActivityIntent(AuthenticationRequest request) {
+        Intent intent = new Intent();
+        intent.setClass(mContext, LoginActivity.class);
+        intent.putExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE, request);
+        return intent;
+    }
+
+    /*
+     * It targets broker app's Token Activity. If it is not exposed in the
+     * broker app, it will fail.
+     */
+    private Intent getTokenActivityIntent(AuthenticationRequest request) {
+        Intent intent = new Intent(BROKER_APP_TOKEN_ACTION);
+        intent.putExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE, request);
+        return intent;
+    }
+
+    /**
+     * Check if app installed on this device
+     * 
+     * @param uri
+     * @return
+     */
+    private boolean appInstalledOrNot(String name)
+    {
+        PackageManager pm = mContext.getPackageManager();
+        boolean app_installed = false;
+        try
+        {
+            pm.getPackageInfo(name, PackageManager.GET_ACTIVITIES);
+            app_installed = true;
+        } catch (PackageManager.NameNotFoundException e)
+        {
+            app_installed = false;
+        }
+        return app_installed;
+    }
+    
+    private void ExtractUrl()
+    {
+        // Authorization server URL is like
+        // "https://login.windows.net/somewhere.onmicrosoft.com"
+        // - must not be empty
+        // - must be absolute
+        // - must not have query or fragment
+        // - must be https
+        if (mAuthority == null || mAuthority.isEmpty())
+            throw new IllegalArgumentException("authorizationServer");
+
+        Uri uri = Uri.parse(mAuthority);
+
+        if (!uri.isAbsolute()) {
+            throw new IllegalArgumentException("authorizationServer");
+        }
+        if (!uri.getScheme().equalsIgnoreCase("https")) {
+            throw new IllegalArgumentException("authorizationServer");
+        }
+        if (uri.getFragment() != null || uri.getQuery() != null) {
+            throw new IllegalArgumentException("authorizationServer has query or fragments");
+        }
+
+        // Normalize authority url to remove extra url parts
+        int thirdSlash = mAuthority.indexOf("/", 8); // exclude starting
+                                                     // https:// or http://
+        if (thirdSlash >= 0)
+        {
+            if (thirdSlash != (mAuthority.length() - 1))
+            {
+                // Extract url
+                int fourthSlash = mAuthority.indexOf("/", thirdSlash + 1);
+                if (fourthSlash > thirdSlash + 1)
+                {
+                    mAuthority.substring(0, fourthSlash);
+                }
+            }
+        }
+        else
+        {
+            throw new IllegalArgumentException("Authority url");
+        }
+    }
+    
+    private void ValidateAuthority()
+    {
+        if (getSettings().getValidateAuthority())
+        {
+            if (!getSettings().getDiscovery().IsValidAuthority(mAuthority))
+            {
+                throw new IllegalArgumentException("Authority is not valid");
+            }
+        }
+    }
+    
+    /**
+     * Refresh token based on cached result and targetresource.
+     * 
+     * @param cachedResult ClientId, Refreshtoken, RedirectUri are used from
+     *            this result obj
+     * @param targetResource Resource to ask for refresh token
+     * @param callback Callback to be called for results
+     */
+    private void refreshToken(AuthenticationResult cachedResult, String targetResource,
+            AuthenticationCallback callback) {
+        // Same authority
+        final AuthenticationRequest request = new AuthenticationRequest(this, targetResource);
+        HashMap<String, String> tokenRequestMessage = buildRefreshTokenRequestMessage(cachedResult,
+                targetResource);
+        final AuthenticationCallback externalCallback = callback;
+        Log.d(TAG, "Calling sendrequest for refreshtoken");
+
+        sendRequest(request.getTokenEndpoint(),
+                tokenRequestMessage, new OnResponseListener() {
+                    @Override
+                    public void onComplete(HashMap<String, String> response) {
+                        Log.d(TAG, "sendRequest onComplete");
+                        AuthenticationResult result = processUIResponseParams(response, request);
+
+                        if (result.getStatus() == com.microsoft.adal.AuthenticationResult.AuthenticationStatus.Succeeded) {
+                            setCachedResult(request.getCacheKey(), result);
+                            externalCallback.onCompleted(result);
+                        } else {
+                            // did not get token
+
+                            externalCallback
+                                    .onError(new AuthException(request, result
+                                            .getErrorCode(), result
+                                            .getErrorDescription()));
+                        }
+                    }
+                });
+    }
+
+    /*
+     * Return cache from settings if it was set. Otherwise, return default impl.
+     */
+    private ITokenCache getCache()
+    {
+        // Default cache uses shared preferences and needs to be connected to
+        // the context
+        // Shared pref. handles synchronization
+
+        ITokenCache cache = null;
+        if (getSettings().getEnableTokenCaching())
+        {
+            cache = getSettings().getCache();
+            if (cache == null)
+            {
+                // Context should be passed in
+                if (mContext == null)
+                    throw new IllegalArgumentException("Context");
+
+                cache = new TokenCache(mContext);
+            }
+        }
+
+        return cache;
+    }
+
+    private AuthenticationResult getCachedResult(String cacheKey) {
+        if (getSettings().getEnableTokenCaching())
+        {
+            if (getCache() != null)
+            {
+                return getCache().getResult(cacheKey);
+            }
+        }
+
+        return null;
+    }
+
+    private void setCachedResult(String cacheKey, AuthenticationResult result) {
+        if (getSettings().getEnableTokenCaching())
+        {
+            if (getCache() != null)
+            {
+                getCache().putResult(cacheKey, result);
+            }
+        }
+    }
+
+    private void removeCachedResult(String cacheKey) {
+        if (getSettings().getEnableTokenCaching())
+        {
+            if (!getCache().removeResult(cacheKey))
+            {
+                if (!getCache().removeResult(cacheKey))
+                {
+                    Log.e(TAG, "Cache remove failed!");
+                }
+            }
+        }
+    }
+    
+    /**
+     * TODO move token request message to outside Build token request message
+     * which uses code to get token
+     * 
+     * @param result Authentication result which has code
+     * @return Hashmap request params
+     */
+    private HashMap<String, String> buildTokenRequestMessage(
+            AuthenticationResult result) {
+        HashMap<String, String> reqParameters = new HashMap<String, String>();
+
+        reqParameters.put(AuthenticationConstants.OAuth2.GRANT_TYPE,
+                AuthenticationConstants.OAuth2.AUTHORIZATION_CODE);
+
+        reqParameters.put(AuthenticationConstants.OAuth2.CODE, result
+                .getCode());
+
+        reqParameters.put(AuthenticationConstants.OAuth2.CLIENT_ID,
+                result.getClientId());
+
+        reqParameters.put(AuthenticationConstants.OAuth2.REDIRECT_URI,
+                result.getRedirectUri());
+
+        return reqParameters;
+    }
+
+    /*
+     * If refresh token is broad refresh token, this request will include
+     * resource in the message.
+     */
+    private HashMap<String, String> buildRefreshTokenRequestMessage(
+            AuthenticationResult cachedResult, String targetResource) {
+        HashMap<String, String> reqParameters = new HashMap<String, String>();
+
+        if (TextUtils.isEmpty(cachedResult.getRefreshToken()))
+        {
+            throw new IllegalArgumentException("Refresh token is required");
+        }
+
+        if (TextUtils.isEmpty(cachedResult.getRedirectUri()))
+        {
+            throw new IllegalArgumentException("RedirectUri is required");
+        }
+
+        if (TextUtils.isEmpty(cachedResult.getClientId()))
+        {
+            throw new IllegalArgumentException("ClientId is required");
+        }
+
+        reqParameters.put(AuthenticationConstants.OAuth2.GRANT_TYPE,
+                AuthenticationConstants.OAuth2.REFRESH_TOKEN);
+
+        reqParameters.put(AuthenticationConstants.OAuth2.REFRESH_TOKEN, cachedResult
+                .getRefreshToken());
+
+        reqParameters.put(AuthenticationConstants.OAuth2.REDIRECT_URI,
+                cachedResult.getRedirectUri());
+
+        reqParameters.put(AuthenticationConstants.OAuth2.CLIENT_ID,
+                cachedResult.getClientId());
+
+        if (cachedResult.IsBroadRefreshToken())
+        {
+            reqParameters.put(AuthenticationConstants.AAD.RESOURCE,
+                    targetResource);
+        }
+        return reqParameters;
+    }
 
     /**
      * TODO: cleanup
@@ -487,10 +708,9 @@ public class AuthenticationContext {
             String resource = stateUri.getQueryParameter("r");
             String scope = stateUri.getQueryParameter("s");
 
-            //TODO add more verification for the state if needed
+            // TODO add more verification for the state if needed
             if (null != authorizationUri && !authorizationUri.isEmpty()
-                    && null != resource && !resource.isEmpty()
-                    ) {
+                    && null != resource && !resource.isEmpty()) {
 
                 // ToDo: if token, ask to token endpoint and post the message
 
@@ -549,10 +769,9 @@ public class AuthenticationContext {
     }
 
     /**
-     * TODO: abstract sendrequest to set headers,
-     * method type, data
-     * Sends a request with the specified parameters to the given endpoint TODO:
-     * add correlationid headers 
+     * TODO: abstract sendrequest to set headers, method type, data Sends a
+     * request with the specified parameters to the given endpoint TODO: add
+     * correlationid headers
      */
     private static void sendRequest(final String endpoint,
             HashMap<String, String> requestData,
@@ -659,7 +878,8 @@ public class AuthenticationContext {
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             // Code response
             Calendar expires = new GregorianCalendar();
-            expires.add(Calendar.SECOND, 300); //TODO check .net ADAL for skew time
+            expires.add(Calendar.SECOND, 300); // TODO check .net ADAL for skew
+                                               // time
             result.setAccessTokenType(null);
             result.setAccessTokenType(null);
             result.setCode(response
@@ -690,8 +910,8 @@ public class AuthenticationContext {
                 result.setRefreshToken(response
                         .get(AuthenticationConstants.OAuth2.REFRESH_TOKEN));
 
-                //TODO test broad refresh token
-                //TODO how to use this broad token
+                // TODO test broad refresh token
+                // TODO how to use this broad token
                 if (response.containsKey(AuthenticationConstants.AAD.RESOURCE))
                 {
                     result.setBroadRefreshToken(true);
@@ -707,264 +927,59 @@ public class AuthenticationContext {
 
         return result;
     }
+    
+    private void startTokenActivity(AuthenticationRequest request) {
+        // TODO Auto-generated method stub
+        Intent intent = getTokenActivityIntent(request);
 
-    /**
-     * TODO move token request message to outside
-     * Build token request message which uses code to get token
-     * 
-     * @param result Authentication result which has code
-     * @return Hashmap request params
-     */
-    private HashMap<String, String> buildTokenRequestMessage(
-            AuthenticationResult result) {
-        HashMap<String, String> reqParameters = new HashMap<String, String>();
+        if (!resolveIntent(intent)) {
+            mExternalCallback.onError(new AuthException(request, "intent resolve failure",
+                    "failed to resolve intent"));
+        }
 
-        reqParameters.put(AuthenticationConstants.OAuth2.GRANT_TYPE,
-                AuthenticationConstants.OAuth2.AUTHORIZATION_CODE);
-
-        reqParameters.put(AuthenticationConstants.OAuth2.CODE, result
-                .getCode());
-
-        reqParameters.put(AuthenticationConstants.OAuth2.CLIENT_ID,
-                result.getClientId());
-
-        reqParameters.put(AuthenticationConstants.OAuth2.REDIRECT_URI,
-                result.getRedirectUri());
-
-        return reqParameters;
+        try {
+            // Start activity from callers context so that caller can intercept
+            // when it is done
+            getTokenActivityDelegate().startActivityForResult(intent,
+                    AuthenticationConstants.UIRequest.TOKEN_FLOW);
+        } catch (ActivityNotFoundException e) {
+            Log.d(TAG, "Activity login not found");
+            mExternalCallback.onError(e);
+        }
     }
 
-    /*
-     * If refresh token is broad refresh token, this request will include
-     * resource in the message.
-     */
-    private HashMap<String, String> buildRefreshTokenRequestMessage(
-            AuthenticationResult cachedResult, String targetResource) {
-        HashMap<String, String> reqParameters = new HashMap<String, String>();
-
-        if (TextUtils.isEmpty(cachedResult.getRefreshToken()))
-        {
-            throw new IllegalArgumentException("Refresh token is required");
-        }
-
-        if (TextUtils.isEmpty(cachedResult.getRedirectUri()))
-        {
-            throw new IllegalArgumentException("RedirectUri is required");
-        }
-
-        if (TextUtils.isEmpty(cachedResult.getClientId()))
-        {
-            throw new IllegalArgumentException("ClientId is required");
-        }
-
-        reqParameters.put(AuthenticationConstants.OAuth2.GRANT_TYPE,
-                AuthenticationConstants.OAuth2.REFRESH_TOKEN);
-
-        reqParameters.put(AuthenticationConstants.OAuth2.REFRESH_TOKEN, cachedResult
-                .getRefreshToken());
-
-        reqParameters.put(AuthenticationConstants.OAuth2.REDIRECT_URI,
-                cachedResult.getRedirectUri());
-
-        reqParameters.put(AuthenticationConstants.OAuth2.CLIENT_ID,
-                cachedResult.getClientId());
-
-        if (cachedResult.IsBroadRefreshToken())
-        {
-            reqParameters.put(AuthenticationConstants.AAD.RESOURCE,
-                    targetResource);
-        }
-        return reqParameters;
-    }
-
-    /**
-     * Callback to use for web ui login completed
-     */
-    interface WebLoginCallback {
-        /**
-         * Method to call if the operation finishes successfully
-         * 
-         * @param url The final login URL
-         * @param e An exception
-         */
-        void onCompleted(String url, Exception exception);
-
-        /*
-         * User or UI cancelled login
-         */
-        void onCancelled();
-    }
-
-    /**
-     * Refresh token based on cached result and targetresource.
-     * 
-     * @param cachedResult ClientId, Refreshtoken, RedirectUri are used from
-     *            this result obj
-     * @param targetResource Resource to ask for refresh token
-     * @param callback Callback to be called for results
-     */
-    private void refreshToken(AuthenticationResult cachedResult, String targetResource,
-            AuthenticationCallback callback) {
-        // Same authority
-        final AuthenticationRequest request = new AuthenticationRequest(this, targetResource);
-        HashMap<String, String> tokenRequestMessage = buildRefreshTokenRequestMessage(cachedResult,
-                targetResource);
-        final AuthenticationCallback externalCallback = callback;
-        Log.d(TAG, "Calling sendrequest for refreshtoken");
-
-        sendRequest(request.getTokenEndpoint(),
-                tokenRequestMessage, new OnResponseListener() {
-                    @Override
-                    public void onComplete(HashMap<String, String> response) {
-                        Log.d(TAG, "sendRequest onComplete");
-                        AuthenticationResult result = processUIResponseParams(response, request);
-
-                        if (result.getStatus() == com.microsoft.adal.AuthenticationResult.AuthenticationStatus.Succeeded) {
-                            setCachedResult(request.getCacheKey(), result);
-                            externalCallback.onCompleted(result);
-                        } else {
-                            // did not get token
-                            
-                            externalCallback
-                                    .onError(new AuthException(request, result
-                                            .getErrorCode(), result
-                                            .getErrorDescription()));
+    private void askUserToInstallBroker() {
+        // implement prompt dialog asking user to download the package
+        AlertDialog.Builder downloadDialog = new AlertDialog.Builder(mContext);
+        downloadDialog.setTitle("Download that bro");
+        downloadDialog.setMessage("Really get that now!");
+        downloadDialog.setPositiveButton("yes",
+                new DialogInterface.OnClickListener()
+                {
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        Uri uri = Uri
+                                .parse("market://search?q=pname:com.google.zxing.client.android");
+                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                        try
+                        {
+                            getTokenActivityDelegate().startActivity(intent);
+                        }
+                        catch (ActivityNotFoundException e)
+                        {
+                            Log.d(TAG, "ERROR Google Play Market not found!");
+                            mExternalCallback.onError(e);
                         }
                     }
                 });
-    }
-    
-    /*
-     * Return cache from settings if it was set.
-     * Otherwise, return default impl.
-     */
-    private ITokenCache getCache()
-    {
-        // Default cache uses shared preferences and needs to be connected to
-        // the context
-        // Shared pref. handles synchronization
-
-        ITokenCache cache = null;
-        if (getSettings().getEnableTokenCaching())
-        {
-            cache = getSettings().getCache();
-            if (cache == null)
-            {
-                // Context should be passed in 
-                if (mContext == null)
-                    throw new IllegalArgumentException("Context");
-
-                cache = new TokenCache(mContext);
-            }
-        }
-
-        return cache;
-    }
-
-    private AuthenticationResult getCachedResult(String cacheKey) {
-        if (getSettings().getEnableTokenCaching())
-        {
-            if(getCache() != null)
-            {
-                return getCache().getResult(cacheKey);
-            }
-        }
-
-        return null;
-    }
-
-    private void setCachedResult(String cacheKey, AuthenticationResult result) {
-        if (getSettings().getEnableTokenCaching())
-        {
-            if (getCache() != null)
-            {
-                getCache().putResult(cacheKey, result);
-            }
-        }
-    }
-
-    private void removeCachedResult(String cacheKey) {
-        if (getSettings().getEnableTokenCaching())
-        {
-            if(!getCache().removeResult(cacheKey))
-            {
-                if(!getCache().removeResult(cacheKey))
+        downloadDialog.setNegativeButton("no",
+                new DialogInterface.OnClickListener()
                 {
-                    Log.e(TAG, "Cache remove failed!");
-                }
-            }
-        }
+                    public void onClick(DialogInterface dialog, int i)
+                    {
+                        dialog.dismiss();
+                    }
+                });
+        downloadDialog.show();
     }
-    
-    private void ValidateAuthority()
-    {
-        if (getSettings().getValidateAuthority())
-        {
-            if (!getSettings().getDiscovery().IsValidAuthority(mAuthority))
-            {
-                throw new IllegalArgumentException("Authority is not valid");
-            }
-        }
-    }
-
-    private void ExtractUrl()
-    {
-        // Authorization server URL is like
-        // "https://login.windows.net/somewhere.onmicrosoft.com"
-        // - must not be empty
-        // - must be absolute
-        // - must not have query or fragment
-        // - must be https
-        if (mAuthority == null || mAuthority.isEmpty())
-            throw new IllegalArgumentException("authorizationServer");
-
-        Uri uri = Uri.parse(mAuthority);
-
-        if (!uri.isAbsolute()) {
-            throw new IllegalArgumentException("authorizationServer");
-        }
-        if (!uri.getScheme().equalsIgnoreCase("https")) {
-            throw new IllegalArgumentException("authorizationServer");
-        }
-        if (uri.getFragment() != null || uri.getQuery() != null) {
-            throw new IllegalArgumentException("authorizationServer has query or fragments");
-        }
-
-        // Normalize authority url to remove extra url parts
-        int thirdSlash = mAuthority.indexOf("/", 8); // exclude starting
-                                                     // https:// or http://
-        if (thirdSlash >= 0)
-        {
-            if (thirdSlash != (mAuthority.length() - 1))
-            {
-                // Extract url
-                int fourthSlash = mAuthority.indexOf("/", thirdSlash + 1);
-                if (fourthSlash > thirdSlash + 1)
-                {
-                    mAuthority.substring(0, fourthSlash);
-                }
-            }
-        }
-        else
-        {
-            throw new IllegalArgumentException("Authority url");
-        }
-    }
-
-    public static AuthenticationSettings getSettings() {
-        return AuthenticationSettings.getInstance();
-    }
-
-    public String getAuthority() {
-        return mAuthority;
-    }
-
-    public String getClientId() {
-        return mClientId;
-    }
-
-    public String getRedirectUri() {
-        return mRedirectUri;
-    }
-
 }
