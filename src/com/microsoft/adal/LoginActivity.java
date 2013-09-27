@@ -61,8 +61,7 @@ public class LoginActivity extends Activity {
 
             @Override
             public void onClick(View v) {
-                Intent resultIntent = new Intent();
-                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+                confirmCancelRequest();
             }
         });
 
