@@ -23,7 +23,7 @@ public class AuthenticationOptions {
          * The user will be prompted for credentials even if it is available in the cache or in the form of refresh token. New acquired access token and refrefsh token will
          * be used to replace previous value. If Settings switched to Auto, new request will use this latest token from cache. 
          */
-        Always,
+        Always
     }
 
     private PromptBehavior mPromptBehaviour;
@@ -33,6 +33,8 @@ public class AuthenticationOptions {
     private boolean mCheckForBrokerApp;
     private boolean mValidateAuthority;
     private UUID mCorrelationID;
+    
+    private boolean mShowLoginScreen;
     
     public PromptBehavior getPromptBehaviour() {
         return mPromptBehaviour;
@@ -69,6 +71,18 @@ public class AuthenticationOptions {
     }
     public void setCorrelationID(UUID mCorrelationID) {
         this.mCorrelationID = mCorrelationID;
+    }
+    
+    /**
+     * flag if user wants to show login interaction screen or not. Developer may want to launch main app first and check if login available, if not available they can redirect to login activity.
+     * @return
+     */
+    public boolean getShowLoginScreen() {
+        return mShowLoginScreen;
+    }
+    
+    public void setShowLoginScreen(boolean mShowLoginScreen) {
+        this.mShowLoginScreen = mShowLoginScreen;
     }
     
 }

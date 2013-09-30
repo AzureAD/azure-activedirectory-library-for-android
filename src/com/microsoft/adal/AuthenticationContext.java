@@ -9,7 +9,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.UUID;
 
 import org.json.JSONObject;
 
@@ -25,6 +24,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 
 import com.microsoft.adal.AuthenticationOptions.Endpoint;
 import com.microsoft.adal.AuthenticationOptions.PromptBehavior;
@@ -152,7 +153,69 @@ public class AuthenticationContext {
     {
         throw new UnsupportedOperationException("come back later");
     }
-
+    
+    /**
+     * Acquire token with externally provided authorization code. You can use full browser to get auth code or by other means.
+     * @param activityContext
+     * @param clientId
+     * @param resource
+     * @param redirectUri
+     * @param loginHint
+     * @param options
+     * @param callback
+     */
+    public void acquireTokenByAuthorizationCode(String clientId, String resource,
+            String redirectUri, String loginHint, AuthenticationOptions options,
+            AuthenticationCallback callback)
+    {
+        throw new UnsupportedOperationException("come back later");
+    }
+    
+    /**
+     * Acquire token with externally provided authorization code. You can use full browser to get auth code or by other means.
+     * @param code
+     * @param resource
+     * @param credential
+     * @param options
+     * @param callback
+     */
+    public void acquireTokenByAuthorizationCode(String code, String resource, ICredential credential,
+            AuthenticationOptions options, AuthenticationCallback callback)
+    {
+        throw new UnsupportedOperationException("come back later");
+    }
+    
+    /**
+     * acquire token using refresh code if cache is not used. Otherwise, use acquireToken to let the ADAL handle the cache lookup and refresh token request.
+     * @param activityContext
+     * @param clientId
+     * @param resource
+     * @param redirectUri
+     * @param loginHint
+     * @param options
+     * @param callback
+     */
+    public void acquireTokenByRefreshCode(String clientId, String resource,
+            String redirectUri, String loginHint, AuthenticationOptions options,
+            AuthenticationCallback callback)
+    {
+        throw new UnsupportedOperationException("come back later");
+    }
+    
+    /**
+     * acquire token using refresh code if cache is not used. Otherwise, use acquireToken to let the ADAL handle the cache lookup and refresh token request. 
+     * @param code
+     * @param resource
+     * @param credential
+     * @param options
+     * @param callback
+     */
+    public void acquireTokenByRefreshCode(String code, String resource, ICredential credential,
+            AuthenticationOptions options, AuthenticationCallback callback)
+    {
+        throw new UnsupportedOperationException("come back later");
+    }
+    
     /**
      * Blocking request to get token from cache. It does not do any refresh or
      * browser flow. It only checks cache and returns token if available.
@@ -183,7 +246,8 @@ public class AuthenticationContext {
     }
 
     /**
-     * Remove tokens from cache and clear cookies If clientid is not provided,
+     * Remove tokens from cache and clear cookies.
+     * If clientid is not provided,
      * only resource is used to match tokens in cache.
      * 
      * @param clientId Optional to target tokens for one clientid.
@@ -191,7 +255,17 @@ public class AuthenticationContext {
      */
     public void signOut(String clientId, String resource)
     {
-        throw new UnsupportedOperationException("come back later");
+        // TODO:
+        // Clear all browser cookies
+        if (mContext != null)
+        {
+            CookieSyncManager.createInstance(mContext);
+            CookieManager cookieManager = CookieManager.getInstance();
+            if (cookieManager != null)
+                cookieManager.removeAllCookie();
+        }
+        
+        resetTokens(clientId, resource);
     }
 
     /**
@@ -300,7 +374,7 @@ public class AuthenticationContext {
         // Check cached authorization object
         final AuthenticationResult cachedResult = getCachedResult(request.getCacheKey());
 
-        if (cachedResult != null) {
+        if (cachedResult != null && options.getPromptBehaviour() != PromptBehavior.Always) {
             if (!cachedResult.isExpired()) {
                 callback.onCompleted(cachedResult);
             } else if (cachedResult.isRefreshable()) {
@@ -309,11 +383,21 @@ public class AuthenticationContext {
                 refreshToken(cachedResult, request, callback);
             }
         } else {
-            mExternalCallback = callback;
-            setTokenActivityDelegate(activity);
-            mContext = activity.getApplicationContext();
-            startLoginActivity(request);
+            if (options.getShowLoginScreen())
+            {
+                mExternalCallback = callback;
+                setTokenActivityDelegate(activity);
+                mContext = activity.getApplicationContext();
+                startLoginActivity(request);
+                // Activity starts in the background and comes to foreground. Any code after this will execute.
+            }
+            else
+            {
+                callback.onCompleted(null);
+            }
         }
+        
+       
     }
 
     /**
