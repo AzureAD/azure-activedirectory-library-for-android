@@ -31,11 +31,9 @@ public class AuthenticationResult implements Serializable {
     private String mAuthority;
     private String mAuthorizationEndpoint;
     private String mTokenEndpoint;
-    private String mRedirectUri;
     private String mRefreshToken;
     private String mResource;
     private String mScope;
-    private String mClientId;
     private String mAccessTokenType;
     private Date mExpires;
     private String mResponseType;
@@ -63,9 +61,7 @@ public class AuthenticationResult implements Serializable {
         mAccessToken = null;
         mRefreshToken = null;
         mAuthority = authority;
-        mClientId = clientId;
         mResource = resource;
-        mRedirectUri = redirectUri;
         setBroadRefreshToken(false);
         mStatus = AuthenticationStatus.Succeeded;
     }
@@ -74,9 +70,7 @@ public class AuthenticationResult implements Serializable {
         mAccessToken = null;
         mRefreshToken = null;
         mAuthority = authenticationContext.getAuthority();
-        mClientId = authenticationContext.getClientId();
         mResource = resource;
-        mRedirectUri = authenticationContext.getRedirectUri();
         setBroadRefreshToken(false);
         mStatus = AuthenticationStatus.Succeeded;
     }
@@ -84,9 +78,7 @@ public class AuthenticationResult implements Serializable {
     public AuthenticationResult(AuthenticationRequest request)
     {
         mAuthority = request.getAuthority();
-        mClientId = request.getClientId();
         mResource = request.getResource();
-        mRedirectUri = request.getRedirectUri();
         setBroadRefreshToken(false);
         mStatus = AuthenticationStatus.Succeeded;
     }
@@ -97,15 +89,7 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Failed;
     }
 
-    /**
-     * Returns key that helps to find access token info resource and scope
-     * 
-     * @return
-     */
-    public String getTokenCacheKey() {
-        return String.format("%s:%s:%s:%s:%s", mAuthority, mResource, mClientId, mRedirectUri,
-                (mScope == null || mScope.isEmpty()) ? "" : mScope);
-    }
+    
 
     public String getAccessToken() {
         return mAccessToken;
@@ -139,14 +123,6 @@ public class AuthenticationResult implements Serializable {
         this.mTokenEndpoint = mTokenEndpoint;
     }
 
-    public String getRedirectUri() {
-        return mRedirectUri;
-    }
-
-    public void setRedirectUri(String mRedirectUri) {
-        this.mRedirectUri = mRedirectUri;
-    }
-
     public String getRefreshToken() {
         return mRefreshToken;
     }
@@ -169,14 +145,6 @@ public class AuthenticationResult implements Serializable {
 
     public void setScope(String mScope) {
         this.mScope = mScope;
-    }
-
-    public String getClientId() {
-        return mClientId;
-    }
-
-    public void setClientId(String mClientId) {
-        this.mClientId = mClientId;
     }
 
     public String getAccessTokenType() {

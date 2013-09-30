@@ -25,8 +25,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
+
+import com.microsoft.adal.AuthenticationOptions.Endpoint;
+import com.microsoft.adal.AuthenticationOptions.PromptBehavior;
 
 /*
  *TODO: error messages define
@@ -46,7 +47,6 @@ public class AuthenticationContext {
      * TAG to check messages
      */
     private final static String TAG = "AuthenticationContext";
-
     private final static String BROKER_APP_PACKAGE = "com.microsoft.broker";
     private final static String BROKER_APP_TOKEN_ACTION = "com.microsoft.broker.token";
     static final int GET_AUTHORIZATION = 1;
@@ -57,8 +57,12 @@ public class AuthenticationContext {
     private String mLoginHint;
     private String mBroadRefreshToken;
     private Context mContext;
+
     private transient ActivityDelegate mActivityDelegate;
     private transient AuthenticationCallback mExternalCallback;
+    private HashMap<Endpoint, String> mExtraQueryParams;
+    private PromptBehavior mPromptBehaviour;
+    private boolean mValidateAuthority;
 
     /**
      * Delegate to use for starting browser flow from activity's context
@@ -72,67 +76,16 @@ public class AuthenticationContext {
     }
 
     /**
-     * Response listener for web requests
-     */
-    public interface OnResponseListener {
-
-        /**
-         * Called when response is received
-         * 
-         * @param values on success, contains the values returned by the dialog
-         * @param error on an error, contains an exception describing the error
-         */
-        void onComplete(HashMap<String, String> response);
-    }
-
-    /**
      * Constructs context to use with known authority to get the token
      * 
-     * @param authority
-     * @param clientId
-     * @param redirectUri
-     * @param loginHint
+     * @param contextFromMainThread It needs to have handle to the context to
+     *            use the SharedPreferences as a Default cache storage.
+     * @param authority Authority url to send code and token requests
      */
-    public AuthenticationContext(Context contextFromMainThread, String authority, String clientId,
-            String redirectUri,
-            String loginHint)
+    public AuthenticationContext(Context contextFromMainThread, String authority)
     {
         mContext = contextFromMainThread;
         mAuthority = authority;
-        mClientId = clientId;
-        mRedirectUri = redirectUri;
-        mLoginHint = loginHint;
-    }
-
-    public AuthenticationContext(Context contextFromMainThread,
-            AuthenticationRequest previousRequest)
-    {
-        mContext = contextFromMainThread;
-        mAuthority = previousRequest.getAuthority();
-        mClientId = previousRequest.getClientId();
-        mRedirectUri = previousRequest.getRedirectUri();
-        mLoginHint = previousRequest.getLoginHint();
-        Log.d(TAG, "Make context from request");
-    }
-
-    /**
-     * Get token for this resource if cached
-     * 
-     * @param resource
-     */
-    public AuthenticationResult getToken(String resource) {
-        final AuthenticationRequest request = new AuthenticationRequest(this, resource);
-
-        // Check cached authorization object
-        final AuthenticationResult cachedResult = getCachedResult(request.getCacheKey());
-
-        if (cachedResult != null) {
-            if (!cachedResult.isExpired()) {
-                return cachedResult;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -142,24 +95,33 @@ public class AuthenticationContext {
      * this refresh token from cache and return error without trying interactive
      * flow.
      * 
-     * @param activity
+     * @param activityContext
+     * @param clientId
      * @param resource
-     * @param correlationID
+     * @param redirectUri Optional: If not set, it will use package info.
+     * @param loginHint Optional: Username to pre-fill in the form.
+     * @param options Optional: Prompt behaviour, Extra query strings
      * @param callback
      */
-    public void acquireToken(Context activity, String resource, UUID correlationID,
+    public void acquireToken(Context activityContext, String clientId, String resource,
+            String redirectUri, String loginHint, AuthenticationOptions options,
             AuthenticationCallback callback) {
 
-        verifyParams(activity, callback);
-        mContext = activity;
+        verifyParams(activityContext, callback);
+        mContext = activityContext;
+        mClientId = clientId;
+        mRedirectUri = redirectUri;
+        mLoginHint = loginHint;
+        setupOptions(options);
         boolean hasbroker = appInstalledOrNot(BROKER_APP_PACKAGE);
         boolean askforinstall = getSettings().getEnableInstallRedirect();
 
-        setTokenActivityDelegate(activity);
+        setTokenActivityDelegate(activityContext);
+        final AuthenticationRequest request = new AuthenticationRequest(this, clientId,
+                redirectUri, resource);
 
         if (hasbroker)
         {
-            final AuthenticationRequest request = new AuthenticationRequest(this, resource);
             mExternalCallback = callback;
             // Broker app needs to expose token activity to call from other apps
             Log.d(TAG, "start token activity");
@@ -172,66 +134,81 @@ public class AuthenticationContext {
         else
         {
             // local flow
-            acquireTokenLocal(activity, resource, correlationID, callback);
-        }
-    }
-        
-    public void invalidateToken(String authority, String clientid, String redirect,
-            String resource, String scope, String loginHint)
-    {
-        final AuthenticationRequest request = new AuthenticationRequest(authority, clientid,
-                resource, scope, redirect, loginHint);
-
-        // Check cached authorization object
-        final AuthenticationResult cachedResult = getCachedResult(request.getCacheKey());
-
-        if (cachedResult != null) {
-            if (getSettings().getEnableTokenCaching())
-            {
-                getSettings().getCache().removeResult(request.getCacheKey());
-            }
-        }
-    }
-
-    public void resetTokens()
-    {
-        ITokenCache cache = getCache();
-        if (cache != null)
-        {
-            cache.removeAll();
+            acquireTokenLocal(activityContext, request, options, callback);
         }
     }
 
     /**
-     * TODO: investigating broker call
-     * @param activity
+     * Acquire token with provided credentials. It does not launch webview.
+     * Backend service scenario.
+     * 
      * @param resource
-     * @param correlationID
+     * @param credential
+     * @param options
      * @param callback
      */
-    public void acquireTokenLocal(Context activity, String resource, UUID correlationID,
-            AuthenticationCallback callback) {
+    public void acquireToken(String resource, ICredential credential,
+            AuthenticationOptions options, AuthenticationCallback callback)
+    {
+        throw new UnsupportedOperationException("come back later");
+    }
 
-        verifyParams(activity, callback);
+    /**
+     * Blocking request to get token from cache. It does not do any refresh or
+     * browser flow. It only checks cache and returns token if available.
+     * 
+     * @param clientid
+     * @param resourceId
+     * @return Access Token
+     */
+    public String getTokenFromCache(String clientid, String resourceId)
+    {
+        // TODO: check if clientid is null.
+        ITokenCache cache = getCache();
+        if (cache != null)
+        {
+            AuthenticationRequest request = new AuthenticationRequest(this, clientid, null,
+                    resourceId);
 
-        final AuthenticationRequest request = new AuthenticationRequest(this, resource);
+            // Check cached authorization object
+            final AuthenticationResult cachedResult = getCachedResult(request.getCacheKey());
 
-        // Check cached authorization object
-        final AuthenticationResult cachedResult = getCachedResult(request.getCacheKey());
-
-        if (cachedResult != null) {
-            if (!cachedResult.isExpired()) {
-                callback.onCompleted(cachedResult);
-            } else if (cachedResult.isRefreshable()) {
-                // refreshToken will try to refresh. If it fails, it removes
-                // authorization object and returns error
-                refreshToken(cachedResult, resource, callback);
+            if (cachedResult != null) {
+                if (!cachedResult.isExpired()) {
+                    return cachedResult.getAccessToken();
+                }
             }
-        } else {
-            mExternalCallback = callback;
-            setTokenActivityDelegate(activity);
-            mContext = activity.getApplicationContext();
-            startLoginActivity(request);
+        }
+        return null;
+    }
+
+    /**
+     * Remove tokens from cache and clear cookies If clientid is not provided,
+     * only resource is used to match tokens in cache.
+     * 
+     * @param clientId Optional to target tokens for one clientid.
+     * @param resource
+     */
+    public void signOut(String clientId, String resource)
+    {
+        throw new UnsupportedOperationException("come back later");
+    }
+
+    /**
+     * Remove tokens from cache without touching cookies. Acquiring token by
+     * credentials does not use browser flow. Application can clear existing
+     * tokens to retry the token requests for backend services.
+     * 
+     * @param clientId filter by clientid if provided
+     * @param resource filter by clientid(if provided) and then resource
+     */
+    public void resetTokens(String clientId, String resource)
+    {
+        // TODO:
+        ITokenCache cache = getCache();
+        if (cache != null)
+        {
+            cache.removeAll();
         }
     }
 
@@ -253,7 +230,7 @@ public class AuthenticationContext {
             } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR)
             {
                 AuthenticationRequest errRequest = (AuthenticationRequest) extras
-                        .getSerializable(AuthenticationConstants.BROWSER_RESPONSE_ERROR_REQUEST);
+                        .getSerializable(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO);
                 String errCode = extras
                         .getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE);
                 String errMessage = extras
@@ -261,6 +238,9 @@ public class AuthenticationContext {
                 mExternalCallback.onError(new AuthException(errRequest, errCode, errMessage));
             } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE)
             {
+                AuthenticationRequest authenticationRequest = (AuthenticationRequest) extras
+                        .getSerializable(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO);
+
                 String endingUrl = extras
                         .getString(AuthenticationConstants.BROWSER_RESPONSE_FINAL_URL);
                 if (endingUrl.isEmpty())
@@ -270,9 +250,8 @@ public class AuthenticationContext {
                 }
 
                 Log.d(TAG, "Process this url");
-                processUIResponse(endingUrl);
+                processUIResponse(authenticationRequest, endingUrl);
             }
-
         }
         else if (requestCode == AuthenticationConstants.UIRequest.TOKEN_FLOW)
         {
@@ -283,7 +262,7 @@ public class AuthenticationContext {
             } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR)
             {
                 AuthenticationRequest errRequest = (AuthenticationRequest) extras
-                        .getSerializable(AuthenticationConstants.BROWSER_RESPONSE_ERROR_REQUEST);
+                        .getSerializable(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO);
                 String errCode = extras
                         .getString(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE);
                 String errMessage = extras
@@ -304,7 +283,53 @@ public class AuthenticationContext {
             }
         }
     }
-    
+
+    /**
+     * TODO: investigating broker call
+     * 
+     * @param activity
+     * @param resource
+     * @param correlationID
+     * @param callback
+     */
+    public void acquireTokenLocal(Context activity, final AuthenticationRequest request,
+            AuthenticationOptions options, AuthenticationCallback callback) {
+
+        verifyParams(activity, callback);
+
+        // Check cached authorization object
+        final AuthenticationResult cachedResult = getCachedResult(request.getCacheKey());
+
+        if (cachedResult != null) {
+            if (!cachedResult.isExpired()) {
+                callback.onCompleted(cachedResult);
+            } else if (cachedResult.isRefreshable()) {
+                // refreshToken will try to refresh. If it fails, it removes
+                // authorization object and returns error
+                refreshToken(cachedResult, request, callback);
+            }
+        } else {
+            mExternalCallback = callback;
+            setTokenActivityDelegate(activity);
+            mContext = activity.getApplicationContext();
+            startLoginActivity(request);
+        }
+    }
+
+    /**
+     * Response listener for web requests
+     */
+    interface OnResponseListener {
+
+        /**
+         * Called when response is received
+         * 
+         * @param values on success, contains the values returned by the dialog
+         * @param error on an error, contains an exception describing the error
+         */
+        void onComplete(HashMap<String, String> response);
+    }
+
     /**
      * Callback to use for web ui login completed
      */
@@ -340,9 +365,7 @@ public class AuthenticationContext {
     }
 
     /*
-     * 
-     *      Private methods
-     *  
+     * Private methods
      */
     private void verifyParams(Context context, AuthenticationCallback callback) {
         if (callback == null)
@@ -458,7 +481,7 @@ public class AuthenticationContext {
         }
         return app_installed;
     }
-    
+
     private void ExtractUrl()
     {
         // Authorization server URL is like
@@ -502,10 +525,10 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("Authority url");
         }
     }
-    
+
     private void ValidateAuthority()
     {
-        if (getSettings().getValidateAuthority())
+        if (mValidateAuthority)
         {
             if (!getSettings().getDiscovery().IsValidAuthority(mAuthority))
             {
@@ -513,22 +536,22 @@ public class AuthenticationContext {
             }
         }
     }
-    
+
     /**
      * Refresh token based on cached result and targetresource.
      * 
      * @param cachedResult ClientId, Refreshtoken, RedirectUri are used from
      *            this result obj
+     * @param request
      * @param targetResource Resource to ask for refresh token
      * @param callback Callback to be called for results
      */
-    private void refreshToken(AuthenticationResult cachedResult, String targetResource,
-            AuthenticationCallback callback) {
+    private void refreshToken(AuthenticationResult cachedResult, AuthenticationRequest request, AuthenticationCallback callback) {
         // Same authority
-        final AuthenticationRequest request = new AuthenticationRequest(this, targetResource);
         HashMap<String, String> tokenRequestMessage = buildRefreshTokenRequestMessage(cachedResult,
-                targetResource);
+                request);
         final AuthenticationCallback externalCallback = callback;
+        final AuthenticationRequest fRequest = request;
         Log.d(TAG, "Calling sendrequest for refreshtoken");
 
         sendRequest(request.getTokenEndpoint(),
@@ -536,16 +559,16 @@ public class AuthenticationContext {
                     @Override
                     public void onComplete(HashMap<String, String> response) {
                         Log.d(TAG, "sendRequest onComplete");
-                        AuthenticationResult result = processUIResponseParams(response, request);
+                        AuthenticationResult result = processUIResponseParams(response, fRequest);
 
                         if (result.getStatus() == com.microsoft.adal.AuthenticationResult.AuthenticationStatus.Succeeded) {
-                            setCachedResult(request.getCacheKey(), result);
+                            setCachedResult(fRequest.getCacheKey(), result);
                             externalCallback.onCompleted(result);
                         } else {
                             // did not get token
 
                             externalCallback
-                                    .onError(new AuthException(request, result
+                                    .onError(new AuthException(fRequest, result
                                             .getErrorCode(), result
                                             .getErrorDescription()));
                         }
@@ -613,7 +636,7 @@ public class AuthenticationContext {
             }
         }
     }
-    
+
     /**
      * TODO move token request message to outside Build token request message
      * which uses code to get token
@@ -622,20 +645,17 @@ public class AuthenticationContext {
      * @return Hashmap request params
      */
     private HashMap<String, String> buildTokenRequestMessage(
-            AuthenticationResult result) {
+            AuthenticationRequest request) {
         HashMap<String, String> reqParameters = new HashMap<String, String>();
 
         reqParameters.put(AuthenticationConstants.OAuth2.GRANT_TYPE,
                 AuthenticationConstants.OAuth2.AUTHORIZATION_CODE);
 
-        reqParameters.put(AuthenticationConstants.OAuth2.CODE, result
-                .getCode());
+        reqParameters.put(AuthenticationConstants.OAuth2.CODE, request.getCode());
 
-        reqParameters.put(AuthenticationConstants.OAuth2.CLIENT_ID,
-                result.getClientId());
+        reqParameters.put(AuthenticationConstants.OAuth2.CLIENT_ID, request.getClientId());
 
-        reqParameters.put(AuthenticationConstants.OAuth2.REDIRECT_URI,
-                result.getRedirectUri());
+        reqParameters.put(AuthenticationConstants.OAuth2.REDIRECT_URI, request.getRedirectUri());
 
         return reqParameters;
     }
@@ -645,7 +665,7 @@ public class AuthenticationContext {
      * resource in the message.
      */
     private HashMap<String, String> buildRefreshTokenRequestMessage(
-            AuthenticationResult cachedResult, String targetResource) {
+            AuthenticationResult cachedResult, AuthenticationRequest request) {
         HashMap<String, String> reqParameters = new HashMap<String, String>();
 
         if (TextUtils.isEmpty(cachedResult.getRefreshToken()))
@@ -653,12 +673,12 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("Refresh token is required");
         }
 
-        if (TextUtils.isEmpty(cachedResult.getRedirectUri()))
+        if (TextUtils.isEmpty(request.getRedirectUri()))
         {
             throw new IllegalArgumentException("RedirectUri is required");
         }
 
-        if (TextUtils.isEmpty(cachedResult.getClientId()))
+        if (TextUtils.isEmpty(request.getClientId()))
         {
             throw new IllegalArgumentException("ClientId is required");
         }
@@ -670,15 +690,15 @@ public class AuthenticationContext {
                 .getRefreshToken());
 
         reqParameters.put(AuthenticationConstants.OAuth2.REDIRECT_URI,
-                cachedResult.getRedirectUri());
+                request.getRedirectUri());
 
         reqParameters.put(AuthenticationConstants.OAuth2.CLIENT_ID,
-                cachedResult.getClientId());
+                request.getClientId());
 
         if (cachedResult.IsBroadRefreshToken())
         {
             reqParameters.put(AuthenticationConstants.AAD.RESOURCE,
-                    targetResource);
+                    request.getResource());
         }
         return reqParameters;
     }
@@ -688,7 +708,7 @@ public class AuthenticationContext {
      * 
      * @param endUrl
      */
-    private void processUIResponse(String endUrl) {
+    private void processUIResponse(AuthenticationRequest request, String endUrl) {
         // Success
         Uri response = Uri.parse(endUrl);
         HashMap<String, String> parameters = UriExtensions
@@ -713,10 +733,6 @@ public class AuthenticationContext {
                     && null != resource && !resource.isEmpty()) {
 
                 // ToDo: if token, ask to token endpoint and post the message
-
-                // Same authority
-                final AuthenticationRequest request = new AuthenticationRequest(this, resource);
-
                 AuthenticationResult result = processUIResponseParams(
                         parameters, request);
 
@@ -724,7 +740,9 @@ public class AuthenticationContext {
                     if (!result.getCode().isEmpty()) {
                         // Need to get exchange code to get token
                         HashMap<String, String> tokenRequestMessage = buildTokenRequestMessage(
-                                result);
+                                request);
+
+                        final AuthenticationRequest requestInfo = request;
 
                         sendRequest(request.getTokenEndpoint(),
                                 tokenRequestMessage, new OnResponseListener() {
@@ -732,16 +750,16 @@ public class AuthenticationContext {
                                     public void onComplete(
                                             HashMap<String, String> response) {
                                         AuthenticationResult result = processUIResponseParams(
-                                                response, request);
+                                                response, requestInfo);
 
                                         if (result.getStatus() == com.microsoft.adal.AuthenticationResult.AuthenticationStatus.Succeeded) {
-                                            setCachedResult(request
+                                            setCachedResult(requestInfo
                                                     .getCacheKey(), result);
                                             mExternalCallback.onCompleted(result);
                                         } else {
                                             // did not get token
                                             mExternalCallback
-                                                    .onError(new AuthException(request, result
+                                                    .onError(new AuthException(requestInfo, result
                                                             .getErrorCode(), result
                                                             .getErrorDescription()));
                                         }
@@ -753,7 +771,6 @@ public class AuthenticationContext {
                         // We have token directly with implicit flow
 
                     }
-
                 }
             } else {
 
@@ -927,7 +944,7 @@ public class AuthenticationContext {
 
         return result;
     }
-    
+
     private void startTokenActivity(AuthenticationRequest request) {
         // TODO Auto-generated method stub
         Intent intent = getTokenActivityIntent(request);
@@ -981,5 +998,14 @@ public class AuthenticationContext {
                     }
                 });
         downloadDialog.show();
+    }
+
+    private void setupOptions(AuthenticationOptions options)
+    {
+        if (options != null)
+        {
+            mValidateAuthority = options.getValidateAuthority();
+            // add others
+        }
     }
 }

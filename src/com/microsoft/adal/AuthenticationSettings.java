@@ -4,6 +4,8 @@
 
 package com.microsoft.adal;
 
+import java.util.HashMap;
+
 /**
  * Context related settings are defined here
  */
@@ -15,9 +17,10 @@ public class AuthenticationSettings {
     private boolean mEnableTokenCaching = true;
     private String mResourcePackage = "com.microsoft.protection.authentication";
     private boolean mIgnoreSSLErrors = false;
-    private boolean mValidateAuthority = true;
+    
     private boolean mEnableInstallRedirect = false;
-
+    
+    
     /**
      * RequestAuthEndpoint to append in authority url
      */
@@ -68,17 +71,7 @@ public class AuthenticationSettings {
     {
         mIgnoreSSLErrors = value;
     }
-
-    public boolean getValidateAuthority()
-    {
-        return mValidateAuthority;
-    }
-
-    public void setValidateAuthority(boolean value)
-    {
-        mValidateAuthority = value;
-    }
-    
+     
     public ITokenCache getCache()
     {
         return mCache;

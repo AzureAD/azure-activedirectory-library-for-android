@@ -10,7 +10,7 @@ package com.microsoft.adal;
 final public class AuthenticationConstants
 {
     public static final String BROWSER_REQUEST_MESSAGE = "com.microsoft.adal:BrowserRequestMessage";
-    public static final String BROWSER_RESPONSE_ERROR_REQUEST = "com.microsoft.adal:BrowserErrorRequestInfo";
+    public static final String BROWSER_RESPONSE_REQUEST_INFO = "com.microsoft.adal:BrowserRequestInfo";
     public static final String BROWSER_RESPONSE_ERROR_CODE = "com.microsoft.adal:BrowserErrorCode";
     public static final String BROWSER_RESPONSE_ERROR_MESSAGE = "com.microsoft.adal:BrowserErrorCode";
     public static final String BROWSER_RESPONSE_FINAL_URL = "com.microsoft.adal:BrowserFinalUrl";

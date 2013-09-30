@@ -33,8 +33,11 @@ public class TokenActivity extends Activity {
         
         //create new context and use local to do remaining actions
         // it will query local storage, refresh inside broker's local, and so on.
-        mAuthContext = new AuthenticationContext(this, request);
-        mAuthContext.acquireTokenLocal(TokenActivity.this, request.getResource(), request.getCorrelationId(), new AuthenticationCallback() {
+        mAuthContext = new AuthenticationContext(this, request.getAuthority());
+        AuthenticationOptions options = new AuthenticationOptions();
+        //TODO set options for broker call
+        
+        mAuthContext.acquireTokenLocal(TokenActivity.this, request, options, new AuthenticationCallback() {
             
             @Override
             public void onError(Exception exc) {

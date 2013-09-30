@@ -117,7 +117,7 @@ public class LoginActivity extends Activity {
             Log.d(TAG, e.getMessage());
 
             Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_REQUEST, request);
+            resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO, request);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
 

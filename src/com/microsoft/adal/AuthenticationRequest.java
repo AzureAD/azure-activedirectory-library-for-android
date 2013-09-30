@@ -49,11 +49,11 @@ public class AuthenticationRequest implements Serializable {
         mLoginHint = loginhint;
     }
 
-    public AuthenticationRequest(AuthenticationContext authenticationContext, String resource) {
+    public AuthenticationRequest(AuthenticationContext authenticationContext, String clientid, String redirectUri, String resource) {
         mAuthority = authenticationContext.getAuthority();
-        mClientId = authenticationContext.getClientId();
+        mClientId = clientid;
         mResource = resource;
-        mRedirectUri = authenticationContext.getRedirectUri();
+        mRedirectUri = redirectUri;
     }
 
     public String getCode() {
@@ -198,6 +198,7 @@ public class AuthenticationRequest implements Serializable {
                 (mScope == null || mScope.isEmpty()) ? "" : mScope);
     }
 
+    
     private int getRequestCode() {
         return mRequestCode;
     }
