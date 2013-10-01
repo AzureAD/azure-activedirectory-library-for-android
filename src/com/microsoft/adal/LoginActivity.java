@@ -41,6 +41,7 @@ public class LoginActivity extends Activity {
     private WebView wv;
     private ProgressDialog spinner;
     private String redirectUrl;
+    private AuthenticationRequest mAuthRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +50,9 @@ public class LoginActivity extends Activity {
 
         // Get the message from the intent
         Intent intent = getIntent();
-        final AuthenticationRequest request = (AuthenticationRequest) intent
+        mAuthRequest = (AuthenticationRequest) intent
                 .getSerializableExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE);
-        redirectUrl = request.getRedirectUri();
+        redirectUrl = mAuthRequest.getRedirectUri();
         Log.d(TAG, "OnCreate redirect"+redirectUrl);
         
         // cancel action will send the request back to onActivityResult method
@@ -111,13 +112,13 @@ public class LoginActivity extends Activity {
         String startUrl = "about:blank";
         
         try {
-            startUrl = request.getCodeRequestUrl();
+            startUrl = mAuthRequest.getCodeRequestUrl();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             Log.d(TAG, e.getMessage());
 
             Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO, request);
+            resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO, mAuthRequest);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
 
@@ -171,7 +172,7 @@ public class LoginActivity extends Activity {
     {
         new AlertDialog.Builder(LoginActivity.this)
         .setTitle("Confirm?")
-        .setMessage("Are you sure you want to exit?")
+        .setMessage("Do you want to cancel the login?")
         .setNegativeButton(android.R.string.no, null)  
         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
@@ -196,6 +197,7 @@ public class LoginActivity extends Activity {
                 Log.d(TAG, "shouldOverrideUrlLoading: reached redirect");
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_FINAL_URL, url);
+                resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO, mAuthRequest);
                 ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
                 view.stopLoading();
                 return true;
@@ -212,6 +214,7 @@ public class LoginActivity extends Activity {
             resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE, errorCode);
             resultIntent
                     .putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE, description);
+            resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO, mAuthRequest);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
 
         }
@@ -229,6 +232,7 @@ public class LoginActivity extends Activity {
                         ERROR_FAILED_SSL_HANDSHAKE);
                 resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE,
                         error.toString());
+                resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO, mAuthRequest);
                 ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
             }
         }

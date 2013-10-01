@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.Menu;
 
 /**
+ * This is for broker flow.
  * this activity uses authentication context locally to query cache, get new tokens etc.
  * If loginActivity starts, it will return here. Final return to callback will set results back to original caller.
  * @author omercan
@@ -41,13 +42,13 @@ public class TokenActivity extends Activity {
             
             @Override
             public void onError(Exception exc) {
-                //Todo cast authexception
+
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE, exc.getMessage()); //TODO
                 resultIntent
                         .putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE, exc.getMessage());
+                resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO, request);
                 ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
-                
             }
             
             @Override
@@ -55,6 +56,7 @@ public class TokenActivity extends Activity {
                 // TODO Auto-generated method stub
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(AuthenticationConstants.BROKER_RESPONSE, result);
+                resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_REQUEST_INFO, request);
                 ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);                
             }
             

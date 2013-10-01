@@ -48,8 +48,8 @@ public class AuthenticationContext {
      * TAG to check messages
      */
     private final static String TAG = "AuthenticationContext";
-    private final static String BROKER_APP_PACKAGE = "com.microsoft.broker";
-    private final static String BROKER_APP_TOKEN_ACTION = "com.microsoft.broker.token";
+    private final static String BROKER_APP_PACKAGE = "com.contoso.brokertest";
+    private final static String BROKER_APP_TOKEN_ACTION = "android.intent.action.VIEW";
     static final int GET_AUTHORIZATION = 1;
 
     private String mAuthority;
@@ -114,15 +114,20 @@ public class AuthenticationContext {
         mRedirectUri = redirectUri;
         mLoginHint = loginHint;
         setupOptions(options);
-        boolean hasbroker = appInstalledOrNot(BROKER_APP_PACKAGE);
-        boolean askforinstall = getSettings().getEnableInstallRedirect();
+        boolean hasbroker = false;
+        if (options.getCheckForBrokerApp())
+        {
+            hasbroker = appInstalledOrNot(BROKER_APP_PACKAGE);
+        }
 
+        boolean askforinstall = options.getAskForBrokerDownload();
         setTokenActivityDelegate(activityContext);
         final AuthenticationRequest request = new AuthenticationRequest(this, clientId,
                 redirectUri, resource);
 
         if (hasbroker)
         {
+            Log.d(TAG, "Device has the broker app");
             mExternalCallback = callback;
             // Broker app needs to expose token activity to call from other apps
             Log.d(TAG, "start token activity");
@@ -130,11 +135,12 @@ public class AuthenticationContext {
         }
         else if (askforinstall)
         {
+            Log.d(TAG, "Ask user to install broker app");
             askUserToInstallBroker();
         }
         else
         {
-            // local flow
+            // local token flow
             acquireTokenLocal(activityContext, request, options, callback);
         }
     }
@@ -153,9 +159,11 @@ public class AuthenticationContext {
     {
         throw new UnsupportedOperationException("come back later");
     }
-    
+
     /**
-     * Acquire token with externally provided authorization code. You can use full browser to get auth code or by other means.
+     * Acquire token with externally provided authorization code. You can use
+     * full browser to get auth code or by other means.
+     * 
      * @param activityContext
      * @param clientId
      * @param resource
@@ -170,23 +178,29 @@ public class AuthenticationContext {
     {
         throw new UnsupportedOperationException("come back later");
     }
-    
+
     /**
-     * Acquire token with externally provided authorization code. You can use full browser to get auth code or by other means.
+     * Acquire token with externally provided authorization code. You can use
+     * full browser to get auth code or by other means.
+     * 
      * @param code
      * @param resource
      * @param credential
      * @param options
      * @param callback
      */
-    public void acquireTokenByAuthorizationCode(String code, String resource, ICredential credential,
+    public void acquireTokenByAuthorizationCode(String code, String resource,
+            ICredential credential,
             AuthenticationOptions options, AuthenticationCallback callback)
     {
         throw new UnsupportedOperationException("come back later");
     }
-    
+
     /**
-     * acquire token using refresh code if cache is not used. Otherwise, use acquireToken to let the ADAL handle the cache lookup and refresh token request.
+     * acquire token using refresh code if cache is not used. Otherwise, use
+     * acquireToken to let the ADAL handle the cache lookup and refresh token
+     * request.
+     * 
      * @param activityContext
      * @param clientId
      * @param resource
@@ -201,9 +215,12 @@ public class AuthenticationContext {
     {
         throw new UnsupportedOperationException("come back later");
     }
-    
+
     /**
-     * acquire token using refresh code if cache is not used. Otherwise, use acquireToken to let the ADAL handle the cache lookup and refresh token request. 
+     * acquire token using refresh code if cache is not used. Otherwise, use
+     * acquireToken to let the ADAL handle the cache lookup and refresh token
+     * request.
+     * 
      * @param code
      * @param resource
      * @param credential
@@ -215,7 +232,7 @@ public class AuthenticationContext {
     {
         throw new UnsupportedOperationException("come back later");
     }
-    
+
     /**
      * Blocking request to get token from cache. It does not do any refresh or
      * browser flow. It only checks cache and returns token if available.
@@ -246,8 +263,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * Remove tokens from cache and clear cookies.
-     * If clientid is not provided,
+     * Remove tokens from cache and clear cookies. If clientid is not provided,
      * only resource is used to match tokens in cache.
      * 
      * @param clientId Optional to target tokens for one clientid.
@@ -264,7 +280,7 @@ public class AuthenticationContext {
             if (cookieManager != null)
                 cookieManager.removeAllCookie();
         }
-        
+
         resetTokens(clientId, resource);
     }
 
@@ -389,15 +405,15 @@ public class AuthenticationContext {
                 setTokenActivityDelegate(activity);
                 mContext = activity.getApplicationContext();
                 startLoginActivity(request);
-                // Activity starts in the background and comes to foreground. Any code after this will execute.
+                // Activity starts in the background and comes to foreground.
+                // Any code after this will execute.
             }
             else
             {
                 callback.onCompleted(null);
             }
         }
-        
-       
+
     }
 
     /**
@@ -630,7 +646,8 @@ public class AuthenticationContext {
      * @param targetResource Resource to ask for refresh token
      * @param callback Callback to be called for results
      */
-    private void refreshToken(AuthenticationResult cachedResult, AuthenticationRequest request, AuthenticationCallback callback) {
+    private void refreshToken(AuthenticationResult cachedResult, AuthenticationRequest request,
+            AuthenticationCallback callback) {
         // Same authority
         HashMap<String, String> tokenRequestMessage = buildRefreshTokenRequestMessage(cachedResult,
                 request);
@@ -725,17 +742,18 @@ public class AuthenticationContext {
      * TODO move token request message to outside Build token request message
      * which uses code to get token
      * 
+     * @param code
      * @param result Authentication result which has code
      * @return Hashmap request params
      */
     private HashMap<String, String> buildTokenRequestMessage(
-            AuthenticationRequest request) {
+            AuthenticationRequest request, String code) {
         HashMap<String, String> reqParameters = new HashMap<String, String>();
 
         reqParameters.put(AuthenticationConstants.OAuth2.GRANT_TYPE,
                 AuthenticationConstants.OAuth2.AUTHORIZATION_CODE);
 
-        reqParameters.put(AuthenticationConstants.OAuth2.CODE, request.getCode());
+        reqParameters.put(AuthenticationConstants.OAuth2.CODE, code);
 
         reqParameters.put(AuthenticationConstants.OAuth2.CLIENT_ID, request.getClientId());
 
@@ -824,7 +842,7 @@ public class AuthenticationContext {
                     if (!result.getCode().isEmpty()) {
                         // Need to get exchange code to get token
                         HashMap<String, String> tokenRequestMessage = buildTokenRequestMessage(
-                                request);
+                                request, result.getCode());
 
                         final AuthenticationRequest requestInfo = request;
 
