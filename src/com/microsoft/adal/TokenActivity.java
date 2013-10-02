@@ -1,6 +1,8 @@
 
 package com.microsoft.adal;
 
+import com.microsoft.adal.AuthenticationOptions.PromptBehavior;
+
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
@@ -36,9 +38,16 @@ public class TokenActivity extends Activity {
         // it will query local storage, refresh inside broker's local, and so on.
         mAuthContext = new AuthenticationContext(this, request.getAuthority());
         AuthenticationOptions options = new AuthenticationOptions();
-        //TODO set options for broker call
         
-        mAuthContext.acquireTokenLocal(TokenActivity.this, request, options, new AuthenticationCallback() {
+        // Broker related activity does not need to check another broker app
+        options.setAskForBrokerDownload(false);
+        options.setCheckForBrokerApp(false);
+        
+        // TODO: request should pass the behavior for the token request such as validation
+        options.setShowLoginScreen(true);
+        options.setPromptBehaviour(PromptBehavior.Auto);
+
+        mAuthContext.acquireToken(TokenActivity.this, request.getClientId(), request.getResource(), request.getRedirectUri(), request.getLoginHint(), options, new AuthenticationCallback() {
             
             @Override
             public void onError(Exception exc) {

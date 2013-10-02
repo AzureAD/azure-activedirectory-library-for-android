@@ -115,32 +115,44 @@ public class AuthenticationContext {
         mLoginHint = loginHint;
         setupOptions(options);
         boolean hasbroker = false;
-        if (options.getCheckForBrokerApp())
+
+        boolean askforinstall = options.getAskForBrokerDownload();
+        boolean checkForBroker = options.getCheckForBrokerApp();
+
+        if (checkForBroker)
         {
             hasbroker = appInstalledOrNot(BROKER_APP_PACKAGE);
         }
 
-        boolean askforinstall = options.getAskForBrokerDownload();
         setTokenActivityDelegate(activityContext);
         final AuthenticationRequest request = new AuthenticationRequest(this, clientId,
                 redirectUri, resource);
+        mExternalCallback = callback;
 
-        if (hasbroker)
+        if (checkForBroker)
         {
-            Log.d(TAG, "Device has the broker app");
-            mExternalCallback = callback;
-            // Broker app needs to expose token activity to call from other apps
-            Log.d(TAG, "start token activity");
-            startTokenActivity(request);
-        }
-        else if (askforinstall)
-        {
-            Log.d(TAG, "Ask user to install broker app");
-            askUserToInstallBroker();
+            if (hasbroker)
+            {
+                Log.d(TAG, "Device has the broker app");
+
+                // Broker app needs to expose token activity to call from other apps
+                Log.d(TAG, "start token activity");
+                startTokenActivity(request);
+            }
+            else if (askforinstall)
+            {
+                Log.d(TAG, "Ask user to install broker app");
+                askUserToInstallBroker();
+            }
+            else
+            {
+                Log.d(TAG, "User does not have broker and not required to install");
+                acquireTokenLocal(activityContext, request, options, callback);
+            }
         }
         else
         {
-            // local token flow
+            // local token flow that uses storage within this process
             acquireTokenLocal(activityContext, request, options, callback);
         }
     }
@@ -376,13 +388,12 @@ public class AuthenticationContext {
 
     /**
      * TODO: investigating broker call
-     * 
      * @param activity
      * @param resource
      * @param correlationID
      * @param callback
      */
-    public void acquireTokenLocal(Context activity, final AuthenticationRequest request,
+    private void acquireTokenLocal(Context activity, final AuthenticationRequest request,
             AuthenticationOptions options, AuthenticationCallback callback) {
 
         verifyParams(activity, callback);
@@ -557,6 +568,7 @@ public class AuthenticationContext {
      */
     private Intent getTokenActivityIntent(AuthenticationRequest request) {
         Intent intent = new Intent(BROKER_APP_TOKEN_ACTION);
+        intent.setPackage(BROKER_APP_PACKAGE);
         intent.putExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE, request);
         return intent;
     }
@@ -1069,6 +1081,9 @@ public class AuthenticationContext {
 
     private void askUserToInstallBroker() {
         // implement prompt dialog asking user to download the package
+        
+        final AuthenticationCallback callbackToActivity = mExternalCallback;
+        
         AlertDialog.Builder downloadDialog = new AlertDialog.Builder(mContext);
         downloadDialog.setTitle("Download that bro");
         downloadDialog.setMessage("Really get that now!");
@@ -1077,26 +1092,32 @@ public class AuthenticationContext {
                 {
                     public void onClick(DialogInterface dialogInterface, int i)
                     {
+                        
                         Uri uri = Uri
-                                .parse("market://search?q=pname:com.google.zxing.client.android");
+                                .parse("market://search?q=pname:"+BROKER_APP_PACKAGE);
                         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                         try
                         {
+                            // When user installs the app, their login process is interrupted
+                            // TODO: think about how to handle this situation
+                            callbackToActivity.onCompleted(null);
                             getTokenActivityDelegate().startActivity(intent);
                         }
                         catch (ActivityNotFoundException e)
                         {
                             Log.d(TAG, "ERROR Google Play Market not found!");
-                            mExternalCallback.onError(e);
+                            callbackToActivity.onError(e);
                         }
                     }
                 });
+        
         downloadDialog.setNegativeButton("no",
                 new DialogInterface.OnClickListener()
                 {
                     public void onClick(DialogInterface dialog, int i)
                     {
                         dialog.dismiss();
+                        callbackToActivity.onCancelled();
                     }
                 });
         downloadDialog.show();
