@@ -387,6 +387,25 @@ public class AuthenticationContext {
     }
 
     /**
+     * Broker related
+     * @return
+     */
+    public HashMap<String, AuthenticationResult> getAllTokens()
+    {
+        if (getSettings().getEnableTokenCaching())
+        {
+            ITokenCache cache = getCache();
+            if (cache != null)
+            {
+                return cache.getAllResults();
+            }
+        }
+        
+        return null;
+    }
+    
+    
+    /**
      * TODO: investigating broker call
      * @param activity
      * @param resource

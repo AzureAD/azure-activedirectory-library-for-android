@@ -194,8 +194,7 @@ public class AuthenticationRequest implements Serializable {
      * @return
      */
     public String getCacheKey() {
-        return String.format("%s:%s:%s:%s:%s", mAuthority, mResource, mClientId, mRedirectUri,
-                (mScope == null || mScope.isEmpty()) ? "" : mScope);
+        return String.format("%s|$|%s", mAuthority, mResource);
     }
 
     

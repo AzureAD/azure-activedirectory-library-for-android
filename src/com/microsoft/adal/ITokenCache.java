@@ -1,5 +1,7 @@
 package com.microsoft.adal;
 
+import java.util.HashMap;
+
 
 /**
  * Stores token related info such as access token, refresh token, and expiration
@@ -11,4 +13,5 @@ public interface ITokenCache {
     public boolean putResult( String key, AuthenticationResult result );
     public boolean removeResult( String key );
     public boolean removeAll();
+    public HashMap<String, AuthenticationResult> getAllResults();
 }

@@ -5,6 +5,9 @@ package com.microsoft.adal;
  * Copyright (c) Microsoft Corporation. All rights reserved. 
  */
 
+import java.util.HashMap;
+import java.util.Map;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -126,5 +129,24 @@ public class TokenCache implements ITokenCache {
         }
 
         return false;
+    }
+
+    @Override
+    public HashMap<String, AuthenticationResult> getAllResults() {
+
+        if (mPrefs != null)
+        {
+            HashMap<String, AuthenticationResult> output = new HashMap<String, AuthenticationResult>();
+
+            Map<String, ?> results = (Map<String, AuthenticationResult>) mPrefs.getAll();
+            for (Map.Entry<String, ?> entry : results.entrySet()) {
+                Log.d("map values", entry.getKey() + ": " +
+                        entry.getValue().toString());
+                output.put(entry.getKey(),
+                        gson.fromJson(entry.getValue().toString(), AuthenticationResult.class));
+            }
+            return output;
+        }
+        return null;
     }
 }

@@ -82,4 +82,12 @@ public class TokenMemoryCache implements ITokenCache {
         }
         return true;
     }
+
+    @Override
+    public HashMap<String, AuthenticationResult> getAllResults() {
+        synchronized (mCacheLock)
+        {
+            return mCache;
+        }
+    }
 }
