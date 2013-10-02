@@ -36,7 +36,17 @@ public class TokenActivity extends Activity {
         
         //create new context and use local to do remaining actions
         // it will query local storage, refresh inside broker's local, and so on.
-        mAuthContext = new AuthenticationContext(this, request.getAuthority());
+        AuthenticationContext obj = (AuthenticationContext) getLastNonConfigurationInstance();
+        if (obj != null)
+        {
+            mAuthContext = obj;
+            mAuthContext.updateContextConfigChange(this);
+        }
+        else
+        {
+            mAuthContext = new AuthenticationContext(this, request.getAuthority());
+        }
+        
         AuthenticationOptions options = new AuthenticationOptions();
         
         // Broker related activity does not need to check another broker app
@@ -98,4 +108,12 @@ public class TokenActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         mAuthContext.onActivityResult(requestCode, resultCode, data);
     }
+    
+    @Override
+    @Deprecated
+    public Object onRetainNonConfigurationInstance() {
+        
+        return mAuthContext;
+    }
+    
 }

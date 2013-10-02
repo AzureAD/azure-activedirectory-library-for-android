@@ -189,7 +189,7 @@ public class LoginActivity extends Activity {
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
 
             Log.d(TAG, "shouldOverrideUrlLoading:url=" + url);
-            if (!spinner.isShowing()) {
+            if (spinner != null && !spinner.isShowing()) {
                 spinner.show();
             }
             
@@ -242,7 +242,7 @@ public class LoginActivity extends Activity {
 
             super.onPageStarted(view, url, favicon);
             Log.d(TAG,"Page started:"+url);
-            if (!spinner.isShowing()) {
+            if (spinner != null && !spinner.isShowing()) {
                 spinner.show();
             }
         }
@@ -251,7 +251,7 @@ public class LoginActivity extends Activity {
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
             Log.d(TAG,"Page finished"+url);
-            if (spinner.isShowing()) {
+            if (spinner != null && spinner.isShowing()) {
                 spinner.dismiss();
             }
             /*

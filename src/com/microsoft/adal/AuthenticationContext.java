@@ -85,7 +85,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context contextFromMainThread, String authority)
     {
-        mContext = contextFromMainThread;
+        setContext(contextFromMainThread);
         mAuthority = authority;
     }
 
@@ -109,7 +109,7 @@ public class AuthenticationContext {
             AuthenticationCallback callback) {
 
         verifyParams(activityContext, callback);
-        mContext = activityContext;
+        setContext(activityContext);
         mClientId = clientId;
         mRedirectUri = redirectUri;
         mLoginHint = loginHint;
@@ -285,9 +285,9 @@ public class AuthenticationContext {
     {
         // TODO:
         // Clear all browser cookies
-        if (mContext != null)
+        if (getContext() != null)
         {
-            CookieSyncManager.createInstance(mContext);
+            CookieSyncManager.createInstance(getContext());
             CookieManager cookieManager = CookieManager.getInstance();
             if (cookieManager != null)
                 cookieManager.removeAllCookie();
@@ -314,6 +314,21 @@ public class AuthenticationContext {
         }
     }
 
+    /**
+     * Broker related
+     * @param clientId
+     * @param resource
+     */
+    public void resetAllTokens()
+    {
+        ITokenCache cache = getCache();
+        if (cache != null)
+        {
+            cache.removeAll();
+        }
+    }
+
+    
     /**
      * Call from your onActivityResult method inside your activity that started
      * token request
@@ -433,7 +448,7 @@ public class AuthenticationContext {
             {
                 mExternalCallback = callback;
                 setTokenActivityDelegate(activity);
-                mContext = activity.getApplicationContext();
+                setContext(activity.getApplicationContext());
                 startLoginActivity(request);
                 // Activity starts in the background and comes to foreground.
                 // Any code after this will execute.
@@ -567,7 +582,7 @@ public class AuthenticationContext {
      */
     private boolean resolveIntent(Intent intent) {
 
-        ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
+        ResolveInfo resolveInfo = getContext().getPackageManager().resolveActivity(intent, 0);
         if (resolveInfo == null) {
             return false;
         }
@@ -576,7 +591,7 @@ public class AuthenticationContext {
 
     private Intent getLoginActivityIntent(AuthenticationRequest request) {
         Intent intent = new Intent();
-        intent.setClass(mContext, LoginActivity.class);
+        intent.setClass(getContext(), LoginActivity.class);
         intent.putExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE, request);
         return intent;
     }
@@ -600,7 +615,7 @@ public class AuthenticationContext {
      */
     private boolean appInstalledOrNot(String name)
     {
-        PackageManager pm = mContext.getPackageManager();
+        PackageManager pm = getContext().getPackageManager();
         boolean app_installed = false;
         try
         {
@@ -724,10 +739,10 @@ public class AuthenticationContext {
             if (cache == null)
             {
                 // Context should be passed in
-                if (mContext == null)
+                if (getContext() == null)
                     throw new IllegalArgumentException("Context");
 
-                cache = new TokenCache(mContext);
+                cache = new TokenCache(getContext());
             }
         }
 
@@ -1103,7 +1118,7 @@ public class AuthenticationContext {
         
         final AuthenticationCallback callbackToActivity = mExternalCallback;
         
-        AlertDialog.Builder downloadDialog = new AlertDialog.Builder(mContext);
+        AlertDialog.Builder downloadDialog = new AlertDialog.Builder(getContext());
         downloadDialog.setTitle("Download that bro");
         downloadDialog.setMessage("Really get that now!");
         downloadDialog.setPositiveButton("yes",
@@ -1149,5 +1164,19 @@ public class AuthenticationContext {
             mValidateAuthority = options.getValidateAuthority();
             // add others
         }
+    }
+
+    private Context getContext() {
+        return this.mContext;
+    }
+    
+    private void setContext(Context context) {
+        this.mContext = context;
+    }
+    
+    
+    public void updateContextConfigChange(Context mContext) {
+        this.mContext = mContext;
+        setTokenActivityDelegate(mContext);
     }
 }
