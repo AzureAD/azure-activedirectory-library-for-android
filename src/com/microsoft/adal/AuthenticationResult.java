@@ -53,7 +53,7 @@ public class AuthenticationResult implements Serializable {
         mRefreshToken = null;
         setBroadRefreshToken(false);
         mStatus = AuthenticationStatus.Succeeded;
-    }
+        }
 
     public AuthenticationResult(String authority, String clientId, String resource,
             String redirectUri)

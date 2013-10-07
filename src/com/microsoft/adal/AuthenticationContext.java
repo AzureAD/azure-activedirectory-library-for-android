@@ -88,6 +88,24 @@ public class AuthenticationContext {
         setContext(contextFromMainThread);
         mAuthority = authority;
     }
+    
+    /**
+     * constructs using context, authority url, and cache object
+     * @param contextFromMainThread
+     * @param authority
+     * @param cache
+     */
+    public AuthenticationContext(Context contextFromMainThread, String authority, ITokenCache cache)
+    {
+        
+    }
+    
+    public static ITokenCache getCache()
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    
 
     /**
      * acquire Token will start interactive flow if needed. It checks the cache
@@ -159,7 +177,6 @@ public class AuthenticationContext {
 
     /**
      * Acquire token with provided credentials. It does not launch webview.
-     * Backend service scenario.
      * 
      * @param resource
      * @param credential
@@ -726,7 +743,7 @@ public class AuthenticationContext {
     /*
      * Return cache from settings if it was set. Otherwise, return default impl.
      */
-    private ITokenCache getCache()
+    private ITokenCache getCacheInternal()
     {
         // Default cache uses shared preferences and needs to be connected to
         // the context
@@ -752,9 +769,9 @@ public class AuthenticationContext {
     private AuthenticationResult getCachedResult(String cacheKey) {
         if (getSettings().getEnableTokenCaching())
         {
-            if (getCache() != null)
+            if (getCacheInternal() != null)
             {
-                return getCache().getResult(cacheKey);
+                return getCacheInternal().getResult(cacheKey);
             }
         }
 
@@ -764,9 +781,9 @@ public class AuthenticationContext {
     private void setCachedResult(String cacheKey, AuthenticationResult result) {
         if (getSettings().getEnableTokenCaching())
         {
-            if (getCache() != null)
+            if (getCacheInternal() != null)
             {
-                getCache().putResult(cacheKey, result);
+                getCacheInternal().putResult(cacheKey, result);
             }
         }
     }
@@ -774,9 +791,9 @@ public class AuthenticationContext {
     private void removeCachedResult(String cacheKey) {
         if (getSettings().getEnableTokenCaching())
         {
-            if (!getCache().removeResult(cacheKey))
+            if (!getCacheInternal().removeResult(cacheKey))
             {
-                if (!getCache().removeResult(cacheKey))
+                if (!getCacheInternal().removeResult(cacheKey))
                 {
                     Log.e(TAG, "Cache remove failed!");
                 }

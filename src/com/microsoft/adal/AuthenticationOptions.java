@@ -84,5 +84,11 @@ public class AuthenticationOptions {
     public void setShowLoginScreen(boolean mShowLoginScreen) {
         this.mShowLoginScreen = mShowLoginScreen;
     }
+    public HashMap<Endpoint, String> getExtraQueryParams() {
+        return mExtraQueryParams;
+    }
+    public void setExtraQueryParams(HashMap<Endpoint, String> mExtraQueryParams) {
+        this.mExtraQueryParams = mExtraQueryParams;
+    }
     
 }

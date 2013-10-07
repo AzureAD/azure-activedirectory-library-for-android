@@ -43,6 +43,9 @@ public class LoginActivity extends Activity {
     private String redirectUrl;
     private AuthenticationRequest mAuthRequest;
 
+    //TODO move error codes
+    private final static String ERROR_WEBVIEW_INVALID_REQUEST = "Invalid request";
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +55,17 @@ public class LoginActivity extends Activity {
         Intent intent = getIntent();
         mAuthRequest = (AuthenticationRequest) intent
                 .getSerializableExtra(AuthenticationConstants.BROWSER_REQUEST_MESSAGE);
+        
+        if(mAuthRequest == null)
+        {
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_CODE, ERROR_WEBVIEW_INVALID_REQUEST );
+            resultIntent
+                    .putExtra(AuthenticationConstants.BROWSER_RESPONSE_ERROR_MESSAGE, "Intent does not have request details");
+            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            return;
+        }
+        
         redirectUrl = mAuthRequest.getRedirectUri();
         Log.d(TAG, "OnCreate redirect"+redirectUrl);
         
@@ -76,7 +90,7 @@ public class LoginActivity extends Activity {
             }
         });
 
-        spinner.show();
+        // spinner.show(); Prevents unit tests
         
         // Create the Web View to show the login page
         wv = (WebView) findViewById(R.id.webView1);
