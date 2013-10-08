@@ -4,12 +4,15 @@ import android.net.Uri;
 
 public class AuthenticationParams {
 
+    private String mAuthority;
+    private String mResource;
+    
     public String getAuthority(){
-        throw new UnsupportedOperationException();
+        return mAuthority;
     }
     
     public String getResource(){
-        throw new UnsupportedOperationException();
+        return mResource;
     }
         
     public static AuthenticationParams createFromResourceUrl(Uri resourceUrl){

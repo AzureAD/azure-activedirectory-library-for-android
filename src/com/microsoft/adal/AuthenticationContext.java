@@ -201,11 +201,21 @@ public class AuthenticationContext {
      * @param options
      * @param callback
      */
-    public void acquireTokenByAuthorizationCode(String clientId, String resource,
+    public void acquireTokenByAuthorizationCode(String code, String clientId, String resource,
             String redirectUri, String loginHint, AuthenticationOptions options,
             AuthenticationCallback callback)
     {
-        throw new UnsupportedOperationException("come back later");
+        
+        mClientId = clientId;
+        mRedirectUri = redirectUri;
+        mLoginHint = loginHint;
+        setupOptions(options);
+        final AuthenticationRequest authenticationRequest = new AuthenticationRequest(this, clientId,
+                redirectUri, resource);
+        mExternalCallback = callback;
+        
+        
+        processUIResponse(authenticationRequest, code);
     }
 
     /**
@@ -273,7 +283,7 @@ public class AuthenticationContext {
     public String getTokenFromCache(String clientid, String resourceId)
     {
         // TODO: check if clientid is null.
-        ITokenCache cache = getCache();
+        ITokenCache cache = getCacheInternal();
         if (cache != null)
         {
             AuthenticationRequest request = new AuthenticationRequest(this, clientid, null,
@@ -324,7 +334,7 @@ public class AuthenticationContext {
     public void resetTokens(String clientId, String resource)
     {
         // TODO:
-        ITokenCache cache = getCache();
+        ITokenCache cache = getCacheInternal();
         if (cache != null)
         {
             cache.removeAll();
@@ -338,7 +348,7 @@ public class AuthenticationContext {
      */
     public void resetAllTokens()
     {
-        ITokenCache cache = getCache();
+        ITokenCache cache = getCacheInternal();
         if (cache != null)
         {
             cache.removeAll();
@@ -426,7 +436,7 @@ public class AuthenticationContext {
     {
         if (getSettings().getEnableTokenCaching())
         {
-            ITokenCache cache = getCache();
+            ITokenCache cache = getCacheInternal();
             if (cache != null)
             {
                 return cache.getAllResults();
@@ -458,6 +468,7 @@ public class AuthenticationContext {
             } else if (cachedResult.isRefreshable()) {
                 // refreshToken will try to refresh. If it fails, it removes
                 // authorization object and returns error
+                
                 refreshToken(cachedResult, request, callback);
             }
         } else {
@@ -717,7 +728,7 @@ public class AuthenticationContext {
         final AuthenticationCallback externalCallback = callback;
         final AuthenticationRequest fRequest = request;
         Log.d(TAG, "Calling sendrequest for refreshtoken");
-
+        removeCachedResult(fRequest.getCacheKey());
         sendRequest(request.getTokenEndpoint(),
                 tokenRequestMessage, new OnResponseListener() {
                     @Override
@@ -885,7 +896,7 @@ public class AuthenticationContext {
         // TODO: No encoded state
         String encodedState = parameters.get("state");
         String state = AuthenticationRequest.decodeProtocolState(encodedState);
-
+        
         if (null != state && !state.isEmpty()) {
             // We have encoded state, crack it open
             Uri stateUri = Uri.parse("http://state/path?" + state);
