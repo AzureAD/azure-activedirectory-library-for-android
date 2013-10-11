@@ -90,7 +90,7 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
                 setRequestBody();
 
                 // Get the response to the request along with the response body
-                int statusCode = 200;
+                int statusCode = HttpURLConnection.HTTP_OK;
                 try{
                     statusCode = _connection.getResponseCode();
                 }
@@ -99,6 +99,7 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
                     // second time it will return correct code.
                     statusCode = _connection.getResponseCode();
                 }
+                
                 byte[] responseBody = null;
                 InputStream responseStream = null;
                 Log.d(TAG, "Statuscode" + statusCode);
@@ -150,7 +151,7 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
                 if (e.getMessage() == "No authentication challenges found")
                 {
                     // work around for improper 401 response
-                    _response.setResponse(new HttpWebResponse(401));
+                    _response.setResponse(new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED));
                 }
                 else
                 {

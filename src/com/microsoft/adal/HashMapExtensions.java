@@ -47,6 +47,35 @@ public final class HashMapExtensions
         return result;
     }
     
+    static final HashMap<String, String> URLFormDecodeData( String parameters, String delimiter)
+    {
+        HashMap<String,String> result = new HashMap<String, String>();
+        
+        if ( parameters != null && parameters.length() > 0 )
+        {
+            StringTokenizer parameterTokenizer = new StringTokenizer( parameters, delimiter);
+            
+            while ( parameterTokenizer.hasMoreTokens() )
+            {
+                String   pair     = parameterTokenizer.nextToken();
+                String[] elements = pair.split( "=" );
+                
+                if ( elements != null && elements.length == 2 )
+                {
+                    String key   = StringExtensions.URLFormDecode( elements[0].trim() );
+                    String value = StringExtensions.URLFormDecode(  elements[1].trim() );
+                    
+                    if ( key != null && key.length() > 0 && value != null && value.length() > 0 )
+                    {
+                        result.put( key, value );
+                    }
+                }
+            }
+        }
+        
+        return result;
+    }
+    
     /**
      * URL form encode a HashMap<String, String> into a string 
      */

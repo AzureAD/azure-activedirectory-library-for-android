@@ -64,17 +64,8 @@ public class AuthenticationContext {
     private HashMap<Endpoint, String> mExtraQueryParams;
     private PromptBehavior mPromptBehaviour;
     private boolean mValidateAuthority;
-
-    /**
-     * Delegate to use for starting browser flow from activity's context
-     */
-    public interface ActivityDelegate {
-        public void startActivityForResult(Intent intent, int requestCode);
-
-        public void startActivity(Intent intent);
-
-        public Activity getActivityContext();
-    }
+    private ITokenCache mTokenCache;
+   
 
     /**
      * Constructs context to use with known authority to get the token
@@ -87,6 +78,7 @@ public class AuthenticationContext {
     {
         setContext(contextFromMainThread);
         mAuthority = authority;
+        mTokenCache = new TokenCache(contextFromMainThread);
     }
     
     /**
@@ -97,15 +89,19 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context contextFromMainThread, String authority, ITokenCache cache)
     {
-        
+        setContext(contextFromMainThread);
+        mAuthority = authority;
+        mTokenCache = cache;
     }
     
-    public static ITokenCache getCache()
+    /**
+     * returns references cache. You can use default cache which uses SharedPrefenreces and handles syncronization. 
+     * @return
+     */
+    public ITokenCache getCache()
     {
-        throw new UnsupportedOperationException();
+        return mTokenCache;
     }
-
-    
 
     /**
      * acquire Token will start interactive flow if needed. It checks the cache
@@ -214,7 +210,6 @@ public class AuthenticationContext {
                 redirectUri, resource);
         mExternalCallback = callback;
         
-        
         processUIResponse(authenticationRequest, code);
     }
 
@@ -248,11 +243,19 @@ public class AuthenticationContext {
      * @param options
      * @param callback
      */
-    public void acquireTokenByRefreshCode(String clientId, String resource,
-            String redirectUri, String loginHint, AuthenticationOptions options,
-            AuthenticationCallback callback)
-    {
-        throw new UnsupportedOperationException("come back later");
+    public void acquireTokenByRefreshCode(String refreshToken, String clientId,
+            String resource, String redirectUri, String loginHint,
+            AuthenticationOptions options, AuthenticationCallback callback) {
+        AuthenticationResult refreshResult = new AuthenticationResult();
+        refreshResult.setRefreshToken(refreshToken);
+        mClientId = clientId;
+        mRedirectUri = redirectUri;
+        mLoginHint = loginHint;
+        setupOptions(options);
+        final AuthenticationRequest authenticationRequest = new AuthenticationRequest(
+                mAuthority, clientId, redirectUri, resource);
+        mExternalCallback = callback;
+        refreshToken(refreshResult, authenticationRequest, callback);
     }
 
     /**
@@ -273,36 +276,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * Blocking request to get token from cache. It does not do any refresh or
-     * browser flow. It only checks cache and returns token if available.
-     * 
-     * @param clientid
-     * @param resourceId
-     * @return Access Token
-     */
-    public String getTokenFromCache(String clientid, String resourceId)
-    {
-        // TODO: check if clientid is null.
-        ITokenCache cache = getCacheInternal();
-        if (cache != null)
-        {
-            AuthenticationRequest request = new AuthenticationRequest(this, clientid, null,
-                    resourceId);
-
-            // Check cached authorization object
-            final AuthenticationResult cachedResult = getCachedResult(request.getCacheKey());
-
-            if (cachedResult != null) {
-                if (!cachedResult.isExpired()) {
-                    return cachedResult.getAccessToken();
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Remove tokens from cache and clear cookies. If clientid is not provided,
+     * Remove tokens from cache and clear all cookies. If clientid is not provided,
      * only resource is used to match tokens in cache.
      * 
      * @param clientId Optional to target tokens for one clientid.
@@ -310,7 +284,6 @@ public class AuthenticationContext {
      */
     public void signOut(String clientId, String resource)
     {
-        // TODO:
         // Clear all browser cookies
         if (getContext() != null)
         {
@@ -486,7 +459,6 @@ public class AuthenticationContext {
                 callback.onCompleted(null);
             }
         }
-
     }
 
     /**
@@ -1202,7 +1174,21 @@ public class AuthenticationContext {
         this.mContext = context;
     }
     
+    /**
+     * Delegate to use for starting browser flow from activity's context
+     */
+    private interface ActivityDelegate {
+        public void startActivityForResult(Intent intent, int requestCode);
+
+        public void startActivity(Intent intent);
+
+        public Activity getActivityContext();
+    }
     
+    /**
+     * Testing orientation changes
+     * @param mContext
+     */
     public void updateContextConfigChange(Context mContext) {
         this.mContext = mContext;
         setTokenActivityDelegate(mContext);

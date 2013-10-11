@@ -18,6 +18,7 @@ import android.util.Base64;
 
 /**
  * Request related info
+ * 
  * @author omercan
  */
 public class AuthenticationRequest implements Serializable {
@@ -37,7 +38,7 @@ public class AuthenticationRequest implements Serializable {
     private String mLoginHint;
     private int mRequestCode;
     private UUID mCorrelationId;
-    
+
     public AuthenticationRequest(String authority, String client, String resource, String scope,
             String redirect, String loginhint)
     {
@@ -49,8 +50,17 @@ public class AuthenticationRequest implements Serializable {
         mLoginHint = loginhint;
     }
 
-    public AuthenticationRequest(AuthenticationContext authenticationContext, String clientid, String redirectUri, String resource) {
+    public AuthenticationRequest(AuthenticationContext authenticationContext, String clientid,
+            String redirectUri, String resource) {
         mAuthority = authenticationContext.getAuthority();
+        mClientId = clientid;
+        mResource = resource;
+        mRedirectUri = redirectUri;
+    }
+
+    public AuthenticationRequest(String authority, String clientid, String redirectUri,
+            String resource) {
+        mAuthority = authority;
         mClientId = clientid;
         mResource = resource;
         mRedirectUri = redirectUri;
@@ -197,7 +207,6 @@ public class AuthenticationRequest implements Serializable {
         return String.format("%s|$|%s", mAuthority, mResource);
     }
 
-    
     private int getRequestCode() {
         return mRequestCode;
     }
@@ -210,7 +219,7 @@ public class AuthenticationRequest implements Serializable {
         // TODO Auto-generated method stub
         return this.mCorrelationId;
     }
-    
+
     public void setCorrelationId(UUID val) {
         // TODO Auto-generated method stub
         this.mCorrelationId = val;

@@ -26,7 +26,23 @@ final class StringExtensions
         return Uri.decode(target);
     }
 
+    
+
+    
+    /*
+     * apache/commons/lang/StringUtils.java
+     * param.trim().length() is slower than this
+     */
     public static boolean IsNullOrBlank(String param) {
-        return param == null || param.trim().length() == 0;
+        int strLen;
+        if (param == null || (strLen = param.length()) == 0) {
+            return true;
+        }
+        for (int i = 0; i < strLen; i++) {
+            if ((Character.isWhitespace(param.charAt(i)) == false)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

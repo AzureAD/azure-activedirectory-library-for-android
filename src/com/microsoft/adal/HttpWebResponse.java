@@ -17,7 +17,7 @@ public class HttpWebResponse
     private byte[]                    _responseBody;
     private Map<String, List<String>> _responseHeaders;
 
-    HttpWebResponse( int statusCode, byte[] responseBody, Map<String, List<String>> responseHeaders )
+    public HttpWebResponse( int statusCode, byte[] responseBody, Map<String, List<String>> responseHeaders )
     {
         _statusCode      = statusCode;
         _responseBody    = responseBody;
