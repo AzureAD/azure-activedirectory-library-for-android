@@ -921,7 +921,6 @@ public class AuthenticationContext {
                     }
                 }
             } else {
-
                 mExternalCallback.onError(new AzureException(
                         AuthenticationConstants.AUTH_FAILED_BAD_STATE));
             }

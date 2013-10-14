@@ -1,4 +1,4 @@
-package com.microsoft.adal.test;
+package com.microsoft.adal.tests;
 
 import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.AuthenticationOptions;

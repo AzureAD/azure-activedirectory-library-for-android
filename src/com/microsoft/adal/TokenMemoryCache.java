@@ -10,9 +10,9 @@ import java.util.HashMap;
  */
 public class TokenMemoryCache implements ITokenCache {
 
-    private static TokenCache sSharedInstance = new TokenCache();
+    private static TokenMemoryCache sSharedInstance = new TokenMemoryCache();
 
-    public static TokenCache getInstance()
+    public static TokenMemoryCache getInstance()
     {
         return sSharedInstance;
     }

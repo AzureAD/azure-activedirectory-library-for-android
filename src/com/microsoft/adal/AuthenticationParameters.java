@@ -11,14 +11,11 @@ import java.util.Map;
 //TODO add Dotnet style exceptions
 public class AuthenticationParameters {
 
-    private final static String AUTHENTICATE_HEADER = "WWW-Authenticate";
-    private final static String BEARER = "bearer";
-    private final static String AUTHORITY_KEY = "authorization_uri";
-    private final static String RESOURCE_KEY = "resource_id";
+    public final static String AUTHENTICATE_HEADER = "WWW-Authenticate";
+    public final static String BEARER = "bearer";
+    public final static String AUTHORITY_KEY = "authorization_uri";
+    public final static String RESOURCE_KEY = "resource_id";
 
-   
-    
-    
     private String mAuthority;
     private String mResource;
 
@@ -37,11 +34,10 @@ public class AuthenticationParameters {
     }
 
     /*
-     * returns authenticationParam object in callback if webresponse returns
-     * challange response and authorization endpoin
+     * returns authenticationParam object in callback, if webresponse returns
+     * challange response and authorization endpoint
      */
-    public static void createFromResourceUrl(URL resourceUrl,
-            AuthenticationParamCallback callback) {
+    public static void createFromResourceUrl(URL resourceUrl, AuthenticationParamCallback callback) {
 
         if (callback == null)
         {
@@ -58,56 +54,55 @@ public class AuthenticationParameters {
                             HttpWebResponse webResponse) {
 
                         if (exception == null)
-                            parseResponse(webResponse, externalCallback);
+                        {
+                            try {
+                                externalCallback.onCompleted(null, parseResponse(webResponse));
+                            } catch (IllegalArgumentException exc)
+                            {
+                                externalCallback.onCompleted(exc, null);
+                            }
+                        }
                         else
                             externalCallback.onCompleted(exception, null);
                     }
                 });
     }
 
-    private static void parseResponse(HttpWebResponse webResponse,
-            AuthenticationParamCallback callback)
+    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse)
     {
         // Depending on the service side implementation for this resource
         if (webResponse.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
             Map<String, List<String>> responseHeaders = webResponse.getResponseHeaders();
-            if (responseHeaders.containsKey(AUTHENTICATE_HEADER))
+            if (responseHeaders != null && responseHeaders.containsKey(AUTHENTICATE_HEADER))
             {
                 // HttpUrlConnection sends a list of header values for same key
                 // if exists
                 List<String> headers = responseHeaders.get(AUTHENTICATE_HEADER);
-                createFromResponseAuthenticateHeader(headers.get(0), callback);
+
+                return createFromResponseAuthenticateHeader(headers.get(0));
             }
-            else
-            {
-                // TODO add Dotnet style exceptions
-                callback.onCompleted(new IllegalArgumentException(ErrorMessages.AUTH_HEADER_MISSING),
-                        null);
-            }
+
+            throw new IllegalArgumentException(ErrorMessages.AUTH_HEADER_MISSING);
         }
-        else
-        {
-            callback.onCompleted(new IllegalArgumentException(
-                    ErrorMessages.AUTH_HEADER_WRONG_STATUS), null);
-        }
+        throw new IllegalArgumentException(ErrorMessages.AUTH_HEADER_WRONG_STATUS);
     }
 
-    public static void createFromResponseAuthenticateHeader(
-            String authenticateHeader, AuthenticationParamCallback callback) {
+    public static AuthenticationParameters createFromResponseAuthenticateHeader(
+            String authenticateHeader) {
 
+        AuthenticationParameters authParams = null;
         if (StringExtensions.IsNullOrBlank(authenticateHeader))
         {
-            callback.onCompleted(new IllegalArgumentException(ErrorMessages.AUTH_HEADER_MISSING), null);
+            throw new IllegalArgumentException(ErrorMessages.AUTH_HEADER_MISSING);
         }
         else
         {
-            //TODO what should be the correct locale here?
+            // TODO what should be the correct locale here?
             authenticateHeader = authenticateHeader.trim().toLowerCase(Locale.US);
 
             if (!authenticateHeader.startsWith(BEARER))
             {
-                callback.onCompleted(new IllegalArgumentException(ErrorMessages.AUTH_HEADER_INVALID_FORMAT),
-                        null);
+                throw new IllegalArgumentException(ErrorMessages.AUTH_HEADER_INVALID_FORMAT);
             }
             else
             {
@@ -115,18 +110,17 @@ public class AuthenticationParameters {
                         authenticateHeader, ",");
                 if (headerItems != null && !headerItems.isEmpty())
                 {
-                    AuthenticationParameters authParams = new AuthenticationParameters(
+                    authParams = new AuthenticationParameters(
                             headerItems.get(AUTHORITY_KEY), headerItems.get(RESOURCE_KEY));
-                    callback.onCompleted(null, authParams);
                 }
                 else
                 {
-                    callback.onCompleted(new IllegalArgumentException(
-                            ErrorMessages.AUTH_HEADER_INVALID_FORMAT),
-                            null);
+                    throw new IllegalArgumentException(ErrorMessages.AUTH_HEADER_INVALID_FORMAT);
                 }
             }
         }
+
+        return authParams;
     }
 
     public String getAuthority() {

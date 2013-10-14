@@ -1,4 +1,4 @@
-package com.microsoft.adal.test;
+package com.microsoft.adal.tests;
 
 import android.content.Context;
 import android.content.Intent;

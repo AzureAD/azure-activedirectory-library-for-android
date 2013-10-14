@@ -13,8 +13,8 @@ import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationOptions;
 import com.microsoft.adal.AuthenticationRequest;
 import com.microsoft.adal.AuthenticationResult;
-import com.microsoft.adal.test.Constants;
-import com.microsoft.adal.test.R;
+import com.microsoft.adal.tests.Constants;
+import com.microsoft.adal.tests.R;
 
 /**
  * Instrumentation activity that will use ADAL to make actual calls. Activity

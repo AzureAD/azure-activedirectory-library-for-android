@@ -33,6 +33,7 @@ public class AuthenticationResult implements Serializable {
     private String mTokenEndpoint;
     private String mRefreshToken;
     private String mResource;
+    private String mClientId;
     private String mScope;
     private String mAccessTokenType;
     private Date mExpires;
@@ -79,6 +80,7 @@ public class AuthenticationResult implements Serializable {
     {
         mAuthority = request.getAuthority();
         mResource = request.getResource();
+        mClientId = request.getClientId(); // Asking token from different clientid can ask for confirmaiton
         setBroadRefreshToken(false);
         mStatus = AuthenticationStatus.Succeeded;
     }
@@ -89,7 +91,14 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Failed;
     }
 
-    
+    /**
+     * Returns key that helps to find access token info resource and scope
+     * 
+     * @return
+     */
+    public String getCacheKey() {
+        return new AuthenticationRequest(mAuthority, mClientId, null, mResource).getCacheKey();
+    }
 
     public String getAccessToken() {
         return mAccessToken;

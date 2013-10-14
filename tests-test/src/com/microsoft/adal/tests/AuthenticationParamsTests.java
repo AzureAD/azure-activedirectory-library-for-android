@@ -1,4 +1,4 @@
-package com.microsoft.adal.test;
+package com.microsoft.adal.tests;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

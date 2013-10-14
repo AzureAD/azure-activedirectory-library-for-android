@@ -1,4 +1,4 @@
-package com.microsoft.adal.test;
+package com.microsoft.adal.tests;
 
 public class Constants {
 	public static final String SDK_VERSION = "1.0";
