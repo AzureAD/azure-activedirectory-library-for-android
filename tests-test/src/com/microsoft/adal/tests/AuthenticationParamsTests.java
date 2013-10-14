@@ -137,11 +137,6 @@ public class AuthenticationParamsTests extends AndroidTestCase {
 
 	}
 	
-	
-	
-	
-	
-	
 	private HashMap<String, List<String>> getInvalidHeader(String key, String value)
 	{
 		HashMap<String, List<String>> dummy = new HashMap<String, List<String>>();
