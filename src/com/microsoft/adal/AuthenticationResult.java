@@ -62,6 +62,7 @@ public class AuthenticationResult implements Serializable {
         mAccessToken = null;
         mRefreshToken = null;
         mAuthority = authority;
+        mClientId = clientId;
         mResource = resource;
         setBroadRefreshToken(false);
         mStatus = AuthenticationStatus.Succeeded;

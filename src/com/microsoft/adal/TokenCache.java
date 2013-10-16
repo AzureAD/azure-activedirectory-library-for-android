@@ -6,6 +6,7 @@ package com.microsoft.adal;
  */
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import android.app.Activity;
@@ -17,10 +18,12 @@ import android.util.Log;
 import com.google.gson.Gson;
 
 /**
- * Does cache related actions such as putResult, getResult, removeResult
- * This stores cache in SharedPreferences. It is not ideal for large number of tokens.
- * Shared preferences are Thread-Safe, but not process safe. Each app writes to its own data. Multiple edits can be active within the app.
- * TODO: watch for: If broker app is hosted in caller's process, this will make it complicated.
+ * Does cache related actions such as putResult, getResult, removeResult This
+ * stores cache in SharedPreferences. It is not ideal for large number of
+ * tokens. Shared preferences are Thread-Safe, but not process safe. Each app
+ * writes to its own data. Multiple edits can be active within the app. TODO:
+ * watch for: If broker app is hosted in caller's process, this will make it
+ * complicated.
  * 
  * @author omercan
  */
@@ -38,13 +41,13 @@ public class TokenCache implements ITokenCache {
         mPrefs = null;
     }
 
-    TokenCache(Context context)
+    public TokenCache(Context context)
     {
         mContext = context;
         mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME,
                 Activity.MODE_PRIVATE);
     }
-     
+
     /**
      * Gets AuthenticationResult for a given key
      */
@@ -75,7 +78,7 @@ public class TokenCache implements ITokenCache {
 
         if (result == null)
             throw new IllegalArgumentException("result");
-        
+
         if (mPrefs != null)
         {
             String json = gson.toJson(result);
@@ -83,13 +86,14 @@ public class TokenCache implements ITokenCache {
             prefsEditor.putString(key, json);
 
             // TODO: Check the source code for this editor
-            // when two editors are modifying preferences at the same time, the last one to call commit wins
-            if(!prefsEditor.commit())
+            // when two editors are modifying preferences at the same time, the
+            // last one to call commit wins
+            if (!prefsEditor.commit())
             {
                 return prefsEditor.commit();
             }
         }
-        
+
         return false;
     }
 
@@ -108,7 +112,7 @@ public class TokenCache implements ITokenCache {
             prefsEditor.remove(key);
             return prefsEditor.commit();
         }
-        
+
         return false;
     }
 
@@ -149,4 +153,20 @@ public class TokenCache implements ITokenCache {
         }
         return null;
     }
+
+    public Iterator<AuthenticationResult> getIterator()
+    {
+        if (mPrefs != null)
+        {
+            Map<String, AuthenticationResult> results = (Map<String, AuthenticationResult>) mPrefs
+                    .getAll();
+            // map entry iterator results.entrySet().iterator();
+            // Iterator<Map.Entry<String, AuthenticationResult>> te =
+            // results.entrySet().iterator();
+
+            return results.values().iterator();
+        }
+        return null;
+    }
+
 }

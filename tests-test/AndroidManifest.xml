@@ -9,7 +9,7 @@
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
         android:label="Tests for com.microsoft.adal.test"
-        android:targetPackage="com.microsoft.adal.test" />
+        android:targetPackage="com.microsoft.adal.tests" />
 
     <application
         android:icon="@drawable/ic_launcher"

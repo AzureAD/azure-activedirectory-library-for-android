@@ -883,14 +883,12 @@ public class AuthenticationContext {
                 // ToDo: if token, ask to token endpoint and post the message
                 AuthenticationResult result = processUIResponseParams(
                         parameters, request);
-
+                final AuthenticationRequest requestInfo = request;
                 if (result.getStatus() == com.microsoft.adal.AuthenticationResult.AuthenticationStatus.Succeeded) {
                     if (!result.getCode().isEmpty()) {
                         // Need to get exchange code to get token
                         HashMap<String, String> tokenRequestMessage = buildTokenRequestMessage(
                                 request, result.getCode());
-
-                        final AuthenticationRequest requestInfo = request;
 
                         sendRequest(request.getTokenEndpoint(),
                                 tokenRequestMessage, new OnResponseListener() {
@@ -919,6 +917,13 @@ public class AuthenticationContext {
                         // We have token directly with implicit flow
 
                     }
+                }
+                else
+                {
+                    mExternalCallback
+                    .onError(new AuthException(requestInfo, result
+                            .getErrorCode(), result
+                            .getErrorDescription()));
                 }
             } else {
                 mExternalCallback.onError(new AzureException(
