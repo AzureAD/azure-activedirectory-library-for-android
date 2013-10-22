@@ -1,6 +1,7 @@
 
 package com.microsoft.adal;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -47,25 +48,30 @@ public class AuthenticationParameters {
         HttpWebRequest webRequest = new HttpWebRequest(resourceUrl);
         webRequest.getRequestHeaders().put("Accept", "application/json");
         final AuthenticationParamCallback externalCallback = callback;
-        webRequest.sendAsync(
-                new HttpWebRequestCallback() {
-                    @Override
-                    public void onComplete(Exception exception,
-                            HttpWebResponse webResponse) {
 
-                        if (exception == null)
-                        {
-                            try {
-                                externalCallback.onCompleted(null, parseResponse(webResponse));
-                            } catch (IllegalArgumentException exc)
+        try {
+            webRequest.sendAsyncGet(
+                    new HttpWebRequestCallback() {
+                        @Override
+                        public void onComplete(Exception exception,
+                                HttpWebResponse webResponse) {
+
+                            if (exception == null)
                             {
-                                externalCallback.onCompleted(exc, null);
+                                try {
+                                    externalCallback.onCompleted(null, parseResponse(webResponse));
+                                } catch (IllegalArgumentException exc)
+                                {
+                                    externalCallback.onCompleted(exc, null);
+                                }
                             }
+                            else
+                                externalCallback.onCompleted(exception, null);
                         }
-                        else
-                            externalCallback.onCompleted(exception, null);
-                    }
-                });
+                    });
+        } catch (Exception e) {
+            callback.onCompleted(e, null);
+        }
     }
 
     private static AuthenticationParameters parseResponse(HttpWebResponse webResponse)

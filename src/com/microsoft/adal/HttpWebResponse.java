@@ -34,7 +34,7 @@ public class HttpWebResponse
         return _statusCode;
     }
 
-    Map<String, List<String>> getResponseHeaders()
+    public Map<String, List<String>> getResponseHeaders()
     {
         return _responseHeaders;
     }

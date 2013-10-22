@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import android.test.AndroidTestCase;
 
@@ -29,6 +30,7 @@ public class AuthenticationParamsTests extends AndroidTestCase {
 
 	public void testCreateFromResourceUrlInvalidFormat() {
 
+		final CountDownLatch signal = new CountDownLatch(1);
 		try {
 			AuthenticationParameters.createFromResourceUrl(new URL(
 					"http://www.bing.com"), new AuthenticationParamCallback() {
@@ -41,13 +43,16 @@ public class AuthenticationParamsTests extends AndroidTestCase {
 					assertTrue(
 							"Check header exception",
 							exception.getMessage() == ErrorMessages.AUTH_HEADER_WRONG_STATUS);
+					 signal.countDown();
 				}
 			});
-
+			signal.await();
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			assertTrue("MalformedURLException is not expected", false);
+		} catch (InterruptedException e) {
+			assertTrue("interruption is not expected", false);
 		}
-
+		
 	}
 
 	public void testParseResponseWrongStatus() {

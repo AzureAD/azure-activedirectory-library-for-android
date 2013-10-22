@@ -46,23 +46,39 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
 
     public HttpWebRequest(URL requestURL)
     {
-        if (requestURL == null)
-        {
-            throw new IllegalArgumentException("requestURL");
-        }
-
-        if (!requestURL.getProtocol().equalsIgnoreCase("http") &&
-                !requestURL.getProtocol().equalsIgnoreCase("https"))
-        {
-            throw new IllegalArgumentException("requestURL");
-        }
-
         _url = requestURL;
         _requestHeaders = new HashMap<String, String>();
-
         _requestHeaders.put("Host", getURLAuthority(_url));
     }
 
+    /**
+     * Async task Step1
+     */
+    @Override
+    protected void onPreExecute()
+    {
+        super.onPreExecute();
+        
+        _response = new WebResponse();
+        Log.e(TAG, "onPreExecute");
+        _response.setProcessing(false);
+        try
+        {
+            _connection = (HttpURLConnection) _url.openConnection();
+        } catch (IOException e)
+        {
+            Log.e(TAG, e.getMessage());
+
+            _response.setResponseException(e);
+
+            _connection.disconnect();
+            _connection = null;
+        }
+    }
+
+    /**
+     * Async task work step
+     */
     @Override
     protected WebResponse doInBackground(Void... empty)
     {
@@ -84,22 +100,21 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
                     Log.d(TAG, "setting header" + header);
                     _connection.setRequestProperty(header, _requestHeaders.get(header));
                 }
-                _connection.setInstanceFollowRedirects(false);
+                _connection.setInstanceFollowRedirects(true);
                 _connection.setUseCaches(false);
                 _connection.setRequestMethod(_requestMethod);
                 setRequestBody();
 
                 // Get the response to the request along with the response body
                 int statusCode = HttpURLConnection.HTTP_OK;
-                try{
+                try {
                     statusCode = _connection.getResponseCode();
-                }
-                catch(IOException ex)
+                } catch (IOException ex)
                 {
                     // second time it will return correct code.
                     statusCode = _connection.getResponseCode();
                 }
-                
+
                 byte[] responseBody = null;
                 InputStream responseStream = null;
                 Log.d(TAG, "Statuscode" + statusCode);
@@ -147,7 +162,7 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
             catch (Exception e)
             {
                 Log.e(TAG, "Exception" + e.getMessage());
-                
+
                 if (e.getMessage() == "No authentication challenges found")
                 {
                     // work around for improper 401 response
@@ -187,97 +202,34 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
         }
     }
 
-    @Override
-    protected void onPreExecute()
-    {
-        _response = new WebResponse();
-        Log.e(TAG, "onPreExecute");
-        _response.setProcessing(false);
-        try
-        {
-            _connection = (HttpURLConnection) _url.openConnection();
-        } catch (IOException e)
-        {
-            Log.e(TAG, e.getMessage());
-
-            _response.setResponseException(e);
-
-            _connection.disconnect();
-            _connection = null;
-        }
-    }
-
+    /**
+     * Async task Final step
+     */
     @Override
     protected void onPostExecute(WebResponse response)
     {
+        super.onPostExecute(response);
         Log.d(TAG, "OnPostExecute");
-        _response.setProcessing(false);
-        if (null != _callback)
+        if (response != null)
         {
-            _callback.onComplete(response.getResponseException(), response.getResponse());
+            response.setProcessing(false);
+
+            if (null != _callback)
+            {
+                _callback.onComplete(response.getResponseException(), response.getResponse());
+            }
         }
-    }
-
-    /**
-     * Synchronous GET.
-     */
-    public HttpWebResponse send() throws Exception
-    {
-        // TODO: Prevent reuse after send
-        onPreExecute();
-        _requestMethod = REQUEST_METHOD_GET;
-        WebResponse response = doInBackground((Void[]) null);
-
-        if (response.getResponseException() != null)
-        {
-            throw response.getResponseException();
-        }
-
-        return response.getResponse();
-    }
-
-    /**
-     * Synchronous POST.
-     */
-    HttpWebResponse send(byte[] content, String contentType) throws Exception
-    {
-        // TODO: Prevent reuse after send
-        if (null == content || content.length == 0)
-        {
-            throw new IllegalArgumentException("content");
-        }
-
-        _content = content;
-        _contentType = contentType;
-        _requestMethod = REQUEST_METHOD_POST;
-        onPreExecute();
-        WebResponse response = doInBackground((Void[]) null);
-
-        if (response.getResponseException() != null)
-        {
-            throw response.getResponseException();
-        }
-
-        return response.getResponse();
     }
 
     /**
      * Asynchronous GET.
+     * @param callback
+     * @throws IllegalArgumentException
+     * @throws IOException  
      */
-    public void sendAsync(HttpWebRequestCallback callback) throws IllegalArgumentException
+    public void sendAsyncGet(HttpWebRequestCallback callback) throws IllegalArgumentException, IOException
     {
-        // TODO: Prevent reuse after send
-        if (callback == null)
-        {
-            throw new IllegalArgumentException("callback");
-        }
-
-        _callback = callback;
-        _requestMethod = REQUEST_METHOD_GET;
-        // At Honeycomb, execute was changed to run on a serialized thread pool
-        // but we want the request to run fully parallel so we force use of
-        // the THREAD_POOL_EXECUTOR
-        executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, (Void[]) null);
+        sendAsync(REQUEST_METHOD_GET, null, null, callback);
     }
 
     /**
@@ -285,30 +237,35 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
      * 
      * @param callback
      * @throws IllegalArgumentException
+     * @throws IOException 
      */
-    public void sendAsyncDelete(HttpWebRequestCallback callback) throws IllegalArgumentException
+    public void sendAsyncDelete(HttpWebRequestCallback callback) throws IllegalArgumentException, IOException
     {
-        // TODO: Prevent reuse after send
-        if (callback == null)
-        {
-            throw new IllegalArgumentException("callback");
-        }
-
-        _callback = callback;
-        _requestMethod = REQUEST_METHOD_GET;
-
-        // At Honeycomb, execute was changed to run on a serialized thread pool
-        // but we want the request to run fully parallel so we force use of
-        // the THREAD_POOL_EXECUTOR
-        executeOnExecutor(THREAD_POOL_EXECUTOR, (Void[]) null);
+        sendAsync(REQUEST_METHOD_DELETE, null, null, callback);
     }
 
+    /**
+     * send async put request
+     * @param content
+     * @param contentType
+     * @param callback
+     * @throws IllegalArgumentException
+     * @throws IOException
+     */
     public void sendAsyncPut(byte[] content, String contentType, HttpWebRequestCallback callback)
             throws IllegalArgumentException, IOException
     {
         sendAsync(REQUEST_METHOD_PUT, content, contentType, callback);
     }
 
+    /**
+     * send async post request
+     * @param content
+     * @param contentType
+     * @param callback
+     * @throws IllegalArgumentException
+     * @throws IOException
+     */
     public void sendAsyncPost(byte[] content, String contentType, HttpWebRequestCallback callback)
             throws IllegalArgumentException, IOException
     {
@@ -321,12 +278,17 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
     private void sendAsync(String requestmethod, byte[] content, String contentType,
             HttpWebRequestCallback callback) throws IllegalArgumentException, IOException
     {
-        // TODO: Prevent reuse after send
-        if (null == content || content.length == 0)
+        if (_url == null)
         {
-            throw new IllegalArgumentException("content");
+            throw new IllegalArgumentException("requestURL");
         }
 
+        if (!_url.getProtocol().equalsIgnoreCase("http") &&
+                !_url.getProtocol().equalsIgnoreCase("https"))
+        {
+            throw new IllegalArgumentException("requestURL");
+        }
+        
         if (callback == null)
         {
             throw new IllegalArgumentException("callback");
