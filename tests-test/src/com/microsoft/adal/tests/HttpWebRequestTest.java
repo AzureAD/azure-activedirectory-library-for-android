@@ -1,6 +1,8 @@
 package com.microsoft.adal.tests;
 
 import java.net.URL;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.microsoft.adal.HttpWebRequest;
 import com.microsoft.adal.HttpWebRequestCallback;
@@ -14,7 +16,7 @@ public class HttpWebRequestTest extends AndroidTestCase {
 	 * Webapi to send get, put, post, delete requests and check headers
 	 */
 	private final static String TEST_WEBAPI_URL = "http://graphtestrun.azurewebsites.net/api/WebRequestTest";
-	
+	private final static int REQUEST_TIME_OUT = 10000; // milisec
 	public void testConstructor() {
 		try {
 			HttpWebRequest request = new HttpWebRequest(null);
@@ -75,6 +77,7 @@ public class HttpWebRequestTest extends AndroidTestCase {
 	
 	public void testGetRequest()
 	{
+		final CountDownLatch signal = new CountDownLatch(1);
 		try {
 			HttpWebRequest request = new HttpWebRequest(new URL(TEST_WEBAPI_URL));
 			request.getRequestHeaders().put("testabc", "value123");
@@ -85,16 +88,25 @@ public class HttpWebRequestTest extends AndroidTestCase {
 					assertTrue("exception is null", ex == null);
 					assertTrue("status is 200", response.getStatusCode() == 200);
 					String responseMsg = new String(response.getBody());
-					assertTrue("request header check", responseMsg.contains("testabc-value123")); 
+					assertTrue("request header check", responseMsg.contains("testabc-value123"));
+					signal.countDown();
 				}
 			});
 		} catch (Exception ex) {
 			assertFalse("not expected", true);
+			signal.countDown();
+		}
+		
+		try {
+			signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			assertFalse("InterruptedException is not expected", true);
 		}
 	}
 	
 	public void testGetWithIdRequest()
 	{
+		final CountDownLatch signal = new CountDownLatch(1);
 		try {
 			HttpWebRequest request = new HttpWebRequest(new URL(TEST_WEBAPI_URL+"/1"));
 			request.sendAsyncGet(new HttpWebRequestCallback() {
@@ -104,11 +116,19 @@ public class HttpWebRequestTest extends AndroidTestCase {
 					assertTrue("exception is null", ex == null);
 					assertTrue("status is 200", response.getStatusCode() == 200);
 					String responseMsg = new String(response.getBody());
-					assertTrue("request body check", responseMsg.contains("test get with id")); 
+					assertTrue("request body check", responseMsg.contains("test get with id"));
+					signal.countDown();
 				}
 			});
 		} catch (Exception ex) {
 			assertFalse("not expected", true);
+			signal.countDown();
+		}
+		
+		try {
+			signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			assertFalse("InterruptedException is not expected", true);
 		}
 	}
 	
