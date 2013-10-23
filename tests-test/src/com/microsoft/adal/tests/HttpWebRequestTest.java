@@ -18,6 +18,7 @@ public class HttpWebRequestTest extends AndroidTestCase {
 
 	/**
 	 * Webapi to send get, put, post, delete requests and check headers
+	 * This is deployed at azure websites. Simple WebAPI to verify that requests are going through and parsed correctly.
 	 */
 	private final static String TEST_WEBAPI_URL = "http://graphtestrun.azurewebsites.net/api/WebRequestTest";
 	private final static int REQUEST_TIME_OUT = 20000; // miliseconds

@@ -1,5 +1,6 @@
 package com.microsoft.adal;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
 
@@ -8,7 +9,7 @@ import java.util.HashMap;
  * @author omercan
  *
  */
-public interface ITokenCache {
+public interface ITokenCache extends Serializable{
 	public AuthenticationResult getResult( String key );
     public boolean putResult( String key, AuthenticationResult result );
     public boolean removeResult( String key );

@@ -17,10 +17,10 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 /**
- * MOVED from Hervey's code HttpWebRequest is a simple wrapper over
- * HttpUrlConnection that makes sending requests and receiving responses a
- * little simpler. This class is intentionally simple; it does not support
- * authentication or custom certificate validation, etc.
+ * AsyncTask can be executed only once. It throws exception for multiple async calls on same object.
+ * Do not call onPreExecute, onPostExecute or doInBackground directly
+ * 
+ * TODO: certificate handling for ssl errors 
  */
 public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
 {
@@ -37,13 +37,15 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
 
     byte[] _content = null;
     String _contentType = null;
-
+    
     HttpURLConnection _connection = null;
 
     HashMap<String, String> _requestHeaders = null;
 
     WebResponse _response = null;
 
+    boolean _usedBefore = false;
+    
     public HttpWebRequest(URL requestURL)
     {
         _url = requestURL;
@@ -58,7 +60,7 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
     protected void onPreExecute()
     {
         super.onPreExecute();
-        
+
         _response = new WebResponse();
         Log.e(TAG, "onPreExecute");
         _response.setProcessing(false);
@@ -84,14 +86,15 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
     {
         // We could be carrying an exception here from the onPreExecute step
         // so only try to send the request if everything is clean.
-        if (_response.getResponseException() == null && !_response.isProcessing())
+        if (_connection != null && _response.getResponseException() == null
+                && !_response.isProcessing())
         {
             _response.setProcessing(true);
             _connection.setConnectTimeout(10000); // 10 second timeout
 
             try
             {
-                // Apply the users request headers
+                // Apply the request headers
                 final Iterator<String> headerKeys = _requestHeaders.keySet().iterator();
 
                 while (headerKeys.hasNext())
@@ -100,9 +103,11 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
                     Log.d(TAG, "setting header" + header);
                     _connection.setRequestProperty(header, _requestHeaders.get(header));
                 }
+
                 _connection.setInstanceFollowRedirects(true);
                 _connection.setUseCaches(false);
                 _connection.setRequestMethod(_requestMethod);
+
                 setRequestBody();
 
                 // Get the response to the request along with the response body
@@ -124,8 +129,6 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
                     responseStream = _connection.getInputStream();
                 } catch (IOException ex)
                 {
-                    // For some failures, the data we need is in the error
-                    // stream
                     Log.d(TAG, "IOException" + ex.getMessage());
                     responseStream = _connection.getErrorStream();
                 }
@@ -134,8 +137,7 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
                 {
                     // Always treat the response as an array of bytes and do not
                     // attempt any kind of content type parsing. Most responses
-                    // should
-                    // be below the 4096 bytes that is the buffer size.
+                    // should be below the 4096 bytes that is the buffer size.
                     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 
                     byte[] buffer = new byte[4096];
@@ -183,25 +185,6 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
         return _response;
     }
 
-    private void setRequestBody() throws IOException {
-        if (null != _content)
-        {
-            _connection.setDoOutput(true);
-
-            if (null != _contentType && !_contentType.isEmpty())
-            {
-                _connection.setRequestProperty("Content-Type", _contentType);
-            }
-
-            _connection.setRequestProperty("Content-Length", Integer.toString(_content.length));
-            _connection.setFixedLengthStreamingMode(_content.length);
-
-            OutputStream out = _connection.getOutputStream();
-            out.write(_content);
-            out.close();
-        }
-    }
-
     /**
      * Async task Final step
      */
@@ -223,11 +206,13 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
 
     /**
      * Asynchronous GET.
+     * 
      * @param callback
      * @throws IllegalArgumentException
-     * @throws IOException  
+     * @throws IOException
      */
-    public void sendAsyncGet(HttpWebRequestCallback callback) throws IllegalArgumentException, IOException
+    public void sendAsyncGet(HttpWebRequestCallback callback) throws IllegalArgumentException,
+            IOException
     {
         sendAsync(REQUEST_METHOD_GET, null, null, callback);
     }
@@ -237,15 +222,17 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
      * 
      * @param callback
      * @throws IllegalArgumentException
-     * @throws IOException 
+     * @throws IOException
      */
-    public void sendAsyncDelete(HttpWebRequestCallback callback) throws IllegalArgumentException, IOException
+    public void sendAsyncDelete(HttpWebRequestCallback callback) throws IllegalArgumentException,
+            IOException
     {
         sendAsync(REQUEST_METHOD_DELETE, null, null, callback);
     }
 
     /**
      * send async put request
+     * 
      * @param content
      * @param contentType
      * @param callback
@@ -260,6 +247,7 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
 
     /**
      * send async post request
+     * 
      * @param content
      * @param contentType
      * @param callback
@@ -278,6 +266,16 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
     private void sendAsync(String requestmethod, byte[] content, String contentType,
             HttpWebRequestCallback callback) throws IllegalArgumentException, IOException
     {
+        if(!_usedBefore)
+        {
+            _usedBefore = true;
+        }
+        else
+        {
+            // Async call itself will throw exception, but this is catching misuse early.
+            throw new IllegalArgumentException("The task can be executed only once");
+        }
+        
         if (_url == null)
         {
             throw new IllegalArgumentException("requestURL");
@@ -288,7 +286,7 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
         {
             throw new IllegalArgumentException("requestURL");
         }
-        
+
         if (callback == null)
         {
             throw new IllegalArgumentException("callback");
@@ -303,6 +301,25 @@ public class HttpWebRequest extends AsyncTask<Void, Void, WebResponse>
         // but we want the request to run fully parallel so we force use of
         // the THREAD_POOL_EXECUTOR
         executeOnExecutor(THREAD_POOL_EXECUTOR, (Void[]) null);
+    }
+
+    private void setRequestBody() throws IOException {
+        if (null != _content)
+        {
+            _connection.setDoOutput(true);
+
+            if (null != _contentType && !_contentType.isEmpty())
+            {
+                _connection.setRequestProperty("Content-Type", _contentType);
+            }
+
+            _connection.setRequestProperty("Content-Length", Integer.toString(_content.length));
+            _connection.setFixedLengthStreamingMode(_content.length);
+
+            OutputStream out = _connection.getOutputStream();
+            out.write(_content);
+            out.close();
+        }
     }
 
     private static String getURLAuthority(URL requestURL)
