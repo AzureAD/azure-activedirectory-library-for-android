@@ -41,7 +41,7 @@ public class AuthenticationResult implements Serializable {
     private String mErrorCode; // Oauth
     private String mErrorDescription; // Oauth
     private boolean mBroadRefreshToken = false;
-    private IdToken mIdToken;
+    private UserInfo mIdToken;
     AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
     public enum AuthenticationStatus
@@ -213,11 +213,11 @@ public class AuthenticationResult implements Serializable {
         this.mBroadRefreshToken = mBroadRefreshToken;
     }
 
-    public IdToken getIdToken() {
+    public UserInfo getIdToken() {
         return mIdToken;
     }
 
-    public void setIdToken(IdToken mIdToken) {
+    public void setIdToken(UserInfo mIdToken) {
         this.mIdToken = mIdToken;
     }
 

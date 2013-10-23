@@ -1,7 +1,7 @@
 
 package com.microsoft.adal;
 
-public class IdToken {
+public class UserInfo {
 
     String FirstName;
     String mLastName;

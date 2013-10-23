@@ -171,65 +171,7 @@ public class AuthenticationContext {
         }
     }
 
-    /**
-     * Acquire token with provided credentials. It does not launch webview.
-     * 
-     * @param resource
-     * @param credential
-     * @param options
-     * @param callback
-     */
-    public void acquireToken(String resource, ICredential credential,
-            AuthenticationOptions options, AuthenticationCallback callback)
-    {
-        throw new UnsupportedOperationException("come back later");
-    }
-
-    /**
-     * Acquire token with externally provided authorization code. You can use
-     * full browser to get auth code or by other means.
-     * 
-     * @param activityContext
-     * @param clientId
-     * @param resource
-     * @param redirectUri
-     * @param loginHint
-     * @param options
-     * @param callback
-     */
-    public void acquireTokenByAuthorizationCode(String code, String clientId, String resource,
-            String redirectUri, String loginHint, AuthenticationOptions options,
-            AuthenticationCallback callback)
-    {
-        
-        mClientId = clientId;
-        mRedirectUri = redirectUri;
-        mLoginHint = loginHint;
-        setupOptions(options);
-        final AuthenticationRequest authenticationRequest = new AuthenticationRequest(this, clientId,
-                redirectUri, resource);
-        mExternalCallback = callback;
-        
-        processUIResponse(authenticationRequest, code);
-    }
-
-    /**
-     * Acquire token with externally provided authorization code. You can use
-     * full browser to get auth code or by other means.
-     * 
-     * @param code
-     * @param resource
-     * @param credential
-     * @param options
-     * @param callback
-     */
-    public void acquireTokenByAuthorizationCode(String code, String resource,
-            ICredential credential,
-            AuthenticationOptions options, AuthenticationCallback callback)
-    {
-        throw new UnsupportedOperationException("come back later");
-    }
-
+ 
     /**
      * acquire token using refresh code if cache is not used. Otherwise, use
      * acquireToken to let the ADAL handle the cache lookup and refresh token
@@ -243,7 +185,7 @@ public class AuthenticationContext {
      * @param options
      * @param callback
      */
-    public void acquireTokenByRefreshCode(String refreshToken, String clientId,
+    public void acquireTokenByRefreshToken(String refreshToken, String clientId,
             String resource, String redirectUri, String loginHint,
             AuthenticationOptions options, AuthenticationCallback callback) {
         AuthenticationResult refreshResult = new AuthenticationResult();
@@ -256,23 +198,6 @@ public class AuthenticationContext {
                 mAuthority, clientId, redirectUri, resource);
         mExternalCallback = callback;
         refreshToken(refreshResult, authenticationRequest, callback);
-    }
-
-    /**
-     * acquire token using refresh code if cache is not used. Otherwise, use
-     * acquireToken to let the ADAL handle the cache lookup and refresh token
-     * request.
-     * 
-     * @param code
-     * @param resource
-     * @param credential
-     * @param options
-     * @param callback
-     */
-    public void acquireTokenByRefreshCode(String code, String resource, ICredential credential,
-            AuthenticationOptions options, AuthenticationCallback callback)
-    {
-        throw new UnsupportedOperationException("come back later");
     }
 
     /**

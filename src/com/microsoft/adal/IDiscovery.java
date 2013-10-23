@@ -4,7 +4,7 @@
 
 package com.microsoft.adal;
 
-public interface IDiscovery {
+interface IDiscovery {
     
 /**
  * query authorizationEndpoint from well known instances
