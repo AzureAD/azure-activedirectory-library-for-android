@@ -50,10 +50,6 @@ import com.google.gson.JsonParser;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
-import com.microsoft.adal.ExceptionExtensions;
-import com.microsoft.adal.HttpWebRequest;
-import com.microsoft.adal.HttpWebRequestCallback;
-import com.microsoft.adal.HttpWebResponse;
 
 /*
  * TODO:
@@ -153,7 +149,7 @@ public class ToDoActivity extends Activity {
                     }
 
                     @Override
-                    public void onCompleted(AuthenticationResult result) {
+                    public void onSuccess(AuthenticationResult result) {
                         if (mLoginProgressDialog.isShowing()) {
                             mLoginProgressDialog.dismiss();
                         }
@@ -165,14 +161,6 @@ public class ToDoActivity extends Activity {
                         } else {
                             navigateToLogOut();
                         }
-                    }
-
-                    @Override
-                    public void onCancelled() {
-                        if (mLoginProgressDialog.isShowing()) {
-                            mLoginProgressDialog.dismiss();
-                        }
-                        navigateToLogOut();
                     }
                 });
 
@@ -187,64 +175,6 @@ public class ToDoActivity extends Activity {
 
         refreshInProgress = true;
 
-        URL endpoint = getEndpointUrl();
-        HttpWebRequest webRequest = new HttpWebRequest(endpoint);
-        webRequest.getRequestHeaders().put("Accept", "application/json");
-        webRequest.getRequestHeaders().put("Authorization",
-                "Bearer " + getLocalToken());
-
-        try {
-            webRequest.sendAsyncGet(
-                    new HttpWebRequestCallback() {
-                        @Override
-                        public void onComplete(Exception exception,
-                                HttpWebResponse webResponse) {
-                            refreshInProgress = false;
-                            if (exception != null) {
-                                Log.e(TAG, ExceptionExtensions
-                                        .getExceptionMessage(exception));
-
-                            } else if (webResponse.getStatusCode() <= 400) {
-                                try {
-                                    // Add response to the UI
-                                    addItems(webResponse);
-
-                                } catch (Exception ex) {
-                                    // There is no recovery possible here, so
-                                    // catch the generic Exception
-                                    Log.e(TAG,
-                                            ExceptionExtensions.getExceptionMessage(ex));
-
-                                    Toast.makeText(ToDoActivity.this, ex.getMessage(),
-                                            Toast.LENGTH_LONG).show();
-                                }
-                            } else {
-                                Toast.makeText(ToDoActivity.this, "Auth failed",
-                                        Toast.LENGTH_LONG).show();
-                            }
-                        }
-
-                    });
-        } catch (Exception ex) {
-            Log.e(TAG, ex.getMessage());
-        }
-    }
-
-    private void addItems(HttpWebResponse webResponse) {
-        String responseAsString = new String(webResponse.getBody());
-        Gson gson = createServiceGsonBuilder().create();
-        JsonElement json = new JsonParser().parse(responseAsString);
-
-        if (json.isJsonArray()) // Query result
-        {
-            JsonArray elements = json.getAsJsonArray();
-            initAppTables();
-            mAdapter.clear();
-            for (JsonElement element : elements) {
-                WorkItem item = gson.fromJson(element, WorkItem.class);
-                mAdapter.add(item);
-            }
-        }
     }
 
     private URL getEndpointUrl() {
@@ -399,7 +329,6 @@ public class ToDoActivity extends Activity {
         menu.add(Menu.NONE, MENU_GET_TOKEN, Menu.NONE, "Get Token");
         menu.add(Menu.NONE, MENU_GET_NEWSFEED, Menu.NONE, "Other Activity");
         menu.add(Menu.NONE, MENU_GET_SETTINGS, Menu.NONE, "Test Settings");
-        menu.add(Menu.NONE, MENU_GET_LAYOUT_DEMO, Menu.NONE, "Layout test");
 
         return true;
     }
@@ -437,17 +366,10 @@ public class ToDoActivity extends Activity {
                     }
 
                     @Override
-                    public void onCompleted(AuthenticationResult result) {
+                    public void onSuccess(AuthenticationResult result) {
                         Toast.makeText(getApplicationContext(), "OnCompleted",
                                 Toast.LENGTH_LONG).show();
                         setLocalToken(result.getAccessToken());
-
-                    }
-
-                    @Override
-                    public void onCancelled() {
-                        Toast.makeText(getApplicationContext(),
-                                "----CANCELLED----", Toast.LENGTH_LONG).show();
                     }
                 });
                 return true;
@@ -459,12 +381,6 @@ public class ToDoActivity extends Activity {
             case MENU_GET_SETTINGS: {
                 Intent intent = new Intent(ToDoActivity.this,
                         SettingsActivity.class);
-                startActivity(intent);
-                return true;
-            }
-
-            case MENU_GET_LAYOUT_DEMO: {
-                Intent intent = new Intent(ToDoActivity.this, MainActivity.class);
                 startActivity(intent);
                 return true;
             }

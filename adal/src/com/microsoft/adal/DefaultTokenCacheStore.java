@@ -18,28 +18,28 @@ import java.util.Iterator;
 public class DefaultTokenCacheStore implements ITokenCacheStore {
 
     @Override
-    public TokenCacheItem GetItem(CacheKey key) {
+    public TokenCacheItem getItem(CacheKey key) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public void RemoveItem(TokenCacheItem item) {
+    public void removeItem(TokenCacheItem item) {
         // TODO Auto-generated method stub
     }
 
     @Override
-    public void SetItem(TokenCacheItem item) {
+    public void setItem(TokenCacheItem item) {
         // TODO Auto-generated method stub
     }
 
     @Override
-    public void RemoveItem(CacheKey key) {
+    public void removeItem(CacheKey key) {
         // TODO Auto-generated method stub
     }
 
     @Override
-    public void RemoveAll() {
+    public void removeAll() {
         // TODO Auto-generated method stub
     }
 
@@ -103,7 +103,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
 
         for (TokenCacheItem item : results) {
             if (item.getUserInfo().getUserId() == userid) {
-                this.RemoveItem(item);
+                this.removeItem(item);
             }
         }
     }

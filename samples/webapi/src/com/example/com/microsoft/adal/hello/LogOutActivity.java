@@ -109,7 +109,7 @@ public class LogOutActivity extends Activity {
                     }
 
                     @Override
-                    public void onCompleted(AuthenticationResult result) {
+                    public void onSuccess(AuthenticationResult result) {
 
                         // Start todo activity
                         Intent intent = new Intent(LogOutActivity.this,
@@ -117,12 +117,6 @@ public class LogOutActivity extends Activity {
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
                         LogOutActivity.this.finish();
-                    }
-
-                    @Override
-                    public void onCancelled() {
-                        Toast.makeText(getApplicationContext(), "CANCELLED",
-                                Toast.LENGTH_LONG).show();
                     }
                 });
     }

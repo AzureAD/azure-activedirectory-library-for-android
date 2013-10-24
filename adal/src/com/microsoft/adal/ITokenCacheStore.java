@@ -11,13 +11,13 @@ import java.io.Serializable;
  */
 public interface ITokenCacheStore extends Serializable
 {
-    public TokenCacheItem GetItem(CacheKey key);// Needed by the library
+    public TokenCacheItem getItem(CacheKey key);// Needed by the library
 
-    public void SetItem(TokenCacheItem item);// Needed by the library
+    public void setItem(TokenCacheItem item);// Needed by the library
 
-    public void RemoveItem(CacheKey key);// Needed by the library
+    public void removeItem(CacheKey key);// Needed by the library
 
-    public void RemoveItem(TokenCacheItem item);
+    public void removeItem(TokenCacheItem item);
 
-    public void RemoveAll();
+    public void removeAll();
 }

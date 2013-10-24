@@ -44,7 +44,6 @@ import android.widget.LinearLayout;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.microsoft.adal.AuthenticationRequest;
 
 /**
  * Class for handling Login operations with Authentication Providers and Windows
@@ -99,31 +98,6 @@ class LoginManager {
 		}
 
 		mClient = client;
-	}
-
-	/**
-	 * Invokes an interactive authentication process using the specified
-	 * Authentication Provider
-	 * 
-	 * @param provider
-	 *            The provider used for the authentication process
-	 * @param context
-	 *            The context used to create the authentication dialog
-	 * @param callback
-	 *            Callback to invoke when the authentication process finishes
-	 */
-	public void authenticate(Context context,
-			AuthenticationRequest authRequest,
-			final UserAuthenticationCallback callback) {
-		if (context == null) {
-			throw new IllegalArgumentException("context can not be null");
-		}
-
-		//GET token and store in user
-		final UserAuthenticationCallback externalCallback = callback;
-
-		
-
 	}
 
 	/**
