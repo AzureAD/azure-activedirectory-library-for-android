@@ -77,6 +77,10 @@ public class AuthenticationResult implements Serializable {
         throw new UnsupportedOperationException("come back later");
     }
 
+    public String getTenantId(){
+        throw new UnsupportedOperationException("come back later");
+    }
+    
     public AuthenticationStatus getStatus() {
         throw new UnsupportedOperationException("come back later");
     }
