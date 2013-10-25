@@ -1,5 +1,7 @@
 package com.microsoft.adal.test;
 
+import com.microsoft.adal.AuthenticationContext;
+
 import android.test.AndroidTestCase;
 
 public class AuthenticationContextTests extends AndroidTestCase {
@@ -12,5 +14,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         super.tearDown();
     }
     
-    
+    public void testConstructor()
+    {
+        AuthenticationContext context = new AuthenticationContext(getContext(), "authority", false);
+        
+    }
 }

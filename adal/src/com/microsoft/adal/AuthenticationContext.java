@@ -38,6 +38,10 @@ public class AuthenticationContext {
         Never
     }
 
+    private Context mAppContext;
+    private String mAuthority;
+    private boolean mValidateAuthority;
+
     /**
      * Constructs context to use with known authority to get the token. It uses
      * default cache.
@@ -50,7 +54,10 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context contextFromMainThread, String authority,
             boolean validateAuthority) {
-        throw new UnsupportedOperationException("come back later");
+
+        mAppContext = contextFromMainThread;
+        mAuthority = authority;
+        mValidateAuthority = validateAuthority;
     }
 
     /**
@@ -85,6 +92,10 @@ public class AuthenticationContext {
      */
     public ITokenCacheStore getCache() {
         throw new UnsupportedOperationException("come back later");
+    }
+    
+    public String getAuthority(){
+        return mAuthority;
     }
 
     /**
