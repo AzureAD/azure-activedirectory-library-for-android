@@ -5,5 +5,5 @@
 package com.microsoft.adal;
 
 public interface HttpWebRequestCallback {
-	void onComplete(HttpWebResponse response);
+    void onComplete(HttpWebResponse response);
 }

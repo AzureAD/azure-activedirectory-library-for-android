@@ -18,7 +18,7 @@ public class WebRequestHandler implements IWebRequestHandler {
             HttpWebRequestCallback callback) throws IllegalArgumentException,
             IOException {
         HttpWebRequest request = new HttpWebRequest(url);
-        request.getRequestHeaders().putAll(headers);
+        addHeadersToRequest(headers, request);
         request.sendAsyncGet(callback);
     }
 
@@ -27,7 +27,7 @@ public class WebRequestHandler implements IWebRequestHandler {
             HttpWebRequestCallback callback) throws IllegalArgumentException,
             IOException {
         HttpWebRequest request = new HttpWebRequest(url);
-        request.getRequestHeaders().putAll(headers);
+        addHeadersToRequest(headers, request);
         request.sendAsyncDelete(callback);
     }
 
@@ -36,7 +36,7 @@ public class WebRequestHandler implements IWebRequestHandler {
             byte[] content, String contentType, HttpWebRequestCallback callback)
             throws IllegalArgumentException, IOException {
         HttpWebRequest request = new HttpWebRequest(url);
-        request.getRequestHeaders().putAll(headers);
+        addHeadersToRequest(headers, request);
         request.sendAsyncPut(content, contentType, callback);
     }
 
@@ -45,7 +45,14 @@ public class WebRequestHandler implements IWebRequestHandler {
             byte[] content, String contentType, HttpWebRequestCallback callback)
             throws IllegalArgumentException, IOException {
         HttpWebRequest request = new HttpWebRequest(url);
-        request.getRequestHeaders().putAll(headers);
+        addHeadersToRequest(headers, request);
         request.sendAsyncPost(content, contentType, callback);
+    }
+
+    private void addHeadersToRequest(HashMap<String, String> headers, HttpWebRequest request) {
+        if (headers != null && !headers.isEmpty())
+        {
+            request.getRequestHeaders().putAll(headers);
+        }
     }
 }

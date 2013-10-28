@@ -16,6 +16,7 @@ import java.util.Iterator;
 import com.microsoft.adal.ErrorCodes.ADALError;
 
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 /**

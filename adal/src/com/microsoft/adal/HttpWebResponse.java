@@ -9,7 +9,7 @@ import java.util.Map;
  * 
  * @author omercan
  */
-class HttpWebResponse {
+public class HttpWebResponse {
     private int mStatusCode;
     private byte[] mResponseBody;
     private Map<String, List<String>> mResponseHeaders;
