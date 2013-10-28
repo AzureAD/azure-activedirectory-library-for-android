@@ -4,7 +4,7 @@
 
 package com.microsoft.adal;
 
-public class AuthenticationArgumentError extends AuthenticationError {
+public class AuthenticationArgumentError extends AuthenticationException {
     static final long serialVersionUID = 1;
 
     /**

@@ -247,7 +247,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             // Async task will throw exception by Android system if it is reused
             // again, but this is catching
             // misuse early.
-            throw new AuthenticationError(ADALError.DEVELOPER_ASYNC_TASK_REUSED);
+            throw new AuthenticationException(ADALError.DEVELOPER_ASYNC_TASK_REUSED);
         }
 
         if (mUrl == null) {
