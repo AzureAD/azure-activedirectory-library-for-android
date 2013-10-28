@@ -5,48 +5,54 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 
+import android.os.AsyncTask;
+
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple
- * reuses for same tasks.
+ * reuses for same tasks. Each request returns a handler for cancel action.
  * 
  * @author omercan
  */
 public class WebRequestHandler implements IWebRequestHandler {
 
     @Override
-    public void sendAsyncGet(URL url, HashMap<String, String> headers,
+    public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
             HttpWebRequestCallback callback) throws IllegalArgumentException,
             IOException {
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncGet(callback);
+        return request;
     }
 
     @Override
-    public void sendAsyncDelete(URL url, HashMap<String, String> headers,
+    public AsyncTask<?, ?, ?> sendAsyncDelete(URL url, HashMap<String, String> headers,
             HttpWebRequestCallback callback) throws IllegalArgumentException,
             IOException {
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncDelete(callback);
+        return request;
     }
 
     @Override
-    public void sendAsyncPut(URL url, HashMap<String, String> headers,
+    public AsyncTask<?, ?, ?> sendAsyncPut(URL url, HashMap<String, String> headers,
             byte[] content, String contentType, HttpWebRequestCallback callback)
             throws IllegalArgumentException, IOException {
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncPut(content, contentType, callback);
+        return request;
     }
 
     @Override
-    public void sendAsyncPost(URL url, HashMap<String, String> headers,
+    public AsyncTask<?, ?, ?> sendAsyncPost(URL url, HashMap<String, String> headers,
             byte[] content, String contentType, HttpWebRequestCallback callback)
             throws IllegalArgumentException, IOException {
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncPost(content, contentType, callback);
+        return request;
     }
 
     private void addHeadersToRequest(HashMap<String, String> headers, HttpWebRequest request) {

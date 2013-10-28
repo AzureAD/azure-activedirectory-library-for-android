@@ -43,6 +43,9 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
     HashMap<String, String> mRequestHeaders = null;
 
+    /**
+     * Async task can be only used once.
+     */
     boolean mUsedBefore = false;
 
     public HttpWebRequest(URL requestURL) {
@@ -169,6 +172,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                     byte[] buffer = new byte[4096];
                     int bytesRead = -1;
 
+                    // Continue to read from stream if not cancelled and not EOF
                     while (!isCancelled() && (bytesRead = responseStream.read(buffer)) > 0) {
                         byteStream.write(buffer, 0, bytesRead);
                     }
@@ -188,7 +192,6 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             // from
             // the server: all parameters in the challenge must have quote
             // marks.
-
             catch (Exception e) {
                 Log.e(TAG, "Exception" + e.getMessage());
 
@@ -200,6 +203,21 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
         }
 
         return _response;
+    }
+
+    /**
+     * after task is cancelled and doInBackground finished, it will call this
+     * method instead of onPostExecute. This can do UI thread work similar to
+     * onPostExecute.
+     */
+    @Override
+    protected void onCancelled() {
+        Log.d(TAG, "OnCancelled");
+        if (null != mCallback) {
+            HttpWebResponse cancelledResponse = new HttpWebResponse();
+            cancelledResponse.setResponseException(new AuthenticationCancelError());
+            mCallback.onComplete(cancelledResponse);
+        }
     }
 
     /**
@@ -226,7 +244,8 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
         if (!mUsedBefore) {
             mUsedBefore = true;
         } else {
-            // Async task will throw exception by Android system if it is reused again, but this is catching
+            // Async task will throw exception by Android system if it is reused
+            // again, but this is catching
             // misuse early.
             throw new AuthenticationError(ADALError.DEVELOPER_ASYNC_TASK_REUSED);
         }

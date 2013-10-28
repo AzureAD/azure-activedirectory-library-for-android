@@ -7,9 +7,11 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import android.os.AsyncTask;
 import android.test.AndroidTestCase;
 
 import com.google.gson.Gson;
+import com.microsoft.adal.AuthenticationCancelError;
 import com.microsoft.adal.HttpWebRequestCallback;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.WebRequestHandler;
@@ -250,6 +252,52 @@ public class WebRequestHandlerTests extends AndroidTestCase {
 
         try {
             signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            assertFalse("InterruptedException is not expected", true);
+        }
+    }
+
+    /**
+     * test update call
+     */
+    public void testCancelRequest() {
+        final CountDownLatch signal = new CountDownLatch(1);
+        AsyncTask<?, ?, ?> handle = null;
+        try {
+            WebRequestHandler request = new WebRequestHandler();
+            final TestMessage message = new TestMessage("cancelRequest", "3342");
+            String json = new Gson().toJson(message);
+            handle = request.sendAsyncPut(
+                    new URL(TEST_WEBAPI_URL + "/347"),
+                    null,
+                    json.getBytes(ENCODING_UTF8),
+                    "application/json", new HttpWebRequestCallback() {
+
+                        @Override
+                        public void onComplete(HttpWebResponse response) {
+                            assertTrue("exception is not null",
+                                    response.getResponseException() != null);
+                            assertTrue(response.getResponseException() instanceof AuthenticationCancelError);
+
+                            signal.countDown();
+                        }
+                    });
+
+            handle.cancel(true); // thread interrupt
+
+        } catch (Exception ex) {
+            assertFalse("not expected", true);
+            signal.countDown();
+        }
+
+        try {
+            signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+            
+            //Verify that it is cancelled
+            if(handle != null)
+            {
+                assertTrue("it is cancelled", handle.isCancelled());
+            }
         } catch (InterruptedException e) {
             assertFalse("InterruptedException is not expected", true);
         }
