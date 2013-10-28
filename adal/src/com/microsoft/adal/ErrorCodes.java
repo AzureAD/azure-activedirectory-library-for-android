@@ -23,6 +23,10 @@ public class ErrorCodes {
          */
         DEVELOPER_AUTHORITY_IS_EMPTY,
         /**
+         * Authority is empty
+         */
+        DEVELOPER_ASYNC_TASK_REUSED,
+        /**
          * Resource is empty
          */
         DEVELOPER_RESOURCE_IS_EMPTY,

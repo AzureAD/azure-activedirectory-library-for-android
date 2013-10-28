@@ -13,13 +13,19 @@ import com.microsoft.adal.ErrorCodes.ADALError;
 public class AuthenticationError extends RuntimeException {
     static final long serialVersionUID = 1;
 
+    private ADALError mCode;
+    
+    
     /**
      * Constructs a new AuthenticationError.
      */
-    public AuthenticationError() {
-        throw new UnsupportedOperationException("come back later");
+    public AuthenticationError() {        
     }
 
+    public AuthenticationError(ADALError code) {
+    	mCode = code;
+    }
+    
     /**
      * Constructs a new AuthenticationError.
      * 
@@ -53,7 +59,7 @@ public class AuthenticationError extends RuntimeException {
     }
 
     public ADALError getCode() {
-        throw new UnsupportedOperationException("come back later");
+        return mCode;
     }
 
     /**

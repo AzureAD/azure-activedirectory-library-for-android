@@ -6,10 +6,13 @@
 
     <uses-sdk android:minSdkVersion="8" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <!-- Test app is instrumentation. It needs another app to test the library. Test project is setup to be another app -->
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
-        android:targetPackage="com.microsoft.adal.tests" />
+        android:targetPackage="com.microsoft.adal.test" />
 
     <application
         android:icon="@drawable/ic_launcher"
