@@ -4,6 +4,7 @@
 
 package com.microsoft.adal;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 
@@ -104,7 +105,7 @@ public class AuthenticationContext {
      * if available. If it fails to get token with refresh token, it will remove
      * this refresh token from cache and fall back on the UI.
      * 
-     * @param activityContext
+     * @param activity
      * @param resource
      * @param clientId
      * @param redirectUri Optional. It will use package name info if not
@@ -112,7 +113,7 @@ public class AuthenticationContext {
      * @param userId Optional.
      * @param callback
      */
-    public void acquireToken(Context activityContext, String resource, String clientId,
+    public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, AuthenticationCallback callback) {
         throw new UnsupportedOperationException("come back later");
     }
@@ -123,7 +124,7 @@ public class AuthenticationContext {
      * if available. If it fails to get token with refresh token, it will remove
      * this refresh token from cache and fall back on the UI.
      * 
-     * @param activityContext Calling activity
+     * @param activity Calling activity
      * @param resource
      * @param clientId
      * @param redirectUri
@@ -136,7 +137,7 @@ public class AuthenticationContext {
      *            the authority. The parameter can be null.
      * @param callback
      */
-    public void acquireToken(Context activityContext, String resource, String clientId,
+    public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, String extraQueryParameters,
             AuthenticationCallback callback) {
         throw new UnsupportedOperationException("come back later");
@@ -151,14 +152,14 @@ public class AuthenticationContext {
      * If promptbehavior is NEVER, It will remove this refresh token from cache
      * and(or not, depending on the promptBehavior values. Default is AUTO.
      * 
-     * @param activityContext
+     * @param activity
      * @param resource
      * @param clientId
      * @param redirectUri
      * @param prompt
      * @param callback
      */
-    public void acquireToken(Context activityContext, String resource, String clientId,
+    public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt, AuthenticationCallback callback) {
         throw new UnsupportedOperationException("come back later");
     }
@@ -172,7 +173,7 @@ public class AuthenticationContext {
      * If promptbehavior is NEVER, It will remove this refresh token from cache
      * and(or not, depending on the promptBehavior values. Default is AUTO.
      * 
-     * @param activityContext
+     * @param activity
      * @param resource
      * @param clientId
      * @param redirectUri
@@ -180,7 +181,7 @@ public class AuthenticationContext {
      * @param extraQueryParameters
      * @param callback
      */
-    public void acquireToken(Context activityContext, String resource, String clientId,
+    public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback callback) {
         throw new UnsupportedOperationException("come back later");
