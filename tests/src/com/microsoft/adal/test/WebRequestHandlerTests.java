@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import android.os.AsyncTask;
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.microsoft.adal.AuthenticationCancelError;
@@ -26,6 +27,7 @@ public class WebRequestHandlerTests extends AndroidTestCase {
 
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
+    protected static final String TAG = "WebRequestHandlerTests";
 
     public void testNullUrl() {
         try {
@@ -278,7 +280,7 @@ public class WebRequestHandlerTests extends AndroidTestCase {
                             assertTrue("exception is not null",
                                     response.getResponseException() != null);
                             assertTrue(response.getResponseException() instanceof AuthenticationCancelError);
-
+                            Log.d(TAG, "oncomplete cancel request test");
                             signal.countDown();
                         }
                     });

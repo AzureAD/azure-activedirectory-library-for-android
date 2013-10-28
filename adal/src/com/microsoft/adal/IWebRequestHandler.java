@@ -11,6 +11,8 @@ import android.os.Handler;
 /**
  * Webrequest interface to send one time async requests
  * 
+ * Methods return generic interface to send cancel request and check cancel request.
+ * Results are posted at callback.
  * @author omercan
  */
 public interface IWebRequestHandler {
