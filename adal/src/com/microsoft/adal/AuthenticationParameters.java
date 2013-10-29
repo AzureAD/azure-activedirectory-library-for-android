@@ -1,7 +1,12 @@
 
 package com.microsoft.adal;
 
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import com.microsoft.adal.AuthenticationParameters;
 import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
@@ -12,18 +17,40 @@ import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
  */
 public class AuthenticationParameters {
 
+    public final static String AUTH_HEADER_INVALID_FORMAT = "Invalid authentication header format";
+    public final static String AUTH_HEADER_MISSING = "WWW-Authenticate header was expected in the response";
+    public final static String AUTH_HEADER_WRONG_STATUS = "Unauthorized http response (status code 401) was expected";
+
+    public final static String AUTHENTICATE_HEADER = "WWW-Authenticate";
+    public final static String BEARER = "bearer";
+    public final static String AUTHORITY_KEY = "authorization_uri";
+    public final static String RESOURCE_KEY = "resource_id";
+
+    private String mAuthority;
+    private String mResource;
+
     /**
      * get authority
      */
     public String getAuthority() {
-        throw new UnsupportedOperationException();
+        return mAuthority;
     }
 
     /**
      * get resource
      */
     public String getResource() {
-        throw new UnsupportedOperationException();
+        return mResource;
+    }
+
+    public AuthenticationParameters()
+    {
+    }
+
+    public AuthenticationParameters(String authority, String resource)
+    {
+        mAuthority = authority;
+        mResource = resource;
     }
 
     public interface AuthenticationParamCallback {
@@ -36,7 +63,37 @@ public class AuthenticationParameters {
      */
     public static void createFromResourceUrl(
             URL resourceUrl, AuthenticationParamCallback callback) {
-        throw new UnsupportedOperationException();
+        if (callback == null)
+        {
+            return;
+        }
+
+        HttpWebRequest webRequest = new HttpWebRequest(resourceUrl);
+        webRequest.getRequestHeaders().put("Accept", "application/json");
+        final AuthenticationParamCallback externalCallback = callback;
+
+        try {
+            webRequest.sendAsyncGet(
+                    new HttpWebRequestCallback() {
+                        @Override
+                        public void onComplete(HttpWebResponse webResponse, Exception exception) {
+
+                            if (exception == null)
+                            {
+                                try {
+                                    externalCallback.onCompleted(null, parseResponse(webResponse));
+                                } catch (IllegalArgumentException exc)
+                                {
+                                    externalCallback.onCompleted(exc, null);
+                                }
+                            }
+                            else
+                                externalCallback.onCompleted(exception, null);
+                        }
+                    });
+        } catch (Exception e) {
+            callback.onCompleted(e, null);
+        }
     }
 
     /**
@@ -44,6 +101,56 @@ public class AuthenticationParameters {
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
             String authenticateHeader) {
-        throw new UnsupportedOperationException();
+        AuthenticationParameters authParams = null;
+        if (StringExtensions.IsNullOrBlank(authenticateHeader))
+        {
+            throw new IllegalArgumentException(AUTH_HEADER_MISSING);
+        }
+        else
+        {
+            // TODO what should be the correct locale here?
+            authenticateHeader = authenticateHeader.trim().toLowerCase(Locale.US);
+
+            if (!authenticateHeader.startsWith(BEARER))
+            {
+                throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
+            }
+            else
+            {
+                HashMap<String, String> headerItems = HashMapExtensions.URLFormDecodeData(
+                        authenticateHeader, ",");
+                if (headerItems != null && !headerItems.isEmpty())
+                {
+                    authParams = new AuthenticationParameters(
+                            headerItems.get(AUTHORITY_KEY), headerItems.get(RESOURCE_KEY));
+                }
+                else
+                {
+                    throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
+                }
+            }
+        }
+
+        return authParams;
     }
+    
+    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse)
+    {
+        // Depending on the service side implementation for this resource
+        if (webResponse.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            Map<String, List<String>> responseHeaders = webResponse.getResponseHeaders();
+            if (responseHeaders != null && responseHeaders.containsKey(AUTHENTICATE_HEADER))
+            {
+                // HttpUrlConnection sends a list of header values for same key
+                // if exists
+                List<String> headers = responseHeaders.get(AUTHENTICATE_HEADER);
+
+                return createFromResponseAuthenticateHeader(headers.get(0));
+            }
+
+            throw new IllegalArgumentException(AUTH_HEADER_MISSING);
+        }
+        throw new IllegalArgumentException(AUTH_HEADER_WRONG_STATUS);
+    }
+
 }

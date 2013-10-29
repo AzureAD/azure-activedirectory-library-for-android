@@ -1,3 +1,4 @@
+
 package com.microsoft.adal.test;
 
 import java.net.URL;
@@ -17,27 +18,29 @@ public class AndroidTestHelper extends AndroidTestCase {
 
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
-    
-    public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage, final Runnable testCode) {
+
+    public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
+            final Runnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
-        } catch(final Throwable result) {
+        } catch (final Throwable result) {
             if (!expected.isInstance(result)) {
                 Assert.fail("Exception was not correct");
             }
-            
-            if(hasMessage != null && !hasMessage.isEmpty())
+
+            if (hasMessage != null && !hasMessage.isEmpty())
             {
                 assertTrue("Message has the text",
                         (result.getMessage().toLowerCase().contains(hasMessage)));
-            }            
-        }        
+            }
+        }
     }
-    
+
     public void testAsyncNoException(final CountDownLatch signal, final Runnable testCode) {
         try {
             testCode.run();
+
         } catch (Exception ex) {
             assertFalse("not expected", true);
             signal.countDown();
@@ -49,6 +52,5 @@ public class AndroidTestHelper extends AndroidTestCase {
             assertFalse("InterruptedException is not expected", true);
         }
     }
-    
-     
+
 }

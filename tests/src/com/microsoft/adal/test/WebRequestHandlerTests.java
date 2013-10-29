@@ -72,6 +72,12 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         });
     }
 
+    public void testDummy(){
+        assertFalse("first failure", true);
+        
+        assertFalse("second failure", true);
+    }
+    
     public void testGetRequest() {
         final CountDownLatch signal = new CountDownLatch(1);
 
@@ -97,7 +103,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
                         });
             }
         });
-    }
+    }   
 
     public void testNonExistentUrl() {
         final CountDownLatch signal = new CountDownLatch(1);
@@ -112,7 +118,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
                             @Override
                             public void onComplete(HttpWebResponse response, Exception exc) {
                                 assertTrue("exception is not null",
-                                        exc != null);
+                                        exc == null);
                                 assertTrue(
                                         "Unable to resolve host",
                                         exc.getMessage().toLowerCase()
@@ -122,7 +128,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
                         });
             }
         });
-
     }
 
     public void testGetWithIdRequest() {
