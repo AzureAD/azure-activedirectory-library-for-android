@@ -12,10 +12,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.microsoft.adal.ErrorCodes.ADALError;
 
+import android.annotation.TargetApi;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -40,18 +43,32 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
     byte[] mRequestContent = null;
     String mRequestContentType = null;
-
+    int mTimeOut = CONNECT_TIME_OUT;
+    Exception mException = null;
     HashMap<String, String> mRequestHeaders = null;
 
     /**
      * Async task can be only used once.
      */
-    boolean mUsedBefore = false;
+    AtomicBoolean mUsedBefore = new AtomicBoolean(false);
 
     public HttpWebRequest(URL requestURL) {
         mUrl = requestURL;
         mRequestHeaders = new HashMap<String, String>();
-        mRequestHeaders.put("Host", getURLAuthority(mUrl));
+        if (mUrl != null)
+        {
+            mRequestHeaders.put("Host", getURLAuthority(mUrl));
+        }
+    }
+
+    public HttpWebRequest(URL requestURL, int timeout) {
+        mUrl = requestURL;
+        mRequestHeaders = new HashMap<String, String>();
+        if (mUrl != null)
+        {
+            mRequestHeaders.put("Host", getURLAuthority(mUrl));
+        }
+        mTimeOut = timeout;
     }
 
     /**
@@ -62,7 +79,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * @throws IOException
      */
     public void sendAsyncGet(HttpWebRequestCallback callback)
-            throws IllegalArgumentException, IOException {
+    {
         sendAsync(REQUEST_METHOD_GET, null, null, callback);
     }
 
@@ -74,7 +91,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * @throws IOException
      */
     public void sendAsyncDelete(HttpWebRequestCallback callback)
-            throws IllegalArgumentException, IOException {
+    {
         sendAsync(REQUEST_METHOD_DELETE, null, null, callback);
     }
 
@@ -88,8 +105,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * @throws IOException
      */
     public void sendAsyncPut(byte[] content, String contentType,
-            HttpWebRequestCallback callback) throws IllegalArgumentException,
-            IOException {
+            HttpWebRequestCallback callback) {
         sendAsync(REQUEST_METHOD_PUT, content, contentType, callback);
     }
 
@@ -103,8 +119,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * @throws IOException
      */
     public void sendAsyncPost(byte[] content, String contentType,
-            HttpWebRequestCallback callback) throws IllegalArgumentException,
-            IOException {
+            HttpWebRequestCallback callback) {
         sendAsync(REQUEST_METHOD_POST, content, contentType, callback);
     }
 
@@ -163,6 +178,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                     responseStream = _connection.getInputStream();
                 } catch (IOException ex) {
                     Log.d(TAG, "IOException:" + ex.getMessage());
+                    mException = ex;
                     responseStream = _connection.getErrorStream();
                 }
 
@@ -194,8 +210,8 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             // marks.
             catch (Exception e) {
                 Log.e(TAG, "Exception" + e.getMessage());
-
-                _response.setResponseException(e);
+                
+                mException = e;
             } finally {
                 _connection.disconnect();
                 _connection = null;
@@ -214,9 +230,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     protected void onCancelled() {
         Log.d(TAG, "OnCancelled");
         if (null != mCallback) {
-            HttpWebResponse cancelledResponse = new HttpWebResponse();
-            cancelledResponse.setResponseException(new AuthenticationCancelError());
-            mCallback.onComplete(cancelledResponse);
+            mCallback.onComplete(null, new AuthenticationCancelError());
         }
     }
 
@@ -227,23 +241,22 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     protected void onPostExecute(HttpWebResponse response) {
         super.onPostExecute(response);
         Log.d(TAG, "OnPostExecute");
-        if (response != null) {
-            if (null != mCallback) {
-                mCallback.onComplete(response);
-            }
+        if (null != mCallback) {
+            mCallback.onComplete(response, mException);
         }
     }
 
     /**
-     * Asynchronous POST/PUT.
+     * Asynchronous POST/PUT
+     * Argument check before sending the request
      */
     private void sendAsync(String requestmethod, byte[] content,
             String contentType, HttpWebRequestCallback callback)
-            throws IllegalArgumentException, IOException {
+    {
 
-        if (!mUsedBefore) {
-            mUsedBefore = true;
-        } else {
+        // Atomically sets to the given value and returns the previous value
+        if (mUsedBefore.getAndSet(true)) {
+
             // Async task will throw exception by Android system if it is reused
             // again, but this is catching
             // misuse early.
@@ -259,15 +272,25 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             throw new IllegalArgumentException("requestURL");
         }
 
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
         mRequestMethod = requestmethod;
         mCallback = callback;
         mRequestContent = content;
         mRequestContentType = contentType;
+        mException = null;
+        
+        if (Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.HONEYCOMB)
+        {
+            executeParallel();
+        }
+        else
+        {
+            execute((Void[]) null);
+        }
+    }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void executeParallel()
+    {
         // At Honeycomb, execute was changed to run on a serialized thread pool
         // but we want the request to run fully parallel so we force use of
         // the THREAD_POOL_EXECUTOR
@@ -286,11 +309,12 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
         try {
 
             _connection = (HttpURLConnection) mUrl.openConnection();
-            _connection.setConnectTimeout(CONNECT_TIME_OUT);
+            _connection.setConnectTimeout(mTimeOut);
 
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
             _response.setResponseException(e);
+            mException = e;
             _connection.disconnect();
             _connection = null;
         }
