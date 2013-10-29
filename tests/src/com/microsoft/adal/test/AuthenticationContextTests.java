@@ -16,7 +16,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     }
 
     /**
-     * dummy initial test
+     * test constructor to make sure authority parameter is set
      */
     public void testConstructor()
     {
