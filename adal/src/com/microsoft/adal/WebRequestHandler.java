@@ -17,8 +17,12 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     @Override
     public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
-            HttpWebRequestCallback callback) throws IllegalArgumentException,
-            IOException {
+            HttpWebRequestCallback callback) {
+        if (callback == null)
+        {
+            throw new IllegalArgumentException("callback");
+        }
+
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncGet(callback);
@@ -27,8 +31,12 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     @Override
     public AsyncTask<?, ?, ?> sendAsyncDelete(URL url, HashMap<String, String> headers,
-            HttpWebRequestCallback callback) throws IllegalArgumentException,
-            IOException {
+            HttpWebRequestCallback callback) {
+        if (callback == null)
+        {
+            throw new IllegalArgumentException("callback");
+        }
+
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncDelete(callback);
@@ -37,8 +45,11 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     @Override
     public AsyncTask<?, ?, ?> sendAsyncPut(URL url, HashMap<String, String> headers,
-            byte[] content, String contentType, HttpWebRequestCallback callback)
-            throws IllegalArgumentException, IOException {
+            byte[] content, String contentType, HttpWebRequestCallback callback) {
+        if (callback == null)
+        {
+            throw new IllegalArgumentException("callback");
+        }
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncPut(content, contentType, callback);
@@ -47,8 +58,11 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     @Override
     public AsyncTask<?, ?, ?> sendAsyncPost(URL url, HashMap<String, String> headers,
-            byte[] content, String contentType, HttpWebRequestCallback callback)
-            throws IllegalArgumentException, IOException {
+            byte[] content, String contentType, HttpWebRequestCallback callback) {
+        if (callback == null)
+        {
+            throw new IllegalArgumentException("callback");
+        }
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncPost(content, contentType, callback);

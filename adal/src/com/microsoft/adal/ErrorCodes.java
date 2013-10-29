@@ -23,7 +23,7 @@ public class ErrorCodes {
          */
         DEVELOPER_AUTHORITY_IS_EMPTY,
         /**
-         * Authority is empty
+         * Async tasks can only be executed one time. They are not supposed to be reused.
          */
         DEVELOPER_ASYNC_TASK_REUSED,
         /**

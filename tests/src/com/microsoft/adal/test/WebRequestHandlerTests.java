@@ -1,11 +1,15 @@
 
 package com.microsoft.adal.test;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import junit.framework.Assert;
 
 import android.os.AsyncTask;
 import android.test.AndroidTestCase;
@@ -20,55 +24,52 @@ import com.microsoft.adal.WebRequestHandler;
 /**
  * webrequest tests related to get, put, post, delete requests
  */
-public class WebRequestHandlerTests extends AndroidTestCase {
+public class WebRequestHandlerTests extends AndroidTestHelper {
 
     private final static String TEST_WEBAPI_URL = "http://graphtestrun.azurewebsites.net/api/WebRequestTest";
-    private final static int REQUEST_TIME_OUT = 4000; // miliseconds
 
-    /** The Constant ENCODING_UTF8. */
-    public static final String ENCODING_UTF8 = "UTF_8";
     protected static final String TAG = "WebRequestHandlerTests";
 
     public void testNullUrl() {
-        try {
-            WebRequestHandler request = new WebRequestHandler();
-            request.sendAsyncGet(null, null, null);
-            assertFalse("expects failure", true);
-        } catch (Exception ex) {
-            if (ex instanceof IllegalArgumentException) {
-                IllegalArgumentException exc = (IllegalArgumentException) ex;
-                assertTrue("Message has url",
-                        (exc.getMessage().toLowerCase().contains("url")));
+
+        assertThrowsException(IllegalArgumentException.class, "url", new Runnable() {
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.sendAsyncGet(null, null, new HttpWebRequestCallback() {
+
+                    @Override
+                    public void onComplete(HttpWebResponse response, Exception exception) {
+
+                    }
+                });
             }
-        }
+        });
     }
 
     public void testWrongSchemeUrl() {
-        try {
-            WebRequestHandler request = new WebRequestHandler();
-            request.sendAsyncGet(new URL("ftp://test.com"), null, null);
-            assertFalse("expects failure", true);
-        } catch (Exception ex) {
-            if (ex instanceof IllegalArgumentException) {
-                IllegalArgumentException exc = (IllegalArgumentException) ex;
-                assertTrue("Message has url",
-                        (exc.getMessage().toLowerCase().contains("url")));
+
+        assertThrowsException(IllegalArgumentException.class, "url", new Runnable() {
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.sendAsyncGet(getUrl("ftp://test.com"), null, new HttpWebRequestCallback() {
+
+                    @Override
+                    public void onComplete(HttpWebResponse response, Exception exception) {
+
+                    }
+                });
             }
-        }
+        });
     }
 
     public void testEmptyCallback() {
-        try {
-            WebRequestHandler request = new WebRequestHandler();
-            request.sendAsyncGet(new URL("https://www.bing.com"), null, null);
-            assertFalse("expects failure", true);
-        } catch (Exception ex) {
-            if (ex instanceof IllegalArgumentException) {
-                IllegalArgumentException exc = (IllegalArgumentException) ex;
-                assertTrue("Message has url",
-                        (exc.getMessage().toLowerCase().contains("callback")));
+
+        assertThrowsException(IllegalArgumentException.class, "callback", new Runnable() {
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.sendAsyncGet(getUrl("https://www.bing.com"), null, null);
             }
-        }
+        });
     }
 
     /**
@@ -90,131 +91,145 @@ public class WebRequestHandlerTests extends AndroidTestCase {
 
     public void testGetRequest() {
         final CountDownLatch signal = new CountDownLatch(1);
-        try {
-            WebRequestHandler request = new WebRequestHandler();
-            request.sendAsyncGet(new URL(TEST_WEBAPI_URL),
-                    getTestHeaders("testabc", "value123"),
-                    new HttpWebRequestCallback() {
 
-                        @Override
-                        public void onComplete(HttpWebResponse response) {
-                            assertTrue("exception is null", response.getResponseException() == null);
-                            assertTrue("status is 200", response.getStatusCode() == 200);
-                            String responseMsg = new String(response.getBody());
-                            assertTrue("request header check",
-                                    responseMsg.contains("testabc-value123"));
-                            signal.countDown();
+        testAsyncNoException(signal, new Runnable() {
 
-                        }
-                    });
-        } catch (Exception ex) {
-            assertFalse("not expected", true);
-            signal.countDown();
-        }
+            @Override
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.sendAsyncGet(getUrl(TEST_WEBAPI_URL),
+                        getTestHeaders("testabc", "value123"),
+                        new HttpWebRequestCallback() {
 
-        try {
-            signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            assertFalse("InterruptedException is not expected", true);
-        }
+                            @Override
+                            public void onComplete(HttpWebResponse response, Exception exc) {
+                                assertTrue("exception is null",
+                                        exc == null);
+                                assertTrue("status is 200", response.getStatusCode() == 200);
+                                String responseMsg = new String(response.getBody());
+                                assertTrue("request header check",
+                                        responseMsg.contains("testabc-value123"));
+                                signal.countDown();
+                            }
+                        });
+            }
+        });
+    }
+
+    public void testNonExistentUrl() {
+        final CountDownLatch signal = new CountDownLatch(1);
+        testAsyncNoException(signal, new Runnable() {
+            @Override
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.sendAsyncGet(getUrl("http://www.somethingabcddnotexists.com"),
+                        null,
+                        new HttpWebRequestCallback() {
+
+                            @Override
+                            public void onComplete(HttpWebResponse response, Exception exc) {
+                                assertTrue("exception is not null",
+                                        exc != null);
+                                assertTrue(
+                                        "Unable to resolve host",
+                                        exc.getMessage().toLowerCase()
+                                                .contains("unable to resolve host"));
+                                signal.countDown();
+                            }
+                        });
+            }
+        });
+
     }
 
     public void testGetWithIdRequest() {
         final CountDownLatch signal = new CountDownLatch(1);
-        try {
-            WebRequestHandler request = new WebRequestHandler();
-            request.sendAsyncGet(
-                    new URL(TEST_WEBAPI_URL
-                            + "/1"),
-                    null,
-                    new HttpWebRequestCallback() {
 
-                        @Override
-                        public void onComplete(HttpWebResponse response) {
-                            assertTrue("exception is null", response.getResponseException() == null);
-                            assertTrue("status is 200", response.getStatusCode() == 200);
-                            String responseMsg = new String(response.getBody());
-                            assertTrue("request body check",
-                                    responseMsg.contains("test get with id"));
-                            signal.countDown();
-                        }
-                    });
-        } catch (Exception ex) {
-            assertFalse("not expected", true);
-            signal.countDown();
-        }
+        testAsyncNoException(signal, new Runnable() {
+            @Override
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.sendAsyncGet(getUrl(TEST_WEBAPI_URL
+                        + "/1"),
+                        null,
+                        new HttpWebRequestCallback() {
 
-        try {
-            signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            assertFalse("InterruptedException is not expected", true);
-        }
+                            @Override
+                            public void onComplete(HttpWebResponse response, Exception exc) {
+                                assertTrue("exception is null",
+                                        response.getResponseException() == null);
+                                assertTrue("status is 200", response.getStatusCode() == 200);
+                                String responseMsg = new String(response.getBody());
+                                assertTrue("request body check",
+                                        responseMsg.contains("test get with id"));
+                                signal.countDown();
+                            }
+                        });
+            }
+        });
     }
 
     public void testPostRequest() {
         final CountDownLatch signal = new CountDownLatch(1);
-        try {
-            WebRequestHandler request = new WebRequestHandler();
-            final TestMessage message = new TestMessage("messagetest", "12345");
-            String json = new Gson().toJson(message);
 
-            request.sendAsyncPost(
-                    new URL(TEST_WEBAPI_URL),
-                    null,
-                    json.getBytes(ENCODING_UTF8),
-                    "application/json", new HttpWebRequestCallback() {
+        testAsyncNoException(signal, new Runnable() {
+            @Override
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                final TestMessage message = new TestMessage("messagetest", "12345");
+                String json = new Gson().toJson(message);
 
-                        @Override
-                        public void onComplete(HttpWebResponse response) {
-                            assertTrue("exception is null", response.getResponseException() == null);
-                            assertTrue("status is 200",
-                                    response.getStatusCode() == 200);
-                            String responseMsg = new String(response.getBody());
-                            assertTrue("request body check", responseMsg
-                                    .contains(message.getAccessToken()
-                                            + message.getUserName()));
-                            signal.countDown();
-                        }
+                try {
+                    request.sendAsyncPost(
+                            getUrl(TEST_WEBAPI_URL),
+                            null,
+                            json.getBytes(ENCODING_UTF8),
+                            "application/json", new HttpWebRequestCallback() {
 
-                    });
-        } catch (Exception ex) {
-            assertFalse("not expected", true);
-            signal.countDown();
-        }
+                                @Override
+                                public void onComplete(HttpWebResponse response, Exception exc) {
+                                    assertTrue("exception is null", exc == null);
+                                    assertTrue("status is 200",
+                                            response.getStatusCode() == 200);
+                                    String responseMsg = new String(response.getBody());
+                                    assertTrue("request body check", responseMsg
+                                            .contains(message.getAccessToken()
+                                                    + message.getUserName()));
+                                    signal.countDown();
+                                }
 
-        try {
-            signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            assertFalse("InterruptedException is not expected", true);
-        }
+                            });
+                } catch (UnsupportedEncodingException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            }
+        });
     }
 
     public void testDeleteRequest() {
         final CountDownLatch signal = new CountDownLatch(1);
-        try {
-            WebRequestHandler request = new WebRequestHandler();
-            request.sendAsyncDelete(
-                    new URL(TEST_WEBAPI_URL
-                            + "/1"),
-                    null,
-                    new HttpWebRequestCallback() {
-                        @Override
-                        public void onComplete(HttpWebResponse response) {
-                            assertTrue("exception is null", response.getResponseException() == null);
-                            assertTrue("status is 204", response.getStatusCode() == 204);
-                            signal.countDown();
-                        }
-                    });
-        } catch (Exception ex) {
-            assertFalse("not expected", true);
-            signal.countDown();
-        }
 
-        try {
-            signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            assertFalse("InterruptedException is not expected", true);
-        }
+        testAsyncNoException(signal, new Runnable() {
+            @Override
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+
+                request.sendAsyncDelete(getUrl(TEST_WEBAPI_URL + "/1"),
+                        null,
+                        new HttpWebRequestCallback() {
+
+                            @Override
+                            public void onComplete(HttpWebResponse response, Exception exc) {
+                                assertTrue("exception is null", exc == null);
+                                assertTrue("status is 204", response.getStatusCode() == 204);
+                                signal.countDown();
+                            }
+
+                        });
+            }
+        });
     }
 
     /**
@@ -222,41 +237,42 @@ public class WebRequestHandlerTests extends AndroidTestCase {
      */
     public void testPutRequest() {
         final CountDownLatch signal = new CountDownLatch(1);
-        try {
-            WebRequestHandler request = new WebRequestHandler();
-            final TestMessage message = new TestMessage("putrequest", "342");
-            String json = new Gson().toJson(message);
-            request.sendAsyncPut(
-                    new URL(TEST_WEBAPI_URL
-                            + "/147"),
-                    null,
-                    json.getBytes(ENCODING_UTF8),
-                    "application/json", new HttpWebRequestCallback() {
 
-                        @Override
-                        public void onComplete(HttpWebResponse response) {
-                            assertTrue("exception is null", response.getResponseException() == null);
-                            assertTrue("status is 200",
-                                    response.getStatusCode() == 200);
-                            String responseMsg = new String(response.getBody());
-                            assertTrue(
-                                    "request body check",
-                                    responseMsg.contains("147"
-                                            + message.getAccessToken()
-                                            + message.getUserName()));
-                            signal.countDown();
-                        }
-                    });
-        } catch (Exception ex) {
-            assertFalse("not expected", true);
-            signal.countDown();
-        }
+        testAsyncNoException(signal, new Runnable() {
+            @Override
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                final TestMessage message = new TestMessage("messagetest", "12345");
+                String json = new Gson().toJson(message);
 
-        try {
-            signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            assertFalse("InterruptedException is not expected", true);
-        }
+                try {
+                    request.sendAsyncPut(getUrl(TEST_WEBAPI_URL + "/147"),
+                            null,
+                            json.getBytes(ENCODING_UTF8),
+                            "application/json", new HttpWebRequestCallback() {
+
+                                @Override
+                                public void onComplete(HttpWebResponse response, Exception exc) {
+                                    assertTrue("exception is null", exc == null);
+                                    assertTrue("status is 200",
+                                            response.getStatusCode() == 200);
+                                    String responseMsg = new String(response.getBody());
+                                    assertTrue(
+                                            "request body check",
+                                            responseMsg.contains("147"
+                                                    + message.getAccessToken()
+                                                    + message.getUserName()));
+                                    signal.countDown();
+                                }
+
+                            });
+                } catch (UnsupportedEncodingException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
+
     }
 
     /**
@@ -276,10 +292,9 @@ public class WebRequestHandlerTests extends AndroidTestCase {
                     "application/json", new HttpWebRequestCallback() {
 
                         @Override
-                        public void onComplete(HttpWebResponse response) {
-                            assertTrue("exception is not null",
-                                    response.getResponseException() != null);
-                            assertTrue(response.getResponseException() instanceof AuthenticationCancelError);
+                        public void onComplete(HttpWebResponse response, Exception exc) {
+                            assertTrue("exception is not null", exc != null);
+                            assertTrue(exc instanceof AuthenticationCancelError);
                             Log.d(TAG, "oncomplete cancel request test");
                             signal.countDown();
                         }
@@ -294,9 +309,9 @@ public class WebRequestHandlerTests extends AndroidTestCase {
 
         try {
             signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-            
-            //Verify that it is cancelled
-            if(handle != null)
+
+            // Verify that it is cancelled
+            if (handle != null)
             {
                 assertTrue("it is cancelled", handle.isCancelled());
             }
@@ -340,5 +355,16 @@ public class WebRequestHandlerTests extends AndroidTestCase {
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put(key, value);
         return headers;
+    }
+
+    private URL getUrl(String url)
+    {
+        try {
+            return new URL(url);
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
     }
 }
