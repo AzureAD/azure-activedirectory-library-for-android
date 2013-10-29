@@ -72,23 +72,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         });
     }
 
-    /**
-     * Empty url throws from URL class itself
-     */
-    public void testEmptyUrl() {
-        try {
-            WebRequestHandler request = new WebRequestHandler();
-            request.sendAsyncGet(new URL(""), null, null);
-            assertFalse("expects failure", true);
-        } catch (Exception ex) {
-            if (ex instanceof MalformedURLException) {
-                MalformedURLException exc = (MalformedURLException) ex;
-                assertTrue("Message has url",
-                        (exc.getMessage().toLowerCase().contains("protocol")));
-            }
-        }
-    }
-
     public void testGetRequest() {
         final CountDownLatch signal = new CountDownLatch(1);
 

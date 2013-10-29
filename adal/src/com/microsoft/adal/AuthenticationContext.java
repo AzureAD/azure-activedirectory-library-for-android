@@ -65,7 +65,7 @@ public class AuthenticationContext {
      * @param contextFromMainThread
      * @param authority
      * @param validateAuthority
-     * @param cache Set to null if you dont want cache.
+     * @param cache Set to null if you don't want cache.
      */
     public AuthenticationContext(Context contextFromMainThread, String authority,
             boolean validateAuthority, ITokenCacheStore tokenCacheStore) {
