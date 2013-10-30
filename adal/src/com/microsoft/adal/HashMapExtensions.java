@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 
-public final class HashMapExtensions
+final class HashMapExtensions
 {
     /**
      * decode url string into a key value pairs with default query delimiter
@@ -27,7 +27,8 @@ public final class HashMapExtensions
     }
 
     /**
-     * decode url string into a key value pairs with given query delimiter
+     * decode url string into a key value pairs with given query delimiter given
+     * string as a=1&b=2 will return key value of [[a,1],[b,2]].
      * 
      * @param parameters
      * @param delimiter
@@ -41,17 +42,16 @@ public final class HashMapExtensions
         {
             StringTokenizer parameterTokenizer = new StringTokenizer(parameters, delimiter);
 
-            while (parameterTokenizer.hasMoreTokens())
-            {
+            while (parameterTokenizer.hasMoreTokens()) {
                 String pair = parameterTokenizer.nextToken();
                 String[] elements = pair.split("=");
 
-                if (elements != null && elements.length == 2)
-                {
+                if (elements != null && elements.length == 2) {
                     String key = StringExtensions.URLFormDecode(elements[0].trim());
                     String value = StringExtensions.URLFormDecode(elements[1].trim());
 
-                    if (key != null && key.length() > 0 && value != null && value.length() > 0)
+                    if (!StringExtensions.IsNullOrBlank(key)
+                            && !StringExtensions.IsNullOrBlank(value))
                     {
                         result.put(key, value);
                     }
@@ -67,27 +67,26 @@ public final class HashMapExtensions
      */
     static final String URLFormEncode(HashMap<String, String> parameters)
     {
-        Iterator<Entry<String, String>> iterator = parameters.entrySet().iterator();
         String result = null;
-
-        while (iterator.hasNext())
+        if (parameters != null && !parameters.isEmpty())
         {
-            Entry<String, String> entry = iterator.next();
+            Iterator<Entry<String, String>> iterator = parameters.entrySet().iterator();
 
-            if (result == null)
-            {
-                result = String.format("%s=%s", StringExtensions.URLFormEncode(entry.getKey()),
-                        StringExtensions.URLFormEncode(entry.getValue()));
-            }
-            else
-            {
-                result = String.format("%s&%s=%s", result,
-                        StringExtensions.URLFormEncode(entry.getKey()),
-                        StringExtensions.URLFormEncode(entry.getValue()));
-            }
+            while (iterator.hasNext()) {
+                Entry<String, String> entry = iterator.next();
 
+                if (result == null) {
+                    result = String.format("%s=%s", StringExtensions.URLFormEncode(entry.getKey()),
+                            StringExtensions.URLFormEncode(entry.getValue()));
+                }
+                else {
+                    result = String.format("%s&%s=%s", result,
+                            StringExtensions.URLFormEncode(entry.getKey()),
+                            StringExtensions.URLFormEncode(entry.getValue()));
+                }
+
+            }
         }
-
         return result;
     }
 }

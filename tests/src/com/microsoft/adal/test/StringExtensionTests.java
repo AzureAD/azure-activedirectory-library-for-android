@@ -23,41 +23,38 @@ public class StringExtensionTests extends AndroidTestHelper {
         super.tearDown();
     }
 
-    public void testIsNullOrBlankNotEmpty() {
+    public void testIsNullOrBlankNotEmpty() throws IllegalArgumentException,
+            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException {
         final String methodName = "IsNullOrBlank";
-        try {
-            Object foo = getStringExtensionInstance();
-            Method m = getTestMethod(foo, methodName);
-            boolean result = (Boolean) m.invoke(foo, "non-empty");
-            assertFalse("not empty", result);
-        } catch (Exception ex) {
-            Assert.fail("Dont expect exception");
-        }
+        Object foo = getNonPublicInstance("com.microsoft.adal.StringExtensions");
+        Method m = getTestMethod(foo, methodName, String.class);
+        boolean result = (Boolean) m.invoke(foo, "non-empty");
+        assertFalse("not empty", result);
     }
 
-    public void testIsNullOrBlankEmpty() {
+    public void testIsNullOrBlankEmpty() throws IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException {
         final String methodName = "IsNullOrBlank";
-        try {
-            Object foo = getStringExtensionInstance();
-            Method m = getTestMethod(foo, methodName);
-            boolean result = (Boolean) m.invoke(foo, "");
-            assertTrue("empty", result);
+        Object foo = getNonPublicInstance("com.microsoft.adal.StringExtensions");
+        ;
+        Method m = getTestMethod(foo, methodName);
+        boolean result = (Boolean) m.invoke(foo, "");
+        assertTrue("empty", result);
 
-            result = (Boolean) m.invoke(foo, "  ");
-            assertTrue("empty", result);
+        result = (Boolean) m.invoke(foo, "  ");
+        assertTrue("empty", result);
 
-            result = (Boolean) m.invoke(foo, "          ");
-            assertTrue("empty", result);
+        result = (Boolean) m.invoke(foo, "          ");
+        assertTrue("empty", result);
 
-        } catch (Exception ex) {
-            Assert.fail("Dont expect exception");
-        }
     }
 
     public void testURLFormEncodeDecode() {
         final String methodName = "URLFormEncode";
         try {
-            Object foo = getStringExtensionInstance();
+            Object foo = getNonPublicInstance("com.microsoft.adal.StringExtensions");
             Method m = getTestMethod(foo, methodName);
             Method decodeMethod = getTestMethod(foo, "URLFormDecode");
 
@@ -86,34 +83,4 @@ public class StringExtensionTests extends AndroidTestHelper {
         }
     }
 
-    private Method getTestMethod(Object foo, final String methodName)
-            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, InvocationTargetException
-    {
-
-        Class<?> c = foo.getClass();
-        Method m = c.getDeclaredMethod(methodName, String.class);
-        m.setAccessible(true);
-        return m;
-    }
-
-    private Object getStringExtensionInstance() throws ClassNotFoundException,
-            NoSuchMethodException,
-            IllegalArgumentException, InstantiationException, IllegalAccessException,
-            InvocationTargetException
-    {
-        // full package name
-        Class<?> c;
-
-        c = Class.forName("com.microsoft.adal.StringExtensions");
-
-        // getConstructor() returns only public constructors,
-
-        Constructor<?> constructor = c.getDeclaredConstructor();
-
-        constructor.setAccessible(true);
-        Object o = constructor.newInstance(null);
-
-        return o;
-    }
 }

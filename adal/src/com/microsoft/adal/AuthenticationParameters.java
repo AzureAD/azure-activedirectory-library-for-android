@@ -1,6 +1,7 @@
 
 package com.microsoft.adal;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -72,32 +73,28 @@ public class AuthenticationParameters {
         webRequest.getRequestHeaders().put("Accept", "application/json");
         final AuthenticationParamCallback externalCallback = callback;
 
-        try {
-            webRequest.sendAsyncGet(
-                    new HttpWebRequestCallback() {
-                        @Override
-                        public void onComplete(HttpWebResponse webResponse, Exception exception) {
+        webRequest.sendAsyncGet(
+                new HttpWebRequestCallback() {
+                    @Override
+                    public void onComplete(HttpWebResponse webResponse, Exception exception) {
 
-                            if (exception == null)
+                        if (webResponse != null)
+                        {
+                            try {
+                                externalCallback.onCompleted(null, parseResponse(webResponse));
+                            } catch (IllegalArgumentException exc)
                             {
-                                try {
-                                    externalCallback.onCompleted(null, parseResponse(webResponse));
-                                } catch (IllegalArgumentException exc)
-                                {
-                                    externalCallback.onCompleted(exc, null);
-                                }
+                                externalCallback.onCompleted(exc, null);
                             }
-                            else
-                                externalCallback.onCompleted(exception, null);
                         }
-                    });
-        } catch (Exception e) {
-            callback.onCompleted(e, null);
-        }
+                        else
+                            externalCallback.onCompleted(exception, null);
+                    }
+                });
     }
 
     /**
-     * ADAL will parse the header response to get authority and resource info
+     * ADAL will parse the header response to get the authority and the resource info
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
             String authenticateHeader) {
@@ -108,15 +105,16 @@ public class AuthenticationParameters {
         }
         else
         {
-            // TODO what should be the correct locale here?
+             
             authenticateHeader = authenticateHeader.trim().toLowerCase(Locale.US);
-
+            // bearer should be first one            
             if (!authenticateHeader.startsWith(BEARER))
             {
                 throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
             }
             else
             {
+                authenticateHeader = authenticateHeader.substring(BEARER.length());
                 HashMap<String, String> headerItems = HashMapExtensions.URLFormDecodeData(
                         authenticateHeader, ",");
                 if (headerItems != null && !headerItems.isEmpty())
@@ -133,7 +131,7 @@ public class AuthenticationParameters {
 
         return authParams;
     }
-    
+
     private static AuthenticationParameters parseResponse(HttpWebResponse webResponse)
     {
         // Depending on the service side implementation for this resource
@@ -152,5 +150,4 @@ public class AuthenticationParameters {
         }
         throw new IllegalArgumentException(AUTH_HEADER_WRONG_STATUS);
     }
-
 }
