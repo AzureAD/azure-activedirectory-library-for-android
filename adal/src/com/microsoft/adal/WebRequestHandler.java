@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.HashMap;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple
@@ -15,6 +16,8 @@ import android.os.AsyncTask;
  */
 public class WebRequestHandler implements IWebRequestHandler {
 
+    private final static String TAG = "WebRequestHandler";
+    
     @Override
     public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
             HttpWebRequestCallback callback) {
@@ -23,6 +26,8 @@ public class WebRequestHandler implements IWebRequestHandler {
             throw new IllegalArgumentException("callback");
         }
 
+        Log.d(TAG, "WebRequestHandler thread"+ android.os.Process.myTid());
+        
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncGet(callback);
@@ -37,6 +42,8 @@ public class WebRequestHandler implements IWebRequestHandler {
             throw new IllegalArgumentException("callback");
         }
 
+        Log.d(TAG, "WebRequestHandler thread"+ android.os.Process.myTid());
+        
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncDelete(callback);
@@ -50,6 +57,9 @@ public class WebRequestHandler implements IWebRequestHandler {
         {
             throw new IllegalArgumentException("callback");
         }
+        
+        Log.d(TAG, "WebRequestHandler thread"+ android.os.Process.myTid());
+        
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncPut(content, contentType, callback);
@@ -63,6 +73,9 @@ public class WebRequestHandler implements IWebRequestHandler {
         {
             throw new IllegalArgumentException("callback");
         }
+        
+        Log.d(TAG, "WebRequestHandler thread"+ android.os.Process.myTid());
+        
         HttpWebRequest request = new HttpWebRequest(url);
         addHeadersToRequest(headers, request);
         request.sendAsyncPost(content, contentType, callback);

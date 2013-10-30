@@ -40,7 +40,9 @@ public class AuthenticationContext {
     }
 
     private Context mAppContext;
+
     private String mAuthority;
+
     private boolean mValidateAuthority;
 
     /**
@@ -94,8 +96,8 @@ public class AuthenticationContext {
     public ITokenCacheStore getCache() {
         throw new UnsupportedOperationException("come back later");
     }
-    
-    public String getAuthority(){
+
+    public String getAuthority() {
         return mAuthority;
     }
 
@@ -196,8 +198,8 @@ public class AuthenticationContext {
      * @param clientId Required.
      * @param callback Required
      */
-    public void acquireTokenByRefreshToken(String refreshToken,
-            String clientId, AuthenticationCallback callback) {
+    public void acquireTokenByRefreshToken(String refreshToken, String clientId,
+            AuthenticationCallback callback) {
         throw new UnsupportedOperationException("come back later");
     }
 
@@ -211,8 +213,8 @@ public class AuthenticationContext {
      * @param resource
      * @param callback Required
      */
-    public void acquireTokenByRefreshToken(String refreshToken,
-            String clientId, String resource, AuthenticationCallback callback) {
+    public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
+            AuthenticationCallback callback) {
         throw new UnsupportedOperationException("come back later");
     }
 

@@ -37,10 +37,12 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
     final static int CONNECT_TIME_OUT = 10000;
 
+    private final static int READ_TIME_OUT = 10000;
+
     String mRequestMethod;
     URL mUrl;
     HttpWebRequestCallback mCallback;
-
+    HttpURLConnection _connection = null;
     byte[] mRequestContent = null;
     String mRequestContentType = null;
     int mTimeOut = CONNECT_TIME_OUT;
@@ -75,8 +77,6 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * Asynchronous GET.
      * 
      * @param callback
-     * @throws IllegalArgumentException
-     * @throws IOException
      */
     public void sendAsyncGet(HttpWebRequestCallback callback)
     {
@@ -87,8 +87,6 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * Async delete
      * 
      * @param callback
-     * @throws IllegalArgumentException
-     * @throws IOException
      */
     public void sendAsyncDelete(HttpWebRequestCallback callback)
     {
@@ -101,8 +99,6 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * @param content
      * @param contentType
      * @param callback
-     * @throws IllegalArgumentException
-     * @throws IOException
      */
     public void sendAsyncPut(byte[] content, String contentType,
             HttpWebRequestCallback callback) {
@@ -115,8 +111,6 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * @param content
      * @param contentType
      * @param callback
-     * @throws IllegalArgumentException
-     * @throws IOException
      */
     public void sendAsyncPost(byte[] content, String contentType,
             HttpWebRequestCallback callback) {
@@ -129,8 +123,9 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        Log.d(TAG, "Async task onPreExecute");
-
+        Log.d(TAG, "HttpWebRequest onPreExecute thread" + android.os.Process.myTid());
+        HttpURLConnection.setFollowRedirects(true);
+        _connection = openConnection(_connection);
     }
 
     /**
@@ -138,12 +133,9 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      */
     @Override
     protected HttpWebResponse doInBackground(Void... empty) {
-        // We could be carrying an exception here from the onPreExecute step
-        // so only try to send the request if everything is clean.
-        HttpWebResponse _response = new HttpWebResponse();
-        HttpURLConnection _connection = null;
 
-        _connection = openConnection(_response, _connection);
+        Log.d(TAG, "HttpWebRequest doInBackground thread"+ android.os.Process.myTid());
+        HttpWebResponse _response = new HttpWebResponse();
 
         if (_connection != null)
         {
@@ -159,15 +151,26 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                             mRequestHeaders.get(header));
                 }
 
-                _connection.setInstanceFollowRedirects(true);
+                _connection.setReadTimeout(READ_TIME_OUT);
+                _connection.setInstanceFollowRedirects(true);               
                 _connection.setUseCaches(false);
                 _connection.setRequestMethod(mRequestMethod);
-
                 setRequestBody(_connection);
 
                 // Get the response to the request along with the response
                 // body
-                int statusCode = _connection.getResponseCode();
+                int statusCode = HttpURLConnection.HTTP_OK; 
+                
+                try{        
+                    statusCode =  _connection.getResponseCode();
+                }catch(IOException ex)
+                {
+                   // HttpUrlConnection does not understand Bearer challenge
+                    if(ex.getMessage().contains("No authentication challenges"))
+                    {
+                        statusCode = 401;
+                    }
+                }
                 _response.setStatusCode(statusCode);
                 Log.d(TAG, "Statuscode:" + statusCode);
 
@@ -228,7 +231,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      */
     @Override
     protected void onCancelled() {
-        Log.d(TAG, "OnCancelled");
+        Log.d(TAG, "HttpWebRequest onCancelled thread" + android.os.Process.myTid());
         if (null != mCallback) {
             mCallback.onComplete(null, new AuthenticationCancelError());
         }
@@ -240,19 +243,20 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     @Override
     protected void onPostExecute(HttpWebResponse response) {
         super.onPostExecute(response);
-        Log.d(TAG, "OnPostExecute");
+        Log.d(TAG, "HttpWebRequest OnPostExecute thread" + android.os.Process.myTid());
         if (null != mCallback) {
             mCallback.onComplete(response, mException);
         }
     }
 
     /**
-     * Asynchronous POST/PUT
-     * Argument check before sending the request
+     * Asynchronous POST/PUT Argument check before sending the request
      */
     private void sendAsync(String requestmethod, byte[] content,
             String contentType, HttpWebRequestCallback callback)
     {
+
+        Log.d(TAG, "HttpWebRequest thread" + android.os.Process.myTid());
 
         // Atomically sets to the given value and returns the previous value
         if (mUsedBefore.getAndSet(true)) {
@@ -277,7 +281,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
         mRequestContent = content;
         mRequestContentType = contentType;
         mException = null;
-        
+
         if (Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.HONEYCOMB)
         {
             executeParallel();
@@ -304,8 +308,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * @param _connection
      * @return
      */
-    private HttpURLConnection openConnection(HttpWebResponse _response,
-            HttpURLConnection _connection) {
+    private HttpURLConnection openConnection(HttpURLConnection _connection) {
         try {
 
             _connection = (HttpURLConnection) mUrl.openConnection();
@@ -313,7 +316,6 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
-            _response.setResponseException(e);
             mException = e;
             _connection.disconnect();
             _connection = null;
