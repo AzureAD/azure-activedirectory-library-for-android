@@ -31,8 +31,11 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     private static final String TAG = "HttpWebRequest";
 
     final static String REQUEST_METHOD_POST = "POST";
+
     final static String REQUEST_METHOD_GET = "GET";
+
     final static String REQUEST_METHOD_PUT = "PUT";
+
     final static String REQUEST_METHOD_DELETE = "DELETE";
 
     final static int CONNECT_TIME_OUT = 10000;
@@ -40,13 +43,21 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     private final static int READ_TIME_OUT = 10000;
 
     String mRequestMethod;
+
     URL mUrl;
+
     HttpWebRequestCallback mCallback;
+
     HttpURLConnection _connection = null;
+
     byte[] mRequestContent = null;
+
     String mRequestContentType = null;
+
     int mTimeOut = CONNECT_TIME_OUT;
+
     Exception mException = null;
+
     HashMap<String, String> mRequestHeaders = null;
 
     /**
@@ -57,8 +68,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     public HttpWebRequest(URL requestURL) {
         mUrl = requestURL;
         mRequestHeaders = new HashMap<String, String>();
-        if (mUrl != null)
-        {
+        if (mUrl != null) {
             mRequestHeaders.put("Host", getURLAuthority(mUrl));
         }
     }
@@ -66,8 +76,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     public HttpWebRequest(URL requestURL, int timeout) {
         mUrl = requestURL;
         mRequestHeaders = new HashMap<String, String>();
-        if (mUrl != null)
-        {
+        if (mUrl != null) {
             mRequestHeaders.put("Host", getURLAuthority(mUrl));
         }
         mTimeOut = timeout;
@@ -78,8 +87,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * 
      * @param callback
      */
-    public void sendAsyncGet(HttpWebRequestCallback callback)
-    {
+    public void sendAsyncGet(HttpWebRequestCallback callback) {
         sendAsync(REQUEST_METHOD_GET, null, null, callback);
     }
 
@@ -88,8 +96,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * 
      * @param callback
      */
-    public void sendAsyncDelete(HttpWebRequestCallback callback)
-    {
+    public void sendAsyncDelete(HttpWebRequestCallback callback) {
         sendAsync(REQUEST_METHOD_DELETE, null, null, callback);
     }
 
@@ -100,8 +107,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * @param contentType
      * @param callback
      */
-    public void sendAsyncPut(byte[] content, String contentType,
-            HttpWebRequestCallback callback) {
+    public void sendAsyncPut(byte[] content, String contentType, HttpWebRequestCallback callback) {
         sendAsync(REQUEST_METHOD_PUT, content, contentType, callback);
     }
 
@@ -112,8 +118,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      * @param contentType
      * @param callback
      */
-    public void sendAsyncPost(byte[] content, String contentType,
-            HttpWebRequestCallback callback) {
+    public void sendAsyncPost(byte[] content, String contentType, HttpWebRequestCallback callback) {
         sendAsync(REQUEST_METHOD_POST, content, contentType, callback);
     }
 
@@ -134,40 +139,35 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     @Override
     protected HttpWebResponse doInBackground(Void... empty) {
 
-        Log.d(TAG, "HttpWebRequest doInBackground thread"+ android.os.Process.myTid());
+        Log.d(TAG, "HttpWebRequest doInBackground thread" + android.os.Process.myTid());
         HttpWebResponse _response = new HttpWebResponse();
 
-        if (_connection != null)
-        {
+        if (_connection != null) {
             try {
                 // Apply the request headers
-                final Iterator<String> headerKeys = mRequestHeaders.keySet()
-                        .iterator();
+                final Iterator<String> headerKeys = mRequestHeaders.keySet().iterator();
 
                 while (headerKeys.hasNext()) {
                     String header = headerKeys.next();
                     Log.d(TAG, "Setting header: " + header);
-                    _connection.setRequestProperty(header,
-                            mRequestHeaders.get(header));
+                    _connection.setRequestProperty(header, mRequestHeaders.get(header));
                 }
 
                 _connection.setReadTimeout(READ_TIME_OUT);
-                _connection.setInstanceFollowRedirects(true);               
+                _connection.setInstanceFollowRedirects(true);
                 _connection.setUseCaches(false);
                 _connection.setRequestMethod(mRequestMethod);
                 setRequestBody(_connection);
 
                 // Get the response to the request along with the response
                 // body
-                int statusCode = HttpURLConnection.HTTP_OK; 
-                
-                try{        
-                    statusCode =  _connection.getResponseCode();
-                }catch(IOException ex)
-                {
-                   // HttpUrlConnection does not understand Bearer challenge
-                    if(ex.getMessage().contains("No authentication challenges"))
-                    {
+                int statusCode = HttpURLConnection.HTTP_OK;
+
+                try {
+                    statusCode = _connection.getResponseCode();
+                } catch (IOException ex) {
+                    // HttpUrlConnection does not understand Bearer challenge
+                    if (ex.getMessage().contains("No authentication challenges")) {
                         statusCode = 401;
                     }
                 }
@@ -213,7 +213,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             // marks.
             catch (Exception e) {
                 Log.e(TAG, "Exception" + e.getMessage());
-                
+
                 mException = e;
             } finally {
                 _connection.disconnect();
@@ -252,9 +252,8 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     /**
      * Asynchronous POST/PUT Argument check before sending the request
      */
-    private void sendAsync(String requestmethod, byte[] content,
-            String contentType, HttpWebRequestCallback callback)
-    {
+    private void sendAsync(String requestmethod, byte[] content, String contentType,
+            HttpWebRequestCallback callback) {
 
         Log.d(TAG, "HttpWebRequest thread" + android.os.Process.myTid());
 
@@ -282,23 +281,19 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
         mRequestContentType = contentType;
         mException = null;
 
-        if (Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.HONEYCOMB)
-        {
+        if (Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.HONEYCOMB) {
             executeParallel();
-        }
-        else
-        {
-            execute((Void[]) null);
+        } else {
+            execute((Void[])null);
         }
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void executeParallel()
-    {
+    private void executeParallel() {
         // At Honeycomb, execute was changed to run on a serialized thread pool
         // but we want the request to run fully parallel so we force use of
         // the THREAD_POOL_EXECUTOR
-        executeOnExecutor(THREAD_POOL_EXECUTOR, (Void[]) null);
+        executeOnExecutor(THREAD_POOL_EXECUTOR, (Void[])null);
     }
 
     /**
@@ -311,7 +306,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     private HttpURLConnection openConnection(HttpURLConnection _connection) {
         try {
 
-            _connection = (HttpURLConnection) mUrl.openConnection();
+            _connection = (HttpURLConnection)mUrl.openConnection();
             _connection.setConnectTimeout(mTimeOut);
 
         } catch (IOException e) {

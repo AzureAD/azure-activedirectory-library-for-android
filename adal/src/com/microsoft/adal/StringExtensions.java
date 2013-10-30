@@ -6,8 +6,7 @@ package com.microsoft.adal;
 
 import android.net.Uri;
 
-final class StringExtensions
-{
+final class StringExtensions {
     /**
      * checks if string is null or empty
      * 
@@ -18,7 +17,7 @@ final class StringExtensions
         if (param == null || param.trim().length() == 0) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -28,8 +27,7 @@ final class StringExtensions
      * @param source
      * @return
      */
-    static final String URLFormEncode(String source)
-    {
+    static final String URLFormEncode(String source) {
         // Encode everything except spaces
         String target = Uri.encode(source, " ");
 
@@ -43,8 +41,7 @@ final class StringExtensions
      * @param source
      * @return
      */
-    static final String URLFormDecode(String source)
-    {
+    static final String URLFormDecode(String source) {
         // Decode + to spaces
         String target = source.replace('+', ' ');
 

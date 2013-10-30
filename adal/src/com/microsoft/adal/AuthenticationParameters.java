@@ -19,15 +19,21 @@ import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
 public class AuthenticationParameters {
 
     public final static String AUTH_HEADER_INVALID_FORMAT = "Invalid authentication header format";
+
     public final static String AUTH_HEADER_MISSING = "WWW-Authenticate header was expected in the response";
+
     public final static String AUTH_HEADER_WRONG_STATUS = "Unauthorized http response (status code 401) was expected";
 
     public final static String AUTHENTICATE_HEADER = "WWW-Authenticate";
+
     public final static String BEARER = "bearer";
+
     public final static String AUTHORITY_KEY = "authorization_uri";
+
     public final static String RESOURCE_KEY = "resource_id";
 
     private String mAuthority;
+
     private String mResource;
 
     /**
@@ -44,28 +50,23 @@ public class AuthenticationParameters {
         return mResource;
     }
 
-    public AuthenticationParameters()
-    {
+    public AuthenticationParameters() {
     }
 
-    public AuthenticationParameters(String authority, String resource)
-    {
+    public AuthenticationParameters(String authority, String resource) {
         mAuthority = authority;
         mResource = resource;
     }
 
     public interface AuthenticationParamCallback {
-        public void onCompleted(Exception exception,
-                AuthenticationParameters param);
+        public void onCompleted(Exception exception, AuthenticationParameters param);
     }
 
     /**
      * ADAL will make the call to get authority and resource info
      */
-    public static void createFromResourceUrl(
-            URL resourceUrl, AuthenticationParamCallback callback) {
-        if (callback == null)
-        {
+    public static void createFromResourceUrl(URL resourceUrl, AuthenticationParamCallback callback) {
+        if (callback == null) {
             return;
         }
 
@@ -73,57 +74,45 @@ public class AuthenticationParameters {
         webRequest.getRequestHeaders().put("Accept", "application/json");
         final AuthenticationParamCallback externalCallback = callback;
 
-        webRequest.sendAsyncGet(
-                new HttpWebRequestCallback() {
-                    @Override
-                    public void onComplete(HttpWebResponse webResponse, Exception exception) {
+        webRequest.sendAsyncGet(new HttpWebRequestCallback() {
+            @Override
+            public void onComplete(HttpWebResponse webResponse, Exception exception) {
 
-                        if (webResponse != null)
-                        {
-                            try {
-                                externalCallback.onCompleted(null, parseResponse(webResponse));
-                            } catch (IllegalArgumentException exc)
-                            {
-                                externalCallback.onCompleted(exc, null);
-                            }
-                        }
-                        else
-                            externalCallback.onCompleted(exception, null);
+                if (webResponse != null) {
+                    try {
+                        externalCallback.onCompleted(null, parseResponse(webResponse));
+                    } catch (IllegalArgumentException exc) {
+                        externalCallback.onCompleted(exc, null);
                     }
-                });
+                } else
+                    externalCallback.onCompleted(exception, null);
+            }
+        });
     }
 
     /**
-     * ADAL will parse the header response to get the authority and the resource info
+     * ADAL will parse the header response to get the authority and the resource
+     * info
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
             String authenticateHeader) {
         AuthenticationParameters authParams = null;
-        if (StringExtensions.IsNullOrBlank(authenticateHeader))
-        {
+        if (StringExtensions.IsNullOrBlank(authenticateHeader)) {
             throw new IllegalArgumentException(AUTH_HEADER_MISSING);
-        }
-        else
-        {
-             
+        } else {
+
             authenticateHeader = authenticateHeader.trim().toLowerCase(Locale.US);
-            // bearer should be first one            
-            if (!authenticateHeader.startsWith(BEARER))
-            {
+            // bearer should be first one
+            if (!authenticateHeader.startsWith(BEARER)) {
                 throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
-            }
-            else
-            {
+            } else {
                 authenticateHeader = authenticateHeader.substring(BEARER.length());
                 HashMap<String, String> headerItems = HashMapExtensions.URLFormDecodeData(
                         authenticateHeader, ",");
-                if (headerItems != null && !headerItems.isEmpty())
-                {
-                    authParams = new AuthenticationParameters(
-                            headerItems.get(AUTHORITY_KEY), headerItems.get(RESOURCE_KEY));
-                }
-                else
-                {
+                if (headerItems != null && !headerItems.isEmpty()) {
+                    authParams = new AuthenticationParameters(headerItems.get(AUTHORITY_KEY),
+                            headerItems.get(RESOURCE_KEY));
+                } else {
                     throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
                 }
             }
@@ -132,13 +121,11 @@ public class AuthenticationParameters {
         return authParams;
     }
 
-    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse)
-    {
+    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) {
         // Depending on the service side implementation for this resource
         if (webResponse.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
             Map<String, List<String>> responseHeaders = webResponse.getResponseHeaders();
-            if (responseHeaders != null && responseHeaders.containsKey(AUTHENTICATE_HEADER))
-            {
+            if (responseHeaders != null && responseHeaders.containsKey(AUTHENTICATE_HEADER)) {
                 // HttpUrlConnection sends a list of header values for same key
                 // if exists
                 List<String> headers = responseHeaders.get(AUTHENTICATE_HEADER);

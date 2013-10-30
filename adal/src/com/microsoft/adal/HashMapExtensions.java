@@ -12,16 +12,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 
-final class HashMapExtensions
-{
+final class HashMapExtensions {
     /**
      * decode url string into a key value pairs with default query delimiter
      * 
      * @param query
      * @return key value pairs
      */
-    static final HashMap<String, String> URLFormDecode(String query)
-    {
+    static final HashMap<String, String> URLFormDecode(String query) {
         HashMap<String, String> result = URLFormDecodeData(query, "&");
         return result;
     }
@@ -34,12 +32,10 @@ final class HashMapExtensions
      * @param delimiter
      * @return key value pairs
      */
-    static final HashMap<String, String> URLFormDecodeData(String parameters, String delimiter)
-    {
+    static final HashMap<String, String> URLFormDecodeData(String parameters, String delimiter) {
         HashMap<String, String> result = new HashMap<String, String>();
 
-        if (!StringExtensions.IsNullOrBlank(parameters))
-        {
+        if (!StringExtensions.IsNullOrBlank(parameters)) {
             StringTokenizer parameterTokenizer = new StringTokenizer(parameters, delimiter);
 
             while (parameterTokenizer.hasMoreTokens()) {
@@ -51,8 +47,7 @@ final class HashMapExtensions
                     String value = StringExtensions.URLFormDecode(elements[1].trim());
 
                     if (!StringExtensions.IsNullOrBlank(key)
-                            && !StringExtensions.IsNullOrBlank(value))
-                    {
+                            && !StringExtensions.IsNullOrBlank(value)) {
                         result.put(key, value);
                     }
                 }
@@ -65,11 +60,9 @@ final class HashMapExtensions
     /**
      * URL form encode a HashMap<String, String> into a string
      */
-    static final String URLFormEncode(HashMap<String, String> parameters)
-    {
+    static final String URLFormEncode(HashMap<String, String> parameters) {
         String result = null;
-        if (parameters != null && !parameters.isEmpty())
-        {
+        if (parameters != null && !parameters.isEmpty()) {
             Iterator<Entry<String, String>> iterator = parameters.entrySet().iterator();
 
             while (iterator.hasNext()) {
@@ -78,8 +71,7 @@ final class HashMapExtensions
                 if (result == null) {
                     result = String.format("%s=%s", StringExtensions.URLFormEncode(entry.getKey()),
                             StringExtensions.URLFormEncode(entry.getValue()));
-                }
-                else {
+                } else {
                     result = String.format("%s&%s=%s", result,
                             StringExtensions.URLFormEncode(entry.getKey()),
                             StringExtensions.URLFormEncode(entry.getValue()));
