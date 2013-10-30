@@ -62,8 +62,8 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         assertNull(testResponse.exception);
         assertNotNull(testResponse.param);
         Log.d(TAG, "test:" + getName() + "authority:" + testResponse.param.getAuthority());
-        assertSame("https://login.windows.net/omercantest.onmicrosoft.com",
-                testResponse.param.getAuthority());
+        assertEquals("\"https://login.windows.net/omercantest.onmicrosoft.com\"",
+                testResponse.param.getAuthority().trim());
     }
 
     /**

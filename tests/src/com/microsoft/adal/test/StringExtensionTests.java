@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import junit.framework.Assert;
 
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 /**
  * StringExtensions class has helper methods and it is not public
@@ -29,7 +30,7 @@ public class StringExtensionTests extends AndroidTestHelper {
         final String methodName = "IsNullOrBlank";
         Object foo = getNonPublicInstance("com.microsoft.adal.StringExtensions");
         Method m = getTestMethod(foo, methodName, String.class);
-        boolean result = (Boolean) m.invoke(foo, "non-empty");
+        boolean result = (Boolean)m.invoke(foo, "non-empty");
         assertFalse("not empty", result);
     }
 
@@ -38,15 +39,15 @@ public class StringExtensionTests extends AndroidTestHelper {
             InstantiationException {
         final String methodName = "IsNullOrBlank";
         Object foo = getNonPublicInstance("com.microsoft.adal.StringExtensions");
-        ;
-        Method m = getTestMethod(foo, methodName);
-        boolean result = (Boolean) m.invoke(foo, "");
+
+        Method m = getTestMethod(foo, methodName, String.class);
+        boolean result = (Boolean)m.invoke(foo, "");
         assertTrue("empty", result);
 
-        result = (Boolean) m.invoke(foo, "  ");
+        result = (Boolean)m.invoke(foo, "  ");
         assertTrue("empty", result);
 
-        result = (Boolean) m.invoke(foo, "          ");
+        result = (Boolean)m.invoke(foo, "          ");
         assertTrue("empty", result);
 
     }
@@ -55,8 +56,8 @@ public class StringExtensionTests extends AndroidTestHelper {
         final String methodName = "URLFormEncode";
         try {
             Object foo = getNonPublicInstance("com.microsoft.adal.StringExtensions");
-            Method m = getTestMethod(foo, methodName);
-            Method decodeMethod = getTestMethod(foo, "URLFormDecode");
+            Method m = getTestMethod(foo, methodName, String.class);
+            Method decodeMethod = getTestMethod(foo, "URLFormDecode", String.class);
 
             String result = (String) m.invoke(foo,
                     "https://login.windows.net/aaltests.onmicrosoft.com/");
@@ -79,8 +80,8 @@ public class StringExtensionTests extends AndroidTestHelper {
             assertEquals(longString, decodeResult);
 
         } catch (Exception ex) {
+            Log.e(getName(), ex.getMessage());
             Assert.fail("Dont expect exception");
         }
     }
-
 }

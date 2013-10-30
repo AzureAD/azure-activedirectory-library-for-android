@@ -2,6 +2,7 @@
 package com.microsoft.adal;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -12,7 +13,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 
+import android.util.Log;
+
 final class HashMapExtensions {
+
+    private static final String TAG = "HashMapExtensions";
+
     /**
      * decode url string into a key value pairs with default query delimiter
      * 
@@ -43,8 +49,14 @@ final class HashMapExtensions {
                 String[] elements = pair.split("=");
 
                 if (elements != null && elements.length == 2) {
-                    String key = StringExtensions.URLFormDecode(elements[0].trim());
-                    String value = StringExtensions.URLFormDecode(elements[1].trim());
+                    String key = null;
+                    String value = null;
+                    try {
+                        key = StringExtensions.URLFormDecode(elements[0].trim());
+                        value = StringExtensions.URLFormDecode(elements[1].trim());
+                    } catch (UnsupportedEncodingException e) {
+                        Log.d(TAG, e.getMessage());
+                    }
 
                     if (!StringExtensions.IsNullOrBlank(key)
                             && !StringExtensions.IsNullOrBlank(value)) {
@@ -68,13 +80,19 @@ final class HashMapExtensions {
             while (iterator.hasNext()) {
                 Entry<String, String> entry = iterator.next();
 
-                if (result == null) {
-                    result = String.format("%s=%s", StringExtensions.URLFormEncode(entry.getKey()),
-                            StringExtensions.URLFormEncode(entry.getValue()));
-                } else {
-                    result = String.format("%s&%s=%s", result,
-                            StringExtensions.URLFormEncode(entry.getKey()),
-                            StringExtensions.URLFormEncode(entry.getValue()));
+                try {
+                    if (result == null) {
+                        result = String.format("%s=%s",
+                                StringExtensions.URLFormEncode(entry.getKey()),
+                                StringExtensions.URLFormEncode(entry.getValue()));
+                    } else {
+                        result = String.format("%s&%s=%s", result,
+                                StringExtensions.URLFormEncode(entry.getKey()),
+                                StringExtensions.URLFormEncode(entry.getValue()));
+                    }
+
+                } catch (UnsupportedEncodingException e) {
+                    Log.e(TAG, e.getMessage());
                 }
 
             }

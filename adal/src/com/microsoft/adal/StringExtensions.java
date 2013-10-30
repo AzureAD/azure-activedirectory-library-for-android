@@ -4,9 +4,16 @@
 
 package com.microsoft.adal;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
 import android.net.Uri;
 
 final class StringExtensions {
+    /** The Constant ENCODING_UTF8. */
+    public static final String ENCODING_UTF8 = "UTF_8";
+
     /**
      * checks if string is null or empty
      * 
@@ -26,10 +33,11 @@ final class StringExtensions {
      * 
      * @param source
      * @return
+     * @throws UnsupportedEncodingException
      */
-    static final String URLFormEncode(String source) {
+    static final String URLFormEncode(String source) throws UnsupportedEncodingException {
         // Encode everything except spaces
-        String target = Uri.encode(source, " ");
+        String target = URLEncoder.encode(source, ENCODING_UTF8);
 
         // Encode spaces to +
         return target.replace(' ', '+');
@@ -40,12 +48,13 @@ final class StringExtensions {
      * 
      * @param source
      * @return
+     * @throws UnsupportedEncodingException
      */
-    static final String URLFormDecode(String source) {
+    static final String URLFormDecode(String source) throws UnsupportedEncodingException {
         // Decode + to spaces
         String target = source.replace('+', ' ');
 
         // Decode everything else
-        return Uri.decode(target);
+        return URLDecoder.decode(target, ENCODING_UTF8);
     }
 }

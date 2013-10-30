@@ -73,11 +73,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         });
     }
 
-    public void testDummy() {
-        assertFalse("first failure", true);
-        assertFalse("second failure", true);
-    }
-
     class TestResponse {
         HttpWebResponse httpResponse;
         Exception exception;
@@ -136,7 +131,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             }
         });
 
-        assertNull(testResponse.exception);
+        assertNotNull(testResponse.exception);
         assertTrue(
                 "Unable to resolve host",
                 testResponse.exception.getMessage().toLowerCase()
@@ -159,7 +154,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             }
         });
 
-        assertNull(testResponse.httpResponse.getResponseException() == null);
+        assertNull(testResponse.httpResponse.getResponseException());
         assertTrue("status is 200", testResponse.httpResponse.getStatusCode() == 200);
         String responseMsg = new String(testResponse.httpResponse.getBody());
         assertTrue("request body check",

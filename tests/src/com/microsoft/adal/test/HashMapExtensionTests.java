@@ -101,7 +101,7 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         assertEquals("test=actual", result);
 
         result = (String) m.invoke(foo, getTestKeyValue("name", "François"));
-        assertEquals("name=Fran%3Fois", result);
+        assertEquals("name=Fran%C3%A7ois", result);
 
     }
 
@@ -113,7 +113,7 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         Object foo = getNonPublicInstance("com.microsoft.adal.HashMapExtensions");
         Method m = getTestMethod(foo, methodName, HashMap.class);
 
-        String result = (String) m.invoke(foo, null);
+        String result = (String) m.invoke(foo, (Object)null);
         assertNull(result);
 
         result = (String) m.invoke(foo, new HashMap<String, String>());
