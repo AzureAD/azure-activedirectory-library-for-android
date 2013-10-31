@@ -36,11 +36,7 @@ final class StringExtensions {
      * @throws UnsupportedEncodingException
      */
     static final String URLFormEncode(String source) throws UnsupportedEncodingException {
-        // Encode everything except spaces
-        String target = URLEncoder.encode(source, ENCODING_UTF8);
-
-        // Encode spaces to +
-        return target.replace(' ', '+');
+        return URLEncoder.encode(source, ENCODING_UTF8);
     }
 
     /**
@@ -51,10 +47,8 @@ final class StringExtensions {
      * @throws UnsupportedEncodingException
      */
     static final String URLFormDecode(String source) throws UnsupportedEncodingException {
-        // Decode + to spaces
-        String target = source.replace('+', ' ');
 
         // Decode everything else
-        return URLDecoder.decode(target, ENCODING_UTF8);
+        return URLDecoder.decode(source, ENCODING_UTF8);
     }
 }

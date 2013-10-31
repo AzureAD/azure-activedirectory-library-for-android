@@ -42,6 +42,10 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
     private final static int READ_TIME_OUT = 10000;
 
+    private boolean mUseCaches = false;
+
+    private boolean mInstanceRedirectsFollow = true;
+
     String mRequestMethod;
 
     URL mUrl;
@@ -154,8 +158,8 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 }
 
                 _connection.setReadTimeout(READ_TIME_OUT);
-                _connection.setInstanceFollowRedirects(true);
-                _connection.setUseCaches(false);
+                _connection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
+                _connection.setUseCaches(mUseCaches);
                 _connection.setRequestMethod(mRequestMethod);
                 setRequestBody(_connection);
 
@@ -167,10 +171,14 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                     statusCode = _connection.getResponseCode();
                 } catch (IOException ex) {
                     // HttpUrlConnection does not understand Bearer challenge
-                    if (ex.getMessage().contains("No authentication challenges")) {
-                        statusCode = 401;
+                    // Second time query will get the correct status.
+                    // it will throw, if it is a different status related to connection problem
+                    statusCode = _connection.getResponseCode();
+                    if (statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
+                        throw ex;
                     }
                 }
+
                 _response.setStatusCode(statusCode);
                 Log.d(TAG, "Statuscode:" + statusCode);
 

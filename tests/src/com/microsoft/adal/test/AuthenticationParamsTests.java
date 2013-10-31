@@ -43,8 +43,8 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         final TestResponse testResponse = new TestResponse();
         setupAsyncParamRequest("http://www.cnn.com", testResponse);
 
-        assertNotNull(testResponse.exception);
-        assertNull(testResponse.param);
+        assertNotNull("Exception null", testResponse.exception);
+        assertNull("Parameter is not null", testResponse.param);
         assertTrue(
                 "Check header exception",
                 testResponse.exception.getMessage() == AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
@@ -59,19 +59,67 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         final TestResponse testResponse = new TestResponse();
         setupAsyncParamRequest("https://testapi007.azurewebsites.net/api/WorkItem", testResponse);
 
-        assertNull(testResponse.exception);
-        assertNotNull(testResponse.param);
+        assertNull("Exception is not null", testResponse.exception);
+        assertNotNull("Check parameter", testResponse.param);
         Log.d(TAG, "test:" + getName() + "authority:" + testResponse.param.getAuthority());
-        assertEquals("\"https://login.windows.net/omercantest.onmicrosoft.com\"",
-                testResponse.param.getAuthority().trim());
+        assertEquals("https://login.windows.net/omercantest.onmicrosoft.com", testResponse.param
+                .getAuthority().trim());
     }
 
     /**
      * test private method to make sure parsing is right
      */
-    public void testParseResponseWrongStatus() {
-        // send wrong status
+    public void testParseResponseNegative() {
+        callParseResponseForException(new HttpWebResponse(200, null, null),
+                AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
 
+        callParseResponseForException(new HttpWebResponse(401, null, null),
+                AuthenticationParameters.AUTH_HEADER_MISSING);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", "v")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
+                        "Bearer nonsense")), AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", " Bearer")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", " Bearer ")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", "\t Bearer  ")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", "Bearer foo ")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
+                        "Bear gets=honey ")), AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", "Bearer =,=,")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
+                        "Bearer authorization_uri= ")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+        
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
+                        "Bearer authorization_uri=,something=a ")),
+                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY);
+    }
+
+    private Method getParseResponseMethod() {
         Method m = null;
         try {
             m = AuthenticationParameters.class.getDeclaredMethod("parseResponse",
@@ -81,54 +129,21 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         }
 
         m.setAccessible(true);
+        return m;
+    }
+
+    private void callParseResponseForException(HttpWebResponse response, String message) {
+        Method m = getParseResponseMethod();
         AuthenticationParameters param = null;
 
         try {
-            param = (AuthenticationParameters)m.invoke(null, new HttpWebResponse(200, null, null));
+            param = (AuthenticationParameters)m.invoke(null, response);
             assertTrue("expected to fail", false);
         } catch (Exception exception) {
-            assertNotNull(exception);
-            assertNull(param);
-            assertTrue(
-                    "Check header exception",
-                    exception.getCause().getMessage() == AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
+            assertNotNull("Exception is not null", exception);
+            assertNull("Param is expected to be null", param);
+            assertTrue("Check header exception", exception.getCause().getMessage() == message);
         }
-
-        // correct status
-        try {
-            param = (AuthenticationParameters)m.invoke(null, new HttpWebResponse(401, null, null));
-            assertTrue("expected to fail", false);
-        } catch (Exception exception) {
-            assertNull(param);
-            assertTrue(
-                    "Check header exception",
-                    exception.getCause().getMessage() == AuthenticationParameters.AUTH_HEADER_MISSING);
-        }
-
-        // correct status, but incorrect header
-        try {
-            param = (AuthenticationParameters)m.invoke(null, new HttpWebResponse(401, null,
-                    getInvalidHeader("WWW-Authenticate", "v")));
-            assertTrue("expected to fail", false);
-        } catch (Exception exception) {
-            assertNull(param);
-            assertTrue(
-                    "Check header exception",
-                    exception.getCause().getMessage() == AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
-        }
-
-        // correct status, but incorrect authorization param
-        try {
-            param = (AuthenticationParameters)m.invoke(null, new HttpWebResponse(401, null,
-                    getInvalidHeader("WWW-Authenticate", "Bearer nonsense")));
-            assertTrue("expected to fail", false);
-        } catch (Exception exception) {
-            assertNull(param);
-            assertTrue(
-                    "Check header exception",
-                    exception.getCause().getMessage() == AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
-        }
-
     }
 
     class TestResponse {

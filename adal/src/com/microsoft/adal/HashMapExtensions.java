@@ -69,34 +69,4 @@ final class HashMapExtensions {
         return result;
     }
 
-    /**
-     * URL form encode a HashMap<String, String> into a string
-     */
-    static final String URLFormEncode(HashMap<String, String> parameters) {
-        String result = null;
-        if (parameters != null && !parameters.isEmpty()) {
-            Iterator<Entry<String, String>> iterator = parameters.entrySet().iterator();
-
-            while (iterator.hasNext()) {
-                Entry<String, String> entry = iterator.next();
-
-                try {
-                    if (result == null) {
-                        result = String.format("%s=%s",
-                                StringExtensions.URLFormEncode(entry.getKey()),
-                                StringExtensions.URLFormEncode(entry.getValue()));
-                    } else {
-                        result = String.format("%s&%s=%s", result,
-                                StringExtensions.URLFormEncode(entry.getKey()),
-                                StringExtensions.URLFormEncode(entry.getValue()));
-                    }
-
-                } catch (UnsupportedEncodingException e) {
-                    Log.e(TAG, e.getMessage());
-                }
-
-            }
-        }
-        return result;
-    }
 }

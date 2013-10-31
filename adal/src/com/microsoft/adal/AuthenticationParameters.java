@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import android.util.Log;
+
 import com.microsoft.adal.AuthenticationParameters;
 import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
 
@@ -17,6 +19,8 @@ import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
  * authorization_endpoint from resource address
  */
 public class AuthenticationParameters {
+
+    public final static String AUTH_HEADER_MISSING_AUTHORITY = "WWW-Authenticate header is missing authorization_uri.";
 
     public final static String AUTH_HEADER_INVALID_FORMAT = "Invalid authentication header format";
 
@@ -31,6 +35,8 @@ public class AuthenticationParameters {
     public final static String AUTHORITY_KEY = "authorization_uri";
 
     public final static String RESOURCE_KEY = "resource_id";
+
+    private final static String TAG = "AuthenticationParameters";
 
     private String mAuthority;
 
@@ -53,7 +59,7 @@ public class AuthenticationParameters {
     public AuthenticationParameters() {
     }
 
-    public AuthenticationParameters(String authority, String resource) {
+    AuthenticationParameters(String authority, String resource) {
         mAuthority = authority;
         mResource = resource;
     }
@@ -69,6 +75,7 @@ public class AuthenticationParameters {
         if (callback == null) {
             return;
         }
+        Log.d(TAG, "createFromResourceUrl");
 
         HttpWebRequest webRequest = new HttpWebRequest(resourceUrl);
         webRequest.getRequestHeaders().put("Accept", "application/json");
@@ -110,8 +117,15 @@ public class AuthenticationParameters {
                 HashMap<String, String> headerItems = HashMapExtensions.URLFormDecodeData(
                         authenticateHeader, ",");
                 if (headerItems != null && !headerItems.isEmpty()) {
-                    authParams = new AuthenticationParameters(headerItems.get(AUTHORITY_KEY),
-                            headerItems.get(RESOURCE_KEY));
+                    String authority = headerItems.get(AUTHORITY_KEY);
+                    if (!StringExtensions.IsNullOrBlank(authority)) {
+                        authParams = new AuthenticationParameters(
+                                removeQuoteInHeaderValue(authority),
+                                removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
+                    } else {
+                        // invalid format
+                        throw new IllegalArgumentException(AUTH_HEADER_MISSING_AUTHORITY);
+                    }
                 } else {
                     throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
                 }
@@ -119,6 +133,13 @@ public class AuthenticationParameters {
         }
 
         return authParams;
+    }
+
+    private static String removeQuoteInHeaderValue(String value) {
+        if (!StringExtensions.IsNullOrBlank(value)) {
+            return value.replace("\"", "");
+        }
+        return null;
     }
 
     private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) {
@@ -129,8 +150,9 @@ public class AuthenticationParameters {
                 // HttpUrlConnection sends a list of header values for same key
                 // if exists
                 List<String> headers = responseHeaders.get(AUTHENTICATE_HEADER);
-
-                return createFromResponseAuthenticateHeader(headers.get(0));
+                if (headers != null && headers.size() > 0) {
+                    return createFromResponseAuthenticateHeader(headers.get(0));
+                }
             }
 
             throw new IllegalArgumentException(AUTH_HEADER_MISSING);

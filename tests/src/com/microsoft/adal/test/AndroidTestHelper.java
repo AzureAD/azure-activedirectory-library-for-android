@@ -103,18 +103,18 @@ public class AndroidTestHelper extends InstrumentationTestCase {
             runTestOnUiThread(testCode);
         } catch (Exception ex) {
             Log.e(getName(), ex.getMessage());
-            assertFalse("not expected", true);
+            assertFalse("not expected:" + ex.getMessage(), true);
             signal.countDown();
         } catch (Throwable ex) {
             Log.e(getName(), ex.getMessage());
-            assertFalse("not expected", true);
+            assertFalse("not expected:" + ex.getMessage(), true);
             signal.countDown();
         }
 
         try {
             signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            assertFalse("InterruptedException is not expected", true);
+            assertFalse("Timeout " + getName(), true);
         }
     }
 

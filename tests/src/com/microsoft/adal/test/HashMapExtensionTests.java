@@ -25,34 +25,33 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         final String methodName = "URLFormDecode";
         Object foo = getNonPublicInstance("com.microsoft.adal.HashMapExtensions");
         Method m = getTestMethod(foo, methodName, String.class);
-        HashMap<String, String> result = (HashMap<String, String>) m.invoke(foo, "nokeyvalue");
+        HashMap<String, String> result = (HashMap<String, String>)m.invoke(foo, "nokeyvalue");
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
-        result = (HashMap<String, String>) m.invoke(foo, "&&&");
+        result = (HashMap<String, String>)m.invoke(foo, "&&&");
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
-        result = (HashMap<String, String>) m.invoke(foo, "=&=");
+        result = (HashMap<String, String>)m.invoke(foo, "=&=");
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
-        result = (HashMap<String, String>) m.invoke(foo, "=&");
+        result = (HashMap<String, String>)m.invoke(foo, "=&");
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
-        result = (HashMap<String, String>) m.invoke(foo, "&=");
+        result = (HashMap<String, String>)m.invoke(foo, "&=");
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
-        result = (HashMap<String, String>) m.invoke(foo, "&a=");
+        result = (HashMap<String, String>)m.invoke(foo, "&a=");
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
-        result = (HashMap<String, String>) m.invoke(foo, "&=b");
+        result = (HashMap<String, String>)m.invoke(foo, "&=b");
         assertNotNull(result);
         assertTrue(result.isEmpty());
-
     }
 
     @SuppressWarnings("unchecked")
@@ -63,7 +62,7 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         final String methodName = "URLFormDecode";
         Object foo = getNonPublicInstance("com.microsoft.adal.HashMapExtensions");
         Method m = getTestMethod(foo, methodName, String.class);
-        HashMap<String, String> result = (HashMap<String, String>) m.invoke(foo, "a=b&c=2");
+        HashMap<String, String> result = (HashMap<String, String>)m.invoke(foo, "a=b&c=2");
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertTrue(result.containsKey("a"));
@@ -76,48 +75,18 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         assertTrue(result.containsValue("b"));
         assertTrue(result.containsValue("2"));
 
-        result = (HashMap<String, String>) m.invoke(foo, "a=v");
+        result = (HashMap<String, String>)m.invoke(foo, "a=v");
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertTrue(result.containsKey("a"));
         assertTrue(result.containsValue("v"));
 
-        result = (HashMap<String, String>) m.invoke(foo, "d=f&");
+        result = (HashMap<String, String>)m.invoke(foo, "d=f&");
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertTrue(result.containsKey("d"));
         assertTrue(result.containsValue("f"));
         assertTrue(result.size() == 1);
-    }
-
-    public void testUrlFormEncodePositive() throws IllegalArgumentException,
-            ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException {
-        final String methodName = "URLFormEncode";
-        Object foo = getNonPublicInstance("com.microsoft.adal.HashMapExtensions");
-        Method m = getTestMethod(foo, methodName, HashMap.class);
-        String result = (String) m.invoke(foo, getTestKeyValue("test", "actual"));
-        assertEquals("test=actual", result);
-
-        result = (String) m.invoke(foo, getTestKeyValue("name", "François"));
-        assertEquals("name=Fran%C3%A7ois", result);
-
-    }
-
-    public void testUrlFormEncodeNegative() throws IllegalArgumentException,
-            ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException {
-        final String methodName = "URLFormEncode";
-        Object foo = getNonPublicInstance("com.microsoft.adal.HashMapExtensions");
-        Method m = getTestMethod(foo, methodName, HashMap.class);
-
-        String result = (String) m.invoke(foo, (Object)null);
-        assertNull(result);
-
-        result = (String) m.invoke(foo, new HashMap<String, String>());
-        assertNull(result);
     }
 
     private HashMap<String, String> getTestKeyValue(String key, String value) {

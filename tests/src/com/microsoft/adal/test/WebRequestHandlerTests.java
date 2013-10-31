@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -132,6 +133,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         });
 
         assertNotNull(testResponse.exception);
+        assertTrue("Unknown host exception", testResponse.exception instanceof UnknownHostException);
         assertTrue(
                 "Unable to resolve host",
                 testResponse.exception.getMessage().toLowerCase()
