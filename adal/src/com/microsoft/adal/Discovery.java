@@ -13,21 +13,17 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.Future;
 
 import org.json.JSONException;
 
 import android.net.Uri;
-import android.os.Handler;
 import android.util.Log;
-
-import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
 
 /**
  * Instance and Tenant discovery. It takes authorization endpoint and sends
  * query to known hard coded instances to get tenant discovery endpoint. If
  * instance is valid, it will return tenant discovery endpoint info. Instance
- * discovery endpoint does not verify tenant info, so Discoveryc implementation
+ * discovery endpoint does not verify tenant info, so Discovery implementation
  * sends common as a tenant name. Discovery checks only authorization endpoint.
  * It does not do tenant verification. Initialize and call from UI thread.
  */
@@ -55,8 +51,7 @@ final class Discovery implements IDiscovery {
             .synchronizedSet(new HashSet<String>());
 
     /**
-     * instances to verify given auth endpoint. login.windows.net to run query
-     * first and then others if not valid.
+     * instances to verify given authorization instance. Verification will start from login.windows.net and then others will be used.
      */
     private static Set<String> mCloudInstances = new LinkedHashSet(Arrays.asList(new String[] {
             "login.windows.net", "login.chinacloudapi.cn", "login.cloudgovapi.us"
@@ -113,7 +108,7 @@ final class Discovery implements IDiscovery {
 
     /**
      * discovery call will return true, if this authorization endpoint exists at
-     * the instances it sends async query for each instance if it returns false
+     * the instances. It sends async query for each instance.
      * 
      * @param authorizationEndpointUrl
      * @return
@@ -200,9 +195,7 @@ final class Discovery implements IDiscovery {
                 } else
                     callback.onError(exception);
             }
-
         });
-
     }
 
     /**
