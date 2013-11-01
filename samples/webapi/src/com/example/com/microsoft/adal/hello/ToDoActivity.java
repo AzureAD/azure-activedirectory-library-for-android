@@ -135,7 +135,7 @@ public class ToDoActivity extends Activity {
         mAuthContext.acquireToken(ToDoActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
                 Constants.REDIRECT_URL,
                 Constants.USER_HINT,
-                new AuthenticationCallback() {
+                new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onError(Exception exc) {
@@ -357,7 +357,7 @@ public class ToDoActivity extends Activity {
                 return true;
             }
             case MENU_GET_TOKEN:
-                getToken(new AuthenticationCallback() {
+                getToken(new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onError(Exception exc) {

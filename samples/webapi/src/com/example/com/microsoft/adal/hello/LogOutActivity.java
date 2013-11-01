@@ -99,7 +99,7 @@ public class LogOutActivity extends Activity {
         mAuthContext.acquireToken(LogOutActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
                 Constants.REDIRECT_URL,
                 Constants.USER_HINT,
-                new AuthenticationCallback() {
+                new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onError(Exception exc) {
