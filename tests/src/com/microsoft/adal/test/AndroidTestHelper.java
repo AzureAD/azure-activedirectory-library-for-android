@@ -2,6 +2,7 @@
 package com.microsoft.adal.test;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -93,6 +94,13 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         return o;
     }
 
+    /**
+     * run the code at ui thread and wait until it is finished
+     * 
+     * @param signal Use this signal inside your callback.
+     * @param testCode code that actually calls the method that needs ui thread
+     *            and async handling
+     */
     public void testAsyncNoException(final CountDownLatch signal, final Runnable testCode) {
 
         Log.d(getName(), "thread:" + android.os.Process.myTid());
@@ -118,4 +126,10 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
     }
 
+    
+    public Object getFieldValue(Object object, String fieldName) throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
+        Field f = object.getClass().getDeclaredField("mValidHosts");
+        f.setAccessible(true);
+        return f.get(object);
+    }
 }

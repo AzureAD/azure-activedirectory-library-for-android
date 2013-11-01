@@ -15,6 +15,9 @@ import java.util.StringTokenizer;
 
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 final class HashMapExtensions {
 
     private static final String TAG = "HashMapExtensions";
@@ -67,6 +70,30 @@ final class HashMapExtensions {
         }
 
         return result;
+    }
+    
+    /**
+     * get key value pairs from response
+     * @param webResponse
+     * @return
+     * @throws JSONException
+     */
+    static final HashMap<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException{
+        HashMap<String, String> response = new HashMap<String, String>();
+        if(webResponse != null && webResponse.getBody() != null && webResponse.getBody().length != 0){
+            JSONObject jsonObject = new JSONObject(
+                    new String(webResponse.getBody()));
+
+            @SuppressWarnings("unchecked")
+            Iterator<String> i = jsonObject.keys();
+
+            while (i.hasNext()) {
+                String key = i.next();
+                response.put(key,
+                        jsonObject.getString(key));
+            }
+        }
+        return response;
     }
 
 }

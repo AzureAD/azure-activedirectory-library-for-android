@@ -8,22 +8,32 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import org.json.JSONException;
+
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Log;
 
 import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
 
 /**
- *
+ * Instance and Tenant discovery. It takes authorization endpoint and sends
+ * query to known hard coded instances to get tenant discovery endpoint. If
+ * instance is valid, it will send tenant discovery endpoint to query tenant
+ * info. Instance discovery endpoint does not verify tenant info, so Discoveryc
+ * implementation sends common as a tenant name. Discovery checks only
+ * authorization endpoint. It does not do tenant verification.
  */
 final class Discovery implements IDiscovery {
 
-    private boolean mAllowSSLErrors = false;
+    private final static String TAG = "Discovery";
 
     private final static String API_VERSION_KEY = "api-version";
 
@@ -31,16 +41,14 @@ final class Discovery implements IDiscovery {
 
     private final static String AUTHORIZATION_ENDPOINT_KEY = "authorization_endpoint";
 
-    private final static String ISSUER_ENDPOINT_KEY = "issuer";
-
     private final static String INSTANCE_DISCOVERY_SUFFIX = "/common/discovery/instance";
 
     private final static String AUTHORIZATION_COMMON_ENDPOINT = "/common/oauth2/authorize";
 
-    private final static String INSTANCE_TO_CHECK = "login.windows.net";
+    private final static String TENANT_DISCOVERY_ENDPOINT = "tenant_discovery_endpoint";
 
     /**
-     * UI handler to create async task and execute asycn task at UI thread
+     * UI handler to create async task and execute async task at UI thread
      */
     private Handler mHandler;
 
@@ -51,12 +59,21 @@ final class Discovery implements IDiscovery {
             .synchronizedSet(new HashSet<String>());
 
     /**
-     * instances to verify given auth endpoint
+     * instances to verify given auth endpoint. windows.net to run query first and then others.
      */
-    private final static Set<String> mCloudInstances = new HashSet(Arrays.asList(new String[] {
+    private static Set<String> mCloudInstances = new LinkedHashSet(Arrays.asList(new String[] {
             "login.windows.net", "login.chinacloudapi.cn", "login.cloudgovapi.us"
     }));
 
+    public Discovery() {
+        initValidList();
+        mHandler = null;
+    }
+
+    /**
+     * @param uiHandler Handler is needted if you are calling from non-UI
+     *            thread. It will be used to post runnable for async tasks
+     */
     public Discovery(Handler uiHandler) {
         initValidList();
         mHandler = uiHandler;
@@ -73,7 +90,6 @@ final class Discovery implements IDiscovery {
                 // validhosts will help to skip validation if validated before
                 callback.onSuccess(true);
             }
-
         }
 
         queryEndpointPerInstance(authorizationEndpoint, callback);
@@ -94,7 +110,7 @@ final class Discovery implements IDiscovery {
     }
 
     /**
-     * initialize initial valid host list
+     * initialize initial valid host list with known instances
      */
     private void initValidList() {
         synchronized (mValidHosts) {
@@ -121,15 +137,17 @@ final class Discovery implements IDiscovery {
         queryEndpointPerInstanceNext(authorizationEndpointUrl, callback, instanceIterator);
     }
 
-    private void queryEndpointPerInstanceNext(final String authorizationEndpointUrl,
+    private void queryEndpointPerInstanceNext(final URL authorizationEndpointUrl,
             final AuthenticationCallback<Boolean> callback, final Iterator<String> iterator) {
 
         if (iterator.hasNext()) {
+            // if there are more instance to query, it will send another async
+            // call to check endpoint
             String instanceHost = iterator.next();
 
             try {
                 // construct query string for this instance
-                String queryString = buildQueryString(instanceHost,
+                URL queryUrl = buildQueryString(instanceHost,
                         getAuthorizationCommonEndpoint(authorizationEndpointUrl));
 
                 // setup callback to query again if not found
@@ -139,74 +157,127 @@ final class Discovery implements IDiscovery {
                     public void onSuccess(Boolean result) {
                         if (result) {
                             // it is validated
+                            addValidHostToList(authorizationEndpointUrl);
                             callback.onSuccess(result);
                         } else {
                             queryEndpointPerInstanceNext(authorizationEndpointUrl, callback,
                                     iterator);
                         }
-
                     }
 
                     @Override
                     public void onError(Exception exc) {
+                        Log.e(TAG, exc.getMessage());
                         callback.onError(exc);
                     }
                 };
 
-                // post to async call
-                sendRequest(evalStepCallback, queryString);
+                // post async call to current instance
+                sendRequest(evalStepCallback, queryUrl);
 
             } catch (MalformedURLException e) {
+                Log.e(TAG, e.getMessage());
                 callback.onError(e);
             }
         } else {
-            // it checked all of them
+            // it checked all of the instances
+            Log.w(TAG, "all of the instances returned invalid for this endpoint:"
+                    + authorizationEndpointUrl.toString());
             callback.onSuccess(false);
         }
     }
 
-    private void sendRequest(final AuthenticationCallback<Boolean> callback, String queryUrl)
+    private void sendRequest(final AuthenticationCallback<Boolean> callback, final URL queryUrl)
             throws MalformedURLException {
-        HttpWebRequest webRequest = new HttpWebRequest(new URL(queryUrl));
-        webRequest.getRequestHeaders().put("Accept", "application/json");
 
-        webRequest.sendAsyncGet(new HttpWebRequestCallback() {
+        Runnable request = new Runnable() {
+
             @Override
-            public void onComplete(HttpWebResponse webResponse, Exception exception) {
+            public void run() {
+                Log.d(TAG, "Sending discovery request to:" + queryUrl);
+                WebRequestHandler request = new WebRequestHandler();
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("Accept", "application/json");
+                request.sendAsyncGet(queryUrl, headers, new HttpWebRequestCallback() {
+                    @Override
+                    public void onComplete(HttpWebResponse webResponse, Exception exception) {
 
-                if (webResponse != null) {
-                    try {
-                        callback.onCompleted(null, parseResponse(webResponse));
-                    } catch (IllegalArgumentException exc) {
-                        callback.onError(exc);
+                        if (webResponse != null) {
+                            try {
+                                callback.onSuccess(parseResponse(webResponse));
+                            } catch (IllegalArgumentException exc) {
+                                Log.e(TAG, exc.getMessage());
+                                callback.onError(exc);
+                            } catch (JSONException e) {
+                                Log.e(TAG, "Json parsing error:" + e.getMessage());
+                                callback.onError(e);
+                            }
+                        } else
+                            callback.onError(exception);
                     }
-                } else
-                    callback.onError(exception);
+
+                });
             }
-        });
+        };
+
+        if (mHandler != null) {
+            Log.d(TAG, "Sending discovery request using handler:" + queryUrl);
+            mHandler.post(request);
+        } else {
+            Log.d(TAG, "Sending discovery request without using handler:" + queryUrl);
+            request.run();
+        }
+    }
+
+    /**
+     * get Json output from web response body well formed response has tenant
+     * discovery endpoint info
+     * 
+     * @param webResponse
+     * @return true if tenant discovery endpoint is reported. false otherwise.
+     * @throws JSONException
+     */
+    private Boolean parseResponse(HttpWebResponse webResponse) throws JSONException {
+
+        HashMap<String, String> response = HashMapExtensions.getJsonResponse(webResponse);
+
+        return (response != null && response.containsKey(TENANT_DISCOVERY_ENDPOINT));
     }
 
     /**
      * service side does not validate tenant, so it is sending common keyword as
-     * tenant
+     * tenant.
      * 
+     * @param authorizationEndpointUrl
+     * @return https://hostname/common
+     * @throws MalformedURLException
+     */
+    private String getAuthorizationCommonEndpoint(final URL authorizationEndpointUrl)
+            throws MalformedURLException {
+        return String.format("https://%s%s", authorizationEndpointUrl.getHost(),
+                AUTHORIZATION_COMMON_ENDPOINT);
+    }
+
+    /**
+     * it will build url similar to
+     * https://login.windows.net/common/discovery/instance
+     * ?api-version=1.0&authorization_endpoint
+     * =https%3A%2F%2Flogin.windows.net%2F
+     * aaltest.onmicrosoft.com%2Foauth2%2Fauthorize
+     * 
+     * @param instance
      * @param authorizationEndpointUrl
      * @return
      * @throws MalformedURLException
      */
-    private String getAuthorizationCommonEndpoint(final String authorizationEndpointUrl)
-            throws MalformedURLException {
-        URL url = new URL(authorizationEndpointUrl);
-        return String.format("https://%s%s", url.getHost(), AUTHORIZATION_COMMON_ENDPOINT);
-    }
-
-    private String buildQueryString(final String instance, final String authorizationEndpointUrl)
+    private URL buildQueryString(final String instance, final String authorizationEndpointUrl)
             throws MalformedURLException {
 
         Uri.Builder builder = new Uri.Builder();
-        builder.authority(new URL(instance).getAuthority());
+        builder.authority(new URL(instance).getHost());
+        builder.appendPath(INSTANCE_DISCOVERY_SUFFIX);
         builder.appendQueryParameter(API_VERSION_KEY, API_VERSION_VALUE);
         builder.appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);
-        return builder.build().toString();
+        return new URL(builder.build().toString());
     }
 }

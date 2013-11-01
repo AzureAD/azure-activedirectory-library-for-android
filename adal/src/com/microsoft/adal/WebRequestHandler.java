@@ -11,7 +11,7 @@ import android.util.Log;
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple
  * reuses for same tasks. Each request returns a handler for cancel action.
- * 
+ * Call this from UI thread to correctly create async task and execute.
  * @author omercan
  */
 public class WebRequestHandler implements IWebRequestHandler {
