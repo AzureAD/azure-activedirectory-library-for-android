@@ -53,14 +53,14 @@ final class Discovery implements IDiscovery {
     private Handler mHandler;
 
     /**
-     * sync set of valid hosts to skip query to server
+     * sync set of valid hosts to skip query to server if host was verified before
      */
     private final static Set<String> mValidHosts = Collections
             .synchronizedSet(new HashSet<String>());
 
     /**
-     * instances to verify given auth endpoint. windows.net to run query first
-     * and then others.
+     * instances to verify given auth endpoint. login.windows.net to run query first
+     * and then others if not valid.
      */
     private static Set<String> mCloudInstances = new LinkedHashSet(Arrays.asList(new String[] {
             "login.windows.net", "login.chinacloudapi.cn", "login.cloudgovapi.us"
@@ -278,6 +278,7 @@ final class Discovery implements IDiscovery {
 
         Uri.Builder builder = new Uri.Builder();
         builder.scheme("https").authority(instance);
+        // replacing tenant to common since instance validation does not check tenant name
         builder.appendEncodedPath(INSTANCE_DISCOVERY_SUFFIX);
         builder.appendQueryParameter(API_VERSION_KEY, API_VERSION_VALUE);
         builder.appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);
