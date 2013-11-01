@@ -41,7 +41,7 @@ final class Discovery implements IDiscovery {
 
     private final static String AUTHORIZATION_ENDPOINT_KEY = "authorization_endpoint";
 
-    private final static String INSTANCE_DISCOVERY_SUFFIX = "/common/discovery/instance";
+    private final static String INSTANCE_DISCOVERY_SUFFIX = "common/discovery/instance";
 
     private final static String AUTHORIZATION_COMMON_ENDPOINT = "/common/oauth2/authorize";
 
@@ -59,7 +59,8 @@ final class Discovery implements IDiscovery {
             .synchronizedSet(new HashSet<String>());
 
     /**
-     * instances to verify given auth endpoint. windows.net to run query first and then others.
+     * instances to verify given auth endpoint. windows.net to run query first
+     * and then others.
      */
     private static Set<String> mCloudInstances = new LinkedHashSet(Arrays.asList(new String[] {
             "login.windows.net", "login.chinacloudapi.cn", "login.cloudgovapi.us"
@@ -87,8 +88,10 @@ final class Discovery implements IDiscovery {
             if (mCloudInstances.contains(authorizationEndpoint.getHost())
                     || mValidHosts.contains(authorizationEndpoint.getHost())) {
                 // host can be the instance or inside the validated list.
-                // validhosts will help to skip validation if validated before
+                // Validhosts will help to skip validation if validated before
+                // call Callback and skip the look up
                 callback.onSuccess(true);
+                return;
             }
         }
 
@@ -230,8 +233,8 @@ final class Discovery implements IDiscovery {
     }
 
     /**
-     * get Json output from web response body well formed response has tenant
-     * discovery endpoint info
+     * get Json output from web response body. If it is well formed response, it
+     * will have tenant discovery endpoint.
      * 
      * @param webResponse
      * @return true if tenant discovery endpoint is reported. false otherwise.
@@ -274,8 +277,8 @@ final class Discovery implements IDiscovery {
             throws MalformedURLException {
 
         Uri.Builder builder = new Uri.Builder();
-        builder.authority(new URL(instance).getHost());
-        builder.appendPath(INSTANCE_DISCOVERY_SUFFIX);
+        builder.scheme("https").authority(instance);
+        builder.appendEncodedPath(INSTANCE_DISCOVERY_SUFFIX);
         builder.appendQueryParameter(API_VERSION_KEY, API_VERSION_VALUE);
         builder.appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);
         return new URL(builder.build().toString());

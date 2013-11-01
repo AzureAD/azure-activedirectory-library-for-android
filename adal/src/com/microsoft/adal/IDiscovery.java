@@ -10,7 +10,8 @@ import java.util.concurrent.Future;
 interface IDiscovery {
 
     /**
-     * query authorizationEndpoint from well known instances
+     * query authorizationEndpoint from well known instances to validate the instance.
+     * It does not validate tenant info. Common name can be used instead of tenant name for authority url to get token.
      * 
      * @param authorizationEndpoint
      * @param callback result will be post here

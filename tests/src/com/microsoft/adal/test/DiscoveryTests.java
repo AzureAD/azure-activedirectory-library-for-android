@@ -96,6 +96,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
         callIsValidAuthority(endpointFull, response);
 
+        assertNotNull("response should not be null", response);
         assertNull("It should not have exception", response.exception);
         assertFalse("Instance should be invalid", response.result);
 
@@ -151,7 +152,7 @@ public class DiscoveryTests extends AndroidTestHelper {
     private void callIsValidAuthority(final URL endpoint, final TestResponse response)
             throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException,
             ClassNotFoundException, InstantiationException, InvocationTargetException {
-        final String methodName = "IsValidAuthority";
+        final String methodName = "isValidAuthority";
         final Object discovery = getDiscoveryInstance();
         Class<?> c = discovery.getClass();
         final Method m = c.getDeclaredMethod(methodName, URL.class, AuthenticationCallback.class);
