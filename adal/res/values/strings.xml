@@ -10,7 +10,7 @@
     <string name="title_activity_token">TokenActivity</string>
     <string name="title_activity_authentication">Authentication </string>
     <string name="title_confirmation_activity_authentication">Confirm</string>
-    <string name="confirmation_activity_authentication">Do you want to cancel?</string>
+    <string name="confirmation_activity_authentication">Are you sure to cancel?</string>
     <string name="AUTH_FAILED">Authorization Failed</string>
     <string name="AUTH_FAILED_ERROR_CODE">Authorization Failed: %d</string>
     <string name="AUTH_FAILED_SERVER_ERROR">The Authorization Server returned an unrecognized response</string>
