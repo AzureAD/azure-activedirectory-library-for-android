@@ -26,10 +26,10 @@ import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
 /**
  * Instance and Tenant discovery. It takes authorization endpoint and sends
  * query to known hard coded instances to get tenant discovery endpoint. If
- * instance is valid, it will send tenant discovery endpoint to query tenant
- * info. Instance discovery endpoint does not verify tenant info, so Discoveryc
- * implementation sends common as a tenant name. Discovery checks only
- * authorization endpoint. It does not do tenant verification.
+ * instance is valid, it will return tenant discovery endpoint info. Instance
+ * discovery endpoint does not verify tenant info, so Discoveryc implementation
+ * sends common as a tenant name. Discovery checks only authorization endpoint.
+ * It does not do tenant verification. Initialize and call from UI thread.
  */
 final class Discovery implements IDiscovery {
 
@@ -48,19 +48,15 @@ final class Discovery implements IDiscovery {
     private final static String TENANT_DISCOVERY_ENDPOINT = "tenant_discovery_endpoint";
 
     /**
-     * UI handler to create async task and execute async task at UI thread
-     */
-    private Handler mHandler;
-
-    /**
-     * sync set of valid hosts to skip query to server if host was verified before
+     * sync set of valid hosts to skip query to server if host was verified
+     * before
      */
     private final static Set<String> mValidHosts = Collections
             .synchronizedSet(new HashSet<String>());
 
     /**
-     * instances to verify given auth endpoint. login.windows.net to run query first
-     * and then others if not valid.
+     * instances to verify given auth endpoint. login.windows.net to run query
+     * first and then others if not valid.
      */
     private static Set<String> mCloudInstances = new LinkedHashSet(Arrays.asList(new String[] {
             "login.windows.net", "login.chinacloudapi.cn", "login.cloudgovapi.us"
@@ -68,16 +64,6 @@ final class Discovery implements IDiscovery {
 
     public Discovery() {
         initValidList();
-        mHandler = null;
-    }
-
-    /**
-     * @param uiHandler Handler is needted if you are calling from non-UI
-     *            thread. It will be used to post runnable for async tasks
-     */
-    public Discovery(Handler uiHandler) {
-        initValidList();
-        mHandler = uiHandler;
     }
 
     @Override
@@ -193,43 +179,30 @@ final class Discovery implements IDiscovery {
     private void sendRequest(final AuthenticationCallback<Boolean> callback, final URL queryUrl)
             throws MalformedURLException {
 
-        Runnable request = new Runnable() {
-
+        Log.d(TAG, "Sending discovery request to:" + queryUrl);
+        WebRequestHandler request = new WebRequestHandler();
+        HashMap<String, String> headers = new HashMap<String, String>();
+        headers.put("Accept", "application/json");
+        request.sendAsyncGet(queryUrl, headers, new HttpWebRequestCallback() {
             @Override
-            public void run() {
-                Log.d(TAG, "Sending discovery request to:" + queryUrl);
-                WebRequestHandler request = new WebRequestHandler();
-                HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Accept", "application/json");
-                request.sendAsyncGet(queryUrl, headers, new HttpWebRequestCallback() {
-                    @Override
-                    public void onComplete(HttpWebResponse webResponse, Exception exception) {
+            public void onComplete(HttpWebResponse webResponse, Exception exception) {
 
-                        if (webResponse != null) {
-                            try {
-                                callback.onSuccess(parseResponse(webResponse));
-                            } catch (IllegalArgumentException exc) {
-                                Log.e(TAG, exc.getMessage());
-                                callback.onError(exc);
-                            } catch (JSONException e) {
-                                Log.e(TAG, "Json parsing error:" + e.getMessage());
-                                callback.onError(e);
-                            }
-                        } else
-                            callback.onError(exception);
+                if (webResponse != null) {
+                    try {
+                        callback.onSuccess(parseResponse(webResponse));
+                    } catch (IllegalArgumentException exc) {
+                        Log.e(TAG, exc.getMessage());
+                        callback.onError(exc);
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Json parsing error:" + e.getMessage());
+                        callback.onError(e);
                     }
-
-                });
+                } else
+                    callback.onError(exception);
             }
-        };
 
-        if (mHandler != null) {
-            Log.d(TAG, "Sending discovery request using handler:" + queryUrl);
-            mHandler.post(request);
-        } else {
-            Log.d(TAG, "Sending discovery request without using handler:" + queryUrl);
-            request.run();
-        }
+        });
+
     }
 
     /**
@@ -278,7 +251,8 @@ final class Discovery implements IDiscovery {
 
         Uri.Builder builder = new Uri.Builder();
         builder.scheme("https").authority(instance);
-        // replacing tenant to common since instance validation does not check tenant name
+        // replacing tenant to common since instance validation does not check
+        // tenant name
         builder.appendEncodedPath(INSTANCE_DISCOVERY_SUFFIX);
         builder.appendQueryParameter(API_VERSION_KEY, API_VERSION_VALUE);
         builder.appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);

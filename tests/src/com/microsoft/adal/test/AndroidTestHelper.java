@@ -102,13 +102,30 @@ public class AndroidTestHelper extends InstrumentationTestCase {
      *            and async handling
      */
     public void testAsyncNoException(final CountDownLatch signal, final Runnable testCode) {
+        testAsyncNoExceptionUIOption(signal, testCode, true);
+    }
+
+    /**
+     * just run tests and wait until finished
+     * 
+     * @param signal
+     * @param testCode
+     * @param runOnUI
+     */
+    public void testAsyncNoExceptionUIOption(final CountDownLatch signal, final Runnable testCode,
+            boolean runOnUI) {
 
         Log.d(getName(), "thread:" + android.os.Process.myTid());
 
         try {
-            // run on UI thread to create async object at UI thread. Background
-            // work will happen in another thread.
-            runTestOnUiThread(testCode);
+            if (runOnUI) {
+                // run on UI thread to create async object at UI thread.
+                // Background
+                // work will happen in another thread.
+                runTestOnUiThread(testCode);
+            } else {
+                testCode.run();
+            }
         } catch (Exception ex) {
             Log.e(getName(), ex.getMessage());
             assertFalse("not expected:" + ex.getMessage(), true);
@@ -126,8 +143,8 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
     }
 
-    
-    public Object getFieldValue(Object object, String fieldName) throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
+    public Object getFieldValue(Object object, String fieldName) throws NoSuchFieldException,
+            IllegalArgumentException, IllegalAccessException {
         Field f = object.getClass().getDeclaredField("mValidHosts");
         f.setAccessible(true);
         return f.get(object);

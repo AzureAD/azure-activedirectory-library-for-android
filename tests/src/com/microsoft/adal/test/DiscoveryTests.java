@@ -13,6 +13,12 @@ import java.net.URL;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.test.UiThreadTest;
+import android.util.Log;
+
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationParameters;
 
@@ -31,6 +37,8 @@ import junit.framework.TestCase;
  */
 public class DiscoveryTests extends AndroidTestHelper {
 
+    private static final String TAG = "DiscoveryTests";
+
     protected void setUp() throws Exception {
         super.setUp();
     }
@@ -46,7 +54,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         final String methodName = "addValidHostToList";
         final Object discovery = getDiscoveryInstance();
         final Method m = discovery.getClass().getDeclaredMethod(methodName, URL.class);
-
+        m.setAccessible(true);
         m.invoke(discovery, new URL("https://login.somewhere.com"));
 
         Set<String> validHosts = (Set<String>)getFieldValue(discovery, "mValidHosts");
@@ -64,25 +72,37 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertEquals(3, validInstances.size());
     }
 
+    /**
+     * instance that is in the list with different path
+     * 
+     * @throws MalformedURLException
+     * @throws IllegalArgumentException
+     * @throws NoSuchMethodException
+     * @throws IllegalAccessException
+     * @throws ClassNotFoundException
+     * @throws InstantiationException
+     * @throws InvocationTargetException
+     */
     public void testIsValidAuthorityPositiveInList() throws MalformedURLException,
             IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
             ClassNotFoundException, InstantiationException, InvocationTargetException {
         final TestResponse response = new TestResponse();
+        Object discovery = getDiscoveryInstance();
 
         final URL endpointFull = new URL("https://login.windows.net/common/oauth2/authorize");
-        callIsValidAuthority(endpointFull, response);
+        callIsValidAuthority(discovery, endpointFull, response, true);
 
         assertNull("It should not have exception", response.exception);
         assertTrue("Instance should be valid", response.result);
 
         final URL endpointInstanceRight = new URL("https://login.windows.net/something/something");
-        callIsValidAuthority(endpointInstanceRight, response);
+        callIsValidAuthority(discovery, endpointInstanceRight, response, true);
 
         assertNull("It should not have exception", response.exception);
         assertTrue("Instance should be valid", response.result);
 
         final URL endpointInstanceOnly = new URL("https://login.windows.net");
-        callIsValidAuthority(endpointInstanceOnly, response);
+        callIsValidAuthority(discovery, endpointInstanceOnly, response, true);
 
         assertNull("It should not have exception", response.exception);
         assertTrue("Instance should be valid", response.result);
@@ -92,9 +112,9 @@ public class DiscoveryTests extends AndroidTestHelper {
             IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
             ClassNotFoundException, InstantiationException, InvocationTargetException {
         final TestResponse response = new TestResponse();
-
+        Object discovery = getDiscoveryInstance();
         final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
-        callIsValidAuthority(endpointFull, response);
+        callIsValidAuthority(discovery, endpointFull, response, true);
 
         assertNotNull("response should not be null", response);
         assertNull("It should not have exception", response.exception);
@@ -102,30 +122,42 @@ public class DiscoveryTests extends AndroidTestHelper {
 
     }
 
+    /**
+     * call instance that is not in the hard coded list.
+     * 
+     * @throws MalformedURLException
+     * @throws IllegalArgumentException
+     * @throws NoSuchMethodException
+     * @throws IllegalAccessException
+     * @throws ClassNotFoundException
+     * @throws InstantiationException
+     * @throws InvocationTargetException
+     * @throws NoSuchFieldException
+     */
     public void testIsValidAuthorityPositiveRequeryInList() throws MalformedURLException,
             IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
             ClassNotFoundException, InstantiationException, InvocationTargetException,
             NoSuchFieldException {
         final TestResponse response = new TestResponse();
-
+        Object discovery = getDiscoveryInstance();
         final URL endpointFull = new URL("https://login.windows-ppe.net/common/oauth2/authorize");
-        callIsValidAuthority(endpointFull, response);
+        callIsValidAuthority(discovery, endpointFull, response, true);
 
         assertNull("It should not have exception", response.exception);
         assertTrue("Instance should be valid", response.result);
 
         // it should be in the list
-        final Object discovery = getDiscoveryInstance();
         Set<String> validHosts = (Set<String>)getFieldValue(discovery, "mValidHosts");
         assertTrue("added new host in the list", validHosts.size() == 4);
         assertTrue("has new host in the list to skip query",
                 validHosts.contains("login.windows-ppe.net"));
 
-        // add different host and it should return true
+        // add different host directly to validated host list and it should
+        // return true without actual instance query
         validHosts.add("login.test-direct-add.net");
         final URL endpointTest = new URL(
                 "https://login.test-direct-add.net/common/oauth2/authorize");
-        callIsValidAuthority(endpointTest, response);
+        callIsValidAuthority(discovery, endpointTest, response, true);
 
         assertNull("It should not have exception", response.exception);
         assertTrue("Instance should be valid", response.result);
@@ -149,16 +181,16 @@ public class DiscoveryTests extends AndroidTestHelper {
      * @throws InstantiationException
      * @throws InvocationTargetException
      */
-    private void callIsValidAuthority(final URL endpoint, final TestResponse response)
-            throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException,
-            ClassNotFoundException, InstantiationException, InvocationTargetException {
+    private void callIsValidAuthority(final Object discovery, final URL endpoint,
+            final TestResponse response, boolean runAtUIThread) throws NoSuchMethodException,
+            IllegalArgumentException, IllegalAccessException, ClassNotFoundException,
+            InstantiationException, InvocationTargetException {
         final String methodName = "isValidAuthority";
-        final Object discovery = getDiscoveryInstance();
         Class<?> c = discovery.getClass();
         final Method m = c.getDeclaredMethod(methodName, URL.class, AuthenticationCallback.class);
         final CountDownLatch signal = new CountDownLatch(1);
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
 
             @Override
             public void run() {
@@ -190,21 +222,31 @@ public class DiscoveryTests extends AndroidTestHelper {
                     signal.countDown();
                 }
             }
-        });
+        }, runAtUIThread);
     }
 
     private Object getDiscoveryInstance() throws ClassNotFoundException, NoSuchMethodException,
             IllegalArgumentException, InstantiationException, IllegalAccessException,
             InvocationTargetException {
-        // full package name
-        Class<?> c;
 
-        c = Class.forName("com.microsoft.adal.Discovery");
-
+        // Full package name
+        Class<?> c = Class.forName("com.microsoft.adal.Discovery");
         Constructor<?> constructor = c.getDeclaredConstructor();
-
         constructor.setAccessible(true);
         Object o = constructor.newInstance(null);
+
+        return o;
+    }
+
+    private Object getDiscoveryInstance(Handler handler) throws ClassNotFoundException,
+            NoSuchMethodException, IllegalArgumentException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+
+        // Full package name
+        Class<?> c = Class.forName("com.microsoft.adal.Discovery");
+        Constructor<?> constructor = c.getDeclaredConstructor(Handler.class);
+        constructor.setAccessible(true);
+        Object o = constructor.newInstance(handler);
 
         return o;
     }
