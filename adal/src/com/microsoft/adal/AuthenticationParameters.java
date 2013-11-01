@@ -30,7 +30,7 @@ public class AuthenticationParameters {
 
     public final static String AUTHENTICATE_HEADER = "WWW-Authenticate";
 
-    public final static String BEARER = "bearer";
+    public final static String BEARER = "bearer ";
 
     public final static String AUTHORITY_KEY = "authorization_uri";
 
