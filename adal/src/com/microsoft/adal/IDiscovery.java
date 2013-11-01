@@ -4,14 +4,16 @@
 
 package com.microsoft.adal;
 
+import java.net.URL;
+import java.util.concurrent.Future;
+
 interface IDiscovery {
 
     /**
      * query authorizationEndpoint from well known instances
      * 
      * @param authorizationEndpoint
-     * @return true if instance is discovered or in local list false if instance
-     *         is not in the list and not discovered
+     * @param callback result will be post here
      */
-    boolean IsValidAuthority(String authorizationEndpoint);
+    void isValidAuthority(URL authorizationEndpoint, AuthenticationCallback<Boolean> callback);
 }

@@ -10,14 +10,14 @@ package com.microsoft.adal;
  * 
  * @author omercan
  */
-public interface AuthenticationCallback {
+public interface AuthenticationCallback<T> {
 
     /**
      * This will have the token info.
      * 
      * @param result
      */
-    public void onSuccess(AuthenticationResult result);
+    public void onSuccess(T result);
 
     /**
      * Sends error information. This can be user related error or server error.
