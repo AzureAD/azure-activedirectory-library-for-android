@@ -94,7 +94,7 @@ public class ErrorCodes {
      * Get error message from resource file. It will get the translated text.
      * Strings.xml inside the resource folder can be customized for your users.
      * 
-     * @param context
+     * @param context required to get message.
      * @param enumId
      * @return Translated text
      */
@@ -105,6 +105,6 @@ public class ErrorCodes {
             return appContext.getString(id);
         }
         
-        return null;
+        throw new IllegalArgumentException("appContext is null");
     }
 }
