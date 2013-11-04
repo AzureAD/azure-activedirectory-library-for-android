@@ -3,28 +3,53 @@ package com.microsoft.adal;
 
 public class CacheKey {
 
-    public static CacheKey createCacheKey(String authority, String resource,
-            String clientId, String userId) {
-        throw new UnsupportedOperationException("come back later");
+    private String mAuthority;
+
+    private String mResource;
+
+    private String mClientId;
+
+    private String mUserId;
+
+    public static CacheKey createCacheKey(String authority, String resource, String clientId,
+            String userId) {      
+        
+        CacheKey key = new CacheKey();
+        key.mAuthority = authority;
+        key.mResource = resource;
+        key.mClientId = clientId;
+        key.mUserId = userId;
+        return key;
     }
 
     public static CacheKey createCacheKey(TokenCacheItem item) {
-        throw new UnsupportedOperationException("come back later");
+        String userId = null;
+
+        if (item.getUserInfo() != null) {
+            userId = item.getUserInfo().getUserId();
+        }
+
+        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), userId);
     }
 
     public String getAuthority() {
-        throw new UnsupportedOperationException("come back later");
+        return mAuthority;
     }
 
     public String getResource() {
-        throw new UnsupportedOperationException("come back later");
+        return mResource;
     }
 
     public String getClientId() {
-        throw new UnsupportedOperationException("come back later");
+        return mClientId;
     }
 
     public String getUserId() {
-        throw new UnsupportedOperationException("come back later");
+        return mUserId;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s|$|%s|$|%s", getAuthority(), getResource(), getClientId());
     }
 }
