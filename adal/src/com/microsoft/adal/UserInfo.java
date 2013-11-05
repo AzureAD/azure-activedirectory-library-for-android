@@ -6,23 +6,46 @@ package com.microsoft.adal;
 
 public class UserInfo {
 
+    private String mUserId;
+
+    private String mGivenName;
+
+    private String mFamilyName;
+
+    private String mIdentityProvider;
+
+    private boolean mIsUserIdDisplayable;
+
+    public UserInfo() {
+
+    }
+
+    public UserInfo(String userid, String givenName, String familyName, String identityProvider,
+            boolean isDisplayable) {
+        mUserId = userid;
+        mGivenName = givenName;
+        mFamilyName = familyName;
+        mIdentityProvider = identityProvider;
+        mIsUserIdDisplayable = isDisplayable;
+    }
+
     public String getUserId() {
-        throw new UnsupportedOperationException("come back later");
+        return mUserId;
     }
 
     public boolean getIsUserIdDisplayable() {
-        throw new UnsupportedOperationException("come back later");
+        return mIsUserIdDisplayable;
     }
 
     public String getGivenName() {
-        throw new UnsupportedOperationException("come back later");
+        return mGivenName;
     }
 
     public String getFamilyName() {
-        throw new UnsupportedOperationException("come back later");
+        return mFamilyName;
     }
 
     public String getIdentityProvider() {
-        throw new UnsupportedOperationException("come back later");
+        return mIdentityProvider;
     }
 }

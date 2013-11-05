@@ -67,7 +67,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
         if (mPrefs != null && mPrefs.contains(key.toString())) {
             Editor prefsEditor = mPrefs.edit();
             prefsEditor.remove(key.toString());
-            return prefsEditor.commit();
+            if (!prefsEditor.commit()) {
+                return prefsEditor.commit();
+            }
+            return true;
         }
 
         return false;
@@ -89,6 +92,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
             if (!prefsEditor.commit()) {
                 return prefsEditor.commit();
             }
+            return true;
         }
 
         return false;
@@ -102,7 +106,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
         if (mPrefs != null && mPrefs.contains(key.toString())) {
             Editor prefsEditor = mPrefs.edit();
             prefsEditor.remove(key.toString());
-            return prefsEditor.commit();
+            if (!prefsEditor.commit()) {
+                return prefsEditor.commit();
+            }
+            return true;
         }
 
         return false;
@@ -116,6 +123,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
             if (!prefsEditor.commit()) {
                 return prefsEditor.commit();
             }
+            return true;
         }
 
         return false;
@@ -179,7 +187,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
 
         while (results.hasNext()) {
             TokenCacheItem item = results.next();
-            if (item.getResource() == resource) {
+            if (item.getResource().equalsIgnoreCase(resource)) {
                 tokenItems.add(item);
             }
         }
@@ -199,7 +207,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
 
         while (results.hasNext()) {
             TokenCacheItem item = results.next();
-            if (item.getUserInfo() != null && item.getUserInfo().getUserId() == userid) {
+            if (item.getUserInfo() != null
+                    && item.getUserInfo().getUserId().equalsIgnoreCase(userid)) {
                 tokenItems.add(item);
             }
         }
@@ -216,7 +225,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
         ArrayList<TokenCacheItem> results = this.getTokensForUser(userid);
 
         for (TokenCacheItem item : results) {
-            if (item.getUserInfo().getUserId() == userid) {
+            if (item.getUserInfo() != null
+                    && item.getUserInfo().getUserId().equalsIgnoreCase(userid)) {
                 this.removeItem(item);
             }
         }
