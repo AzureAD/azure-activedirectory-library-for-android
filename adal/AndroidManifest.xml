@@ -14,13 +14,8 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.microsoft.adal.LoginActivity"
-            android:configChanges="orientation"
-            android:label="@string/title_activity_login" >
-        </activity>
-        <activity
-            android:name="com.microsoft.adal.TokenActivity"
-            android:label="@string/title_activity_token" >
+            android:name="com.microsoft.adal.AuthenticationActivity"
+            android:label="@string/title_activity_authentication" >
         </activity>
     </application>
 
