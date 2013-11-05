@@ -82,8 +82,11 @@ public class DefaultTokenCacheStoreTests extends AndroidTestHelper {
 
         boolean actual = store.removeAll();
         assertEquals("Expected to remove all items", true, actual);
+        
+        Iterator<TokenCacheItem> results = store.getAll();
+        assertFalse("It does not have items", results.hasNext());
     }
-
+    
     public void testGetAll() {
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
 
@@ -109,7 +112,6 @@ public class DefaultTokenCacheStoreTests extends AndroidTestHelper {
         tokens = store.getTokensForResource("resource2");
         assertEquals("token size", 1, tokens.size());
         assertEquals("token content", "token2", tokens.get(0).getAccessToken());
-
     }
 
     public void testGetTokensForUser() {

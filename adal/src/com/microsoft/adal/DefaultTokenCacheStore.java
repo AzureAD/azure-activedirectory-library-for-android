@@ -17,25 +17,22 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
 import com.google.gson.Gson;
+import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
- * Revised-10-22-13 Stores token related info such as access token, refresh
- * token, and expiration
+ * Store/Retrieve TokenCacheItem from private SharedPreferences.
  */
 public class DefaultTokenCacheStore implements ITokenCacheStore {
 
-    private static String SHARED_PREFERENCE_NAME = "com.microsoft.adal.cache";
+    private final static long serialVersionUID = 1L;
+
+    private final static String SHARED_PREFERENCE_NAME = "com.microsoft.adal.cache";
 
     SharedPreferences mPrefs;
 
     private Context mContext;
 
     private Gson gson = new Gson();
-
-    public DefaultTokenCacheStore() {
-        mContext = null;
-        mPrefs = null;
-    }
 
     public DefaultTokenCacheStore(Context context) {
         mContext = context;
@@ -46,10 +43,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
 
     @Override
     public TokenCacheItem getItem(CacheKey key) {
+
+        argumentCheck();
+
         if (key == null)
             throw new IllegalArgumentException("key");
 
-        if (mPrefs != null && mPrefs.contains(key.toString())) {
+        if (mPrefs.contains(key.toString())) {
             String json = mPrefs.getString(key.toString(), "");
             return gson.fromJson(json, TokenCacheItem.class);
         }
@@ -59,12 +59,15 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
 
     @Override
     public boolean removeItem(TokenCacheItem item) {
+
+        argumentCheck();
+
         if (item == null)
             throw new IllegalArgumentException("item");
 
         CacheKey key = CacheKey.createCacheKey(item);
 
-        if (mPrefs != null && mPrefs.contains(key.toString())) {
+        if (mPrefs.contains(key.toString())) {
             Editor prefsEditor = mPrefs.edit();
             prefsEditor.remove(key.toString());
             if (!prefsEditor.commit()) {
@@ -78,32 +81,35 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
 
     @Override
     public boolean setItem(TokenCacheItem item) {
+
+        argumentCheck();
+
         if (item == null)
             throw new IllegalArgumentException("item");
 
-        if (mPrefs != null) {
-            String json = gson.toJson(item);
-            Editor prefsEditor = mPrefs.edit();
-            prefsEditor.putString(CacheKey.createCacheKey(item).toString(), json);
+        String json = gson.toJson(item);
+        Editor prefsEditor = mPrefs.edit();
+        prefsEditor.putString(CacheKey.createCacheKey(item).toString(), json);
 
-            // when two editors are modifying preferences at the same time, the
-            // last one commit wins
-            // simply one more retry
-            if (!prefsEditor.commit()) {
-                return prefsEditor.commit();
-            }
-            return true;
+        // when two editors are modifying preferences at the same time, the
+        // last one commit wins
+        // simply one more retry
+        if (!prefsEditor.commit()) {
+            return prefsEditor.commit();
         }
+        return true;
 
-        return false;
     }
 
     @Override
     public boolean removeItem(CacheKey key) {
+
+        argumentCheck();
+
         if (key == null)
             throw new IllegalArgumentException("key");
 
-        if (mPrefs != null && mPrefs.contains(key.toString())) {
+        if (mPrefs.contains(key.toString())) {
             Editor prefsEditor = mPrefs.edit();
             prefsEditor.remove(key.toString());
             if (!prefsEditor.commit()) {
@@ -117,16 +123,16 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
 
     @Override
     public boolean removeAll() {
-        if (mPrefs != null) {
-            Editor prefsEditor = mPrefs.edit();
-            prefsEditor.clear();
-            if (!prefsEditor.commit()) {
-                return prefsEditor.commit();
-            }
-            return true;
-        }
 
-        return false;
+        argumentCheck();
+
+        Editor prefsEditor = mPrefs.edit();
+        prefsEditor.clear();
+        if (!prefsEditor.commit()) {
+            return prefsEditor.commit();
+        }
+        return true;
+
     }
 
     // Extra helper methods can be implemented here for queries
@@ -135,25 +141,22 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
      * User can query over iterator values
      */
     public Iterator<TokenCacheItem> getAll() {
-        if (mPrefs != null) {
 
-            Map<String, String> results = (Map<String, String>)mPrefs.getAll();
-            Iterator<String> values = results.values().iterator();
+        argumentCheck();
 
-            // create objects
-            ArrayList<TokenCacheItem> tokens = new ArrayList<TokenCacheItem>(results.values()
-                    .size());
+        Map<String, String> results = (Map<String, String>)mPrefs.getAll();
+        Iterator<String> values = results.values().iterator();
 
-            while (values.hasNext()) {
-                String json = values.next();
-                TokenCacheItem cacheItem = gson.fromJson(json, TokenCacheItem.class);
-                tokens.add(cacheItem);
-            }
+        // create objects
+        ArrayList<TokenCacheItem> tokens = new ArrayList<TokenCacheItem>(results.values().size());
 
-            return tokens.iterator();
+        while (values.hasNext()) {
+            String json = values.next();
+            TokenCacheItem cacheItem = gson.fromJson(json, TokenCacheItem.class);
+            tokens.add(cacheItem);
         }
 
-        return null;
+        return tokens.iterator();
     }
 
     /**
@@ -251,6 +254,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
         return tokenItems;
     }
 
+    private void argumentCheck() {
+        if (mContext == null)
+            throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
+
+        if (mPrefs == null)
+            throw new AuthenticationException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE);
+    }
+
     private boolean isExpired(Date expires) {
         Date validity = getTokenValidityTime().getTime();
 
@@ -260,18 +271,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
         return false;
     }
 
-    /**
-     * Sample
-     */
     private final static int TOKEN_VALIDITY_WINDOW = 10;
 
-    /**
-     * Sample
-     */
     private static Calendar getTokenValidityTime() {
         Calendar timeAhead = Calendar.getInstance();
         timeAhead.roll(Calendar.SECOND, TOKEN_VALIDITY_WINDOW);
         return timeAhead;
     }
-
 }

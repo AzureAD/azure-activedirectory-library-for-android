@@ -63,7 +63,7 @@ public class AuthenticationContext {
         mAppContext = contextFromMainThread;
         mAuthority = authority;
         mValidateAuthority = validateAuthority;
-        mTokenCacheStore = new DefaultTokenCacheStore();
+        mTokenCacheStore = new DefaultTokenCacheStore(contextFromMainThread);
     }
 
     /**
