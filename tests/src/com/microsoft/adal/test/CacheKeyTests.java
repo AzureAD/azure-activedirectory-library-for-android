@@ -15,7 +15,7 @@ public class CacheKeyTests extends AndroidTestCase {
         assertEquals("Same authority is expected", "authority", testKey.getAuthority());
         assertEquals("Same resource is expected", "resource", testKey.getResource());
         assertEquals("Same clientid is expected", "clientId", testKey.getClientId());
-        assertEquals("Same userId is expected", testKey.getUserId());
+        assertEquals("Same userId is expected", "userId", testKey.getUserId());
 
         // key itself contains at least authority
         assertTrue(testKey.toString().contains("authority"));
