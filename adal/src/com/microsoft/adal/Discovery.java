@@ -6,6 +6,7 @@ package com.microsoft.adal;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,11 +52,13 @@ final class Discovery implements IDiscovery {
             .synchronizedSet(new HashSet<String>());
 
     /**
-     * instances to verify given authorization instance. Verification will start from login.windows.net and then others will be used.
+     * instances to verify given authorization instance. Verification will start
+     * from login.windows.net and then others will be used.
      */
-    private static Set<String> mCloudInstances = new LinkedHashSet(Arrays.asList(new String[] {
-            "login.windows.net", "login.chinacloudapi.cn", "login.cloudgovapi.us"
-    }));
+    private static ArrayList<String> mCloudInstances = new ArrayList<String>(
+            Arrays.asList(new String[] {
+                    "login.windows.net", "login.chinacloudapi.cn", "login.cloudgovapi.us"
+            }));
 
     public Discovery() {
         initValidList();
@@ -66,8 +69,7 @@ final class Discovery implements IDiscovery {
 
         if (authorizationEndpoint != null
                 && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getHost())) {
-            if (mCloudInstances.contains(authorizationEndpoint.getHost())
-                    || mValidHosts.contains(authorizationEndpoint.getHost())) {
+            if (mValidHosts.contains(authorizationEndpoint.getHost().toLowerCase())) {
                 // host can be the instance or inside the validated list.
                 // Validhosts will help to skip validation if validated before
                 // call Callback and skip the look up
@@ -76,7 +78,8 @@ final class Discovery implements IDiscovery {
             }
         }
 
-        queryEndpointPerInstance(authorizationEndpoint, callback);
+        // Try instances to see if host is valid
+        queryEndpointPerInstanceNext(authorizationEndpoint, callback, mCloudInstances.iterator());
     }
 
     /**
@@ -88,7 +91,7 @@ final class Discovery implements IDiscovery {
         String validHost = validhost.getHost();
         if (!StringExtensions.IsNullOrBlank(validHost)) {
             synchronized (mValidHosts) {
-                mValidHosts.add(validHost);
+                mValidHosts.add(validHost.toLowerCase());
             }
         }
     }
@@ -99,26 +102,11 @@ final class Discovery implements IDiscovery {
     private void initValidList() {
         synchronized (mValidHosts) {
             if (mValidHosts.size() == 0) {
-                mValidHosts.add("login.windows.net");
-                mValidHosts.add("login.chinacloudapi.cn");
-                mValidHosts.add("login.cloudgovapi.us");
+                for (String instance : mCloudInstances) {
+                    mValidHosts.add(instance);
+                }
             }
         }
-    }
-
-    /**
-     * discovery call will return true, if this authorization endpoint exists at
-     * the instances. It sends async query for each instance.
-     * 
-     * @param authorizationEndpointUrl
-     * @return
-     */
-    private void queryEndpointPerInstance(final URL authorizationEndpointUrl,
-            final AuthenticationCallback<Boolean> callback) {
-
-        // Try instances to see if host is valid
-        final Iterator<String> instanceIterator = mCloudInstances.iterator();
-        queryEndpointPerInstanceNext(authorizationEndpointUrl, callback, instanceIterator);
     }
 
     private void queryEndpointPerInstanceNext(final URL authorizationEndpointUrl,
@@ -177,7 +165,7 @@ final class Discovery implements IDiscovery {
         Log.d(TAG, "Sending discovery request to:" + queryUrl);
         WebRequestHandler request = new WebRequestHandler();
         HashMap<String, String> headers = new HashMap<String, String>();
-        headers.put("Accept", "application/json");
+        headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
         request.sendAsyncGet(queryUrl, headers, new HttpWebRequestCallback() {
             @Override
             public void onComplete(HttpWebResponse webResponse, Exception exception) {

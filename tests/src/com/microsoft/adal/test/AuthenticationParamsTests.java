@@ -112,7 +112,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
                         "Bearer authorization_uri= ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
-        
+
         callParseResponseForException(
                 new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
                         "Bearer authorization_uri=,something=a ")),
@@ -144,6 +144,20 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             assertNull("Param is expected to be null", param);
             assertTrue("Check header exception", exception.getCause().getMessage() == message);
         }
+    }
+
+    public void testcreateFromResourceUrlNoCallback() throws MalformedURLException {
+
+        AuthenticationParameters param = null;
+        final URL url = new URL("https://www.something.com");
+        assertThrowsException(IllegalArgumentException.class, "callback", new Runnable() {
+
+            @Override
+            public void run() {
+                AuthenticationParameters.createFromResourceUrl(url, null);
+            }
+        });
+
     }
 
     class TestResponse {

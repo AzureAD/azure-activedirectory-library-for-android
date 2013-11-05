@@ -18,6 +18,9 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     private final static String TAG = "WebRequestHandler";
 
+    public final static String HEADER_ACCEPT = "Accept";
+    public final static String HEADER_ACCEPT_JSON = "application/json";
+    
     @Override
     public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
             HttpWebRequestCallback callback) {

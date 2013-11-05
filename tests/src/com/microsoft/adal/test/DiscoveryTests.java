@@ -146,6 +146,14 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertNull("It should not have exception", response.exception);
         assertTrue("Instance should be valid", response.result);
 
+        // case sensitivity check
+        final URL endpointCaseDifferent = new URL(
+                "https://logiN.Windows-PPE.Net/Common/oauth2/authorize");
+        callIsValidAuthority(discovery, endpointCaseDifferent, response, true);
+
+        assertNull("It should not have exception", response.exception);
+        assertTrue("Instance should be valid", response.result);
+
         // it should be in the list
         Set<String> validHosts = (Set<String>)getFieldValue(discovery, "mValidHosts");
         assertTrue("added new host in the list", validHosts.size() == 4);

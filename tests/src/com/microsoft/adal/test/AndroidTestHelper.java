@@ -126,10 +126,6 @@ public class AndroidTestHelper extends InstrumentationTestCase {
             } else {
                 testCode.run();
             }
-        } catch (Exception ex) {
-            Log.e(getName(), ex.getMessage());
-            assertFalse("not expected:" + ex.getMessage(), true);
-            signal.countDown();
         } catch (Throwable ex) {
             Log.e(getName(), ex.getMessage());
             assertFalse("not expected:" + ex.getMessage(), true);
