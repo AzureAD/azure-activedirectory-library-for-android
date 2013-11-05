@@ -8,6 +8,18 @@
     <string name="button_cancel">Cancel</string>
     <string name="app_loading">App is loading...</string>
     <string name="title_activity_token">TokenActivity</string>
-    
+    <string name="title_activity_authentication">Authentication </string>
+    <string name="title_confirmation_activity_authentication">Confirm</string>
+    <string name="confirmation_activity_authentication">Are you sure you want to cancel?</string>
+    <string name="AUTH_FAILED">Authorization Failed</string>
+    <string name="AUTH_FAILED_ERROR_CODE">Authorization Failed: %d</string>
+    <string name="AUTH_FAILED_SERVER_ERROR">The Authorization Server returned an unrecognized response</string>
+    <string name="AUTH_FAILED_NO_CONTROLLER">The Application does not have a current ViewController</string>
+    <string name="AUTH_FAILED_NO_RESOURCES">The required resource bundle could not be loaded</string>
+    <string name="AUTH_FAILED_NO_STATE">The authorization server response has incorrectly encoded state</string>
+    <string name="AUTH_FAILED_BAD_STATE">The authorization server response has no encoded state</string>
+    <string name="AUTH_FAILED_NO_TOKEN">The requested access token could not be found</string>
+    <string name="AUTH_FAILED_CANCELLED">The user cancelled the authorization request</string>
+    <string name="AUTH_FAILED_INTERNAL_ERROR">Invalid parameters for authorization operation</string>
 
 </resources>
