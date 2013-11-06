@@ -42,89 +42,22 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertSame(authority, context.getAuthority());
     }
 
-    public void testBuildTokenRequestMessage() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
-        AuthenticationContext context = new AuthenticationContext(getContext(), "authority", false);
-
-        // with login hint
-        Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
-                "loginhint");
-        Method m = getPrivateMethod("buildTokenRequestMessage", request.getClass(), String.class);
-
-        String actual = (String)m.invoke(context, request, "authorizationcodevalue");
-
-        assertEquals(
-                "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue&client_id=client&redirect_uri=redirect&login_hint=loginhint",
-                actual);
-
-        // without login hint
-        Object requestWithoutLogin = createAuthenticationRequest("authority", "resource", "client",
-                "redirect", "");
-
-        actual = (String)m.invoke(context, requestWithoutLogin, "authorizationcodevalue");
-
-        assertEquals(
-                "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue&client_id=client&redirect_uri=redirect",
-                actual);
-    }
-
-    public void testprocessUIResponseParams() throws IllegalArgumentException,
-            IllegalAccessException, InvocationTargetException {
-        HashMap<String, String> response = new HashMap<String, String>();
-        AuthenticationContext context = new AuthenticationContext(getContext(), "authority", false);
-        Method m = null;
-        try {
-            m = AuthenticationContext.class.getDeclaredMethod("processUIResponseParams",
-                    HashMap.class);
-        } catch (NoSuchMethodException e) {
-            assertTrue("Method is not found", false);
-        }
-        m.setAccessible(true);
-
-        // call for empty response
-        AuthenticationResult result = (AuthenticationResult)m.invoke(null, response);
-        assertEquals("Failed status", AuthenticationStatus.Failed, result.getStatus());
-        assertNull("Token is null", result.getAccessToken());
-
-        // call when response has error
-        response.put(AuthenticationConstants.OAuth2.ERROR, "error");
-        response.put(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, "error description");
-        result = (AuthenticationResult)m.invoke(null, response);
-        assertEquals("Failed status", AuthenticationStatus.Failed, result.getStatus());
-        assertEquals("Error is same", "error", result.getErrorCode());
-        assertEquals("Error description is same", "error description", result.getErrorDescription());
-
-        // add token
-        response.clear();
-        response.put(AuthenticationConstants.OAuth2.ACCESS_TOKEN, "token");
-        result = (AuthenticationResult)m.invoke(null, response);
-        assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
-        assertEquals("Token is same", "token", result.getAccessToken());
-        assertFalse("MultiResource token", result.getIsMultiResourceRefreshToken());
-
-        // multi resource token
-        response.put(AuthenticationConstants.AAD.RESOURCE, "resource");
-        result = (AuthenticationResult)m.invoke(null, response);
-        assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
-        assertEquals("Token is same", "token", result.getAccessToken());
-        assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
-    }
-
     /**
      * if package does not have declaration for activity, it should return false
      * 
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
+     * @throws InstantiationException
+     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException
      */
     public void testResolveIntent() throws IllegalArgumentException, IllegalAccessException,
-            InvocationTargetException {
+            InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException {
         TestMockContext mockContext = new TestMockContext(getContext());
         AuthenticationContext context = new AuthenticationContext(mockContext, "authority", false);
-        Method m = getPrivateMethod("resolveIntent", Intent.class);
+        Method m = ReflectionUtils.getTestMethod(context, "resolveIntent", Intent.class);
         Intent intent = new Intent();
         intent.setClass(mockContext, AuthenticationActivity.class);
 
@@ -134,31 +67,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
         mockContext.resolveIntent = false;
         actual = (Boolean)m.invoke(context, intent);
         assertFalse("Intent is not expected to resolve", actual);
-    }
-
-    private static Object createAuthenticationRequest(String authority, String resource,
-            String client, String redirect, String loginhint) throws ClassNotFoundException,
-            NoSuchMethodException, IllegalArgumentException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
-
-        Class<?> c = Class.forName("com.microsoft.adal.AuthenticationRequest");
-
-        Constructor<?> constructor = c.getDeclaredConstructor(String.class, String.class,
-                String.class, String.class, String.class);
-        constructor.setAccessible(true);
-        Object o = constructor.newInstance(authority, resource, client, redirect, loginhint);
-        return o;
-    }
-
-    private Method getPrivateMethod(String methodName, Class<?>... params) {
-        Method m = null;
-        try {
-            m = AuthenticationContext.class.getDeclaredMethod(methodName, params);
-        } catch (NoSuchMethodException e) {
-            assertTrue("Method is not found", false);
-        }
-        m.setAccessible(true);
-        return m;
     }
 
     class TestMockContext extends MockContext {

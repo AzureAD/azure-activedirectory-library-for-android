@@ -5,25 +5,18 @@
 package com.microsoft.adal.test;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+import junit.framework.Assert;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.test.UiThreadTest;
-import android.util.Log;
 
 import com.microsoft.adal.AuthenticationCallback;
-import com.microsoft.adal.AuthenticationParameters;
-
-import junit.framework.Assert;
-import junit.framework.TestCase;
 
 /**
  * Discovery class is not public, so it needs reflection to make a call to
@@ -68,7 +61,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         final Object discovery = getDiscoveryInstance();
 
-        Set<String> validInstances = (Set<String>)ReflectionUtils.getFieldValue(discovery,
+        ArrayList<String> validInstances = (ArrayList<String>)ReflectionUtils.getFieldValue(discovery,
                 "mCloudInstances");
         assertTrue("host is in the list", validInstances.contains("login.windows.net"));
         assertEquals(3, validInstances.size());
@@ -121,7 +114,6 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertNotNull("response should not be null", response);
         assertNull("It should not have exception", response.exception);
         assertFalse("Instance should be invalid", response.result);
-
     }
 
     /**

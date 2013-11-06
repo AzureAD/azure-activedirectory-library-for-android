@@ -76,6 +76,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
 
     class TestResponse {
         HttpWebResponse httpResponse;
+
         Exception exception;
     }
 
@@ -86,15 +87,14 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
 
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
                 request.sendAsyncGet(getUrl(TEST_WEBAPI_URL),
-                        getTestHeaders("testabc", "value123"),
-                        callback);
+                        getTestHeaders("testabc", "value123"), callback);
             }
-        });
+        }, true);
 
         assertNull(testResponse.exception);
         assertNotNull(testResponse.httpResponse != null);
@@ -122,22 +122,19 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         final TestResponse testResponse = new TestResponse();
         final HttpWebRequestCallback callback = setupCallback(signal, testResponse);
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
-                request.sendAsyncGet(getUrl("http://www.somethingabcddnotexists.com"),
-                        null,
+                request.sendAsyncGet(getUrl("http://www.somethingabcddnotexists.com"), null,
                         callback);
             }
-        });
+        }, true);
 
         assertNotNull(testResponse.exception);
         assertTrue("Unknown host exception", testResponse.exception instanceof UnknownHostException);
-        assertTrue(
-                "Unable to resolve host",
-                testResponse.exception.getMessage().toLowerCase()
-                        .contains("unable to resolve host"));
+        assertTrue("Unable to resolve host", testResponse.exception.getMessage().toLowerCase()
+                .contains("unable to resolve host"));
     }
 
     public void testGetWithIdRequest() {
@@ -145,22 +142,18 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         final TestResponse testResponse = new TestResponse();
         final HttpWebRequestCallback callback = setupCallback(signal, testResponse);
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
-                request.sendAsyncGet(getUrl(TEST_WEBAPI_URL
-                        + "/1"),
-                        null,
-                        callback);
+                request.sendAsyncGet(getUrl(TEST_WEBAPI_URL + "/1"), null, callback);
             }
-        });
+        }, true);
 
         assertNull(testResponse.httpResponse.getResponseException());
         assertTrue("status is 200", testResponse.httpResponse.getStatusCode() == 200);
         String responseMsg = new String(testResponse.httpResponse.getBody());
-        assertTrue("request body check",
-                responseMsg.contains("test get with id"));
+        assertTrue("request body check", responseMsg.contains("test get with id"));
     }
 
     public void testPostRequest() {
@@ -169,34 +162,28 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         final HttpWebRequestCallback callback = setupCallback(signal, testResponse);
         final TestMessage message = new TestMessage("messagetest", "12345");
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
                 String json = new Gson().toJson(message);
 
                 try {
-                    request.sendAsyncPost(
-                            getUrl(TEST_WEBAPI_URL),
-                            null,
-                            json.getBytes(ENCODING_UTF8),
-                            "application/json",
-                            callback);
+                    request.sendAsyncPost(getUrl(TEST_WEBAPI_URL), null,
+                            json.getBytes(ENCODING_UTF8), "application/json", callback);
                 } catch (UnsupportedEncodingException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
 
             }
-        });
+        }, true);
 
         assertNull(testResponse.exception);
-        assertTrue("status is 200",
-                testResponse.httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", testResponse.httpResponse.getStatusCode() == 200);
         String responseMsg = new String(testResponse.httpResponse.getBody());
-        assertTrue("request body check", responseMsg
-                .contains(message.getAccessToken()
-                        + message.getUserName()));
+        assertTrue("request body check",
+                responseMsg.contains(message.getAccessToken() + message.getUserName()));
     }
 
     public void testDeleteRequest() {
@@ -204,16 +191,14 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         final TestResponse testResponse = new TestResponse();
         final HttpWebRequestCallback callback = setupCallback(signal, testResponse);
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
 
-                request.sendAsyncDelete(getUrl(TEST_WEBAPI_URL + "/1"),
-                        null,
-                        callback);
+                request.sendAsyncDelete(getUrl(TEST_WEBAPI_URL + "/1"), null, callback);
             }
-        });
+        }, true);
 
         assertNull(testResponse.exception);
         assertTrue("status is 204", testResponse.httpResponse.getStatusCode() == 204);
@@ -228,35 +213,28 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         final HttpWebRequestCallback callback = setupCallback(signal, testResponse);
         final TestMessage message = new TestMessage("messagetest", "12345");
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
                 String json = new Gson().toJson(message);
 
                 try {
-                    request.sendAsyncPut(getUrl(TEST_WEBAPI_URL + "/147"),
-                            null,
-                            json.getBytes(ENCODING_UTF8),
-                            "application/json",
-                            callback);
+                    request.sendAsyncPut(getUrl(TEST_WEBAPI_URL + "/147"), null,
+                            json.getBytes(ENCODING_UTF8), "application/json", callback);
 
                 } catch (UnsupportedEncodingException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
-        });
+        }, true);
 
         assertNull(testResponse.exception);
-        assertTrue("status is 200",
-                testResponse.httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", testResponse.httpResponse.getStatusCode() == 200);
         String responseMsg = new String(testResponse.httpResponse.getBody());
-        assertTrue(
-                "request body check",
-                responseMsg.contains("147"
-                        + message.getAccessToken()
-                        + message.getUserName()));
+        assertTrue("request body check",
+                responseMsg.contains("147" + message.getAccessToken() + message.getUserName()));
     }
 
     /**
@@ -269,21 +247,18 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
 
         Log.d(TAG, "test cancel" + android.os.Process.myTid());
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
                 AsyncTask<?, ?, ?> handle = null;
                 WebRequestHandler request = new WebRequestHandler();
-                handle = request.sendAsyncGet(
-                        getUrl(TEST_WEBAPI_URL + "/347"),
-                        null,
-                        callback);
+                handle = request.sendAsyncGet(getUrl(TEST_WEBAPI_URL + "/347"), null, callback);
 
                 assertFalse("it is not cancelled", handle.isCancelled());
                 handle.cancel(true);
                 assertTrue("it is not cancelled", handle.isCancelled());
             }
-        });
+        }, true);
 
         Log.d(TAG, "test cancel" + android.os.Process.myTid());
         assertNotNull(testResponse.exception);
@@ -321,15 +296,13 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
 
     }
 
-    private HashMap<String, String> getTestHeaders(String key, String value)
-    {
+    private HashMap<String, String> getTestHeaders(String key, String value) {
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put(key, value);
         return headers;
     }
 
-    private URL getUrl(String url)
-    {
+    private URL getUrl(String url) {
         try {
             return new URL(url);
         } catch (MalformedURLException e) {

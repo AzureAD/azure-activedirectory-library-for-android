@@ -47,6 +47,11 @@ class Oauth {
 
     private final static String JSON_PARSING_ERROR = "It failed to parse response as json";
 
+    Oauth(AuthenticationRequest request) {
+        mRequest = request;
+        mWebRequestHandler = null;
+    }
+
     Oauth(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
@@ -80,8 +85,7 @@ class Oauth {
         return requestUrl;
     }
 
-    public String buildTokenRequestMessage(AuthenticationRequest request, String code)
-            throws UnsupportedEncodingException {
+    public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
 
         String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
@@ -90,14 +94,14 @@ class Oauth {
                 AuthenticationConstants.OAuth2.CODE, StringExtensions.URLFormEncode(code),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
-                StringExtensions.URLFormEncode(request.getClientId()),
+                StringExtensions.URLFormEncode(mRequest.getClientId()),
 
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
-                StringExtensions.URLFormEncode(request.getRedirectUri()));
+                StringExtensions.URLFormEncode(mRequest.getRedirectUri()));
 
-        if (!StringExtensions.IsNullOrBlank(request.getLoginHint())) {
+        if (!StringExtensions.IsNullOrBlank(mRequest.getLoginHint())) {
             message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.LOGIN_HINT,
-                    request.getLoginHint());
+                    mRequest.getLoginHint());
         }
 
         return message;
@@ -157,9 +161,7 @@ class Oauth {
         }
 
         // Success
-        Uri response = Uri.parse(finalUrl);
-        String fragment = response.getFragment();
-        HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
+        HashMap<String, String> parameters = getUrlParameters(finalUrl);
         String encodedState = parameters.get("state");
         String state = decodeProtocolState(encodedState);
 
@@ -169,10 +171,8 @@ class Oauth {
             Uri stateUri = Uri.parse("http://state/path?" + state);
             String authorizationUri = stateUri.getQueryParameter("a");
             String resource = stateUri.getQueryParameter("r");
-            String scope = stateUri.getQueryParameter("s");
 
             if (!StringExtensions.IsNullOrBlank(authorizationUri)
-                    && !StringExtensions.IsNullOrBlank(scope)
                     && !StringExtensions.IsNullOrBlank(resource)
                     && resource.equalsIgnoreCase(mRequest.getResource())) {
 
@@ -217,13 +217,17 @@ class Oauth {
      * @param authenticationCallback
      */
     public void exchangeCodeForToken(String code,
-            final AuthenticationCallback<AuthenticationResult> authenticationCallback) {
+            final AuthenticationCallback<AuthenticationResult> authenticationCallback)
+            throws IllegalArgumentException {
 
         String requestMessage = null;
+        if (mWebRequestHandler == null) {
+            throw new IllegalArgumentException("webRequestHandler");
+        }
 
         // Token request message
         try {
-            requestMessage = buildTokenRequestMessage(mRequest, code);
+            requestMessage = buildTokenRequestMessage(code);
         } catch (UnsupportedEncodingException encoding) {
             Log.e(TAG, encoding.getMessage(), encoding);
             authenticationCallback.onError(encoding);
@@ -282,9 +286,26 @@ class Oauth {
     }
 
     public static String decodeProtocolState(String encodedState) {
-        byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
 
-        return new String(stateBytes);
+        if (!StringExtensions.IsNullOrBlank(encodedState)) {
+            byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
+
+            return new String(stateBytes);
+        }
+
+        return null;
+    }
+
+    private HashMap<String, String> getUrlParameters(String finalUrl) {
+        Uri response = Uri.parse(finalUrl);
+        String fragment = response.getFragment();
+        HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
+
+        if (parameters == null || parameters.isEmpty()) {
+            String queryParameters = response.getQuery();
+            parameters = HashMapExtensions.URLFormDecode(queryParameters);
+        }
+        return parameters;
     }
 
     private String encodeProtocolState() {
