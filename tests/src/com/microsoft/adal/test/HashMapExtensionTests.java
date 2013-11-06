@@ -23,8 +23,8 @@ public class HashMapExtensionTests extends AndroidTestHelper {
             IllegalAccessException, InvocationTargetException {
 
         final String methodName = "URLFormDecode";
-        Object foo = getNonPublicInstance("com.microsoft.adal.HashMapExtensions");
-        Method m = getTestMethod(foo, methodName, String.class);
+        Object foo = ReflectionUtils.getNonPublicInstance("com.microsoft.adal.HashMapExtensions");
+        Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
         HashMap<String, String> result = (HashMap<String, String>)m.invoke(foo, "nokeyvalue");
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -60,8 +60,8 @@ public class HashMapExtensionTests extends AndroidTestHelper {
             IllegalAccessException, InvocationTargetException {
 
         final String methodName = "URLFormDecode";
-        Object foo = getNonPublicInstance("com.microsoft.adal.HashMapExtensions");
-        Method m = getTestMethod(foo, methodName, String.class);
+        Object foo = ReflectionUtils.getNonPublicInstance("com.microsoft.adal.HashMapExtensions");
+        Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
         HashMap<String, String> result = (HashMap<String, String>)m.invoke(foo, "a=b&c=2");
         assertNotNull(result);
         assertFalse(result.isEmpty());

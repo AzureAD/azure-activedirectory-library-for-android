@@ -548,7 +548,8 @@ public class AuthenticationContext {
     private String buildTokenRequestMessage(AuthenticationRequest request, String code)
             throws UnsupportedEncodingException {
 
-        return String.format("%s=%s&%s=%s&%s=%s&%s=%s", AuthenticationConstants.OAuth2.GRANT_TYPE,
+        String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
+                AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
 
                 AuthenticationConstants.OAuth2.CODE, StringExtensions.URLFormEncode(code),
@@ -559,6 +560,12 @@ public class AuthenticationContext {
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
                 StringExtensions.URLFormEncode(request.getRedirectUri()));
 
+        if (!StringExtensions.IsNullOrBlank(request.getLoginHint())) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.LOGIN_HINT,
+                    request.getLoginHint());
+        }
+
+        return message;
     }
 
     private TokenCacheItem getCachedResult(CacheKey key) {
@@ -714,7 +721,7 @@ public class AuthenticationContext {
      */
     final private boolean resolveIntent(Intent intent) {
 
-        ResolveInfo resolveInfo = getActivity().getPackageManager().resolveActivity(intent, 0);
+        ResolveInfo resolveInfo = mAppContext.getPackageManager().resolveActivity(intent, 0);
         if (resolveInfo == null) {
             return false;
         }

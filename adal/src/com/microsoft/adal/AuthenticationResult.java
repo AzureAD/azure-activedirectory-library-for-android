@@ -55,7 +55,7 @@ public class AuthenticationResult implements Serializable {
 
     private String mTenantId;
 
-    private AuthenticationStatus mStatus = AuthenticationStatus.Succeeded;
+    private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
     AuthenticationResult() {
         mCode = null;
@@ -127,11 +127,11 @@ public class AuthenticationResult implements Serializable {
         mCode = code;
     }
 
-    String getErrorCode() {
+    public String getErrorCode() {
         return mErrorCode;
     }
 
-    String getErrorDescription() {
+    public String getErrorDescription() {
         return mErrorDescription;
     }
 }

@@ -49,6 +49,8 @@ class AuthenticationRequest implements Serializable {
 
     private UUID mCorrelationId;
 
+    private String mExtraQueryParamsAuthentication;
+    
     public AuthenticationRequest() {
 
     }
@@ -191,5 +193,13 @@ class AuthenticationRequest implements Serializable {
 
     public void setCorrelationId(UUID val) {
         this.mCorrelationId = val;
+    }
+
+    public String getExtraQueryParamsAuthentication() {
+        return mExtraQueryParamsAuthentication;
+    }
+
+    public void setExtraQueryParamsAuthentication(String mExtraQueryParamsAuthentication) {
+        this.mExtraQueryParamsAuthentication = mExtraQueryParamsAuthentication;
     }
 }
