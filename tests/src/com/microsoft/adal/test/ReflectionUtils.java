@@ -2,12 +2,14 @@
 package com.microsoft.adal.test;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ReflectionUtils {
 
     public final static String TEST_PACKAGE_NAME = "com.microsoft.adal";
+
     /**
      * get non public method from class
      * 
@@ -54,5 +56,12 @@ public class ReflectionUtils {
 
         constructor.setAccessible(true);
         return constructor.newInstance(null);
+    }
+
+    public static Object getFieldValue(Object object, String fieldName) throws NoSuchFieldException,
+            IllegalArgumentException, IllegalAccessException {
+        Field f = object.getClass().getDeclaredField(fieldName);
+        f.setAccessible(true);
+        return f.get(object);
     }
 }

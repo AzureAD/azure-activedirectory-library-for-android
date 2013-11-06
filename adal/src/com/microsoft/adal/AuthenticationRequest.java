@@ -36,7 +36,7 @@ class AuthenticationRequest implements Serializable {
     private UUID mCorrelationId;
 
     private String mExtraQueryParamsAuthentication;
-    
+
     public AuthenticationRequest() {
 
     }
@@ -65,8 +65,6 @@ class AuthenticationRequest implements Serializable {
         mResource = resource;
     }
 
-    
-
     public String getCode() {
         return mCode;
     }
@@ -82,8 +80,6 @@ class AuthenticationRequest implements Serializable {
     public void setAuthority(String mAuthority) {
         this.mAuthority = mAuthority;
     }
-
-   
 
     public String getRedirectUri() {
         return mRedirectUri;
@@ -124,8 +120,6 @@ class AuthenticationRequest implements Serializable {
     public void setLoginHint(String mLoginHint) {
         this.mLoginHint = mLoginHint;
     }
-
-  
 
     private int getRequestCode() {
         return mRequestCode;

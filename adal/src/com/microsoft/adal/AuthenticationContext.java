@@ -70,7 +70,7 @@ public class AuthenticationContext {
 
     private transient ActivityDelegate mActivityDelegate;
 
-    private AuthenticationCallback mExternalCallback;
+    private AuthenticationCallback<AuthenticationResult> mExternalCallback;
 
     /**
      * Instance validation related calls are serviced inside Discovery as a
@@ -333,10 +333,10 @@ public class AuthenticationContext {
                     mExternalCallback = null;
 
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
-                    // Browser has the url
+                    // Browser has the url and finished the processing to get token
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
-
+                    
                     String endingUrl = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_FINAL_URL);
 
@@ -346,196 +346,32 @@ public class AuthenticationContext {
                                 .onError(new IllegalArgumentException("Final url is empty"));
                         mExternalCallback = null;
                     } else {
-
+                        Oauth oauthRequest = new Oauth(authenticationRequest, mWebRequestHandler);
                         Log.d(TAG, "Process url:" + endingUrl);
-                        AuthenticationResult result = processUIResponse(authenticationRequest,
-                                endingUrl);
+                        
+                        oauthRequest.processWebViewResponse(endingUrl, new AuthenticationCallback<AuthenticationResult>() {
 
-                        // Check if we have token or code
-                        if (result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
-                            if (!result.getCode().isEmpty()) {
-
-                                // Get token and use external callback to set
-                                // result
-                                exchangeCodeForToken(authenticationRequest, result.getCode());
-
-                            } else if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                                // We have token directly with implicit flow
+                            @Override
+                            public void onSuccess(AuthenticationResult result) {
+                                setCachedResult(authenticationRequest, result);
                                 mExternalCallback.onSuccess(result);
-                                mExternalCallback = null;
-                            } else {
-                                mExternalCallback.onError(new AuthenticationException(
-                                        ADALError.AUTH_FAILED_NO_TOKEN));
-                                mExternalCallback = null;
+                                mExternalCallback = null;                                
                             }
-                        } else {
-                            mExternalCallback.onError(new AuthenticationException(result
-                                    .getErrorCode(), result.getErrorDescription()));
-                            mExternalCallback = null;
-                        }
 
+                            @Override
+                            public void onError(Exception exc) {
+                                Log.d(TAG, "Error in processing code to get token");
+                                mExternalCallback.onError(exc);
+                                mExternalCallback = null;                                
+                            }
+                        });
                     }
                 }
             }
         }
     }
 
-    /**
-     * check final url for code(normal flow) or token(implicit flow) and proceed
-     * to next step.
-     * 
-     * @param request it has info about all parameters
-     * @param finalUrl browser reached to this final url and it has code or
-     *            token for next step
-     */
-    private AuthenticationResult processUIResponse(final AuthenticationRequest request,
-            String finalUrl) {
-
-        // Success
-        Uri response = Uri.parse(finalUrl);
-        String fragment = response.getFragment();
-        HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
-        String encodedState = parameters.get("state");
-        String state = AuthenticationRequest.decodeProtocolState(encodedState);
-
-        if (!StringExtensions.IsNullOrBlank(state)) {
-
-            // We have encoded state at the end of the url
-            Uri stateUri = Uri.parse("http://state/path?" + state);
-            String authorizationUri = stateUri.getQueryParameter("a");
-            String resource = stateUri.getQueryParameter("r");
-            String scope = stateUri.getQueryParameter("s");
-
-            if (!StringExtensions.IsNullOrBlank(authorizationUri)
-                    && !StringExtensions.IsNullOrBlank(scope)
-                    && !StringExtensions.IsNullOrBlank(resource)
-                    && resource.equalsIgnoreCase(request.getResource())) {
-
-                AuthenticationResult result = processUIResponseParams(parameters);
-                return result;
-
-            } else {
-                mExternalCallback.onError(new AuthenticationException(
-                        ADALError.AUTH_FAILED_BAD_STATE));
-                mExternalCallback = null;
-            }
-        } else {
-
-            // The response from the server had no state
-            mExternalCallback.onError(new AuthenticationException(ADALError.AUTH_FAILED_NO_STATE));
-            mExternalCallback = null;
-        }
-
-        return null;
-    }
-
-    /**
-     * get code and exchange for token
-     * 
-     * @param request
-     * @param code
-     */
-    private void exchangeCodeForToken(final AuthenticationRequest request, String code) {
-
-        // Need to get access token for authorization code
-        String requestMessage = null;
-
-        try {
-            requestMessage = buildTokenRequestMessage(request, code);
-        } catch (UnsupportedEncodingException encoding) {
-            Log.e(TAG, encoding.getMessage(), encoding);
-            mExternalCallback.onError(encoding);
-            return;
-        }
-
-        URL authority = null;
-
-        try {
-            authority = new URL(request.getTokenEndpoint());
-        } catch (MalformedURLException e1) {
-            Log.e(TAG, e1.getMessage(), e1);
-            mExternalCallback.onError(e1);
-            return;
-        }
-
-        HashMap<String, String> headers = new HashMap<String, String>();
-        headers.put("Accept", "application/json");
-
-        try {
-            mWebRequestHandler.sendAsyncPost(authority, headers,
-                    requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
-                    "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
-
-                        @Override
-                        public void onComplete(HttpWebResponse response, Exception exception) {
-                            if (exception != null) {
-                                Log.e(TAG, exception.getMessage(), exception);
-                                mExternalCallback.onError(exception);
-                            } else {
-                                AuthenticationResult result = processTokenResponse(response);
-
-                                if (result != null
-                                        && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
-                                    setCachedResult(request, result);
-                                    mExternalCallback.onSuccess(result);
-                                } else {
-                                    // did not get token
-                                    mExternalCallback.onError(new AuthenticationException(result
-                                            .getErrorCode(), result.getErrorDescription()));
-                                }
-                            }
-                        }
-
-                    });
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, e.getMessage(), e);
-            mExternalCallback.onError(e);
-        } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, e.getMessage(), e);
-            mExternalCallback.onError(e);
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
-            mExternalCallback.onError(e);
-        }
-    }
-
-    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) {
-        AuthenticationResult result = new AuthenticationResult();
-        HashMap<String, String> responseItems = new HashMap<String, String>();
-
-        if (webResponse.getStatusCode() <= 400) {
-
-            if (webResponse.getBody() != null && webResponse.getBody().length > 0) {
-                try {
-                    final JSONObject jsonObject = new JSONObject(new String(webResponse.getBody()));
-
-                    @SuppressWarnings("unchecked")
-                    final Iterator<String> i = jsonObject.keys();
-
-                    while (i.hasNext()) {
-                        final String key = i.next();
-                        responseItems.put(key, jsonObject.getString(key));
-                    }
-
-                    result = processUIResponseParams(responseItems);
-                } catch (final Exception ex) {
-                    // There is no recovery possible here, so
-                    // catch the
-                    // generic Exception
-                    Log.e(TAG, ex.getMessage(), ex);
-                    result = new AuthenticationResult(ErrorCodes.getMessage(mAppContext,
-                            ADALError.AUTH_FAILED), ex.getMessage());
-                }
-            }
-
-        } else {
-            result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    new String(webResponse.getBody()));
-        }
-
-        return result;
-    }
-
+    
     private void setCachedResult(AuthenticationRequest request, AuthenticationResult result) {
         // TODO Auto-generated method stub
 
@@ -545,31 +381,7 @@ public class AuthenticationContext {
         public void onRequestComplete(HashMap<String, String> response);
     }
 
-    private String buildTokenRequestMessage(AuthenticationRequest request, String code)
-            throws UnsupportedEncodingException {
-
-        String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
-                AuthenticationConstants.OAuth2.GRANT_TYPE,
-                StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
-
-                AuthenticationConstants.OAuth2.CODE, StringExtensions.URLFormEncode(code),
-
-                AuthenticationConstants.OAuth2.CLIENT_ID,
-                StringExtensions.URLFormEncode(request.getClientId()),
-
-                AuthenticationConstants.OAuth2.REDIRECT_URI,
-                StringExtensions.URLFormEncode(request.getRedirectUri()));
-
-        if (!StringExtensions.IsNullOrBlank(request.getLoginHint())) {
-            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.LOGIN_HINT,
-                    request.getLoginHint());
-        }
-
-        return message;
-    }
-
     private TokenCacheItem getCachedResult(CacheKey key) {
-
         return null;
     }
 
@@ -605,43 +417,6 @@ public class AuthenticationContext {
         if (!startAuthenticationActivity(request)) {
             throw new AuthenticationException(ADALError.DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED);
         }
-    }
-
-    private static AuthenticationResult processUIResponseParams(HashMap<String, String> response) {
-
-        AuthenticationResult result = new AuthenticationResult();
-
-        if (response.containsKey(AuthenticationConstants.OAuth2.ERROR)) {
-            // Error response from the server
-            // TODO: Should we kill the authorization object?
-            result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.ERROR),
-                    response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION));
-        } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
-            result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
-        } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
-            // Token response
-            boolean isMultiResourcetoken = false;
-            String expires_in = response.get("expires_in");
-            Calendar expires = new GregorianCalendar();
-
-            // Compute token expiration
-            expires.add(
-                    Calendar.SECOND,
-                    expires_in == null || expires_in.isEmpty() ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
-                            : Integer.parseInt(expires_in));
-
-            if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)) {
-                isMultiResourcetoken = true;
-            }
-
-            result = new AuthenticationResult(
-                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
-                    response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
-                    isMultiResourcetoken);
-
-        }
-
-        return result;
     }
 
     private String getRedirectFromPackage() {

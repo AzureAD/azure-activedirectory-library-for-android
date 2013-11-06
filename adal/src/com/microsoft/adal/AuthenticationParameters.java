@@ -73,12 +73,14 @@ public class AuthenticationParameters {
      */
     public static void createFromResourceUrl(URL resourceUrl, AuthenticationParamCallback callback) {
         if (callback == null) {
-            return;
+            throw new IllegalArgumentException("callback");
         }
+        
         Log.d(TAG, "createFromResourceUrl");
 
         HttpWebRequest webRequest = new HttpWebRequest(resourceUrl);
-        webRequest.getRequestHeaders().put("Accept", "application/json");
+        HashMap<String, String> headers = new HashMap<String, String>();
+        webRequest.getRequestHeaders().put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
         final AuthenticationParamCallback externalCallback = callback;
 
         webRequest.sendAsyncGet(new HttpWebRequestCallback() {

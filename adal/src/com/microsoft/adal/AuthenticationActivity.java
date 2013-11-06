@@ -123,7 +123,7 @@ public class AuthenticationActivity extends Activity {
         String startUrl = "about:blank";
 
         try {
-            startUrl = mAuthRequest.getCodeRequestUrl();
+            startUrl = new Oauth(mAuthRequest, null).getCodeRequestUrl();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             Log.d(TAG, e.getMessage());

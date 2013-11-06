@@ -112,7 +112,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
                         "Bearer authorization_uri= ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
-        
+
         callParseResponseForException(
                 new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
                         "Bearerauthorization_uri=something")),
@@ -151,6 +151,20 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         }
     }
 
+    public void testcreateFromResourceUrlNoCallback() throws MalformedURLException {
+
+        AuthenticationParameters param = null;
+        final URL url = new URL("https://www.something.com");
+        assertThrowsException(IllegalArgumentException.class, "callback", new Runnable() {
+
+            @Override
+            public void run() {
+                AuthenticationParameters.createFromResourceUrl(url, null);
+            }
+        });
+
+    }
+
     class TestResponse {
         AuthenticationParameters param;
 
@@ -177,7 +191,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             }
         };
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
                 try {
@@ -187,7 +201,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                     signal.countDown();
                 }
             }
-        });
+        }, true);
     }
 
     private HashMap<String, List<String>> getInvalidHeader(String key, String value) {
