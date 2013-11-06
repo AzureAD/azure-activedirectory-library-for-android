@@ -2,6 +2,7 @@
 package com.microsoft.adal.test;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -93,18 +94,38 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         return o;
     }
 
+    /**
+     * run the code at ui thread and wait until it is finished
+     * 
+     * @param signal Use this signal inside your callback.
+     * @param testCode code that actually calls the method that needs ui thread
+     *            and async handling
+     */
     public void testAsyncNoException(final CountDownLatch signal, final Runnable testCode) {
+        testAsyncNoExceptionUIOption(signal, testCode, true);
+    }
+
+    /**
+     * just run tests and wait until finished
+     * 
+     * @param signal
+     * @param testCode
+     * @param runOnUI
+     */
+    public void testAsyncNoExceptionUIOption(final CountDownLatch signal, final Runnable testCode,
+            boolean runOnUI) {
 
         Log.d(getName(), "thread:" + android.os.Process.myTid());
 
         try {
-            // run on UI thread to create async object at UI thread. Background
-            // work will happen in another thread.
-            runTestOnUiThread(testCode);
-        } catch (Exception ex) {
-            Log.e(getName(), ex.getMessage());
-            assertFalse("not expected:" + ex.getMessage(), true);
-            signal.countDown();
+            if (runOnUI) {
+                // run on UI thread to create async object at UI thread.
+                // Background
+                // work will happen in another thread.
+                runTestOnUiThread(testCode);
+            } else {
+                testCode.run();
+            }
         } catch (Throwable ex) {
             Log.e(getName(), ex.getMessage());
             assertFalse("not expected:" + ex.getMessage(), true);
@@ -118,4 +139,10 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
     }
 
+    public Object getFieldValue(Object object, String fieldName) throws NoSuchFieldException,
+            IllegalArgumentException, IllegalAccessException {
+        Field f = object.getClass().getDeclaredField("mValidHosts");
+        f.setAccessible(true);
+        return f.get(object);
+    }
 }

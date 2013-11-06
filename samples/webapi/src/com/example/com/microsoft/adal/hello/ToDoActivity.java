@@ -58,15 +58,23 @@ import com.microsoft.adal.AuthenticationResult;
 public class ToDoActivity extends Activity {
 
     private final static String TAG = "ToDoActivity";
+
     public static final int MENU_LOGOUT = Menu.FIRST;
+
     public static final int MENU_CLEAR_TOKEN = Menu.FIRST + 1;
+
     public static final int MENU_GET_TOKEN = Menu.FIRST + 2;
+
     public static final int MENU_GET_NEWSFEED = Menu.FIRST + 3;
+
     public static final int MENU_GET_SETTINGS = Menu.FIRST + 4;
+
     public static final int MENU_GET_LAYOUT_DEMO = Menu.FIRST + 5;
 
     private AuthenticationContext mAuthContext;
+
     private boolean refreshInProgress = false;
+
     /**
      * Mobile Service Client reference
      */
@@ -114,10 +122,10 @@ public class ToDoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_to_do);
 
-        Toast.makeText(getApplicationContext(), TAG + "LifeCycle: OnCreate",
-                Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), TAG + "LifeCycle: OnCreate", Toast.LENGTH_SHORT)
+                .show();
 
-        mProgressBar = (ProgressBar) findViewById(R.id.loadingProgressBar);
+        mProgressBar = (ProgressBar)findViewById(R.id.loadingProgressBar);
 
         // Initialize the progress bar
         mProgressBar.setVisibility(ProgressBar.GONE);
@@ -129,13 +137,11 @@ public class ToDoActivity extends Activity {
         refreshInProgress = false;
 
         // Ask for token and provide callback
-        mAuthContext = new AuthenticationContext(ToDoActivity.this,
-                Constants.AUTHORITY_URL, false);
+        mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL, false);
 
         mAuthContext.acquireToken(ToDoActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL,
-                Constants.USER_HINT,
-                new AuthenticationCallback() {
+                Constants.REDIRECT_URL, Constants.USER_HINT,
+                new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onError(Exception exc) {
@@ -143,8 +149,8 @@ public class ToDoActivity extends Activity {
                             mLoginProgressDialog.dismiss();
                         }
                         Toast.makeText(getApplicationContext(),
-                                TAG + "getToken Error:" + exc.getMessage(),
-                                Toast.LENGTH_SHORT).show();
+                                TAG + "getToken Error:" + exc.getMessage(), Toast.LENGTH_SHORT)
+                                .show();
                         navigateToLogOut();
                     }
 
@@ -154,8 +160,7 @@ public class ToDoActivity extends Activity {
                             mLoginProgressDialog.dismiss();
                         }
 
-                        if (result != null
-                                && !result.getAccessToken().isEmpty()) {
+                        if (result != null && !result.getAccessToken().isEmpty()) {
                             setLocalToken(result.getAccessToken());
                             sendRequest();
                         } else {
@@ -164,8 +169,7 @@ public class ToDoActivity extends Activity {
                     }
                 });
 
-        Toast.makeText(getApplicationContext(), TAG + "done",
-                Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
 
     private void sendRequest() {
@@ -180,8 +184,7 @@ public class ToDoActivity extends Activity {
     private URL getEndpointUrl() {
         URL endpoint = null;
         try {
-            endpoint = new URL(Constants.SERVICE_URL + "/api/"
-                    + Constants.TABLE_WORKITEM);
+            endpoint = new URL(Constants.SERVICE_URL + "/api/" + Constants.TABLE_WORKITEM);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -212,8 +215,8 @@ public class ToDoActivity extends Activity {
             // TODO this is targeting single webapi controller
             // each table should target different webapi controller
 
-            mClient = new MobileServiceClient(Constants.SERVICE_URL,
-                    ToDoActivity.this).withFilter(new ProgressFilter());
+            mClient = new MobileServiceClient(Constants.SERVICE_URL, ToDoActivity.this)
+                    .withFilter(new ProgressFilter());
 
             // When app is initializing, It needs token to continue. If not
             // possible to get token without UI flow, it should direct to login
@@ -233,19 +236,16 @@ public class ToDoActivity extends Activity {
             // Get the Mobile Service Table instance to use
             mToDoTable = mClient.getTable(WorkItem.class);
             mToDoTable.TABLES_URL = "/api/";
-            mTextNewToDo = (EditText) findViewById(R.id.textNewToDo);
+            mTextNewToDo = (EditText)findViewById(R.id.textNewToDo);
 
             // Create an adapter to bind the items with the view
-            mAdapter = new WorkItemAdapter(ToDoActivity.this,
-                    R.layout.row_list_to_do);
-            ListView listViewToDo = (ListView) findViewById(R.id.listViewToDo);
+            mAdapter = new WorkItemAdapter(ToDoActivity.this, R.layout.row_list_to_do);
+            ListView listViewToDo = (ListView)findViewById(R.id.listViewToDo);
             listViewToDo.setAdapter(mAdapter);
 
         } catch (MalformedURLException e) {
-            createAndShowDialog(
-                    new Exception(
-                            "There was an error creating the Mobile Service. Verify the URL"),
-                    "Error");
+            createAndShowDialog(new Exception(
+                    "There was an error creating the Mobile Service. Verify the URL"), "Error");
         }
     }
 
@@ -262,9 +262,8 @@ public class ToDoActivity extends Activity {
     private void getToken(final AuthenticationCallback callback) {
 
         // one of the acquireToken overloads
-        mAuthContext.acquireToken(ToDoActivity.this, Constants.CLIENT_ID,
-                Constants.RESOURCE_ID, Constants.REDIRECT_URL,
-                Constants.USER_HINT, callback);
+        mAuthContext.acquireToken(ToDoActivity.this, Constants.CLIENT_ID, Constants.RESOURCE_ID,
+                Constants.REDIRECT_URL, Constants.USER_HINT, callback);
     }
 
     private String getLocalToken() {
@@ -357,18 +356,18 @@ public class ToDoActivity extends Activity {
                 return true;
             }
             case MENU_GET_TOKEN:
-                getToken(new AuthenticationCallback() {
+                getToken(new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onError(Exception exc) {
-                        Toast.makeText(getApplicationContext(), exc.getMessage(),
-                                Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), exc.getMessage(), Toast.LENGTH_LONG)
+                                .show();
                     }
 
                     @Override
                     public void onSuccess(AuthenticationResult result) {
-                        Toast.makeText(getApplicationContext(), "OnCompleted",
-                                Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG)
+                                .show();
                         setLocalToken(result.getAccessToken());
                     }
                 });
@@ -379,8 +378,7 @@ public class ToDoActivity extends Activity {
                 return true;
             }
             case MENU_GET_SETTINGS: {
-                Intent intent = new Intent(ToDoActivity.this,
-                        SettingsActivity.class);
+                Intent intent = new Intent(ToDoActivity.this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
             }
@@ -420,8 +418,8 @@ public class ToDoActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Toast.makeText(getApplicationContext(), TAG + "LifeCycle: OnDestroy",
-                Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), TAG + "LifeCycle: OnDestroy", Toast.LENGTH_SHORT)
+                .show();
 
     }
 
@@ -459,8 +457,8 @@ public class ToDoActivity extends Activity {
             pickerDayOfMonth = c.get(Calendar.DAY_OF_MONTH);
 
             // Create a new instance of DatePickerDialog and return it
-            return new DatePickerDialog(getActivity(), this, pickerYear,
-                    pickerMonth, pickerDayOfMonth);
+            return new DatePickerDialog(getActivity(), this, pickerYear, pickerMonth,
+                    pickerDayOfMonth);
         }
 
         public void onDateSet(DatePicker view, int year, int month, int day) {
@@ -546,13 +544,11 @@ public class ToDoActivity extends Activity {
         }
 
         if (mToDoTable != null) {
-            mToDoTable.where().field("Complete")
-                    .eq(MobileServiceQueryOperations.val(false))
+            mToDoTable.where().field("Complete").eq(MobileServiceQueryOperations.val(false))
                     .execute(new TableQueryCallback<WorkItem>() {
 
-                        public void onCompleted(List<WorkItem> result,
-                                int count, Exception exception,
-                                ServiceFilterResponse response) {
+                        public void onCompleted(List<WorkItem> result, int count,
+                                Exception exception, ServiceFilterResponse response) {
                             if (exception == null) {
                                 mAdapter.clear();
 
@@ -613,27 +609,23 @@ public class ToDoActivity extends Activity {
                 }
             });
 
-            nextServiceFilterCallback.onNext(request,
-                    new ServiceFilterResponseCallback() {
+            nextServiceFilterCallback.onNext(request, new ServiceFilterResponseCallback() {
+
+                @Override
+                public void onResponse(ServiceFilterResponse response, Exception exception) {
+                    runOnUiThread(new Runnable() {
 
                         @Override
-                        public void onResponse(ServiceFilterResponse response,
-                                Exception exception) {
-                            runOnUiThread(new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    if (mProgressBar != null)
-                                        mProgressBar
-                                                .setVisibility(ProgressBar.GONE);
-                                }
-                            });
-
-                            if (responseCallback != null)
-                                responseCallback
-                                        .onResponse(response, exception);
+                        public void run() {
+                            if (mProgressBar != null)
+                                mProgressBar.setVisibility(ProgressBar.GONE);
                         }
                     });
+
+                    if (responseCallback != null)
+                        responseCallback.onResponse(response, exception);
+                }
+            });
         }
     }
 
