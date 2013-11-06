@@ -20,7 +20,7 @@ import android.util.Base64;
 import android.util.Log;
 
 /**
- * not part of API
+ * base oauth class
  * 
  * @author omercan
  */
@@ -145,23 +145,22 @@ class Oauth {
     }
 
     /**
-     * parse final url for code(normal flow) or token(implicit flow) and proceed
-     * to next step.
+     * parse final url for code(normal flow) or token(implicit flow) and then it proceeds to next step.
      * 
-     * @param finalUrl browser reached to this final url and it has code or
+     * @param authorizationUrl browser reached to this final url and it has code or
      *            token for next step
      * @param authenticationCallback
      */
-    public void processWebViewResponse(String finalUrl,
+    public void getToken(String authorizationUrl,
             AuthenticationCallback<AuthenticationResult> authenticationCallback) {
 
-        if (StringExtensions.IsNullOrBlank(finalUrl)) {
+        if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
             authenticationCallback.onError(new IllegalArgumentException("finalUrl"));
             return;
         }
 
         // Success
-        HashMap<String, String> parameters = getUrlParameters(finalUrl);
+        HashMap<String, String> parameters = getUrlParameters(authorizationUrl);
         String encodedState = parameters.get("state");
         String state = decodeProtocolState(encodedState);
 
@@ -183,7 +182,7 @@ class Oauth {
                     if (!result.getCode().isEmpty()) {
 
                         // Get token and use external callback to set result
-                        exchangeCodeForToken(result.getCode(), authenticationCallback);
+                        getTokenForCode(result.getCode(), authenticationCallback);
 
                     } else if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                         // We have token directly with implicit flow
@@ -216,7 +215,7 @@ class Oauth {
      * @param code
      * @param authenticationCallback
      */
-    public void exchangeCodeForToken(String code,
+    public void getTokenForCode(String code,
             final AuthenticationCallback<AuthenticationResult> authenticationCallback)
             throws IllegalArgumentException {
 
@@ -308,11 +307,16 @@ class Oauth {
         return parameters;
     }
 
-    private String encodeProtocolState() {
+    public String encodeProtocolState() {
         String state = String.format("a=%s&r=%s", mRequest.getAuthority(), mRequest.getResource());
         return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
+    /**
+     * extract AuthenticationResult object from response body if available
+     * @param webResponse
+     * @return
+     */
     private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) {
         AuthenticationResult result = new AuthenticationResult();
         HashMap<String, String> responseItems = new HashMap<String, String>();

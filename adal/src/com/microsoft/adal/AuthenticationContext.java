@@ -349,7 +349,7 @@ public class AuthenticationContext {
                         Oauth oauthRequest = new Oauth(authenticationRequest, mWebRequestHandler);
                         Log.d(TAG, "Process url:" + endingUrl);
                         
-                        oauthRequest.processWebViewResponse(endingUrl, new AuthenticationCallback<AuthenticationResult>() {
+                        oauthRequest.getToken(endingUrl, new AuthenticationCallback<AuthenticationResult>() {
 
                             @Override
                             public void onSuccess(AuthenticationResult result) {
