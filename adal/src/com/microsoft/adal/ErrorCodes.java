@@ -32,6 +32,16 @@ public class ErrorCodes {
          */
         DEVELOPER_RESOURCE_IS_EMPTY,
         /**
+         * App context is not set
+         */
+        DEVELOPER_APP_CONTEXT_IS_NOT_SET,
+        /**
+         * User can only have one login activity in use
+         */
+        DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED,
+       
+        
+        /**
          * Invalid request to server
          */
         SERVER_INVALID_REQUEST,
@@ -87,7 +97,12 @@ public class ErrorCodes {
         /**
          * Internet permissions are not set for the app
          */
-        DEVICE_INTERNET_IS_NOT_AVAILABLE
+        DEVICE_INTERNET_IS_NOT_AVAILABLE,
+        
+        /**
+         * onActivityResult is called with null intent data
+         */
+        ON_ACTIVITY_RESULT_INTENT_NULL_
     }
 
     /**
@@ -98,7 +113,7 @@ public class ErrorCodes {
      * @param enumId
      * @return Translated text
      */
-    public String getMessage(Context appContext, ADALError enumId) {
+    public static String getMessage(Context appContext, ADALError enumId) {
         if (appContext != null) {
             int id = appContext.getResources().getIdentifier(enumId.name(), "string",
                     appContext.getPackageName());

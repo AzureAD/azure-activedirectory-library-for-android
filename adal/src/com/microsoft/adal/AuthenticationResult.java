@@ -35,53 +35,103 @@ public class AuthenticationResult implements Serializable {
         Succeeded,
     }
 
+    private String mCode;
+
+    private String mAccessToken;
+
+    private String mRefreshToken;
+
+    private String mTokenType;
+
+    private Date mExpiresOn;
+
+    private String mErrorCode;
+
+    private String mErrorDescription;
+
+    private boolean mIsMultiResourceRefreshToken;
+
+    private UserInfo mUserInfo;
+
+    private String mTenantId;
+
+    private AuthenticationStatus mStatus = AuthenticationStatus.Succeeded;
+
     AuthenticationResult() {
-        throw new UnsupportedOperationException("come back later");
+        mCode = null;
     }
 
-    AuthenticationResult(String authority, String clientId, String resource,
-            String redirectUri, String accessToken, String refreshToken,
-            Date expires, String scope) {
-        throw new UnsupportedOperationException("come back later");
+    AuthenticationResult(String code) {
+        mCode = code;
+        mStatus = AuthenticationStatus.Succeeded;
+        mAccessToken = null;
+        mRefreshToken = null;
+    }
+
+    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad) {
+        mCode = null;
+        mAccessToken = accessToken;
+        mRefreshToken = refreshToken;
+        mExpiresOn = expires;
+        mIsMultiResourceRefreshToken = isBroad;
+        mStatus = AuthenticationStatus.Succeeded;
     }
 
     AuthenticationResult(String errorCode, String errDescription) {
-        throw new UnsupportedOperationException("come back later");
+        mErrorCode = errorCode;
+        mErrorDescription = errDescription;
+        mStatus = AuthenticationStatus.Failed;
     }
 
     public String createAuthorizationHeader() {
-        throw new UnsupportedOperationException("come back later");
+        return AuthenticationConstants.AAD.BEARER + " " + getAccessToken();
     }
 
     public String getAccessToken() {
-        throw new UnsupportedOperationException("come back later");
+        return mAccessToken;
     }
 
     public String getRefreshToken() {
-        throw new UnsupportedOperationException("come back later");
+        return mRefreshToken;
     }
 
     public String getAccessTokenType() {
-        throw new UnsupportedOperationException("come back later");
+        return mTokenType;
     }
 
     public Date getExpiresOn() {
-        throw new UnsupportedOperationException("come back later");
+        return mExpiresOn;
     }
 
     public boolean getIsMultiResourceRefreshToken() {
-        throw new UnsupportedOperationException("come back later");
+        return mIsMultiResourceRefreshToken;
     }
 
     public UserInfo getUserInfo() {
-        throw new UnsupportedOperationException("come back later");
+        return mUserInfo;
     }
 
-    public String getTenantId(){
-        throw new UnsupportedOperationException("come back later");
+    public String getTenantId() {
+        return mTenantId;
     }
-    
+
     public AuthenticationStatus getStatus() {
-        throw new UnsupportedOperationException("come back later");
+        return mStatus;
+    }
+
+    String getCode() {
+        return mCode;
+    }
+
+    void setCode(String code) {
+        mCode = code;
+    }
+
+    String getErrorCode() {
+        return mErrorCode;
+    }
+
+    String getErrorDescription() {
+        return mErrorDescription;
     }
 }

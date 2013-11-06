@@ -11,6 +11,16 @@ public class CacheKey {
     public static CacheKey createCacheKey(TokenCacheItem item) {
         throw new UnsupportedOperationException("come back later");
     }
+    
+    /**
+     * get cache key
+     * @param requestItem
+     * @return
+     */
+    public static CacheKey createCacheKey(AuthenticationRequest requestItem) {
+        //implementation is another code review...
+        return new CacheKey();
+    }
 
     public String getAuthority() {
         throw new UnsupportedOperationException("come back later");
