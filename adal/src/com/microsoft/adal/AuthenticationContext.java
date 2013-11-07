@@ -65,10 +65,8 @@ public class AuthenticationContext {
     private String mAuthority;
 
     private boolean mValidateAuthority;
-    
-    private ITokenCacheStore mTokenCacheStore;
 
-    private ITokenCacheStore mCache;
+    private ITokenCacheStore mTokenCacheStore;
 
     private transient ActivityDelegate mActivityDelegate;
 
@@ -111,8 +109,8 @@ public class AuthenticationContext {
      * @param cache Set to null if you don't want cache.
      */
 
-    public AuthenticationContext(Context appContext, String authority,
-            boolean validateAuthority, ITokenCacheStore tokenCacheStore) {
+    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
+            ITokenCacheStore tokenCacheStore) {
         mAppContext = appContext;
         mAuthority = authority;
         mValidateAuthority = validateAuthority;
@@ -164,7 +162,7 @@ public class AuthenticationContext {
      * @param callback required
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String userId, AuthenticationCallback callback) {
+            String redirectUri, String userId, AuthenticationCallback<AuthenticationResult> callback) {
 
         if (mAppContext == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_APP_CONTEXT_IS_NOT_SET);
@@ -336,10 +334,11 @@ public class AuthenticationContext {
                     mExternalCallback = null;
 
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
-                    // Browser has the url and finished the processing to get token
+                    // Browser has the url and finished the processing to get
+                    // token
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
-                    
+
                     String endingUrl = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_FINAL_URL);
 
@@ -351,33 +350,34 @@ public class AuthenticationContext {
                     } else {
                         Oauth oauthRequest = new Oauth(authenticationRequest, mWebRequestHandler);
                         Log.d(TAG, "Process url:" + endingUrl);
-                        
-                        oauthRequest.getToken(endingUrl, new AuthenticationCallback<AuthenticationResult>() {
 
-                            @Override
-                            public void onSuccess(AuthenticationResult result) {
-                                setCachedResult(authenticationRequest, result);
-                                mExternalCallback.onSuccess(result);
-                                mExternalCallback = null;                                
-                            }
+                        oauthRequest.getToken(endingUrl,
+                                new AuthenticationCallback<AuthenticationResult>() {
 
-                            @Override
-                            public void onError(Exception exc) {
-                                Log.d(TAG, "Error in processing code to get token");
-                                mExternalCallback.onError(exc);
-                                mExternalCallback = null;                                
-                            }
-                        });
+                                    @Override
+                                    public void onSuccess(AuthenticationResult result) {
+                                        setCachedResult(authenticationRequest, result);
+                                        mExternalCallback.onSuccess(result);
+                                        mExternalCallback = null;
+                                    }
+
+                                    @Override
+                                    public void onError(Exception exc) {
+                                        Log.d(TAG, "Error in processing code to get token");
+                                        mExternalCallback.onError(exc);
+                                        mExternalCallback = null;
+                                    }
+                                });
                     }
                 }
             }
         }
     }
 
-    
     private void setCachedResult(AuthenticationRequest request, AuthenticationResult result) {
-        // TODO Auto-generated method stub
-
+        if (mTokenCacheStore != null) {
+            mTokenCacheStore.setItem(new TokenCacheItem(request, result));
+        }
     }
 
     interface ResponseCallback {
@@ -402,23 +402,72 @@ public class AuthenticationContext {
      * @param callback
      */
     private void acquireTokenLocal(Activity activity, final AuthenticationRequest request,
-            PromptBehavior prompt, AuthenticationCallback callback) {
+            PromptBehavior prompt, AuthenticationCallback<AuthenticationResult> callback) {
 
-        // TODO: Check cached authorization object
-
-        // TODO: refresh if required
-
-        // start activity if other options are not available
         if (mExternalCallback == null) {
             mExternalCallback = callback;
         } else {
+            Log.e(TAG, "Webview is active for another session");
             throw new AuthenticationException(ADALError.DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED);
+        }
+
+        URL authorityUrl;
+        try {
+            authorityUrl = new URL(mAuthority);
+        } catch (MalformedURLException e) {
+            callback.onError(new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
+            return;
         }
 
         setActivity(activity);
         setActivityDelegate(activity);
-        if (!startAuthenticationActivity(request)) {
-            throw new AuthenticationException(ADALError.DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED);
+
+        final Runnable requestRunnable = new Runnable() {
+
+            @Override
+            public void run() {
+                // TODO: Check cached authorization object
+
+                // TODO: refresh if required
+
+                // start activity if other options are not available
+                if (!startAuthenticationActivity(request)) {
+                    throw new AuthenticationException(ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED);
+                }
+            }
+        };
+
+        if (mValidateAuthority) {
+            validateAuthority(authorityUrl, requestRunnable);
+        } else {
+            requestRunnable.run();
+        }
+    }
+
+    private void validateAuthority(final URL authorityUrl, final Runnable requestRunnable) {
+        if (mDiscovery != null) {
+            mDiscovery.isValidAuthority(authorityUrl, new AuthenticationCallback<Boolean>() {
+
+                @Override
+                public void onSuccess(Boolean result) {
+                    Log.v(TAG, "Instance validation is successfull. Result:" + result.toString());
+                    if (result) {
+                        requestRunnable.run();
+                    } else {
+                        Log.v(TAG,
+                                "Call callback since instance is invalid:" + authorityUrl.toString());
+                        mExternalCallback.onError(new AuthenticationException(
+                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
+                    }
+                }
+
+                @Override
+                public void onError(Exception exc) {
+                    Log.e(TAG, "Instance validation returned error", exc);
+                    mExternalCallback.onError(exc);
+                }
+            });
         }
     }
 

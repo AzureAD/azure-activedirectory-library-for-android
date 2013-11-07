@@ -15,6 +15,10 @@ public class ErrorCodes {
 
     public static enum ADALError {
         /**
+         * Authority is not valid instance 
+         */
+        DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
+        /**
          * Authority url is not valid
          */
         DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
@@ -43,6 +47,10 @@ public class ErrorCodes {
          * Context is not provided
          */
         DEVELOPER_CONTEXT_IS_NOT_PROVIDED,
+        /**
+         * Actvity is not resolved
+         */
+        DEVELOPER_ACTIVITY_IS_NOT_RESOLVED,
         /**
          * Invalid request to server
          */

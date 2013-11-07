@@ -7,7 +7,7 @@ package com.microsoft.adal;
 import java.net.URL;
 import java.util.concurrent.Future;
 
-interface IDiscovery {
+public interface IDiscovery {
 
     /**
      * query authorizationEndpoint from well known instances to validate the instance.

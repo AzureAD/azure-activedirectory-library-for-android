@@ -66,4 +66,10 @@ public class ReflectionUtils {
         f.setAccessible(true);
         return f.get(object);
     }
+    
+    public static void setFieldValue(Object object, String fieldName, Object value) throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
+        Field f = object.getClass().getDeclaredField(fieldName);
+        f.setAccessible(true);
+        f.set(object, value);
+    }
 }

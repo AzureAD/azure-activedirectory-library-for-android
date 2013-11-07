@@ -117,7 +117,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
                         "Bearerauthorization_uri=something")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
-        
+
         callParseResponseForException(
                 new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
                         "Bearer authorization_uri=,something=a ")),

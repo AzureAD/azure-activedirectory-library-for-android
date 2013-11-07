@@ -34,8 +34,24 @@ public class TokenCacheItem implements Serializable {
 
     private Date mExpiresOn;
 
+    private boolean mIsMultiResourceRefreshToken;
+
+    private String mTenantId;
+
     public TokenCacheItem() {
 
+    }
+
+    public TokenCacheItem(AuthenticationRequest request, AuthenticationResult result) {
+        mUserInfo = result.getUserInfo();
+        mResource = request.getResource();
+        mAuthority = request.getAuthority();
+        mClientId = request.getClientId();
+        mAccessToken = result.getAccessToken();
+        mRefreshtoken = result.getRefreshToken();
+        mExpiresOn = result.getExpiresOn();
+        mIsMultiResourceRefreshToken = result.getIsMultiResourceRefreshToken();
+        mTenantId = result.getTenantId();
     }
 
     public UserInfo getUserInfo() {
@@ -92,5 +108,21 @@ public class TokenCacheItem implements Serializable {
 
     public void setExpiresOn(Date expiresOn) {
         this.mExpiresOn = expiresOn;
+    }
+
+    public boolean getIsMultiResourceRefreshToken() {
+        return mIsMultiResourceRefreshToken;
+    }
+
+    public void setIsMultiResourceRefreshToken(boolean mIsMultiResourceRefreshToken) {
+        this.mIsMultiResourceRefreshToken = mIsMultiResourceRefreshToken;
+    }
+
+    public String getTenantId() {
+        return mTenantId;
+    }
+
+    public void setTenantId(String mTenantId) {
+        this.mTenantId = mTenantId;
     }
 }
