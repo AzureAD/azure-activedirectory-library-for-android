@@ -89,7 +89,6 @@ public class AuthenticationException extends RuntimeException {
     public String getMessage(Context appContext) {
         if (!StringExtensions.IsNullOrBlank(mErrorMessage)) {
             return mErrorMessage;
-
         }
 
         if (mCode != null) {

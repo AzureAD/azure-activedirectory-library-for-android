@@ -19,26 +19,31 @@ public class OauthTests extends AndroidTestCase {
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException {
         // with login hint
-        Object request = createAuthenticationRequest("authorityForCode", "resourceForCode",
-                "clientForCode", "redirectForCode", "loginhintForCode");
+        Object request = createAuthenticationRequest("http://www.something.com",
+                "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
+                "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890",
+                "loginhint 1234567890-+=;'");
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "getCodeRequestUrl");
 
         String actual = (String)m.invoke(oauth);
         assertTrue(
                 "Matching message",
-                actual.contains("authorityForCode/oauth2/authorize?response_type=code&client_id=clientForCode&resource=resourceForCode&redirect_uri=redirectForCode&state="));
-        assertTrue("Matching loginhint", actual.contains("login_hint=loginhintForCode"));
+                actual.contains("http://www.something.com/oauth2/authorize?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&resource=resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&state="));
+        assertTrue("Matching loginhint",
+                actual.contains("login_hint=loginhint+1234567890-%2B%3D%3B%27"));
+
         // without login hint
-        Object requestWithoutLogin = createAuthenticationRequest("authorityForCode",
-                "resourceForCode", "clientForCode", "redirectForCode", "");
+        Object requestWithoutLogin = createAuthenticationRequest("http://www.something.com",
+                "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
+                "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890", "");
 
         Object oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
 
         actual = (String)m.invoke(oauthWithoutLoginHint);
         assertTrue(
                 "Matching message",
-                actual.contains("authorityForCode/oauth2/authorize?response_type=code&client_id=clientForCode&resource=resourceForCode&redirect_uri=redirectForCode&state="));
+                actual.contains("http://www.something.com/oauth2/authorize?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&resource=resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&state="));
         assertFalse("Without loginhint", actual.contains("login_hint=loginhintForCode"));
     }
 
@@ -46,27 +51,27 @@ public class OauthTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
         // with login hint
-        Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
-                "loginhint");
+        Object request = createAuthenticationRequest("http://www.something.com", "resource%20 ",
+                "client 1234567890-+=;'", "redirect 1234567890-+=;'", "loginhint@ggg.com");
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "buildTokenRequestMessage", String.class);
 
-        String actual = (String)m.invoke(oauth, "authorizationcodevalue");
+        String actual = (String)m.invoke(oauth, "authorizationcodevalue=");
         assertEquals(
                 "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue&client_id=client&redirect_uri=redirect&login_hint=loginhint",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&login_hint=loginhint%40ggg.com",
                 actual);
 
         // without login hint
-        Object requestWithoutLogin = createAuthenticationRequest("authority", "resource", "client",
-                "redirect", "");
+        Object requestWithoutLogin = createAuthenticationRequest("http://www.something.com", "resource%20 ",
+                "client 1234567890-+=;'", "redirect 1234567890-+=;'", "");
 
         Object oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
 
-        actual = (String)m.invoke(oauthWithoutLoginHint, "authorizationcodevalue");
+        actual = (String)m.invoke(oauthWithoutLoginHint, "authorizationcodevalue=");
         assertEquals(
                 "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue&client_id=client&redirect_uri=redirect",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27",
                 actual);
     }
 

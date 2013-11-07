@@ -4,24 +4,13 @@
 
 package com.microsoft.adal;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.UUID;
-
-import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -37,30 +26,9 @@ import com.microsoft.adal.ErrorCodes.ADALError;
  */
 public class AuthenticationContext {
 
-    public enum PromptBehavior {
-        /**
-         * Acquire token will prompt the user for credentials only when
-         * necessary.
-         */
-        Auto,
-
-        /**
-         * The user will be prompted for credentials even if it is available in
-         * the cache or in the form of refresh token. New acquired access token
-         * and refresh token will be used to replace previous value. If Settings
-         * switched to Auto, new request will use this latest token from cache.
-         */
-        Always,
-
-        /**
-         * Don't show UI
-         */
-        Never
-    }
-
     private final static String TAG = "AuthenticationContext";
 
-    private Context mAppContext;
+    private Context mContext;
 
     private String mAuthority;
 
@@ -70,7 +38,10 @@ public class AuthenticationContext {
 
     private transient ActivityDelegate mActivityDelegate;
 
-    private AuthenticationCallback<AuthenticationResult> mExternalCallback;
+    /**
+     * only one authorization can happen for user.
+     */
+    private AuthenticationCallback<AuthenticationResult> mAuthorizationCallback;
 
     /**
      * Instance validation related calls are serviced inside Discovery as a
@@ -81,7 +52,7 @@ public class AuthenticationContext {
     /**
      * webrequest handler interface to test behaviors
      */
-    private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
+    private IWebRequestHandler mWebRequest = new WebRequestHandler();
 
     private Activity mActivity;
 
@@ -97,7 +68,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
 
-        mAppContext = appContext;
+        mContext = appContext;
         mAuthority = authority;
         mValidateAuthority = validateAuthority;
     }
@@ -110,7 +81,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             ITokenCacheStore tokenCacheStore) {
-        mAppContext = appContext;
+        mContext = appContext;
         mAuthority = authority;
         mValidateAuthority = validateAuthority;
         mCache = tokenCacheStore;
@@ -126,7 +97,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority,
             ITokenCacheStore tokenCacheStore) {
-        mAppContext = appContext;
+        mContext = appContext;
         mAuthority = authority;
         mValidateAuthority = true;
         mCache = tokenCacheStore;
@@ -163,7 +134,7 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, AuthenticationCallback callback) {
 
-        if (mAppContext == null) {
+        if (mContext == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_APP_CONTEXT_IS_NOT_SET);
         }
 
@@ -309,15 +280,15 @@ public class AuthenticationContext {
         // This is called at UI thread.
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
             if (data == null) {
-                mExternalCallback.onError(new AuthenticationException(
+                mAuthorizationCallback.onError(new AuthenticationException(
                         ADALError.ON_ACTIVITY_RESULT_INTENT_NULL_));
-                mExternalCallback = null;
+                mAuthorizationCallback = null;
             } else {
                 Bundle extras = data.getExtras();
                 if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL) {
                     // User cancelled the flow
-                    mExternalCallback.onError(new AuthenticationCancelError());
-                    mExternalCallback = null;
+                    mAuthorizationCallback.onError(new AuthenticationCancelError());
+                    mAuthorizationCallback = null;
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
                     // Certificate error or similar
                     AuthenticationRequest errRequest = (AuthenticationRequest)extras
@@ -327,10 +298,10 @@ public class AuthenticationContext {
                     String errMessage = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
 
-                    mExternalCallback.onError(new AuthenticationException(
+                    mAuthorizationCallback.onError(new AuthenticationException(
                             ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage));
 
-                    mExternalCallback = null;
+                    mAuthorizationCallback = null;
 
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     // Browser has the url and finished the processing to get token
@@ -342,11 +313,11 @@ public class AuthenticationContext {
 
                     if (endingUrl.isEmpty()) {
                         Log.d(TAG, "Ending url is empty");
-                        mExternalCallback
+                        mAuthorizationCallback
                                 .onError(new IllegalArgumentException("Final url is empty"));
-                        mExternalCallback = null;
+                        mAuthorizationCallback = null;
                     } else {
-                        Oauth oauthRequest = new Oauth(authenticationRequest, mWebRequestHandler);
+                        Oauth oauthRequest = new Oauth(authenticationRequest, mWebRequest);
                         Log.d(TAG, "Process url:" + endingUrl);
                         
                         oauthRequest.getToken(endingUrl, new AuthenticationCallback<AuthenticationResult>() {
@@ -354,15 +325,15 @@ public class AuthenticationContext {
                             @Override
                             public void onSuccess(AuthenticationResult result) {
                                 setCachedResult(authenticationRequest, result);
-                                mExternalCallback.onSuccess(result);
-                                mExternalCallback = null;                                
+                                mAuthorizationCallback.onSuccess(result);
+                                mAuthorizationCallback = null;                                
                             }
 
                             @Override
                             public void onError(Exception exc) {
                                 Log.d(TAG, "Error in processing code to get token");
-                                mExternalCallback.onError(exc);
-                                mExternalCallback = null;                                
+                                mAuthorizationCallback.onError(exc);
+                                mAuthorizationCallback = null;                                
                             }
                         });
                     }
@@ -399,15 +370,16 @@ public class AuthenticationContext {
      * @param callback
      */
     private void acquireTokenLocal(Activity activity, final AuthenticationRequest request,
-            PromptBehavior prompt, AuthenticationCallback callback) {
+            PromptBehavior prompt, AuthenticationCallback<AuthenticationResult> callback) {
 
         // TODO: Check cached authorization object
-
+        // these will pass callback so no limit on authentication.
         // TODO: refresh if required
 
+        // Authorization Flow
         // start activity if other options are not available
-        if (mExternalCallback == null) {
-            mExternalCallback = callback;
+        if (mAuthorizationCallback == null) {
+            mAuthorizationCallback = callback;
         } else {
             throw new AuthenticationException(ADALError.DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED);
         }
@@ -415,12 +387,13 @@ public class AuthenticationContext {
         setActivity(activity);
         setActivityDelegate(activity);
         if (!startAuthenticationActivity(request)) {
+            mAuthorizationCallback = null;
             throw new AuthenticationException(ADALError.DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED);
         }
     }
 
     private String getRedirectFromPackage() {
-        return mAppContext.getApplicationContext().getPackageName();
+        return mContext.getApplicationContext().getPackageName();
     }
 
     private Activity getActivity() {
@@ -496,7 +469,7 @@ public class AuthenticationContext {
      */
     final private boolean resolveIntent(Intent intent) {
 
-        ResolveInfo resolveInfo = mAppContext.getPackageManager().resolveActivity(intent, 0);
+        ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
         if (resolveInfo == null) {
             return false;
         }

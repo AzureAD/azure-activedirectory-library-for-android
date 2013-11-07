@@ -70,9 +70,10 @@ class Oauth {
         String requestUrl = String
                 .format("%s?response_type=%s&client_id=%s&resource=%s&redirect_uri=%s&state=%s",
                         mRequest.getAuthority() + AUTH_ENDPOINT_APPEND,
-                        AuthenticationConstants.OAuth2.CODE, mRequest.getClientId(), URLEncoder
-                                .encode(mRequest.getResource(),
-                                        AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
+                        AuthenticationConstants.OAuth2.CODE, URLEncoder.encode(
+                                mRequest.getClientId(), AuthenticationConstants.ENCODING_UTF8),
+                        URLEncoder.encode(mRequest.getResource(),
+                                AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
                                 mRequest.getRedirectUri(), AuthenticationConstants.ENCODING_UTF8),
                         encodeProtocolState());
 
@@ -101,7 +102,8 @@ class Oauth {
 
         if (!StringExtensions.IsNullOrBlank(mRequest.getLoginHint())) {
             message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.LOGIN_HINT,
-                    mRequest.getLoginHint());
+                    URLEncoder.encode(mRequest.getLoginHint(),
+                            AuthenticationConstants.ENCODING_UTF8));
         }
 
         return message;
@@ -145,10 +147,11 @@ class Oauth {
     }
 
     /**
-     * parse final url for code(normal flow) or token(implicit flow) and then it proceeds to next step.
+     * parse final url for code(normal flow) or token(implicit flow) and then it
+     * proceeds to next step.
      * 
-     * @param authorizationUrl browser reached to this final url and it has code or
-     *            token for next step
+     * @param authorizationUrl browser reached to this final url and it has code
+     *            or token for next step
      * @param authenticationCallback
      */
     public void getToken(String authorizationUrl,
@@ -314,6 +317,7 @@ class Oauth {
 
     /**
      * extract AuthenticationResult object from response body if available
+     * 
      * @param webResponse
      * @return
      */
