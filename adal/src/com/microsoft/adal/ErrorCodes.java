@@ -39,8 +39,10 @@ public class ErrorCodes {
          * User can only have one login activity in use
          */
         DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED,
-       
-        
+        /**
+         * Context is not provided
+         */
+        DEVELOPER_CONTEXT_IS_NOT_PROVIDED,
         /**
          * Invalid request to server
          */
@@ -102,7 +104,11 @@ public class ErrorCodes {
         /**
          * onActivityResult is called with null intent data
          */
-        ON_ACTIVITY_RESULT_INTENT_NULL_
+        ON_ACTIVITY_RESULT_INTENT_NULL_,
+        /**
+         * Shared preferences are not available
+         */
+        DEVICE_SHARED_PREF_IS_NOT_AVAILABLE
     }
 
     /**

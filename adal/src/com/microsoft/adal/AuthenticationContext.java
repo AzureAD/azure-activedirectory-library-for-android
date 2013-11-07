@@ -65,6 +65,8 @@ public class AuthenticationContext {
     private String mAuthority;
 
     private boolean mValidateAuthority;
+    
+    private ITokenCacheStore mTokenCacheStore;
 
     private ITokenCacheStore mCache;
 
@@ -96,10 +98,10 @@ public class AuthenticationContext {
      * @param validateAuthority validate authority before sending token request
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
-
         mAppContext = appContext;
         mAuthority = authority;
         mValidateAuthority = validateAuthority;
+        mTokenCacheStore = new DefaultTokenCacheStore(appContext);
     }
 
     /**
@@ -108,12 +110,13 @@ public class AuthenticationContext {
      * @param validateAuthority
      * @param cache Set to null if you don't want cache.
      */
-    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
-            ITokenCacheStore tokenCacheStore) {
+
+    public AuthenticationContext(Context appContext, String authority,
+            boolean validateAuthority, ITokenCacheStore tokenCacheStore) {
         mAppContext = appContext;
         mAuthority = authority;
         mValidateAuthority = validateAuthority;
-        mCache = tokenCacheStore;
+        mTokenCacheStore = tokenCacheStore;
     }
 
     /**
@@ -129,7 +132,7 @@ public class AuthenticationContext {
         mAppContext = appContext;
         mAuthority = authority;
         mValidateAuthority = true;
-        mCache = tokenCacheStore;
+        mTokenCacheStore = tokenCacheStore;
     }
 
     /**
@@ -139,7 +142,7 @@ public class AuthenticationContext {
      * @return
      */
     public ITokenCacheStore getCache() {
-        throw new UnsupportedOperationException("come back later");
+        return mTokenCacheStore;
     }
 
     public String getAuthority() {
