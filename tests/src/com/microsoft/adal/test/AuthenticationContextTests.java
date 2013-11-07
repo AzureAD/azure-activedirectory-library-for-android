@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
 import android.content.Context;
@@ -120,7 +121,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                     }
                 });
 
-        AssertUtils.assertThrowsException(IllegalArgumentException.class, "clientId",
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "clientid",
                 new Runnable() {
 
                     @Override
@@ -146,9 +147,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        context.acquireToken(testActivity, "resource", null, "redirectUri", "userid", callback);
-
-        callback.wait(CONTEXT_REQUEST_TIME_OUT);
+        context.acquireToken(testActivity, "resource", "clientId", "redirectUri", "userid",
+                callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // check response in callback
         assertNotNull("Error is not null", callback.mException);
@@ -170,15 +171,16 @@ public class AuthenticationContextTests extends AndroidTestCase {
         TestMockContext mockContext = new TestMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "https://login.windows.net/omercantest.onmicrosoft.com", true);
-        final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
+        final MockActivity testActivity = new MockActivity();
+        testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         MockDiscovery discovery = new MockDiscovery(true);
         ReflectionUtils.setFieldValue(context, "mDiscovery", discovery);
 
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
                 callback);
-        callback.wait(CONTEXT_REQUEST_TIME_OUT);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // check response in callback
         assertNull("Error is null", callback.mException);
@@ -209,7 +211,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
                 callback);
-        callback.wait(CONTEXT_REQUEST_TIME_OUT);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // check response in callback
         assertNotNull("Error is not null", callback.mException);
@@ -218,7 +220,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertTrue(
                 "Activity was not attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW != testActivity.mStartActivityRequestCode);
-
     }
 
     /**
@@ -237,16 +238,15 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 "https://login.windows.net/omercantest.onmicrosoft.com", false);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
                 callback);
-        callback.wait(CONTEXT_REQUEST_TIME_OUT);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // check response in callback
-        assertNotNull("Error is not null", callback.mException);
-        assertEquals("NOT_VALID_URL", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
-                ((AuthenticationException)callback.mException).getCode());
+        assertNull("Error is null", callback.mException);
         assertEquals("Activity was attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
@@ -272,8 +272,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
     /**
      * handler to return mock responses
-     * 
-     * @author omercan
      */
     class MockWebRequestHandler implements IWebRequestHandler {
 
@@ -326,8 +324,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
     /**
      * callback to store responses
-     * 
-     * @author omercan
      */
     class MockAuthenticationCallback implements AuthenticationCallback<AuthenticationResult> {
 
@@ -362,8 +358,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
     /**
      * Mock activity
-     * 
-     * @author omercan
      */
     class MockActivity extends Activity {
 
@@ -371,14 +365,27 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         Intent mStartActivityIntent;
 
+        CountDownLatch mSignal;
+
         Bundle mStartActivityOptions;
+
+        @Override
+        public String getPackageName() {
+            return ReflectionUtils.TEST_PACKAGE_NAME;
+        }
 
         @Override
         public void startActivityForResult(Intent intent, int requestCode, Bundle options) {
             mStartActivityIntent = intent;
             mStartActivityRequestCode = requestCode;
             mStartActivityOptions = options;
+            // test call needs to stop the tests at this point. If it reaches
+            // here, it means authenticationActivity was attempted to launch.
+            // Since it is mock activity, it will not launch something.
+            if (mSignal != null)
+                mSignal.countDown();
         }
+
     }
 
     class TestMockContext extends MockContext {
