@@ -4,24 +4,17 @@
 
 package com.microsoft.adal;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.UUID;
-
-import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -189,8 +182,6 @@ public class AuthenticationContext {
             redirectInfo = getRedirectFromPackage();
         }
 
-        setActivity(activity);
-        setActivityDelegate(activity);
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectInfo, userId);
 
@@ -401,7 +392,7 @@ public class AuthenticationContext {
      * @param prompt
      * @param callback
      */
-    private void acquireTokenLocal(Activity activity, final AuthenticationRequest request,
+    private void acquireTokenLocal(final Activity activity, final AuthenticationRequest request,
             final PromptBehavior prompt, AuthenticationCallback<AuthenticationResult> callback) {
 
         URL authorityUrl;
@@ -413,8 +404,6 @@ public class AuthenticationContext {
             return;
         }
 
-        setActivity(activity);
-        setActivityDelegate(activity);
         final AuthenticationCallback<AuthenticationResult> externalCall = callback;
 
         final Runnable requestRunnable = new Runnable() {
@@ -422,13 +411,11 @@ public class AuthenticationContext {
             @Override
             public void run() {
                 Log.d(TAG, "Token request runnable is started");
-                // TODO: Check cached authorization object
-                AuthenticationResult cachedItem = getItemFromCache();
-                if (prompt != PromptBehavior.Always && valid(cachedItem)) {
+                AuthenticationResult cachedItem = getItemFromCache(request);
+                if (prompt != PromptBehavior.Always && isValidCache(cachedItem)) {
                     externalCall.onSuccess(cachedItem);
-                } else if (prompt != PromptBehavior.Always && refreshable(cachedItem)) {
-                    // TODO: refresh if required
-                    refreshToken(request, cachedItem, prompt, externalCall);
+                } else if (prompt != PromptBehavior.Always && isRefreshable(cachedItem)) {
+                    refreshToken(activity, request, cachedItem, prompt, externalCall);
                 } else {
                     // start activity if other options are not available
                     // Authorization has one reference of callback
@@ -441,6 +428,10 @@ public class AuthenticationContext {
                                 ADALError.DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED));
                         return;
                     }
+
+                    // Set Activity for authorization flow
+                    setActivity(activity);
+                    setActivityDelegate(activity);
 
                     if (!startAuthenticationActivity(request)) {
                         mAuthorizationCallback.onError(new AuthenticationException(
@@ -457,33 +448,117 @@ public class AuthenticationContext {
         }
     }
 
-    protected boolean refreshable(AuthenticationResult cachedItem) {
+    protected boolean isRefreshable(AuthenticationResult cachedItem) {
         // TODO Auto-generated method stub
         return false;
     }
 
-    private boolean valid(AuthenticationResult cachedItem) {
-        // TODO Auto-generated method stub
+    private boolean isValidCache(AuthenticationResult cachedItem) {
+        if (cachedItem != null && !StringExtensions.IsNullOrBlank(cachedItem.getAccessToken())
+                && isExpired(cachedItem.getExpiresOn())) {
+            return true;
+        }
         return false;
     }
 
-    private AuthenticationResult getItemFromCache() {
-        return new AuthenticationResult();
+    private boolean isExpired(Date expires) {
+        Date validity = getTokenValidityTime().getTime();
+
+        if (expires != null && expires.before(validity))
+            return true;
+
+        return false;
+    }
+
+    private static Calendar getTokenValidityTime() {
+        Calendar timeAhead = Calendar.getInstance();
+        return timeAhead;
+    }
+
+    private AuthenticationResult getItemFromCache(final AuthenticationRequest request) {
+        if (mTokenCacheStore != null) {
+            TokenCacheItem item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request));
+
+            if (item != null) {
+                AuthenticationResult result = new AuthenticationResult(item.getAccessToken(),
+                        item.getRefreshToken(), item.getExpiresOn(),
+                        item.getIsMultiResourceRefreshToken());
+                return result;
+            }
+        }
+        return null;
+    }
+
+    class CacheRequest {
+        boolean result = false;
+
+        Runnable runner;
+    }
+
+    private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result)
+            throws AuthenticationException {
+        if (mTokenCacheStore != null) {
+            mTokenCacheStore.setItem(new TokenCacheItem(request, result));
+        }
+    }
+
+    private void removeItemFromCache(final AuthenticationRequest request)
+            throws AuthenticationException {
+        if (mTokenCacheStore != null) {
+            mTokenCacheStore.removeItem(CacheKey.createCacheKey(request));
+        }
     }
 
     /**
-     * callback
+     * refresh token if possible. if fails, call acquire token with prompt
+     * always flag.
      * 
-     * @param request
-     * @param refreshToken
+     * @param activity Activity to use in case refresh token does not succeed
+     *            and prompt is not set to never.
+     * @param request incoming request
+     * @param refreshItem refresh token info
+     * @param prompt if set to never, it should not attempt to launch
+     *            authorization
+     * @param externalCallback
      */
-    private void refreshToken(final AuthenticationRequest request,
-            AuthenticationResult refreshItem, PromptBehavior prompt,
-            final AuthenticationCallback<AuthenticationResult> authenticationCallback) {
+    private void refreshToken(final Activity activity, final AuthenticationRequest request,
+            AuthenticationResult refreshItem, final PromptBehavior prompt,
+            final AuthenticationCallback<AuthenticationResult> externalCallback) {
 
+        Log.d(TAG, "Process refreshToken for " + request.getLogInfo());
+        
+        // Removes refresh token from cache, when this call is complete. Request may be interrupted, if app is shutdown by user.
+        Oauth oauthRequest = new Oauth(request, mWebRequestHandler);
+        oauthRequest.refreshToken(refreshItem.getRefreshToken(),
+                new AuthenticationCallback<AuthenticationResult>() {
+
+                    @Override
+                    public void onSuccess(AuthenticationResult result) {
+
+                        if (result == null
+                                || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+
+                            removeItemFromCache(request);
+                            //TODO: This may cause an issue if refresh token request was delayed and user moved to another screen.
+                            acquireTokenLocal(activity, request, prompt, externalCallback);
+                        } else {
+                            Log.v(TAG, "Refresh token is finished for " + request.getLogInfo());
+                            setItemToCache(request, result);
+                            externalCallback.onSuccess(result);
+                        }
+                    }
+
+                    @Override
+                    public void onError(Exception exc) {
+                        // remove item from cache
+                        removeItemFromCache(request);
+                        externalCallback.onError(exc);
+                    }
+                });
     }
 
-    private void validateAuthority(final URL authorityUrl, final Runnable requestRunnable, final AuthenticationCallback<AuthenticationResult> externalCall) {
+    private void validateAuthority(final URL authorityUrl, final Runnable requestRunnable,
+            final AuthenticationCallback<AuthenticationResult> externalCall) {
         if (mDiscovery != null) {
             mDiscovery.isValidAuthority(authorityUrl, new AuthenticationCallback<Boolean>() {
 
@@ -598,7 +673,7 @@ public class AuthenticationContext {
      * get intent to start authentication activity
      * 
      * @param request
-     * @return intent for autentication activity
+     * @return intent for authentication activity
      */
     final private Intent getAuthenticationActivityIntent(AuthenticationRequest request) {
         Intent intent = new Intent();

@@ -107,6 +107,26 @@ class Oauth {
         return message;
     }
 
+    public String buildRefreshTokenRequestMessage(String refreshToken)
+            throws UnsupportedEncodingException {
+        String message = String.format("%s=%s&%s=%s&%s=%s",
+                AuthenticationConstants.OAuth2.GRANT_TYPE,
+                StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
+
+                AuthenticationConstants.OAuth2.REFRESH_TOKEN,
+                StringExtensions.URLFormEncode(refreshToken),
+
+                AuthenticationConstants.OAuth2.CLIENT_ID,
+                StringExtensions.URLFormEncode(mRequest.getClientId()));
+
+        if (!StringExtensions.IsNullOrBlank(mRequest.getResource())) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.RESOURCE,
+                    mRequest.getResource());
+        }
+
+        return message;
+    }
+
     public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) {
 
         AuthenticationResult result = new AuthenticationResult();
@@ -144,11 +164,88 @@ class Oauth {
         return result;
     }
 
+    public void refreshToken(String refreshToken,
+            final AuthenticationCallback<AuthenticationResult> authenticationCallback) {
+
+        String requestMessage = null;
+        if (mWebRequestHandler == null) {
+            Log.e(TAG, "Web request is not set correctly");
+            authenticationCallback.onError(new IllegalArgumentException("webRequestHandler"));
+            return;
+        }
+
+        // Token request message
+        try {
+            requestMessage = buildRefreshTokenRequestMessage(refreshToken);
+        } catch (UnsupportedEncodingException encoding) {
+            Log.e(TAG, encoding.getMessage(), encoding);
+            authenticationCallback.onError(encoding);
+            return;
+        }
+
+        URL authority = null;
+
+        try {
+            authority = new URL(getTokenEndpoint());
+        } catch (MalformedURLException e1) {
+            Log.e(TAG, e1.getMessage(), e1);
+            authenticationCallback.onError(e1);
+            return;
+        }
+
+        // Async post to get token. It posts the result back to the
+        // externalCallback
+        HashMap<String, String> headers = getRequestHeaders();
+        try {
+            mWebRequestHandler.sendAsyncPost(authority, headers,
+                    requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                    "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
+
+                        @Override
+                        public void onComplete(HttpWebResponse response, Exception exception) {
+                            if (exception != null) {
+                                Log.e(TAG,
+                                        "Web request returned exception:" + exception.getMessage(),
+                                        exception);
+                                authenticationCallback.onError(exception);
+                            } else {
+                                Log.v(TAG, "Token request does not have errors");
+                                AuthenticationResult result = processTokenResponse(response);
+
+                                if (result != null
+                                        && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
+                                    Log.v(TAG, "Refresh Token is successfull");
+                                    authenticationCallback.onSuccess(result);
+                                } else {
+                                    // Did not get token
+                                    Log.v(TAG,
+                                            "Refresh Token is not successfull. ErrorCode:"
+                                                    + result.getErrorCode() + " "
+                                                    + result.getErrorDescription());
+                                    authenticationCallback.onError(new AuthenticationException(
+                                            result.getErrorCode(), result.getErrorDescription()));
+                                }
+                            }
+                        }
+                    });
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, e.getMessage(), e);
+            authenticationCallback.onError(e);
+        } catch (UnsupportedEncodingException e) {
+            Log.e(TAG, e.getMessage(), e);
+            authenticationCallback.onError(e);
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage(), e);
+            authenticationCallback.onError(e);
+        }
+    }
+
     /**
-     * parse final url for code(normal flow) or token(implicit flow) and then it proceeds to next step.
+     * parse final url for code(normal flow) or token(implicit flow) and then it
+     * proceeds to next step.
      * 
-     * @param authorizationUrl browser reached to this final url and it has code or
-     *            token for next step
+     * @param authorizationUrl browser reached to this final url and it has code
+     *            or token for next step
      * @param authenticationCallback
      */
     public void getToken(String authorizationUrl,
@@ -243,9 +340,7 @@ class Oauth {
             return;
         }
 
-        // Async post
-        HashMap<String, String> headers = new HashMap<String, String>();
-        headers.put("Accept", "application/json");
+        HashMap<String, String> headers = getRequestHeaders();
         try {
             mWebRequestHandler.sendAsyncPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
@@ -312,8 +407,15 @@ class Oauth {
         return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
+    private HashMap<String, String> getRequestHeaders() {
+        HashMap<String, String> headers = new HashMap<String, String>();
+        headers.put("Accept", "application/json");
+        return headers;
+    }
+
     /**
      * extract AuthenticationResult object from response body if available
+     * 
      * @param webResponse
      * @return
      */

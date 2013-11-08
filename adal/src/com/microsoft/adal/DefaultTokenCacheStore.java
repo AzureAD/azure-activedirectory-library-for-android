@@ -58,7 +58,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
     }
 
     @Override
-    public boolean removeItem(TokenCacheItem item) {
+    public void removeItem(TokenCacheItem item) {
 
         argumentCheck();
 
@@ -70,17 +70,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
         if (mPrefs.contains(key.toString())) {
             Editor prefsEditor = mPrefs.edit();
             prefsEditor.remove(key.toString());
-            if (!prefsEditor.commit()) {
-                return prefsEditor.commit();
-            }
-            return true;
+            // apply will do Async disk write operation.
+            prefsEditor.apply();
         }
-
-        return false;
     }
 
     @Override
-    public boolean setItem(TokenCacheItem item) {
+    public void setItem(TokenCacheItem item) {
 
         argumentCheck();
 
@@ -91,18 +87,12 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
         Editor prefsEditor = mPrefs.edit();
         prefsEditor.putString(CacheKey.createCacheKey(item).toString(), json);
 
-        // when two editors are modifying preferences at the same time, the
-        // last one commit wins
-        // simply one more retry
-        if (!prefsEditor.commit()) {
-            return prefsEditor.commit();
-        }
-        return true;
-
+        // apply will do Async disk write operation.
+        prefsEditor.apply();
     }
 
     @Override
-    public boolean removeItem(CacheKey key) {
+    public void removeItem(CacheKey key) {
 
         argumentCheck();
 
@@ -112,27 +102,20 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
         if (mPrefs.contains(key.toString())) {
             Editor prefsEditor = mPrefs.edit();
             prefsEditor.remove(key.toString());
-            if (!prefsEditor.commit()) {
-                return prefsEditor.commit();
-            }
-            return true;
+            // apply will do Async disk write operation.
+            prefsEditor.apply();
         }
-
-        return false;
     }
 
     @Override
-    public boolean removeAll() {
+    public void removeAll() {
 
         argumentCheck();
 
         Editor prefsEditor = mPrefs.edit();
         prefsEditor.clear();
-        if (!prefsEditor.commit()) {
-            return prefsEditor.commit();
-        }
-        return true;
-
+        // apply will do Async disk write operation.
+        prefsEditor.apply();
     }
 
     // Extra helper methods can be implemented here for queries

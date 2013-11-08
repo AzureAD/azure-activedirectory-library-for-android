@@ -48,45 +48,36 @@ public class DefaultTokenCacheStoreTests extends AndroidTestHelper {
     protected void tearDown() throws Exception {
 
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
-        assertTrue("Clear all", store.removeAll());
+        store.removeAll();
         super.tearDown();
     }
 
-    public void testGetItem() {
-
+    public void testGetRemoveItem() {
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
+
         TokenCacheItem item = store.getItem(new CacheKey());
         assertNull("Token cache item is expected to be null", item);
 
-        // get item
+        store.removeItem(CacheKey.createCacheKey(testItem));
         item = store.getItem(CacheKey.createCacheKey(testItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
-        assertEquals("Same tokencacheitem content", testItem.getAuthority(), item.getAuthority());
-        assertEquals("Same tokencacheitem content", testItem.getClientId(), item.getClientId());
-        assertEquals("Same tokencacheitem content", testItem.getResource(), item.getResource());
-    }
-
-    public void testRemoveItem() {
-        DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
-
-        boolean actual = store.removeItem(CacheKey.createCacheKey(testItem));
-        assertEquals("Expected to remove item", true, actual);
 
         // second call should return false
-        actual = store.removeItem(CacheKey.createCacheKey(testItem));
-        assertFalse("second call should return false", actual);
+        item = store.getItem(CacheKey.createCacheKey(testItem));
+        assertNull("Token cache item is expected to be null", item);
     }
 
     public void testRemoveAll() {
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
 
-        boolean actual = store.removeAll();
-        assertEquals("Expected to remove all items", true, actual);
-        
+        store.removeAll();
+        TokenCacheItem item = store.getItem(new CacheKey());
+        assertNull("Token cache item is expected to be null", item);
+
         Iterator<TokenCacheItem> results = store.getAll();
         assertFalse("It does not have items", results.hasNext());
     }
-    
+
     public void testGetAll() {
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
 

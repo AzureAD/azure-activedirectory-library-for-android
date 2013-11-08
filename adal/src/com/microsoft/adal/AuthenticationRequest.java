@@ -144,4 +144,10 @@ class AuthenticationRequest implements Serializable {
     public void setExtraQueryParamsAuthentication(String mExtraQueryParamsAuthentication) {
         this.mExtraQueryParamsAuthentication = mExtraQueryParamsAuthentication;
     }
+
+    public String getLogInfo() {
+        // directly access values without getter to make it fast
+        return String.format("Request authority:% resource:% clientid:%", mAuthority, mResource,
+                mClientId);
+    }
 }

@@ -9,16 +9,13 @@ public class CacheKey {
 
     private String mClientId;
 
-    private String mUserId;
 
-    public static CacheKey createCacheKey(String authority, String resource, String clientId,
-            String userId) {      
+    public static CacheKey createCacheKey(String authority, String resource, String clientId) {      
         
         CacheKey key = new CacheKey();
         key.mAuthority = authority;
         key.mResource = resource;
         key.mClientId = clientId;
-        key.mUserId = userId;
         return key;
     }
 
@@ -29,7 +26,7 @@ public class CacheKey {
             userId = item.getUserInfo().getUserId();
         }
 
-        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), userId);
+        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId());
     }
     
     /**
@@ -37,9 +34,9 @@ public class CacheKey {
      * @param requestItem
      * @return
      */
-    public static CacheKey createCacheKey(AuthenticationRequest requestItem) {
+    static CacheKey createCacheKey(AuthenticationRequest item) {
         //implementation is another code review...
-        return new CacheKey();
+        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId());
     }
 
     public String getAuthority() {
@@ -52,10 +49,6 @@ public class CacheKey {
 
     public String getClientId() {
         return mClientId;
-    }
-
-    public String getUserId() {
-        return mUserId;
     }
 
     @Override
