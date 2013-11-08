@@ -15,63 +15,105 @@ import java.util.Date;
  */
 public class TokenCacheItem implements Serializable {
 
+    /**
+     * Serial version
+     */
+    private static final long serialVersionUID = 1L;
+
+    private UserInfo mUserInfo;
+
+    private String mResource;
+
+    private String mAuthority;
+
+    private String mClientId;
+
+    private String mAccessToken;
+
+    private String mRefreshtoken;
+
+    /**
+     * this time is GMT
+     */
+    private Date mExpiresOn;
+    
+    private String mTenantId;
+    
+    private String mAccessTokenType;
+
     public TokenCacheItem() {
 
     }
 
-    UserInfo getUserInfo() {
-        throw new UnsupportedOperationException("come back later");
+    public UserInfo getUserInfo() {
+        return mUserInfo;
     }
 
-    void setUserInfo(UserInfo info) {
-        throw new UnsupportedOperationException("come back later");
+    public void setUserInfo(UserInfo info) {
+        this.mUserInfo = info;
     }
 
     public String getResource() {
-        throw new UnsupportedOperationException("come back later");
+        return mResource;
     }
 
     public void setResource(String resource) {
-        throw new UnsupportedOperationException("come back later");
+        this.mResource = resource;
     }
 
     public String getAuthority() {
-        throw new UnsupportedOperationException("come back later");
+        return mAuthority;
     }
 
     public void setAuthority(String authority) {
-        throw new UnsupportedOperationException("come back later");
+        this.mAuthority = authority;
     }
 
     public String getClientId() {
-        throw new UnsupportedOperationException("come back later");
+        return mClientId;
     }
 
     public void setClientId(String clientId) {
-        throw new UnsupportedOperationException("come back later");
+        this.mClientId = clientId;
     }
 
     public String getAccessToken() {
-        throw new UnsupportedOperationException("come back later");
+        return mAccessToken;
     }
 
     public void setAccessToken(String accessToken) {
-        throw new UnsupportedOperationException("come back later");
+        this.mAccessToken = accessToken;
     }
 
     public String getRefreshToken() {
-        throw new UnsupportedOperationException("come back later");
+        return mRefreshtoken;
     }
 
     public void setRefreshToken(String refreshToken) {
-        throw new UnsupportedOperationException("come back later");
+        this.mRefreshtoken = refreshToken;
     }
 
     public Date getExpiresOn() {
-        throw new UnsupportedOperationException("come back later");
+        return mExpiresOn;
     }
 
     public void setExpiresOn(Date expiresOn) {
-        throw new UnsupportedOperationException("come back later");
+        this.mExpiresOn = expiresOn;
+    }
+
+    public String getTenantId() {
+        return mTenantId;
+    }
+
+    public void setTenantId(String mTenantId) {
+        this.mTenantId = mTenantId;
+    }
+
+    public String getAccessTokenType() {
+        return mAccessTokenType;
+    }
+
+    public void setAccessTokenType(String mAccessTokenType) {
+        this.mAccessTokenType = mAccessTokenType;
     }
 }

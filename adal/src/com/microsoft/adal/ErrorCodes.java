@@ -32,6 +32,10 @@ public class ErrorCodes {
          */
         DEVELOPER_RESOURCE_IS_EMPTY,
         /**
+         * Context is not provided
+         */
+        DEVELOPER_CONTEXT_IS_NOT_PROVIDED,
+        /**
          * Invalid request to server
          */
         SERVER_INVALID_REQUEST,
@@ -87,7 +91,11 @@ public class ErrorCodes {
         /**
          * Internet permissions are not set for the app
          */
-        DEVICE_INTERNET_IS_NOT_AVAILABLE
+        DEVICE_INTERNET_IS_NOT_AVAILABLE,
+        /**
+         * Shared preferences are not available
+         */
+        DEVICE_SHARED_PREF_IS_NOT_AVAILABLE,
     }
 
     /**
