@@ -18,23 +18,33 @@ public class ErrorCodes {
          * Authority url is not valid
          */
         DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
+        
         /**
          * Authority is empty
          */
         DEVELOPER_AUTHORITY_IS_EMPTY,
+        
         /**
          * Async tasks can only be executed one time. They are not supposed to
          * be reused.
          */
         DEVELOPER_ASYNC_TASK_REUSED,
+        
         /**
          * Resource is empty
          */
         DEVELOPER_RESOURCE_IS_EMPTY,
+        
         /**
          * Context is not provided
          */
         DEVELOPER_CONTEXT_IS_NOT_PROVIDED,
+        
+        /**
+         * User can only have one login activity in use
+         */
+        DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED,
+        
         /**
          * Invalid request to server
          */
@@ -44,7 +54,9 @@ public class ErrorCodes {
          * Authorization Failed
          */
         AUTH_FAILED,
+        
         /**
+         * 
          * Authorization Failed: %d
          */
         AUTH_FAILED_ERROR_CODE,
@@ -83,19 +95,26 @@ public class ErrorCodes {
          * The user cancelled the authorization request
          */
         AUTH_FAILED_CANCELLED,
-
+        
         /**
          * Invalid parameters for authorization operation
          */
         AUTH_FAILED_INTERNAL_ERROR,
+        
         /**
          * Internet permissions are not set for the app
          */
         DEVICE_INTERNET_IS_NOT_AVAILABLE,
+        
         /**
          * Shared preferences are not available
          */
         DEVICE_SHARED_PREF_IS_NOT_AVAILABLE,
+        
+        /**
+         * onActivityResult is called with null intent data
+         */
+        ON_ACTIVITY_RESULT_INTENT_NULL_,
     }
 
     /**
@@ -106,13 +125,13 @@ public class ErrorCodes {
      * @param enumId
      * @return Translated text
      */
-    public String getMessage(Context appContext, ADALError enumId) {
+    public static String getMessage(Context appContext, ADALError enumId) {
         if (appContext != null) {
             int id = appContext.getResources().getIdentifier(enumId.name(), "string",
                     appContext.getPackageName());
             return appContext.getString(id);
         }
-        
+
         throw new IllegalArgumentException("appContext is null");
     }
 }

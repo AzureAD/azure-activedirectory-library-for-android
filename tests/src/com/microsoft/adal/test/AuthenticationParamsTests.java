@@ -191,7 +191,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             }
         };
 
-        testAsyncNoException(signal, new Runnable() {
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
                 try {
@@ -201,7 +201,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                     signal.countDown();
                 }
             }
-        });
+        }, true);
     }
 
     private HashMap<String, List<String>> getInvalidHeader(String key, String value) {

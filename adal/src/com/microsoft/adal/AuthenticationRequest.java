@@ -17,23 +17,9 @@ class AuthenticationRequest implements Serializable {
 
     private final static long serialVersionUID = 1L;
 
-    /**
-     * RequestAuthEndpoint to append in authority url
-     */
-    private final static String AUTH_ENDPOINT_APPEND = "/oauth2/authorize";
-
-    /**
-     * RequesttokenEndpoint to append in authority url
-     */
-    private final static String TOKEN_ENDPOINT_APPEND = "/oauth2/token";
-
     private String mCode = null;
 
     private String mAuthority = null;
-
-    private String mAuthorizationEndpoint = null;
-
-    private String mTokenEndpoint = null;
 
     private String mRedirectUri = null;
 
@@ -48,6 +34,8 @@ class AuthenticationRequest implements Serializable {
     private int mRequestCode;
 
     private UUID mCorrelationId;
+
+    private String mExtraQueryParamsAuthentication;
 
     public AuthenticationRequest() {
 
@@ -77,25 +65,6 @@ class AuthenticationRequest implements Serializable {
         mResource = resource;
     }
 
-    public String getCodeRequestUrl() throws UnsupportedEncodingException {
-
-        StringBuffer requestUrlBuffer = new StringBuffer();
-        requestUrlBuffer.append(String.format(
-                "%s?response_type=%s&client_id=%s&resource=%s&redirect_uri=%s&state=%s",
-                getAuthority() + AUTH_ENDPOINT_APPEND, AuthenticationConstants.OAuth2.CODE,
-                getClientId(),
-                URLEncoder.encode(getResource(), AuthenticationConstants.ENCODING_UTF8),
-                URLEncoder.encode(getRedirectUri(), AuthenticationConstants.ENCODING_UTF8),
-                encodeProtocolState()));
-
-        if (getLoginHint() != null && !getLoginHint().isEmpty()) {
-            requestUrlBuffer.append(String.format("&%s=%s", AuthenticationConstants.AAD.LOGIN_HINT,
-                    URLEncoder.encode(getLoginHint(), AuthenticationConstants.ENCODING_UTF8)));
-        }
-
-        return requestUrlBuffer.toString();
-    }
-
     public String getCode() {
         return mCode;
     }
@@ -110,20 +79,6 @@ class AuthenticationRequest implements Serializable {
 
     public void setAuthority(String mAuthority) {
         this.mAuthority = mAuthority;
-    }
-
-    public String getAuthorizationEndpoint() {
-        if (mAuthorizationEndpoint == null || mAuthorizationEndpoint.isEmpty()) {
-            mAuthorizationEndpoint = mAuthority + AUTH_ENDPOINT_APPEND;
-        }
-        return mAuthorizationEndpoint;
-    }
-
-    public String getTokenEndpoint() {
-        if (mTokenEndpoint == null || mTokenEndpoint.isEmpty()) {
-            mTokenEndpoint = mAuthority + TOKEN_ENDPOINT_APPEND;
-        }
-        return mTokenEndpoint;
     }
 
     public String getRedirectUri() {
@@ -166,17 +121,6 @@ class AuthenticationRequest implements Serializable {
         this.mLoginHint = mLoginHint;
     }
 
-    public static String decodeProtocolState(String encodedState) {
-        byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
-
-        return new String(stateBytes);
-    }
-
-    private String encodeProtocolState() {
-        String state = String.format("a=%s&r=%s", mAuthority, mResource);
-        return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
-    }
-
     private int getRequestCode() {
         return mRequestCode;
     }
@@ -191,5 +135,13 @@ class AuthenticationRequest implements Serializable {
 
     public void setCorrelationId(UUID val) {
         this.mCorrelationId = val;
+    }
+
+    public String getExtraQueryParamsAuthentication() {
+        return mExtraQueryParamsAuthentication;
+    }
+
+    public void setExtraQueryParamsAuthentication(String mExtraQueryParamsAuthentication) {
+        this.mExtraQueryParamsAuthentication = mExtraQueryParamsAuthentication;
     }
 }

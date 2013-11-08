@@ -4,6 +4,7 @@ package com.microsoft.adal.test;
 import junit.framework.Assert;
 
 import com.microsoft.adal.CacheKey;
+import com.microsoft.adal.TokenCacheItem;
 
 import android.test.AndroidTestCase;
 
@@ -38,7 +39,7 @@ public class CacheKeyTests extends AndroidTestCase {
     public void testcreateCacheKeyNullItem() {
 
         try {
-            CacheKey.createCacheKey(null);
+            CacheKey.createCacheKey((TokenCacheItem)null);
             Assert.fail("not expected");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);

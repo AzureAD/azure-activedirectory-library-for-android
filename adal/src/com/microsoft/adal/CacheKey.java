@@ -31,6 +31,16 @@ public class CacheKey {
         
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId());
     }
+    
+    /**
+     * get cache key
+     * @param requestItem
+     * @return
+     */
+    public static CacheKey createCacheKey(AuthenticationRequest requestItem) {
+        //implementation is another code review...
+        return new CacheKey();
+    }
 
     public String getAuthority() {
         return mAuthority;

@@ -19,7 +19,7 @@
         android:theme="@style/AppTheme" >
         
         <activity
-            android:name="com.microsoft.adal.LoginActivity"
+            android:name="com.microsoft.adal.AuthenticationActivity"
             android:label="@string/title_login_hello_app" >
         </activity>
         <activity
