@@ -95,7 +95,7 @@ public class ErrorCodes {
         /**
          * Shared preferences are not available
          */
-        DEVICE_SHARED_PREF_IS_NOT_AVAILABLE
+        DEVICE_SHARED_PREF_IS_NOT_AVAILABLE,
     }
 
     /**

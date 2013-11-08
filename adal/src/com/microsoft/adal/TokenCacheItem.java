@@ -32,7 +32,14 @@ public class TokenCacheItem implements Serializable {
 
     private String mRefreshtoken;
 
+    /**
+     * this time is GMT
+     */
     private Date mExpiresOn;
+    
+    private String mTenantId;
+    
+    private String mAccessTokenType;
 
     public TokenCacheItem() {
 
@@ -92,5 +99,21 @@ public class TokenCacheItem implements Serializable {
 
     public void setExpiresOn(Date expiresOn) {
         this.mExpiresOn = expiresOn;
+    }
+
+    public String getTenantId() {
+        return mTenantId;
+    }
+
+    public void setTenantId(String mTenantId) {
+        this.mTenantId = mTenantId;
+    }
+
+    public String getAccessTokenType() {
+        return mAccessTokenType;
+    }
+
+    public void setAccessTokenType(String mAccessTokenType) {
+        this.mAccessTokenType = mAccessTokenType;
     }
 }
