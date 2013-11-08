@@ -32,7 +32,12 @@ public class TokenCacheItem implements Serializable {
 
     private String mRefreshtoken;
 
+    /**
+     * this time is GMT
+     */
     private Date mExpiresOn;
+
+    private String mAccessTokenType;
 
     private boolean mIsMultiResourceRefreshToken;
 
@@ -124,5 +129,13 @@ public class TokenCacheItem implements Serializable {
 
     public void setTenantId(String mTenantId) {
         this.mTenantId = mTenantId;
+    }
+
+    public String getAccessTokenType() {
+        return mAccessTokenType;
+    }
+
+    public void setAccessTokenType(String mAccessTokenType) {
+        this.mAccessTokenType = mAccessTokenType;
     }
 }

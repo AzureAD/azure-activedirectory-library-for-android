@@ -9,9 +9,14 @@ public class CacheKey {
 
     private String mClientId;
 
+    private CacheKey() {
+        mAuthority = null;
+        mResource = null;
+        mClientId = null;
+    }
 
-    public static CacheKey createCacheKey(String authority, String resource, String clientId) {      
-        
+    public static CacheKey createCacheKey(String authority, String resource, String clientId) {
+
         CacheKey key = new CacheKey();
         key.mAuthority = authority;
         key.mResource = resource;
@@ -20,22 +25,21 @@ public class CacheKey {
     }
 
     public static CacheKey createCacheKey(TokenCacheItem item) {
-        String userId = null;
-
-        if (item.getUserInfo() != null) {
-            userId = item.getUserInfo().getUserId();
+        if (item == null) {
+            throw new IllegalArgumentException("TokenCacheItem");
         }
 
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId());
     }
-    
+
     /**
      * get cache key
+     * 
      * @param requestItem
      * @return
      */
     static CacheKey createCacheKey(AuthenticationRequest item) {
-        //implementation is another code review...
+        // implementation is another code review...
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId());
     }
 

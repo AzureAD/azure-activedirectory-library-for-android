@@ -1,11 +1,9 @@
 
 package com.microsoft.adal.test;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -15,7 +13,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.test.mock.MockContext;
@@ -26,12 +23,8 @@ import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
-import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.ErrorCodes.ADALError;
-import com.microsoft.adal.HttpWebRequestCallback;
-import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IDiscovery;
-import com.microsoft.adal.IWebRequestHandler;
 
 public class AuthenticationContextTests extends AndroidTestCase {
 
@@ -269,92 +262,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
             callback.onSuccess(isValid);
         }
     }
-
-    /**
-     * handler to return mock responses
-     */
-    class MockWebRequestHandler implements IWebRequestHandler {
-
-        private URL mRequestUrl;
-
-        private HashMap<String, String> mRequestHeaders;
-
-        private HttpWebResponse mReturnResponse;
-
-        private Exception mReturnException;
-
-        @Override
-        public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
-                HttpWebRequestCallback callback) throws IllegalArgumentException, IOException {
-            mRequestUrl = url;
-            mRequestHeaders = headers;
-            callback.onComplete(mReturnResponse, mReturnException);
-            return null;
-        }
-
-        @Override
-        public AsyncTask<?, ?, ?> sendAsyncDelete(URL url, HashMap<String, String> headers,
-                HttpWebRequestCallback callback) throws IllegalArgumentException, IOException {
-            mRequestUrl = url;
-            mRequestHeaders = headers;
-            callback.onComplete(mReturnResponse, mReturnException);
-            return null;
-        }
-
-        @Override
-        public AsyncTask<?, ?, ?> sendAsyncPut(URL url, HashMap<String, String> headers,
-                byte[] content, String contentType, HttpWebRequestCallback callback)
-                throws IllegalArgumentException, IOException {
-            mRequestUrl = url;
-            mRequestHeaders = headers;
-            callback.onComplete(mReturnResponse, mReturnException);
-            return null;
-        }
-
-        @Override
-        public AsyncTask<?, ?, ?> sendAsyncPost(URL url, HashMap<String, String> headers,
-                byte[] content, String contentType, HttpWebRequestCallback callback)
-                throws IllegalArgumentException, IOException {
-            mRequestUrl = url;
-            mRequestHeaders = headers;
-            callback.onComplete(mReturnResponse, mReturnException);
-            return null;
-        }
-    }
-
-    /**
-     * callback to store responses
-     */
-    class MockAuthenticationCallback implements AuthenticationCallback<AuthenticationResult> {
-
-        Exception mException = null;
-
-        AuthenticationResult mResult = null;
-
-        CountDownLatch mSignal;
-
-        public MockAuthenticationCallback() {
-            mSignal = null;
-        }
-
-        public MockAuthenticationCallback(final CountDownLatch signal) {
-            mSignal = signal;
-        }
-
-        @Override
-        public void onSuccess(AuthenticationResult result) {
-            mResult = result;
-            if (mSignal != null)
-                mSignal.countDown();
-        }
-
-        @Override
-        public void onError(Exception exc) {
-            mException = exc;
-            if (mSignal != null)
-                mSignal.countDown();
-        }
-    };
 
     /**
      * Mock activity

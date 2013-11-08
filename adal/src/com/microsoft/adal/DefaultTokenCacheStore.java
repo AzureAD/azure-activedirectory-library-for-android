@@ -21,6 +21,7 @@ import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
  * Store/Retrieve TokenCacheItem from private SharedPreferences.
+ * SharedPreferences saves items when it is committed in an atomic operation. One more retry is attempted in case there is a lock in commit.
  */
 public class DefaultTokenCacheStore implements ITokenCacheStore {
 
@@ -173,7 +174,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
 
         while (results.hasNext()) {
             TokenCacheItem item = results.next();
-            if (item.getResource().equalsIgnoreCase(resource)) {
+            if (item.getResource().equals(resource)) {
                 tokenItems.add(item);
             }
         }
@@ -229,7 +230,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
 
         while (results.hasNext()) {
             TokenCacheItem item = results.next();
-            if (isExpired(item.getExpiresOn())) {
+            if (isAboutToExpire(item.getExpiresOn())) {
                 tokenItems.add(item);
             }
         }
@@ -245,7 +246,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
             throw new AuthenticationException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE);
     }
 
-    private boolean isExpired(Date expires) {
+    private boolean isAboutToExpire(Date expires) {
         Date validity = getTokenValidityTime().getTime();
 
         if (expires.before(validity))

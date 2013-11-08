@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
+
 import java.util.HashMap;
 
 import android.app.Activity;
@@ -30,30 +31,9 @@ import com.microsoft.adal.ErrorCodes.ADALError;
  */
 public class AuthenticationContext {
 
-    public enum PromptBehavior {
-        /**
-         * Acquire token will prompt the user for credentials only when
-         * necessary.
-         */
-        Auto,
-
-        /**
-         * The user will be prompted for credentials even if it is available in
-         * the cache or in the form of refresh token. New acquired access token
-         * and refresh token will be used to replace previous value. If Settings
-         * switched to Auto, new request will use this latest token from cache.
-         */
-        Always,
-
-        /**
-         * Don't show UI
-         */
-        Never
-    }
-
     private final static String TAG = "AuthenticationContext";
 
-    private Context mAppContext;
+    private Context mContext;
 
     private String mAuthority;
 
@@ -63,6 +43,9 @@ public class AuthenticationContext {
 
     private transient ActivityDelegate mActivityDelegate;
 
+    /**
+     * only one authorization can happen for user.
+     */
     private AuthenticationCallback<AuthenticationResult> mAuthorizationCallback;
 
     /**
@@ -74,7 +57,7 @@ public class AuthenticationContext {
     /**
      * webrequest handler interface to test behaviors
      */
-    private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
+    private IWebRequestHandler mWebRequest = new WebRequestHandler();
 
     private Activity mActivity;
 
@@ -89,7 +72,7 @@ public class AuthenticationContext {
      * @param validateAuthority validate authority before sending token request
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
-        mAppContext = appContext;
+        mContext = appContext;
         mAuthority = authority;
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = new DefaultTokenCacheStore(appContext);
@@ -101,10 +84,9 @@ public class AuthenticationContext {
      * @param validateAuthority
      * @param cache Set to null if you don't want cache.
      */
-
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             ITokenCacheStore tokenCacheStore) {
-        mAppContext = appContext;
+        mContext = appContext;
         mAuthority = authority;
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = tokenCacheStore;
@@ -120,7 +102,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority,
             ITokenCacheStore tokenCacheStore) {
-        mAppContext = appContext;
+        mContext = appContext;
         mAuthority = authority;
         mValidateAuthority = true;
         mTokenCacheStore = tokenCacheStore;
@@ -157,8 +139,8 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (mAppContext == null) {
-            throw new AuthenticationException(ADALError.DEVELOPER_APP_CONTEXT_IS_NOT_SET);
+        if (mContext == null) {
+            throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
         }
 
         if (callback == null) {
@@ -339,7 +321,7 @@ public class AuthenticationContext {
                                 "Final url is empty"));
                         mAuthorizationCallback = null;
                     } else {
-                        Oauth oauthRequest = new Oauth(authenticationRequest, mWebRequestHandler);
+                        Oauth oauthRequest = new Oauth(authenticationRequest, mWebRequest);
                         Log.d(TAG, "Process url:" + endingUrl);
 
                         oauthRequest.getToken(endingUrl,
@@ -406,6 +388,7 @@ public class AuthenticationContext {
 
         final AuthenticationCallback<AuthenticationResult> externalCall = callback;
 
+        // Runnable to post depending on validation flag
         final Runnable requestRunnable = new Runnable() {
 
             @Override
@@ -526,9 +509,10 @@ public class AuthenticationContext {
             final AuthenticationCallback<AuthenticationResult> externalCallback) {
 
         Log.d(TAG, "Process refreshToken for " + request.getLogInfo());
-        
-        // Removes refresh token from cache, when this call is complete. Request may be interrupted, if app is shutdown by user.
-        Oauth oauthRequest = new Oauth(request, mWebRequestHandler);
+
+        // Removes refresh token from cache, when this call is complete. Request
+        // may be interrupted, if app is shutdown by user.
+        Oauth oauthRequest = new Oauth(request, mWebRequest);
         oauthRequest.refreshToken(refreshItem.getRefreshToken(),
                 new AuthenticationCallback<AuthenticationResult>() {
 
@@ -539,7 +523,9 @@ public class AuthenticationContext {
                                 || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
 
                             removeItemFromCache(request);
-                            //TODO: This may cause an issue if refresh token request was delayed and user moved to another screen.
+                            // TODO: This may cause an issue if refresh token
+                            // request was delayed and user moved to another
+                            // screen.
                             acquireTokenLocal(activity, request, prompt, externalCallback);
                         } else {
                             Log.v(TAG, "Refresh token is finished for " + request.getLogInfo());
@@ -582,11 +568,12 @@ public class AuthenticationContext {
                     externalCall.onError(exc);
                 }
             });
+
         }
     }
 
     private String getRedirectFromPackage() {
-        return mAppContext.getApplicationContext().getPackageName();
+        return mContext.getApplicationContext().getPackageName();
     }
 
     private Activity getActivity() {
@@ -662,7 +649,7 @@ public class AuthenticationContext {
      */
     final private boolean resolveIntent(Intent intent) {
 
-        ResolveInfo resolveInfo = mAppContext.getPackageManager().resolveActivity(intent, 0);
+        ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
         if (resolveInfo == null) {
             return false;
         }
@@ -692,5 +679,4 @@ public class AuthenticationContext {
 
         public Activity getActivityContext();
     }
-
 }

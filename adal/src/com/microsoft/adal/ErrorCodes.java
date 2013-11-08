@@ -15,40 +15,42 @@ public class ErrorCodes {
 
     public static enum ADALError {
         /**
-         * Authority is not valid instance 
+         * Authority is not valid instance
          */
         DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
         /**
          * Authority url is not valid
          */
         DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
+
         /**
          * Authority is empty
          */
         DEVELOPER_AUTHORITY_IS_EMPTY,
+
         /**
          * Async tasks can only be executed one time. They are not supposed to
          * be reused.
          */
         DEVELOPER_ASYNC_TASK_REUSED,
+
         /**
          * Resource is empty
          */
         DEVELOPER_RESOURCE_IS_EMPTY,
-        /**
-         * App context is not set
-         */
-        DEVELOPER_APP_CONTEXT_IS_NOT_SET,
-        /**
-         * User can only have one login activity in use
-         */
-        DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED,
+
         /**
          * Context is not provided
          */
         DEVELOPER_CONTEXT_IS_NOT_PROVIDED,
+
         /**
-         * Actvity is not resolved
+         * User can only have one login activity in use
+         */
+        DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED,
+
+        /**
+         * Activity is not resolved
          */
         DEVELOPER_ACTIVITY_IS_NOT_RESOLVED,
         /**
@@ -60,6 +62,7 @@ public class ErrorCodes {
          * Authorization Failed
          */
         AUTH_FAILED,
+
         /**
          * Authorization Failed: %d
          */
@@ -104,23 +107,26 @@ public class ErrorCodes {
          * Invalid parameters for authorization operation
          */
         AUTH_FAILED_INTERNAL_ERROR,
+
         /**
          * Internet permissions are not set for the app
          */
         DEVICE_INTERNET_IS_NOT_AVAILABLE,
-        
+
         /**
          * onActivityResult is called with null intent data
          */
         ON_ACTIVITY_RESULT_INTENT_NULL_,
+
         /**
          * Shared preferences are not available
          */
         DEVICE_SHARED_PREF_IS_NOT_AVAILABLE,
+
         /**
          * Cache is not saving the changes
          */
-        DEVICE_CACHE_IS_NOT_WORKING
+        DEVICE_CACHE_IS_NOT_WORKING,
     }
 
     /**
@@ -137,7 +143,7 @@ public class ErrorCodes {
                     appContext.getPackageName());
             return appContext.getString(id);
         }
-        
+
         throw new IllegalArgumentException("appContext is null");
     }
 }

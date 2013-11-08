@@ -70,9 +70,10 @@ class Oauth {
         String requestUrl = String
                 .format("%s?response_type=%s&client_id=%s&resource=%s&redirect_uri=%s&state=%s",
                         mRequest.getAuthority() + AUTH_ENDPOINT_APPEND,
-                        AuthenticationConstants.OAuth2.CODE, mRequest.getClientId(), URLEncoder
-                                .encode(mRequest.getResource(),
-                                        AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
+                        AuthenticationConstants.OAuth2.CODE, URLEncoder.encode(
+                                mRequest.getClientId(), AuthenticationConstants.ENCODING_UTF8),
+                        URLEncoder.encode(mRequest.getResource(),
+                                AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
                                 mRequest.getRedirectUri(), AuthenticationConstants.ENCODING_UTF8),
                         encodeProtocolState());
 
@@ -101,7 +102,8 @@ class Oauth {
 
         if (!StringExtensions.IsNullOrBlank(mRequest.getLoginHint())) {
             message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.LOGIN_HINT,
-                    mRequest.getLoginHint());
+                    URLEncoder.encode(mRequest.getLoginHint(),
+                            AuthenticationConstants.ENCODING_UTF8));
         }
 
         return message;
@@ -121,7 +123,7 @@ class Oauth {
 
         if (!StringExtensions.IsNullOrBlank(mRequest.getResource())) {
             message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.RESOURCE,
-                    mRequest.getResource());
+                    StringExtensions.URLFormEncode(mRequest.getResource()));
         }
 
         return message;
@@ -447,8 +449,16 @@ class Oauth {
                 }
             }
         } else {
+            String errMessage = null;
+            byte[] message = webResponse.getBody();
+            if (message != null) {
+                errMessage = new String(message);
+            } else {
+                errMessage = "Status code:" + String.valueOf(webResponse.getStatusCode());
+            }
+
             result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    new String(webResponse.getBody()));
+                    errMessage);
         }
 
         return result;
