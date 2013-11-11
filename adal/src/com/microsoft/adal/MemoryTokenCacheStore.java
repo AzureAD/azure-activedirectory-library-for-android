@@ -25,7 +25,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     private final HashMap<String, TokenCacheItem> mCache = new HashMap<String, TokenCacheItem>();
 
-    private final Object mCacheLock = new Object();
+    private transient Object mCacheLock = new Object();
 
     public MemoryTokenCacheStore() {
     }
@@ -99,5 +99,6 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
     private synchronized void readObject(ObjectInputStream inputStream) throws NotActiveException,
             IOException, ClassNotFoundException {
         inputStream.defaultReadObject();
+        mCacheLock = new Object();
     }
 }
