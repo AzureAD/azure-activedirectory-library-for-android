@@ -4,6 +4,8 @@ package com.microsoft.adal.test;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -23,8 +25,13 @@ import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
+import com.microsoft.adal.CacheKey;
+import com.microsoft.adal.DefaultTokenCacheStore;
+import com.microsoft.adal.HttpWebResponse;
+import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.ErrorCodes.ADALError;
 import com.microsoft.adal.IDiscovery;
+import com.microsoft.adal.ITokenCacheStore;
 
 public class AuthenticationContextTests extends AndroidTestCase {
 
@@ -244,7 +251,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
     }
-    
+
     /**
      * acquire token uses refresh token
      * 
@@ -253,28 +260,72 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
-    public void testAcquireTokenUsesRefreshToken() throws InterruptedException,
+    public void testRefreshTokenWebRequestHasError() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
         TestMockContext mockContext = new TestMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken();
         final AuthenticationContext context = new AuthenticationContext(mockContext,
-                "https://login.windows.net/omercantest.onmicrosoft.com", false);
+                "https://login.windows.net/omercantest.onmicrosoft.com", false,
+                mockCache);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
-        testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
-callback.mResult
-        
-        
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        webrequest.setReturnResponse(new HttpWebResponse(503, null, null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // check response in callback
+        assertNotNull("Error is not null", callback.mException);
+        assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey("authority", "resource", "clientId")));
+    }
+    
+    
+    public void testRefreshTokenPositive() throws InterruptedException, IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException {
+
+        TestMockContext mockContext = new TestMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken();
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                "authority", false,
+                mockCache);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        String json = "{\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
+        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+
+        // call acquire token which will try refresh token based on cache
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
+                callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        
+        // check response in callback
         assertNull("Error is null", callback.mException);
-        assertEquals("Activity was attempted to start with request code",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
-                testActivity.mStartActivityRequestCode);
+        assertNotNull("Cache is Not empty for this item", mockCache.getItem(CacheKey.createCacheKey("authority", "resource", "clientId")));
+    }
+
+    private ITokenCacheStore getCacheForRefreshToken() {
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
+        Calendar timeNow = Calendar.getInstance();
+        timeNow.roll(Calendar.MINUTE, -60);
+        TokenCacheItem refreshItem = new TokenCacheItem();
+        refreshItem.setAuthority("authority");
+        refreshItem.setResource("resource");
+        refreshItem.setClientId("clientId");
+        refreshItem.setAccessToken("accessToken");
+        refreshItem.setRefreshToken("refreshToken=");
+        refreshItem.setExpiresOn(timeNow.getTime());
+        cache.setItem(refreshItem);
+        return cache;
     }
 
     class MockDiscovery implements IDiscovery {

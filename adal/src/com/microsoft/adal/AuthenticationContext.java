@@ -420,7 +420,7 @@ public class AuthenticationContext {
     }
 
     protected boolean isRefreshable(AuthenticationResult cachedItem) {
-        return !StringExtensions.IsNullOrBlank(cachedItem.getRefreshToken());
+        return cachedItem != null && !StringExtensions.IsNullOrBlank(cachedItem.getRefreshToken());
     }
 
     private boolean isValidCache(AuthenticationResult cachedItem) {
