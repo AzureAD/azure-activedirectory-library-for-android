@@ -363,18 +363,16 @@ public class AuthenticationContext {
      * @param callback
      */
     private void acquireTokenLocal(final Activity activity, final AuthenticationRequest request,
-            final PromptBehavior prompt, AuthenticationCallback<AuthenticationResult> callback) {
+            final PromptBehavior prompt, final AuthenticationCallback<AuthenticationResult> externalCall) {
 
         URL authorityUrl;
         try {
             authorityUrl = new URL(mAuthority);
         } catch (MalformedURLException e) {
-            callback.onError(new AuthenticationException(
+            externalCall.onError(new AuthenticationException(
                     ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
             return;
         }
-
-        final AuthenticationCallback<AuthenticationResult> externalCall = callback;
 
         // Runnable to post depending on validation flag
         final Runnable requestRunnable = new Runnable() {
@@ -425,7 +423,7 @@ public class AuthenticationContext {
 
     private boolean isValidCache(AuthenticationResult cachedItem) {
         if (cachedItem != null && !StringExtensions.IsNullOrBlank(cachedItem.getAccessToken())
-                && isExpired(cachedItem.getExpiresOn())) {
+                && !isExpired(cachedItem.getExpiresOn())) {
             return true;
         }
         return false;

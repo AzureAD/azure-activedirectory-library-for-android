@@ -147,7 +147,7 @@ class AuthenticationRequest implements Serializable {
 
     public String getLogInfo() {
         // directly access values without getter to make it fast
-        return String.format("Request authority:% resource:% clientid:%", mAuthority, mResource,
+        return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, mResource,
                 mClientId);
     }
 }
