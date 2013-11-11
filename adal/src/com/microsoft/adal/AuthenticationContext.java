@@ -191,7 +191,7 @@ public class AuthenticationContext {
      */
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, String extraQueryParameters,
-            AuthenticationCallback callback) {
+            AuthenticationCallback<AuthenticationResult> callback) {
         throw new UnsupportedOperationException("come back later");
     }
 
@@ -212,7 +212,7 @@ public class AuthenticationContext {
      * @param callback
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, PromptBehavior prompt, AuthenticationCallback callback) {
+            String redirectUri, PromptBehavior prompt, AuthenticationCallback<AuthenticationResult> callback) {
         throw new UnsupportedOperationException("come back later");
     }
 
@@ -235,7 +235,7 @@ public class AuthenticationContext {
      */
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
-            AuthenticationCallback callback) {
+            AuthenticationCallback<AuthenticationResult> callback) {
         throw new UnsupportedOperationException("come back later");
     }
 
@@ -249,7 +249,7 @@ public class AuthenticationContext {
      * @param callback Required
      */
     public void acquireTokenByRefreshToken(String refreshToken, String clientId,
-            AuthenticationCallback callback) {
+            AuthenticationCallback<AuthenticationResult> callback) {
         throw new UnsupportedOperationException("come back later");
     }
 
@@ -264,7 +264,7 @@ public class AuthenticationContext {
      * @param callback Required
      */
     public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
-            AuthenticationCallback callback) {
+            AuthenticationCallback<AuthenticationResult> callback) {
         throw new UnsupportedOperationException("come back later");
     }
 
@@ -293,9 +293,6 @@ public class AuthenticationContext {
                     mAuthorizationCallback.onError(new AuthenticationCancelError());
                     mAuthorizationCallback = null;
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
-                    // Certificate error or similar
-                    AuthenticationRequest errRequest = (AuthenticationRequest)extras
-                            .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
                     String errCode = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
                     String errMessage = extras
@@ -355,15 +352,6 @@ public class AuthenticationContext {
 
     interface ResponseCallback {
         public void onRequestComplete(HashMap<String, String> response);
-    }
-
-    private TokenCacheItem getCachedResult(CacheKey key) {
-        return null;
-    }
-
-    // temp
-    private static boolean isExpired(TokenCacheItem item) {
-        return true;
     }
 
     /**
@@ -432,8 +420,7 @@ public class AuthenticationContext {
     }
 
     protected boolean isRefreshable(AuthenticationResult cachedItem) {
-        // TODO Auto-generated method stub
-        return false;
+        return !StringExtensions.IsNullOrBlank(cachedItem.getRefreshToken());
     }
 
     private boolean isValidCache(AuthenticationResult cachedItem) {

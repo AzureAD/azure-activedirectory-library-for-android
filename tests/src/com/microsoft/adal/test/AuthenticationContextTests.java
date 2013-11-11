@@ -244,6 +244,38 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
     }
+    
+    /**
+     * acquire token uses refresh token
+     * 
+     * @throws InterruptedException
+     * @throws IllegalArgumentException
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
+    public void testAcquireTokenUsesRefreshToken() throws InterruptedException,
+            IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+
+        TestMockContext mockContext = new TestMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                "https://login.windows.net/omercantest.onmicrosoft.com", false);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+callback.mResult
+        
+        
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
+                callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // check response in callback
+        assertNull("Error is null", callback.mException);
+        assertEquals("Activity was attempted to start with request code",
+                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                testActivity.mStartActivityRequestCode);
+    }
 
     class MockDiscovery implements IDiscovery {
 
