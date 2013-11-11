@@ -10,11 +10,13 @@ import java.util.concurrent.CountDownLatch;
 
 import android.content.Context;
 
+import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.MemoryTokenCacheStore;
 import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.UserInfo;
+import com.microsoft.adal.test.AuthenticationContextTests.TestMockContext;
 
 public class MemoryTokenCacheStoreTests extends AndroidTestHelper {
 
@@ -155,4 +157,31 @@ public class MemoryTokenCacheStoreTests extends AndroidTestHelper {
         assertNull("Token cache item is expected to be null", item);
     }
 
+    
+    /**
+     * memory cache is shared between context
+     */
+    public void testMemoryCacheMultipleContext(){
+        ITokenCacheStore tokenCacheA = setupCache();
+        AuthenticationContext contextA = new AuthenticationContext(getInstrumentation().getContext(), "authority", false, tokenCacheA);
+        AuthenticationContext contextB = new AuthenticationContext(getInstrumentation().getContext(), "authority", false, tokenCacheA);
+        
+        // Verify the cache
+        TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
+        assertNotNull("Token cache item is expected to be NOT null", item);
+
+        item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem2));
+        assertNotNull("Token cache item is expected to be NOT null", item);
+        item = contextB.getCache().getItem(CacheKey.createCacheKey(testItem2));
+        assertNotNull("Token cache item is expected to be NOT null", item);
+        
+        // do remove operation
+        contextA.getCache().removeItem(testItem);
+        item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
+        assertNull("Token cache item is expected to be null", item);
+        
+        item = contextB.getCache().getItem(CacheKey.createCacheKey(testItem));
+        assertNull("Token cache item is expected to be null", item);
+        
+    }
 }

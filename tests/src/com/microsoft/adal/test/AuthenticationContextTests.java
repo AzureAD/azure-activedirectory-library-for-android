@@ -1,12 +1,8 @@
 
 package com.microsoft.adal.test;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-
-import org.apache.http.client.RedirectHandler;
 
 import android.content.Context;
 import android.content.Intent;
@@ -18,10 +14,9 @@ import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 
 import com.microsoft.adal.AuthenticationActivity;
-import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.AuthenticationContext;
-import com.microsoft.adal.AuthenticationResult;
-import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.adal.ITokenCacheStore;
+import com.microsoft.adal.MemoryTokenCacheStore;
 
 public class AuthenticationContextTests extends AndroidTestCase {
 
@@ -69,18 +64,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertFalse("Intent is not expected to resolve", actual);
     }
     
-    public void testMemoryCacheMultipleContext(){
-     
-        //ITokenCacheStore tokenCache = MemoryTokenCacheStore.
-        TestMockContext mockContextA = new TestMockContext(getContext());
-        AuthenticationContext contextA = new AuthenticationContext(mockContextA, "authority", false);
-        
-        TestMockContext mockContextB = new TestMockContext(getContext());
-        AuthenticationContext contextB = new AuthenticationContext(mockContextB, "authority", false);
-        
-        
-    }
-
     class TestMockContext extends MockContext {
 
         private Context mContext;
