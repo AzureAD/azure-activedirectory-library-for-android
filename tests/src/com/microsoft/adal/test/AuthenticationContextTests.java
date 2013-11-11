@@ -68,6 +68,18 @@ public class AuthenticationContextTests extends AndroidTestCase {
         actual = (Boolean)m.invoke(context, intent);
         assertFalse("Intent is not expected to resolve", actual);
     }
+    
+    public void testMemoryCacheMultipleContext(){
+     
+        //ITokenCacheStore tokenCache = MemoryTokenCacheStore.
+        TestMockContext mockContextA = new TestMockContext(getContext());
+        AuthenticationContext contextA = new AuthenticationContext(mockContextA, "authority", false);
+        
+        TestMockContext mockContextB = new TestMockContext(getContext());
+        AuthenticationContext contextB = new AuthenticationContext(mockContextB, "authority", false);
+        
+        
+    }
 
     class TestMockContext extends MockContext {
 
