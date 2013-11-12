@@ -6,23 +6,32 @@ import android.util.Log;
 import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
- * if logcat is available, it logs there by default. If externalLogger is set, it will use that as well.
+ * Android log output can. If externalLogger is set, it will use that as well.
+ * 
  * @author omercan
- *
  */
 public class Logger {
 
     private LogLevel mLogLevel;
 
     public enum LogLevel {
-        Error, Warn, Info, Verbose, Debug
-    }
+        Error(0), Warn(1), Info(2), Verbose(3), Debug(4);
+
+        private int value;
+
+        private LogLevel(int val) {
+            this.value = val;
+        }
+    };
 
     /**
      * one callback logger
      */
     private ILogger mExternalLogger = null;
-    
+
+    // enabled by default
+    private boolean mAndroidLogEnabled = true;
+
     private static Logger sInstance = new Logger();
 
     public static Logger getInstance() {
@@ -33,9 +42,9 @@ public class Logger {
         mLogLevel = LogLevel.Debug;
     }
 
-    
     public interface ILogger {
-        void Log(String tag, String message, String additionalMessage, LogLevel level, ADALError errorCode);
+        void Log(String tag, String message, String additionalMessage, LogLevel level,
+                ADALError errorCode);
     }
 
     public LogLevel getLogLevel() {
@@ -46,56 +55,125 @@ public class Logger {
         this.mLogLevel = level;
     }
 
-   
-
-    public void setExternalLogger(ILogger externalLogger) {
-        this.mExternalLogger = externalLogger;
+    /**
+     * set custom logger
+     * 
+     * @param externalLogger
+     */
+    public void setExternalLogger(ILogger customLogger) {
+        this.mExternalLogger = customLogger;
     }
-    
-    public void d(String tag, String message){
-        if(isLogCatAvailable()){
+
+    public void debug(String tag, String message) {
+        if (mLogLevel.compareTo(LogLevel.Debug) < 0)
+            return;
+
+        if (mAndroidLogEnabled) {
             Log.d(tag, message);
         }
-        
-        if(mExternalLogger != null){
+
+        if (mExternalLogger != null) {
             mExternalLogger.Log(tag, message, null, LogLevel.Debug, null);
         }
     }
-    
-    public void v(String tag, String message, String additionalMessage, ADALError errorCode){
-        if(isLogCatAvailable()){
-            Log.v(tag, message+" "+additionalMessage);
+
+    public void verbose(String tag, String message, String additionalMessage, ADALError errorCode) {
+        if (mLogLevel.compareTo(LogLevel.Verbose) < 0)
+            return;
+
+        if (mAndroidLogEnabled) {
+            Log.v(tag, errorCode.name() + " " + message + " " + additionalMessage);
         }
-        
-        if(mExternalLogger != null){
+
+        if (mExternalLogger != null) {
             mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Verbose, errorCode);
         }
     }
-    
-    public void e(String tag, String message, String additionalMessage, ADALError errorCode){
-        if(isLogCatAvailable()){
-            Log.e(tag, message+" "+additionalMessage);
+
+    public void inform(String tag, String message, String additionalMessage, ADALError errorCode) {
+        if (mLogLevel.compareTo(LogLevel.Info) < 0)
+            return;
+
+        if (mAndroidLogEnabled) {
+            Log.i(tag, errorCode.name() + " " + message + " " + additionalMessage);
         }
-        
-        if(mExternalLogger != null){
+
+        if (mExternalLogger != null) {
+            mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Info, errorCode);
+        }
+    }
+
+    public void warn(String tag, String message, String additionalMessage, ADALError errorCode) {
+        if (mLogLevel.compareTo(LogLevel.Warn) < 0)
+            return;
+
+        if (mAndroidLogEnabled) {
+            Log.w(tag, errorCode.name() + " " + message + " " + additionalMessage);
+        }
+
+        if (mExternalLogger != null) {
+            mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Warn, errorCode);
+        }
+    }
+
+    public void error(String tag, String message, String additionalMessage, ADALError errorCode) {
+        if (mAndroidLogEnabled) {
+            Log.e(tag, errorCode.name() + " " + message + " " + additionalMessage);
+        }
+
+        if (mExternalLogger != null) {
             mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
         }
     }
-    
-    public void e(String tag, String message, String additionalMessage, ADALError errorCode, Throwable err){
-        if(isLogCatAvailable()){
-            Log.e(tag, message+" "+additionalMessage, err);
+
+    public void error(String tag, String message, String additionalMessage, ADALError errorCode,
+            Throwable err) {
+        if (mAndroidLogEnabled) {
+            Log.e(tag, errorCode.name() + " " + message + " " + additionalMessage, err);
         }
-        
-        if(mExternalLogger != null){
+
+        if (mExternalLogger != null) {
             mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
         }
     }
-    
-    
-    
-    private boolean isLogCatAvailable(){
-        //TODO lookup logcat availability
-        return true;
+
+    public static void d(String tag, String message) {
+        Logger.getInstance().debug(tag, message);
+    }
+
+    public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance().inform(tag, message, additionalMessage, errorCode);
+    }
+
+    public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance().verbose(tag, message, additionalMessage, errorCode);
+    }
+
+    public static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance().warn(tag, message, additionalMessage, errorCode);
+    }
+
+    public static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance().error(tag, message, additionalMessage, errorCode);
+    }
+
+    /**
+     * @param tag
+     * @param message
+     * @param additionalMessage
+     * @param errorCode
+     * @param err
+     */
+    public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
+            Throwable err) {
+        Logger.getInstance().error(tag, message, additionalMessage, errorCode, err);
+    }
+
+    public boolean isAndroidLogEnabled() {
+        return mAndroidLogEnabled;
+    }
+
+    public void setAndroidLogEnabled(boolean androidLogEnable) {
+        this.mAndroidLogEnabled = androidLogEnable;
     }
 }
