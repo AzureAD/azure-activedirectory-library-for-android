@@ -51,10 +51,24 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
         Logger.v("test", "testmessage", "additionalMessage", ADALError.AUTH_FAILED_BAD_STATE);
 
+        verifyLogMessage(response);
+
+        Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
+        Logger.e("test", "testmessage", "additionalMessage", ADALError.AUTH_FAILED_BAD_STATE);
+
+        verifyLogMessage(response);
+
+        Logger.getInstance().setLogLevel(Logger.LogLevel.Error);
+        Logger.e("test", "testmessage", "additionalMessage", ADALError.AUTH_FAILED_BAD_STATE);
+
+        verifyLogMessage(response);
+
+        Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
+        Logger.d("test", "testmessage");
+
         assertEquals("same log tag", "test", response.tag);
         assertEquals("same log message", "testmessage", response.message);
-        assertEquals("same log detail message", "additionalMessage", response.additionalMessage);
-        assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.errorCode);
+        clearLogMessage(response);
 
         // set to warn
         response.tag = null;
@@ -64,5 +78,20 @@ public class LoggerTest extends AndroidTestHelper {
 
         assertNull("not logged", response.tag);
         assertNull("not logged", response.message);
+    }
+
+    private void verifyLogMessage(final TestResponse response) {
+        assertEquals("same log tag", "test", response.tag);
+        assertEquals("same log message", "testmessage", response.message);
+        assertEquals("same log detail message", "additionalMessage", response.additionalMessage);
+        assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.errorCode);
+        clearLogMessage(response);
+    }
+
+    private void clearLogMessage(final TestResponse response) {
+        response.tag = null;
+        response.message = null;
+        response.additionalMessage = null;
+        response.errorCode = null;
     }
 }

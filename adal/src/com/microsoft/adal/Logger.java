@@ -7,7 +7,9 @@ import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
  * Android log output can. If externalLogger is set, it will use that as well.
- * 
+ * Usage:
+ * Logger.v(TAG, message, additionalMessage, errorCode) to log.
+ * Set custom logger: Logger.setExternalLogger(..);
  * @author omercan
  */
 public class Logger {
@@ -15,7 +17,14 @@ public class Logger {
     private LogLevel mLogLevel;
 
     public enum LogLevel {
-        Error(0), Warn(1), Info(2), Verbose(3), Debug(4);
+        Error(0),
+        Warn(1),
+        Info(2), 
+        Verbose(3), 
+        /**
+         * Debug level only. 
+         */
+        Debug(4);
 
         private int value;
 
