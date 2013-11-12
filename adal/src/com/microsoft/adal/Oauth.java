@@ -10,14 +10,15 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.UUID;
 
 import org.json.JSONObject;
-
-import com.microsoft.adal.ErrorCodes.ADALError;
 
 import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
+
+import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
  * base oauth class
@@ -115,9 +116,16 @@ class Oauth {
 
         if (response.containsKey(AuthenticationConstants.OAuth2.ERROR)) {
             // Error response from the server
-            // TODO: Should we kill the authorization object?
+            // CorrelationID will be same as in request headers. This is retrieved in result in case it was not set.
+            UUID correlationId = null;
+            String correlationInResponse = response.get(AuthenticationConstants.AAD.CORRELATION_ID);
+            if (!StringExtensions.IsNullOrBlank(correlationInResponse)) {
+                correlationId = UUID.fromString(correlationInResponse);
+            }
+
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.ERROR),
-                    response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION));
+                    response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION), correlationId);
+
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
@@ -345,12 +353,12 @@ class Oauth {
                     // catch the
                     // generic Exception
                     Log.e(TAG, ex.getMessage(), ex);
-                    result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage());
+                    result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
                 }
             }
         } else {
             result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    new String(webResponse.getBody()));
+                    new String(webResponse.getBody()), null);
         }
 
         return result;

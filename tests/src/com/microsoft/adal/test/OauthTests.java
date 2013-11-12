@@ -4,14 +4,15 @@ package com.microsoft.adal.test;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 
 import android.test.AndroidTestCase;
 
 import com.microsoft.adal.AuthenticationConstants;
-import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.adal.HttpWebResponse;
 
 public class OauthTests extends AndroidTestCase {
 
@@ -63,8 +64,8 @@ public class OauthTests extends AndroidTestCase {
                 actual);
 
         // without login hint
-        Object requestWithoutLogin = createAuthenticationRequest("http://www.something.com", "resource%20 ",
-                "client 1234567890-+=;'", "redirect 1234567890-+=;'", "");
+        Object requestWithoutLogin = createAuthenticationRequest("http://www.something.com",
+                "resource%20 ", "client 1234567890-+=;'", "redirect 1234567890-+=;'", "");
 
         Object oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
 
@@ -73,6 +74,28 @@ public class OauthTests extends AndroidTestCase {
                 "Token request",
                 "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27",
                 actual);
+    }
+
+    public void testprocessTokenResponse() throws IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException {
+        HashMap<String, String> response = new HashMap<String, String>();
+        Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
+                "loginhint");
+        Object oauth = createOAuthInstance(request);
+        Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
+                HttpWebResponse.class);
+        String json = "{\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
+        HttpWebResponse mockResponse = new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null);
+
+        // send call with mocks
+        AuthenticationResult result = (AuthenticationResult)m.invoke(oauth, mockResponse);
+
+        // verify same token
+        assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
+        assertEquals("Same refresh token in parsed result", "refreshfasdfsdf435=",
+                result.getRefreshToken());
     }
 
     public void testprocessUIResponseParams() throws IllegalArgumentException,
@@ -113,7 +136,7 @@ public class OauthTests extends AndroidTestCase {
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
     }
 
-    private static Object createAuthenticationRequest(String authority, String resource,
+    public static Object createAuthenticationRequest(String authority, String resource,
             String client, String redirect, String loginhint) throws ClassNotFoundException,
             NoSuchMethodException, IllegalArgumentException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
@@ -127,7 +150,7 @@ public class OauthTests extends AndroidTestCase {
         return o;
     }
 
-    private static Object createOAuthInstance(Object authenticationRequest)
+    public static Object createOAuthInstance(Object authenticationRequest)
             throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 

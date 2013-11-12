@@ -5,6 +5,7 @@
 package com.microsoft.adal;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -15,6 +16,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.microsoft.adal.ErrorCodes.ADALError;
+
 
 /*
  */
@@ -52,12 +54,18 @@ public class AuthenticationContext {
     private IDiscovery mDiscovery = new Discovery();
 
     /**
-     * webrequest handler interface to test behaviors
+     * Web request handler interface to test behaviors
      */
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
 
     private Activity mActivity;
-
+    
+    /**
+     * Correlationid set by user
+     */
+    private UUID mRequestCorrelationId = null;
+    
+    
     /**
      * Constructs context to use with known authority to get the token. It uses
      * default cache.
