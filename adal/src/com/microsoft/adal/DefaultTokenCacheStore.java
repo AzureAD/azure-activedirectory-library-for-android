@@ -21,7 +21,8 @@ import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
  * Store/Retrieve TokenCacheItem from private SharedPreferences.
- * SharedPreferences saves items when it is committed in an atomic operation. One more retry is attempted in case there is a lock in commit.
+ * SharedPreferences saves items when it is committed in an atomic operation.
+ * One more retry is attempted in case there is a lock in commit.
  */
 public class DefaultTokenCacheStore implements ITokenCacheStore {
 
@@ -261,5 +262,15 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
         Calendar timeAhead = Calendar.getInstance();
         timeAhead.roll(Calendar.SECOND, TOKEN_VALIDITY_WINDOW);
         return timeAhead;
+    }
+
+    @Override
+    public boolean contains(CacheKey key) {
+        argumentCheck();
+
+        if (key == null)
+            throw new IllegalArgumentException("key");
+
+        return mPrefs.contains(key.toString());
     }
 }

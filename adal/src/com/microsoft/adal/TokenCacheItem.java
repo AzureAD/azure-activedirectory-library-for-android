@@ -48,15 +48,20 @@ public class TokenCacheItem implements Serializable {
     }
 
     public TokenCacheItem(AuthenticationRequest request, AuthenticationResult result) {
-        mUserInfo = result.getUserInfo();
-        mResource = request.getResource();
-        mAuthority = request.getAuthority();
-        mClientId = request.getClientId();
-        mAccessToken = result.getAccessToken();
-        mRefreshtoken = result.getRefreshToken();
-        mExpiresOn = result.getExpiresOn();
-        mIsMultiResourceRefreshToken = result.getIsMultiResourceRefreshToken();
-        mTenantId = result.getTenantId();
+        if (request != null) {
+            mResource = request.getResource();
+            mAuthority = request.getAuthority();
+            mClientId = request.getClientId();
+        }
+
+        if (result != null) {
+            mUserInfo = result.getUserInfo();
+            mAccessToken = result.getAccessToken();
+            mRefreshtoken = result.getRefreshToken();
+            mExpiresOn = result.getExpiresOn();
+            mIsMultiResourceRefreshToken = result.getIsMultiResourceRefreshToken();
+            mTenantId = result.getTenantId();
+        }
     }
 
     public UserInfo getUserInfo() {

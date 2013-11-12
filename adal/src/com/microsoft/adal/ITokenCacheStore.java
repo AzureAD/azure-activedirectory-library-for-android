@@ -11,6 +11,8 @@ import java.io.Serializable;
  */
 public interface ITokenCacheStore extends Serializable {
     public TokenCacheItem getItem(CacheKey key);// Needed by the library
+    
+    public boolean contains(CacheKey key);// Needed by the library
 
     public void setItem(TokenCacheItem item);// Needed by the library
 

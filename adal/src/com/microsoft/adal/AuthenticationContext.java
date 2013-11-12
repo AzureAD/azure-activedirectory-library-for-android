@@ -432,7 +432,7 @@ public class AuthenticationContext {
     }
 
     private boolean isExpired(Date expires) {
-        Date validity = getTokenValidityTime().getTime();
+        Date validity = getCurrentTime().getTime();
 
         if (expires != null && expires.before(validity))
             return true;
@@ -440,7 +440,7 @@ public class AuthenticationContext {
         return false;
     }
 
-    private static Calendar getTokenValidityTime() {
+    private static Calendar getCurrentTime() {
         Calendar timeAhead = Calendar.getInstance();
         return timeAhead;
     }

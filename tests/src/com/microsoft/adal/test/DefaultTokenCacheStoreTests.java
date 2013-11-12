@@ -67,6 +67,19 @@ public class DefaultTokenCacheStoreTests extends AndroidTestHelper {
         item = store.getItem(CacheKey.createCacheKey(testItem));
         assertNull("Token cache item is expected to be null", item);
     }
+    
+    public void testContains() {
+        DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
+
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(null, null, null));
+ 
+        // item is present
+        item = store.getItem(CacheKey.createCacheKey(testItem));
+        assertNotNull("Token cache item is expected to be NOT null", item);
+        
+        boolean actual = store.contains(CacheKey.createCacheKey(testItem));
+        assertTrue("Item is expected to be there", actual);
+    }
 
     public void testRemoveAll() {
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
