@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -19,6 +21,7 @@ import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
+import android.util.Log;
 
 import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationCallback;
@@ -27,14 +30,18 @@ import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
-import com.microsoft.adal.HttpWebResponse;
-import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.ErrorCodes.ADALError;
+import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IDiscovery;
 import com.microsoft.adal.ITokenCacheStore;
+import com.microsoft.adal.TokenCacheItem;
 
 public class AuthenticationContextTests extends AndroidTestCase {
 
+    /**
+     * check case-insensitive lookup
+     */
+    private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
     protected final static int CONTEXT_REQUEST_TIME_OUT = 20000;
 
     protected void setUp() throws Exception {
@@ -169,10 +176,10 @@ public class AuthenticationContextTests extends AndroidTestCase {
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
         TestMockContext mockContext = new TestMockContext(getContext());
-        final AuthenticationContext context = new AuthenticationContext(mockContext,
-                "https://login.windows.net/omercantest.onmicrosoft.com", true);
+        AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, true);
         final CountDownLatch signal = new CountDownLatch(1);
-        final MockActivity testActivity = new MockActivity();
+        MockActivity testActivity = new MockActivity();
         testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         MockDiscovery discovery = new MockDiscovery(true);
@@ -202,7 +209,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         TestMockContext mockContext = new TestMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
-                "https://login.windows.net/omercantest.onmicrosoft.com", true);
+                VALID_AUTHORITY, true);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -220,6 +227,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertTrue(
                 "Activity was not attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW != testActivity.mStartActivityRequestCode);
+        clearCache(context);
     }
 
     /**
@@ -235,7 +243,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         TestMockContext mockContext = new TestMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
-                "https://login.windows.net/omercantest.onmicrosoft.com", false);
+                VALID_AUTHORITY, false);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
@@ -250,6 +258,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertEquals("Activity was attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
+        clearCache(context);
     }
 
     /**
@@ -266,8 +275,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         TestMockContext mockContext = new TestMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
         final AuthenticationContext context = new AuthenticationContext(mockContext,
-                "https://login.windows.net/omercantest.onmicrosoft.com", false,
-                mockCache);
+                VALID_AUTHORITY, false, mockCache);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -281,18 +289,18 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         // check response in callback
         assertNotNull("Error is not null", callback.mException);
-        assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey("authority", "resource", "clientId")));
+        assertNull("Cache is empty for this item",
+                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId")));
+        clearCache(context);
     }
-    
-    
+
     public void testRefreshTokenPositive() throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException {
 
         TestMockContext mockContext = new TestMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
-        final AuthenticationContext context = new AuthenticationContext(mockContext,
-                "authority", false,
-                mockCache);
+        final AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
+                false, mockCache);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -307,25 +315,81 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        
         // check response in callback
         assertNull("Error is null", callback.mException);
-        assertNotNull("Cache is Not empty for this item", mockCache.getItem(CacheKey.createCacheKey("authority", "resource", "clientId")));
+        assertNotNull("Cache is Not empty for this item",
+                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId")));
+        clearCache(context);
+    }
+
+    /**
+     * authority and resource are case insensitive. Cache lookup will return
+     * item from cache.
+     * 
+     * @throws InterruptedException
+     * @throws IllegalArgumentException
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
+    public void testAcquireTokenCacheLookup() throws InterruptedException,
+            IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+
+        TestMockContext mockContext = new TestMockContext(getContext());
+        String tokenToTest = "accessToken=" + UUID.randomUUID();
+        ITokenCacheStore mockCache = getValidCache(tokenToTest);
+        final AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+
+        // acquire token call will return from cache
+        context.acquireToken(testActivity, "reSourCe", "ClienTid", "redirectUri", "userid",
+                callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // Check response in callback
+        assertNull("Error is null", callback.mException);
+        assertEquals("Same token in response as in cache", tokenToTest,
+                callback.mResult.getAccessToken());
+        clearCache(context);
     }
 
     private ITokenCacheStore getCacheForRefreshToken() {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
-        Calendar timeNow = Calendar.getInstance();
-        timeNow.roll(Calendar.MINUTE, -60);
+        final Calendar expiredTime = new GregorianCalendar();
+        expiredTime.roll(Calendar.MINUTE, -60);
         TokenCacheItem refreshItem = new TokenCacheItem();
-        refreshItem.setAuthority("authority");
+        refreshItem.setAuthority(VALID_AUTHORITY);
         refreshItem.setResource("resource");
         refreshItem.setClientId("clientId");
         refreshItem.setAccessToken("accessToken");
         refreshItem.setRefreshToken("refreshToken=");
-        refreshItem.setExpiresOn(timeNow.getTime());
+        refreshItem.setExpiresOn(expiredTime.getTime());
         cache.setItem(refreshItem);
         return cache;
+    }
+
+    private ITokenCacheStore getValidCache(String token) {
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
+        // Code response
+        final Calendar timeAhead = new GregorianCalendar();
+        timeAhead.roll(Calendar.MINUTE, 10);
+        TokenCacheItem refreshItem = new TokenCacheItem();
+        refreshItem.setAuthority(VALID_AUTHORITY);
+        refreshItem.setResource("resource");
+        refreshItem.setClientId("clientId");
+        refreshItem.setAccessToken(token);
+        refreshItem.setRefreshToken("refreshToken=");
+        refreshItem.setExpiresOn(timeAhead.getTime());
+        cache.setItem(refreshItem);
+        return cache;
+    }
+    
+    private void clearCache(AuthenticationContext context) {
+        if(context.getCache() != null){
+            context.getCache().removeAll();
+        }
     }
 
     class MockDiscovery implements IDiscovery {
@@ -351,6 +415,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
      */
     class MockActivity extends Activity {
 
+        private static final String TAG = "MockActivity";
+
         int mStartActivityRequestCode = -123;
 
         Intent mStartActivityIntent;
@@ -366,6 +432,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         @Override
         public void startActivityForResult(Intent intent, int requestCode, Bundle options) {
+            Log.d(TAG, "startActivityForResult:" + requestCode);
             mStartActivityIntent = intent;
             mStartActivityRequestCode = requestCode;
             mStartActivityOptions = options;

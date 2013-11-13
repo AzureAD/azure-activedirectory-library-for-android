@@ -284,7 +284,7 @@ public class AuthenticationContext {
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
             if (data == null) {
                 mAuthorizationCallback.onError(new AuthenticationException(
-                        ADALError.ON_ACTIVITY_RESULT_INTENT_NULL_));
+                        ADALError.ON_ACTIVITY_RESULT_INTENT_NULL));
                 mAuthorizationCallback = null;
             } else {
                 Bundle extras = data.getExtras();
@@ -425,7 +425,7 @@ public class AuthenticationContext {
 
     private boolean isValidCache(AuthenticationResult cachedItem) {
         if (cachedItem != null && !StringExtensions.IsNullOrBlank(cachedItem.getAccessToken())
-                && isExpired(cachedItem.getExpiresOn())) {
+                && !isExpired(cachedItem.getExpiresOn())) {
             return true;
         }
         return false;
@@ -509,6 +509,7 @@ public class AuthenticationContext {
                         if (result == null
                                 || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
 
+                            // remove item from cache to avoid same usage of refresh token. This may cause infinite loop if bad refresh token is not cleared.
                             removeItemFromCache(request);
                             // TODO: This may cause an issue if refresh token
                             // request was delayed and user moved to another

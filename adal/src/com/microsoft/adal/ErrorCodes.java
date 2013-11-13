@@ -116,7 +116,7 @@ public class ErrorCodes {
         /**
          * onActivityResult is called with null intent data
          */
-        ON_ACTIVITY_RESULT_INTENT_NULL_,
+        ON_ACTIVITY_RESULT_INTENT_NULL,
 
         /**
          * Shared preferences are not available
@@ -124,7 +124,7 @@ public class ErrorCodes {
         DEVICE_SHARED_PREF_IS_NOT_AVAILABLE,
 
         /**
-         * Cache is not saving the changes
+         * Cache is not saving the changes. This error will be returned to developer, if cache returns error
          */
         DEVICE_CACHE_IS_NOT_WORKING,
     }

@@ -55,7 +55,7 @@ public class DefaultTokenCacheStoreTests extends AndroidTestHelper {
     public void testGetRemoveItem() {
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
 
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(null, null, null));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", ""));
 
         assertNull("Token cache item is expected to be null", item);
 
@@ -71,10 +71,8 @@ public class DefaultTokenCacheStoreTests extends AndroidTestHelper {
     public void testContains() {
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
 
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(null, null, null));
- 
         // item is present
-        item = store.getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
         
         boolean actual = store.contains(CacheKey.createCacheKey(testItem));
@@ -85,7 +83,7 @@ public class DefaultTokenCacheStoreTests extends AndroidTestHelper {
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
 
         store.removeAll();
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(null, null, null));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", ""));
         assertNull("Token cache item is expected to be null", item);
 
         Iterator<TokenCacheItem> results = store.getAll();
