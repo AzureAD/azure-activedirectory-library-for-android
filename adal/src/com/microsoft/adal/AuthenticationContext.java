@@ -502,6 +502,22 @@ public class AuthenticationContext {
     }
 
     /**
+     * get the CorrelationId set by user
+     * @return
+     */
+    public UUID getRequestCorrelationId() {
+        return mRequestCorrelationId;
+    }
+
+    /**
+     * set correlationid to requests
+     * @param mRequestCorrelationId
+     */
+    public void setRequestCorrelationId(UUID mRequestCorrelationId) {
+        this.mRequestCorrelationId = mRequestCorrelationId;
+    }
+
+    /**
      * Delegate to use for starting browser flow from activity's context
      */
     private interface ActivityDelegate {

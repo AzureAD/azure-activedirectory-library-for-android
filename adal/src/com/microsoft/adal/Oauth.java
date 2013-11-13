@@ -116,11 +116,17 @@ class Oauth {
 
         if (response.containsKey(AuthenticationConstants.OAuth2.ERROR)) {
             // Error response from the server
-            // CorrelationID will be same as in request headers. This is retrieved in result in case it was not set.
+            // CorrelationID will be same as in request headers. This is
+            // retrieved in result in case it was not set.
             UUID correlationId = null;
             String correlationInResponse = response.get(AuthenticationConstants.AAD.CORRELATION_ID);
             if (!StringExtensions.IsNullOrBlank(correlationInResponse)) {
-                correlationId = UUID.fromString(correlationInResponse);
+                try {
+                    correlationId = UUID.fromString(correlationInResponse);
+                } catch (IllegalArgumentException ex) {
+                    correlationId = null;
+                    Log.e(TAG, "CorrelationId is malformed: " + correlationInResponse);
+                }
             }
 
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.ERROR),

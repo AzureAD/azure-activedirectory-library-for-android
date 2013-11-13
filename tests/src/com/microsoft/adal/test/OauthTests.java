@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.UUID;
 
 import android.test.AndroidTestCase;
 
@@ -134,6 +135,34 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
         assertEquals("Token is same", "token", result.getAccessToken());
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
+    }
+
+    public void testCorrelationIdInErrorResponse() throws IllegalArgumentException,
+            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException {
+        HashMap<String, String> response = new HashMap<String, String>();
+        Object request = createAuthenticationRequest("http://login.windows.net", "resource",
+                "client", "redirect", "loginhint");
+        Object oauth = createOAuthInstance(request);
+        Method m = ReflectionUtils.getTestMethod(oauth, "processUIResponseParams", HashMap.class);
+        UUID correlationIdExpected = UUID.randomUUID();
+        response.put(AuthenticationConstants.AAD.CORRELATION_ID, correlationIdExpected.toString());
+        response.put(AuthenticationConstants.OAuth2.ERROR, "errorCodeHere");
+        response.put(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, "errorDescription");
+
+        // call to process response
+        AuthenticationResult result = (AuthenticationResult)m.invoke(null, response);
+        assertEquals("Failed status", AuthenticationStatus.Failed, result.getStatus());
+        assertEquals("Same error", "errorCodeHere", result.getErrorCode());
+        assertEquals("Same error description", "errorDescription", result.getErrorDescription());
+        assertEquals("Same correlationid", correlationIdExpected, result.getCorrelationId());
+
+        // malformed correlationid
+        response.put(AuthenticationConstants.AAD.CORRELATION_ID, "333-4");
+
+        // call to get null correlationid
+        result = (AuthenticationResult)m.invoke(null, response);
+        assertNull("Null correlationid", result.getCorrelationId());
     }
 
     public static Object createAuthenticationRequest(String authority, String resource,
