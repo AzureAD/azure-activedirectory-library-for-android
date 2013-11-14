@@ -7,22 +7,24 @@ import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
  * Android log output can. If externalLogger is set, it will use that as well.
- * Usage:
- * Logger.v(TAG, message, additionalMessage, errorCode) to log.
- * Set custom logger: Logger.setExternalLogger(..);
+ * Usage: Logger.v(TAG, message, additionalMessage, errorCode) to log. Set
+ * custom logger: Logger.setExternalLogger(..);
+ * 
  * @author omercan
  */
 public class Logger {
 
     private LogLevel mLogLevel;
 
+    /**
+     * error code: message. additionalMessage
+     */
+    private final static String LOG_FORMAT = "%s: %s. %s";
+
     public enum LogLevel {
-        Error(0),
-        Warn(1),
-        Info(2), 
-        Verbose(3), 
+        Error(0), Warn(1), Info(2), Verbose(3),
         /**
-         * Debug level only. 
+         * Debug level only.
          */
         Debug(4);
 
@@ -74,7 +76,9 @@ public class Logger {
     }
 
     public void debug(String tag, String message) {
-        if (mLogLevel.compareTo(LogLevel.Debug) < 0)
+        if (mLogLevel.compareTo(LogLevel.Debug) < 0 ||
+                StringExtensions.IsNullOrBlank(message) 
+                )
             return;
 
         if (mAndroidLogEnabled) {
@@ -82,7 +86,11 @@ public class Logger {
         }
 
         if (mExternalLogger != null) {
-            mExternalLogger.Log(tag, message, null, LogLevel.Debug, null);
+            try {
+                mExternalLogger.Log(tag, message, null, LogLevel.Debug, null);
+            } catch (Exception e) {
+
+            }
         }
     }
 
@@ -91,11 +99,15 @@ public class Logger {
             return;
 
         if (mAndroidLogEnabled) {
-            Log.v(tag, errorCode.name() + " " + message + " " + additionalMessage);
+            Log.v(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage));
         }
 
         if (mExternalLogger != null) {
-            mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Verbose, errorCode);
+            try {
+                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Verbose, errorCode);
+            } catch (Exception e) {
+
+            }
         }
     }
 
@@ -104,11 +116,15 @@ public class Logger {
             return;
 
         if (mAndroidLogEnabled) {
-            Log.i(tag, errorCode.name() + " " + message + " " + additionalMessage);
+            Log.i(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage));
         }
 
         if (mExternalLogger != null) {
-            mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Info, errorCode);
+            try {
+                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Info, errorCode);
+            } catch (Exception e) {
+
+            }
         }
     }
 
@@ -117,32 +133,44 @@ public class Logger {
             return;
 
         if (mAndroidLogEnabled) {
-            Log.w(tag, errorCode.name() + " " + message + " " + additionalMessage);
+            Log.w(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage));
         }
 
         if (mExternalLogger != null) {
-            mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Warn, errorCode);
+            try {
+                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Warn, errorCode);
+            } catch (Exception e) {
+
+            }
         }
     }
 
     public void error(String tag, String message, String additionalMessage, ADALError errorCode) {
         if (mAndroidLogEnabled) {
-            Log.e(tag, errorCode.name() + " " + message + " " + additionalMessage);
+            Log.e(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage));
         }
 
         if (mExternalLogger != null) {
-            mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
+            try {
+                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
+            } catch (Exception e) {
+
+            }
         }
     }
 
     public void error(String tag, String message, String additionalMessage, ADALError errorCode,
             Throwable err) {
         if (mAndroidLogEnabled) {
-            Log.e(tag, errorCode.name() + " " + message + " " + additionalMessage, err);
+            Log.e(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage), err);
         }
 
         if (mExternalLogger != null) {
-            mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
+            try {
+                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
+            } catch (Exception e) {
+
+            }
         }
     }
 
@@ -185,4 +213,6 @@ public class Logger {
     public void setAndroidLogEnabled(boolean androidLogEnable) {
         this.mAndroidLogEnabled = androidLogEnable;
     }
+    
+  
 }
