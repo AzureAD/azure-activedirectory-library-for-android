@@ -6,19 +6,27 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+
 import java.util.concurrent.CountDownLatch;
 
 import junit.framework.Assert;
+
+import java.util.UUID;
 
 import android.test.AndroidTestCase;
 
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationConstants;
+
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
+
+import com.microsoft.adal.AuthenticationResult;
+import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.adal.HttpWebResponse;
 
 public class OauthTests extends AndroidTestCase {
 
@@ -190,7 +198,8 @@ public class OauthTests extends AndroidTestCase {
 
         // Verify that callback can receive this error
         assertNotNull("callback receives error", testResult.mException);
-        assertTrue("callback has status info", ((AuthenticationException)testResult.mException).getDetails().contains("503"));
+        assertTrue("callback has status info", ((AuthenticationException)testResult.mException)
+                .getDetails().contains("503"));
         assertNull("Result is null", testResult.mResult);
     }
 
@@ -212,6 +221,33 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("Same access token", "sometokenhere", testResult.mResult.getAccessToken());
         assertEquals("Same refresh token", "refreshfasdfsdf435",
                 testResult.mResult.getRefreshToken());
+    }
+
+    public void testprocessTokenResponse() throws IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException {
+       
+        String a = "aa";
+        String c = null;
+        String b = a + " " + c;
+        
+        HashMap<String, String> response = new HashMap<String, String>();
+        Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
+                "loginhint");
+        Object oauth = createOAuthInstance(request);
+        Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
+                HttpWebResponse.class);
+        String json = "{\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
+        HttpWebResponse mockResponse = new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null);
+
+        // send call with mocks
+        AuthenticationResult result = (AuthenticationResult)m.invoke(oauth, mockResponse);
+
+        // verify same token
+        assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
+        assertEquals("Same refresh token in parsed result", "refreshfasdfsdf435=",
+                result.getRefreshToken());
     }
 
     public void testprocessUIResponseParams() throws IllegalArgumentException,
@@ -285,7 +321,35 @@ public class OauthTests extends AndroidTestCase {
         return callback;
     }
 
-    private static Object createAuthenticationRequest(String authority, String resource,
+    public void testCorrelationIdInErrorResponse() throws IllegalArgumentException,
+            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException {
+        HashMap<String, String> response = new HashMap<String, String>();
+        Object request = createAuthenticationRequest("http://login.windows.net", "resource",
+                "client", "redirect", "loginhint");
+        Object oauth = createOAuthInstance(request);
+        Method m = ReflectionUtils.getTestMethod(oauth, "processUIResponseParams", HashMap.class);
+        UUID correlationIdExpected = UUID.randomUUID();
+        response.put(AuthenticationConstants.AAD.CORRELATION_ID, correlationIdExpected.toString());
+        response.put(AuthenticationConstants.OAuth2.ERROR, "errorCodeHere");
+        response.put(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, "errorDescription");
+
+        // call to process response
+        AuthenticationResult result = (AuthenticationResult)m.invoke(null, response);
+        assertEquals("Failed status", AuthenticationStatus.Failed, result.getStatus());
+        assertEquals("Same error", "errorCodeHere", result.getErrorCode());
+        assertEquals("Same error description", "errorDescription", result.getErrorDescription());
+        assertEquals("Same correlationid", correlationIdExpected, result.getCorrelationId());
+
+        // malformed correlationid
+        response.put(AuthenticationConstants.AAD.CORRELATION_ID, "333-4");
+
+        // call to get null correlationid
+        result = (AuthenticationResult)m.invoke(null, response);
+        assertNull("Null correlationid", result.getCorrelationId());
+    }
+
+    public static Object createAuthenticationRequest(String authority, String resource,
             String client, String redirect, String loginhint) throws ClassNotFoundException,
             NoSuchMethodException, IllegalArgumentException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
@@ -299,7 +363,7 @@ public class OauthTests extends AndroidTestCase {
         return o;
     }
 
-    private static Object createOAuthInstance(Object authenticationRequest)
+    public static Object createOAuthInstance(Object authenticationRequest)
             throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 

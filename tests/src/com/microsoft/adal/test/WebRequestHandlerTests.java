@@ -1,24 +1,23 @@
 
 package com.microsoft.adal.test;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import junit.framework.Assert;
 
 import android.os.AsyncTask;
-import android.test.AndroidTestCase;
-import android.test.UiThreadTest;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.microsoft.adal.AuthenticationCancelError;
+import com.microsoft.adal.AuthenticationConstants;
+import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.HttpWebRequestCallback;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.WebRequestHandler;
@@ -31,6 +30,80 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
     private final static String TEST_WEBAPI_URL = "http://graphtestrun.azurewebsites.net/api/WebRequestTest";
 
     protected static final String TAG = "WebRequestHandlerTests";
+
+    /**
+     * send invalid request to production service
+     * 
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException
+     * @throws IllegalArgumentException
+     */
+    public void testCorrelationIdInRequest() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+        final String testUrl = "https://login.windows.net/omercantest.onmicrosoft.com/oauth2/token";
+        final UUID testID = UUID.randomUUID();
+        Log.d(TAG, "Test correlationid:" + testID.toString());
+        final TestResponse testResponse = sendCorrelationIdRequest(testUrl, testID);
+
+        assertEquals("400 error code", 400, testResponse.httpResponse.getStatusCode());
+        assertNotNull("Callback should report 400 for this error", testResponse.exception);
+        assertNotNull("webresponse is not null", testResponse.httpResponse);
+        AuthenticationResult result = getAuthenticationResult(testResponse.httpResponse);
+        assertEquals("same correlationid", testID, result.getCorrelationId());
+
+        // same id for next request
+        TestResponse testResponse2 = sendCorrelationIdRequest(testUrl, testID);
+        AuthenticationResult result2 = getAuthenticationResult(testResponse2.httpResponse);
+        assertEquals("same correlationid for next request", testID, result2.getCorrelationId());
+    }
+
+    private TestResponse sendCorrelationIdRequest(final String message, final UUID testID) {
+
+        final CountDownLatch signal = new CountDownLatch(1);
+        final TestResponse testResponse = new TestResponse();
+        final HttpWebRequestCallback callback = setupCallback(signal, testResponse);
+
+        Log.d(TAG, "test get" + android.os.Process.myTid());
+
+        // POst request with invalid request message
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
+            @Override
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.setRequestCorrelationId(testID);
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("Accept", "application/json");
+                request.sendAsyncPost(getUrl(message), headers, null,
+                        "application/x-www-form-urlencoded", callback);
+            }
+        }, true);
+
+        return testResponse;
+    }
+
+    public void testCorrelationIdNotInRequest() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+        final String testUrl = "https://login.windows.net/omercantest.onmicrosoft.com/oauth2/token";
+
+        TestResponse testResponse = sendCorrelationIdRequest(testUrl, null);
+        TestResponse testResponse2 = sendCorrelationIdRequest(testUrl, null);
+
+        AuthenticationResult result = getAuthenticationResult(testResponse.httpResponse);
+        UUID testIDResponse1 = result.getCorrelationId();
+
+        result = getAuthenticationResult(testResponse2.httpResponse);
+        UUID testIDResponse2 = result.getCorrelationId();
+
+        assertNotNull("correlationID is always set for error", testIDResponse1);
+        assertNotNull("correlationID is always set for error", testIDResponse2);
+        assertTrue("They are not same", testIDResponse1 != testIDResponse2);
+
+    }
 
     public void testNullUrl() {
 
@@ -310,5 +383,19 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private AuthenticationResult getAuthenticationResult(HttpWebResponse webResponse)
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException, InvocationTargetException {
+        AuthenticationResult result = null;
+        Object authenticationRequest = OauthTests.createAuthenticationRequest(
+                "https://login.windows.net/aaaty", "resource", "client", "redirect", "loginhint");
+        Object oauth = OauthTests.createOAuthInstance(authenticationRequest);
+        Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
+                HttpWebResponse.class);
+
+        // call for empty response
+        return (AuthenticationResult)m.invoke(oauth, webResponse);
     }
 }

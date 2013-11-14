@@ -7,10 +7,8 @@
 package com.microsoft.adal;
 
 import java.io.Serializable;
-import java.util.Calendar;
 import java.util.Date;
-
-import android.test.suitebuilder.TestSuiteBuilder.FailedToCreateTests;
+import java.util.UUID;
 
 /**
  * Result class to keep code, token and other info Serializable properties Mark
@@ -49,6 +47,12 @@ public class AuthenticationResult implements Serializable {
 
     private String mErrorDescription;
 
+    /**
+     * Failed requests will have correlationid. Azure webservices are supposed
+     * to follow the same protocol and return this.
+     */
+    private UUID mCorrelationId;
+
     private boolean mIsMultiResourceRefreshToken;
 
     private UserInfo mUserInfo;
@@ -77,10 +81,11 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Succeeded;
     }
 
-    AuthenticationResult(String errorCode, String errDescription) {
+    AuthenticationResult(String errorCode, String errDescription, UUID correlationId) {
         mErrorCode = errorCode;
         mErrorDescription = errDescription;
         mStatus = AuthenticationStatus.Failed;
+        mCorrelationId = correlationId;
     }
 
     public String createAuthorizationHeader() {
@@ -133,5 +138,9 @@ public class AuthenticationResult implements Serializable {
 
     public String getErrorDescription() {
         return mErrorDescription;
+    }
+
+    public UUID getCorrelationId() {
+        return mCorrelationId;
     }
 }
