@@ -5,11 +5,9 @@ This is an Android library for Azure Active Directory(AAD). It provides simple f
 
 ## Quick Start
 
-* You need to add library as a reference to your project at Properties->Android->Library add.
-* Add this activity to your AndroidManifest.xml
-*   <activity
-*            android:name="com.microsoft.adal.LoginActivity"
-*            android:label="@string/title_login" >
-*    </activity>
-* Create AuthenticationContext at Main thread
-*  
+It will be provided with simple sample.
+
+
+## To learn more about Android Development
+
+You can follow the start guide at the Android developer site at: [developer.android.com](http://developer.android.com/index.html)
