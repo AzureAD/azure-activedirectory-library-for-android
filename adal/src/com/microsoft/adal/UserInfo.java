@@ -4,7 +4,14 @@
 
 package com.microsoft.adal;
 
-public class UserInfo {
+import java.io.Serializable;
+
+public class UserInfo implements Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 8790127561636702672L;
 
     private String mUserId;
 

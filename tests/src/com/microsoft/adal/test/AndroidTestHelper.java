@@ -75,4 +75,24 @@ public class AndroidTestHelper extends InstrumentationTestCase {
             assertFalse("Timeout " + getName(), true);
         }
     }
+    
+    public void testMultiThread(int activeThreads, final CountDownLatch signal, final Runnable runnable) {
+
+        Log.d(getName(), "thread:" + android.os.Process.myTid());
+
+        Thread[] threads = new Thread[activeThreads];
+
+        for (int i = 0; i < activeThreads; i++) {
+            Log.d(getName(), "Run shared cache test for thread:" + i);
+            threads[i] = new Thread(runnable);
+            threads[i].start();
+        }
+
+        try {
+            signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            assertFalse("Timeout " + getName(), true);
+        }
+    }
+    
 }

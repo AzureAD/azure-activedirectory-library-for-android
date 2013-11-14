@@ -3,6 +3,7 @@ package com.microsoft.adal.test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import android.test.mock.MockPackageManager;
 import android.util.Log;
 
 import com.microsoft.adal.AuthenticationActivity;
+
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.AuthenticationContext;
@@ -40,6 +42,10 @@ import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IDiscovery;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.TokenCacheItem;
+
+import com.microsoft.adal.AuthenticationContext;
+import com.microsoft.adal.ITokenCacheStore;
+import com.microsoft.adal.MemoryTokenCacheStore;
 
 public class AuthenticationContextTests extends AndroidTestCase {
 
@@ -358,7 +364,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         TestMockContext mockContext = new TestMockContext(getContext());
         String tokenToTest = "accessToken=" + UUID.randomUUID();
-        ITokenCacheStore mockCache = getValidCache(tokenToTest);
+        String resource = "Resource" + UUID.randomUUID();
+        ITokenCacheStore mockCache = getValidCache(tokenToTest, resource);
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         final MockActivity testActivity = new MockActivity();
@@ -367,8 +374,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         // acquire token call will return from cache
-        context.acquireToken(testActivity, "reSourCe", "ClienTid", "redirectUri", "userid",
-                callback);
+        context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", "userid", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
@@ -380,8 +386,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
     private ITokenCacheStore getCacheForRefreshToken() {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
-        final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.roll(Calendar.MINUTE, -60);
+        Calendar expiredTime = new GregorianCalendar();
+        Log.d("Test", "Time now:" + expiredTime.toString());
+        expiredTime.add(Calendar.MINUTE, -60);
         TokenCacheItem refreshItem = new TokenCacheItem();
         refreshItem.setAuthority(VALID_AUTHORITY);
         refreshItem.setResource("resource");
@@ -393,14 +400,15 @@ public class AuthenticationContextTests extends AndroidTestCase {
         return cache;
     }
 
-    private ITokenCacheStore getValidCache(String token) {
+    private ITokenCacheStore getValidCache(String token, String resource) {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         // Code response
-        final Calendar timeAhead = new GregorianCalendar();
-        timeAhead.roll(Calendar.MINUTE, 10);
+        Calendar timeAhead = new GregorianCalendar();
+        Log.d("Test", "Time now:" + timeAhead.toString());
+        timeAhead.add(Calendar.MINUTE, 10);
         TokenCacheItem refreshItem = new TokenCacheItem();
         refreshItem.setAuthority(VALID_AUTHORITY);
-        refreshItem.setResource("resource");
+        refreshItem.setResource(resource);
         refreshItem.setClientId("clientId");
         refreshItem.setAccessToken(token);
         refreshItem.setRefreshToken("refreshToken=");
