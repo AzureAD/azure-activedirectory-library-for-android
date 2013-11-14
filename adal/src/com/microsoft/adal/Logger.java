@@ -21,6 +21,8 @@ public class Logger {
      */
     private final static String LOG_FORMAT = "%s: %s. %s";
 
+    private final static String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
+
     public enum LogLevel {
         Error(0), Warn(1), Info(2), Verbose(3),
         /**
@@ -76,9 +78,7 @@ public class Logger {
     }
 
     public void debug(String tag, String message) {
-        if (mLogLevel.compareTo(LogLevel.Debug) < 0 ||
-                StringExtensions.IsNullOrBlank(message) 
-                )
+        if (mLogLevel.compareTo(LogLevel.Debug) < 0 || StringExtensions.IsNullOrBlank(message))
             return;
 
         if (mAndroidLogEnabled) {
@@ -89,7 +89,8 @@ public class Logger {
             try {
                 mExternalLogger.Log(tag, message, null, LogLevel.Debug, null);
             } catch (Exception e) {
-
+                // log message as warning to report callback error issue
+                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
             }
         }
     }
@@ -106,7 +107,8 @@ public class Logger {
             try {
                 mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Verbose, errorCode);
             } catch (Exception e) {
-
+                // log message as warning to report callback error issue
+                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
             }
         }
     }
@@ -123,7 +125,8 @@ public class Logger {
             try {
                 mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Info, errorCode);
             } catch (Exception e) {
-
+                // log message as warning to report callback error issue
+                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
             }
         }
     }
@@ -140,7 +143,8 @@ public class Logger {
             try {
                 mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Warn, errorCode);
             } catch (Exception e) {
-
+                // log message as warning to report callback error issue
+                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
             }
         }
     }
@@ -154,7 +158,8 @@ public class Logger {
             try {
                 mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
             } catch (Exception e) {
-
+                // log message as warning to report callback error issue
+                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
             }
         }
     }
@@ -169,7 +174,8 @@ public class Logger {
             try {
                 mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
             } catch (Exception e) {
-
+                // log message as warning to report callback error issue
+                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
             }
         }
     }
@@ -213,6 +219,5 @@ public class Logger {
     public void setAndroidLogEnabled(boolean androidLogEnable) {
         this.mAndroidLogEnabled = androidLogEnable;
     }
-    
-  
+
 }
