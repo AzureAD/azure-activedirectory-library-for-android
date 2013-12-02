@@ -24,7 +24,7 @@ import com.microsoft.adal.ErrorCodes.ADALError;
  * SharedPreferences saves items when it is committed in an atomic operation.
  * One more retry is attempted in case there is a lock in commit.
  */
-public class DefaultTokenCacheStore implements ITokenCacheStore {
+public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuery  {
 
     private final static long serialVersionUID = 1L;
 
@@ -125,6 +125,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
     /**
      * User can query over iterator values
      */
+    @Override
     public Iterator<TokenCacheItem> getAll() {
 
         argumentCheck();
@@ -149,6 +150,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
      * 
      * @return unique users
      */
+    @Override
     public HashSet<String> getUniqueUsersWithTokenCache() {
         Iterator<TokenCacheItem> results = this.getAll();
         HashSet<String> users = new HashSet<String>();
@@ -169,6 +171,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
      * @param resource
      * @return
      */
+    @Override
     public ArrayList<TokenCacheItem> getTokensForResource(String resource) {
         Iterator<TokenCacheItem> results = this.getAll();
         ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
@@ -189,6 +192,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
      * @param userid
      * @return
      */
+    @Override
     public ArrayList<TokenCacheItem> getTokensForUser(String userid) {
         Iterator<TokenCacheItem> results = this.getAll();
         ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
@@ -209,6 +213,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
      * 
      * @param userid
      */
+    @Override
     public void clearTokensForUser(String userid) {
         ArrayList<TokenCacheItem> results = this.getTokensForUser(userid);
 
@@ -225,6 +230,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore {
      * 
      * @return
      */
+    @Override
     public ArrayList<TokenCacheItem> getTokensAboutToExpire() {
         Iterator<TokenCacheItem> results = this.getAll();
         ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();

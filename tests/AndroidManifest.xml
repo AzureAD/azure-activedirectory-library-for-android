@@ -12,7 +12,7 @@
     <!-- Test app is instrumentation. It needs another app to test the library. Test project is setup to be another app -->
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
-        android:targetPackage="com.microsoft.adal.test" />
+        android:targetPackage="com.microsoft.adal.testapp" />
 
     <application
         android:icon="@drawable/ic_launcher"
