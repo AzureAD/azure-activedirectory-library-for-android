@@ -42,9 +42,6 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
     private final static int READ_TIME_OUT = 10000;
 
-    /**
-     * Modify this in test code to simulate slow response
-     */
     private static int sDebugSimulateDelay = 0;
     
     private boolean mUseCaches = false;
