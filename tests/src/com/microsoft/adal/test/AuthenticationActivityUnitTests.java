@@ -21,8 +21,7 @@ import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.R;
 
 /**
- * Unit test to verify buttons, webview and other items. E2E tests will check if
- * this activity really working or not.
+ * Unit test to verify buttons, webview and other items.
  * 
  * @author omercan
  */
