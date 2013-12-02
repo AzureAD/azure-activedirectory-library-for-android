@@ -17,6 +17,8 @@ class AuthenticationRequest implements Serializable {
 
     private final static long serialVersionUID = 1L;
 
+    private int mRequestId = 0;
+
     private String mCode = null;
 
     private String mAuthority = null;
@@ -42,13 +44,22 @@ class AuthenticationRequest implements Serializable {
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
+            String loginhint, UUID requestCorrelationId) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = client;
+        mRedirectUri = redirect;
+        mLoginHint = loginhint;
+        mCorrelationId = requestCorrelationId;
+    }
+
+    public AuthenticationRequest(String authority, String resource, String client, String redirect,
             String loginhint) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
-
     }
 
     public AuthenticationRequest(String authority, String resource, String clientid,
@@ -149,5 +160,19 @@ class AuthenticationRequest implements Serializable {
         // directly access values without getter to make it fast
         return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, mResource,
                 mClientId);
+    }
+
+    /**
+     * @return the mRequestId related to the delegate
+     */
+    public int getRequestId() {
+        return mRequestId;
+    }
+
+    /**
+     * @param requestId the requestId to set
+     */
+    public void setRequestId(int requestId) {
+        this.mRequestId = requestId;
     }
 }

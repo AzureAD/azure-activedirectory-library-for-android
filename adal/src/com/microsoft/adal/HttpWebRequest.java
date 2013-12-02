@@ -42,6 +42,11 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
     private final static int READ_TIME_OUT = 10000;
 
+    /**
+     * Modify this in test code to simulate slow response
+     */
+    private static int sDebugSimulateDelay = 0;
+    
     private boolean mUseCaches = false;
 
     private boolean mInstanceRedirectsFollow = true;
@@ -207,6 +212,13 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                     responseBody = byteStream.toByteArray();
                 }
 
+                // It will only run in debugger and set from outside for testing
+                if (android.os.Debug.isDebuggerConnected() && sDebugSimulateDelay > 0) {
+                    // sleep background thread in debugging mode
+                    Log.d(TAG, "Sleeping to simulate slow network response");
+                    Thread.sleep(sDebugSimulateDelay);
+                }
+                
                 Log.d(TAG, "Response is received");
                 _response.setBody(responseBody);
                 _response.setResponseHeaders(_connection.getHeaderFields());

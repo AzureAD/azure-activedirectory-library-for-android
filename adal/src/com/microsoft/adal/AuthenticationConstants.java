@@ -17,6 +17,10 @@ public class AuthenticationConstants {
         public static final String RESPONSE = "com.microsoft.adal:BrokerResponse";
 
         public static final String WEBVIEW_INVALID_REQUEST = "Invalid request";
+
+        public static final String ACTION_CANCEL = "com.microsoft.adal:BrowserCancel";
+
+        public static final String REQUEST_ID = "com.microsoft.adal:RequestId";
     }
 
     public static final class UIResponse {
@@ -83,7 +87,7 @@ public class AuthenticationConstants {
         public static final String REALM = "realm";
 
         public static final String LOGIN_HINT = "login_hint";
-        
+
         public static final String CORRELATION_ID = "correlation_id";
 
         public static final String CLIENT_REQUEST_ID = "client-request-id";

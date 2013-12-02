@@ -53,6 +53,12 @@ public class ErrorCodes {
          * Activity is not resolved
          */
         DEVELOPER_ACTIVITY_IS_NOT_RESOLVED,
+        
+        /**
+         * Active callback is not found
+         */
+        CALLBACK_IS_NOT_FOUND,
+        
         /**
          * Invalid request to server
          */
@@ -124,7 +130,8 @@ public class ErrorCodes {
         DEVICE_SHARED_PREF_IS_NOT_AVAILABLE,
 
         /**
-         * Cache is not saving the changes. This error will be returned to developer, if cache returns error
+         * Cache is not saving the changes. This error will be returned to
+         * developer, if cache returns error
          */
         DEVICE_CACHE_IS_NOT_WORKING,
     }

@@ -1,10 +1,13 @@
 ﻿
 package com.example.com.microsoft.adal.hello;
 
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 
 import android.app.Activity;
@@ -14,8 +17,8 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +30,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.azure.webapi.DateSerializer;
@@ -42,14 +46,14 @@ import com.azure.webapi.ServiceFilterResponse;
 import com.azure.webapi.ServiceFilterResponseCallback;
 import com.azure.webapi.TableOperationCallback;
 import com.azure.webapi.TableQueryCallback;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
+import com.microsoft.adal.CacheKey;
+import com.microsoft.adal.DefaultTokenCacheStore;
+import com.microsoft.adal.ITokenCacheStore;
+import com.microsoft.adal.TokenCacheItem;
 
 /*
  * TODO:
@@ -71,7 +75,25 @@ public class ToDoActivity extends Activity {
 
     public static final int MENU_GET_LAYOUT_DEMO = Menu.FIRST + 5;
 
+    public static final int MENU_REFRESH_TOKEN_NORMAL = Menu.FIRST + 6;
+
+    public static final int MENU_REFRESH_TOKEN_DELAY = Menu.FIRST + 7;
+
+    /**
+     * ask to refresh and then fail to go to prompt to check the scenario where
+     * prompt screen shows up after user navigates to something else
+     */
+    public static final int MENU_REFRESH_TOKEN_DELAY_PROMPT = Menu.FIRST + 8;
+
+    public static final int MENU_CANCEL_REQUEST = Menu.FIRST + 9;
+
+    public static final int MENU_SHOW_TOKEN = Menu.FIRST + 10;
+
     private AuthenticationContext mAuthContext;
+
+    private int mLastRequestId = 0;
+
+    private boolean mSendCancel = false;
 
     private boolean refreshInProgress = false;
 
@@ -113,6 +135,8 @@ public class ToDoActivity extends Activity {
     private static int pickerMonth;
 
     private static int pickerDayOfMonth;
+    
+    TextView txtSummary;
 
     /**
      * Initializes the activity
@@ -125,6 +149,8 @@ public class ToDoActivity extends Activity {
         Toast.makeText(getApplicationContext(), TAG + "LifeCycle: OnCreate", Toast.LENGTH_SHORT)
                 .show();
 
+        txtSummary = (TextView) findViewById(R.id.textViewTitle);
+        txtSummary.setText("TODO Services");
         mProgressBar = (ProgressBar)findViewById(R.id.loadingProgressBar);
 
         // Initialize the progress bar
@@ -264,6 +290,7 @@ public class ToDoActivity extends Activity {
         // one of the acquireToken overloads
         mAuthContext.acquireToken(ToDoActivity.this, Constants.CLIENT_ID, Constants.RESOURCE_ID,
                 Constants.REDIRECT_URL, Constants.USER_HINT, callback);
+        mLastRequestId = callback.hashCode();
     }
 
     private String getLocalToken() {
@@ -323,11 +350,16 @@ public class ToDoActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
 
-        menu.add(Menu.NONE, MENU_LOGOUT, Menu.NONE, "LogOut");
-        menu.add(Menu.NONE, MENU_CLEAR_TOKEN, Menu.NONE, "Clear Token");
+        menu.add(Menu.NONE, MENU_LOGOUT, Menu.NONE, "LogOut for User");
+        menu.add(Menu.NONE, MENU_CLEAR_TOKEN, Menu.NONE, "Clear All Tokens");
         menu.add(Menu.NONE, MENU_GET_TOKEN, Menu.NONE, "Get Token");
         menu.add(Menu.NONE, MENU_GET_NEWSFEED, Menu.NONE, "Other Activity");
         menu.add(Menu.NONE, MENU_GET_SETTINGS, Menu.NONE, "Test Settings");
+        menu.add(Menu.NONE, MENU_REFRESH_TOKEN_NORMAL, Menu.NONE, "RefreshNormal");
+        menu.add(Menu.NONE, MENU_REFRESH_TOKEN_DELAY, Menu.NONE, "RefreshDelay");
+        menu.add(Menu.NONE, MENU_REFRESH_TOKEN_DELAY_PROMPT, Menu.NONE, "RefreshDelayToPrompt");
+        menu.add(Menu.NONE, MENU_CANCEL_REQUEST, Menu.NONE, "CancelAuthentication");
+        menu.add(Menu.NONE, MENU_SHOW_TOKEN, Menu.NONE, "ShowTokens");
 
         return true;
     }
@@ -338,10 +370,7 @@ public class ToDoActivity extends Activity {
             case MENU_LOGOUT: {
                 resetTokens();
 
-                // Clear browser cookies
-                CookieSyncManager.createInstance(ToDoActivity.this);
-                CookieManager cookieManager = CookieManager.getInstance();
-                cookieManager.removeAllCookie();
+                clearCookies();
 
                 // Go to logout page
                 Intent intent = new Intent(ToDoActivity.this, LogOutActivity.class);
@@ -353,6 +382,7 @@ public class ToDoActivity extends Activity {
             }
             case MENU_CLEAR_TOKEN: {
                 resetTokens();
+                clearCookies();
                 return true;
             }
             case MENU_GET_TOKEN:
@@ -382,8 +412,170 @@ public class ToDoActivity extends Activity {
                 startActivity(intent);
                 return true;
             }
+            case MENU_REFRESH_TOKEN_NORMAL: {
+                refreshTokenNormal();
+                return true;
+            }
+            case MENU_REFRESH_TOKEN_DELAY: {
+                refreshTokenWithDelay(false);
+                return true;
+            }
+            case MENU_REFRESH_TOKEN_DELAY_PROMPT: {
+                refreshTokenWithDelay(true);
+                return true;
+            }
+            case MENU_CANCEL_REQUEST: {
+                // Clear tokens and then choose MENU_REFRESH_TOKEN_DELAY_PROMPT
+                // option.
+                // It will launch prompt screen with delay
+                //
+                sendCancelRequest();
+                return true;
+            }
+            case MENU_SHOW_TOKEN: {
+                showTokens();
+                return true;
+            }
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void clearCookies() {
+        CookieSyncManager.createInstance(ToDoActivity.this);
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.removeAllCookie();
+        CookieSyncManager.getInstance().sync();
+    }
+
+    private void showTokens() {
+        ITokenCacheStore currentCache = mAuthContext.getCache();
+        if (currentCache != null && currentCache instanceof DefaultTokenCacheStore) {
+            DefaultTokenCacheStore cache = (DefaultTokenCacheStore)currentCache;
+            StringBuilder tokeninfo = new StringBuilder();
+            Iterator<TokenCacheItem> iterator = cache.getAll();
+
+            while (iterator.hasNext()) {
+                TokenCacheItem item = iterator.next();
+
+                tokeninfo.append("Key:" + CacheKey.createCacheKey(item).toString() + " Expires:"
+                        + item.getExpiresOn() + " token:" + item.getAccessToken().substring(0, 10)
+                        + "\n");
+                tokeninfo.append("--------------\n");
+
+            }
+            createAndShowDialog(tokeninfo.toString(), "Tokens");
+        }
+
+    }
+
+    private void refreshTokenNormal() {
+        setTokenExpire();
+
+        // reset cache to normal without delay
+        mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL, false);
+
+        txtSummary.setText("TODO Services sending services...");
+        // Normal token request will be send but it will have delay
+        getToken(new AuthenticationCallback<AuthenticationResult>() {
+
+            @Override
+            public void onError(Exception exc) {
+                Log.e(TAG, "refreshTokenNormal error" + exc.getMessage(), exc);
+                Toast.makeText(getApplicationContext(), exc.getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                Log.d(TAG, "refreshTokenNormal onSuccess");
+                Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG).show();
+                txtSummary.setText("TODO Services refreshed");
+                setLocalToken(result.getAccessToken());
+            }
+        });
+    }
+
+    private void sendCancelRequest() {
+        mSendCancel = true;
+        // when activity is at the front cancel can be tested
+    }
+
+    private void refreshTokenWithDelay(boolean invalidateRefresh) {
+        ITokenCacheStore currentCache = mAuthContext.getCache();
+
+        // make token expired to force refresh token
+        TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
+                Constants.RESOURCE_ID, Constants.CLIENT_ID));
+        if (item != null) {
+            Calendar timeExpired = new GregorianCalendar();
+            timeExpired.add(Calendar.MINUTE, -50);
+            item.setExpiresOn(timeExpired.getTime());
+            if (invalidateRefresh) {
+                item.setRefreshToken("invalidRefreshToken");
+            }
+            currentCache.setItem(item);
+        }
+
+        mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL, false);
+
+        setNetworkDelayForDebugging(5000);
+
+        // Normal token request will be send, but it will have delay
+        getToken(new AuthenticationCallback<AuthenticationResult>() {
+
+            @Override
+            public void onError(Exception exc) {
+                Log.e(TAG, "refreshTokenWithDelay error" + exc.getMessage(), exc);
+                Toast.makeText(getApplicationContext(), exc.getMessage(), Toast.LENGTH_LONG).show();
+                // reset cache to normal without delay
+                mAuthContext = new AuthenticationContext(ToDoActivity.this,
+                        Constants.AUTHORITY_URL, false);
+                setNetworkDelayForDebugging(0);
+            }
+
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                Log.d(TAG, "refreshTokenWithDelay onSuccess");
+                Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG).show();
+                setLocalToken(result.getAccessToken());
+                // reset cache to normal without delay
+                mAuthContext = new AuthenticationContext(ToDoActivity.this,
+                        Constants.AUTHORITY_URL, false);
+                setNetworkDelayForDebugging(0);
+            }
+        });
+    }
+
+    private void setNetworkDelayForDebugging(int miliSeconds) {
+        // HttpWebRequest class has a static field to use to introduce delays in debugger mode
+        Log.d(TAG, "setNetworkDelayForDebugging:" + miliSeconds);
+        Class<?> c = null;
+        Field field;
+        try {
+            c = Class.forName("com.microsoft.adal.HttpWebRequest");
+            field = c.getDeclaredField("sDebugSimulateDelay");
+            field.setAccessible(true);
+            field.set(null, miliSeconds);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            Log.d(TAG, "Reflection issue");
+            e.printStackTrace();
+        }
+    }
+
+    private void setTokenExpire() {
+        // get items and set them to expired from cache
+        // default cache is in use by default
+        ITokenCacheStore currentCache = mAuthContext.getCache();
+
+        // make token expired to force refresh token
+        TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
+                Constants.RESOURCE_ID, Constants.CLIENT_ID));
+        if (item != null) {
+            Calendar timeExpired = new GregorianCalendar();
+            timeExpired.add(Calendar.MINUTE, -50);
+            item.setExpiresOn(timeExpired.getTime());
+            currentCache.setItem(item);
         }
     }
 
@@ -406,7 +598,24 @@ public class ToDoActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.d(TAG, "TODOActivity onPause");
+        if (mSendCancel) {
+            // refresh token will have delay and then this will send cancel
+            // request
+            // to the authenticationActivity
+            final Runnable r = new Runnable() {
 
+                @Override
+                public void run() {
+                    Log.d(TAG, "Sending cancel request for requestId:" + mLastRequestId);
+                    boolean result = mAuthContext.cancelAuthenticationActivity(mLastRequestId);
+                    Log.d(TAG, "Result from cancel request:" + result);
+                }
+            };
+            // Manual tests: adjust timing to catch when activity launches
+            new Handler().postDelayed(r, 5000);
+            mSendCancel = false;
+        }
     }
 
     @Override
@@ -429,7 +638,12 @@ public class ToDoActivity extends Activity {
         mToken = null;
 
         // clear token from current user obj
-        mClient.getCurrentUser().setAuthenticationToken(null);
+        if (mClient != null) {
+            MobileServiceUser user = mClient.getCurrentUser();
+            if (user != null) {
+                user.setAuthenticationToken(null);
+            }
+        }
     }
 
     /*
