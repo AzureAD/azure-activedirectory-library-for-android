@@ -23,12 +23,69 @@ import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
+import com.microsoft.adal.UserInfo;
 
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.adal.HttpWebResponse;
 
 public class OauthTests extends AndroidTestCase {
+
+    public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException {
+        String idToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
+        UserInfo actual = parseIdToken(idToken);
+        assertEquals("IdToken tenantid", "30baa666-8df8-48e7-97e6-77cfd0995963",
+                actual.getTenantId());
+        assertEquals("IdToken userid", "admin@aaltests.onmicrosoft.com", actual.getUserId());
+        assertEquals("IdToken userid", "admin@aaltests.onmicrosoft.com", actual.getUserId());
+        assertEquals("IdToken familyname", "Sepehri", actual.getFamilyName());
+
+        assertEquals("IdToken name", "Afshin", actual.getGivenName());
+    }
+
+    public void testParseIdTokenNegativeIncorrectMessage() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+        String idToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2.";
+        UserInfo actual = parseIdToken(idToken);
+        assertNull("IdToken is null", actual);
+    }
+
+    public void testParseIdTokenNegativeInvalidEncodedTokens() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+        String idToken = "..";
+        UserInfo actual = parseIdToken(idToken);
+        assertNull("IdToken is null", actual);
+
+        idToken = "sdf.sdf.";
+        actual = parseIdToken(idToken);
+        assertNull("IdToken is null", actual);
+
+        idToken = "sdf.sdf.34";
+        actual = parseIdToken(idToken);
+        assertNull("IdToken is null", actual);
+
+        idToken = "dfdf";
+        actual = parseIdToken(idToken);
+        assertNull("IdToken is null", actual);
+
+        idToken = ".....";
+        actual = parseIdToken(idToken);
+        assertNull("IdToken is null", actual);
+    }
+
+    private UserInfo parseIdToken(String idToken) throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+        Object request = createAuthenticationRequest("http://www.something.com", "resource",
+                "client", "redirect", "loginhint@ggg.com");
+        Object oauth = createOAuthInstance(request);
+        Method m = ReflectionUtils.getTestMethod(oauth, "parseIdToken", String.class);
+        return (UserInfo)m.invoke(oauth, idToken);
+    }
 
     public void testGetCodeRequestUrl() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
@@ -226,11 +283,11 @@ public class OauthTests extends AndroidTestCase {
     public void testprocessTokenResponse() throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException {
-       
+
         String a = "aa";
         String c = null;
         String b = a + " " + c;
-        
+
         HashMap<String, String> response = new HashMap<String, String>();
         Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
                 "loginhint");

@@ -23,6 +23,8 @@ public class UserInfo implements Serializable {
 
     private boolean mIsUserIdDisplayable;
 
+    private String mTenantId;
+
     public UserInfo() {
 
     }
@@ -34,6 +36,26 @@ public class UserInfo implements Serializable {
         mFamilyName = familyName;
         mIdentityProvider = identityProvider;
         mIsUserIdDisplayable = isDisplayable;
+    }
+
+    public UserInfo(IdToken token) {
+        mIsUserIdDisplayable = false;
+        if (token != null) {
+            mTenantId = token.mTenantId;
+            if (!StringExtensions.IsNullOrBlank(token.mUpn)) {
+                mUserId = token.mUpn;
+                mIsUserIdDisplayable = true;
+            } else if (!StringExtensions.IsNullOrBlank(token.mEmail)) {
+                mUserId = token.mEmail;
+                mIsUserIdDisplayable = true;
+            } else if (!StringExtensions.IsNullOrBlank(token.mSubject)) {
+                mUserId = token.mSubject;
+            }
+
+            mGivenName = token.mGivenName;
+            mFamilyName = token.mFamilyName;
+            mIdentityProvider = token.mIdentityProvider;
+        }
     }
 
     public String getUserId() {
@@ -54,5 +76,9 @@ public class UserInfo implements Serializable {
 
     public String getIdentityProvider() {
         return mIdentityProvider;
+    }
+
+    public String getTenantId() {
+        return mTenantId;
     }
 }

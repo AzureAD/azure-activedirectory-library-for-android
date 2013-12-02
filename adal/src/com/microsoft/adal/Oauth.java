@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.UUID;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.net.Uri;
@@ -170,14 +171,91 @@ class Oauth {
                 isMultiResourcetoken = true;
             }
 
+            UserInfo userinfo = null;
+            if (response.containsKey(AuthenticationConstants.OAuth2.ID_TOKEN)) {
+                // IDtoken is related to Azure AD and returned with token
+                // response. ADFS does not return that.
+                String idToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
+                if (!StringExtensions.IsNullOrBlank(idToken)) {
+                    userinfo = parseIdToken(idToken);
+                }
+            }
+
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
-                    isMultiResourcetoken);
+                    isMultiResourcetoken, userinfo);
 
         }
 
         return result;
+    }
+
+    /**
+     * + * parse user id token string + * + * @param idtoken + * @return +
+     */
+    private static UserInfo parseIdToken(String idtoken) {
+        UserInfo userinfo = null;
+        if (!StringExtensions.IsNullOrBlank(idtoken)) {
+            Logger.v(TAG, "IdToken is not provided");
+        }
+
+        try {
+            // Message segments: Header.Body.Signature
+            int firstDot = idtoken.indexOf(".");
+            int secondDot = idtoken.indexOf(".", firstDot + 1);
+            int invalidDot = idtoken.indexOf(".", secondDot + 1);
+
+            if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
+                String idbody = idtoken.substring(firstDot + 1, secondDot);
+                byte[] data = Base64.decode(idbody, Base64.DEFAULT);
+                String decodedBody = new String(data, "UTF-8");
+
+                HashMap<String, String> responseItems = new HashMap<String, String>();
+                extractJsonObjects(responseItems, decodedBody);
+                if (responseItems != null && !responseItems.isEmpty()) {
+                    IdToken idtokenInfo = new IdToken();
+                    idtokenInfo.mSubject = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
+                    idtokenInfo.mTenantId = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_TENANTID);
+                    idtokenInfo.mUpn = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
+                    idtokenInfo.mEmail = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_EMAIL);
+                    idtokenInfo.mGivenName = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
+                    idtokenInfo.mFamilyName = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
+                    idtokenInfo.mIdentityProvider = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
+
+                    userinfo = new UserInfo(idtokenInfo);
+                    Logger.v(
+                            TAG,
+                            "IdToken is extracted from token response for userid"
+                                    + userinfo.getUserId());
+                }
+            }
+
+        } catch (Exception ex) {
+            Logger.e(TAG, "Error in parsing user id token", null,
+                    ADALError.IDTOKEN_PARSING_FAILURE, ex);
+        }
+        return userinfo;
+    }
+
+    private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr)
+            throws JSONException {
+        final JSONObject jsonObject = new JSONObject(jsonStr);
+
+        @SuppressWarnings("unchecked")
+        final Iterator<String> i = jsonObject.keys();
+
+        while (i.hasNext()) {
+            final String key = i.next();
+            responseItems.put(key, jsonObject.getString(key));
+        }
     }
 
     public void refreshToken(String refreshToken,
@@ -209,6 +287,7 @@ class Oauth {
             return;
         }
 
+        Logger.v(TAG, "Refresh token request message:" + requestMessage);
         // Async post to get token. It posts the result back to the
         // externalCallback
         HashMap<String, String> headers = getRequestHeaders();
@@ -439,29 +518,22 @@ class Oauth {
         AuthenticationResult result = new AuthenticationResult();
         HashMap<String, String> responseItems = new HashMap<String, String>();
 
-        if (webResponse.getStatusCode() <= 400) {
+        if (webResponse.getBody() != null && webResponse.getBody().length > 0) {
 
-            if (webResponse.getBody() != null && webResponse.getBody().length > 0) {
-                try {
-                    final JSONObject jsonObject = new JSONObject(new String(webResponse.getBody()));
-
-                    @SuppressWarnings("unchecked")
-                    final Iterator<String> i = jsonObject.keys();
-
-                    while (i.hasNext()) {
-                        final String key = i.next();
-                        responseItems.put(key, jsonObject.getString(key));
-                    }
-
-                    result = processUIResponseParams(responseItems);
-                } catch (final Exception ex) {
-                    // There is no recovery possible here, so
-                    // catch the
-                    // generic Exception
-                    Log.e(TAG, ex.getMessage(), ex);
-                    result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
-                }
+            // invalid refresh token calls has error related items in the body.
+            // Status is 400 for those.
+            try {
+                String jsonStr = new String(webResponse.getBody());
+                extractJsonObjects(responseItems, jsonStr);
+                result = processUIResponseParams(responseItems);
+            } catch (final Exception ex) {
+                // There is no recovery possible here, so
+                // catch the
+                // generic Exception
+                Log.e(TAG, ex.getMessage(), ex);
+                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
             }
+
         } else {
             String errMessage = null;
             byte[] message = webResponse.getBody();
@@ -471,7 +543,8 @@ class Oauth {
                 errMessage = "Status code:" + String.valueOf(webResponse.getStatusCode());
             }
 
-            result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()), errMessage, null);
+            result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
+                    errMessage, null);
         }
 
         return result;

@@ -100,7 +100,8 @@ public class Logger {
             return;
 
         if (mAndroidLogEnabled) {
-            Log.v(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage));
+            Log.v(tag,
+                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage));
         }
 
         if (mExternalLogger != null) {
@@ -118,7 +119,8 @@ public class Logger {
             return;
 
         if (mAndroidLogEnabled) {
-            Log.i(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage));
+            Log.i(tag,
+                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage));
         }
 
         if (mExternalLogger != null) {
@@ -136,7 +138,8 @@ public class Logger {
             return;
 
         if (mAndroidLogEnabled) {
-            Log.w(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage));
+            Log.w(tag,
+                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage));
         }
 
         if (mExternalLogger != null) {
@@ -151,7 +154,8 @@ public class Logger {
 
     public void error(String tag, String message, String additionalMessage, ADALError errorCode) {
         if (mAndroidLogEnabled) {
-            Log.e(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage));
+            Log.e(tag,
+                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage));
         }
 
         if (mExternalLogger != null) {
@@ -167,7 +171,9 @@ public class Logger {
     public void error(String tag, String message, String additionalMessage, ADALError errorCode,
             Throwable err) {
         if (mAndroidLogEnabled) {
-            Log.e(tag, String.format(LOG_FORMAT, errorCode.name(), message, additionalMessage), err);
+            Log.e(tag,
+                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage),
+                    err);
         }
 
         if (mExternalLogger != null) {
@@ -186,6 +192,10 @@ public class Logger {
 
     public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().inform(tag, message, additionalMessage, errorCode);
+    }
+
+    public static void v(String tag, String message) {
+        Logger.getInstance().verbose(tag, message, null, null);
     }
 
     public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
@@ -220,4 +230,11 @@ public class Logger {
         this.mAndroidLogEnabled = androidLogEnable;
     }
 
+    private String getCodeName(ADALError code) {
+        if (code != null) {
+            return code.name();
+        }
+
+        return "";
+    }
 }

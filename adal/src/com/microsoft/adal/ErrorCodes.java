@@ -127,6 +127,11 @@ public class ErrorCodes {
          * Cache is not saving the changes. This error will be returned to developer, if cache returns error
          */
         DEVICE_CACHE_IS_NOT_WORKING,
+        
+        /**
+         * IdToken is failed to parse
+         */
+        IDTOKEN_PARSING_FAILURE,
     }
 
     /**

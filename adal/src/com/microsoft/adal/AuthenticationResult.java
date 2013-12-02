@@ -72,6 +72,17 @@ public class AuthenticationResult implements Serializable {
         mRefreshToken = null;
     }
 
+    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
+            UserInfo userInfo) {
+        mCode = null;
+        mAccessToken = accessToken;
+        mRefreshToken = refreshToken;
+        mExpiresOn = expires;
+        mIsMultiResourceRefreshToken = isBroad;
+        mStatus = AuthenticationStatus.Succeeded;
+        mUserInfo = userInfo;
+    }
+
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad) {
         mCode = null;
         mAccessToken = accessToken;
