@@ -83,14 +83,15 @@ public class AuthenticationConstants {
         public static final String REALM = "realm";
 
         public static final String LOGIN_HINT = "login_hint";
-        
+
         public static final String CORRELATION_ID = "correlation_id";
 
         public static final String CLIENT_REQUEST_ID = "client-request-id";
 
         public static final String RETURN_CLIENT_REQUEST_ID = "return-client-request-id";
-        
+
         public static final String QUERY_PROMPT = "prompt";
+
         public static final String QUERY_PROMPT_VALUE = "login";
     }
 

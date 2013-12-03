@@ -205,6 +205,30 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertEquals("Redirect uri is same as package", "com.microsoft.adal.test", redirect);
     }
 
+    public void testPrompt() throws IllegalArgumentException, NoSuchFieldException,
+            IllegalAccessException, ClassNotFoundException {
+        TestMockContext mockContext = new TestMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                "https://login.windows.net/common", false);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        testActivity.mSignal = signal;
+
+        // 1 - Send prompt always
+        context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
+                "testExtraParamsredirectUri", PromptBehavior.Always, callback);
+
+        // get intent from activity to verify extraparams are send
+        Intent intent = testActivity.mStartActivityIntent;
+        assertNotNull(intent);
+        Serializable request = intent
+                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+
+        PromptBehavior prompt = (PromptBehavior)ReflectionUtils.getFieldValue(request, "mPrompt");
+        assertEquals("Prompt param is same", PromptBehavior.Always, prompt);
+    }
+
     public void testExtraParams() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, ClassNotFoundException {
         TestMockContext mockContext = new TestMockContext(getContext());
