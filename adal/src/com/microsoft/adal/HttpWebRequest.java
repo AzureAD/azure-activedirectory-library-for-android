@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.microsoft.adal.ErrorCodes.ADALError;
 
 import android.annotation.TargetApi;
 import android.os.AsyncTask;

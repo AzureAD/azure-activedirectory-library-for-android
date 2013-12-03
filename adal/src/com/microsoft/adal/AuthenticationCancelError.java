@@ -1,7 +1,6 @@
 
 package com.microsoft.adal;
 
-import com.microsoft.adal.ErrorCodes.ADALError;
 
 public class AuthenticationCancelError extends AuthenticationException {
     static final long serialVersionUID = 1;

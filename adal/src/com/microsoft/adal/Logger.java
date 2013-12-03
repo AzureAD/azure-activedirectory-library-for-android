@@ -3,7 +3,6 @@ package com.microsoft.adal;
 
 import android.util.Log;
 
-import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
  * Android log output can. If externalLogger is set, it will use that as well.

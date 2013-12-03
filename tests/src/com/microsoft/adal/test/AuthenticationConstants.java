@@ -1,4 +1,4 @@
-package com.microsoft.adal;
+package com.microsoft.adal.test;
 
 public class AuthenticationConstants {
 

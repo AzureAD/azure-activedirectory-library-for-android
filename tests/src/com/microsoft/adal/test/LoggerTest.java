@@ -4,7 +4,7 @@ package com.microsoft.adal.test;
 import junit.framework.Assert;
 
 import com.microsoft.adal.Logger;
-import com.microsoft.adal.ErrorCodes.ADALError;
+import com.microsoft.adal.ADALError;
 import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.Logger.LogLevel;
 

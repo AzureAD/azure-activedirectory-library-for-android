@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
+
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -20,7 +21,6 @@ import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.microsoft.adal.ErrorCodes.ADALError;
 
 
 /*
@@ -326,7 +326,7 @@ public class AuthenticationContext {
                                 "Final url is empty"));
                         mAuthorizationCallback = null;
                     } else {
-                        Oauth oauthRequest = new Oauth(authenticationRequest, mWebRequest);
+                        Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
                         Log.d(TAG, "Process url:" + endingUrl);
 
                         oauthRequest.getToken(endingUrl,
@@ -505,7 +505,7 @@ public class AuthenticationContext {
 
         // Removes refresh token from cache, when this call is complete. Request
         // may be interrupted, if app is shutdown by user.
-        Oauth oauthRequest = new Oauth(request, mWebRequest);
+        Oauth2 oauthRequest = new Oauth2(request, mWebRequest);
         oauthRequest.refreshToken(refreshItem.getRefreshToken(),
                 new AuthenticationCallback<AuthenticationResult>() {
 

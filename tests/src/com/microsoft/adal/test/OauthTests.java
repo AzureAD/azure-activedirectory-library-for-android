@@ -6,28 +6,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import junit.framework.Assert;
-
-import java.util.UUID;
-
 import android.test.AndroidTestCase;
 
 import com.microsoft.adal.AuthenticationCallback;
-import com.microsoft.adal.AuthenticationConstants;
-
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
 import com.microsoft.adal.UserInfo;
-
-import com.microsoft.adal.AuthenticationResult;
-import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.adal.HttpWebResponse;
 
 public class OauthTests extends AndroidTestCase {
 
@@ -424,7 +415,7 @@ public class OauthTests extends AndroidTestCase {
             throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        Class<?> c = Class.forName("com.microsoft.adal.Oauth");
+        Class<?> c = Class.forName("com.microsoft.adal.Oauth2");
 
         Constructor<?> constructor = c.getDeclaredConstructor(authenticationRequest.getClass());
         constructor.setAccessible(true);
@@ -440,7 +431,7 @@ public class OauthTests extends AndroidTestCase {
             return createOAuthInstance(authenticationRequest);
         }
 
-        Class<?> c = Class.forName("com.microsoft.adal.Oauth");
+        Class<?> c = Class.forName("com.microsoft.adal.Oauth2");
 
         Constructor<?> constructor = c.getDeclaredConstructor(authenticationRequest.getClass(),
                 IWebRequestHandler.class);

@@ -6,7 +6,6 @@ package com.microsoft.adal;
 
 import android.content.Context;
 
-import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
  */

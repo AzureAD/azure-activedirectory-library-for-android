@@ -3,17 +3,12 @@ package com.microsoft.adal.test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Calendar;
-
 import java.util.GregorianCalendar;
-import java.util.UUID;
-
 import java.util.HashMap;
-
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -30,22 +25,16 @@ import android.test.mock.MockPackageManager;
 import android.util.Log;
 
 import com.microsoft.adal.AuthenticationActivity;
-
 import com.microsoft.adal.AuthenticationCallback;
-import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
-import com.microsoft.adal.ErrorCodes.ADALError;
+import com.microsoft.adal.ADALError;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IDiscovery;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.TokenCacheItem;
-
-import com.microsoft.adal.AuthenticationContext;
-import com.microsoft.adal.ITokenCacheStore;
-import com.microsoft.adal.MemoryTokenCacheStore;
 
 public class AuthenticationContextTests extends AndroidTestCase {
 

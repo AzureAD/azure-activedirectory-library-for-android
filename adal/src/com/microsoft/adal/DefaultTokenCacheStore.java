@@ -17,7 +17,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
 import com.google.gson.Gson;
-import com.microsoft.adal.ErrorCodes.ADALError;
 
 /**
  * Store/Retrieve TokenCacheItem from private SharedPreferences.
