@@ -37,10 +37,23 @@ class AuthenticationRequest implements Serializable {
 
     private String mExtraQueryParamsAuthentication;
 
+    private PromptBehavior mPrompt;
+    
     public AuthenticationRequest() {
 
     }
 
+    public AuthenticationRequest(String authority, String resource, String client, String redirect,
+            String loginhint, PromptBehavior prompt, String extraQueryParams) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = client;
+        mRedirectUri = redirect;
+        mLoginHint = loginhint;
+        setPrompt(prompt);
+        mExtraQueryParamsAuthentication = extraQueryParams;
+    }
+    
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
             String loginhint) {
         mAuthority = authority;
@@ -48,7 +61,6 @@ class AuthenticationRequest implements Serializable {
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
-
     }
 
     public AuthenticationRequest(String authority, String resource, String clientid,
@@ -149,5 +161,13 @@ class AuthenticationRequest implements Serializable {
         // directly access values without getter to make it fast
         return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, mResource,
                 mClientId);
+    }
+
+    public PromptBehavior getPrompt() {
+        return mPrompt;
+    }
+
+    public void setPrompt(PromptBehavior mPrompt) {
+        this.mPrompt = mPrompt;
     }
 }

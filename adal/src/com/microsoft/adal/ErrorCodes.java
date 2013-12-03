@@ -62,6 +62,11 @@ public class ErrorCodes {
          * Authorization Failed
          */
         AUTH_FAILED,
+        
+        /**
+         * Refresh token is failed and prompt is not allowed
+         */
+        AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
 
         /**
          * Authorization Failed: %d

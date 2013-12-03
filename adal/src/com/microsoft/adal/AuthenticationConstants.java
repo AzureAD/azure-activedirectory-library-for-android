@@ -89,6 +89,9 @@ public class AuthenticationConstants {
         public static final String CLIENT_REQUEST_ID = "client-request-id";
 
         public static final String RETURN_CLIENT_REQUEST_ID = "return-client-request-id";
+        
+        public static final String QUERY_PROMPT = "prompt";
+        public static final String QUERY_PROMPT_VALUE = "login";
     }
 
     /** The Constant ENCODING_UTF8. */

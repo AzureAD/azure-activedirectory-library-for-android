@@ -83,7 +83,21 @@ class Oauth {
                     AuthenticationConstants.AAD.LOGIN_HINT, URLEncoder.encode(
                             mRequest.getLoginHint(), AuthenticationConstants.ENCODING_UTF8));
         }
+        
+        // Setting prompt behavior to always will skip the cookies for webview. It is added to authorization url.
+        if(mRequest.getPrompt() == PromptBehavior.Always){
+            requestUrl = String.format("%s&%s=%s", requestUrl,
+                    AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
+                            AuthenticationConstants.AAD.QUERY_PROMPT_VALUE, AuthenticationConstants.ENCODING_UTF8));
+        }
 
+        if(!StringExtensions.IsNullOrBlank(mRequest.getExtraQueryParamsAuthentication())){
+            String params = mRequest.getExtraQueryParamsAuthentication();
+            if(!params.startsWith("&")){
+                params = "&" + params;
+            }
+            requestUrl = requestUrl + params;
+        }
         return requestUrl;
     }
 
@@ -213,6 +227,7 @@ class Oauth {
         // externalCallback
         HashMap<String, String> headers = getRequestHeaders();
         try {
+            
             mWebRequestHandler.sendAsyncPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
