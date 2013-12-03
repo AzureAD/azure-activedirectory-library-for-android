@@ -150,7 +150,7 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, AuthenticationCallback<AuthenticationResult> callback) {
 
-        checkInputParameters(activity, resource, clientId, redirectUri, callback);
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, userId, PromptBehavior.Auto, null);
@@ -181,7 +181,7 @@ public class AuthenticationContext {
             String redirectUri, String userId, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        checkInputParameters(activity, resource, clientId, redirectUri, callback);
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters);
@@ -210,7 +210,7 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        checkInputParameters(activity, resource, clientId, redirectUri, callback);
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, null);
@@ -239,7 +239,7 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        checkInputParameters(activity, resource, clientId, redirectUri, callback);
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, extraQueryParameters);
@@ -247,7 +247,7 @@ public class AuthenticationContext {
         acquireTokenLocal(activity, request, callback);
     }
 
-    private void checkInputParameters(Activity activity, String resource, String clientId,
+    private String checkInputParameters(Activity activity, String resource, String clientId,
             String redirectUri, AuthenticationCallback<AuthenticationResult> callback) {
         if (mContext == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
@@ -257,11 +257,11 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("activity");
         }
 
-        if (!StringExtensions.IsNullOrBlank(resource)) {
+        if (StringExtensions.IsNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
 
-        if (!StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.IsNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
@@ -272,6 +272,8 @@ public class AuthenticationContext {
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
             redirectUri = getRedirectFromPackage();
         }
+        
+        return redirectUri;
     }
 
     /**

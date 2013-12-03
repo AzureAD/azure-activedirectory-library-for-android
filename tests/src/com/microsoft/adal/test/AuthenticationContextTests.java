@@ -155,56 +155,32 @@ public class AuthenticationContextTests extends AndroidTestCase {
                     }
                 });
 
-        // userid is optional, it will throw error for invalid authority not for
-        // misisng userid
-        AssertUtils.assertThrowsException(IllegalArgumentException.class, "authority",
-                new Runnable() {
+        // userId is optional, it will throw error for invalid authority not for
+        // missing userid
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
+                "extraquearyparam", testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
 
-                    @Override
-                    public void run() {
-                        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
-                                "userid", "extraquearyparam", testEmptyCallback);
-                    }
-                });
-        AssertUtils.assertThrowsException(IllegalArgumentException.class, "authority",
-                new Runnable() {
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "", "",
+                testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
 
-                    @Override
-                    public void run() {
-                        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
-                                "", "", testEmptyCallback);
-                    }
-                });
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
+                PromptBehavior.Always, testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
 
-        AssertUtils.assertThrowsException(IllegalArgumentException.class, "authority",
-                new Runnable() {
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
+                PromptBehavior.Auto, testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
 
-                    @Override
-                    public void run() {
-                        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
-                                PromptBehavior.Always, testEmptyCallback);
-                    }
-                });
-
-        AssertUtils.assertThrowsException(IllegalArgumentException.class, "authority",
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-                        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
-                                PromptBehavior.Auto, testEmptyCallback);
-                    }
-                });
-
-        AssertUtils.assertThrowsException(IllegalArgumentException.class, "authority",
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-                        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
-                                PromptBehavior.Never, testEmptyCallback);
-                    }
-                });
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
+                PromptBehavior.Never, testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
     }
 
     public void testEmptyRedirect() throws ClassNotFoundException, IllegalArgumentException,
@@ -224,9 +200,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         Serializable request = intent
                 .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
         assertEquals("AuthenticationRequest inside the intent", request.getClass(),
-                Class.forName("com.microsoft.adal.AuthenticationRequest").getClass());
+                Class.forName("com.microsoft.adal.AuthenticationRequest"));
         String redirect = (String)ReflectionUtils.getFieldValue(request, "mRedirectUri");
-        assertEquals("Redirect uri is same as package", mockContext.getPackageName(), redirect);
+        assertEquals("Redirect uri is same as package", "com.microsoft.adal.test", redirect);
     }
 
     public void testExtraParams() throws IllegalArgumentException, NoSuchFieldException,
@@ -251,12 +227,13 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
 
         assertEquals("AuthenticationRequest inside the intent", request.getClass(),
-                Class.forName("com.microsoft.adal.AuthenticationRequest").getClass());
+                Class.forName("com.microsoft.adal.AuthenticationRequest"));
         String extraparm = (String)ReflectionUtils.getFieldValue(request,
                 "mExtraQueryParamsAuthentication");
         assertEquals("Extra query param is same", expected, extraparm);
 
         // 2- Don't send extraqueryparam
+        ReflectionUtils.setFieldValue(context, "mAuthorizationCallback", null);
         context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, null, callback);
 
@@ -266,7 +243,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         request = intent.getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
 
         assertEquals("AuthenticationRequest inside the intent", request.getClass(),
-                Class.forName("com.microsoft.adal.AuthenticationRequest").getClass());
+                Class.forName("com.microsoft.adal.AuthenticationRequest"));
         extraparm = (String)ReflectionUtils.getFieldValue(request,
                 "mExtraQueryParamsAuthentication");
         assertNull("Extra query param is null", extraparm);
@@ -794,6 +771,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
         @Override
         public String getPackageName() {
             return PREFIX;
+        }
+
+        @Override
+        public Context getApplicationContext() {
+            return mContext;
         }
 
         @Override
