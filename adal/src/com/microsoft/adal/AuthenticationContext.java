@@ -46,7 +46,7 @@ public class AuthenticationContext {
 
     private transient ActivityDelegate mActivityDelegate;
 
-    static Object mLock = new Object();
+    private final static Object sLock = new Object();
 
     /**
      * delegate map is needed to handle activity recreate without asking
@@ -411,7 +411,7 @@ public class AuthenticationContext {
 
     private void removeWaitingRequest(int requestId) {
         Log.v(TAG, "Remove Waiting Request: " + requestId);
-        synchronized (mLock) {
+        synchronized (sLock) {
             mDelegateMap.remove(requestId);
         }
     }
@@ -420,7 +420,7 @@ public class AuthenticationContext {
 
         Log.v(TAG, "Get Waiting Request: " + requestId);
         AuthenticationRequestState request = null;
-        synchronized (mLock) {
+        synchronized (sLock) {
             request = mDelegateMap.get(requestId);
         }
 
@@ -441,7 +441,7 @@ public class AuthenticationContext {
     private void putWaitingRequest(int requestId, AuthenticationRequestState requestState) {
         Log.v(TAG, "Put Waiting Request: " + requestId);
         if (requestId > 0 && requestState != null) {
-            synchronized (mLock) {
+            synchronized (sLock) {
                 mDelegateMap.put(requestId, requestState);
             }
         }
