@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 
-
 /*
  */
 
@@ -62,13 +61,12 @@ public class AuthenticationContext {
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
 
     private Activity mActivity;
-    
+
     /**
-     * Correlationid set by user
+     * CorrelationId set by user
      */
     private UUID mRequestCorrelationId = null;
-    
-    
+
     /**
      * Constructs context to use with known authority to get the token. It uses
      * default cache.
@@ -118,7 +116,7 @@ public class AuthenticationContext {
 
     /**
      * returns referenced cache. You can use default cache, which uses
-     * SharedPrefenreces and handles synchronization by itself.
+     * SharedPreferences and handles synchronization by itself.
      * 
      * @return
      */
@@ -126,6 +124,11 @@ public class AuthenticationContext {
         return mTokenCacheStore;
     }
 
+    /**
+     * gets authority that is used for this object of AuthenticationContext
+     * 
+     * @return
+     */
     public String getAuthority() {
         return mAuthority;
     }
@@ -134,7 +137,7 @@ public class AuthenticationContext {
      * acquire Token will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, it will remove
-     * this refresh token from cache and fall back on the UI.
+     * this refresh token from cache and start authentication.
      * 
      * @param activity required to launch authentication activity.
      * @param resource required resource identifier.
@@ -147,35 +150,12 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (mContext == null) {
-            throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
-        }
-
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
-        if (activity == null) {
-            throw new IllegalArgumentException("activity");
-        }
-
-        if (resource == null) {
-            throw new IllegalArgumentException("resource");
-        }
-
-        if (clientId == null) {
-            throw new IllegalArgumentException("clientId");
-        }
-
-        String redirectInfo = redirectUri;
-        if (StringExtensions.IsNullOrBlank(redirectInfo)) {
-            redirectInfo = getRedirectFromPackage();
-        }
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectInfo, userId);
+                clientId, redirectUri, userId, PromptBehavior.Auto, null);
 
-        acquireTokenLocal(activity, request, PromptBehavior.Auto, callback);
+        acquireTokenLocal(activity, request, callback);
     }
 
     /**
@@ -200,7 +180,13 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
-        throw new UnsupportedOperationException("come back later");
+
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters);
+
+        acquireTokenLocal(activity, request, callback);
     }
 
     /**
@@ -208,9 +194,10 @@ public class AuthenticationContext {
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, behavior will
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
-     * token from cache and fall back on the UI if activitycontext is not null.
+     * token from cache and fall back on the UI.
      * If promptbehavior is NEVER, It will remove this refresh token from cache
-     * and(or not, depending on the promptBehavior values. Default is AUTO.
+     * and return error. Default is AUTO.
+     * if promptbehavior is Always, it will display prompt screen.
      * 
      * @param activity
      * @param resource
@@ -220,8 +207,15 @@ public class AuthenticationContext {
      * @param callback
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, PromptBehavior prompt, AuthenticationCallback<AuthenticationResult> callback) {
-        throw new UnsupportedOperationException("come back later");
+            String redirectUri, PromptBehavior prompt,
+            AuthenticationCallback<AuthenticationResult> callback) {
+
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, redirectUri, null, prompt, null);
+
+        acquireTokenLocal(activity, request, callback);
     }
 
     /**
@@ -237,14 +231,49 @@ public class AuthenticationContext {
      * @param resource
      * @param clientId
      * @param redirectUri
-     * @param prompt
-     * @param extraQueryParameters
+     * @param prompt added as query parameter to authorization url
+     * @param extraQueryParameters added to authorization url
      * @param callback
      */
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
-        throw new UnsupportedOperationException("come back later");
+
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, redirectUri, null, prompt, extraQueryParameters);
+
+        acquireTokenLocal(activity, request, callback);
+    }
+
+    private String checkInputParameters(Activity activity, String resource, String clientId,
+            String redirectUri, AuthenticationCallback<AuthenticationResult> callback) {
+        if (mContext == null) {
+            throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
+        }
+
+        if (activity == null) {
+            throw new IllegalArgumentException("activity");
+        }
+
+        if (StringExtensions.IsNullOrBlank(resource)) {
+            throw new IllegalArgumentException("resource");
+        }
+
+        if (StringExtensions.IsNullOrBlank(clientId)) {
+            throw new IllegalArgumentException("clientId");
+        }
+
+        if (callback == null) {
+            throw new IllegalArgumentException("callback");
+        }
+
+        if (StringExtensions.IsNullOrBlank(redirectUri)) {
+            redirectUri = getRedirectFromPackage();
+        }
+        
+        return redirectUri;
     }
 
     /**
@@ -258,7 +287,7 @@ public class AuthenticationContext {
      */
     public void acquireTokenByRefreshToken(String refreshToken, String clientId,
             AuthenticationCallback<AuthenticationResult> callback) {
-        throw new UnsupportedOperationException("come back later");
+        refreshTokenWithoutCache(refreshToken, clientId, null, callback);
     }
 
     /**
@@ -273,7 +302,7 @@ public class AuthenticationContext {
      */
     public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
             AuthenticationCallback<AuthenticationResult> callback) {
-        throw new UnsupportedOperationException("come back later");
+        refreshTokenWithoutCache(refreshToken, clientId, resource, callback);
     }
 
     /**
@@ -371,9 +400,9 @@ public class AuthenticationContext {
      * @param callback
      */
     private void acquireTokenLocal(final Activity activity, final AuthenticationRequest request,
-            final PromptBehavior prompt, final AuthenticationCallback<AuthenticationResult> externalCall) {
+            final AuthenticationCallback<AuthenticationResult> externalCall) {
 
-        URL authorityUrl;
+        final URL authorityUrl;
         try {
             authorityUrl = new URL(mAuthority);
         } catch (MalformedURLException e) {
@@ -382,46 +411,73 @@ public class AuthenticationContext {
             return;
         }
 
-        // Runnable to post depending on validation flag
-        final Runnable requestRunnable = new Runnable() {
+        if (mValidateAuthority) {
+            validateAuthority(authorityUrl, new AuthenticationCallback<Boolean>() {
 
-            @Override
-            public void run() {
-                Log.d(TAG, "Token request runnable is started");
-                AuthenticationResult cachedItem = getItemFromCache(request);
-                if (prompt != PromptBehavior.Always && isValidCache(cachedItem)) {
-                    externalCall.onSuccess(cachedItem);
-                } else if (prompt != PromptBehavior.Always && isRefreshable(cachedItem)) {
-                    refreshToken(activity, request, cachedItem, prompt, externalCall);
-                } else {
-                    // start activity if other options are not available
-                    // Authorization has one reference of callback
-                    // Authentication callback does not have restrictions
-                    if (mAuthorizationCallback == null) {
-                        mAuthorizationCallback = externalCall;
+                @Override
+                public void onSuccess(Boolean result) {
+                    if (result) {
+                        acquireTokenAfterValidation(activity, request, externalCall);
                     } else {
-                        Log.e(TAG, "Webview is active for another session");
+                        Log.v(TAG, "Call external callback since instance is invalid"
+                                + authorityUrl.toString());
                         externalCall.onError(new AuthenticationException(
-                                ADALError.DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED));
-                        return;
-                    }
-
-                    // Set Activity for authorization flow
-                    setActivity(activity);
-                    setActivityDelegate(activity);
-
-                    if (!startAuthenticationActivity(request)) {
-                        mAuthorizationCallback.onError(new AuthenticationException(
-                                ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
+                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
                     }
                 }
-            }
-        };
 
-        if (mValidateAuthority) {
-            validateAuthority(authorityUrl, requestRunnable, externalCall);
+                @Override
+                public void onError(Exception exc) {
+                    externalCall.onError(new AuthenticationException(
+                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
+                }
+
+            });
         } else {
-            requestRunnable.run();
+            acquireTokenAfterValidation(activity, request, externalCall);
+        }
+    }
+
+    private void acquireTokenAfterValidation(final Activity activity,
+            final AuthenticationRequest request,
+            final AuthenticationCallback<AuthenticationResult> externalCall) {
+        Log.d(TAG, "Token request is started");
+
+        AuthenticationResult cachedItem = getItemFromCache(request);
+        if (request.getPrompt() != PromptBehavior.Always && isValidCache(cachedItem)) {
+            externalCall.onSuccess(cachedItem);
+        } else if (request.getPrompt() != PromptBehavior.Always && isRefreshable(cachedItem)) {
+            refreshToken(activity, request, cachedItem.getRefreshToken(), true, externalCall);
+        } else {
+
+            if (request.getPrompt() != PromptBehavior.Never) {
+                // start activity if other options are not available
+                // Authorization has one reference of callback
+                // Authentication callback does not have restrictions
+                if (mAuthorizationCallback == null) {
+                    mAuthorizationCallback = externalCall;
+                } else {
+                    Log.e(TAG, "Webview is active for another session");
+                    externalCall.onError(new AuthenticationException(
+                            ADALError.DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED));
+                    return;
+                }
+
+                // Set Activity for authorization flow
+                setActivity(activity);
+                setActivityDelegate(activity);
+
+                if (!startAuthenticationActivity(request)) {
+                    mAuthorizationCallback.onError(new AuthenticationException(
+                            ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
+                }
+            } else {
+                // it can come here if user set to never for the prompt and
+                // refresh token failed.
+                mAuthorizationCallback.onError(new AuthenticationException(
+                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
+
+            }
         }
     }
 
@@ -486,80 +542,88 @@ public class AuthenticationContext {
     }
 
     /**
-     * refresh token if possible. if fails, call acquire token with prompt
-     * always flag.
+     * refresh token if possible. if fails, call acquire token if prompt is
+     * allowed.
      * 
      * @param activity Activity to use in case refresh token does not succeed
      *            and prompt is not set to never.
      * @param request incoming request
-     * @param refreshItem refresh token info
+     * @param refreshToken refresh token
      * @param prompt if set to never, it should not attempt to launch
      *            authorization
      * @param externalCallback
      */
     private void refreshToken(final Activity activity, final AuthenticationRequest request,
-            AuthenticationResult refreshItem, final PromptBehavior prompt,
+            String refreshToken, final boolean useCache,
             final AuthenticationCallback<AuthenticationResult> externalCallback) {
 
         Log.d(TAG, "Process refreshToken for " + request.getLogInfo());
 
         // Removes refresh token from cache, when this call is complete. Request
         // may be interrupted, if app is shutdown by user.
+
+
         Oauth2 oauthRequest = new Oauth2(request, mWebRequest);
-        oauthRequest.refreshToken(refreshItem.getRefreshToken(),
-                new AuthenticationCallback<AuthenticationResult>() {
+        oauthRequest.refreshToken(refreshToken, new AuthenticationCallback<AuthenticationResult>() {
 
-                    @Override
-                    public void onSuccess(AuthenticationResult result) {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
 
-                        if (result == null
-                                || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
 
-                            // remove item from cache to avoid same usage of refresh token. This may cause infinite loop if bad refresh token is not cleared.
-                            removeItemFromCache(request);
-                            // TODO: This may cause an issue if refresh token
-                            // request was delayed and user moved to another
-                            // screen.
-                            acquireTokenLocal(activity, request, prompt, externalCallback);
-                        } else {
-                            Log.v(TAG, "Refresh token is finished for " + request.getLogInfo());
-                            setItemToCache(request, result);
-                            externalCallback.onSuccess(result);
-                        }
-                    }
+                if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
 
-                    @Override
-                    public void onError(Exception exc) {
-                        // remove item from cache
+                    // remove item from cache to avoid same usage of
+                    // refresh token. This may cause infinite loop if
+                    // bad refresh token is not cleared.
+                    if (useCache) {
                         removeItemFromCache(request);
-                        externalCallback.onError(exc);
                     }
-                });
+                    
+                    if (request.getPrompt() != PromptBehavior.Never) {
+                        Log.w(TAG,
+                                "Refresh token was not successful and prompt is allowed for "
+                                        + request.getLogInfo());
+                        acquireTokenLocal(activity, request, externalCallback);
+                    } else {
+                        Log.w(TAG, "Refresh token was not successful and prompt is NOT allowed for "
+                                + request.getLogInfo());
+                        externalCallback.onError(new AuthenticationException(
+                                ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
+                    }
+                } else {
+                    Log.v(TAG, "Refresh token is finished for " + request.getLogInfo());
+                    if (useCache) {
+                        setItemToCache(request, result);
+                    }
+                    externalCallback.onSuccess(result);
+                }
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                // remove item from cache
+                removeItemFromCache(request);
+                externalCallback.onError(exc);
+            }
+        });
     }
 
-    private void validateAuthority(final URL authorityUrl, final Runnable requestRunnable,
-            final AuthenticationCallback<AuthenticationResult> externalCall) {
+    private void validateAuthority(final URL authorityUrl,
+            final AuthenticationCallback<Boolean> authenticationCallback) {
+
         if (mDiscovery != null) {
             mDiscovery.isValidAuthority(authorityUrl, new AuthenticationCallback<Boolean>() {
 
                 @Override
                 public void onSuccess(Boolean result) {
                     Log.v(TAG, "Instance validation is successfull. Result:" + result.toString());
-                    if (result) {
-                        requestRunnable.run();
-                    } else {
-                        Log.v(TAG,
-                                "Call callback since instance is invalid:"
-                                        + authorityUrl.toString());
-                        externalCall.onError(new AuthenticationException(
-                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                    }
+                    authenticationCallback.onSuccess(result);
                 }
 
                 @Override
                 public void onError(Exception exc) {
                     Log.e(TAG, "Instance validation returned error", exc);
-                    externalCall.onError(exc);
+                    authenticationCallback.onError(exc);
                 }
             });
 
@@ -665,6 +729,7 @@ public class AuthenticationContext {
 
     /**
      * get the CorrelationId set by user
+     * 
      * @return
      */
     public UUID getRequestCorrelationId() {
@@ -673,6 +738,7 @@ public class AuthenticationContext {
 
     /**
      * set correlationid to requests
+     * 
      * @param mRequestCorrelationId
      */
     public void setRequestCorrelationId(UUID mRequestCorrelationId) {
@@ -688,5 +754,78 @@ public class AuthenticationContext {
         public void startActivity(Intent intent);
 
         public Activity getActivityContext();
+    }
+
+    /**
+     * Developer is using refresh token call to do refresh without cache usage.
+     * App context or activity is not needed. Async requests are created,so this
+     * needs to be called at UI thread.
+     */
+    private void refreshTokenWithoutCache(final String refreshToken, String clientId,
+            String resource, final AuthenticationCallback<AuthenticationResult> callback) {
+        Log.v(TAG, "Refresh token request");
+
+        if (mAuthority == null) {
+            throw new IllegalArgumentException("Authority is not provided");
+        }
+
+        if (StringExtensions.IsNullOrBlank(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token is not provided");
+        }
+
+        if (StringExtensions.IsNullOrBlank(clientId)) {
+            throw new IllegalArgumentException("ClientId is not provided");
+        }
+
+        if (callback == null) {
+            throw new IllegalArgumentException("Callback is not provided");
+        }
+
+        final URL authorityUrl;
+        try {
+            authorityUrl = new URL(mAuthority);
+        } catch (MalformedURLException e) {
+            Logger.e(TAG, "Authority is invalid:" + mAuthority, null,
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
+            callback.onError(new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
+            return;
+        }
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, null, clientId,
+                null, null);
+        // It is not using cache and refresh is not expected to show
+        // authentication activity.
+        request.setPrompt(PromptBehavior.Never);
+
+        if (mValidateAuthority) {
+            Log.v(TAG, "Validating authority");
+            validateAuthority(authorityUrl, new AuthenticationCallback<Boolean>() {
+
+                // These methods are called at UI thread. Async Task calls the
+                // callback at onPostExecute which happens at UI thread.
+                @Override
+                public void onSuccess(Boolean result) {
+                    if (result) {
+                        // it does one attempt
+                        refreshToken(null, request, refreshToken, false, callback);
+                    } else {
+                        Log.v(TAG,
+                                "Call callback since instance is invalid:"
+                                        + authorityUrl.toString());
+                        callback.onError(new AuthenticationException(
+                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
+                    }
+                }
+
+                @Override
+                public void onError(Exception exc) {
+                    callback.onError(exc);
+                }
+            });
+        } else {
+            Log.v(TAG, "Skip authority validation");
+            refreshToken(null, request, refreshToken, false, callback);
+        }
     }
 }

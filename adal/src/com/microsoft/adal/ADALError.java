@@ -1,3 +1,4 @@
+
 package com.microsoft.adal;
 
 public enum ADALError {
@@ -16,8 +17,8 @@ public enum ADALError {
     DEVELOPER_AUTHORITY_IS_EMPTY,
 
     /**
-     * Async tasks can only be executed one time. They are not supposed to
-     * be reused.
+     * Async tasks can only be executed one time. They are not supposed to be
+     * reused.
      */
     DEVELOPER_ASYNC_TASK_REUSED,
 
@@ -49,6 +50,11 @@ public enum ADALError {
      * Authorization Failed
      */
     AUTH_FAILED,
+
+    /**
+     * Refresh token is failed and prompt is not allowed
+     */
+    AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
 
     /**
      * Authorization Failed: %d
@@ -111,10 +117,11 @@ public enum ADALError {
     DEVICE_SHARED_PREF_IS_NOT_AVAILABLE,
 
     /**
-     * Cache is not saving the changes. This error will be returned to developer, if cache returns error
+     * Cache is not saving the changes. This error will be returned to
+     * developer, if cache returns error
      */
     DEVICE_CACHE_IS_NOT_WORKING,
-    
+
     /**
      * IdToken is failed to parse
      */

@@ -275,10 +275,6 @@ public class OauthTests extends AndroidTestCase {
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException {
 
-        String a = "aa";
-        String c = null;
-        String b = a + " " + c;
-
         HashMap<String, String> response = new HashMap<String, String>();
         Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
                 "loginhint");

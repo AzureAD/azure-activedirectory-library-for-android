@@ -1,6 +1,8 @@
 
 package com.microsoft.adal.test;
 
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -34,6 +36,7 @@ import com.microsoft.adal.ADALError;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IDiscovery;
 import com.microsoft.adal.ITokenCacheStore;
+import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
 
 public class AuthenticationContextTests extends AndroidTestCase {
@@ -131,6 +134,16 @@ public class AuthenticationContextTests extends AndroidTestCase {
                     }
                 });
 
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "resource",
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        context.acquireToken(testActivity, "", "clientId", "redirectUri", "userid",
+                                testEmptyCallback);
+                    }
+                });
+
         AssertUtils.assertThrowsException(IllegalArgumentException.class, "clientid",
                 new Runnable() {
 
@@ -141,6 +154,268 @@ public class AuthenticationContextTests extends AndroidTestCase {
                     }
                 });
 
+        // userId is optional, it will throw error for invalid authority not for
+        // missing userid
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
+                "extraquearyparam", testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
+
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "", "",
+                testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
+
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
+                PromptBehavior.Always, testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
+
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
+                PromptBehavior.Auto, testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
+
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
+                PromptBehavior.Never, testEmptyCallback);
+        assertTrue("Authority parameter error",
+                testEmptyCallback.mException instanceof AuthenticationException);
+    }
+
+    public void testEmptyRedirect() throws ClassNotFoundException, IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException {
+        TestMockContext mockContext = new TestMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                "https://login.windows.net/common", false);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        testActivity.mSignal = signal;
+
+        context.acquireToken(testActivity, "resource", "clientId", "", "userid", callback);
+
+        Intent intent = testActivity.mStartActivityIntent;
+        assertNotNull(intent);
+        Serializable request = intent
+                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+        assertEquals("AuthenticationRequest inside the intent", request.getClass(),
+                Class.forName("com.microsoft.adal.AuthenticationRequest"));
+        String redirect = (String)ReflectionUtils.getFieldValue(request, "mRedirectUri");
+        assertEquals("Redirect uri is same as package", "com.microsoft.adal.test", redirect);
+    }
+
+    public void testPrompt() throws IllegalArgumentException, NoSuchFieldException,
+            IllegalAccessException, ClassNotFoundException {
+        TestMockContext mockContext = new TestMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                "https://login.windows.net/common", false);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        testActivity.mSignal = signal;
+
+        // 1 - Send prompt always
+        context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
+                "testExtraParamsredirectUri", PromptBehavior.Always, callback);
+
+        // get intent from activity to verify extraparams are send
+        Intent intent = testActivity.mStartActivityIntent;
+        assertNotNull(intent);
+        Serializable request = intent
+                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+
+        PromptBehavior prompt = (PromptBehavior)ReflectionUtils.getFieldValue(request, "mPrompt");
+        assertEquals("Prompt param is same", PromptBehavior.Always, prompt);
+    }
+
+    public void testExtraParams() throws IllegalArgumentException, NoSuchFieldException,
+            IllegalAccessException, ClassNotFoundException {
+        TestMockContext mockContext = new TestMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                "https://login.windows.net/common", false);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        String expected = "&extraParam=1";
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        testActivity.mSignal = signal;
+
+        // 1 - Send extra param
+        context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
+                "testExtraParamsredirectUri", PromptBehavior.Always, expected, callback);
+
+        // get intent from activity to verify extraparams are send
+        Intent intent = testActivity.mStartActivityIntent;
+        assertNotNull(intent);
+        Serializable request = intent
+                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+
+        assertEquals("AuthenticationRequest inside the intent", request.getClass(),
+                Class.forName("com.microsoft.adal.AuthenticationRequest"));
+        String extraparm = (String)ReflectionUtils.getFieldValue(request,
+                "mExtraQueryParamsAuthentication");
+        assertEquals("Extra query param is same", expected, extraparm);
+
+        // 2- Don't send extraqueryparam
+        ReflectionUtils.setFieldValue(context, "mAuthorizationCallback", null);
+        context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
+                "testExtraParamsredirectUri", PromptBehavior.Always, null, callback);
+
+        // verify from mocked activity intent
+        intent = testActivity.mStartActivityIntent;
+        assertNotNull(intent);
+        request = intent.getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+
+        assertEquals("AuthenticationRequest inside the intent", request.getClass(),
+                Class.forName("com.microsoft.adal.AuthenticationRequest"));
+        extraparm = (String)ReflectionUtils.getFieldValue(request,
+                "mExtraQueryParamsAuthentication");
+        assertNull("Extra query param is null", extraparm);
+    }
+
+    public static Object createAuthenticationRequest(String authority, String resource,
+            String client, String redirect, String loginhint) throws ClassNotFoundException,
+            NoSuchMethodException, IllegalArgumentException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+
+        Class<?> c = Class.forName("com.microsoft.adal.AuthenticationRequest");
+
+        Constructor<?> constructor = c.getDeclaredConstructor(String.class, String.class,
+                String.class, String.class, String.class);
+        constructor.setAccessible(true);
+        Object o = constructor.newInstance(authority, resource, client, redirect, loginhint);
+        return o;
+    }
+
+    /**
+     * Test throws for different missing arguments
+     */
+    public void testAcquireTokenByRefreshTokenNegativeArguments() {
+        TestMockContext mockContext = new TestMockContext(getContext());
+        final AuthenticationContext contextAuthorityNull = new AuthenticationContext(mockContext,
+                null, false);
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "authority",
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        contextAuthorityNull.acquireTokenByRefreshToken("refresh", "clientId",
+                                "resource", null);
+                    }
+                });
+
+        // other method
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "authority",
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        contextAuthorityNull
+                                .acquireTokenByRefreshToken("refresh", "clientId", null);
+                    }
+                });
+
+        final AuthenticationContext context = new AuthenticationContext(mockContext, "authority",
+                false);
+        final MockAuthenticationCallback mockCallback = new MockAuthenticationCallback();
+
+        // null callback
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "callback",
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        context.acquireTokenByRefreshToken("refresh", "clientId", "resource", null);
+                    }
+                });
+
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "callback",
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        context.acquireTokenByRefreshToken("refresh", "clientId", null);
+                    }
+                });
+
+        // null refresh token
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "refresh",
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        context.acquireTokenByRefreshToken(null, "clientId", "resource",
+                                mockCallback);
+                    }
+                });
+
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "refresh",
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        context.acquireTokenByRefreshToken(null, "clientId", mockCallback);
+                    }
+                });
+
+        // null clientiD
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "clientid",
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        context.acquireTokenByRefreshToken("refresh", null, "resource",
+                                mockCallback);
+                    }
+                });
+
+        AssertUtils.assertThrowsException(IllegalArgumentException.class, "clientid",
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        context.acquireTokenByRefreshToken("refresh", null, mockCallback);
+                    }
+                });
+    }
+
+    /**
+     * Test throws for different missing arguments
+     * 
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     * @throws IllegalArgumentException
+     */
+    public void testAcquireTokenByRefreshTokenPositive() throws IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException {
+        TestMockContext mockContext = new TestMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken();
+
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
+        String json = "{\"access_token\":\"TokenFortestAcquireTokenByRefreshTokenPositive=\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshToken=\",\"scope\":\"*\"}";
+        mockWebRequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", mockWebRequest);
+
+        context.acquireTokenByRefreshToken("refreshTokenSending", "clientId", callback);
+
+        // Verify that new refresh token is matching to mock response
+        assertEquals("Same token", "TokenFortestAcquireTokenByRefreshTokenPositive=",
+                callback.mResult.getAccessToken());
+        assertEquals("Same refresh token", "refreshToken=", callback.mResult.getRefreshToken());
+
+        context.acquireTokenByRefreshToken("refreshTokenSending", "clientId", "resource", callback);
+
+        // Verify that new refresh token is matching to mock response
+        assertEquals("Same token", "TokenFortestAcquireTokenByRefreshTokenPositive=",
+                callback.mResult.getAccessToken());
+        assertEquals("Same refresh token", "refreshToken=", callback.mResult.getRefreshToken());
     }
 
     /**
@@ -508,7 +783,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         private Context mContext;
 
-        private static final String PREFIX = "test.";
+        private static final String PREFIX = "test.mock.package";
 
         boolean resolveIntent = true;
 
@@ -519,6 +794,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
         @Override
         public String getPackageName() {
             return PREFIX;
+        }
+
+        @Override
+        public Context getApplicationContext() {
+            return mContext;
         }
 
         @Override
