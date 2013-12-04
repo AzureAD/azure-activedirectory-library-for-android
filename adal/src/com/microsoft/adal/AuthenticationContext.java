@@ -578,11 +578,11 @@ public class AuthenticationContext {
                     
                     if (request.getPrompt() != PromptBehavior.Never) {
                         Log.w(TAG,
-                                "Refresh token is failed and prompt is allowed for "
+                                "Refresh token was not successful and prompt is allowed for "
                                         + request.getLogInfo());
                         acquireTokenLocal(activity, request, externalCallback);
                     } else {
-                        Log.w(TAG, "Refresh token is failed and prompt is NOT allowed for "
+                        Log.w(TAG, "Refresh token was not successful and prompt is NOT allowed for "
                                 + request.getLogInfo());
                         externalCallback.onError(new AuthenticationException(
                                 ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
