@@ -74,7 +74,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertNull(context.getCache());
     }
 
-    public void testConstructorCache() {
+    public void testConstructorWithCache() {
         String authority = "authority";
         DefaultTokenCacheStore expected = new DefaultTokenCacheStore(getContext());
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
@@ -86,6 +86,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         String authority = "authority";
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, true);
         assertTrue("Validate flag is expected to be same", context.getValidateAuthority());
+
+        context = new AuthenticationContext(getContext(), authority, false);
+        assertFalse("Validate flag is expected to be same", context.getValidateAuthority());
     }
 
     /**
@@ -416,6 +419,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
+        String expectedClientid = "client" + UUID.randomUUID().toString();
+        String exptedResource = "resource" + UUID.randomUUID().toString();
         testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
@@ -424,19 +429,28 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 .defaultCharset()), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", mockWebRequest);
 
-        context.acquireTokenByRefreshToken("refreshTokenSending", "clientId", callback);
+        context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientid, callback);
 
         // Verify that new refresh token is matching to mock response
         assertEquals("Same token", "TokenFortestAcquireTokenByRefreshTokenPositive=",
                 callback.mResult.getAccessToken());
         assertEquals("Same refresh token", "refreshToken=", callback.mResult.getRefreshToken());
+        assertTrue("Content has client in the message", mockWebRequest.getRequestContent()
+                .contains(expectedClientid));
+        assertFalse("Content does not have resource in the message", mockWebRequest
+                .getRequestContent().contains(exptedResource));
 
-        context.acquireTokenByRefreshToken("refreshTokenSending", "clientId", "resource", callback);
+        context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientid, exptedResource,
+                callback);
 
         // Verify that new refresh token is matching to mock response
         assertEquals("Same token", "TokenFortestAcquireTokenByRefreshTokenPositive=",
                 callback.mResult.getAccessToken());
         assertEquals("Same refresh token", "refreshToken=", callback.mResult.getRefreshToken());
+        assertTrue("Content has client in the message", mockWebRequest.getRequestContent()
+                .contains(expectedClientid));
+        assertTrue("Content has resource in the message", mockWebRequest.getRequestContent()
+                .contains(exptedResource));
     }
 
     /**
