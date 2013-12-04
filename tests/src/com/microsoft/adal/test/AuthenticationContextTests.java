@@ -67,6 +67,27 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertSame(authority, context.getAuthority());
     }
 
+    public void testConstructorNoCache() {
+        String authority = "authority";
+        AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
+                null);
+        assertNull(context.getCache());
+    }
+
+    public void testConstructorCache() {
+        String authority = "authority";
+        DefaultTokenCacheStore expected = new DefaultTokenCacheStore(getContext());
+        AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
+                expected);
+        assertEquals("Cache object is expected to be same", expected, context.getCache());
+    }
+
+    public void testConstructorValidateAuthority() {
+        String authority = "authority";
+        AuthenticationContext context = new AuthenticationContext(getContext(), authority, true);
+        assertTrue("Validate flag is expected to be same", context.getValidateAuthority());
+    }
+
     /**
      * if package does not have declaration for activity, it should return false
      * 
