@@ -1,0 +1,76 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity" >
+
+    <TextView
+        android:id="@+id/textViewStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="30dp"
+        android:text="Large Text"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <Button
+        android:id="@+id/buttonGetToken"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewStatus"
+        android:layout_below="@+id/textViewStatus"
+        android:layout_marginTop="38dp"
+        android:text="Get Token" />
+
+    <Button
+        android:id="@+id/buttonUsers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewStatus"
+        android:layout_alignRight="@+id/buttonGetToken"
+        android:layout_below="@+id/buttonGetToken"
+        android:text="Show Users" />
+
+    <Button
+        android:id="@+id/buttonExpired"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewStatus"
+        android:layout_alignRight="@+id/buttonUsers"
+        android:layout_below="@+id/buttonUsers"
+        android:text="Set Expired" />
+
+    <Button
+        android:id="@+id/buttonReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewStatus"
+        android:layout_alignRight="@+id/buttonExpired"
+        android:layout_below="@+id/buttonExpired"
+        android:text="Reset Token" />
+
+    <Button
+        android:id="@+id/buttonCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewStatus"
+        android:layout_alignRight="@+id/buttonReset"
+        android:layout_below="@+id/buttonReset"
+        android:text="Cancel Authentication" />
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonGetToken"
+        android:layout_alignBottom="@+id/buttonGetToken"
+        android:layout_toRightOf="@+id/buttonGetToken"
+        android:text="GetTokenWithDelay" />
+
+</RelativeLayout>

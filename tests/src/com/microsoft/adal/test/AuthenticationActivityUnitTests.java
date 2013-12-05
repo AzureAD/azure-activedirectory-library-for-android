@@ -12,17 +12,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.test.ActivityUnitTestCase;
 import android.test.RenamingDelegatingContext;
+import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.webkit.WebView;
 import android.widget.Button;
 
 import com.microsoft.adal.AuthenticationActivity;
+import com.microsoft.adal.R;
 
 /**
  * Unit test to verify buttons, webview and other items.
- * E2E tests will check if this activity really working or not.
+ * 
  * @author omercan
- *
  */
 public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<AuthenticationActivity> {
 
@@ -70,6 +71,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
     }
 
     @SmallTest
+    @UiThreadTest
     public void testLayout() throws NoSuchFieldException, IllegalArgumentException,
             IllegalAccessException {
 
@@ -98,6 +100,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
     }
 
     @SmallTest
+    @UiThreadTest
     public void testEmptyIntentData() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException {
 
