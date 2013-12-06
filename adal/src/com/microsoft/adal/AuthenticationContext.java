@@ -132,6 +132,10 @@ public class AuthenticationContext {
     public String getAuthority() {
         return mAuthority;
     }
+    
+    public boolean getValidateAuthority(){
+        return mValidateAuthority;
+    }
 
     /**
      * acquire Token will start interactive flow if needed. It checks the cache
@@ -792,8 +796,7 @@ public class AuthenticationContext {
             return;
         }
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, null, clientId,
-                null, null);
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource, clientId);
         // It is not using cache and refresh is not expected to show
         // authentication activity.
         request.setPrompt(PromptBehavior.Never);

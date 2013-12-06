@@ -71,7 +71,7 @@ class AuthenticationRequest implements Serializable {
         mRedirectUri = redirectUri;
     }
 
-    public AuthenticationRequest(String authority, String clientId, String resource) {
+    public AuthenticationRequest(String authority, String resource, String clientId) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;

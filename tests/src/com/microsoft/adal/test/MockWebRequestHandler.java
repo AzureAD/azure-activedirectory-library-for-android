@@ -18,6 +18,8 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     private URL mRequestUrl;
 
+    private String mRequestContent;
+
     private HashMap<String, String> mRequestHeaders;
 
     private HttpWebResponse mReturnResponse;
@@ -48,6 +50,9 @@ class MockWebRequestHandler implements IWebRequestHandler {
             throws IllegalArgumentException, IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
+        if (content != null) {
+            mRequestContent = new String(content, "UTF-8");
+        }
         callback.onComplete(mReturnResponse, mReturnException);
         return null;
     }
@@ -58,6 +63,9 @@ class MockWebRequestHandler implements IWebRequestHandler {
             throws IllegalArgumentException, IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
+        if (content != null) {
+            mRequestContent = new String(content, "UTF-8");
+        }
         callback.onComplete(mReturnResponse, mReturnException);
         return null;
     }
@@ -76,5 +84,9 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     public void setReturnException(Exception mReturnException) {
         this.mReturnException = mReturnException;
+    }
+
+    public String getRequestContent() {
+        return mRequestContent;
     }
 }
