@@ -342,7 +342,8 @@ public class ToDoActivity extends Activity {
                 CookieSyncManager.createInstance(ToDoActivity.this);
                 CookieManager cookieManager = CookieManager.getInstance();
                 cookieManager.removeAllCookie();
-
+                CookieSyncManager.getInstance().sync();
+                
                 // Go to logout page
                 Intent intent = new Intent(ToDoActivity.this, LogOutActivity.class);
                 startActivity(intent);

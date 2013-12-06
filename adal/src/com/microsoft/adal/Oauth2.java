@@ -15,11 +15,9 @@ import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 import android.net.Uri;
 import android.util.Base64;
 import android.util.Log;
-
 
 /**
  * base oauth class
@@ -34,16 +32,6 @@ class Oauth2 {
      * for mocking webrequests
      */
     private IWebRequestHandler mWebRequestHandler;
-
-    /**
-     * RequestAuthEndpoint to append in authority url
-     */
-    private final static String AUTH_ENDPOINT_APPEND = "/oauth2/authorize";
-
-    /**
-     * RequesttokenEndpoint to append in authority url
-     */
-    private final static String TOKEN_ENDPOINT_APPEND = "/oauth2/token";
 
     private final static String TAG = "Oauth";
 
@@ -60,41 +48,43 @@ class Oauth2 {
     }
 
     public String getAuthorizationEndpoint() {
-        return mRequest.getAuthority() + AUTH_ENDPOINT_APPEND;
+        return mRequest.getAuthority()
+                + AuthenticationSettings.INSTANCE.getAuthorizeEndpointKeyword();
     }
 
     public String getTokenEndpoint() {
-        return mRequest.getAuthority() + TOKEN_ENDPOINT_APPEND;
+        return mRequest.getAuthority() + AuthenticationSettings.INSTANCE.getTokenEndpointKeyword();
     }
 
     public String getCodeRequestUrl() throws UnsupportedEncodingException {
 
         String requestUrl = String
                 .format("%s?response_type=%s&client_id=%s&resource=%s&redirect_uri=%s&state=%s",
-                        mRequest.getAuthority() + AUTH_ENDPOINT_APPEND,
-                        AuthenticationConstants.OAuth2.CODE, URLEncoder.encode(
-                                mRequest.getClientId(), AuthenticationConstants.ENCODING_UTF8),
-                        URLEncoder.encode(mRequest.getResource(),
-                                AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
-                                mRequest.getRedirectUri(), AuthenticationConstants.ENCODING_UTF8),
-                        encodeProtocolState());
+                        getAuthorizationEndpoint(), AuthenticationConstants.OAuth2.CODE, URLEncoder
+                                .encode(mRequest.getClientId(),
+                                        AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
+                                mRequest.getResource(), AuthenticationConstants.ENCODING_UTF8),
+                        URLEncoder.encode(mRequest.getRedirectUri(),
+                                AuthenticationConstants.ENCODING_UTF8), encodeProtocolState());
 
         if (mRequest.getLoginHint() != null && !mRequest.getLoginHint().isEmpty()) {
             requestUrl = String.format("%s&%s=%s", requestUrl,
                     AuthenticationConstants.AAD.LOGIN_HINT, URLEncoder.encode(
                             mRequest.getLoginHint(), AuthenticationConstants.ENCODING_UTF8));
         }
-        
-        // Setting prompt behavior to always will skip the cookies for webview. It is added to authorization url.
-        if(mRequest.getPrompt() == PromptBehavior.Always){
+
+        // Setting prompt behavior to always will skip the cookies for webview.
+        // It is added to authorization url.
+        if (mRequest.getPrompt() == PromptBehavior.Always) {
             requestUrl = String.format("%s&%s=%s", requestUrl,
                     AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
-                            AuthenticationConstants.AAD.QUERY_PROMPT_VALUE, AuthenticationConstants.ENCODING_UTF8));
+                            AuthenticationConstants.AAD.QUERY_PROMPT_VALUE,
+                            AuthenticationConstants.ENCODING_UTF8));
         }
 
-        if(!StringExtensions.IsNullOrBlank(mRequest.getExtraQueryParamsAuthentication())){
+        if (!StringExtensions.IsNullOrBlank(mRequest.getExtraQueryParamsAuthentication())) {
             String params = mRequest.getExtraQueryParamsAuthentication();
-            if(!params.startsWith("&")){
+            if (!params.startsWith("&")) {
                 params = "&" + params;
             }
             requestUrl = requestUrl + params;
@@ -206,7 +196,8 @@ class Oauth2 {
     }
 
     /**
-     * parse user id token string 
+     * parse user id token string
+     * 
      * @param idtoken
      * @return UserInfo
      */
@@ -308,7 +299,7 @@ class Oauth2 {
         // externalCallback
         HashMap<String, String> headers = getRequestHeaders();
         try {
-            
+
             mWebRequestHandler.sendAsyncPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
