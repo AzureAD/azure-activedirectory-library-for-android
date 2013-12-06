@@ -796,8 +796,7 @@ public class AuthenticationContext {
             return;
         }
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource, clientId,
-                null, null);
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource, clientId);
         // It is not using cache and refresh is not expected to show
         // authentication activity.
         request.setPrompt(PromptBehavior.Never);

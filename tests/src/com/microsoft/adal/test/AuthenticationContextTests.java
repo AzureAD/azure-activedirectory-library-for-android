@@ -80,6 +80,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
                 expected);
         assertEquals("Cache object is expected to be same", expected, context.getCache());
+        
+        AuthenticationContext contextDefaultCache = new AuthenticationContext(getContext(), authority, false);
+        assertNotNull(contextDefaultCache.getCache());
     }
 
     public void testConstructorValidateAuthority() {
@@ -419,7 +422,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
-        String expectedClientid = "client" + UUID.randomUUID().toString();
+        String expectedClientId = "client" + UUID.randomUUID().toString();
         String exptedResource = "resource" + UUID.randomUUID().toString();
         testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -429,18 +432,18 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 .defaultCharset()), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", mockWebRequest);
 
-        context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientid, callback);
+        context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientId, callback);
 
         // Verify that new refresh token is matching to mock response
         assertEquals("Same token", "TokenFortestAcquireTokenByRefreshTokenPositive=",
                 callback.mResult.getAccessToken());
         assertEquals("Same refresh token", "refreshToken=", callback.mResult.getRefreshToken());
         assertTrue("Content has client in the message", mockWebRequest.getRequestContent()
-                .contains(expectedClientid));
+                .contains(expectedClientId));
         assertFalse("Content does not have resource in the message", mockWebRequest
                 .getRequestContent().contains(exptedResource));
 
-        context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientid, exptedResource,
+        context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientId, exptedResource,
                 callback);
 
         // Verify that new refresh token is matching to mock response
@@ -448,7 +451,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 callback.mResult.getAccessToken());
         assertEquals("Same refresh token", "refreshToken=", callback.mResult.getRefreshToken());
         assertTrue("Content has client in the message", mockWebRequest.getRequestContent()
-                .contains(expectedClientid));
+                .contains(expectedClientId));
         assertTrue("Content has resource in the message", mockWebRequest.getRequestContent()
                 .contains(exptedResource));
     }
