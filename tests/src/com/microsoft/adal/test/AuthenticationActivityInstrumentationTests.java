@@ -18,7 +18,9 @@ import com.microsoft.adal.testapp.R;
 
 ;
 /**
- * UI functional tests that enter credentials to test token processing end to end
+ * This requires device to be connected to not deal with Inject_events security exception.
+ * UI functional tests that enter credentials to test token processing end to end.
+ * 
  * 
  * @author omercan
  */

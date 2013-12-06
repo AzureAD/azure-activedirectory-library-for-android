@@ -228,7 +228,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertEquals("AuthenticationRequest inside the intent", request.getClass(),
                 Class.forName("com.microsoft.adal.AuthenticationRequest"));
         String redirect = (String)ReflectionUtils.getFieldValue(request, "mRedirectUri");
-        assertEquals("Redirect uri is same as package", "com.microsoft.adal.test", redirect);
+        assertEquals("Redirect uri is same as package", "com.microsoft.adal.testapp", redirect);
     }
 
     public void testPrompt() throws IllegalArgumentException, NoSuchFieldException,
