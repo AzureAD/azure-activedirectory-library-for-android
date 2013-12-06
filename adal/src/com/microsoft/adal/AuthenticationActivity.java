@@ -323,8 +323,7 @@ public class AuthenticationActivity extends Activity {
              */
             wv.setVisibility(View.VISIBLE);
             // Load page content to use in reporting errors
-            wv.loadUrl("javascript:window.HtmlView.setContent"
-                    + "('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
+            loadContent(wv);
         }
     }
 }

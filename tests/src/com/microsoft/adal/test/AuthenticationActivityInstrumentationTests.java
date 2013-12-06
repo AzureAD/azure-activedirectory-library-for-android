@@ -9,16 +9,20 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.microsoft.adal.AuthenticationActivity;
+import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.adal.testapp.MainActivity;
 import com.microsoft.adal.testapp.R;
 
 ;
 /**
- * UI functional tests that enter credentials to test token processing end to end
+ * UI functional tests that enter credentials to test token processing end to
+ * end
  * 
  * @author omercan
  */
@@ -56,11 +60,51 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     /**
+     * reset and get new token for ADFS30
+     * 
+     * @throws Exception
+     */
+    public void testAcquireTokenADFS30Federated() throws Exception {
+        acquireTokenAfterReset("https://login.windows-ppe.net/AdalE2ETenant1.ccsctp.net",
+                "urn:msft:ad:test:oauth:teamdashboard", "DE25CE3A-B772-4E6A-B431-96DCB5E7E559",
+                "https://login.live.com/", null, PromptBehavior.Auto, null,
+                "adaluser@ade2eadfs30.com", "P@ssw0rd", true);
+    }
+
+    public void testAcquireTokenADFS30() throws Exception {
+        acquireTokenAfterReset("https://fs.ade2eadfs30.com/adfs",
+                "urn:msft:ad:test:oauth:teamdashboard", "DE25CE3A-B772-4E6A-B431-96DCB5E7E559",
+                "https://login.live.com/", null, PromptBehavior.Auto, null,
+                "ade2eadfs30.com\\adaluser", "P@ssw0rd", false);
+    }
+
+    /**
+     * reset and get new token for ADFS2
+     * 
+     * @throws Exception
+     */
+    public void testAcquireTokenADFS21Federated() throws Exception {
+        acquireTokenAfterReset("https://login.windows-ppe.net/AdalE2ETenant2.ccsctp.net",
+                "http://arwin8/TokenConsumer", "9e6d1c62-3eca-4419-acdd-1226a0e7e662",
+                "https://login.live.com/", "", PromptBehavior.Auto, null,
+                "adaluser@ade2eadfs20.com", "P@ssw0rd", true);
+    }
+
+    public void testAcquireTokenManaged() throws Exception {
+        acquireTokenAfterReset("https://login.windows.net/omercantest.onmicrosoft.com",
+                "https://omercantest.onmicrosoft.com/AllHandsTry", "http://taskapp",
+                "650a6609-5463-4bc4-b7c6-19df7990a8bc", "", PromptBehavior.Auto, null,
+                "faruk@omercantest.onmicrosoft.com", "Jink1234", false);
+    }
+
+    /**
      * clear tokens and then ask for token.
      * 
      * @throws Exception
      */
-    public void testAcquireTokenAfterReset() throws Exception {
+    private void acquireTokenAfterReset(String authority, String resource, String clientid,
+            String redirect, String loginhint, PromptBehavior prompt, String extraQueryParam,
+            String username, String password, boolean federated) throws Exception {
 
         // ACtivity runs at main thread. Test runs on different thread
         Log.d(TAG, "testAcquireTokenAfterReset starting...");
@@ -72,6 +116,29 @@ public class AuthenticationActivityInstrumentationTests extends
         Button btnResetToken = (Button)activity.findViewById(R.id.buttonReset);
         Button btnGetToken = (Button)activity.findViewById(R.id.buttonGetToken);
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        EditText mAuthority, mResource, mClientId, mUserid, mPrompt, mRedirect;
+        CheckBox mValidate;
+
+        mAuthority = (EditText)activity.findViewById(R.id.editAuthority);
+        mResource = (EditText)activity.findViewById(R.id.editResource);
+        mClientId = (EditText)activity.findViewById(R.id.editClientid);
+        mUserid = (EditText)activity.findViewById(R.id.editUserId);
+        mPrompt = (EditText)activity.findViewById(R.id.editPrompt);
+        mRedirect = (EditText)activity.findViewById(R.id.editRedirect);
+        mValidate = (CheckBox)activity.findViewById(R.id.checkBoxValidate);
+
+        // Buttons need to be visible on the device
+        setEditText(mAuthority, authority);
+        sendKeys(KeyEvent.KEYCODE_TAB);
+        setEditText(mResource, resource);
+        sendKeys(KeyEvent.KEYCODE_TAB);
+        setEditText(mClientId, clientid);
+        sendKeys(KeyEvent.KEYCODE_TAB);
+        setEditText(mUserid, loginhint);
+        sendKeys(KeyEvent.KEYCODE_TAB);
+        setEditText(mPrompt, prompt.name());
+        sendKeys(KeyEvent.KEYCODE_TAB);
+        setEditText(mRedirect, redirect);
 
         // TouchUtils handles the sync with the main thread internally
         TouchUtils.clickView(this, btnResetToken);
@@ -92,7 +159,18 @@ public class AuthenticationActivityInstrumentationTests extends
         sleepUntilLoginDisplays(startedActivity);
 
         Log.d(TAG, "Entering credentials to login page");
-        enterCredentials(startedActivity);
+        enterCredentials(startedActivity, username, password);
+
+        if (federated) {
+            // federation page redirects to login page
+            Log.d(TAG, "Sleep for redirect");
+            Thread.sleep(4000);
+
+            Log.d(TAG, "Sleeping until it gets login page");
+            sleepUntilLoginDisplays(startedActivity);
+            Log.d(TAG, "Entering credentials to login page");
+            enterCredentials(startedActivity, username, password);
+        }
 
         // wait for the page to set result
         waitUntil(new ResponseVerifier() {
@@ -116,11 +194,20 @@ public class AuthenticationActivityInstrumentationTests extends
         String tokenMsg = (String)textViewStatus.getText();
         Log.d(TAG, "Status:" + tokenMsg);
         assertTrue("Token status", tokenMsg.contains("Status:" + AuthenticationStatus.Succeeded));
-
+        Log.d(TAG, "Shutting down activity if it is active");
+        if (!activity.isFinishing()) {
+            activity.finish();
+        }
     }
 
-    private void enterCredentials(AuthenticationActivity startedActivity)
-            throws InterruptedException {
+    private void setEditText(EditText view, String text) {
+        view.clearComposingText();
+        TouchUtils.tapView(this, view);
+        getInstrumentation().sendStringSync(text);
+    }
+
+    private void enterCredentials(AuthenticationActivity startedActivity, String username,
+            String password) throws InterruptedException {
 
         // Get Webview to enter credentials for testing
         WebView webview = (WebView)startedActivity.findViewById(com.microsoft.adal.R.id.webView1);
@@ -129,10 +216,10 @@ public class AuthenticationActivityInstrumentationTests extends
         webview.requestFocus();
         // Send username
         Thread.sleep(500);
-        getInstrumentation().sendStringSync(TEST_KEY_USERNAME);
+        getInstrumentation().sendStringSync(username);
         Thread.sleep(1000); // wait for redirect script
         sendKeys(KeyEvent.KEYCODE_TAB);
-        getInstrumentation().sendStringSync(TEST_KEY_PASSWORD);
+        getInstrumentation().sendStringSync(password);
         Thread.sleep(300);
         sendKeys(KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_ENTER);
     }
