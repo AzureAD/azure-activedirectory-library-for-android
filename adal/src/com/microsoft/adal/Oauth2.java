@@ -49,11 +49,11 @@ class Oauth2 {
 
     public String getAuthorizationEndpoint() {
         return mRequest.getAuthority()
-                + AuthenticationSettings.INSTANCE.getAuthorizeEndpointKeyword();
+                + AuthenticationSettings.INSTANCE.getAuthorizeEndpoint();
     }
 
     public String getTokenEndpoint() {
-        return mRequest.getAuthority() + AuthenticationSettings.INSTANCE.getTokenEndpointKeyword();
+        return mRequest.getAuthority() + AuthenticationSettings.INSTANCE.getTokenEndpoint();
     }
 
     public String getCodeRequestUrl() throws UnsupportedEncodingException {
