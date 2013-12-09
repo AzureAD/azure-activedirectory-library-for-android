@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 
-import android.os.AsyncTask;
-
 import com.microsoft.adal.HttpWebRequestCallback;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
+
+import android.os.AsyncTask;
 
 /**
  * handler to return mock responses

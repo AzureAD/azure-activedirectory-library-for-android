@@ -262,7 +262,7 @@ public class ToDoActivity extends Activity {
     private void getToken(final AuthenticationCallback callback) {
 
         // one of the acquireToken overloads
-        mAuthContext.acquireToken(ToDoActivity.this, Constants.CLIENT_ID, Constants.RESOURCE_ID,
+        mAuthContext.acquireToken(ToDoActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
                 Constants.REDIRECT_URL, Constants.USER_HINT, callback);
     }
 
@@ -429,7 +429,9 @@ public class ToDoActivity extends Activity {
         mToken = null;
 
         // clear token from current user obj
-        mClient.getCurrentUser().setAuthenticationToken(null);
+        if (mClient != null && mClient.getCurrentUser() != null) {
+            mClient.getCurrentUser().setAuthenticationToken(null);
+        }
     }
 
     /*

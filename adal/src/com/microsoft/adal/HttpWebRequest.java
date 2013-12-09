@@ -14,11 +14,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
 import android.annotation.TargetApi;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.text.TextUtils;
 import android.util.Log;
 
 /**
@@ -288,7 +286,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
         mRequestContentType = contentType;
         mException = null;
 
-        if (Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.HONEYCOMB) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             executeParallel();
         } else {
             execute((Void[])null);

@@ -6,7 +6,7 @@ package com.microsoft.adal;
  * @author omercan
  * 
  */
-public class WebResponse {
+class WebResponse {
 	private HttpWebResponse response = null;
 	private Exception responseException = null;
 	private boolean processing = true;

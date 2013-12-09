@@ -2,11 +2,7 @@
 package com.microsoft.adal;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.UUID;
-
-import android.util.Base64;
 
 /**
  * represent request and keeps authorization code and similar info
@@ -30,8 +26,6 @@ class AuthenticationRequest implements Serializable {
     private String mResponseType = null;
 
     private String mLoginHint = null;
-
-    private int mRequestCode;
 
     private UUID mCorrelationId;
 
@@ -131,14 +125,6 @@ class AuthenticationRequest implements Serializable {
 
     public void setLoginHint(String mLoginHint) {
         this.mLoginHint = mLoginHint;
-    }
-
-    private int getRequestCode() {
-        return mRequestCode;
-    }
-
-    private void setRequestCode(int mRequestCode) {
-        this.mRequestCode = mRequestCode;
     }
 
     public UUID getCorrelationId() {

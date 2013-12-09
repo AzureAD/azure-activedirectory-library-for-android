@@ -1,22 +1,12 @@
 
 package com.microsoft.adal.test;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.microsoft.adal.HttpWebRequestCallback;
-import com.microsoft.adal.HttpWebResponse;
-import com.microsoft.adal.WebRequestHandler;
-
-import android.test.AndroidTestCase;
+import junit.framework.Assert;
 import android.test.InstrumentationTestCase;
 import android.util.Log;
-import junit.framework.Assert;
 
 public class AndroidTestHelper extends InstrumentationTestCase {
 

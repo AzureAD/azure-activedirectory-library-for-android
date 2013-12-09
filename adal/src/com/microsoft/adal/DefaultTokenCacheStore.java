@@ -129,6 +129,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         argumentCheck();
 
+        @SuppressWarnings("unchecked")
         Map<String, String> results = (Map<String, String>)mPrefs.getAll();
         Iterator<String> values = results.values().iterator();
 
