@@ -26,7 +26,8 @@ public enum AuthenticationSettings {
         if (value == null) {
             throw new IllegalArgumentException("tokenEndpoint");
         }
-        value = addSlash(value);
+
+        value = ensureStartsWithSlash(value);
         mTokenEndpoint = value;
     }
 
@@ -36,13 +37,15 @@ public enum AuthenticationSettings {
 
     /**
      * set authorize endpoint value
+     * 
      * @param value forward slash is added as prefix
      */
     public void setAuthorizeEndpoint(String value) {
         if (value == null) {
             throw new IllegalArgumentException("authorizeEndpoint");
         }
-        value = addSlash(value);
+
+        value = ensureStartsWithSlash(value);
         mAuthorizeEndpoint = value;
     }
 
@@ -50,7 +53,7 @@ public enum AuthenticationSettings {
         return mAuthorizeEndpoint;
     }
 
-    private String addSlash(String value) {
+    private String ensureStartsWithSlash(String value) {
         if (!StringExtensions.IsNullOrBlank(value)) {
             if (!value.startsWith("/")) {
                 return "/" + value;
