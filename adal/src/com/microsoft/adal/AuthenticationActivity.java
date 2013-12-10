@@ -451,9 +451,9 @@ public class AuthenticationActivity extends Activity {
              * Once web view is fully loaded,set to visible
              */
             wv.setVisibility(View.VISIBLE);
+            
             // Load page content to use in reporting errors
-            wv.loadUrl("javascript:window.HtmlView.setContent"
-                    + "('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
+            loadContent(wv);
         }
     }
     
