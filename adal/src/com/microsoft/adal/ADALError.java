@@ -36,6 +36,11 @@ public enum ADALError {
      * User can only have one login activity in use
      */
     DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED,
+    
+    /**
+     * Active callback is not found
+     */
+    CALLBACK_IS_NOT_FOUND,
 
     /**
      * Activity is not resolved

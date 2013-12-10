@@ -11,6 +11,8 @@ import java.util.Date;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 import android.app.Activity;
@@ -19,7 +21,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.util.SparseArray;
 
 
 /*
@@ -44,8 +48,20 @@ public class AuthenticationContext {
 
     private transient ActivityDelegate mActivityDelegate;
 
+    private final static ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+
+    private final static Lock readLock = rwl.readLock();
+
+    private final static Lock writeLock = rwl.writeLock();
+
     /**
-     * only one authorization can happen for user.
+     * delegate map is needed to handle activity recreate without asking
+     * developer to handle context instance for config changes.
+     */
+    static SparseArray<AuthenticationRequestState> mDelegateMap = new SparseArray<AuthenticationRequestState>();
+
+    /**
+     * last set authorization callback
      */
     private AuthenticationCallback<AuthenticationResult> mAuthorizationCallback;
 
@@ -191,6 +207,7 @@ public class AuthenticationContext {
                 clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters);
 
         acquireTokenLocal(activity, request, callback);
+
     }
 
     /**
@@ -324,25 +341,29 @@ public class AuthenticationContext {
         // This is called at UI thread.
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
             if (data == null) {
-                mAuthorizationCallback.onError(new AuthenticationException(
-                        ADALError.ON_ACTIVITY_RESULT_INTENT_NULL));
-                mAuthorizationCallback = null;
+                // If data is null, RequestId is unknown. It could not find
+                // callback to respond to this request.
+                Logger.e(TAG, "onActivityResult BROWSER_FLOW data is null", null,
+                        ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
             } else {
                 Bundle extras = data.getExtras();
+                final int requestId = extras.getInt(AuthenticationConstants.Browser.REQUEST_ID);
+                Logger.d(TAG, "onActivityResult RequestId:" + requestId);
+                final AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
+
                 if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL) {
                     // User cancelled the flow
-                    mAuthorizationCallback.onError(new AuthenticationCancelError());
-                    mAuthorizationCallback = null;
+                    waitingRequestOnError(waitingRequest, requestId,
+                            new AuthenticationCancelError());
+
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
                     String errCode = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
                     String errMessage = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
 
-                    mAuthorizationCallback.onError(new AuthenticationException(
+                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
                             ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage));
-
-                    mAuthorizationCallback = null;
 
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     // Browser has the url and finished the processing to get
@@ -355,9 +376,9 @@ public class AuthenticationContext {
 
                     if (endingUrl.isEmpty()) {
                         Log.d(TAG, "Ending url is empty");
-                        mAuthorizationCallback.onError(new IllegalArgumentException(
-                                "Final url is empty"));
-                        mAuthorizationCallback = null;
+                        waitingRequestOnError(waitingRequest, requestId,
+                                new IllegalArgumentException("Final url is empty"));
+
                     } else {
                         Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
                         Log.d(TAG, "Process url:" + endingUrl);
@@ -368,21 +389,125 @@ public class AuthenticationContext {
                                     @Override
                                     public void onSuccess(AuthenticationResult result) {
                                         setCachedResult(authenticationRequest, result);
-                                        mAuthorizationCallback.onSuccess(result);
-                                        mAuthorizationCallback = null;
+                                        if (waitingRequest != null
+                                                && waitingRequest.mDelagete != null) {
+                                            Log.v(TAG, "Sending result to callback...");
+                                            waitingRequest.mDelagete.onSuccess(result);
+                                        }
+                                        removeWaitingRequest(requestId);
                                     }
 
                                     @Override
                                     public void onError(Exception exc) {
                                         Log.d(TAG, "Error in processing code to get token");
-                                        mAuthorizationCallback.onError(exc);
-                                        mAuthorizationCallback = null;
+                                        waitingRequestOnError(waitingRequest, requestId, exc);
                                     }
                                 });
                     }
                 }
             }
         }
+    }
+
+    private void waitingRequestOnError(final AuthenticationRequestState waitingRequest,
+            int requestId, Exception exc) {
+        if (waitingRequest != null && waitingRequest.mDelagete != null) {
+            Log.v(TAG, "Sending error to callback...");
+            waitingRequest.mDelagete.onError(exc);
+        }
+        removeWaitingRequest(requestId);
+    }
+
+    private void removeWaitingRequest(int requestId) {
+        Log.v(TAG, "Remove Waiting Request: " + requestId);
+
+        writeLock.lock();
+        try {
+            mDelegateMap.remove(requestId);
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    private AuthenticationRequestState getWaitingRequest(int requestId) {
+
+        Log.v(TAG, "Get Waiting Request: " + requestId);
+        AuthenticationRequestState request = null;
+
+        readLock.lock();
+        try {
+            request = mDelegateMap.get(requestId);
+        } finally {
+            readLock.unlock();
+        }
+
+        if (request == null && mAuthorizationCallback != null
+                && requestId == mAuthorizationCallback.hashCode()) {
+            // it does not have the caller callback. It will check the last
+            // callback if set
+            Logger.e(TAG, "Request callback is not available for requestid:" + requestId
+                    + ". It will use last callback.", "", ADALError.CALLBACK_IS_NOT_FOUND);
+            request = new AuthenticationRequestState(0, null, mAuthorizationCallback);
+        }
+
+        return request;
+    }
+
+    private void putWaitingRequest(int requestId, AuthenticationRequestState requestState) {
+        Log.v(TAG, "Put Waiting Request: " + requestId);
+        if (requestId > 0 && requestState != null) {
+            writeLock.lock();
+
+            try {
+                mDelegateMap.put(requestId, requestState);
+            } finally {
+                writeLock.unlock();
+            }
+        }
+    }
+
+    /**
+     * Active authentication activity can be cancelled if it exists. It may not
+     * be cancelled if activity is not launched yet. RequestId is the hashcode
+     * of your AuthenticationCallback.
+     * 
+     * @return true: if there is a valid waiting request and cancel message send
+     *         successfully. false: Request does not exist or cancel message not
+     *         send
+     */
+    public boolean cancelAuthenticationActivity(int requestId) {
+
+        AuthenticationRequestState request = getWaitingRequest(requestId);
+
+        if (request == null || request.mDelagete == null) {
+            // there is not any waiting callback
+            Log.v(TAG, "Current callback is empty. There is not any active authentication.");
+            return true;
+        }
+
+        Log.v(TAG, "Current callback is not empty. There is an active authentication.");
+
+        // intent to cancel. Authentication activity registers for this message
+        // at onCreate event.
+        final Intent intent = new Intent(AuthenticationConstants.Browser.ACTION_CANCEL);
+        final Bundle extras = new Bundle();
+        intent.putExtras(extras);
+        intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, requestId);
+        // send intent to cancel any active authentication activity.
+        // it may not cancel it, if activity takes some time to launch.
+
+        boolean cancelResult = LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+        if (cancelResult) {
+            // clear callback if broadcast message was successful
+            Log.v(TAG, "Cancel broadcast message was successful.");
+            request.mCancelled = true;
+            request.mDelagete.onError(new AuthenticationCancelError());
+        } else {
+            // Activity is not launched yet or receiver is not registered
+            Log.w(TAG, "Cancel broadcast message was not successful.");
+        }
+
+        return cancelResult;
     }
 
     private void setCachedResult(AuthenticationRequest request, AuthenticationResult result) {
@@ -417,7 +542,7 @@ public class AuthenticationContext {
 
         if (mValidateAuthority) {
             validateAuthority(authorityUrl, new AuthenticationCallback<Boolean>() {
-
+ 
                 @Override
                 public void onSuccess(Boolean result) {
                     if (result) {
@@ -429,6 +554,7 @@ public class AuthenticationContext {
                                 ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
                     }
                 }
+ 
 
                 @Override
                 public void onError(Exception exc) {
@@ -455,17 +581,15 @@ public class AuthenticationContext {
         } else {
 
             if (request.getPrompt() != PromptBehavior.Never) {
-                // start activity if other options are not available
-                // Authorization has one reference of callback
-                // Authentication callback does not have restrictions
-                if (mAuthorizationCallback == null) {
-                    mAuthorizationCallback = externalCall;
-                } else {
-                    Log.e(TAG, "Webview is active for another session");
-                    externalCall.onError(new AuthenticationException(
-                            ADALError.DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED));
-                    return;
-                }
+             // start activity if other options are not available
+                // delegate map is used to remember callback if another
+                // instance of authenticationContext is created for config
+                // change or similar at client app.
+                mAuthorizationCallback = externalCall;
+                request.setRequestId(externalCall.hashCode());
+                Log.v(TAG, "Set hash code for callback:" + externalCall.hashCode());
+                putWaitingRequest(externalCall.hashCode(), new AuthenticationRequestState(
+                        externalCall.hashCode(), request, externalCall));
 
                 // Set Activity for authorization flow
                 setActivity(activity);
@@ -565,7 +689,6 @@ public class AuthenticationContext {
 
         // Removes refresh token from cache, when this call is complete. Request
         // may be interrupted, if app is shutdown by user.
-
 
         Oauth2 oauthRequest = new Oauth2(request, mWebRequest);
         oauthRequest.refreshToken(refreshToken, new AuthenticationCallback<AuthenticationResult>() {

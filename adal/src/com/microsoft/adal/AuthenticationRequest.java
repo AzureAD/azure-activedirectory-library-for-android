@@ -13,6 +13,8 @@ class AuthenticationRequest implements Serializable {
 
     private final static long serialVersionUID = 1L;
 
+    private int mRequestId = 0;
+
     private String mCode = null;
 
     private String mAuthority = null;
@@ -32,7 +34,7 @@ class AuthenticationRequest implements Serializable {
     private String mExtraQueryParamsAuthentication;
 
     private PromptBehavior mPrompt;
-    
+
     public AuthenticationRequest() {
 
     }
@@ -47,7 +49,17 @@ class AuthenticationRequest implements Serializable {
         setPrompt(prompt);
         mExtraQueryParamsAuthentication = extraQueryParams;
     }
-    
+
+    public AuthenticationRequest(String authority, String resource, String client, String redirect,
+            String loginhint, UUID requestCorrelationId) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = client;
+        mRedirectUri = redirect;
+        mLoginHint = loginhint;
+        mCorrelationId = requestCorrelationId;
+    }
+
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
             String loginhint) {
         mAuthority = authority;
@@ -153,7 +165,21 @@ class AuthenticationRequest implements Serializable {
         return mPrompt;
     }
 
-    public void setPrompt(PromptBehavior mPrompt) {
-        this.mPrompt = mPrompt;
+    public void setPrompt(PromptBehavior prompt) {
+        this.mPrompt = prompt;
+    }
+
+    /**
+     * @return the mRequestId related to the delegate
+     */
+    public int getRequestId() {
+        return mRequestId;
+    }
+
+    /**
+     * @param requestId the requestId to set
+     */
+    public void setRequestId(int requestId) {
+        this.mRequestId = requestId;
     }
 }

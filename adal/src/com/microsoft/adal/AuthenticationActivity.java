@@ -7,12 +7,16 @@ import java.io.UnsupportedEncodingException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -36,7 +40,11 @@ public class AuthenticationActivity extends Activity {
 
     private Button btnCancel;
 
+    private boolean mRestartWebview = false;
+    
     private WebView wv;
+    
+    private String mStartUrl;
 
     private ProgressDialog spinner;
 
@@ -49,7 +57,41 @@ public class AuthenticationActivity extends Activity {
      */
     private JavaScriptInterface mScriptInterface;
 
-    // TODO move error codes
+    // Broadcast receiver for cancel
+    private ActivityBroadcastReceiver mReceiver = null;
+
+    // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
+    // for this AuthenticationContext since each instance of context can have
+    // one active activity
+    private class ActivityBroadcastReceiver extends android.content.BroadcastReceiver {
+
+        private int mWaitingRequestId = -1;
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.v(TAG, "ActivityBroadcastReceiver onReceive");
+
+            if (intent.getAction().equalsIgnoreCase(AuthenticationConstants.Browser.ACTION_CANCEL)) {
+                try {
+                    Log.v(TAG,
+                            "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
+
+                    int cancelRequestId = intent.getIntExtra(
+                            AuthenticationConstants.Browser.REQUEST_ID, 0);
+
+                    if (cancelRequestId == mWaitingRequestId) {
+                        AuthenticationActivity.this.finish();
+                        // no need to send result back to activity. It is
+                        // cancelled
+                        // and callback will be called after this request.
+                    }
+                } catch (Exception ex) {
+                    Log.e(TAG, "ActivityBroadcastReceiver onReceive exception: "
+                            + ExceptionExtensions.getExceptionMessage(ex));
+                }
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,10 +170,10 @@ public class AuthenticationActivity extends Activity {
         wv.setWebViewClient(new CustomWebViewClient());
         wv.setVisibility(View.INVISIBLE);
 
-        String startUrl = "about:blank";
+        mStartUrl = "about:blank";
 
         try {
-            startUrl = new Oauth2(mAuthRequest, null).getCodeRequestUrl();
+            mStartUrl = new Oauth2(mAuthRequest, null).getCodeRequestUrl();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             Log.d(TAG, e.getMessage());
@@ -142,7 +184,7 @@ public class AuthenticationActivity extends Activity {
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
 
-        final String postUrl = startUrl;
+        final String postUrl = mStartUrl;
 
         wv.post(new Runnable() {
             @Override
@@ -152,6 +194,13 @@ public class AuthenticationActivity extends Activity {
             }
         });
 
+        // Create the broadcast receiver for cancel
+        Log.v(TAG, "Init broadcastReceiver with requestId:" + mAuthRequest.getRequestId());
+        mReceiver = new ActivityBroadcastReceiver();
+        mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
+        mRestartWebview = false;
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
+                new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
     }
 
     /**
@@ -161,9 +210,86 @@ public class AuthenticationActivity extends Activity {
      * @param data
      */
     private void ReturnToCaller(int resultCode, Intent data) {
-        Log.d(TAG, "ReturnToCaller=" + resultCode);
+        Log.d(TAG, "Return To Caller:" + resultCode);
+        displaySpinner(false);
+
+        if (data == null) {
+            data = new Intent();
+        }
+
+        if (mAuthRequest != null) {
+            // set request id related to this response to send the delegateId
+            Log.d(TAG, "Return To Caller REQUEST_ID:" +  mAuthRequest.getRequestId());
+            data.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthRequest.getRequestId());
+        } else {
+            Log.w(TAG, "Request object is null");
+        }
+
         setResult(resultCode, data);
         this.finish();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "AuthenticationActivity onPause unregister receiver");
+        super.onPause();
+
+        // Unregister the cancel action listener from the local broadcast manager
+        // since activity is not visible
+        if (mReceiver != null) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+        }
+        mRestartWebview = true;
+        // restart webview when it comes back from onresume
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d(TAG, "AuthenticationActivity onStart");
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // It can come here from onCreate,onRestart or onPause. It
+        // will post the url again since webview could not start at the middle of redirect url.
+        // If it reaches the final url, it will set result back to caller.
+        if (mRestartWebview) {
+            Log.v(TAG, "Webview onResume will post start url again:" + mStartUrl);
+            final String postUrl = mStartUrl;
+
+            if (mReceiver != null) {
+                Log.v(TAG, "Webview onResume register broadcast receiver for requestId"
+                        + mReceiver.mWaitingRequestId);
+                LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
+                        new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
+            }
+
+            wv.post(new Runnable() {
+                @Override
+                public void run() {
+                    wv.loadUrl("about:blank");// load blank first
+                    wv.loadUrl(postUrl);
+                }
+            });
+        }
+        mRestartWebview = false;
+    }
+
+    @Override
+    protected void onRestart() {
+        Log.d(TAG, "AuthenticationActivity onRestart");
+        super.onRestart();
+        mRestartWebview = true;
+    }
+
+    @Override
+    protected void onStop() {
+        // Called when you are no longer visible to the user.
+        Log.d(TAG, "AuthenticationActivity onStop");
+        super.onStop();
     }
 
     @Override
@@ -182,6 +308,12 @@ public class AuthenticationActivity extends Activity {
             wv.goBack();
         }
 
+    }
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        // TODO Auto-generated method stub
+        super.onConfigurationChanged(newConfig);
     }
 
     @Override
@@ -247,9 +379,7 @@ public class AuthenticationActivity extends Activity {
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
 
             Log.d(TAG, "shouldOverrideUrlLoading:url=" + url);
-            if (spinner != null && !spinner.isShowing()) {
-                spinner.show();
-            }
+            displaySpinner(true);
 
             if (url.startsWith(redirectUrl)) {
                 Log.i(TAG, "Webview reached redirecturl");
@@ -273,7 +403,7 @@ public class AuthenticationActivity extends Activity {
         public void onReceivedError(WebView view, int errorCode, String description,
                 String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
-
+            displaySpinner(false);
             Log.e(TAG, "Webview received an error. Errorcode:" + errorCode + " " + description);
             reportContent(view);
             Intent resultIntent = new Intent();
@@ -289,6 +419,7 @@ public class AuthenticationActivity extends Activity {
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
             // Developer does not have option to control this for now
             super.onReceivedSslError(view, handler, error);
+            displaySpinner(false);
             handler.cancel();
             Log.e(TAG, "Received ssl error");
 
@@ -314,9 +445,7 @@ public class AuthenticationActivity extends Activity {
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
             Log.d(TAG, "Page finished:" + url);
-            if (spinner != null && spinner.isShowing()) {
-                spinner.dismiss();
-            }
+            displaySpinner(false);
 
             /*
              * Once web view is fully loaded,set to visible
@@ -325,6 +454,22 @@ public class AuthenticationActivity extends Activity {
             // Load page content to use in reporting errors
             wv.loadUrl("javascript:window.HtmlView.setContent"
                     + "('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
+        }
+    }
+    
+    /**
+     * handle spinner display
+     * @param show
+     */
+    private void displaySpinner(boolean show) {
+        if (!AuthenticationActivity.this.isFinishing() && spinner != null) {
+            if (show && !spinner.isShowing()) {
+                spinner.show();
+            }
+
+            if (!show && spinner.isShowing()) {
+                spinner.dismiss();
+            }
         }
     }
 }

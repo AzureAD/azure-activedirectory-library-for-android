@@ -17,6 +17,10 @@ class AuthenticationConstants {
         public static final String RESPONSE = "com.microsoft.adal:BrokerResponse";
 
         public static final String WEBVIEW_INVALID_REQUEST = "Invalid request";
+
+        public static final String ACTION_CANCEL = "com.microsoft.adal:BrowserCancel";
+
+        public static final String REQUEST_ID = "com.microsoft.adal:RequestId";
     }
 
     static final class UIResponse {
