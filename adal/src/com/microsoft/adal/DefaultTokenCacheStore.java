@@ -51,7 +51,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             throw new IllegalArgumentException("key");
         }
 
-        if (mPrefs.contains(key.toString())) {
+        if (mPrefs.contains(getTokenStoreKey(key))) {
             String json = mPrefs.getString(key.toString(), "");
             return gson.fromJson(json, TokenCacheItem.class);
         }

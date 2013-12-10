@@ -81,8 +81,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
                 expected);
         assertEquals("Cache object is expected to be same", expected, context.getCache());
-        
-        AuthenticationContext contextDefaultCache = new AuthenticationContext(getContext(), authority, false);
+
+        AuthenticationContext contextDefaultCache = new AuthenticationContext(getContext(),
+                authority, false);
         assertNotNull(contextDefaultCache.getCache());
     }
 
@@ -607,10 +608,10 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         // Check response in callback result
         assertNotNull("Error is not null", callback.mException);
-        assertNull("Cache is empty for this item",
-                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userid")));
-        assertNull("Cache is empty for this item",
-                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", true, "userid")));        
+        assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
+                VALID_AUTHORITY, "resource", "clientId", false, "userid")));
+        assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
+                VALID_AUTHORITY, "resource", "clientId", true, "userid")));
         clearCache(context);
     }
 
@@ -649,10 +650,10 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         // check response in callback
         assertNull("Error is null", callback.mException);
-        assertNull("Cache is empty for this item",
-                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userid")));        
-        assertNull("Cache is empty for this item",
-                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", true, "userid")));        
+        assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
+                VALID_AUTHORITY, "resource", "clientId", false, "userid")));
+        assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
+                VALID_AUTHORITY, "resource", "clientId", true, "userid")));
         clearCache(context);
     }
 
@@ -690,6 +691,52 @@ public class AuthenticationContextTests extends AndroidTestCase {
         clearCache(context);
     }
 
+    public void testAcquireTokenMultiResourceTokenLookup() throws InterruptedException,
+            IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+
+        TestMockContext mockContext = new TestMockContext(getContext());
+        String tokenToTest = "accessToken=" + UUID.randomUUID();
+        String resource = "Resource" + UUID.randomUUID();
+        ITokenCacheStore mockCache = getValidCache(tokenToTest, resource, true);
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        final MockActivity testActivity = new MockActivity();
+        CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+
+        // acquire token call will return from cache
+        context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", "userid", callback);
+
+        // Check response in callback
+        assertNull("Error is null", callback.mException);
+        assertEquals("Same token in response as in cache", tokenToTest,
+                callback.mResult.getAccessToken());
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        
+        signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        callback = new MockAuthenticationCallback(signal);
+        context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri",
+                "userid", callback);
+        assertNull("Error is null", callback.mException);
+        assertEquals("Same token in response as in cache for another resource", tokenToTest,
+                callback.mResult.getAccessToken());
+        assertTrue("Multiresource", callback.mResult.getIsMultiResourceRefreshToken());
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // null userid does not find any item in the cache since userid is part of the key.
+        signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        callback = new MockAuthenticationCallback(signal);
+        context.acquireToken(testActivity, resource, "ClienTid", "redirectUri",
+                "", callback);
+        assertNull("Same token in response as in cache for another resource", callback.mResult);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        
+        clearCache(context);
+    }
+
     private ITokenCacheStore getCacheForRefreshToken() {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         Calendar expiredTime = new GregorianCalendar();
@@ -702,7 +749,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         refreshItem.setAccessToken("accessToken");
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(expiredTime.getTime());
-        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userId"), refreshItem);
+        cache.setItem(
+                CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userId"),
+                refreshItem);
         return cache;
     }
 
@@ -719,7 +768,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
         refreshItem.setAccessToken(token);
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(timeAhead.getTime());
-        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, "clientId", isMultiResource, "userId"), refreshItem);
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, "clientId",
+                isMultiResource, "userId"), refreshItem);
         return cache;
     }
 
