@@ -638,8 +638,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException {
 
-        String a = null;
-        String b = "sdfdsf" + a + "aa";
         TestMockContext mockContext = new TestMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
 
@@ -743,7 +741,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
     class MockCache implements ITokenCacheStore {
         /**
-         * 
+         * serial version related to serializable interface
          */
         private static final long serialVersionUID = -3292746098551178627L;
 
