@@ -5,7 +5,6 @@
 package com.microsoft.adal;
 
 import java.net.URL;
-import java.util.concurrent.Future;
 
 public interface IDiscovery {
 

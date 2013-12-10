@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import org.json.JSONException;
@@ -67,9 +67,10 @@ final class Discovery implements IDiscovery {
     @Override
     public void isValidAuthority(URL authorizationEndpoint, AuthenticationCallback<Boolean> callback) {
 
+        // For comparison purposes, convert to lowercase Locale.US
         if (authorizationEndpoint != null
                 && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getHost())) {
-            if (mValidHosts.contains(authorizationEndpoint.getHost().toLowerCase())) {
+            if (mValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
                 // host can be the instance or inside the validated list.
                 // Validhosts will help to skip validation if validated before
                 // call Callback and skip the look up
@@ -91,7 +92,8 @@ final class Discovery implements IDiscovery {
         String validHost = validhost.getHost();
         if (!StringExtensions.IsNullOrBlank(validHost)) {
             synchronized (mValidHosts) {
-                mValidHosts.add(validHost.toLowerCase());
+                // for comparisons it uses Locale.US, so it needs to be same here
+                mValidHosts.add(validHost.toLowerCase(Locale.US));
             }
         }
     }

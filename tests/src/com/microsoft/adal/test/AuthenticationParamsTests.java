@@ -11,17 +11,11 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import junit.framework.Assert;
-
-import android.test.AndroidTestCase;
 import android.util.Log;
 
 import com.microsoft.adal.AuthenticationParameters;
-import com.microsoft.adal.HttpWebRequestCallback;
-import com.microsoft.adal.WebRequestHandler;
-import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
-import com.microsoft.adal.test.WebRequestHandlerTests.TestResponse;
-
 import com.microsoft.adal.HttpWebResponse;
+import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
 
 public class AuthenticationParamsTests extends AndroidTestHelper {
 
@@ -68,8 +62,17 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
     /**
      * test private method to make sure parsing is right
+     * 
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException
+     * @throws IllegalArgumentException
      */
-    public void testParseResponseNegative() {
+    public void testParseResponseNegative() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
         callParseResponseForException(new HttpWebResponse(200, null, null),
                 AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
 
@@ -124,11 +127,11 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY);
     }
 
-    private Method getParseResponseMethod() {
+    private Method getParseResponseMethod() throws ClassNotFoundException {
         Method m = null;
         try {
             m = AuthenticationParameters.class.getDeclaredMethod("parseResponse",
-                    HttpWebResponse.class);
+                    Class.forName("com.microsoft.adal.HttpWebResponse"));
         } catch (NoSuchMethodException e) {
             assertTrue("parseResponse is not found", false);
         }
@@ -137,7 +140,8 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         return m;
     }
 
-    private void callParseResponseForException(HttpWebResponse response, String message) {
+    private void callParseResponseForException(Object response, String message)
+            throws ClassNotFoundException {
         Method m = getParseResponseMethod();
         AuthenticationParameters param = null;
 
@@ -153,7 +157,6 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
     public void testcreateFromResourceUrlNoCallback() throws MalformedURLException {
 
-        AuthenticationParameters param = null;
         final URL url = new URL("https://www.something.com");
         assertThrowsException(IllegalArgumentException.class, "callback", new Runnable() {
 

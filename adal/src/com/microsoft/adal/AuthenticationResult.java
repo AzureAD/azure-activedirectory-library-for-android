@@ -18,6 +18,11 @@ import java.util.UUID;
  */
 public class AuthenticationResult implements Serializable {
 
+    /**
+     * Serial varsion number for serialization
+     */
+    private static final long serialVersionUID = 2243372613182536368L;
+
     public enum AuthenticationStatus {
         /**
          * User cancelled login activity

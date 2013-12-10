@@ -6,7 +6,6 @@ import java.net.URL;
 import java.util.HashMap;
 
 import android.os.AsyncTask;
-import android.os.Handler;
 
 /**
  * Webrequest interface to send one time async requests Methods return generic

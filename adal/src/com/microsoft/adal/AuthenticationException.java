@@ -18,8 +18,6 @@ public class AuthenticationException extends RuntimeException {
 
     private String mDetails;
 
-    private Throwable mThrowable;
-
     /**
      * Constructs a new AuthenticationError.
      */
@@ -42,7 +40,6 @@ public class AuthenticationException extends RuntimeException {
         mCode = code;
         mErrorMessage = null;
         mDetails = details;
-        mThrowable = throwable;
     }
 
     /**
@@ -53,7 +50,6 @@ public class AuthenticationException extends RuntimeException {
     public AuthenticationException(ADALError code, Throwable throwable) {
         mCode = code;
         mErrorMessage = null;
-        mThrowable = throwable;
     }
 
     /**

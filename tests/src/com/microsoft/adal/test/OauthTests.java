@@ -15,8 +15,8 @@ import android.test.AndroidTestCase;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
-import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.adal.HttpWebResponse;
+import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.adal.IWebRequestHandler;
 import com.microsoft.adal.UserInfo;
 
@@ -210,8 +210,7 @@ public class OauthTests extends AndroidTestCase {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
 
         // send request
-        MockAuthenticationCallback testResult = refreshToken(request,
-                (IWebRequestHandler)webrequest, "test");
+        MockAuthenticationCallback testResult = refreshToken(request, webrequest, "test");
 
         // Verify that we have error for request handler
         assertTrue("web request argument error", testResult.mException.getMessage().contains("url"));
@@ -226,7 +225,7 @@ public class OauthTests extends AndroidTestCase {
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
-                (IWebRequestHandler)webrequest, "test");
+                webrequest, "test");
 
         // Verify that callback can receive this error
         assertTrue("callback receives error",
@@ -275,12 +274,11 @@ public class OauthTests extends AndroidTestCase {
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException {
 
-        HashMap<String, String> response = new HashMap<String, String>();
         Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
                 "loginhint");
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
-                HttpWebResponse.class);
+                Class.forName("com.microsoft.adal.HttpWebResponse"));
         String json = "{\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
         HttpWebResponse mockResponse = new HttpWebResponse(200, json.getBytes(Charset
                 .defaultCharset()), null);

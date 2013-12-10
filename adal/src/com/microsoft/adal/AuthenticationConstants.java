@@ -1,7 +1,7 @@
 
 package com.microsoft.adal;
 
-public class AuthenticationConstants {
+class AuthenticationConstants {
 
     static final class Browser {
         public static final String REQUEST_MESSAGE = "com.microsoft.adal:BrowserRequestMessage";

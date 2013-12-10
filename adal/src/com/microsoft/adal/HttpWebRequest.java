@@ -14,11 +14,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
 import android.annotation.TargetApi;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.text.TextUtils;
 import android.util.Log;
 
 /**
@@ -171,7 +169,8 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 } catch (IOException ex) {
                     // HttpUrlConnection does not understand Bearer challenge
                     // Second time query will get the correct status.
-                    // it will throw, if it is a different status related to connection problem
+                    // it will throw, if it is a different status related to
+                    // connection problem
                     statusCode = _connection.getResponseCode();
                     if (statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
                         throw ex;
@@ -288,7 +287,12 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
         mRequestContentType = contentType;
         mException = null;
 
-        if (Integer.parseInt(Build.VERSION.SDK) >= Build.VERSION_CODES.HONEYCOMB) {
+        // AsyncTasks were initially executed serially on a single background
+        // thread.
+        // Starting with DONUT, this was changed to a pool of threads allowing
+        // multiple tasks to operate in parallel.
+        // Starting with HONEYCOMB, tasks are executed on a single thread
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             executeParallel();
         } else {
             execute((Void[])null);

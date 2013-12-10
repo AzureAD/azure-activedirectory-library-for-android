@@ -32,8 +32,6 @@ public class ReflectionUtils {
         return m;
     }
 
- 
-    
     /**
      * get non public instance default constructor for testing
      * 
@@ -60,14 +58,15 @@ public class ReflectionUtils {
         return constructor.newInstance(null);
     }
 
-    public static Object getFieldValue(Object object, String fieldName) throws NoSuchFieldException,
-            IllegalArgumentException, IllegalAccessException {
+    public static Object getFieldValue(Object object, String fieldName)
+            throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         Field f = object.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         return f.get(object);
     }
-    
-    public static void setFieldValue(Object object, String fieldName, Object value) throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException{
+
+    public static void setFieldValue(Object object, String fieldName, Object value)
+            throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         Field f = object.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(object, value);

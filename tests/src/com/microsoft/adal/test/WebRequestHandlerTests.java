@@ -16,7 +16,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.microsoft.adal.AuthenticationCancelError;
-import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.HttpWebRequestCallback;
 import com.microsoft.adal.HttpWebResponse;

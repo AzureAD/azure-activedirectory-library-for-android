@@ -1,22 +1,15 @@
 
 package com.microsoft.adal;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.StringTokenizer;
-
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.util.Log;
 
 final class HashMapExtensions {
 

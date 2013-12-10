@@ -26,13 +26,13 @@ import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 import android.util.Log;
 
+import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
-import com.microsoft.adal.ADALError;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IDiscovery;
 import com.microsoft.adal.ITokenCacheStore;
@@ -47,8 +47,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
     protected final static int CONTEXT_REQUEST_TIME_OUT = 20000;
-
-    private final static String TEST_AUTHORITY = "http://login.windows.net/common";
 
     protected void setUp() throws Exception {
         super.setUp();
@@ -80,8 +78,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
                 expected);
         assertEquals("Cache object is expected to be same", expected, context.getCache());
-        
-        AuthenticationContext contextDefaultCache = new AuthenticationContext(getContext(), authority, false);
+
+        AuthenticationContext contextDefaultCache = new AuthenticationContext(getContext(),
+                authority, false);
         assertNotNull(contextDefaultCache.getCache());
     }
 
@@ -411,9 +410,14 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws IllegalAccessException
      * @throws NoSuchFieldException
      * @throws IllegalArgumentException
+     * @throws InvocationTargetException
+     * @throws InstantiationException
+     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException
      */
     public void testAcquireTokenByRefreshTokenPositive() throws IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException {
+            NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, InvocationTargetException {
         TestMockContext mockContext = new TestMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
 
@@ -584,9 +588,15 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws IllegalArgumentException
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws InstantiationException
+     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException
      */
     public void testRefreshTokenWebRequestHasError() throws InterruptedException,
-            IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+            IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            InvocationTargetException {
 
         TestMockContext mockContext = new TestMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
@@ -619,9 +629,14 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws IllegalArgumentException
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws InstantiationException
+     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException
      */
     public void testRefreshTokenPositive() throws InterruptedException, IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException {
+            NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, InvocationTargetException {
 
         TestMockContext mockContext = new TestMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
@@ -630,7 +645,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 VALID_AUTHORITY, false, mockCache);
 
         final MockActivity testActivity = new MockActivity();
-        CacheKey cachekey = CacheKey.createCacheKey(TEST_AUTHORITY, "resource", "clientid");
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -726,6 +740,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
     }
 
     class MockCache implements ITokenCacheStore {
+        /**
+         * serial version related to serializable interface
+         */
+        private static final long serialVersionUID = -3292746098551178627L;
+
         private static final String TAG = "MockCache";
 
         HashMap<String, TokenCacheItem> mCache = new HashMap<String, TokenCacheItem>();
@@ -779,6 +798,10 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 AuthenticationCallback<Boolean> callback) {
             authorizationUrl = authorizationEndpoint;
             callback.onSuccess(isValid);
+        }
+
+        public URL getAuthorizationUrl() {
+            return authorizationUrl;
         }
     }
 

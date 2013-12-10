@@ -1,7 +1,6 @@
 
 package com.microsoft.adal;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -10,9 +9,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import android.util.Log;
-
-import com.microsoft.adal.AuthenticationParameters;
-import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
 
 /**
  * Matching to ADAL.NET It provides helper methods to get the
@@ -79,7 +75,6 @@ public class AuthenticationParameters {
         Log.d(TAG, "createFromResourceUrl");
 
         HttpWebRequest webRequest = new HttpWebRequest(resourceUrl);
-        HashMap<String, String> headers = new HashMap<String, String>();
         webRequest.getRequestHeaders().put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
         final AuthenticationParamCallback externalCallback = callback;
 
