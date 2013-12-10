@@ -14,36 +14,36 @@ public class CacheKeyTests extends AndroidTestCase {
      * Verify constructor and getters
      */
     public void testcreateCacheKey() {
-        CacheKey testKey = CacheKey.createCacheKey("Authority", "Resource", "ClientId", false, null);
-        assertEquals("lowercase authority is expected", "authority", testKey.getAuthority());
-        assertEquals("lowercase resource is expected", "resource", testKey.getResource());
-        assertEquals("lowercase clientid is expected", "clientid", testKey.getClientId());
-        assertNull("userid is null", testKey.getUserId());
-        assertFalse("Not multi resource", testKey.getIsMultipleResourceRefreshToken());
-        
-        // key itself contains at least authority
-        assertTrue(testKey.toString().contains("authority"));
-        
-        CacheKey testKeyMultiResource = CacheKey.createCacheKey("Authority123", "Resource123", "ClientId123", true, null);
-        assertEquals("lowercase authority is expected", "authority123", testKeyMultiResource.getAuthority());
-        assertNull("MultiResource key does not keep resource", testKeyMultiResource.getResource());
-        assertEquals("lowercase clientid is expected", "clientid123", testKeyMultiResource.getClientId());
-        assertNull("userid is null", testKeyMultiResource.getUserId());
-        assertTrue("multi resource", testKeyMultiResource.getIsMultipleResourceRefreshToken());
-        
+        String testKey = CacheKey.createCacheKey("Authority", "Resource", "ClientId", false, null);
+        assertEquals("expected key", "authority$resource$clientid$n$null", testKey);
+
+        String testKeyMultiResource = CacheKey.createCacheKey("Authority123", "Resource123",
+                "ClientId123", true, null);
+        assertEquals("expected key", "authority123$null$clientid123$y$null", testKeyMultiResource);
+
+        String testKeyMultiResourceWithUser = CacheKey.createCacheKey("Authority123",
+                "Resource123", "ClientId123", true, "user123");
+        assertEquals("expected key", "authority123$null$clientid123$y$user123",
+                testKeyMultiResourceWithUser);
+
+        String testKeyWithUser = CacheKey.createCacheKey("Authority123", "Resource123",
+                "ClientId123", false, "user123");
+        assertEquals("expected key", "authority123$resource123$clientid123$n$user123",
+                testKeyWithUser);
     }
 
     /**
      * empty values does not fail
      */
     public void testcreateCacheKeyEmptyValues() {
-        CacheKey testKey = CacheKey.createCacheKey("", "", "", false, "");
-        assertEquals("", testKey.getAuthority());
-        assertEquals("", testKey.getResource());
-        assertEquals("", testKey.getClientId());
+        String testKey = CacheKey.createCacheKey("", "", "", false, "");
+        assertEquals("expected key", "$$$n$null", testKey);
+        
+        String testKeyNullUser = CacheKey.createCacheKey("", "", "", false, null);
+        assertEquals("expected key", "$$$n$null", testKeyNullUser);
 
-        // key itself contains at least authority
-        assertFalse(testKey.toString().contains("authority"));
+        String testKeyWithUser = CacheKey.createCacheKey("", "", "", false, "userid");
+        assertEquals("expected key", "$$$n$userid", testKeyWithUser);
     }
 
     public void testcreateCacheKeyNullItem() {
@@ -55,7 +55,7 @@ public class CacheKeyTests extends AndroidTestCase {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
         }
     }
-    
+
     public void testcreateCacheKeyNullArgument() {
 
         try {

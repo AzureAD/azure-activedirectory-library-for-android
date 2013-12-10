@@ -24,7 +24,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     private static final String TAG = "MemoryTokenCacheStore";
 
-    private final SparseArray<TokenCacheItem> mCache = new SparseArray<TokenCacheItem>();
+    private final HashMap<String, TokenCacheItem> mCache = new HashMap<String, TokenCacheItem>();
 
     private transient Object mCacheLock = new Object();
 
@@ -32,19 +32,19 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
     }
 
     @Override
-    public TokenCacheItem getItem(CacheKey key) {
+    public TokenCacheItem getItem(String key) {
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
 
-        Log.v(TAG, "Get Item from cache. Key:" + key.hashCode());
+        Log.v(TAG, "Get Item from cache. Key:" + key);
         synchronized (mCacheLock) {
-            return mCache.get(key.hashCode());
+            return mCache.get(key);
         }
     }
 
     @Override
-    public void setItem(CacheKey key, TokenCacheItem item) {
+    public void setItem(String key, TokenCacheItem item) {
         if (item == null) {
             throw new IllegalArgumentException("item");
         }
@@ -53,21 +53,21 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        Log.v(TAG, "Set Item to cache. Key:" + key.hashCode());
+        Log.v(TAG, "Set Item to cache. Key:" + key);
         synchronized (mCacheLock) {
-            mCache.append(key.hashCode(), item);
+            mCache.put(key, item);
         }
     }
 
     @Override
-    public void removeItem(CacheKey key) {
+    public void removeItem(String key) {
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
 
         Log.v(TAG, "Remove Item from cache. Key:" + key.hashCode());
         synchronized (mCacheLock) {
-            mCache.delete(key.hashCode());
+            mCache.remove(key);
         }
     }
 
@@ -90,14 +90,14 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
     }
 
     @Override
-    public boolean contains(CacheKey key) {
+    public boolean contains(String key) {
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
 
         Log.v(TAG, "contains Item from cache. Key:" + key.toString());
         synchronized (mCacheLock) {
-            return mCache.get(key.hashCode()) != null;
+            return mCache.get(key) != null;
         }
     }
 }

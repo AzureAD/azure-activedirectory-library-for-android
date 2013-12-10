@@ -43,7 +43,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     @Override
-    public TokenCacheItem getItem(CacheKey key) {
+    public TokenCacheItem getItem(String key) {
 
         argumentCheck();
 
@@ -51,8 +51,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             throw new IllegalArgumentException("key");
         }
 
-        if (mPrefs.contains(getTokenStoreKey(key))) {
-            String json = mPrefs.getString(key.toString(), "");
+        if (mPrefs.contains(key)) {
+            String json = mPrefs.getString(key, "");
             return gson.fromJson(json, TokenCacheItem.class);
         }
 
@@ -60,7 +60,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     @Override
-    public void removeItem(CacheKey key) {
+    public void removeItem(String key) {
 
         argumentCheck();
 
@@ -68,17 +68,16 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             throw new IllegalArgumentException("key");
         }
 
-        String hashcode = getTokenStoreKey(key);
-        if (mPrefs.contains(hashcode)) {
+        if (mPrefs.contains(key)) {
             Editor prefsEditor = mPrefs.edit();
-            prefsEditor.remove(hashcode);
+            prefsEditor.remove(key);
             // apply will do Async disk write operation.
             prefsEditor.apply();
         }
     }
 
     @Override
-    public void setItem(CacheKey key, TokenCacheItem item) {
+    public void setItem(String key, TokenCacheItem item) {
 
         argumentCheck();
 
@@ -92,7 +91,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         String json = gson.toJson(item);
         Editor prefsEditor = mPrefs.edit();
-        prefsEditor.putString(getTokenStoreKey(key), json);
+        prefsEditor.putString(key, json);
 
         // apply will do Async disk write operation.
         prefsEditor.apply();
@@ -117,6 +116,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     public Iterator<TokenCacheItem> getAll() {
 
         argumentCheck();
+        @SuppressWarnings("unchecked")
         Map<String, String> results = (Map<String, String>)mPrefs.getAll();
         Iterator<String> values = results.values().iterator();
 
@@ -261,17 +261,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     @Override
-    public boolean contains(CacheKey key) {
+    public boolean contains(String key) {
         argumentCheck();
 
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
 
-        return mPrefs.contains(getTokenStoreKey(key));
-    }
-
-    private String getTokenStoreKey(CacheKey key) {
-        return "Key:" + key.hashCode();
+        return mPrefs.contains(key);
     }
 }

@@ -77,6 +77,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         testItemMultiResourceUser2.setClientId("clientid2");
         testItemMultiResourceUser2.setResource("resource2");
         testItemMultiResourceUser2.setUserInfo(user2);
+        store.setItem(CacheKey.createCacheKey(testItem2), testItem2);
         store.setItem(CacheKey.createCacheKey(testItemMultiResourceUser2),
                 testItemMultiResourceUser2);
 
