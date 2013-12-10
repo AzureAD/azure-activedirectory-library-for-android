@@ -367,7 +367,7 @@ public class AuthenticationContext {
 
                                     @Override
                                     public void onSuccess(AuthenticationResult result) {
-                                        setCachedResult(authenticationRequest, result);
+                                        setItemToCache(authenticationRequest, result);
                                         mAuthorizationCallback.onSuccess(result);
                                         mAuthorizationCallback = null;
                                     }
@@ -382,12 +382,6 @@ public class AuthenticationContext {
                     }
                 }
             }
-        }
-    }
-
-    private void setCachedResult(AuthenticationRequest request, AuthenticationResult result) {
-        if (mTokenCacheStore != null) {
-            mTokenCacheStore.setItem(new TokenCacheItem(request, result));
         }
     }
 
@@ -513,8 +507,14 @@ public class AuthenticationContext {
 
     private AuthenticationResult getItemFromCache(final AuthenticationRequest request) {
         if (mTokenCacheStore != null) {
-            TokenCacheItem item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request));
+            // target specific item first
+            TokenCacheItem item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request, false));
 
+            if(item == null){
+                // if not present, check multiResource item in cache
+                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request, true));
+            }
+            
             if (item != null) {
                 AuthenticationResult result = new AuthenticationResult(item.getAccessToken(),
                         item.getRefreshToken(), item.getExpiresOn(),
@@ -534,14 +534,17 @@ public class AuthenticationContext {
     private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result)
             throws AuthenticationException {
         if (mTokenCacheStore != null) {
-            mTokenCacheStore.setItem(new TokenCacheItem(request, result));
+            mTokenCacheStore.setItem(CacheKey.createCacheKey(request, result.getIsMultiResourceRefreshToken()), new TokenCacheItem(request, result));
         }
     }
 
     private void removeItemFromCache(final AuthenticationRequest request)
             throws AuthenticationException {
         if (mTokenCacheStore != null) {
-            mTokenCacheStore.removeItem(CacheKey.createCacheKey(request));
+            // ADAL does not know from request object that this item is represented as multi resource or not.
+            // It stores only one entry in cache based on the Authentication Result.
+            mTokenCacheStore.removeItem(CacheKey.createCacheKey(request, false));
+            mTokenCacheStore.removeItem(CacheKey.createCacheKey(request, true));
         }
     }
 
@@ -599,6 +602,7 @@ public class AuthenticationContext {
                     if (useCache) {
                         setItemToCache(request, result);
                     }
+                    
                     externalCallback.onSuccess(result);
                 }
             }
@@ -630,7 +634,6 @@ public class AuthenticationContext {
                     authenticationCallback.onError(exc);
                 }
             });
-
         }
     }
 
@@ -715,6 +718,7 @@ public class AuthenticationContext {
         if (resolveInfo == null) {
             return false;
         }
+        
         return true;
     }
 
@@ -741,7 +745,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * set correlationid to requests
+     * set CorrelationId to requests
      * 
      * @param mRequestCorrelationId
      */

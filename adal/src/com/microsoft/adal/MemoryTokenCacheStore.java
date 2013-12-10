@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 
 import android.util.Log;
+import android.util.SparseArray;
 
 /**
  * tokenCacheItem is not persisted. Memory cache does not keep static items.
@@ -23,7 +24,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     private static final String TAG = "MemoryTokenCacheStore";
 
-    private final HashMap<String, TokenCacheItem> mCache = new HashMap<String, TokenCacheItem>();
+    private final SparseArray<TokenCacheItem> mCache = new SparseArray<TokenCacheItem>();
 
     private transient Object mCacheLock = new Object();
 
@@ -35,21 +36,26 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
-        Log.v(TAG, "Get Item from cache. Key:" + key.toString());
+
+        Log.v(TAG, "Get Item from cache. Key:" + key.hashCode());
         synchronized (mCacheLock) {
-            return mCache.get(key.toString());
+            return mCache.get(key.hashCode());
         }
     }
 
     @Override
-    public void setItem(TokenCacheItem item) {
+    public void setItem(CacheKey key, TokenCacheItem item) {
         if (item == null) {
+            throw new IllegalArgumentException("item");
+        }
+
+        if (key == null) {
             throw new IllegalArgumentException("key");
         }
-        CacheKey key = CacheKey.createCacheKey(item);
-        Log.v(TAG, "Set Item to cache. Key:" + key.toString());
+
+        Log.v(TAG, "Set Item to cache. Key:" + key.hashCode());
         synchronized (mCacheLock) {
-            mCache.put(key.toString(), item);
+            mCache.append(key.hashCode(), item);
         }
     }
 
@@ -58,22 +64,10 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
-        Log.v(TAG, "Remove Item from cache. Key:" + key.toString());
-        synchronized (mCacheLock) {
-            mCache.remove(key.toString());
-        }
-    }
 
-    @Override
-    public void removeItem(TokenCacheItem item) {
-        if (item == null) {
-            throw new IllegalArgumentException("item");
-        }
-
-        CacheKey key = CacheKey.createCacheKey(item);
-        Log.v(TAG, "Remove Item from cache. Key:" + key.toString());
+        Log.v(TAG, "Remove Item from cache. Key:" + key.hashCode());
         synchronized (mCacheLock) {
-            mCache.remove(key.toString());
+            mCache.delete(key.hashCode());
         }
     }
 
@@ -100,10 +94,10 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
-        
+
         Log.v(TAG, "contains Item from cache. Key:" + key.toString());
         synchronized (mCacheLock) {
-            return mCache.containsKey(key.toString());
+            return mCache.get(key.hashCode()) != null;
         }
     }
 }

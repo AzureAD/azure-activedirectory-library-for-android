@@ -14,20 +14,30 @@ public class CacheKeyTests extends AndroidTestCase {
      * Verify constructor and getters
      */
     public void testcreateCacheKey() {
-        CacheKey testKey = CacheKey.createCacheKey("Authority", "Resource", "ClientId");
+        CacheKey testKey = CacheKey.createCacheKey("Authority", "Resource", "ClientId", false, null);
         assertEquals("lowercase authority is expected", "authority", testKey.getAuthority());
         assertEquals("lowercase resource is expected", "resource", testKey.getResource());
         assertEquals("lowercase clientid is expected", "clientid", testKey.getClientId());
-
+        assertNull("userid is null", testKey.getUserId());
+        assertFalse("Not multi resource", testKey.getIsMultipleResourceRefreshToken());
+        
         // key itself contains at least authority
         assertTrue(testKey.toString().contains("authority"));
+        
+        CacheKey testKeyMultiResource = CacheKey.createCacheKey("Authority123", "Resource123", "ClientId123", true, null);
+        assertEquals("lowercase authority is expected", "authority123", testKeyMultiResource.getAuthority());
+        assertNull("MultiResource key does not keep resource", testKeyMultiResource.getResource());
+        assertEquals("lowercase clientid is expected", "clientid123", testKeyMultiResource.getClientId());
+        assertNull("userid is null", testKeyMultiResource.getUserId());
+        assertTrue("multi resource", testKeyMultiResource.getIsMultipleResourceRefreshToken());
+        
     }
 
     /**
-     * null values does not fail
+     * empty values does not fail
      */
     public void testcreateCacheKeyEmptyValues() {
-        CacheKey testKey = CacheKey.createCacheKey("", "", "");
+        CacheKey testKey = CacheKey.createCacheKey("", "", "", false, "");
         assertEquals("", testKey.getAuthority());
         assertEquals("", testKey.getResource());
         assertEquals("", testKey.getClientId());
@@ -49,7 +59,7 @@ public class CacheKeyTests extends AndroidTestCase {
     public void testcreateCacheKeyNullArgument() {
 
         try {
-            CacheKey.createCacheKey(null, null, null);
+            CacheKey.createCacheKey(null, null, null, false, null);
             Assert.fail("not expected");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);

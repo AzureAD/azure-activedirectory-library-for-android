@@ -25,6 +25,7 @@ import android.test.AndroidTestCase;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationCallback;
@@ -607,7 +608,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         // Check response in callback result
         assertNotNull("Error is not null", callback.mException);
         assertNull("Cache is empty for this item",
-                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId")));
+                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userid")));
+        assertNull("Cache is empty for this item",
+                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", true, "userid")));        
         clearCache(context);
     }
 
@@ -630,7 +633,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 VALID_AUTHORITY, false, mockCache);
 
         final MockActivity testActivity = new MockActivity();
-        CacheKey cachekey = CacheKey.createCacheKey(TEST_AUTHORITY, "resource", "clientid");
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -647,8 +649,10 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         // check response in callback
         assertNull("Error is null", callback.mException);
-        assertNotNull("Cache is Not empty for this item",
-                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId")));
+        assertNull("Cache is empty for this item",
+                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userid")));        
+        assertNull("Cache is empty for this item",
+                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", true, "userid")));        
         clearCache(context);
     }
 
@@ -667,7 +671,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         TestMockContext mockContext = new TestMockContext(getContext());
         String tokenToTest = "accessToken=" + UUID.randomUUID();
         String resource = "Resource" + UUID.randomUUID();
-        ITokenCacheStore mockCache = getValidCache(tokenToTest, resource);
+        ITokenCacheStore mockCache = getValidCache(tokenToTest, resource, false);
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         final MockActivity testActivity = new MockActivity();
@@ -698,11 +702,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
         refreshItem.setAccessToken("accessToken");
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(expiredTime.getTime());
-        cache.setItem(refreshItem);
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userId"), refreshItem);
         return cache;
     }
 
-    private ITokenCacheStore getValidCache(String token, String resource) {
+    private ITokenCacheStore getValidCache(String token, String resource, boolean isMultiResource) {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         // Code response
         Calendar timeAhead = new GregorianCalendar();
@@ -715,7 +719,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         refreshItem.setAccessToken(token);
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(timeAhead.getTime());
-        cache.setItem(refreshItem);
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, "clientId", isMultiResource, "userId"), refreshItem);
         return cache;
     }
 
@@ -728,27 +732,22 @@ public class AuthenticationContextTests extends AndroidTestCase {
     class MockCache implements ITokenCacheStore {
         private static final String TAG = "MockCache";
 
-        HashMap<String, TokenCacheItem> mCache = new HashMap<String, TokenCacheItem>();
+        SparseArray<TokenCacheItem> mCache = new SparseArray<TokenCacheItem>();
 
         @Override
         public TokenCacheItem getItem(CacheKey key) {
             Log.d(TAG, "Mock cache get item:" + key.toString());
-            return mCache.get(key.toString());
+            return mCache.get(key.hashCode());
         }
 
         @Override
-        public void setItem(TokenCacheItem item) {
+        public void setItem(CacheKey key, TokenCacheItem item) {
             Log.d(TAG, "Mock cache set item:" + item.toString());
-            mCache.put(CacheKey.createCacheKey(item).toString(), item);
+            mCache.append(CacheKey.createCacheKey(item).hashCode(), item);
         }
 
         @Override
         public void removeItem(CacheKey key) {
-            // TODO Auto-generated method stub
-        }
-
-        @Override
-        public void removeItem(TokenCacheItem item) {
             // TODO Auto-generated method stub
         }
 

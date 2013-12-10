@@ -14,11 +14,9 @@ public interface ITokenCacheStore extends Serializable {
     
     public boolean contains(CacheKey key);// Needed by the library
 
-    public void setItem(TokenCacheItem item);// Needed by the library
+    public void setItem(CacheKey key, TokenCacheItem item);// Needed by the library
 
     public void removeItem(CacheKey key);// Needed by the library
-
-    public void removeItem(TokenCacheItem item);
 
     public void removeAll();
 }

@@ -225,7 +225,7 @@ class Oauth2 {
             if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
                 String idbody = idtoken.substring(firstDot + 1, secondDot);
                 byte[] data = Base64.decode(idbody, Base64.DEFAULT);
-                String decodedBody = new String(data, "UTF-8");
+                String decodedBody = new String(data, "UTF-8"); 
 
                 HashMap<String, String> responseItems = new HashMap<String, String>();
                 extractJsonObjects(responseItems, decodedBody);
