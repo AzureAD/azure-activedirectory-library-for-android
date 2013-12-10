@@ -9,7 +9,7 @@ import java.util.Locale;
  * 
  * @author omercan
  */
-public class CacheKey  implements Serializable{
+public class CacheKey implements Serializable {
 
     /**
      * 
@@ -45,16 +45,16 @@ public class CacheKey  implements Serializable{
         }
 
         if (!isMultiResourceRefreshToken) {
-            
-            if(resource == null){
+
+            if (resource == null) {
                 throw new IllegalArgumentException("resource");
             }
-            
+
             // MultiResource token items will be stored without resource
             key.mResource = resource.toLowerCase(Locale.US);
         }
-        
-        key.mAuthority = authority.toLowerCase(Locale.US);        
+
+        key.mAuthority = authority.toLowerCase(Locale.US);
         key.mClientId = clientId.toLowerCase(Locale.US);
         key.mIsMultipleResourceRefreshToken = isMultiResourceRefreshToken;
 
@@ -82,17 +82,14 @@ public class CacheKey  implements Serializable{
     }
 
     /**
-     * get cache key for query. ADAL checks cache first without multiresource and then multiresource items.
+     * get cache key for query. ADAL checks cache first without multiresource
+     * and then multiresource items.
      * 
      * @param requestItem
      * @return
      */
     static CacheKey createCacheKey(AuthenticationRequest item, boolean isMultiResource) {
-        String resource = null;
-
-       
-
-        return createCacheKey(item.getAuthority(), resource, item.getClientId(),
+        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(),
                 isMultiResource, item.getLoginHint());
     }
 
