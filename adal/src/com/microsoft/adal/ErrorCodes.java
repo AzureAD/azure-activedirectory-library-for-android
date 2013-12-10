@@ -128,12 +128,6 @@ public class ErrorCodes {
          * Shared preferences are not available
          */
         DEVICE_SHARED_PREF_IS_NOT_AVAILABLE,
-
-        /**
-         * Cache is not saving the changes. This error will be returned to
-         * developer, if cache returns error
-         */
-        DEVICE_CACHE_IS_NOT_WORKING,
     }
 
     /**

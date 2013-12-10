@@ -11,6 +11,8 @@ import java.util.Date;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -47,6 +49,12 @@ public class AuthenticationContext {
     private transient ActivityDelegate mActivityDelegate;
 
     private final static Object sLock = new Object();
+
+    private final static ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+
+    private final static Lock readLock = rwl.readLock();
+
+    private final static Lock writeLock = rwl.writeLock();
 
     /**
      * delegate map is needed to handle activity recreate without asking
@@ -411,8 +419,12 @@ public class AuthenticationContext {
 
     private void removeWaitingRequest(int requestId) {
         Log.v(TAG, "Remove Waiting Request: " + requestId);
-        synchronized (sLock) {
+
+        writeLock.lock();
+        try {
             mDelegateMap.remove(requestId);
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -420,16 +432,18 @@ public class AuthenticationContext {
 
         Log.v(TAG, "Get Waiting Request: " + requestId);
         AuthenticationRequestState request = null;
-        synchronized (sLock) {
+
+        readLock.lock();
+        try {
             request = mDelegateMap.get(requestId);
+        } finally {
+            readLock.unlock();
         }
 
         if (request == null && mAuthorizationCallback != null
                 && requestId == mAuthorizationCallback.hashCode()) {
             // it does not have the caller callback. It will check the last
             // callback if set
-            // it does not have the caller callback. It will use the last
-            // one available.
             Logger.e(TAG, "Request callback is not available for requestid:" + requestId
                     + ". It will use last callback.", "", ADALError.CALLBACK_IS_NOT_FOUND);
             request = new AuthenticationRequestState(0, null, mAuthorizationCallback);
@@ -441,8 +455,12 @@ public class AuthenticationContext {
     private void putWaitingRequest(int requestId, AuthenticationRequestState requestState) {
         Log.v(TAG, "Put Waiting Request: " + requestId);
         if (requestId > 0 && requestState != null) {
-            synchronized (sLock) {
+            writeLock.lock();
+
+            try {
                 mDelegateMap.put(requestId, requestState);
+            } finally {
+                writeLock.unlock();
             }
         }
     }

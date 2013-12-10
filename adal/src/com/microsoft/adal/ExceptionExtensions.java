@@ -9,14 +9,18 @@ import java.io.StringWriter;
  */
 final class ExceptionExtensions {
     static String getExceptionMessage(Exception ex) {
-        String message = ex.getMessage();
+        String message = null;
 
-        if (message == null) {
-            final StringWriter sw = new StringWriter();
-            ex.printStackTrace(new PrintWriter(sw));
-            message = sw.toString();
+        if (ex != null) {
+            message = ex.getMessage();
+
+            if (message == null) {
+                final StringWriter sw = new StringWriter();
+                ex.printStackTrace(new PrintWriter(sw));
+                message = sw.toString();
+            }
         }
-
+        
         return message;
     }
 }
