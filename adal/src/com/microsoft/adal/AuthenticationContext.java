@@ -14,7 +14,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -24,7 +23,6 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.util.SparseArray;
-
 
 /*
  */
@@ -45,8 +43,6 @@ public class AuthenticationContext {
     private boolean mValidateAuthority;
 
     private ITokenCacheStore mTokenCacheStore;
-
-    private transient ActivityDelegate mActivityDelegate;
 
     private final static ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 
@@ -75,8 +71,6 @@ public class AuthenticationContext {
      * Web request handler interface to test behaviors
      */
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
-
-    private Activity mActivity;
 
     /**
      * CorrelationId set by user
@@ -148,8 +142,8 @@ public class AuthenticationContext {
     public String getAuthority() {
         return mAuthority;
     }
-    
-    public boolean getValidateAuthority(){
+
+    public boolean getValidateAuthority() {
         return mValidateAuthority;
     }
 
@@ -215,10 +209,9 @@ public class AuthenticationContext {
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, behavior will
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
-     * token from cache and fall back on the UI.
-     * If promptbehavior is NEVER, It will remove this refresh token from cache
-     * and return error. Default is AUTO.
-     * if promptbehavior is Always, it will display prompt screen.
+     * token from cache and fall back on the UI. If promptbehavior is NEVER, It
+     * will remove this refresh token from cache and return error. Default is
+     * AUTO. if promptbehavior is Always, it will display prompt screen.
      * 
      * @param activity
      * @param resource
@@ -293,7 +286,7 @@ public class AuthenticationContext {
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
             redirectUri = getRedirectFromPackage();
         }
-        
+
         return redirectUri;
     }
 
@@ -542,7 +535,7 @@ public class AuthenticationContext {
 
         if (mValidateAuthority) {
             validateAuthority(authorityUrl, new AuthenticationCallback<Boolean>() {
- 
+
                 @Override
                 public void onSuccess(Boolean result) {
                     if (result) {
@@ -554,7 +547,6 @@ public class AuthenticationContext {
                                 ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
                     }
                 }
- 
 
                 @Override
                 public void onError(Exception exc) {
@@ -581,7 +573,7 @@ public class AuthenticationContext {
         } else {
 
             if (request.getPrompt() != PromptBehavior.Never) {
-             // start activity if other options are not available
+                // start activity if other options are not available
                 // delegate map is used to remember callback if another
                 // instance of authenticationContext is created for config
                 // change or similar at client app.
@@ -591,11 +583,7 @@ public class AuthenticationContext {
                 putWaitingRequest(externalCall.hashCode(), new AuthenticationRequestState(
                         externalCall.hashCode(), request, externalCall));
 
-                // Set Activity for authorization flow
-                setActivity(activity);
-                setActivityDelegate(activity);
-
-                if (!startAuthenticationActivity(request)) {
+                if (!startAuthenticationActivity(activity, request)) {
                     mAuthorizationCallback.onError(new AuthenticationException(
                             ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
                 }
@@ -696,7 +684,6 @@ public class AuthenticationContext {
             @Override
             public void onSuccess(AuthenticationResult result) {
 
-
                 if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
 
                     // remove item from cache to avoid same usage of
@@ -705,15 +692,15 @@ public class AuthenticationContext {
                     if (useCache) {
                         removeItemFromCache(request);
                     }
-                    
+
                     if (request.getPrompt() != PromptBehavior.Never) {
-                        Log.w(TAG,
-                                "Refresh token was not successful and prompt is allowed for "
-                                        + request.getLogInfo());
+                        Log.w(TAG, "Refresh token was not successful and prompt is allowed for "
+                                + request.getLogInfo());
                         acquireTokenLocal(activity, request, externalCallback);
                     } else {
-                        Log.w(TAG, "Refresh token was not successful and prompt is NOT allowed for "
-                                + request.getLogInfo());
+                        Log.w(TAG,
+                                "Refresh token was not successful and prompt is NOT allowed for "
+                                        + request.getLogInfo());
                         externalCallback.onError(new AuthenticationException(
                                 ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
                     }
@@ -761,52 +748,15 @@ public class AuthenticationContext {
         return mContext.getApplicationContext().getPackageName();
     }
 
-    private Activity getActivity() {
-        return this.mActivity;
-    }
-
-    private void setActivity(Activity activity) {
-        this.mActivity = activity;
-    }
-
-    private ActivityDelegate getActivityDelegate() {
-        return mActivityDelegate;
-    }
-
     /**
-     * delegate to start activity
-     * 
-     * @param context
-     */
-    private void setActivityDelegate(Activity activity) {
-        final Activity callingActivity = activity;
-        mActivityDelegate = new ActivityDelegate() {
-            @Override
-            public void startActivityForResult(Intent intent, int requestCode) {
-                Log.d(TAG, "Delegate calling startActivityForResult");
-                callingActivity.startActivityForResult(intent, requestCode);
-            }
-
-            @Override
-            public Activity getActivityContext() {
-                return callingActivity;
-            }
-
-            @Override
-            public void startActivity(Intent intent) {
-                Log.d(TAG, "Delegate calling startActivity");
-                callingActivity.startActivity(intent);
-            }
-        };
-    }
-
-    /**
+     * @param activity
      * @param request
      * @return false: if intent is not resolved or error in starting. true: if
      *         intent is sent to start the activity.
      */
-    private boolean startAuthenticationActivity(AuthenticationRequest request) {
-        Intent intent = getAuthenticationActivityIntent(request);
+    private boolean startAuthenticationActivity(final Activity activity,
+            AuthenticationRequest request) {
+        Intent intent = getAuthenticationActivityIntent(activity, request);
 
         if (!resolveIntent(intent)) {
             return false;
@@ -815,7 +765,26 @@ public class AuthenticationContext {
         try {
             // Start activity from callers context so that caller can intercept
             // when it is done
-            getActivityDelegate().startActivityForResult(intent,
+            ActivityDelegate activityDelegate = new ActivityDelegate() {
+                @Override
+                public void startActivityForResult(Intent intent, int requestCode) {
+                    Log.d(TAG, "Delegate calling startActivityForResult");
+                    activity.startActivityForResult(intent, requestCode);
+                }
+
+                @Override
+                public Activity getActivityContext() {
+                    return activity;
+                }
+
+                @Override
+                public void startActivity(Intent intent) {
+                    Log.d(TAG, "Delegate calling startActivity");
+                    activity.startActivity(intent);
+                }
+            };
+
+            activityDelegate.startActivityForResult(intent,
                     AuthenticationConstants.UIRequest.BROWSER_FLOW);
         } catch (ActivityNotFoundException e) {
             Log.e(TAG, "Activity login is not found after resolving intent");
@@ -847,9 +816,9 @@ public class AuthenticationContext {
      * @param request
      * @return intent for authentication activity
      */
-    final private Intent getAuthenticationActivityIntent(AuthenticationRequest request) {
+    final private Intent getAuthenticationActivityIntent(Activity activity, AuthenticationRequest request) {
         Intent intent = new Intent();
-        intent.setClass(getActivity(), AuthenticationActivity.class);
+        intent.setClass(activity, AuthenticationActivity.class);
         intent.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE, request);
         return intent;
     }
@@ -919,7 +888,8 @@ public class AuthenticationContext {
             return;
         }
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource, clientId);
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId);
         // It is not using cache and refresh is not expected to show
         // authentication activity.
         request.setPrompt(PromptBehavior.Never);
