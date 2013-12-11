@@ -215,7 +215,9 @@ class Oauth2 {
 
             if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
                 String idbody = idtoken.substring(firstDot + 1, secondDot);
-                byte[] data = Base64.decode(idbody, Base64.DEFAULT);
+                // URL_SAFE: Encoder/decoder flag bit to use "URL and filename safe" variant of Base64
+                // (see RFC 3548 section 4) where - and _ are used in place of + and /.
+                byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
                 String decodedBody = new String(data, "UTF-8");
 
                 HashMap<String, String> responseItems = new HashMap<String, String>();

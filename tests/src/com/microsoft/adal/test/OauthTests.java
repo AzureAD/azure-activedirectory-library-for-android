@@ -1,6 +1,7 @@
 
 package com.microsoft.adal.test;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
 
 import junit.framework.Assert;
 import android.test.AndroidTestCase;
+import android.util.Base64;
 
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationException;
@@ -32,8 +34,20 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("IdToken userid", "admin@aaltests.onmicrosoft.com", actual.getUserId());
         assertEquals("IdToken userid", "admin@aaltests.onmicrosoft.com", actual.getUserId());
         assertEquals("IdToken familyname", "Sepehri", actual.getFamilyName());
-
         assertEquals("IdToken name", "Afshin", actual.getGivenName());
+    }
+
+    public void testDecoding() throws UnsupportedEncodingException {
+        // check that Base64 UrlSafe flags behaves as expected
+        String expected = "Ma~0";
+        assertEquals("BAse64 url safe encode", expected,
+                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), "UTF-8"));
+        assertEquals("BAse64 url safe encode", expected,
+                new String(Base64.decode("TWF-MA", Base64.URL_SAFE), "UTF-8"));
+        assertEquals("BAse64 url safe encode", expected,
+                new String(Base64.decode("TWF+MA", Base64.DEFAULT), "UTF-8"));
+        assertEquals("BAse64 url safe encode", expected,
+                new String(Base64.decode("TWF+MA==", Base64.DEFAULT), "UTF-8"));
     }
 
     public void testParseIdTokenNegativeIncorrectMessage() throws IllegalArgumentException,
