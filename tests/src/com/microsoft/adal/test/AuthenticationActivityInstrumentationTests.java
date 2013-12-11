@@ -21,7 +21,6 @@ import com.microsoft.adal.testapp.R;
  * This requires device to be connected to not deal with Inject_events security exception.
  * UI functional tests that enter credentials to test token processing end to end.
  * 
- * 
  * @author omercan
  */
 public class AuthenticationActivityInstrumentationTests extends
@@ -136,6 +135,8 @@ public class AuthenticationActivityInstrumentationTests extends
         sendKeys(KeyEvent.KEYCODE_TAB);
         getInstrumentation().sendStringSync(TEST_KEY_PASSWORD);
         Thread.sleep(300);
+        
+        // Enter event sometimes is failing to submit form.
         sendKeys(KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_ENTER);
     }
 
