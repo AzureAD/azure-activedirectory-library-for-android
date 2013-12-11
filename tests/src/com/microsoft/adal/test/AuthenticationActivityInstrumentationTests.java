@@ -59,18 +59,6 @@ public class AuthenticationActivityInstrumentationTests extends
         activity = getActivity();
     }
 
-    /**
-     * reset and get new token for ADFS30
-     * 
-     * @throws Exception
-     */
-    public void testAcquireTokenADFS30Federated() throws Exception {
-        acquireTokenAfterReset("https://login.windows-ppe.net/AdalE2ETenant1.ccsctp.net",
-                "urn:msft:ad:test:oauth:teamdashboard", "DE25CE3A-B772-4E6A-B431-96DCB5E7E559",
-                "https://login.live.com/", null, PromptBehavior.Auto, null,
-                "adaluser@ade2eadfs30.com", "P@ssw0rd", true);
-    }
-
     public void testAcquireTokenADFS30() throws Exception {
         acquireTokenAfterReset("https://fs.ade2eadfs30.com/adfs",
                 "urn:msft:ad:test:oauth:teamdashboard", "DE25CE3A-B772-4E6A-B431-96DCB5E7E559",
@@ -78,23 +66,11 @@ public class AuthenticationActivityInstrumentationTests extends
                 "ade2eadfs30.com\\adaluser", "P@ssw0rd", false);
     }
 
-    /**
-     * reset and get new token for ADFS2
-     * 
-     * @throws Exception
-     */
-    public void testAcquireTokenADFS21Federated() throws Exception {
-        acquireTokenAfterReset("https://login.windows-ppe.net/AdalE2ETenant2.ccsctp.net",
-                "http://arwin8/TokenConsumer", "9e6d1c62-3eca-4419-acdd-1226a0e7e662",
-                "https://login.live.com/", "", PromptBehavior.Auto, null,
-                "adaluser@ade2eadfs20.com", "P@ssw0rd", true);
-    }
-
     public void testAcquireTokenManaged() throws Exception {
         acquireTokenAfterReset("https://login.windows.net/omercantest.onmicrosoft.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry", "http://taskapp",
-                "650a6609-5463-4bc4-b7c6-19df7990a8bc", "", PromptBehavior.Auto, null,
-                "faruk@omercantest.onmicrosoft.com", "Jink1234", false);
+                "https://omercantest.onmicrosoft.com/AllHandsTry",
+                "650a6609-5463-4bc4-b7c6-19df7990a8bc", "http://taskapp", "", PromptBehavior.Auto,
+                null, "faruk@omercantest.onmicrosoft.com", "Jink1234", false);
     }
 
     /**
