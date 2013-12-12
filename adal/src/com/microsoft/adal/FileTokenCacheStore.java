@@ -54,8 +54,9 @@ public class FileTokenCacheStore implements ITokenCacheStore {
         }
 
         mFileName = fileName;
-        mDirectory = context.getDir(AuthenticationConstants.AUTHENTICATION_FILE_DIRECTORY,
-                Context.MODE_PRIVATE);
+        // It is using package directory not the external storage, so
+        // external write permissions are not needed
+        mDirectory = context.getDir(context.getPackageName(), Context.MODE_PRIVATE);
 
         if (mDirectory == null) {
             throw new IllegalStateException("It could not access the Authorization cache directory");
@@ -76,9 +77,11 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                 if (cacheObj instanceof MemoryTokenCacheStore) {
                     mInMemoryCache = (MemoryTokenCacheStore)cacheObj;
                 } else {
-                    Logger.e(TAG, "Existing cache format is wrong", "",
+                    Logger.w(TAG, "Existing cache format is wrong", "",
                             ADALError.DEVICE_FILE_CACHE_FORMAT_IS_WRONG);
-                    throw new AuthenticationException(ADALError.DEVICE_FILE_CACHE_FORMAT_IS_WRONG);
+
+                    // Write operation will replace with correct file
+                    mInMemoryCache = new MemoryTokenCacheStore();
                 }
             } else {
                 Logger.v(TAG, "There is not any previous cache file to load cache.");
@@ -89,7 +92,8 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                     ExceptionExtensions.getExceptionMessage(ex),
                     ADALError.DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE);
             // if it is not possible to load the cache because of permissions or
-            // similar, it will not work again. File cache is not working
+            // similar, it will not work again. File cache is not working and
+            // not make sense to use it.
             throw new AuthenticationException(ADALError.DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE);
 
         }
@@ -133,12 +137,15 @@ public class FileTokenCacheStore implements ITokenCacheStore {
         synchronized (mCacheLock) {
             if (mFile != null && mInMemoryCache != null) {
                 try {
+
+                    // FileOutputStream will create the file.
                     FileOutputStream outputStream = new FileOutputStream(mFile);
                     ObjectOutputStream objectStream = new ObjectOutputStream(outputStream);
                     objectStream.writeObject(mInMemoryCache);
                     objectStream.flush();
                     objectStream.close();
                     outputStream.close();
+
                 } catch (Exception ex) {
                     Logger.e(TAG, "Exception during cache flush",
                             ExceptionExtensions.getExceptionMessage(ex),
