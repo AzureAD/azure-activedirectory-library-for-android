@@ -123,4 +123,6 @@ class AuthenticationConstants {
     public static final String BUNDLE_MESSAGE = "Message";
 
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
+    
+    public static final String AUTHENTICATION_FILE_DIRECTORY = "com.microsoft.adal.authentication";
 }

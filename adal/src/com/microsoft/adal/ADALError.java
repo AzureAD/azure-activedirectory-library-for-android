@@ -126,6 +126,21 @@ public enum ADALError {
      * developer, if cache returns error
      */
     DEVICE_CACHE_IS_NOT_WORKING,
+    
+    /**
+     * Cache is not loaded from File
+     */
+    DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE,
+    
+    /**
+     * FileCache could not write to the File
+     */
+    DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE,
+    
+    /**
+     * Cache file format is wrong.
+     */
+    DEVICE_FILE_CACHE_FORMAT_IS_WRONG,
 
     /**
      * IdToken is failed to parse
