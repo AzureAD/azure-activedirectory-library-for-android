@@ -47,6 +47,16 @@ public enum ADALError {
     SERVER_INVALID_REQUEST,
 
     /**
+     * webview has ssl related error
+     */
+    ERROR_FAILED_SSL_HANDSHAKE,
+    
+    /**
+     * webview has an error
+     */
+    ERROR_WEBVIEW,
+    
+    /**
      * Authorization Failed
      */
     AUTH_FAILED,

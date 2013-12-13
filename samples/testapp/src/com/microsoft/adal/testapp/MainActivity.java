@@ -37,6 +37,8 @@ import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.ITokenCacheStore;
+import com.microsoft.adal.Logger;
+import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
 
@@ -68,6 +70,16 @@ public class MainActivity extends Activity {
     final static String SERVICE_URL = "https://android.azurewebsites.net/api/values";
 
     private AuthenticationContext mContext = null;
+
+    public void setLoggerCallback(ILogger loggerCallback) {
+        // callback hook to insert from test instrumentation to check loaded url
+        // on webview
+        // Test project adds callback to track the completion
+        // loggerCallback
+        if (loggerCallback != null) {
+            Logger.getInstance().setExternalLogger(loggerCallback);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,8 +195,8 @@ public class MainActivity extends Activity {
 
         // Optional field, so acquireToken accepts null fields
         String redirect = mRedirect.getText().toString();
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt,
-                "", new AuthenticationCallback<AuthenticationResult>() {
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, "",
+                new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onError(Exception exc) {
@@ -236,7 +248,7 @@ public class MainActivity extends Activity {
         if (mContext == null) {
             initContext();
         }
-        
+
         mContext.getCache().removeAll();
         textViewStatus.setText("");
 

@@ -238,7 +238,7 @@ public class AuthenticationActivity extends Activity {
             loadContent(view);
             if (mScriptInterface != null
                     && !StringExtensions.IsNullOrBlank(mScriptInterface.getContent())) {
-                Log.v(TAG, "Webview content:" + mScriptInterface.getContent());
+                Logger.v(TAG, "Webview content:" + mScriptInterface.getContent());
             }
         }
 
@@ -246,13 +246,13 @@ public class AuthenticationActivity extends Activity {
         @SuppressWarnings("deprecation")
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
 
-            Log.d(TAG, "shouldOverrideUrlLoading:url=" + url);
+            Logger.d(TAG, "shouldOverrideUrlLoading:url=" + url);
             if (spinner != null && !spinner.isShowing()) {
                 spinner.show();
             }
 
             if (url.startsWith(redirectUrl)) {
-                Log.i(TAG, "Webview reached redirecturl");
+                Logger.v(TAG, "Webview reached redirecturl");
 
                 // It is pointing to redirect. Final url can be processed to get
                 // the code or error.
@@ -274,7 +274,8 @@ public class AuthenticationActivity extends Activity {
                 String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
 
-            Log.e(TAG, "Webview received an error. Errorcode:" + errorCode + " " + description);
+            Logger.e(TAG, "Webview received an error. Errorcode:" + errorCode + " " + description,
+                    "", ADALError.ERROR_WEBVIEW);
             reportContent(view);
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, errorCode);
@@ -290,7 +291,7 @@ public class AuthenticationActivity extends Activity {
             // Developer does not have option to control this for now
             super.onReceivedSslError(view, handler, error);
             handler.cancel();
-            Log.e(TAG, "Received ssl error");
+            Logger.e(TAG, "Received ssl error", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
 
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
@@ -305,15 +306,14 @@ public class AuthenticationActivity extends Activity {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-
             super.onPageStarted(view, url, favicon);
-            Log.d(TAG, "Page started:" + url);
+            Logger.v(TAG, "Page started:" + url);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            Log.d(TAG, "Page finished:" + url);
+            Logger.v(TAG, "Page finished:" + url);
             if (spinner != null && spinner.isShowing()) {
                 spinner.dismiss();
             }
