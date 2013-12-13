@@ -14,14 +14,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-import com.microsoft.adal.AuthenticationException;
-import com.microsoft.adal.AuthenticationCallback;
-import com.microsoft.adal.AuthenticationContext;
-import com.microsoft.adal.AuthenticationResult;
-import com.microsoft.adal.CacheKey;
-import com.microsoft.adal.ITokenCacheStore;
-import com.microsoft.adal.TokenCacheItem;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -34,14 +26,31 @@ import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.microsoft.adal.AuthenticationCallback;
+import com.microsoft.adal.AuthenticationContext;
+import com.microsoft.adal.AuthenticationException;
+import com.microsoft.adal.AuthenticationResult;
+import com.microsoft.adal.CacheKey;
+import com.microsoft.adal.ITokenCacheStore;
+import com.microsoft.adal.Logger;
+import com.microsoft.adal.Logger.ILogger;
+import com.microsoft.adal.PromptBehavior;
+import com.microsoft.adal.TokenCacheItem;
 
 public class MainActivity extends Activity {
 
     Button btnGetToken, btnResetToken, btnShowUsers, btnSetExpired, btnCancel;
 
     TextView textViewStatus;
+
+    EditText mAuthority, mResource, mClientId, mUserid, mPrompt, mRedirect;
+
+    CheckBox mValidate;
 
     private final static String TAG = "MainActivity";
 
@@ -57,12 +66,20 @@ public class MainActivity extends Activity {
 
     final static String REDIRECT_URL = "http://taskapp";
 
-    final static String LOGIN_HINT = "demo@omercantest.onmicrosoft.com";
-
     // Endpoint we are targeting for the deployed WebAPI service
     final static String SERVICE_URL = "https://android.azurewebsites.net/api/values";
 
     private AuthenticationContext mContext = null;
+
+    public void setLoggerCallback(ILogger loggerCallback) {
+        // callback hook to insert from test instrumentation to check loaded url
+        // on webview
+        // Test project adds callback to track the completion
+        // loggerCallback
+        if (loggerCallback != null) {
+            Logger.getInstance().setExternalLogger(loggerCallback);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,8 +97,13 @@ public class MainActivity extends Activity {
         btnShowUsers = (Button)findViewById(R.id.buttonUsers);
         btnSetExpired = (Button)findViewById(R.id.buttonExpired);
         btnCancel = (Button)findViewById(R.id.buttonCancel);
-
-        mContext = new AuthenticationContext(MainActivity.this, AUTHORITY_URL, false);
+        mAuthority = (EditText)findViewById(R.id.editAuthority);
+        mResource = (EditText)findViewById(R.id.editResource);
+        mClientId = (EditText)findViewById(R.id.editClientid);
+        mUserid = (EditText)findViewById(R.id.editUserId);
+        mPrompt = (EditText)findViewById(R.id.editPrompt);
+        mRedirect = (EditText)findViewById(R.id.editRedirect);
+        mValidate = (CheckBox)findViewById(R.id.checkBoxValidate);
 
         btnGetToken.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,10 +153,49 @@ public class MainActivity extends Activity {
         Log.d(TAG, "Cancel authentication Activity");
     }
 
+    private void initContext() {
+        Log.d(TAG, "Init authentication context based on input");
+
+        // UI automation tests will fill in these fields to test different
+        // scenarios
+        String authority = mAuthority.getText().toString();
+        if (authority == null || authority.isEmpty()) {
+            authority = AUTHORITY_URL;
+        }
+
+        mContext = new AuthenticationContext(MainActivity.this, authority, mValidate.isChecked());
+    }
+
     private void getToken() {
         Log.d(TAG, "get Token");
         textViewStatus.setText("Getting token...");
-        mContext.acquireToken(MainActivity.this, RESOURCE_ID, CLIENT_ID, REDIRECT_URL, "",
+        if (mContext == null) {
+            initContext();
+        }
+
+        String resource = mResource.getText().toString();
+        if (resource == null || resource.isEmpty()) {
+            resource = RESOURCE_ID;
+        }
+
+        String clientId = mClientId.getText().toString();
+        if (clientId == null || clientId.isEmpty()) {
+            clientId = CLIENT_ID;
+        }
+
+        // Optional field, so acquireToken accepts null fields
+        String userid = mUserid.getText().toString();
+
+        String promptInput = mPrompt.getText().toString();
+        if (promptInput == null || promptInput.isEmpty()) {
+            promptInput = PromptBehavior.Auto.name();
+        }
+
+        PromptBehavior prompt = PromptBehavior.valueOf(promptInput);
+
+        // Optional field, so acquireToken accepts null fields
+        String redirect = mRedirect.getText().toString();
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, "",
                 new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
@@ -161,8 +222,7 @@ public class MainActivity extends Activity {
                             textViewStatus.setText("Token is empty");
                             Log.d(TAG, "Token is empty");
                         } else {
-                            // request is successfull
-                            // TODO change to json
+                            // request is successful
                             textViewStatus.setText("Status:" + result.getStatus() + " Expired:"
                                     + result.getExpiresOn().toString());
                             Log.d(TAG, "Status:" + result.getStatus() + " Expired:"
@@ -185,6 +245,10 @@ public class MainActivity extends Activity {
      */
     private void resetToken() {
         Log.d(TAG, "reset Token");
+        if (mContext == null) {
+            initContext();
+        }
+
         mContext.getCache().removeAll();
         textViewStatus.setText("");
 

@@ -181,7 +181,7 @@ public class AuthenticationContext {
      * @param activity Calling activity
      * @param resource
      * @param clientId
-     * @param redirectUri
+     * @param redirectUri Optional. It will use packagename and provided suffix for this.
      * @param userId Optional. This parameter will be used to pre-populate the
      *            username field in the authentication form. Please note that
      *            the end user can still edit the username field and
@@ -216,8 +216,8 @@ public class AuthenticationContext {
      * @param activity
      * @param resource
      * @param clientId
-     * @param redirectUri
-     * @param prompt
+     * @param redirectUri Optional. It will use packagename and provided suffix for this.
+     * @param prompt Optional. added as query parameter to authorization url
      * @param callback
      */
     public void acquireToken(Activity activity, String resource, String clientId,
@@ -244,13 +244,43 @@ public class AuthenticationContext {
      * @param activity
      * @param resource
      * @param clientId
-     * @param redirectUri
-     * @param prompt added as query parameter to authorization url
-     * @param extraQueryParameters added to authorization url
+     * @param redirectUri Optional. It will use packagename and provided suffix for this.
+     * @param prompt Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
      * @param callback
      */
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
+            AuthenticationCallback<AuthenticationResult> callback) {
+
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, redirectUri, null, prompt, extraQueryParameters);
+
+        acquireTokenLocal(activity, request, callback);
+    }
+    
+    /**
+     * acquire Token will start interactive flow if needed. It checks the cache
+     * to return existing result if not expired. It tries to use refresh token
+     * if available. If it fails to get token with refresh token, behavior will
+     * depend on options. If promptbehavior is AUTO, it will remove this refresh
+     * token from cache and fall back on the UI if activitycontext is not null.
+     * If promptbehavior is NEVER, It will remove this refresh token from cache
+     * and(or not, depending on the promptBehavior values. Default is AUTO.
+     * 
+     * @param activity
+     * @param resource
+     * @param clientId
+     * @param redirectUri Optional. It will use packagename and provided suffix for this.
+     * @param userId Optional. It is used for cache and as a loginhint at authentication.
+     * @param prompt Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
+     * @param callback
+     */
+    public void acquireToken(Activity activity, String resource, String clientId,
+            String redirectUri, String userId, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);

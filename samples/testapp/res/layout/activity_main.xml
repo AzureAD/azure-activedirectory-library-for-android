@@ -16,7 +16,7 @@
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:layout_marginTop="30dp"
-        android:text="Large Text"
+        android:text="Status"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Button
@@ -72,5 +72,71 @@
         android:layout_alignBottom="@+id/buttonGetToken"
         android:layout_toRightOf="@+id/buttonGetToken"
         android:text="GetTokenWithDelay" />
+
+    <EditText
+        android:id="@+id/editAuthority"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/buttonUsers"
+        android:layout_alignLeft="@+id/button1"
+        android:ems="10"
+        android:hint="Authority" >
+
+        <requestFocus />
+    </EditText>
+
+    <EditText
+        android:id="@+id/editResource"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonExpired"
+        android:layout_alignBottom="@+id/buttonExpired"
+        android:layout_alignLeft="@+id/editAuthority"
+        android:ems="10"
+        android:hint="Resource" />
+
+    <EditText
+        android:id="@+id/editClientid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editResource"
+        android:layout_below="@+id/editResource"
+        android:ems="10"
+        android:hint="Clientid" />
+
+    <EditText
+        android:id="@+id/editUserId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editClientid"
+        android:layout_below="@+id/editClientid"
+        android:ems="10"
+        android:hint="Userid" />
+
+    <EditText
+        android:id="@+id/editPrompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editUserId"
+        android:layout_below="@+id/editUserId"
+        android:ems="10"
+        android:hint="Prompt" />
+
+    <EditText
+        android:id="@+id/editRedirect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editPrompt"
+        android:layout_below="@+id/editPrompt"
+        android:ems="10"
+        android:hint="Redirect" />
+
+    <CheckBox
+        android:id="@+id/checkBoxValidate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editRedirect"
+        android:layout_below="@+id/editRedirect"
+        android:text="Validate" />
 
 </RelativeLayout>
