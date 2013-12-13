@@ -104,17 +104,18 @@ public class AuthenticationParameters {
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
             String authenticateHeader) {
         AuthenticationParameters authParams = null;
+
         if (StringExtensions.IsNullOrBlank(authenticateHeader)) {
             throw new IllegalArgumentException(AUTH_HEADER_MISSING);
         } else {
 
             authenticateHeader = authenticateHeader.trim().toLowerCase(Locale.US);
+
             // bearer should be first one
             if (!authenticateHeader.startsWith(BEARER)) {
                 throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
             } else {
                 authenticateHeader = authenticateHeader.substring(BEARER.length());
-
                 ArrayList<String> queryPairs = splitWithQuotes(authenticateHeader, ',');
                 HashMap<String, String> headerItems = new HashMap<String, String>();
                 for (String queryPair : queryPairs) {
@@ -147,18 +148,15 @@ public class AuthenticationParameters {
                         throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
                     }
                 }
-                
+
                 String authority = headerItems.get(AUTHORITY_KEY);
                 if (!StringExtensions.IsNullOrBlank(authority)) {
-                    authParams = new AuthenticationParameters(
-                            removeQuoteInHeaderValue(authority),
+                    authParams = new AuthenticationParameters(removeQuoteInHeaderValue(authority),
                             removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
                 } else {
                     // invalid format
                     throw new IllegalArgumentException(AUTH_HEADER_MISSING_AUTHORITY);
                 }
-                
-                
             }
         }
 
