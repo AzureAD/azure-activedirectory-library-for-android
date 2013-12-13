@@ -60,6 +60,15 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 .getAuthority().trim());
     }
 
+    
+    public void testParseResponsePositive() throws ClassNotFoundException{
+        
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer scope=\"test, another\" authorization_uri=\"https://login.windows.net/tenant\"")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+        
+    }
+    
     /**
      * test private method to make sure parsing is right
      * 
@@ -80,51 +89,56 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 AuthenticationParameters.AUTH_HEADER_MISSING);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", "v")),
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "v")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
                         "Bearer nonsense")), AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", " Bearer")),
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", " Bearer")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", " Bearer ")),
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", " Bearer ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", "\t Bearer  ")),
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "\t Bearer  ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", "Bearer foo ")),
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer foo ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
                         "Bear gets=honey ")), AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate", "Bearer =,=,")),
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer =,=,")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
                         "Bearer authorization_uri= ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
                         "Bearerauthorization_uri=something")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+        
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
+                        "Bearerauthorization_uri=\"https://www.something.com\"")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getInvalidHeader("WWW-Authenticate",
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
                         "Bearer authorization_uri=,something=a ")),
-                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY);
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
     }
 
     private Method getParseResponseMethod() throws ClassNotFoundException {
@@ -207,7 +221,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         }, true);
     }
 
-    private HashMap<String, List<String>> getInvalidHeader(String key, String value) {
+    private HashMap<String, List<String>> getHeader(String key, String value) {
         HashMap<String, List<String>> dummy = new HashMap<String, List<String>>();
         dummy.put(key, Arrays.asList(value, "s2", "s3"));
         return dummy;

@@ -1,8 +1,10 @@
 
 package com.microsoft.adal;
 
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -71,11 +73,12 @@ public class AuthenticationParameters {
         if (callback == null) {
             throw new IllegalArgumentException("callback");
         }
-        
+
         Log.d(TAG, "createFromResourceUrl");
 
         HttpWebRequest webRequest = new HttpWebRequest(resourceUrl);
-        webRequest.getRequestHeaders().put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
+        webRequest.getRequestHeaders().put(WebRequestHandler.HEADER_ACCEPT,
+                WebRequestHandler.HEADER_ACCEPT_JSON);
         final AuthenticationParamCallback externalCallback = callback;
 
         webRequest.sendAsyncGet(new HttpWebRequestCallback() {
@@ -111,25 +114,88 @@ public class AuthenticationParameters {
                 throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
             } else {
                 authenticateHeader = authenticateHeader.substring(BEARER.length());
-                HashMap<String, String> headerItems = HashMapExtensions.URLFormDecodeData(
-                        authenticateHeader, ",");
-                if (headerItems != null && !headerItems.isEmpty()) {
-                    String authority = headerItems.get(AUTHORITY_KEY);
-                    if (!StringExtensions.IsNullOrBlank(authority)) {
-                        authParams = new AuthenticationParameters(
-                                removeQuoteInHeaderValue(authority),
-                                removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
+
+                ArrayList<String> queryPairs = splitWithQuotes(authenticateHeader, ',');
+                HashMap<String, String> headerItems = new HashMap<String, String>();
+                for (String queryPair : queryPairs) {
+                    ArrayList<String> pair = splitWithQuotes(queryPair, '=');
+
+                    if (pair.size() == 2 && !StringExtensions.IsNullOrBlank(pair.get(0))
+                            && !StringExtensions.IsNullOrBlank(pair.get(1))) {
+                        String key = pair.get(0);
+                        String value = pair.get(1);
+
+                        try {
+                            key = StringExtensions.URLFormDecode(key);
+                            value = StringExtensions.URLFormDecode(value);
+                        } catch (UnsupportedEncodingException e) {
+                            Log.d(TAG, e.getMessage());
+                        }
+
+                        key = key.trim();
+                        value = removeQuoteInHeaderValue(value.trim());
+
+                        if (headerItems.containsKey(key)) {
+                            Logger.w(TAG, String.format(
+                                    "Key/value pair list contains redundant key '{0}'.", key), "",
+                                    ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
+                        }
+
+                        headerItems.put(key, value);
                     } else {
                         // invalid format
-                        throw new IllegalArgumentException(AUTH_HEADER_MISSING_AUTHORITY);
+                        throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
                     }
-                } else {
-                    throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
                 }
+                
+                String authority = headerItems.get(AUTHORITY_KEY);
+                if (!StringExtensions.IsNullOrBlank(authority)) {
+                    authParams = new AuthenticationParameters(
+                            removeQuoteInHeaderValue(authority),
+                            removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
+                } else {
+                    // invalid format
+                    throw new IllegalArgumentException(AUTH_HEADER_MISSING_AUTHORITY);
+                }
+                
+                
             }
         }
 
         return authParams;
+    }
+
+    static ArrayList<String> splitWithQuotes(String input, char delimiter) {
+        ArrayList<String> items = new ArrayList<String>();
+
+        if (StringExtensions.IsNullOrBlank(input)) {
+            return items;
+        }
+
+        int startIndex = 0;
+        boolean insideString = false;
+        String item;
+        for (int i = 0; i < input.length(); i++) {
+            if (input.charAt(i) == delimiter && !insideString) {
+                item = input.substring(startIndex, i);
+                if (!StringExtensions.IsNullOrBlank(item.trim())) {
+                    items.add(item);
+                }
+
+                startIndex = i + 1;
+            } else if (input.charAt(i) == '"') {
+                insideString = !insideString;
+            }
+        }
+
+        if (startIndex < input.length()) {
+            item = input.substring(startIndex);
+            if (!StringExtensions.IsNullOrBlank(item.trim())) {
+                items.add(item);
+            }
+        }
+
+        return items;
     }
 
     private static String removeQuoteInHeaderValue(String value) {
