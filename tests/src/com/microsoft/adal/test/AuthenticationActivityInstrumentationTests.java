@@ -27,8 +27,9 @@ import com.microsoft.adal.testapp.MainActivity;
 import com.microsoft.adal.testapp.R;
 
 /**
- * This requires device to be connected to not deal with Inject_events security exception.
- * UI functional tests that enter credentials to test token processing end to end.
+ * This requires device to be connected to not deal with Inject_events security
+ * exception. UI functional tests that enter credentials to test token
+ * processing end to end.
  * 
  * @author omercan
  */
@@ -62,48 +63,114 @@ public class AuthenticationActivityInstrumentationTests extends
         activity = getActivity();
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        finishActivity();
+        super.tearDown();
+    }
+
     public void testAcquireTokenADFS30Federated() throws Exception {
-        acquireTokenAfterReset("https://login.windows-ppe.net/AdalE2ETenant1.ccsctp.net",
-                "http://adalscenariohealthwebapi.azurewebsites.net/",
-                "f556da69-f8b3-4058-a3f8-01d9b60d7df8", "https://login.live.com/", null,
-                PromptBehavior.Auto, null, "adaluser@ade2eadfs30.com", "P@ssw0rd", true,
-                "https://fs.ade2eadfs30.com");
+        acquireTokenAfterReset(TestTenant.ADFS30FEDERATED, "", PromptBehavior.Auto, null, false,
+                false, null);
     }
 
     public void testAcquireTokenADFS30() throws Exception {
-        acquireTokenAfterReset("https://fs.ade2eadfs30.com/adfs",
-                "urn:msft:ad:test:oauth:teamdashboard", "DE25CE3A-B772-4E6A-B431-96DCB5E7E559",
-                "https://login.live.com/", null, PromptBehavior.Auto, null,
-                "ade2eadfs30.com\\adaluser", "P@ssw0rd", false, null);
+        acquireTokenAfterReset(TestTenant.ADFS30, "", PromptBehavior.Auto, null, false, false, null);
     }
 
     public void testAcquireTokenManaged() throws Exception {
-        acquireTokenAfterReset("https://login.windows.net/omercantest.onmicrosoft.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry",
-                "650a6609-5463-4bc4-b7c6-19df7990a8bc", "http://taskapp", "", PromptBehavior.Auto,
-                null, "faruk@omercantest.onmicrosoft.com", "Jink1234", false, null);
+        acquireTokenPromptNeverNegative(TestTenant.MANAGED);
+
+        // not validating
+        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, false, false,
+                null);
+
+        // validation set true
+        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, true, false, null);
+        acquireTokenByRefreshToken();
+        verifyToken();
+    }
+
+    private void acquireTokenPromptNeverNegative(TestTenant tenant) throws Exception {
+        // Activity runs at main thread. Test runs on different thread
+        Log.v(TAG, "testAcquireToken_Prompt starts for authority:" + tenant.getAuthority());
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        setAuthenticationRequest(tenant, "", PromptBehavior.Never, "", false);
+
+        // press clear all button to clear tokens and cookies
+        clickResetTokens();
+        clickGetToken();
+
+        String tokenMsg = (String)textViewStatus.getText();
+        Log.v(TAG, "Status:" + tokenMsg);
+        assertTrue("Token status", tokenMsg.contains("error"));
     }
 
     /**
-     * clear tokens and then ask for token.
-     * 
-     * @throws Exception
+     * send token to webapi endpoint to get ok
+     * @throws IllegalArgumentException
+     * @throws InterruptedException
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
      */
-    private void acquireTokenAfterReset(String authority, String resource, String clientid,
-            String redirect, String loginhint, PromptBehavior prompt, String extraQueryParam,
-            String username, String password, boolean federated, String federatedPageUrl)
-            throws Exception {
+    private void verifyToken() throws IllegalArgumentException, InterruptedException,
+            NoSuchFieldException, IllegalAccessException {
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
 
+        // verify existing token at the target application
+        clickVerify();
+
+        waitUntil(new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg != null && !tokenMsg.isEmpty();
+            }
+        });
+
+        String tokenMsg = (String)textViewStatus.getText();
+        Log.v(TAG, "Status:" + tokenMsg);
+        assertTrue("Token status", tokenMsg.contains(MainActivity.TOKEN_USED));
+    }
+
+    /**
+     * use existing AuthenticationResult in the app to call acquireTokenByRefreshToken
+     * @throws IllegalArgumentException
+     * @throws InterruptedException
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     */
+    private void acquireTokenByRefreshToken() throws IllegalArgumentException,
+            InterruptedException, NoSuchFieldException, IllegalAccessException {
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+
+        // verify existing token at the target application
+        clickRefresh();
+
+        waitUntil(new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg != null && !tokenMsg.isEmpty();
+            }
+        });
+
+        String tokenMsg = (String)textViewStatus.getText();
+        Log.v(TAG, "Status:" + tokenMsg);
+        assertTrue("Token status", tokenMsg.contains(MainActivity.PASSED));
+    }
+
+    private void setAuthenticationRequest(TestTenant tenant, String loginhint,
+            PromptBehavior prompt, String extraQueryParam, boolean validate) {
         // ACtivity runs at main thread. Test runs on different thread
-        Log.v(TAG, "acquireTokenAfterReset starts for authority:" + authority);
+        Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
         // add monitor to check for the auth activity
         final ActivityMonitor monitor = getInstrumentation().addMonitor(
                 AuthenticationActivity.class.getName(), null, false);
 
         // press clear all button to clear tokens and cookies
-        Button btnResetToken = (Button)activity.findViewById(R.id.buttonReset);
-        Button btnGetToken = (Button)activity.findViewById(R.id.buttonGetToken);
-        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
         EditText mAuthority, mResource, mClientId, mUserid, mPrompt, mRedirect;
         CheckBox mValidate;
 
@@ -116,34 +183,67 @@ public class AuthenticationActivityInstrumentationTests extends
         mValidate = (CheckBox)activity.findViewById(R.id.checkBoxValidate);
 
         // Buttons need to be visible on the device
-        setEditText(mAuthority, authority);
+        setEditText(mAuthority, tenant.getAuthority());
         sendKeys(KeyEvent.KEYCODE_TAB);
-        setEditText(mResource, resource);
+        setEditText(mResource, tenant.getResource());
         sendKeys(KeyEvent.KEYCODE_TAB);
-        setEditText(mClientId, clientid);
+        setEditText(mClientId, tenant.getClientId());
         sendKeys(KeyEvent.KEYCODE_TAB);
         setEditText(mUserid, loginhint);
         sendKeys(KeyEvent.KEYCODE_TAB);
         setEditText(mPrompt, prompt.name());
         sendKeys(KeyEvent.KEYCODE_TAB);
-        setEditText(mRedirect, redirect);
+        setEditText(mRedirect, tenant.getRedirect());
+        mValidate.setChecked(validate);
+    }
 
-        // TouchUtils handles the sync with the main thread internally
-        TouchUtils.clickView(this, btnResetToken);
+    private void clickResetTokens() {
+        TouchUtils.clickView(this, (Button)activity.findViewById(R.id.buttonReset));
+    }
 
-        // get token
-        TouchUtils.clickView(this, btnGetToken);
+    private void clickGetToken() {
+        TouchUtils.clickView(this, (Button)activity.findViewById(R.id.buttonGetToken));
+    }
 
+    private void clickExpire() {
+        TouchUtils.clickView(this, (Button)activity.findViewById(R.id.buttonExpired));
+    }
+
+    private void clickVerify() {
+        TouchUtils.clickView(this, (Button)activity.findViewById(R.id.buttonVerify));
+    }
+
+    private void clickRefresh() {
+        TouchUtils.clickView(this, (Button)activity.findViewById(R.id.buttonRefresh));
+    }
+
+    /**
+     * finish main activity at test app
+     */
+    private void finishActivity() {
+        if (activity != null && !activity.isFinishing()) {
+            Log.v(TAG, "Shutting down activity");
+            activity.finish();
+        }
+    }
+
+    private void handleCredentials(String username, String password, boolean federated,
+            String federatedPageUrl) throws InterruptedException, IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException {
+        // add monitor to check for the auth activity
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
         Thread.sleep(1000);
         Log.v(TAG, "testAcquireTokenAfterReset status text:" + textViewStatus.getText().toString());
         assertEquals("Token action", "Getting token...", textViewStatus.getText().toString());
 
-        // Wait 4 secs to start activity and loading the page
+        // Wait to start activity and loading the page
         AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
                 .waitForActivityWithTimeout(5000);
         assertNotNull(startedActivity);
 
-        Log.v(TAG, "Sleeping until it gets login page");
+        Log.v(TAG, "Sleeping until it gets the login page");
         sleepUntilLoginDisplays(startedActivity);
 
         Log.v(TAG, "Entering credentials to login page");
@@ -178,14 +278,30 @@ public class AuthenticationActivityInstrumentationTests extends
                 return tokenMsg.contains("Status:");
             }
         });
+    }
+
+    /**
+     * clear tokens and then ask for token.
+     * 
+     * @throws Exception
+     */
+    private void acquireTokenAfterReset(TestTenant tenant, String loginhint, PromptBehavior prompt,
+            String extraQueryParam, boolean validate, boolean federated, String federatedPageUrl)
+            throws Exception {
+
+        // Activity runs at main thread. Test runs on different thread
+        Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        setAuthenticationRequest(tenant, loginhint, prompt, extraQueryParam, validate);
+
+        // press clear all button to clear tokens and cookies
+        clickResetTokens();
+        clickGetToken();
+        handleCredentials(tenant.getUserName(), tenant.getPassword(), federated, federatedPageUrl);
 
         String tokenMsg = (String)textViewStatus.getText();
         Log.v(TAG, "Status:" + tokenMsg);
         assertTrue("Token status", tokenMsg.contains("Status:" + AuthenticationStatus.Succeeded));
-        Log.v(TAG, "Shutting down activity if it is active");
-        if (!activity.isFinishing()) {
-            activity.finish();
-        }
     }
 
     private void setEditText(EditText view, String text) {
@@ -209,7 +325,7 @@ public class AuthenticationActivityInstrumentationTests extends
         sendKeys(KeyEvent.KEYCODE_TAB);
         getInstrumentation().sendStringSync(password);
         Thread.sleep(300);
-        
+
         // Enter event sometimes is failing to submit form.
         sendKeys(KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_ENTER);
     }

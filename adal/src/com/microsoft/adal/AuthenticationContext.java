@@ -620,7 +620,7 @@ public class AuthenticationContext {
             } else {
                 // it can come here if user set to never for the prompt and
                 // refresh token failed.
-                mAuthorizationCallback.onError(new AuthenticationException(
+                externalCall.onError(new AuthenticationException(
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
 
             }
