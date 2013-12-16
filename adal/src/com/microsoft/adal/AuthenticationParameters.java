@@ -188,11 +188,9 @@ public class AuthenticationParameters {
             }
         }
 
-        if (startIndex < input.length()) {
-            item = input.substring(startIndex);
-            if (!StringExtensions.IsNullOrBlank(item.trim())) {
-                items.add(item);
-            }
+        item = input.substring(startIndex);
+        if (!StringExtensions.IsNullOrBlank(item.trim())) {
+            items.add(item);
         }
 
         return items;

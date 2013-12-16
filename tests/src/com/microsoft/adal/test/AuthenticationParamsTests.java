@@ -68,49 +68,39 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
         Method m = getParseResponseMethod();
-        AuthenticationParameters param = (AuthenticationParameters)m
-                .invoke(null,
-                        new HttpWebResponse(
-                                401,
-                                null,
-                                getHeader("WWW-Authenticate",
-                                        "Bearer scope=\"blah=foo, foo=blah\" , authorization_uri=\"https://login.windows.net/tenant\"")));
-        assertNotNull("Parsed ok", param);
 
-        param = (AuthenticationParameters)m
-                .invoke(null,
-                        new HttpWebResponse(
-                                401,
-                                null,
-                                getHeader(
-                                        "WWW-Authenticate",
-                                        "Bearer scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\"")));
-        assertNotNull("Parsed with comma and quote in the value", param);
+        verifyAuthenticationParam(
+                m,
+                "Bearer scope=\"blah=foo, foo=blah\" , authorization_uri=\"https://login.windows.net/tenant\"",
+                "https://login.windows.net/tenant");
 
-        param = (AuthenticationParameters)m
-                .invoke(null,
-                        new HttpWebResponse(
-                                401,
-                                null,
-                                getHeader(
-                                        "WWW-Authenticate",
-                                        "Bearer\tscope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\"")));
-        assertNotNull("Parsed ok with tab as a space", param);
+        verifyAuthenticationParam(
+                m,
+                "Bearer scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\"",
+                "https://login.windows.net/tenant");
+
+        verifyAuthenticationParam(
+                m,
+                "Bearer\tscope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\"",
+                "https://login.windows.net/tenant");
 
         LogCallback callback = new LogCallback(ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
         Logger.getInstance().setExternalLogger(callback);
-
-        param = (AuthenticationParameters)m
-                .invoke(null,
-                        new HttpWebResponse(
-                                401,
-                                null,
-                                getHeader(
-                                        "WWW-Authenticate",
-                                        "Bearer   \t  scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\", authorization_uri=\"https://login.windows.net/tenant\"")));
-        assertNotNull("Parsed ok for redundant pairs", param);
+        verifyAuthenticationParam(
+                m,
+                "Bearer   \t  scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\", authorization_uri=\"https://login.windows.net/tenant\"",
+                "https://login.windows.net/tenant");
+        
         assertTrue("Has warning for redudant items", callback.called);
         Logger.getInstance().setExternalLogger(null);
+    }
+
+    private void verifyAuthenticationParam(Method m, String headerValue, String authorizationUri)
+            throws IllegalAccessException, InvocationTargetException {
+        AuthenticationParameters param = (AuthenticationParameters)m.invoke(null,
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", headerValue)));
+        assertNotNull("Parsed ok", param);
+        assertEquals("Verify authorization uri", authorizationUri, param.getAuthority());
     }
 
     /**
@@ -140,6 +130,10 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer nonsense")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+        
         callParseResponseForException(
                 new HttpWebResponse(401, null, getHeader("WWW-Authenticate", " Bearer")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
