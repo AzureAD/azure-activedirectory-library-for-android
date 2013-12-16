@@ -28,7 +28,7 @@ public class AuthenticationParameters {
 
     public final static String AUTHENTICATE_HEADER = "WWW-Authenticate";
 
-    public final static String BEARER = "bearer ";
+    public final static String BEARER = "bearer";
 
     public final static String AUTHORITY_KEY = "authorization_uri";
 
@@ -112,7 +112,9 @@ public class AuthenticationParameters {
             authenticateHeader = authenticateHeader.trim().toLowerCase(Locale.US);
 
             // bearer should be first one
-            if (!authenticateHeader.startsWith(BEARER)) {
+            if (!authenticateHeader.startsWith(BEARER)
+                    || authenticateHeader.length() < BEARER.length() + 2
+                    || !Character.isWhitespace(authenticateHeader.charAt(BEARER.length()))) {
                 throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
             } else {
                 authenticateHeader = authenticateHeader.substring(BEARER.length());

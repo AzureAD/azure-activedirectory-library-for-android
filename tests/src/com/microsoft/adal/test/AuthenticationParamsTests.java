@@ -13,9 +13,13 @@ import java.util.concurrent.CountDownLatch;
 import junit.framework.Assert;
 import android.util.Log;
 
+import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationParameters;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.AuthenticationParameters.AuthenticationParamCallback;
+import com.microsoft.adal.Logger;
+import com.microsoft.adal.Logger.ILogger;
+import com.microsoft.adal.Logger.LogLevel;
 
 public class AuthenticationParamsTests extends AndroidTestHelper {
 
@@ -70,8 +74,43 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                                 401,
                                 null,
                                 getHeader("WWW-Authenticate",
-                                        "Bearer scope=\"test, another\", authorization_uri=\"https://login.windows.net/tenant\"")));
+                                        "Bearer scope=\"blah=foo, foo=blah\" , authorization_uri=\"https://login.windows.net/tenant\"")));
         assertNotNull("Parsed ok", param);
+
+        param = (AuthenticationParameters)m
+                .invoke(null,
+                        new HttpWebResponse(
+                                401,
+                                null,
+                                getHeader(
+                                        "WWW-Authenticate",
+                                        "Bearer scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\"")));
+        assertNotNull("Parsed with comma and quote in the value", param);
+
+        param = (AuthenticationParameters)m
+                .invoke(null,
+                        new HttpWebResponse(
+                                401,
+                                null,
+                                getHeader(
+                                        "WWW-Authenticate",
+                                        "Bearer\tscope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\"")));
+        assertNotNull("Parsed ok with tab as a space", param);
+
+        LogCallback callback = new LogCallback(ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
+        Logger.getInstance().setExternalLogger(callback);
+
+        param = (AuthenticationParameters)m
+                .invoke(null,
+                        new HttpWebResponse(
+                                401,
+                                null,
+                                getHeader(
+                                        "WWW-Authenticate",
+                                        "Bearer   \t  scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\", authorization_uri=\"https://login.windows.net/tenant\"")));
+        assertNotNull("Parsed ok for redundant pairs", param);
+        assertTrue("Has warning for redudant items", callback.called);
+        Logger.getInstance().setExternalLogger(null);
     }
 
     /**
@@ -127,6 +166,11 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         callParseResponseForException(
                 new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
+                        "Bearer some text here,")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
                         "Bearer authorization_uri= ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
@@ -142,9 +186,28 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         callParseResponseForException(
                 new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
-                        "Bearer authorization_uri=,something=a ")),
+                        "Bearer    \t authorization_uri=,something=a ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
     }
+
+    class LogCallback implements ILogger {
+        boolean called = false;
+
+        ADALError checkCode;
+
+        public LogCallback(ADALError errorCode) {
+            checkCode = errorCode;
+            called = false;
+        }
+
+        @Override
+        public void Log(String tag, String message, String additionalMessage, LogLevel level,
+                ADALError errorCode) {
+            if (errorCode == checkCode) {
+                called = true;
+            }
+        }
+    };
 
     private Method getParseResponseMethod() throws ClassNotFoundException {
         Method m = null;
