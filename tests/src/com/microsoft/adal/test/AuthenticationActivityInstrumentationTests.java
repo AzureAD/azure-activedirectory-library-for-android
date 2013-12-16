@@ -79,7 +79,7 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     public void testAcquireTokenManaged() throws Exception {
-        acquireTokenPromptNeverNegative(TestTenant.MANAGED);
+        acquireTokenPromptNever(TestTenant.MANAGED);
 
         // not validating
         acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, false, false,
@@ -91,11 +91,33 @@ public class AuthenticationActivityInstrumentationTests extends
         verifyToken();
     }
 
-    private void acquireTokenPromptNeverNegative(TestTenant tenant) throws Exception {
+    private void acquireTokenPromptNever(TestTenant tenant) throws Exception {
         // Activity runs at main thread. Test runs on different thread
         Log.v(TAG, "testAcquireToken_Prompt starts for authority:" + tenant.getAuthority());
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
         setAuthenticationRequest(tenant, "", PromptBehavior.Never, "", false);
+
+        // press clear all button to clear tokens and cookies
+        clickResetTokens();
+        clickGetToken();
+
+        String tokenMsg = (String)textViewStatus.getText();
+        Log.v(TAG, "Status:" + tokenMsg);
+        assertTrue("Token status", tokenMsg.contains("error"));
+    }
+    
+    /**
+     * It should prompt for credentials again
+     * @param tenant
+     * @throws Exception
+     */
+    private void acquireTokenPromptAlways(TestTenant tenant) throws Exception {
+        // Activity runs at main thread. Test runs on different thread
+        Log.v(TAG, "testAcquireToken_Prompt starts for authority:" + tenant.getAuthority());
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        assertNotNull("Has token to start with", activity.getResult());
+        assertNotNull("Has token to start with", activity.getResult().getAccessToken());
+        setAuthenticationRequest(tenant, "", PromptBehavior.Always, "", false);
 
         // press clear all button to clear tokens and cookies
         clickResetTokens();
