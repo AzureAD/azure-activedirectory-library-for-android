@@ -27,7 +27,7 @@ This is an Android library for Azure Active Directory(AAD). It provides simple f
   <application/>
 ```
 5. Register your WEBAPI service app at Azure Active Directory(AAD),https://manage.windowsazure.com 
-  *You need APP ID URI parameter to get token
+  * You need APP ID URI parameter to get token
 6. Register your client native app at AAD
   * You need clientId and redirectUri parameters 
   * Select webapis in the list and give permission to previously registered(Step5) WebAPI 
@@ -84,14 +84,14 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
                 callback);
 ```
   * Resource is required, Clientid is required. You can setup redirectUri as your packagename and it is not required to be provided for acquireToken call. PromptBehavior helps to ask for credentials to skip cache and cookie. Callback ill be called after authorization code is exchanged for a token. It will have an object of AuthenticationResult, which has accesstoken, date expired, and idtoken info. 
-11. You can always call **acquireToken** to handle caching, token refresh and credential prompt if required. Your callback implementation should handle user cancellation for AuthenticationActivity. ADAL will return cancellation error ,if user cancels the credential entry.
+11. You can always call **acquireToken** to handle caching, token refresh and credential prompt if required. Your callback implementation should handle the user cancellation for AuthenticationActivity. ADAL will return a cancellation error, if user cancels the credential entry.
 
 ## Querying cache items
 ADAL provides Default cache in SharedPrefrecens with some simple cache query fucntions. You can get the current cache from AuthenticationContext with:
 ```
  ITokenCacheStore cache = mContext.getCache();
 ```
-You can also provide your cache implementation if you want to customize it.
+You can also provide your cache implementation, if you want to customize it.
 ```
 mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCache);
 ```
