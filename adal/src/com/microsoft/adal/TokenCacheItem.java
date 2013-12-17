@@ -49,18 +49,26 @@ public class TokenCacheItem implements Serializable {
 
     public TokenCacheItem(AuthenticationRequest request, AuthenticationResult result) {
         if (request != null) {
-            mResource = request.getResource();
             mAuthority = request.getAuthority();
             mClientId = request.getClientId();
+            if (!result.getIsMultiResourceRefreshToken()) {
+                // Cache item will not store resource info for Multi Resource
+                // Refresh Token
+                mResource = request.getResource();
+            }
         }
 
         if (result != null) {
-            mUserInfo = result.getUserInfo();
-            mAccessToken = result.getAccessToken();
             mRefreshtoken = result.getRefreshToken();
             mExpiresOn = result.getExpiresOn();
             mIsMultiResourceRefreshToken = result.getIsMultiResourceRefreshToken();
             mTenantId = result.getTenantId();
+            if (!result.getIsMultiResourceRefreshToken()) {
+                // Cache item will not store accesstoken and userinfo for Multi
+                // Resource Refresh Token
+                mUserInfo = result.getUserInfo();
+                mAccessToken = result.getAccessToken();
+            }
         }
     }
 
