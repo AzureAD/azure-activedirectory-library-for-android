@@ -15,7 +15,7 @@ public class CacheKeyTests extends AndroidTestCase {
      */
     public void testcreateCacheKey() {
         String testKey = CacheKey.createCacheKey("Authority", "Resource", "ClientId", false, null);
-        assertEquals("expected key", "authority$resource$clientid$n$null", testKey);
+        assertEquals("expected key", "authority$Resource$clientid$n$null", testKey);
 
         String testKeyMultiResource = CacheKey.createCacheKey("Authority123", "Resource123",
                 "ClientId123", true, null);
@@ -28,8 +28,18 @@ public class CacheKeyTests extends AndroidTestCase {
 
         String testKeyWithUser = CacheKey.createCacheKey("Authority123", "Resource123",
                 "ClientId123", false, "user123");
-        assertEquals("expected key", "authority123$resource123$clientid123$n$user123",
+        assertEquals("expected key", "authority123$Resource123$clientid123$n$user123",
                 testKeyWithUser);
+        
+        String testKeySlash = CacheKey.createCacheKey("Authority123EndsSlash/",
+                "Resource123", "ClientId123", true, "user123");
+        assertEquals("expected key", "authority123endsslash$null$clientid123$y$user123",
+                testKeySlash);
+        
+        testKeySlash = CacheKey.createCacheKey("Authority123EndsSlash/",
+                "Resource123", "ClientId123", false, "user123");
+        assertEquals("expected key", "authority123endsslash$Resource123$clientid123$n$user123",
+                testKeySlash);
     }
 
     /**

@@ -41,7 +41,6 @@ public class CacheKey implements Serializable {
     public static String createCacheKey(String authority, String resource, String clientId,
             boolean isMultiResourceRefreshToken, String userId) {
 
-        CacheKey key = new CacheKey();
         if (authority == null) {
             throw new IllegalArgumentException("authority");
         }
@@ -50,6 +49,8 @@ public class CacheKey implements Serializable {
             throw new IllegalArgumentException("clientId");
         }
 
+        CacheKey key = new CacheKey();
+        
         if (!isMultiResourceRefreshToken) {
 
             if (resource == null) {
@@ -57,10 +58,14 @@ public class CacheKey implements Serializable {
             }
 
             // MultiResource token items will be stored without resource
-            key.mResource = resource.toLowerCase(Locale.US);
+            key.mResource = resource;
         }
 
         key.mAuthority = authority.toLowerCase(Locale.US);
+        if(key.mAuthority.endsWith("/")){
+            key.mAuthority = (String)key.mAuthority.subSequence(0, key.mAuthority.length() -1);
+        }
+        
         key.mClientId = clientId.toLowerCase(Locale.US);
         key.mIsMultipleResourceRefreshToken = isMultiResourceRefreshToken;
 
@@ -88,15 +93,24 @@ public class CacheKey implements Serializable {
     }
 
     /**
-     * get cache key for query. ADAL checks cache first without multiresource
-     * and then multiresource items.
+     * get cache key for query. 
      * 
      * @param requestItem
      * @return
      */
-    static String createCacheKey(AuthenticationRequest item, boolean isMultiResource) {
+    static String createCacheKey(AuthenticationRequest item) {
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(),
-                isMultiResource, item.getLoginHint());
+                false, item.getLoginHint());
+    }
+    
+    /**
+     * Store multi resource refresh tokens with different key. Key will not include resource and set flag to y.
+     * @param item
+     * @return
+     */
+    static String createMultiResourceRefreshTokenKey(AuthenticationRequest item) {
+        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(),
+                true, item.getLoginHint());
     }
 
     public String getAuthority() {
