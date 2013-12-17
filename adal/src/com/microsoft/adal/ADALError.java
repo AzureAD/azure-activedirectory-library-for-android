@@ -38,6 +38,11 @@ public enum ADALError {
     DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED,
     
     /**
+    *Key/value pair list contains redundant items in the header
+    */
+    DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS,
+    
+    /**
      * Active callback is not found
      */
     CALLBACK_IS_NOT_FOUND,
