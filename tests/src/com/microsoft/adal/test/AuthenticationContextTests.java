@@ -731,6 +731,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 "ClienTid", "userid", false);
         addItemToCache(mockCache, "", "refreshTokenMultiResource", VALID_AUTHORITY, resource,
                 "ClienTid", "userid", true);
+        addItemToCache(mockCache, "", "refreshTokenMultiResource2", VALID_AUTHORITY, "dummyResource2",
+                "ClienTid", "userid", true);
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         MockWebRequestHandler mockWebRequest = setMockWebRequest(context, tokenWithRefreshToken);
@@ -745,7 +747,18 @@ public class AuthenticationContextTests extends AndroidTestCase {
         
         assertNull("Error is null", callback.mException);
         assertEquals("Same token in response as in cache", tokenToTest,
-                callback.mResult.getAccessToken());        
+                callback.mResult.getAccessToken());  
+        
+      //-----------Acquire token call will not return from cache for broad Token-
+        // cached item does not have access token since it was broad refresh token
+        signal = new CountDownLatch(1);
+        callback = new MockAuthenticationCallback(signal);
+        context.acquireToken(testActivity, "dummyResource2", "ClienTid", "redirectUri", "userid", callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        
+        assertNull("Error is null", callback.mException);
+        assertEquals("Same token as refresh token result", tokenWithRefreshToken,
+                callback.mResult.getAccessToken());
 
         //-----------Different resource with same userid--------------------------
         signal = new CountDownLatch(1);

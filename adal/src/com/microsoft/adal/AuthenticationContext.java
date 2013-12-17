@@ -560,14 +560,14 @@ public class AuthenticationContext {
             String keyUsed = CacheKey.createCacheKey(request);
             TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
 
-            if (item == null) {
+            if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 // if not present, check multiResource item in cache. Cache key
                 // will not include resourceId in the cache key string.
                 keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request);
                 item = mTokenCacheStore.getItem(keyUsed);
             }
 
-            if (item != null) {
+            if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken()) ) {
                 refreshItem = new RefreshItem(keyUsed, item.getRefreshToken());
             }
         }
@@ -586,12 +586,12 @@ public class AuthenticationContext {
         if (mTokenCacheStore != null) {
             // Store token
             mTokenCacheStore.setItem(CacheKey.createCacheKey(request), new TokenCacheItem(request,
-                    result));
+                    result, false));
 
             // Store broad refresh token if available
             if (result.getIsMultiResourceRefreshToken()) {
                 mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request),
-                        new TokenCacheItem(request, result));
+                        new TokenCacheItem(request, result, true));
             }
         }
     }
@@ -647,7 +647,7 @@ public class AuthenticationContext {
                         } else {
                             Log.v(TAG, "Refresh token is finished for " + request.getLogInfo());
                             if (useCache) {
-                                removeItemFromCache(refreshItem);
+                                // it replaces multi resource refresh token as well with the new one since it is not stored with resource.
                                 setItemToCache(request, result);
                             }
 
