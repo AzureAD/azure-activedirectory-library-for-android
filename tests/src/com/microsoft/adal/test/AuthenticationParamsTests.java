@@ -72,35 +72,36 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         verifyAuthenticationParam(
                 m,
                 "Bearer scope=\"blah=foo, foo=blah\" , authorization_uri=\"https://login.windows.net/tenant\"",
-                "https://login.windows.net/tenant");
+                "https://login.windows.net/tenant", null);
 
         verifyAuthenticationParam(
                 m,
                 "Bearer scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\"",
-                "https://login.windows.net/tenant");
+                "https://login.windows.net/tenant", null);
 
         verifyAuthenticationParam(
                 m,
-                "Bearer\tscope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\"",
-                "https://login.windows.net/tenant");
+                "Bearer\tscope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\" ,resource_id=\"blah=foo, foo=blah\"",
+                "https://login.windows.net/tenant", "blah=foo, foo=blah");
 
         LogCallback callback = new LogCallback(ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
         Logger.getInstance().setExternalLogger(callback);
         verifyAuthenticationParam(
                 m,
                 "Bearer   \t  scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\", authorization_uri=\"https://login.windows.net/tenant\"",
-                "https://login.windows.net/tenant");
+                "https://login.windows.net/tenant", null);
         
         assertTrue("Has warning for redudant items", callback.called);
         Logger.getInstance().setExternalLogger(null);
     }
 
-    private void verifyAuthenticationParam(Method m, String headerValue, String authorizationUri)
+    private void verifyAuthenticationParam(Method m, String headerValue, String authorizationUri, String resource)
             throws IllegalAccessException, InvocationTargetException {
         AuthenticationParameters param = (AuthenticationParameters)m.invoke(null,
                 new HttpWebResponse(401, null, getHeader("WWW-Authenticate", headerValue)));
         assertNotNull("Parsed ok", param);
         assertEquals("Verify authorization uri", authorizationUri, param.getAuthority());
+        assertEquals("Verify resource", resource, param.getResource());
     }
 
     /**
