@@ -647,6 +647,7 @@ public class AuthenticationContext {
                         } else {
                             Log.v(TAG, "Refresh token is finished for " + request.getLogInfo());
                             if (useCache) {
+                                removeItemFromCache(refreshItem);
                                 setItemToCache(request, result);
                             }
 
