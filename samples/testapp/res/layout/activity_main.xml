@@ -24,9 +24,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/textViewStatus"
-        android:layout_alignRight="@+id/buttonExpired"
         android:layout_below="@+id/buttonExpired"
-        android:text="Reset Tokens" />
+        android:text="-Tokens" />
 
     <EditText
         android:id="@+id/editClientid"
@@ -123,9 +122,19 @@
         android:id="@+id/buttonVerify"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonRefresh"
+        android:layout_alignBottom="@+id/buttonRefresh"
+        android:layout_toRightOf="@+id/buttonRefresh"
+        android:text="Verify" />
+
+    <Button
+        android:id="@+id/buttonRemoveCookies"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/buttonExpired"
         android:layout_alignBottom="@+id/buttonExpired"
-        android:layout_toRightOf="@+id/buttonReset"
-        android:text="Verify" />
+        android:layout_toRightOf="@+id/buttonExpired"
+        android:text="-Cookie" />
 
 </RelativeLayout>

@@ -19,6 +19,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -33,6 +34,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.microsoft.adal.AuthenticationCallback;
+import com.microsoft.adal.AuthenticationCancelError;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
@@ -45,7 +47,8 @@ import com.microsoft.adal.TokenCacheItem;
 
 public class MainActivity extends Activity {
 
-    Button btnGetToken, btnResetToken, btnRefresh, btnSetExpired, buttonVerify;
+    Button btnGetToken, btnResetToken, btnRefresh, btnSetExpired, buttonVerify,
+            buttonRemoveCookies;
 
     TextView textViewStatus;
 
@@ -66,6 +69,8 @@ public class MainActivity extends Activity {
      */
     private AuthenticationResult mResult;
 
+    private String mActiveUser;
+
     final static String AUTHORITY_URL = "https://login.windows.net/omercantest.onmicrosoft.com";
 
     final static String CLIENT_ID = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
@@ -83,26 +88,37 @@ public class MainActivity extends Activity {
 
     private AuthenticationContext mContext = null;
 
+    private Handler handler = new Handler();
+
+    public Handler getTestAppHandler() {
+        return handler;
+    }
+
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
 
         @Override
         public void onError(Exception exc) {
-            if (exc instanceof AuthenticationException) {
+            if (exc instanceof AuthenticationCancelError) {
                 textViewStatus.setText("Cancelled");
                 Log.d(TAG, "Cancelled");
             } else {
-                textViewStatus.setText("Authentication error:" + exc.getMessage());
+                if (exc instanceof AuthenticationException) {
+                    AuthenticationException authException = (AuthenticationException)exc;
+                    textViewStatus
+                            .setText("Authentication error:" + authException.getCode().name());
+                }
+
                 Log.d(TAG, "Authentication error:" + exc.getMessage());
             }
         }
 
         @Override
         public void onSuccess(AuthenticationResult result) {
-            mResult = result;
+            setResult(result);
 
             if (result == null || result.getAccessToken() == null
                     || result.getAccessToken().isEmpty()) {
-                textViewStatus.setText("Token is empty");
+                textViewStatus.setText(FAILED);
                 Log.d(TAG, "Token is empty");
             } else {
                 // request is successful
@@ -139,6 +155,7 @@ public class MainActivity extends Activity {
         btnSetExpired = (Button)findViewById(R.id.buttonExpired);
         btnRefresh = (Button)findViewById(R.id.buttonRefresh);
         buttonVerify = (Button)findViewById(R.id.buttonVerify);
+        buttonRemoveCookies = (Button)findViewById(R.id.buttonRemoveCookies);
         mAuthority = (EditText)findViewById(R.id.editAuthority);
         mResource = (EditText)findViewById(R.id.editResource);
         mClientId = (EditText)findViewById(R.id.editClientid);
@@ -146,6 +163,13 @@ public class MainActivity extends Activity {
         mPrompt = (EditText)findViewById(R.id.editPrompt);
         mRedirect = (EditText)findViewById(R.id.editRedirect);
         mValidate = (CheckBox)findViewById(R.id.checkBoxValidate);
+
+        buttonRemoveCookies.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                removeCookies();
+            }
+        });
 
         buttonVerify.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -263,6 +287,14 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void removeCookies() {
+        // Clear browser cookies
+        CookieSyncManager.createInstance(MainActivity.this);
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.removeAllCookie();
+        CookieSyncManager.getInstance().sync();
+    }
+
     /**
      * reset all
      */
@@ -275,11 +307,7 @@ public class MainActivity extends Activity {
         mContext.getCache().removeAll();
         textViewStatus.setText("");
 
-        // Clear browser cookies
-        CookieSyncManager.createInstance(MainActivity.this);
-        CookieManager cookieManager = CookieManager.getInstance();
-        cookieManager.removeAllCookie();
-        CookieSyncManager.getInstance().sync();
+        removeCookies();
     }
 
     /**
@@ -320,9 +348,17 @@ public class MainActivity extends Activity {
     public AuthenticationResult getResult() {
         return mResult;
     }
+    
+    public String getActiveUser(){
+        return mActiveUser;
+    }
 
     public void setResult(AuthenticationResult mResult) {
         this.mResult = mResult;
+        if (mResult != null && mResult.getUserInfo() != null) {
+            Log.v(TAG, "Active UserId:" + mActiveUser);
+            mActiveUser = mResult.getUserInfo().getUserId();
+        }
     }
 
     /**

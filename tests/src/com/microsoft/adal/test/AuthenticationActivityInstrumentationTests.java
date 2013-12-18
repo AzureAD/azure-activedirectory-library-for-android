@@ -7,8 +7,11 @@ import java.util.concurrent.TimeUnit;
 
 import android.app.Instrumentation.ActivityMonitor;
 import android.app.Instrumentation.ActivityResult;
+import android.os.Handler;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
+import android.test.suitebuilder.annotation.LargeTest;
+import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.WebView;
@@ -19,6 +22,7 @@ import android.widget.TextView;
 
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationActivity;
+import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.Logger.LogLevel;
@@ -45,7 +49,7 @@ public class AuthenticationActivityInstrumentationTests extends
     /**
      * until page content has something about login page
      */
-    private static int PAGE_LOAD_TIMEOUT_SECONDS = 6;
+    private static int PAGE_LOAD_TIMEOUT_SECONDS = 12;
 
     public AuthenticationActivityInstrumentationTests() {
         super(MainActivity.class);
@@ -69,29 +73,19 @@ public class AuthenticationActivityInstrumentationTests extends
         super.tearDown();
     }
 
+    @MediumTest
     public void testAcquireTokenADFS30Federated() throws Exception {
         acquireTokenAfterReset(TestTenant.ADFS30FEDERATED, "", PromptBehavior.Auto, null, false,
                 false, null);
     }
 
+    @MediumTest
     public void testAcquireTokenADFS30() throws Exception {
         acquireTokenAfterReset(TestTenant.ADFS30, "", PromptBehavior.Auto, null, false, false, null);
     }
 
-    public void testAcquireTokenManaged() throws Exception {
-        acquireTokenPromptNever(TestTenant.MANAGED);
-
-        // not validating
-        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, false, false,
-                null);
-
-        // validation set true
-        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, true, false, null);
-        acquireTokenByRefreshToken();
-        verifyToken();
-    }
-
-    private void acquireTokenPromptNever(TestTenant tenant) throws Exception {
+    public void testAcquireTokenPromptNever() throws Exception {
+        TestTenant tenant = TestTenant.MANAGED;
         // Activity runs at main thread. Test runs on different thread
         Log.v(TAG, "testAcquireToken_Prompt starts for authority:" + tenant.getAuthority());
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
@@ -103,33 +97,47 @@ public class AuthenticationActivityInstrumentationTests extends
 
         String tokenMsg = (String)textViewStatus.getText();
         Log.v(TAG, "Status:" + tokenMsg);
-        assertTrue("Token status", tokenMsg.contains("error"));
+        assertTrue("Token status", tokenMsg.contains("AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED"));
     }
-    
-    /**
-     * It should prompt for credentials again
-     * @param tenant
-     * @throws Exception
-     */
-    private void acquireTokenPromptAlways(TestTenant tenant) throws Exception {
-        // Activity runs at main thread. Test runs on different thread
-        Log.v(TAG, "testAcquireToken_Prompt starts for authority:" + tenant.getAuthority());
-        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
-        assertNotNull("Has token to start with", activity.getResult());
-        assertNotNull("Has token to start with", activity.getResult().getAccessToken());
-        setAuthenticationRequest(tenant, "", PromptBehavior.Always, "", false);
 
-        // press clear all button to clear tokens and cookies
-        clickResetTokens();
+    public void testAcquireTokenManaged() throws Exception {
+
+        // Not validating
+        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, false, false,
+                null);
+
+        // Validation set to true
+        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, true, false, null);
+
+        // use existing token
+        acquireTokenByRefreshToken();
+
+        // verify with webservice
+        verifyToken();
+
+        // try for multi resource token. It only needs to change the resource. clear
+        // cookies to make sure it does not use cookie.
+        clickRemoveCookies();
+
+        // Change resource to test multi resource refresh token
+        // It should not use same token, but it should get new token with multi
+        // resource refresh token
+        AuthenticationResult resultForResource1 = activity.getResult();
+        EditText mResource = (EditText)activity.findViewById(R.id.editResource);
+        EditText mUserId = (EditText)activity.findViewById(R.id.editUserId);
+        setEditText(mResource, TestTenant.MANAGED.getResource2());
+        setEditText(mUserId, activity.getActiveUser()); // need to use same userid to use multi resource refresh token
         clickGetToken();
 
-        String tokenMsg = (String)textViewStatus.getText();
-        Log.v(TAG, "Status:" + tokenMsg);
-        assertTrue("Token status", tokenMsg.contains("error"));
+        AuthenticationResult resultForResource2 = activity.getResult();
+        assertNotSame("Not same result", resultForResource1, resultForResource2);
+        assertTrue("Tokens are not same",
+                resultForResource1.getAccessToken() != resultForResource2.getAccessToken());
     }
 
     /**
      * send token to webapi endpoint to get ok
+     * 
      * @throws IllegalArgumentException
      * @throws InterruptedException
      * @throws NoSuchFieldException
@@ -157,7 +165,9 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     /**
-     * use existing AuthenticationResult in the app to call acquireTokenByRefreshToken
+     * use existing AuthenticationResult in the app to call
+     * acquireTokenByRefreshToken
+     * 
      * @throws IllegalArgumentException
      * @throws InterruptedException
      * @throws NoSuchFieldException
@@ -168,6 +178,7 @@ public class AuthenticationActivityInstrumentationTests extends
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
 
         // verify existing token at the target application
+        verifyTokenExists();
         clickRefresh();
 
         waitUntil(new ResponseVerifier() {
@@ -184,17 +195,14 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("Token status", tokenMsg.contains(MainActivity.PASSED));
     }
 
-    private void setAuthenticationRequest(TestTenant tenant, String loginhint,
-            PromptBehavior prompt, String extraQueryParam, boolean validate) {
+    private void setAuthenticationRequest(final TestTenant tenant, final String loginhint,
+            final PromptBehavior prompt, String extraQueryParam, final boolean validate) {
         // ACtivity runs at main thread. Test runs on different thread
         Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
-        // add monitor to check for the auth activity
-        final ActivityMonitor monitor = getInstrumentation().addMonitor(
-                AuthenticationActivity.class.getName(), null, false);
 
         // press clear all button to clear tokens and cookies
-        EditText mAuthority, mResource, mClientId, mUserid, mPrompt, mRedirect;
-        CheckBox mValidate;
+        final EditText mAuthority, mResource, mClientId, mUserid, mPrompt, mRedirect;
+        final CheckBox mValidate;
 
         mAuthority = (EditText)activity.findViewById(R.id.editAuthority);
         mResource = (EditText)activity.findViewById(R.id.editResource);
@@ -204,19 +212,19 @@ public class AuthenticationActivityInstrumentationTests extends
         mRedirect = (EditText)activity.findViewById(R.id.editRedirect);
         mValidate = (CheckBox)activity.findViewById(R.id.checkBoxValidate);
 
-        // Buttons need to be visible on the device
-        setEditText(mAuthority, tenant.getAuthority());
-        sendKeys(KeyEvent.KEYCODE_TAB);
-        setEditText(mResource, tenant.getResource());
-        sendKeys(KeyEvent.KEYCODE_TAB);
-        setEditText(mClientId, tenant.getClientId());
-        sendKeys(KeyEvent.KEYCODE_TAB);
-        setEditText(mUserid, loginhint);
-        sendKeys(KeyEvent.KEYCODE_TAB);
-        setEditText(mPrompt, prompt.name());
-        sendKeys(KeyEvent.KEYCODE_TAB);
-        setEditText(mRedirect, tenant.getRedirect());
-        mValidate.setChecked(validate);
+        // Use handler from this app to quickly set the fields instead of sending key events 
+        activity.getTestAppHandler().post(new Runnable() {            
+            @Override
+            public void run() {
+                mAuthority.setText(tenant.getAuthority());
+                mResource.setText(tenant.getResource());                
+                mClientId.setText(tenant.getClientId());                
+                mUserid.setText(loginhint);
+                mPrompt.setText(prompt.name());
+                mRedirect.setText(tenant.getRedirect());
+                mValidate.setChecked(validate);             
+            }
+        });
     }
 
     private void clickResetTokens() {
@@ -235,6 +243,10 @@ public class AuthenticationActivityInstrumentationTests extends
         TouchUtils.clickView(this, (Button)activity.findViewById(R.id.buttonVerify));
     }
 
+    private void clickRemoveCookies() {
+        TouchUtils.clickView(this, (Button)activity.findViewById(R.id.buttonRemoveCookies));
+    }
+
     private void clickRefresh() {
         TouchUtils.clickView(this, (Button)activity.findViewById(R.id.buttonRefresh));
     }
@@ -249,16 +261,22 @@ public class AuthenticationActivityInstrumentationTests extends
         }
     }
 
-    private void handleCredentials(String username, String password, boolean federated,
+    private void verifyTokenExists() {
+        AuthenticationResult result = activity.getResult();
+        assertNotNull("Authentication result is not null", result);
+        assertTrue("Token in Authentication result is not null", result.getAccessToken() != null
+                && !result.getAccessToken().isEmpty());
+    }
+
+    private void handleCredentials(final ActivityMonitor monitor, String username, String password, boolean federated,
             String federatedPageUrl) throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException {
-        // add monitor to check for the auth activity
-        final ActivityMonitor monitor = getInstrumentation().addMonitor(
-                AuthenticationActivity.class.getName(), null, false);
+       
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
         Thread.sleep(1000);
         Log.v(TAG, "testAcquireTokenAfterReset status text:" + textViewStatus.getText().toString());
-        assertEquals("Token action", "Getting token...", textViewStatus.getText().toString());
+        final String startText = textViewStatus.getText().toString();
+        assertEquals("Token action", "Getting token...", startText);
 
         // Wait to start activity and loading the page
         AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
@@ -297,7 +315,7 @@ public class AuthenticationActivityInstrumentationTests extends
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
                 String tokenMsg = (String)textViewStatus.getText();
-                return tokenMsg.contains("Status:");
+                return tokenMsg != startText;
             }
         });
     }
@@ -310,26 +328,34 @@ public class AuthenticationActivityInstrumentationTests extends
     private void acquireTokenAfterReset(TestTenant tenant, String loginhint, PromptBehavior prompt,
             String extraQueryParam, boolean validate, boolean federated, String federatedPageUrl)
             throws Exception {
-
-        // Activity runs at main thread. Test runs on different thread
         Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
+        
+        // Activity runs at main thread. Test runs on different thread
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        // add monitor to check for the auth activity
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
         setAuthenticationRequest(tenant, loginhint, prompt, extraQueryParam, validate);
 
         // press clear all button to clear tokens and cookies
         clickResetTokens();
         clickGetToken();
-        handleCredentials(tenant.getUserName(), tenant.getPassword(), federated, federatedPageUrl);
+        handleCredentials(monitor, tenant.getUserName(), tenant.getPassword(), federated, federatedPageUrl);
 
         String tokenMsg = (String)textViewStatus.getText();
         Log.v(TAG, "Status:" + tokenMsg);
-        assertTrue("Token status", tokenMsg.contains("Status:" + AuthenticationStatus.Succeeded));
+        assertTrue("Token is received", tokenMsg.contains(MainActivity.PASSED));
     }
 
-    private void setEditText(EditText view, String text) {
-        view.clearComposingText();
-        TouchUtils.tapView(this, view);
-        getInstrumentation().sendStringSync(text);
+    private void setEditText(final EditText view, final String text) {
+        Handler handler = activity.getTestAppHandler();
+        handler.post(new Runnable() {
+            
+            @Override
+            public void run() {
+                view.setText(text);                
+            }
+        });
     }
 
     private void enterCredentials(AuthenticationActivity startedActivity, String username,
@@ -384,7 +410,7 @@ public class AuthenticationActivityInstrumentationTests extends
             throws InterruptedException, IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException {
 
-        Log.v(TAG, "sleepUntilLoginDisplays");
+        Log.v(TAG, "sleepUntilLoginDisplays start");
 
         waitUntil(new ResponseVerifier() {
             @Override
@@ -393,23 +419,24 @@ public class AuthenticationActivityInstrumentationTests extends
                 return hasLoginPage(getLoginPage(startedActivity));
             }
         });
+
+        Log.v(TAG, "sleepUntilLoginDisplays end");
     }
 
     private void waitUntil(ResponseVerifier item) throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
         int waitcount = 0;
-        Log.v(TAG, "wait start...");
+        Log.v(TAG, "waitUntil started");
         while (waitcount < PAGE_LOAD_TIMEOUT_SECONDS) {
-
+            Log.v(TAG, "waiting...");
             if (item.hasCondition()) {
-                Log.v(TAG, "waitUntil done");
                 break;
             }
 
-            Thread.sleep(1000);
+            Thread.sleep(500);
             waitcount++;
         }
-        Log.v(TAG, "wait ends");
+        Log.v(TAG, "waitUntil ends");
     }
 
     interface ResponseVerifier {
