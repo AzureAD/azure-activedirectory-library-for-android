@@ -12,80 +12,30 @@ import android.content.Context;
 
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.CacheKey;
+import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.MemoryTokenCacheStore;
 import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.UserInfo;
 import com.microsoft.adal.test.AuthenticationContextTests.TestMockContext;
 
-public class MemoryTokenCacheStoreTests extends AndroidTestHelper {
+public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
     private static final String TAG = "MemoryTokenCacheStoreTests";
 
     int activeTestThreads = 10;
 
-    Context ctx;
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        ctx = this.getInstrumentation().getContext();
+    }
 
-    private TokenCacheItem testItem;
-
-    private TokenCacheItem testItem2;
-
-    private ITokenCacheStore setupCache() {
-
+    @Override
+    protected void tearDown() throws Exception {
         MemoryTokenCacheStore store = new MemoryTokenCacheStore();
-        // set item and then get
-        testItem = new TokenCacheItem();
-        testItem.setAccessToken("token");
-        testItem.setAuthority("authority");
-        testItem.setClientId("clientid");
-        testItem.setResource("resource");
-        UserInfo user = new UserInfo("userid", "givenName", "familyName", "identity", true);
-        testItem.setUserInfo(user);
-        testItem2 = new TokenCacheItem();
-        testItem2.setAccessToken("token2");
-        testItem2.setAuthority("authority2");
-        testItem2.setClientId("clientid2");
-        testItem2.setResource("resource2");
-        testItem2.setUserInfo(user);
-        store.setItem(testItem);
-        store.setItem(testItem2);
-        return store;
-    }
-
-    public void testGetItem() {
-
-        ITokenCacheStore store = setupCache();
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", ""));
-        assertNull("Token cache item is expected to be null", item);
-
-        // get item
-        item = store.getItem(CacheKey.createCacheKey(testItem));
-        assertNotNull("Token cache item is expected to be NOT null", item);
-        assertEquals("Same tokencacheitem content", testItem.getAuthority(), item.getAuthority());
-        assertEquals("Same tokencacheitem content", testItem.getClientId(), item.getClientId());
-        assertEquals("Same tokencacheitem content", testItem.getResource(), item.getResource());
-    }
-
-    public void testRemoveItem() {
-        ITokenCacheStore store = setupCache();
-
-        store.removeItem(CacheKey.createCacheKey(testItem));
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
-        assertNull("Token cache item is expected to be null", item);
-
-        // second call should be null as well
-        store.removeItem(CacheKey.createCacheKey(testItem));
-        item = store.getItem(CacheKey.createCacheKey(testItem));
-        assertNull("Token cache item is expected to be null", item);
-    }
-
-    public void testRemoveAll() {
-        ITokenCacheStore store = setupCache();
-
         store.removeAll();
-        
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
-        assertNull("Token cache item is expected to be null", item);
+        super.tearDown();
     }
 
     /**
@@ -93,7 +43,7 @@ public class MemoryTokenCacheStoreTests extends AndroidTestHelper {
      * with multiThreads
      */
     public void testSharedCacheGetItem() {
-        final ITokenCacheStore store = setupCache();
+        final ITokenCacheStore store = setupItems();
 
         final CountDownLatch signal = new CountDownLatch(activeTestThreads);
 
@@ -104,14 +54,14 @@ public class MemoryTokenCacheStoreTests extends AndroidTestHelper {
 
                 // Remove and then verify that
                 // One thread will do the actual remove action.
-                store.removeItem(testItem);
+                store.removeItem(CacheKey.createCacheKey(testItem));
                 TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
                 assertNull("Token cache item is expected to be null", item);
 
-                item = store.getItem(CacheKey.createCacheKey("", "", ""));
+                item = store.getItem(CacheKey.createCacheKey("", "", "", false, ""));
                 assertNull("Token cache item is expected to be null", item);
 
-                store.removeItem(testItem2);
+                store.removeItem(CacheKey.createCacheKey(testItem2));
                 item = store.getItem(CacheKey.createCacheKey(testItem));
                 assertNull("Token cache item is expected to be null", item);
 
@@ -127,7 +77,7 @@ public class MemoryTokenCacheStoreTests extends AndroidTestHelper {
 
     public void testSerialization() throws IOException, ClassNotFoundException {
 
-        ITokenCacheStore store = setupCache();
+        ITokenCacheStore store = setupItems();
 
         ByteArrayOutputStream fileOut = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(fileOut);
@@ -151,20 +101,21 @@ public class MemoryTokenCacheStoreTests extends AndroidTestHelper {
         assertNotNull("Token cache item is expected to be NOT null", item);
 
         // do remove operation
-        deSerialized.removeItem(testItem);
+        deSerialized.removeItem(CacheKey.createCacheKey(testItem));
         item = deSerialized.getItem(CacheKey.createCacheKey(testItem));
         assertNull("Token cache item is expected to be null", item);
     }
 
-    
     /**
      * memory cache is shared between context
      */
-    public void testMemoryCacheMultipleContext(){
-        ITokenCacheStore tokenCacheA = setupCache();
-        AuthenticationContext contextA = new AuthenticationContext(getInstrumentation().getContext(), "authority", false, tokenCacheA);
-        AuthenticationContext contextB = new AuthenticationContext(getInstrumentation().getContext(), "authority", false, tokenCacheA);
-        
+    public void testMemoryCacheMultipleContext() {
+        ITokenCacheStore tokenCacheA = setupItems();
+        AuthenticationContext contextA = new AuthenticationContext(getInstrumentation()
+                .getContext(), "authority", false, tokenCacheA);
+        AuthenticationContext contextB = new AuthenticationContext(getInstrumentation()
+                .getContext(), "authority", false, tokenCacheA);
+
         // Verify the cache
         TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
@@ -173,14 +124,19 @@ public class MemoryTokenCacheStoreTests extends AndroidTestHelper {
         assertNotNull("Token cache item is expected to be NOT null", item);
         item = contextB.getCache().getItem(CacheKey.createCacheKey(testItem2));
         assertNotNull("Token cache item is expected to be NOT null", item);
-        
+
         // do remove operation
-        contextA.getCache().removeItem(testItem);
+        contextA.getCache().removeItem(CacheKey.createCacheKey(testItem));
         item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
         assertNull("Token cache item is expected to be null", item);
-        
+
         item = contextB.getCache().getItem(CacheKey.createCacheKey(testItem));
         assertNull("Token cache item is expected to be null", item);
-        
+
+    }
+
+    @Override
+    protected ITokenCacheStore getTokenCacheStore() {
+        return new MemoryTokenCacheStore();
     }
 }

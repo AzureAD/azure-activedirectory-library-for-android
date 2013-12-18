@@ -128,7 +128,7 @@ public class ToDoActivity extends Activity {
      */
     private ProgressDialog mLoginProgressDialog;
 
-    private String mToken;
+    private AuthenticationResult mToken;
 
     private static int pickerYear;
 
@@ -187,7 +187,7 @@ public class ToDoActivity extends Activity {
                         }
 
                         if (result != null && !result.getAccessToken().isEmpty()) {
-                            setLocalToken(result.getAccessToken());
+                            setLocalToken(result);
                             sendRequest();
                         } else {
                             navigateToLogOut();
@@ -200,7 +200,7 @@ public class ToDoActivity extends Activity {
 
     private void sendRequest() {
 
-        if (refreshInProgress || mToken == null || mToken.isEmpty())
+        if (refreshInProgress || mToken == null || mToken.getAccessToken().isEmpty())
             return;
 
         refreshInProgress = true;
@@ -251,7 +251,7 @@ public class ToDoActivity extends Activity {
 
             if (getLocalToken() != null) {
                 MobileServiceUser user = new MobileServiceUser();
-                user.setAuthenticationToken(getLocalToken());
+                user.setAuthenticationToken(getLocalToken().getAccessToken());
                 mClient.setCurrentUser(user);
             } else {
 
@@ -293,11 +293,11 @@ public class ToDoActivity extends Activity {
         mLastRequestId = callback.hashCode();
     }
 
-    private String getLocalToken() {
+    private AuthenticationResult getLocalToken() {
         return mToken;
     }
 
-    private void setLocalToken(String newToken) {
+    private void setLocalToken(AuthenticationResult newToken) {
         mToken = newToken;
     }
 
@@ -397,7 +397,7 @@ public class ToDoActivity extends Activity {
                     public void onSuccess(AuthenticationResult result) {
                         Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG)
                                 .show();
-                        setLocalToken(result.getAccessToken());
+                        setLocalToken(result);
                     }
                 });
                 return true;
@@ -489,7 +489,7 @@ public class ToDoActivity extends Activity {
                 Log.d(TAG, "refreshTokenNormal onSuccess");
                 Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG).show();
                 txtSummary.setText("TODO Services refreshed");
-                setLocalToken(result.getAccessToken());
+                setLocalToken(result);
             }
         });
     }
@@ -504,7 +504,7 @@ public class ToDoActivity extends Activity {
 
         // make token expired to force refresh token
         TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
-                Constants.RESOURCE_ID, Constants.CLIENT_ID));
+                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, ""));
         if (item != null) {
             Calendar timeExpired = new GregorianCalendar();
             timeExpired.add(Calendar.MINUTE, -50);
@@ -512,7 +512,7 @@ public class ToDoActivity extends Activity {
             if (invalidateRefresh) {
                 item.setRefreshToken("invalidRefreshToken");
             }
-            currentCache.setItem(item);
+            currentCache.setItem(CacheKey.createCacheKey(item), item);
         }
 
         mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL, false);
@@ -536,7 +536,7 @@ public class ToDoActivity extends Activity {
             public void onSuccess(AuthenticationResult result) {
                 Log.d(TAG, "refreshTokenWithDelay onSuccess");
                 Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG).show();
-                setLocalToken(result.getAccessToken());
+                setLocalToken(result);
                 // reset cache to normal without delay
                 mAuthContext = new AuthenticationContext(ToDoActivity.this,
                         Constants.AUTHORITY_URL, false);
@@ -567,14 +567,19 @@ public class ToDoActivity extends Activity {
         // default cache is in use by default
         ITokenCacheStore currentCache = mAuthContext.getCache();
 
+        String userid = "";
+        if(mToken != null && mToken.getUserInfo() != null && mToken.getUserInfo().getUserId() != null){
+            userid = mToken.getUserInfo().getUserId();
+        }
+        
         // make token expired to force refresh token
         TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
-                Constants.RESOURCE_ID, Constants.CLIENT_ID));
+                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, userid ));
         if (item != null) {
             Calendar timeExpired = new GregorianCalendar();
             timeExpired.add(Calendar.MINUTE, -50);
             item.setExpiresOn(timeExpired.getTime());
-            currentCache.setItem(item);
+            currentCache.setItem(CacheKey.createCacheKey(item), item);
         }
     }
 
@@ -696,7 +701,7 @@ public class ToDoActivity extends Activity {
 
         if (getLocalToken() != null) {
             MobileServiceUser user = new MobileServiceUser();
-            user.setAuthenticationToken(getLocalToken());
+            user.setAuthenticationToken(getLocalToken().getAccessToken());
             mClient.setCurrentUser(user);
         }
 
@@ -752,7 +757,7 @@ public class ToDoActivity extends Activity {
         // adapter
         if (getLocalToken() != null) {
             MobileServiceUser user = new MobileServiceUser();
-            user.setAuthenticationToken(getLocalToken());
+            user.setAuthenticationToken(getLocalToken().getAccessToken());
             mClient.setCurrentUser(user);
         }
 
