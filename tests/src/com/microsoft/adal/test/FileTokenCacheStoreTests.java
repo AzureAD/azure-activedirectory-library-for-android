@@ -77,8 +77,8 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         testItem2.setClientId("clientid2");
         testItem2.setResource("resource2");
         testItem2.setUserInfo(user);
-        store.setItem(testItem);
-        store.setItem(testItem2);
+        store.setItem(CacheKey.createCacheKey(testItem), testItem);
+        store.setItem(CacheKey.createCacheKey(testItem2), testItem2);
     }
 
     public void testFileCacheWriteError() {
@@ -125,7 +125,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", ""));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", "", false, ""));
         assertNull("Token cache item is expected to be null", item);
 
         // get item
@@ -185,14 +185,14 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
                 // Remove and then verify that
                 // One thread will do the actual remove action.
-                store.removeItem(testItem);
+                store.removeItem(CacheKey.createCacheKey(testItem));
                 TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
                 assertNull("Token cache item is expected to be null", item);
 
-                item = store.getItem(CacheKey.createCacheKey("", "", ""));
+                item = store.getItem(CacheKey.createCacheKey("", "", "", false, ""));
                 assertNull("Token cache item is expected to be null", item);
 
-                store.removeItem(testItem2);
+                store.removeItem(CacheKey.createCacheKey(testItem2));
                 item = store.getItem(CacheKey.createCacheKey(testItem));
                 assertNull("Token cache item is expected to be null", item);
 
@@ -228,7 +228,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         assertNotNull("Token cache item is expected to be NOT null", item);
 
         // do remove operation
-        contextA.getCache().removeItem(testItem);
+        contextA.getCache().removeItem(CacheKey.createCacheKey(testItem));
         item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
         assertNull("Token cache item is expected to be null", item);
 

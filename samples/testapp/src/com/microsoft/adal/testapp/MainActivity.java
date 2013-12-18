@@ -272,12 +272,12 @@ public class MainActivity extends Activity {
 
         ITokenCacheStore cache = mContext.getCache();
         TokenCacheItem item = cache.getItem(CacheKey.createCacheKey(AUTHORITY_URL, RESOURCE_ID,
-                CLIENT_ID));
+                CLIENT_ID, false, ""));
         if (item != null) {
             Calendar calendar = new GregorianCalendar();
             calendar.add(Calendar.MINUTE, -30);
             item.setExpiresOn(calendar.getTime());
-            cache.setItem(item);
+            cache.setItem(CacheKey.createCacheKey(item), item);
             Log.d(TAG, "Item is set to expire");
         } else {
             Log.d(TAG, "item is null: setTokenExpired");

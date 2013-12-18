@@ -100,30 +100,25 @@ public class FileTokenCacheStore implements ITokenCacheStore {
     }
 
     @Override
-    public TokenCacheItem getItem(CacheKey key) {
+    public TokenCacheItem getItem(String key) {
         return mInMemoryCache.getItem(key);
     }
 
     @Override
-    public boolean contains(CacheKey key) {
+    public boolean contains(String key) {
         return mInMemoryCache.contains(key);
     }
 
     @Override
-    public void setItem(TokenCacheItem item) {
-        mInMemoryCache.setItem(item);
+    public void setItem(String key, TokenCacheItem item) {
+        mInMemoryCache.setItem(key, item);
         writeToFile();
     }
 
+
     @Override
-    public void removeItem(CacheKey key) {
+    public void removeItem(String key) {
         mInMemoryCache.removeItem(key);
-        writeToFile();
-    }
-
-    @Override
-    public void removeItem(TokenCacheItem item) {
-        mInMemoryCache.removeItem(item);
         writeToFile();
     }
 
