@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.FlakyTest;
 import android.test.TouchUtils;
+import android.test.suitebuilder.annotation.LargeTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -39,6 +40,8 @@ import com.microsoft.adal.testapp.R;
 public class AuthenticationActivityInstrumentationTests extends
         ActivityInstrumentationTestCase2<MainActivity> {
 
+    private static final int ACTIVITY_WAIT_TIMEOUT = 5000;
+
     protected final static int PAGE_LOAD_WAIT_TIME_OUT = 20000; // miliseconds
 
     private static final String TAG = "AuthenticationActivityInstrumentationTests";
@@ -48,7 +51,7 @@ public class AuthenticationActivityInstrumentationTests extends
     /**
      * until page content has something about login page
      */
-    private static int PAGE_LOAD_TIMEOUT_SECONDS = 12;
+    private static int PAGE_LOAD_TIMEOUT = 120;
 
     public AuthenticationActivityInstrumentationTests() {
         super(MainActivity.class);
@@ -83,6 +86,7 @@ public class AuthenticationActivityInstrumentationTests extends
         acquireTokenAfterReset(TestTenant.ADFS30, "", PromptBehavior.Auto, null, false, false, null);
     }
 
+    @MediumTest
     public void testAcquireTokenPromptNever() throws Exception {
         TestTenant tenant = TestTenant.MANAGED;
         // Activity runs at main thread. Test runs on different thread
@@ -100,10 +104,12 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     /**
-     * Sometimes, it could not post the form. Enter key event is not working properly. 
+     * Sometimes, it could not post the form. Enter key event is not working
+     * properly.
+     * 
      * @throws Exception
      */
-    @MediumTest
+    @LargeTest
     public void testAcquireTokenManaged() throws Exception {
 
         // Not validating
@@ -117,7 +123,7 @@ public class AuthenticationActivityInstrumentationTests extends
         acquireTokenByRefreshToken();
 
         // verify with webservice
-        verifyToken();       
+        verifyToken();
     }
 
     /**
@@ -135,7 +141,7 @@ public class AuthenticationActivityInstrumentationTests extends
         // verify existing token at the target application
         clickVerify();
 
-        waitUntil(new ResponseVerifier() {
+        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
@@ -166,7 +172,7 @@ public class AuthenticationActivityInstrumentationTests extends
         verifyTokenExists();
         clickRefresh();
 
-        waitUntil(new ResponseVerifier() {
+        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
@@ -197,17 +203,18 @@ public class AuthenticationActivityInstrumentationTests extends
         mRedirect = (EditText)activity.findViewById(R.id.editRedirect);
         mValidate = (CheckBox)activity.findViewById(R.id.checkBoxValidate);
 
-        // Use handler from this app to quickly set the fields instead of sending key events 
-        activity.getTestAppHandler().post(new Runnable() {            
+        // Use handler from this app to quickly set the fields instead of
+        // sending key events
+        activity.getTestAppHandler().post(new Runnable() {
             @Override
             public void run() {
                 mAuthority.setText(tenant.getAuthority());
-                mResource.setText(tenant.getResource());                
-                mClientId.setText(tenant.getClientId());                
+                mResource.setText(tenant.getResource());
+                mClientId.setText(tenant.getClientId());
                 mUserid.setText(loginhint);
                 mPrompt.setText(prompt.name());
                 mRedirect.setText(tenant.getRedirect());
-                mValidate.setChecked(validate);             
+                mValidate.setChecked(validate);
             }
         });
     }
@@ -253,19 +260,26 @@ public class AuthenticationActivityInstrumentationTests extends
                 && !result.getAccessToken().isEmpty());
     }
 
-    private void handleCredentials(final ActivityMonitor monitor, String username, String password, boolean federated,
-            String federatedPageUrl) throws InterruptedException, IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException {
-       
+    private void handleCredentials(final ActivityMonitor monitor, String username, String password,
+            boolean federated, String federatedPageUrl) throws InterruptedException,
+            IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
-        Thread.sleep(1000);
-        Log.v(TAG, "testAcquireTokenAfterReset status text:" + textViewStatus.getText().toString());
+        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg == MainActivity.GETTING_TOKEN;
+            }
+        });
+
         final String startText = textViewStatus.getText().toString();
-        assertEquals("Token action", "Getting token...", startText);
+        assertEquals("Token action", MainActivity.GETTING_TOKEN, startText);
 
         // Wait to start activity and loading the page
         AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
-                .waitForActivityWithTimeout(5000);
+                .waitForActivityWithTimeout(ACTIVITY_WAIT_TIMEOUT);
         assertNotNull(startedActivity);
 
         Log.v(TAG, "Sleeping until it gets the login page");
@@ -286,16 +300,9 @@ public class AuthenticationActivityInstrumentationTests extends
         }
 
         // wait for the page to set result
-        waitUntil(new ResponseVerifier() {
-            @Override
-            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
-                    IllegalAccessException {
-                ActivityResult result = monitor.getResult();
-                return result != null;
-            }
-        });
+        Log.v(TAG, "Wait for the page to set the result");
 
-        waitUntil(new ResponseVerifier() {
+        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
@@ -303,11 +310,11 @@ public class AuthenticationActivityInstrumentationTests extends
                 return tokenMsg != startText;
             }
         });
-        
-        if(!startedActivity.isFinishing()){
+
+        if (!startedActivity.isFinishing()) {
             Log.w(TAG, "AuthenticationActivity  was not closed");
             startedActivity.finish();
-        }            
+        }
     }
 
     /**
@@ -319,7 +326,7 @@ public class AuthenticationActivityInstrumentationTests extends
             String extraQueryParam, boolean validate, boolean federated, String federatedPageUrl)
             throws Exception {
         Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
-        
+
         // Activity runs at main thread. Test runs on different thread
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
         // add monitor to check for the auth activity
@@ -330,7 +337,8 @@ public class AuthenticationActivityInstrumentationTests extends
         // press clear all button to clear tokens and cookies
         clickResetTokens();
         clickGetToken();
-        handleCredentials(monitor, tenant.getUserName(), tenant.getPassword(), federated, federatedPageUrl);
+        handleCredentials(monitor, tenant.getUserName(), tenant.getPassword(), federated,
+                federatedPageUrl);
 
         String tokenMsg = (String)textViewStatus.getText();
         Log.v(TAG, "Status:" + tokenMsg);
@@ -355,6 +363,7 @@ public class AuthenticationActivityInstrumentationTests extends
 
         // Enter event sometimes is failing to submit form.
         sendKeys(KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_ENTER);
+        sendKeys(KeyEvent.KEYCODE_ENTER);
     }
 
     private void sleepUntilFederatedPageDisplays(final String federatedPageUrl)
@@ -391,7 +400,8 @@ public class AuthenticationActivityInstrumentationTests extends
 
         Log.v(TAG, "sleepUntilLoginDisplays start");
 
-        waitUntil(new ResponseVerifier() {
+        // This depends on connection
+        waitUntil(PAGE_LOAD_TIMEOUT * 2, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
@@ -402,17 +412,17 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.v(TAG, "sleepUntilLoginDisplays end");
     }
 
-    private void waitUntil(ResponseVerifier item) throws InterruptedException,
+    private void waitUntil(int timeOut, ResponseVerifier item) throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
         int waitcount = 0;
         Log.v(TAG, "waitUntil started");
-        while (waitcount < PAGE_LOAD_TIMEOUT_SECONDS) {
+        while (waitcount < timeOut) {
             Log.v(TAG, "waiting...");
             if (item.hasCondition()) {
                 break;
             }
 
-            Thread.sleep(500);
+            Thread.sleep(50);
             waitcount++;
         }
         Log.v(TAG, "waitUntil ends");

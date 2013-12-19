@@ -47,6 +47,8 @@ import com.microsoft.adal.TokenCacheItem;
 
 public class MainActivity extends Activity {
 
+    public static final String GETTING_TOKEN = "Getting token...";
+
     Button btnGetToken, btnResetToken, btnRefresh, btnSetExpired, buttonVerify,
             buttonRemoveCookies;
 
@@ -86,6 +88,8 @@ public class MainActivity extends Activity {
     // Endpoint we are targeting for the deployed WebAPI service
     final static String SERVICE_URL = "https://android.azurewebsites.net/api/values";
 
+    final static String LOG_STATUS_FORMAT = "Status:%s Expires:%s";
+
     private AuthenticationContext mContext = null;
 
     private Handler handler = new Handler();
@@ -122,8 +126,8 @@ public class MainActivity extends Activity {
                 Log.d(TAG, "Token is empty");
             } else {
                 // request is successful
-                Log.d(TAG, "Status:" + result.getStatus() + " Expired:"
-                        + result.getExpiresOn().toString());
+                Log.d(TAG, String.format(LOG_STATUS_FORMAT, result.getStatus(), result
+                        .getExpiresOn().toString()));
                 textViewStatus.setText(PASSED);
             }
         }
@@ -246,7 +250,7 @@ public class MainActivity extends Activity {
 
     private void getToken() {
         Logger.v(TAG, "get Token");
-        textViewStatus.setText("Getting token...");
+        textViewStatus.setText(GETTING_TOKEN);
         if (mContext == null) {
             initContext();
         }
@@ -348,16 +352,16 @@ public class MainActivity extends Activity {
     public AuthenticationResult getResult() {
         return mResult;
     }
-    
-    public String getActiveUser(){
+
+    public String getActiveUser() {
         return mActiveUser;
     }
 
-    public void setResult(AuthenticationResult mResult) {
-        this.mResult = mResult;
-        if (mResult != null && mResult.getUserInfo() != null) {
+    public void setResult(AuthenticationResult result) {
+        this.mResult = result;
+        if (result != null && result.getUserInfo() != null) {
             Log.v(TAG, "Active UserId:" + mActiveUser);
-            mActiveUser = mResult.getUserInfo().getUserId();
+            mActiveUser = result.getUserInfo().getUserId();
         }
     }
 
