@@ -9,8 +9,8 @@ import android.app.Instrumentation.ActivityMonitor;
 import android.app.Instrumentation.ActivityResult;
 import android.os.Handler;
 import android.test.ActivityInstrumentationTestCase2;
+import android.test.FlakyTest;
 import android.test.TouchUtils;
-import android.test.suitebuilder.annotation.LargeTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -23,7 +23,6 @@ import android.widget.TextView;
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationResult;
-import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.PromptBehavior;
@@ -76,7 +75,7 @@ public class AuthenticationActivityInstrumentationTests extends
     @MediumTest
     public void testAcquireTokenADFS30Federated() throws Exception {
         acquireTokenAfterReset(TestTenant.ADFS30FEDERATED, "", PromptBehavior.Auto, null, false,
-                false, null);
+                true, "https://fs.ade2eadfs30.com");
     }
 
     @MediumTest
@@ -100,6 +99,11 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("Token status", tokenMsg.contains("AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED"));
     }
 
+    /**
+     * Sometimes, it could not post the form. Enter key event is not working properly. 
+     * @throws Exception
+     */
+    @MediumTest
     public void testAcquireTokenManaged() throws Exception {
 
         // Not validating
@@ -113,26 +117,7 @@ public class AuthenticationActivityInstrumentationTests extends
         acquireTokenByRefreshToken();
 
         // verify with webservice
-        verifyToken();
-
-        // try for multi resource token. It only needs to change the resource. clear
-        // cookies to make sure it does not use cookie.
-        clickRemoveCookies();
-
-        // Change resource to test multi resource refresh token
-        // It should not use same token, but it should get new token with multi
-        // resource refresh token
-        AuthenticationResult resultForResource1 = activity.getResult();
-        EditText mResource = (EditText)activity.findViewById(R.id.editResource);
-        EditText mUserId = (EditText)activity.findViewById(R.id.editUserId);
-        setEditText(mResource, TestTenant.MANAGED.getResource2());
-        setEditText(mUserId, activity.getActiveUser()); // need to use same userid to use multi resource refresh token
-        clickGetToken();
-
-        AuthenticationResult resultForResource2 = activity.getResult();
-        assertNotSame("Not same result", resultForResource1, resultForResource2);
-        assertTrue("Tokens are not same",
-                resultForResource1.getAccessToken() != resultForResource2.getAccessToken());
+        verifyToken();       
     }
 
     /**
@@ -318,6 +303,11 @@ public class AuthenticationActivityInstrumentationTests extends
                 return tokenMsg != startText;
             }
         });
+        
+        if(!startedActivity.isFinishing()){
+            Log.w(TAG, "AuthenticationActivity  was not closed");
+            startedActivity.finish();
+        }            
     }
 
     /**
@@ -345,17 +335,6 @@ public class AuthenticationActivityInstrumentationTests extends
         String tokenMsg = (String)textViewStatus.getText();
         Log.v(TAG, "Status:" + tokenMsg);
         assertTrue("Token is received", tokenMsg.contains(MainActivity.PASSED));
-    }
-
-    private void setEditText(final EditText view, final String text) {
-        Handler handler = activity.getTestAppHandler();
-        handler.post(new Runnable() {
-            
-            @Override
-            public void run() {
-                view.setText(text);                
-            }
-        });
     }
 
     private void enterCredentials(AuthenticationActivity startedActivity, String username,
