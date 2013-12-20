@@ -42,7 +42,7 @@ public class AuthenticationActivityInstrumentationTests extends
 
     private static final int ACTIVITY_WAIT_TIMEOUT = 5000;
 
-    protected final static int PAGE_LOAD_WAIT_TIME_OUT = 20000; // miliseconds
+    protected final static int PAGE_LOAD_WAIT_TIME_OUT = 25000; // miliseconds
 
     private static final String TAG = "AuthenticationActivityInstrumentationTests";
 
@@ -79,6 +79,12 @@ public class AuthenticationActivityInstrumentationTests extends
     public void testAcquireTokenADFS30Federated() throws Exception {
         acquireTokenAfterReset(TestTenant.ADFS30FEDERATED, "", PromptBehavior.Auto, null, false,
                 true, "https://fs.ade2eadfs30.com");
+    }
+
+    @MediumTest
+    public void testAcquireTokenADFS20Federated() throws Exception {
+        acquireTokenAfterReset(TestTenant.ADFS20FEDERATED, "", PromptBehavior.Auto, null, false,
+                true, "https://fs.ade2eadfs20.com");
     }
 
     @MediumTest
@@ -302,7 +308,7 @@ public class AuthenticationActivityInstrumentationTests extends
         // wait for the page to set result
         Log.v(TAG, "Wait for the page to set the result");
 
-        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
+        waitUntil(PAGE_LOAD_TIMEOUT * 3, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
@@ -346,17 +352,24 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     private void enterCredentials(AuthenticationActivity startedActivity, String username,
-            String password) throws InterruptedException {
+            String password) throws InterruptedException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
         // Get Webview to enter credentials for testing
         WebView webview = (WebView)startedActivity.findViewById(com.microsoft.adal.R.id.webView1);
         assertNotNull("Webview is not null", webview);
         webview.requestFocus();
 
-        // Send username
-        Thread.sleep(500);
-        getInstrumentation().sendStringSync(username);
-        Thread.sleep(1000); // wait for redirect script
+        String page = getLoginPage(startedActivity);
+        if (!page.contains(username)) {
+            Log.v(TAG, "Page does not have this username");
+            // Send username
+            Thread.sleep(500);
+            getInstrumentation().sendStringSync(username);
+            Thread.sleep(1000); // wait for redirect script
+        }else{
+            Log.v(TAG, "Page has this username");
+        }
+
         sendKeys(KeyEvent.KEYCODE_TAB);
         getInstrumentation().sendStringSync(password);
         Thread.sleep(300);
@@ -401,7 +414,7 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.v(TAG, "sleepUntilLoginDisplays start");
 
         // This depends on connection
-        waitUntil(PAGE_LOAD_TIMEOUT * 2, new ResponseVerifier() {
+        waitUntil(PAGE_LOAD_TIMEOUT * 5, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
