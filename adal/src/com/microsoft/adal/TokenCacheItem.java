@@ -37,8 +37,6 @@ public class TokenCacheItem implements Serializable {
      */
     private Date mExpiresOn;
 
-    private String mAccessTokenType;
-
     private boolean mIsMultiResourceRefreshToken;
 
     private String mTenantId;
@@ -47,7 +45,8 @@ public class TokenCacheItem implements Serializable {
 
     }
 
-    public TokenCacheItem(AuthenticationRequest request, AuthenticationResult result, boolean storeMultiResourceRefreshToken) {
+    public TokenCacheItem(AuthenticationRequest request, AuthenticationResult result,
+            boolean storeMultiResourceRefreshToken) {
         if (request != null) {
             mAuthority = request.getAuthority();
             mClientId = request.getClientId();
@@ -142,13 +141,5 @@ public class TokenCacheItem implements Serializable {
 
     public void setTenantId(String mTenantId) {
         this.mTenantId = mTenantId;
-    }
-
-    public String getAccessTokenType() {
-        return mAccessTokenType;
-    }
-
-    public void setAccessTokenType(String mAccessTokenType) {
-        this.mAccessTokenType = mAccessTokenType;
     }
 }

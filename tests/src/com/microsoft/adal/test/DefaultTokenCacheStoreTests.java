@@ -2,17 +2,14 @@
 package com.microsoft.adal.test;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Locale;
-
-import android.content.Context;
 
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.TokenCacheItem;
-import com.microsoft.adal.UserInfo;
 
 public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
@@ -64,6 +61,26 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
         tokens = store.getTokensForUser("userid2");
         assertEquals("token size", 2, tokens.size());
+    }
+
+    public void testExpiringTokens() {
+        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+
+        ArrayList<TokenCacheItem> tokens = store.getTokensForUser("userid1");
+        ArrayList<TokenCacheItem> expireTokenList = store.getTokensAboutToExpire();
+        assertEquals("token size", 0, expireTokenList.size());
+        assertEquals("token size", 2, tokens.size());
+
+        TokenCacheItem expire = tokens.get(0);
+
+        Calendar timeAhead = Calendar.getInstance();
+        timeAhead.add(Calendar.MINUTE, -10);
+        expire.setExpiresOn(timeAhead.getTime());
+
+        store.setItem(CacheKey.createCacheKey(expire), expire);
+
+        expireTokenList = store.getTokensAboutToExpire();
+        assertEquals("token size", 1, expireTokenList.size());
     }
 
     public void testClearTokensForUser() {

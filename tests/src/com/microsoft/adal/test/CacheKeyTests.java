@@ -30,14 +30,14 @@ public class CacheKeyTests extends AndroidTestCase {
                 "ClientId123", false, "user123");
         assertEquals("expected key", "authority123$Resource123$clientid123$n$user123",
                 testKeyWithUser);
-        
-        String testKeySlash = CacheKey.createCacheKey("Authority123EndsSlash/",
-                "Resource123", "ClientId123", true, "user123");
+
+        String testKeySlash = CacheKey.createCacheKey("Authority123EndsSlash/", "Resource123",
+                "ClientId123", true, "user123");
         assertEquals("expected key", "authority123endsslash$null$clientid123$y$user123",
                 testKeySlash);
-        
-        testKeySlash = CacheKey.createCacheKey("Authority123EndsSlash/",
-                "Resource123", "ClientId123", false, "user123");
+
+        testKeySlash = CacheKey.createCacheKey("Authority123EndsSlash/", "Resource123",
+                "ClientId123", false, "user123");
         assertEquals("expected key", "authority123endsslash$Resource123$clientid123$n$user123",
                 testKeySlash);
     }
@@ -45,10 +45,10 @@ public class CacheKeyTests extends AndroidTestCase {
     /**
      * empty values does not fail
      */
-    public void testcreateCacheKeyEmptyValues() {
+    public void testcreateCacheKey_EmptyValues() {
         String testKey = CacheKey.createCacheKey("", "", "", false, "");
         assertEquals("expected key", "$$$n$null", testKey);
-        
+
         String testKeyNullUser = CacheKey.createCacheKey("", "", "", false, null);
         assertEquals("expected key", "$$$n$null", testKeyNullUser);
 
@@ -56,7 +56,7 @@ public class CacheKeyTests extends AndroidTestCase {
         assertEquals("expected key", "$$$n$userid", testKeyWithUser);
     }
 
-    public void testcreateCacheKeyNullItem() {
+    public void testcreateCacheKey_NullItem() {
 
         try {
             CacheKey.createCacheKey((TokenCacheItem)null);
@@ -66,13 +66,35 @@ public class CacheKeyTests extends AndroidTestCase {
         }
     }
 
-    public void testcreateCacheKeyNullArgument() {
+    public void testcreateCacheKey_NullArgument() {
 
         try {
             CacheKey.createCacheKey(null, null, null, false, null);
             Assert.fail("not expected");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
+        }
+    }
+
+    public void testcreateCacheKey_NullResource() {
+
+        try {
+            CacheKey.createCacheKey("https://authority", null, "clientid", false, null);
+            Assert.fail("not expected");
+        } catch (Exception exc) {
+            assertTrue("argument exception", exc instanceof IllegalArgumentException);
+            assertEquals("contains resource", "resource", ((IllegalArgumentException)exc).getMessage());
+        }
+    }
+    
+    public void testcreateCacheKey_NullClientid() {
+
+        try {
+            CacheKey.createCacheKey("https://authority", "resource", null, false, null);
+            Assert.fail("not expected");
+        } catch (Exception exc) {
+            assertTrue("argument exception", exc instanceof IllegalArgumentException);
+            assertEquals("contains resource", "client", ((IllegalArgumentException)exc).getMessage());
         }
     }
 }

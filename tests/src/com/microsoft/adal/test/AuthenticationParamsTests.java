@@ -48,6 +48,27 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 testResponse.exception.getMessage() == AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
     }
 
+    public void testCreateFromResponseAuthenticateHeader() {
+        assertThrowsException(IllegalArgumentException.class,
+                AuthenticationParameters.AUTH_HEADER_MISSING, new Runnable() {
+
+                    @Override
+                    public void run() {
+                        AuthenticationParameters.createFromResponseAuthenticateHeader(null);
+                    }
+                });
+
+        assertThrowsException(IllegalArgumentException.class,
+                AuthenticationParameters.AUTH_HEADER_MISSING, new Runnable() {
+
+                    @Override
+                    public void run() {
+                        AuthenticationParameters
+                                .createFromResponseAuthenticateHeader("Bearer\t resource=\"is=outer, space=ornot\",\t\t  authorization_uri=\"\"");
+                    }
+                });
+    }
+
     /**
      * test external service deployed at Azure
      */
@@ -90,13 +111,13 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 m,
                 "Bearer   \t  scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\", authorization_uri=\"https://login.windows.net/tenant\"",
                 "https://login.windows.net/tenant", null);
-        
+
         assertTrue("Has warning for redudant items", callback.called);
         Logger.getInstance().setExternalLogger(null);
     }
 
-    private void verifyAuthenticationParam(Method m, String headerValue, String authorizationUri, String resource)
-            throws IllegalAccessException, InvocationTargetException {
+    private void verifyAuthenticationParam(Method m, String headerValue, String authorizationUri,
+            String resource) throws IllegalAccessException, InvocationTargetException {
         AuthenticationParameters param = (AuthenticationParameters)m.invoke(null,
                 new HttpWebResponse(401, null, getHeader("WWW-Authenticate", headerValue)));
         assertNotNull("Parsed ok", param);
@@ -135,6 +156,10 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
         
+        callParseResponseForException(
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer ")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
         callParseResponseForException(
                 new HttpWebResponse(401, null, getHeader("WWW-Authenticate", " Bearer")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);

@@ -7,8 +7,13 @@ import java.util.concurrent.TimeUnit;
 
 import android.app.Instrumentation.ActivityMonitor;
 import android.app.Instrumentation.ActivityResult;
+import android.content.Intent;
+import android.os.Bundle;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
+import android.test.UiThreadTest;
+import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.WebView;
@@ -83,7 +88,7 @@ public class AuthenticationActivityInstrumentationTests extends
                 "650a6609-5463-4bc4-b7c6-19df7990a8bc", "http://taskapp", "", PromptBehavior.Auto,
                 null, "faruk@omercantest.onmicrosoft.com", "Jink1234", false, null);
     }
-
+    
     /**
      * clear tokens and then ask for token.
      * 
