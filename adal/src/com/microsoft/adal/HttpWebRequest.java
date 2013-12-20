@@ -39,7 +39,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     private final static int READ_TIME_OUT = 10000;
 
     private static int sDebugSimulateDelay = 0;
-    
+
     private boolean mUseCaches = false;
 
     private boolean mInstanceRedirectsFollow = true;
@@ -212,7 +212,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                     Logger.d(TAG, "Sleeping to simulate slow network response");
                     Thread.sleep(sDebugSimulateDelay);
                 }
-                
+
                 Logger.d(TAG, "Response is received");
                 _response.setBody(responseBody);
                 _response.setResponseHeaders(_connection.getHeaderFields());

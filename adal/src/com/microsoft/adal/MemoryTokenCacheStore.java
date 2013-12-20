@@ -1,3 +1,4 @@
+
 package com.microsoft.adal;
 
 import java.io.IOException;
@@ -13,88 +14,87 @@ import java.util.HashMap;
  */
 public class MemoryTokenCacheStore implements ITokenCacheStore {
 
-	/**
+    /**
      * 
      */
-	private static final long serialVersionUID = 3465700945655867086L;
+    private static final long serialVersionUID = 3465700945655867086L;
 
-	private static final String TAG = "MemoryTokenCacheStore";
+    private static final String TAG = "MemoryTokenCacheStore";
 
-	private final HashMap<String, TokenCacheItem> mCache = new HashMap<String, TokenCacheItem>();
+    private final HashMap<String, TokenCacheItem> mCache = new HashMap<String, TokenCacheItem>();
 
-	private transient Object mCacheLock = new Object();
+    private transient Object mCacheLock = new Object();
 
-	public MemoryTokenCacheStore() {
-	}
+    public MemoryTokenCacheStore() {
+    }
 
-	@Override
-	public TokenCacheItem getItem(String key) {
-		if (key == null) {
-			throw new IllegalArgumentException("key");
-		}
+    @Override
+    public TokenCacheItem getItem(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("key");
+        }
 
-		Logger.v(TAG, "Get Item from cache. Key:" + key);
-		synchronized (mCacheLock) {
-			return mCache.get(key);
-		}
-	}
+        Logger.v(TAG, "Get Item from cache. Key:" + key);
+        synchronized (mCacheLock) {
+            return mCache.get(key);
+        }
+    }
 
-	@Override
-	public void setItem(String key, TokenCacheItem item) {
-		if (item == null) {
-			throw new IllegalArgumentException("item");
-		}
+    @Override
+    public void setItem(String key, TokenCacheItem item) {
+        if (item == null) {
+            throw new IllegalArgumentException("item");
+        }
 
-		if (key == null) {
-			throw new IllegalArgumentException("key");
-		}
+        if (key == null) {
+            throw new IllegalArgumentException("key");
+        }
 
-		Logger.v(TAG, "Set Item to cache. Key:" + key);
-		synchronized (mCacheLock) {
-			mCache.put(key, item);
-		}
-	}
+        Logger.v(TAG, "Set Item to cache. Key:" + key);
+        synchronized (mCacheLock) {
+            mCache.put(key, item);
+        }
+    }
 
-	@Override
-	public void removeItem(String key) {
-		if (key == null) {
-			throw new IllegalArgumentException("key");
-		}
+    @Override
+    public void removeItem(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("key");
+        }
 
-		Logger.v(TAG, "Remove Item from cache. Key:" + key.hashCode());
-		synchronized (mCacheLock) {
-			mCache.remove(key);
-		}
-	}
+        Logger.v(TAG, "Remove Item from cache. Key:" + key.hashCode());
+        synchronized (mCacheLock) {
+            mCache.remove(key);
+        }
+    }
 
-	@Override
-	public void removeAll() {
-		Logger.v(TAG, "Remove all items from cache. Key:");
-		synchronized (mCacheLock) {
-			mCache.clear();
-		}
-	}
+    @Override
+    public void removeAll() {
+        Logger.v(TAG, "Remove all items from cache. Key:");
+        synchronized (mCacheLock) {
+            mCache.clear();
+        }
+    }
 
-	private synchronized void writeObject(ObjectOutputStream out)
-			throws IOException {
-		out.defaultWriteObject();
-	}
+    private synchronized void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+    }
 
-	private synchronized void readObject(ObjectInputStream inputStream)
-			throws NotActiveException, IOException, ClassNotFoundException {
-		inputStream.defaultReadObject();
-		mCacheLock = new Object();
-	}
+    private synchronized void readObject(ObjectInputStream inputStream) throws NotActiveException,
+            IOException, ClassNotFoundException {
+        inputStream.defaultReadObject();
+        mCacheLock = new Object();
+    }
 
-	@Override
-	public boolean contains(String key) {
-		if (key == null) {
-			throw new IllegalArgumentException("key");
-		}
+    @Override
+    public boolean contains(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("key");
+        }
 
-		Logger.v(TAG, "contains Item from cache. Key:" + key.toString());
-		synchronized (mCacheLock) {
-			return mCache.get(key) != null;
-		}
-	}
+        Logger.v(TAG, "contains Item from cache. Key:" + key.toString());
+        synchronized (mCacheLock) {
+            return mCache.get(key) != null;
+        }
+    }
 }
