@@ -55,6 +55,12 @@ public enum ADALError {
      * Invalid request to server
      */
     SERVER_INVALID_REQUEST,
+    
+    SERVER_ERROR,
+    
+    IO_EXCEPTION,
+
+    ARGUMENT_EXCEPTION,
 
     /**
      * webview has ssl related error
@@ -161,4 +167,21 @@ public enum ADALError {
      * IdToken is failed to parse
      */
     IDTOKEN_PARSING_FAILURE,
+    
+    /**
+     * authorization code not exchanged for token
+     */
+    AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+    
+    /**
+     * Cancel message is not successfully delivered to broadcast receiver. It may be not registered yet. AuthenticationActivity will register that at onresume. 
+     */
+    BROADCAST_CANCEL_NOT_SUCCESSFUL, 
+    
+    /**
+     * Correlationid is not in GUID format
+     */
+    CORRELATION_ID_FORMAT,
+    
+    ENCODING_IS_NOT_SUPPORTED, SERVER_INVALID_JSON_RESPONSE
 }
