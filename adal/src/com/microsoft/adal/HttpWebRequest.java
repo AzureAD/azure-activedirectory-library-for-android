@@ -130,7 +130,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        Logger.d(TAG, "HttpWebRequest onPreExecute thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest onPreExecute thread:" + android.os.Process.myTid());
         HttpURLConnection.setFollowRedirects(true);
         _connection = openConnection(_connection);
     }
@@ -141,7 +141,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     @Override
     protected HttpWebResponse doInBackground(Void... empty) {
 
-        Logger.d(TAG, "HttpWebRequest doInBackground thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest doInBackground thread:" + android.os.Process.myTid());
         HttpWebResponse _response = new HttpWebResponse();
 
         if (_connection != null) {
@@ -226,7 +226,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             // the server: all parameters in the challenge must have quote
             // marks.
             catch (Exception e) {
-                Logger.d(TAG, "Exception" + e.getMessage());
+                Logger.d(TAG, "Exception:" + e.getMessage());
 
                 mException = e;
             } finally {
@@ -245,7 +245,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      */
     @Override
     protected void onCancelled() {
-        Logger.d(TAG, "HttpWebRequest onCancelled thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest onCancelled thread:" + android.os.Process.myTid());
         if (null != mCallback) {
             mCallback.onComplete(null, new AuthenticationCancelError());
         }
@@ -257,7 +257,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     @Override
     protected void onPostExecute(HttpWebResponse response) {
         super.onPostExecute(response);
-        Logger.d(TAG, "HttpWebRequest OnPostExecute thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest OnPostExecute thread:" + android.os.Process.myTid());
         if (null != mCallback) {
             mCallback.onComplete(response, mException);
         }
@@ -269,7 +269,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     private void sendAsync(String requestmethod, byte[] content, String contentType,
             HttpWebRequestCallback callback) {
 
-        Logger.d(TAG, "HttpWebRequest thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest thread:" + android.os.Process.myTid());
 
         // Atomically sets to the given value and returns the previous value
         if (mUsedBefore.getAndSet(true)) {

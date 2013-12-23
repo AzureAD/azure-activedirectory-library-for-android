@@ -6,10 +6,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Instrumentation.ActivityMonitor;
-import android.app.Instrumentation.ActivityResult;
-import android.os.Handler;
 import android.test.ActivityInstrumentationTestCase2;
-import android.test.FlakyTest;
 import android.test.TouchUtils;
 import android.test.suitebuilder.annotation.LargeTest;
 import android.test.suitebuilder.annotation.MediumTest;
@@ -102,7 +99,7 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.v(TAG, "Status:" + tokenMsg);
         assertTrue("Token status", tokenMsg.contains("AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED"));
     }
-
+    
     /**
      * Sometimes, it could not post the form. Enter key event is not working
      * properly.

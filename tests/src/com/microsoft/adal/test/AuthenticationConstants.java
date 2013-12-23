@@ -2,21 +2,25 @@ package com.microsoft.adal.test;
 
 public class AuthenticationConstants {
 
-	static final class Browser {
-		public static final String REQUEST_MESSAGE = "com.microsoft.adal:BrowserRequestMessage";
+    static final class Browser {
+        public static final String REQUEST_MESSAGE = "com.microsoft.adal:BrowserRequestMessage";
 
-		public static final String RESPONSE_REQUEST_INFO = "com.microsoft.adal:BrowserRequestInfo";
+        public static final String RESPONSE_REQUEST_INFO = "com.microsoft.adal:BrowserRequestInfo";
 
-		public static final String RESPONSE_ERROR_CODE = "com.microsoft.adal:BrowserErrorCode";
+        public static final String RESPONSE_ERROR_CODE = "com.microsoft.adal:BrowserErrorCode";
 
-		public static final String RESPONSE_ERROR_MESSAGE = "com.microsoft.adal:BrowserErrorMessage";
+        public static final String RESPONSE_ERROR_MESSAGE = "com.microsoft.adal:BrowserErrorMessage";
 
-		public static final String RESPONSE_FINAL_URL = "com.microsoft.adal:BrowserFinalUrl";
+        public static final String RESPONSE_FINAL_URL = "com.microsoft.adal:BrowserFinalUrl";
 
-		public static final String RESPONSE = "com.microsoft.adal:BrokerResponse";
+        public static final String RESPONSE = "com.microsoft.adal:BrokerResponse";
 
-		public static final String WEBVIEW_INVALID_REQUEST = "Invalid request";
-	}
+        public static final String WEBVIEW_INVALID_REQUEST = "Invalid request";
+
+        public static final String ACTION_CANCEL = "com.microsoft.adal:BrowserCancel";
+
+        public static final String REQUEST_ID = "com.microsoft.adal:RequestId";
+    }
 
 	static final class UIResponse {
 		public static final int BROWSER_CODE_CANCEL = 2001;

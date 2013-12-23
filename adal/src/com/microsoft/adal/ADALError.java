@@ -73,6 +73,11 @@ public enum ADALError {
     ERROR_WEBVIEW,
 
     /**
+     * Broadcast receiver has an error
+     */
+    BROADCAST_RECEIVER_ERROR,
+
+    /**
      * Authorization Failed
      */
     AUTH_FAILED,

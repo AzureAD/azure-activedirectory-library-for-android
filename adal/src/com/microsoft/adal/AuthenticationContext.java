@@ -91,7 +91,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
         mContext = appContext;
-        mAuthority = authority;
+        mAuthority = ensureNotEndsWithSlash(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = new DefaultTokenCacheStore(appContext);
     }
@@ -105,7 +105,7 @@ public class AuthenticationContext {
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
-        mAuthority = authority;
+        mAuthority = ensureNotEndsWithSlash(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = tokenCacheStore;
     }
@@ -121,7 +121,7 @@ public class AuthenticationContext {
     public AuthenticationContext(Context appContext, String authority,
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
-        mAuthority = authority;
+        mAuthority = ensureNotEndsWithSlash(authority);
         mValidateAuthority = true;
         mTokenCacheStore = tokenCacheStore;
     }
@@ -608,7 +608,7 @@ public class AuthenticationContext {
     private void acquireTokenAfterValidation(final Activity activity,
             final AuthenticationRequest request,
             final AuthenticationCallback<AuthenticationResult> externalCall) {
-        Logger.v(TAG, "Token request is started");
+        Logger.v(TAG, "Token request started");
 
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
@@ -1070,5 +1070,15 @@ public class AuthenticationContext {
             Logger.v(TAG, "Skip authority validation");
             refreshToken(null, request, refreshItem, false, callback);
         }
+    }
+    
+    private static String ensureNotEndsWithSlash(String value){
+        if (!StringExtensions.IsNullOrBlank(value)) {
+            if (value.endsWith("/")) {
+                return value.substring(0, value.length() -1);
+            }
+        }
+        
+        return value;
     }
 }
