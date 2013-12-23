@@ -4,32 +4,30 @@
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.microsoft.adal</groupId>
+    <groupId>com.microsoft.adal.bundle</groupId>
     <artifactId>androidexample</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-
 
     <modules>
         <module>adal</module>
         <module>samples/testapp</module>
         <module>tests</module>
     </modules>
-
-
+    
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>com.google.android</groupId>
                 <artifactId>android</artifactId>
-                <version>4.1.1.4</version>
+                <version>4.3</version>
                 <scope>provided</scope>
             </dependency>
 
             <dependency>
                 <groupId>com.google.android</groupId>
                 <artifactId>android-test</artifactId>
-                <version>4.1.1.4</version>
+                <version>4.3</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -47,7 +45,7 @@
                     <configuration>
                         <sdk>
                             <!-- platform or api level (api level 17 = platform 4.1.1.4) -->
-                            <platform>16</platform>
+                            <platform>18</platform>
                         </sdk>
                     </configuration>
 
