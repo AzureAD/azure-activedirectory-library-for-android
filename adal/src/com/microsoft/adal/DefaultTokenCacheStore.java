@@ -246,7 +246,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     private boolean isAboutToExpire(Date expires) {
         Date validity = getTokenValidityTime().getTime();
 
-        if (expires.before(validity)) {
+        if (expires != null && expires.before(validity)) {
             return true;
         }
 

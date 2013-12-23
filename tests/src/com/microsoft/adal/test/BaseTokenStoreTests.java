@@ -49,6 +49,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         testItem.setAuthority("authority");
         testItem.setClientId("clientid");
         testItem.setResource("resource");
+        testItem.setTenantId("tenantId");
         testItem.setUserInfo(user);
 
         testItem2 = new TokenCacheItem();
@@ -57,6 +58,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         testItem2.setClientId("clientid2");
         testItem2.setResource("resource2");
         testItem2.setUserInfo(user);
+        testItem2.setTenantId("tenantId2");
         store.setItem(CacheKey.createCacheKey(testItem), testItem);
         store.setItem(CacheKey.createCacheKey(testItem2), testItem2);
 
@@ -93,6 +95,11 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", "", false, ""));
         assertNull("Token cache item is expected to be null", item);
 
+        item = store.getItem(CacheKey.createCacheKey(testItem));
+        assertNotNull("Token cache item is expected to be NOT null", item);
+        assertEquals("same item", testItem.getTenantId(), item.getTenantId());
+        assertEquals("same item", testItem.getAccessToken(), item.getAccessToken());
+        
         item = store.getItem(CacheKey.createCacheKey("", "", "", true, ""));
         assertNull("Token cache item is expected to be null", item);
 

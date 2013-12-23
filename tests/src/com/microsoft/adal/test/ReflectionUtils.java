@@ -71,4 +71,56 @@ public class ReflectionUtils {
         f.setAccessible(true);
         f.set(object, value);
     }
+
+    public static <T> T getterValue(Class<T> clazz, Object instance, String methodName)
+            throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException {
+        Method m = instance.getClass().getDeclaredMethod(methodName);
+        Object object = m.invoke(instance, (Object[])null);
+        return clazz.cast(object);
+    }
+
+    public static void setterValue(Object authenticationRequest, String methodName, Object param)
+            throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException {
+        Method[] methods = authenticationRequest.getClass().getDeclaredMethods();
+        Method targetMethod = null;
+        // target only name for setters
+        for (Method m : methods) {
+            if (m.getName().equals(methodName)) {
+                targetMethod = m;
+                break;
+            }
+        }
+
+        if (targetMethod != null) {
+            targetMethod.invoke(authenticationRequest, param);
+        } else {
+            throw new NoSuchMethodException();
+        }
+    }
+
+    public static Object getInstance(String className, Object... params)
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException, InvocationTargetException {
+        Class<?> c = Class.forName(className);
+        Class<?>[] paramTypes = getTypes(params);
+        Constructor<?> constructorParams = c.getDeclaredConstructor(paramTypes);
+        constructorParams.setAccessible(true);
+        Object o = constructorParams.newInstance(params);
+        return o;
+    }
+
+    private static Class<?>[] getTypes(Object... params) {
+        Class<?>[] paramTypes = null;
+        if (params != null) {
+            paramTypes = new Class<?>[params.length];
+            for (int i = 0; i < params.length; i++) {
+                paramTypes[i] = params[i].getClass();
+            }
+        }
+
+        return paramTypes;
+    }
+
 }
