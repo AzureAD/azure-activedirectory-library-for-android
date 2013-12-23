@@ -50,7 +50,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
     public void testCreateFromResponseAuthenticateHeader() {
         assertThrowsException(IllegalArgumentException.class,
-                AuthenticationParameters.AUTH_HEADER_MISSING, new Runnable() {
+                AuthenticationParameters.AUTH_HEADER_MISSING.toLowerCase(), new Runnable() {
 
                     @Override
                     public void run() {
@@ -59,7 +59,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 });
 
         assertThrowsException(IllegalArgumentException.class,
-                AuthenticationParameters.AUTH_HEADER_MISSING, new Runnable() {
+                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY.toLowerCase(), new Runnable() {
 
                     @Override
                     public void run() {

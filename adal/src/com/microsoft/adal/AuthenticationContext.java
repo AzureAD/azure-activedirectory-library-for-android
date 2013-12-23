@@ -294,7 +294,7 @@ public class AuthenticationContext {
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, null, prompt, extraQueryParameters);
+                clientId, redirectUri, userId, prompt, extraQueryParameters);
 
         acquireTokenLocal(activity, request, callback);
     }
