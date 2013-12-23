@@ -36,12 +36,12 @@ public enum ADALError {
      * User can only have one login activity in use
      */
     DEVELOPER_ONLY_ONE_LOGIN_IS_ALLOWED,
-    
+
     /**
-    *Key/value pair list contains redundant items in the header
-    */
+     * Key/value pair list contains redundant items in the header
+     */
     DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS,
-    
+
     /**
      * Active callback is not found
      */
@@ -60,12 +60,17 @@ public enum ADALError {
      * webview has ssl related error
      */
     ERROR_FAILED_SSL_HANDSHAKE,
-    
+
     /**
      * webview has an error
      */
     ERROR_WEBVIEW,
-    
+
+    /**
+     * Broadcast receiver has an error
+     */
+    BROADCAST_RECEIVER_ERROR,
+
     /**
      * Authorization Failed
      */
@@ -141,17 +146,17 @@ public enum ADALError {
      * developer, if cache returns error
      */
     DEVICE_CACHE_IS_NOT_WORKING,
-    
+
     /**
      * Cache is not loaded from File
      */
     DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE,
-    
+
     /**
      * FileCache could not write to the File
      */
     DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE,
-    
+
     /**
      * Cache file format is wrong.
      */

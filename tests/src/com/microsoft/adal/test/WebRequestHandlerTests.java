@@ -46,7 +46,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         final String testUrl = "https://login.windows.net/omercantest.onmicrosoft.com/oauth2/token";
         final UUID testID = UUID.randomUUID();
         Log.d(TAG, "Test correlationid:" + testID.toString());
-        final TestResponse testResponse = sendCorrelationIdRequest(testUrl, testID);
+        final TestResponse testResponse = sendCorrelationIdRequest(testUrl, testID, false);
 
         assertEquals("400 error code", 400, testResponse.httpResponse.getStatusCode());
         assertNotNull("Callback should report 400 for this error", testResponse.exception);
@@ -55,12 +55,13 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         assertEquals("same correlationid", testID, result.getCorrelationId());
 
         // same id for next request
-        TestResponse testResponse2 = sendCorrelationIdRequest(testUrl, testID);
+        TestResponse testResponse2 = sendCorrelationIdRequest(testUrl, testID, true);
         AuthenticationResult result2 = getAuthenticationResult(testResponse2.httpResponse);
         assertEquals("same correlationid for next request", testID, result2.getCorrelationId());
     }
 
-    private TestResponse sendCorrelationIdRequest(final String message, final UUID testID) {
+    private TestResponse sendCorrelationIdRequest(final String message, final UUID testID,
+            final boolean withoutHeader) {
 
         final CountDownLatch signal = new CountDownLatch(1);
         final TestResponse testResponse = new TestResponse();
@@ -74,8 +75,11 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
                 request.setRequestCorrelationId(testID);
-                HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Accept", "application/json");
+                HashMap<String, String> headers = null;
+                if (!withoutHeader) {
+                    headers = new HashMap<String, String>();
+                    headers.put("Accept", "application/json");
+                }
                 request.sendAsyncPost(getUrl(message), headers, null,
                         "application/x-www-form-urlencoded", callback);
             }
@@ -89,8 +93,8 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             IllegalAccessException, InvocationTargetException {
         final String testUrl = "https://login.windows.net/omercantest.onmicrosoft.com/oauth2/token";
 
-        TestResponse testResponse = sendCorrelationIdRequest(testUrl, null);
-        TestResponse testResponse2 = sendCorrelationIdRequest(testUrl, null);
+        TestResponse testResponse = sendCorrelationIdRequest(testUrl, null, false);
+        TestResponse testResponse2 = sendCorrelationIdRequest(testUrl, null, true);
 
         AuthenticationResult result = getAuthenticationResult(testResponse.httpResponse);
         UUID testIDResponse1 = result.getCorrelationId();
@@ -142,6 +146,27 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
                 request.sendAsyncGet(getUrl("https://www.bing.com"), null, null);
+            }
+        });
+
+        assertThrowsException(IllegalArgumentException.class, "callback", new Runnable() {
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.sendAsyncDelete(getUrl("https://www.bing.com"), null, null);
+            }
+        });
+
+        assertThrowsException(IllegalArgumentException.class, "callback", new Runnable() {
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.sendAsyncPut(getUrl("https://www.bing.com"), null, null, null, null);
+            }
+        });
+
+        assertThrowsException(IllegalArgumentException.class, "callback", new Runnable() {
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler();
+                request.sendAsyncPost(getUrl("https://www.bing.com"), null, null, null, null);
             }
         });
     }
@@ -389,7 +414,8 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             InstantiationException, IllegalAccessException, InvocationTargetException {
         AuthenticationResult result = null;
         Object authenticationRequest = OauthTests.createAuthenticationRequest(
-                "https://login.windows.net/aaaty", "resource", "client", "redirect", "loginhint");
+                "https://login.windows.net/aaaty", "resource", "client", "redirect", "loginhint",
+                null, null);
         Object oauth = OauthTests.createOAuthInstance(authenticationRequest);
         Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
                 HttpWebResponse.class);

@@ -136,6 +136,27 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         assertEquals("Same tokencacheitem content", testItem.getResource(), item.getResource());
     }
 
+    public void testWriteFileException() {
+        String file = FILE_DEFAULT_NAME + "fileWriteFileException";
+        setupCache(file);
+        ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+        assertNotNull("Token cache item is expected to be NOT null", item);
+
+        // Change file permissions to cause an error
+        CustomLogger logger = new CustomLogger();
+        Logger.getInstance().setExternalLogger(logger);
+        File directory = targetContex.getDir(targetContex.getPackageName(), Context.MODE_PRIVATE);
+        File mock = new File(directory, file);
+        mock.setWritable(false);
+        store.removeItem(CacheKey.createCacheKey(testItem));
+
+        assertEquals("Permission issue", ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE,
+                logger.logErrorCode);
+
+        mock.setWritable(true);
+    }
+
     public void testRemoveItem() {
         String file = FILE_DEFAULT_NAME + "testRemoveItem";
         String file2 = FILE_DEFAULT_NAME + "testRemoveItem2";

@@ -20,80 +20,12 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Button
-        android:id="@+id/buttonGetToken"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textViewStatus"
-        android:layout_below="@+id/textViewStatus"
-        android:layout_marginTop="38dp"
-        android:text="Get Token" />
-
-    <Button
-        android:id="@+id/buttonUsers"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textViewStatus"
-        android:layout_alignRight="@+id/buttonGetToken"
-        android:layout_below="@+id/buttonGetToken"
-        android:text="Show Users" />
-
-    <Button
-        android:id="@+id/buttonExpired"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textViewStatus"
-        android:layout_alignRight="@+id/buttonUsers"
-        android:layout_below="@+id/buttonUsers"
-        android:text="Set Expired" />
-
-    <Button
         android:id="@+id/buttonReset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/textViewStatus"
-        android:layout_alignRight="@+id/buttonExpired"
         android:layout_below="@+id/buttonExpired"
-        android:text="Reset Token" />
-
-    <Button
-        android:id="@+id/buttonCancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textViewStatus"
-        android:layout_alignRight="@+id/buttonReset"
-        android:layout_below="@+id/buttonReset"
-        android:text="Cancel Authentication" />
-
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/buttonGetToken"
-        android:layout_alignBottom="@+id/buttonGetToken"
-        android:layout_toRightOf="@+id/buttonGetToken"
-        android:text="GetTokenWithDelay" />
-
-    <EditText
-        android:id="@+id/editAuthority"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/buttonUsers"
-        android:layout_alignLeft="@+id/button1"
-        android:ems="10"
-        android:hint="Authority" >
-
-        <requestFocus />
-    </EditText>
-
-    <EditText
-        android:id="@+id/editResource"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/buttonExpired"
-        android:layout_alignBottom="@+id/buttonExpired"
-        android:layout_alignLeft="@+id/editAuthority"
-        android:ems="10"
-        android:hint="Resource" />
+        android:text="-Tokens" />
 
     <EditText
         android:id="@+id/editClientid"
@@ -138,5 +70,71 @@
         android:layout_alignLeft="@+id/editRedirect"
         android:layout_below="@+id/editRedirect"
         android:text="Validate" />
+
+    <Button
+        android:id="@+id/buttonExpired"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/editAuthority"
+        android:layout_toRightOf="@+id/buttonGetToken"
+        android:text="Expire" />
+
+    <Button
+        android:id="@+id/buttonGetToken"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewStatus"
+        android:layout_below="@+id/textViewStatus"
+        android:text="Token" />
+
+    <EditText
+        android:id="@+id/editAuthority"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editClientid"
+        android:layout_below="@+id/buttonGetToken"
+        android:layout_marginTop="50dp"
+        android:ems="10"
+        android:hint="Authority" >
+
+        <requestFocus />
+    </EditText>
+
+    <EditText
+        android:id="@+id/editResource"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/buttonReset"
+        android:layout_below="@+id/editAuthority"
+        android:ems="10"
+        android:hint="Resource" />
+
+    <Button
+        android:id="@+id/buttonRefresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonReset"
+        android:layout_alignBottom="@+id/buttonReset"
+        android:layout_toRightOf="@+id/buttonReset"
+        android:text="Refresh" />
+
+    <Button
+        android:id="@+id/buttonVerify"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonRefresh"
+        android:layout_alignBottom="@+id/buttonRefresh"
+        android:layout_toRightOf="@+id/buttonRefresh"
+        android:text="Verify" />
+
+    <Button
+        android:id="@+id/buttonRemoveCookies"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonExpired"
+        android:layout_alignBottom="@+id/buttonExpired"
+        android:layout_toRightOf="@+id/buttonExpired"
+        android:text="-Cookie" />
 
 </RelativeLayout>
