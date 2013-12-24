@@ -776,7 +776,7 @@ public class AuthenticationContext {
                         
                         if (useCache) {
                             if (result == null
-                                    || !StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+                                    || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
 
                                 // remove item from cache to avoid same usage of
                                 // refresh token in next acquireToken call

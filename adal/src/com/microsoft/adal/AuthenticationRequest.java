@@ -47,6 +47,33 @@ class AuthenticationRequest implements Serializable {
         mCorrelationId = correlationId;
     }
 
+    public AuthenticationRequest(String authority, String resource, String client, String redirect,
+            String loginhint, UUID requestCorrelationId) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = client;
+        mRedirectUri = redirect;
+        mLoginHint = loginhint;
+        mCorrelationId = requestCorrelationId;
+    }
+
+    public AuthenticationRequest(String authority, String resource, String client, String redirect,
+            String loginhint) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = client;
+        mRedirectUri = redirect;
+        mLoginHint = loginhint;
+    }
+
+    public AuthenticationRequest(String authority, String resource, String clientid,
+            String redirectUri) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = clientid;
+        mRedirectUri = redirectUri;
+    } 
+    
     public AuthenticationRequest(String authority, String resource, String clientId, UUID correlationId) {
         mAuthority = authority;
         mClientId = clientId;

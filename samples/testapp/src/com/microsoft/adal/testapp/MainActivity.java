@@ -113,7 +113,7 @@ public class MainActivity extends Activity {
                 if (exc instanceof AuthenticationException) {
                     AuthenticationException authException = (AuthenticationException)exc;
                     textViewStatus
-                            .setText("Authentication error:" + authException.getDetails());
+                            .setText("Authentication error:" + authException.getCode().name());
                 }
 
                 Log.d(TAG, "Authentication error:" + exc.getMessage());

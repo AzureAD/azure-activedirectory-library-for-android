@@ -415,7 +415,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         AuthenticationResult result = null;
         Object authenticationRequest = OauthTests.createAuthenticationRequest(
                 "https://login.windows.net/aaaty", "resource", "client", "redirect", "loginhint",
-                null, null);
+                null, null, null);
         Object oauth = OauthTests.createOAuthInstance(authenticationRequest);
         Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
                 HttpWebResponse.class);
