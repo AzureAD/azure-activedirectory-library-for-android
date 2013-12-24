@@ -170,7 +170,7 @@ public class AuthenticationContext {
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, userId, PromptBehavior.Auto, null);
+                clientId, redirectUri, userId, PromptBehavior.Auto, null, mRequestCorrelationId);
 
         acquireTokenLocal(activity, request, callback);
     }
@@ -202,7 +202,7 @@ public class AuthenticationContext {
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters);
+                clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters, mRequestCorrelationId);
 
         acquireTokenLocal(activity, request, callback);
 
@@ -232,7 +232,7 @@ public class AuthenticationContext {
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, null, prompt, null);
+                clientId, redirectUri, null, prompt, null, mRequestCorrelationId);
 
         acquireTokenLocal(activity, request, callback);
     }
@@ -262,7 +262,7 @@ public class AuthenticationContext {
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, null, prompt, extraQueryParameters);
+                clientId, redirectUri, null, prompt, extraQueryParameters, mRequestCorrelationId);
 
         acquireTokenLocal(activity, request, callback);
     }
@@ -294,7 +294,7 @@ public class AuthenticationContext {
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, userId, prompt, extraQueryParameters);
+                clientId, redirectUri, userId, prompt, extraQueryParameters, mRequestCorrelationId);
 
         acquireTokenLocal(activity, request, callback);
     }
@@ -773,32 +773,34 @@ public class AuthenticationContext {
 
                     @Override
                     public void onSuccess(AuthenticationResult result) {
+                        
+                        if (useCache) {
+                            if (result == null
+                                    || !StringExtensions.IsNullOrBlank(result.getAccessToken())) {
 
-                        if (result == null
-                                || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-
-                            if (useCache) {
                                 // remove item from cache to avoid same usage of
-                                // refresh token in next acquireTokenLocal call
+                                // refresh token in next acquireToken call
                                 removeItemFromCache(refreshItem);
                                 acquireTokenLocal(activity, request, externalCallback);
                             } else {
-                                // User is not using cache and explicitly
-                                // calling with refresh token
-                                externalCallback.onError(new AuthenticationException(
-                                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
-                            }
-                        } else {
-                            Log.v(TAG, "Refresh token is finished for " + request.getLogInfo());
-                            if (useCache) {
+                                Log.v(TAG, "Refresh token is finished for " + request.getLogInfo());
+
                                 // it replaces multi resource refresh token as
                                 // well with the new one since it is not stored
                                 // with resource.
                                 setItemToCache(request, result);
+
+                                // return result obj which has error code and
+                                // error description that is returned from
+                                // server response
+                                externalCallback.onSuccess(result);
                             }
 
+                        } else {
+                            // User is not using cache and explicitly
+                            // calling with refresh token. User should received error code and error description in Authentication result for Oauth errors
                             externalCallback.onSuccess(result);
-                        }
+                        }                       
                     }
 
                     @Override
@@ -981,7 +983,7 @@ public class AuthenticationContext {
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId);
+                clientId, mRequestCorrelationId);
         // It is not using cache and refresh is not expected to show
         // authentication activity.
         request.setPrompt(PromptBehavior.Never);

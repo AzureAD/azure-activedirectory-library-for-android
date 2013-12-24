@@ -36,47 +36,22 @@ class AuthenticationRequest implements Serializable {
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
-            String loginhint, PromptBehavior prompt, String extraQueryParams) {
+            String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
-        setPrompt(prompt);
+        mPrompt = prompt;
         mExtraQueryParamsAuthentication = extraQueryParams;
+        mCorrelationId = correlationId;
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-            String loginhint, UUID requestCorrelationId) {
-        mAuthority = authority;
-        mResource = resource;
-        mClientId = client;
-        mRedirectUri = redirect;
-        mLoginHint = loginhint;
-        mCorrelationId = requestCorrelationId;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
-            String loginhint) {
-        mAuthority = authority;
-        mResource = resource;
-        mClientId = client;
-        mRedirectUri = redirect;
-        mLoginHint = loginhint;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String clientid,
-            String redirectUri) {
-        mAuthority = authority;
-        mResource = resource;
-        mClientId = clientid;
-        mRedirectUri = redirectUri;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String clientId) {
+    public AuthenticationRequest(String authority, String resource, String clientId, UUID correlationId) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;
+        mCorrelationId = correlationId;
     }
 
     public String getAuthority() {

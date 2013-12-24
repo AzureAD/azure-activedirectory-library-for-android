@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.UUID;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -92,16 +93,19 @@ public class MainActivity extends Activity {
 
     private AuthenticationContext mContext = null;
 
+    private UUID mRequestCorrelationId;
+    
     private Handler handler = new Handler();
 
     public Handler getTestAppHandler() {
         return handler;
     }
-
+    
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
 
         @Override
         public void onError(Exception exc) {
+           Log.d(TAG, "Callback returned error");
             if (exc instanceof AuthenticationCancelError) {
                 textViewStatus.setText("Cancelled");
                 Log.d(TAG, "Cancelled");
@@ -109,7 +113,7 @@ public class MainActivity extends Activity {
                 if (exc instanceof AuthenticationException) {
                     AuthenticationException authException = (AuthenticationException)exc;
                     textViewStatus
-                            .setText("Authentication error:" + authException.getCode().name());
+                            .setText("Authentication error:" + authException.getDetails());
                 }
 
                 Log.d(TAG, "Authentication error:" + exc.getMessage());
@@ -118,12 +122,19 @@ public class MainActivity extends Activity {
 
         @Override
         public void onSuccess(AuthenticationResult result) {
+            Log.d(TAG, "Callback has result");
             setResult(result);
 
             if (result == null || result.getAccessToken() == null
                     || result.getAccessToken().isEmpty()) {
                 textViewStatus.setText(FAILED);
                 Log.d(TAG, "Token is empty");
+                if (result != null) {
+                    Log.d(TAG,
+                            "Error  code:" + result.getErrorCode() + " correlationId:"
+                                    + result.getCorrelationId() + " Description:"
+                                    + result.getErrorDescription());
+                }
             } else {
                 // request is successful
                 Log.d(TAG, String.format(LOG_STATUS_FORMAT, result.getStatus(), result
@@ -233,7 +244,7 @@ public class MainActivity extends Activity {
 
     private void getTokenByRefreshToken() {
         Logger.v(TAG, "get Token with refresh token");
-        textViewStatus.setText("");
+        textViewStatus.setText(GETTING_TOKEN);
         if (mResult != null && mResult.getRefreshToken() != null
                 && !mResult.getRefreshToken().isEmpty()) {
             String clientId = mClientId.getText().toString();
@@ -241,7 +252,7 @@ public class MainActivity extends Activity {
             if (clientId == null || clientId.isEmpty()) {
                 clientId = CLIENT_ID;
             }
-
+            mContext.setRequestCorrelationId(mRequestCorrelationId);
             mContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), clientId, callback);
         } else {
             textViewStatus.setText(FAILED);
@@ -278,9 +289,9 @@ public class MainActivity extends Activity {
         // Optional field, so acquireToken accepts null fields
         String redirect = mRedirect.getText().toString();
         mResult = null;
+        mContext.setRequestCorrelationId(mRequestCorrelationId);
         mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, "",
                 callback);
-
     }
 
     @Override
@@ -363,6 +374,14 @@ public class MainActivity extends Activity {
             Log.v(TAG, "Active UserId:" + mActiveUser);
             mActiveUser = result.getUserInfo().getUserId();
         }
+    }
+
+    public UUID getRequestCorrelationId() {
+        return mRequestCorrelationId;
+    }
+
+    public void setRequestCorrelationId(UUID mRequestCorrelationId) {
+        this.mRequestCorrelationId = mRequestCorrelationId;
     }
 
     /**

@@ -48,8 +48,7 @@ class Oauth2 {
     }
 
     public String getAuthorizationEndpoint() {
-        return mRequest.getAuthority()
-                + AuthenticationSettings.INSTANCE.getAuthorizeEndpoint();
+        return mRequest.getAuthority() + AuthenticationSettings.INSTANCE.getAuthorizeEndpoint();
     }
 
     public String getTokenEndpoint() {
@@ -153,6 +152,13 @@ class Oauth2 {
                     Log.e(TAG, "CorrelationId is malformed: " + correlationInResponse);
                 }
             }
+            
+            Log.v(
+                    TAG,
+                    "Oauth error:" + response.get(AuthenticationConstants.OAuth2.ERROR)
+                            + " Description:"
+                            + response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION) +
+                    "CorrelationId:" + correlationId);
 
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.ERROR),
                     response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION), correlationId);
@@ -215,8 +221,10 @@ class Oauth2 {
 
             if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
                 String idbody = idtoken.substring(firstDot + 1, secondDot);
-                // URL_SAFE: Encoder/decoder flag bit to use "URL and filename safe" variant of Base64
-                // (see RFC 3548 section 4) where - and _ are used in place of + and /.
+                // URL_SAFE: Encoder/decoder flag bit to use
+                // "URL and filename safe" variant of Base64
+                // (see RFC 3548 section 4) where - and _ are used in place of +
+                // and /.
                 byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
                 String decodedBody = new String(data, "UTF-8");
 
@@ -286,63 +294,8 @@ class Oauth2 {
             return;
         }
 
-        URL authority = null;
-
-        try {
-            authority = new URL(getTokenEndpoint());
-        } catch (MalformedURLException e1) {
-            Log.e(TAG, e1.getMessage(), e1);
-            authenticationCallback.onError(e1);
-            return;
-        }
-
         Logger.v(TAG, "Refresh token request message:" + requestMessage);
-        // Async post to get token. It posts the result back to the
-        // externalCallback
-        HashMap<String, String> headers = getRequestHeaders();
-        try {
-
-            mWebRequestHandler.sendAsyncPost(authority, headers,
-                    requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
-                    "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
-
-                        @Override
-                        public void onComplete(HttpWebResponse response, Exception exception) {
-                            if (exception != null) {
-                                Log.e(TAG,
-                                        "Web request returned exception:" + exception.getMessage(),
-                                        exception);
-                                authenticationCallback.onError(exception);
-                            } else {
-                                Log.v(TAG, "Token request does not have errors");
-                                AuthenticationResult result = processTokenResponse(response);
-
-                                if (result != null
-                                        && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
-                                    Log.v(TAG, "Refresh Token is successfull");
-                                    authenticationCallback.onSuccess(result);
-                                } else {
-                                    // Did not get token
-                                    Log.v(TAG,
-                                            "Refresh Token is not successfull. ErrorCode:"
-                                                    + result.getErrorCode() + " "
-                                                    + result.getErrorDescription());
-                                    authenticationCallback.onError(new AuthenticationException(
-                                            result.getErrorCode(), result.getErrorDescription()));
-                                }
-                            }
-                        }
-                    });
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, e.getMessage(), e);
-            authenticationCallback.onError(e);
-        } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, e.getMessage(), e);
-            authenticationCallback.onError(e);
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
-            authenticationCallback.onError(e);
-        }
+        postMessage(requestMessage, authenticationCallback);
     }
 
     /**
@@ -435,6 +388,11 @@ class Oauth2 {
             return;
         }
 
+        postMessage(requestMessage, authenticationCallback);
+    }
+
+    private void postMessage(String requestMessage,
+            final AuthenticationCallback<AuthenticationResult> authenticationCallback) {
         URL authority = null;
 
         try {
@@ -447,27 +405,26 @@ class Oauth2 {
 
         HashMap<String, String> headers = getRequestHeaders();
         try {
+            mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
             mWebRequestHandler.sendAsyncPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
 
                         @Override
                         public void onComplete(HttpWebResponse response, Exception exception) {
-                            if (exception != null) {
+                            if (exception != null
+                                    && (response == null || response.getBody() == null)) {
                                 Log.e(TAG, exception.getMessage(), exception);
                                 authenticationCallback.onError(exception);
                             } else {
-                                Log.d(TAG, "token request does not have errors");
-                                AuthenticationResult result = processTokenResponse(response);
-
-                                if (result != null
-                                        && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
-
+                                Log.d(TAG, "request does not have errors");
+                                try {
+                                    AuthenticationResult result = processTokenResponse(response);
                                     authenticationCallback.onSuccess(result);
-                                } else {
-                                    // did not get token
-                                    authenticationCallback.onError(new AuthenticationException(
-                                            result.getErrorCode(), result.getErrorDescription()));
+                                } catch (Exception ex) {
+                                    Log.e(TAG, exception.getMessage(), exception);
+                                    authenticationCallback.onError(exception);
+                                    return;
                                 }
                             }
                         }
