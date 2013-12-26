@@ -2,7 +2,7 @@ language: java
 jdk: oraclejdk7
 before_install:
   - mvn -v
-  # install necessary x32-libs for Android SDK, see http://rkistner.github.io/android/2013/02/05/android-builds-on-travis-ci/
+  # install necessary x32-libs for Android SDK
   - sudo apt-get update -qq
   - sudo apt-get install -qq libstdc++6:i386 lib32z1
   # download the latest android sdk and unzip
