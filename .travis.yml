@@ -1,20 +1,20 @@
 language: java
 jdk: oraclejdk7
 before_install:
-  - mvn -v
-  # install necessary x32-libs for Android SDK
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libstdc++6:i386 lib32z1
-  # download the latest android sdk and unzip
-  - wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
-  - tar -zxf android-sdk_r22.3-linux.tgz
-  - export ANDROID_HOME=`pwd`/android-sdk-linux
-  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
-  # only update the sdk for the tools and platform-tools and required api level
-  # (run "android list sdk --extended" to get the full list)
-  - echo "y" | android update sdk --filter tools,platform-tools,build-tools-19.0.1,android-19 --no-ui --force
-  # Create and start emulator
-  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
+    - mvn -v
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq libstdc++6:i386 lib32z1
+    - export COMPONENTS=build-tools-19.0.0,android-18,addon-google_apis-google-18
+    - curl -L https://raw.github.com/embarkmobile/android-sdk-installer/version-1/android-sdk-installer | bash /dev/stdin --install=$COMPONENTS
+    - source ~/.android-sdk-installer/env
+    - git clone https://github.com/mosabua/maven-android-sdk-deployer.git
+    - ( cd maven-android-sdk-deployer ; mvn install -P 4.3 )
+    
+install:
+    - mvn install -DskipTests=true
+    
+# Create and start emulator
+  - echo no | android create avd --force -n test -t android-18 --abi armeabi-v7a
   - emulator -avd test -no-skin -no-audio -no-window &
 
 before_script:

@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.google.android</groupId>
             <artifactId>android</artifactId>
-            <version>4.4</version>
+            <version>4.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -70,7 +70,7 @@
                 <configuration>
                     <sdk>
                         <!-- platform or api level (api level 19 = platform 4.4) -->
-                        <platform>19</platform>
+                        <platform>18</platform>
                     </sdk>
                     <lint>
                         <skip>false</skip>
