@@ -72,7 +72,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testConstructor() {
         String authority = "authority";
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false);
-        assertSame(authority, context.getAuthority());
+        assertEquals(authority, context.getAuthority());
+        
+        authority = "https://github.com/MSOpenTech/";
+        context = new AuthenticationContext(getContext(), authority, false);
+        assertEquals("https://github.com/MSOpenTech", context.getAuthority());
     }
 
     public void testConstructorNoCache() {
@@ -268,6 +272,36 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 testEmptyCallback.mException instanceof AuthenticationException);
     }
 
+    public void testAcquireToken_userId() throws ClassNotFoundException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException{
+        TestMockContext mockContext = new TestMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                "https://login.windows.net/common", false);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        testActivity.mSignal = signal;
+
+        context.acquireToken(testActivity, "resource56", "clientId345", "redirect123", "userid123", callback);
+        
+        // verify request
+        Intent intent = testActivity.mStartActivityIntent;
+        assertNotNull(intent);
+        Serializable request = intent
+                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+        assertEquals("AuthenticationRequest inside the intent", request.getClass(),
+                Class.forName("com.microsoft.adal.AuthenticationRequest"));
+        String redirect = (String)ReflectionUtils.getFieldValue(request, "mRedirectUri");
+        assertEquals("Redirect uri is same as package", "redirect123", redirect);
+        String loginHint = (String)ReflectionUtils.getFieldValue(request, "mLoginHint");
+        assertEquals("login hint same as userid", "userid123", loginHint);
+        String client = (String)ReflectionUtils.getFieldValue(request, "mClientId");
+        assertEquals("client is same", "clientId345", client);
+        String authority = (String)ReflectionUtils.getFieldValue(request, "mAuthority");
+        assertEquals("authority is same", "https://login.windows.net/common", authority);
+        String resource = (String)ReflectionUtils.getFieldValue(request, "mResource");
+        assertEquals("resource is same", "resource56", resource);        
+    }
+    
     public void testEmptyRedirect() throws ClassNotFoundException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException {
         TestMockContext mockContext = new TestMockContext(getContext());

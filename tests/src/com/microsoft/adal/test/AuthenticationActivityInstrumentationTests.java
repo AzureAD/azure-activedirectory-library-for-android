@@ -38,9 +38,11 @@ import com.microsoft.adal.testapp.R;
 public class AuthenticationActivityInstrumentationTests extends
         ActivityInstrumentationTestCase2<MainActivity> {
 
+    private static final int KEY_PAUSE_SLEEP_TIME = 500;
+
     private static final int ACTIVITY_WAIT_TIMEOUT = 5000;
 
-    protected final static int PAGE_LOAD_WAIT_TIME_OUT = 20000; // miliseconds
+    protected final static int PAGE_LOAD_WAIT_TIME_OUT = 25000; // miliseconds
 
     private static final String TAG = "AuthenticationActivityInstrumentationTests";
 
@@ -50,7 +52,11 @@ public class AuthenticationActivityInstrumentationTests extends
      * until page content has something about login page
      */
     private static int PAGE_LOAD_TIMEOUT = 120;
-    
+
+    private static final int LOGIN_DISPLAY_TIME_OUT = PAGE_LOAD_TIMEOUT * 10;
+
+    private static final int PAGE_STATUS_SET_TIME_OUT = PAGE_LOAD_TIMEOUT * 3;
+
     public AuthenticationActivityInstrumentationTests() {
         super(MainActivity.class);
         activity = null;
@@ -77,6 +83,12 @@ public class AuthenticationActivityInstrumentationTests extends
     public void testAcquireTokenADFS30Federated() throws Exception {
         acquireTokenAfterReset(TestTenant.ADFS30FEDERATED, "", PromptBehavior.Auto, null, false,
                 true, "https://fs.ade2eadfs30.com");
+    }
+
+    @MediumTest
+    public void testAcquireTokenADFS20Federated() throws Exception {
+        acquireTokenAfterReset(TestTenant.ADFS20FEDERATED, "", PromptBehavior.Auto, null, false,
+                true, "https://fs.ade2eadfs20.com");
     }
 
     @MediumTest
@@ -137,7 +149,7 @@ public class AuthenticationActivityInstrumentationTests extends
         // waiting for the page to set result
         Log.v(TAG, "Wait for the page to set the result");
 
-        waitUntil(PAGE_LOAD_TIMEOUT*20, new ResponseVerifier() {
+        waitUntil(PAGE_STATUS_SET_TIME_OUT, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
@@ -374,23 +386,14 @@ public class AuthenticationActivityInstrumentationTests extends
         sleepUntilLoginDisplays(startedActivity);
 
         Log.v(TAG, "Entering credentials to login page");
-        enterCredentials(startedActivity, username, password);
+        enterCredentials(federated, federatedPageUrl, startedActivity, username, password);
 
-        if (federated) {
-            // federation page redirects to login page
-            Log.v(TAG, "Sleep for redirect");
-            sleepUntilFederatedPageDisplays(federatedPageUrl);
-
-            Log.v(TAG, "Sleeping until it gets login page");
-            sleepUntilLoginDisplays(startedActivity);
-            Log.v(TAG, "Entering credentials to login page");
-            enterCredentials(startedActivity, username, password);
-        }
+        
 
         // wait for the page to set result
         Log.v(TAG, "Wait for the page to set the result");
 
-        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
+        waitUntil(PAGE_STATUS_SET_TIME_OUT, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
@@ -433,25 +436,50 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("Token is received", tokenMsg.contains(MainActivity.PASSED));
     }
 
-    private void enterCredentials(AuthenticationActivity startedActivity, String username,
-            String password) throws InterruptedException {
+    private void enterCredentials(boolean waitForRedirect, String redirectUrl, AuthenticationActivity startedActivity, String username,
+            String password) throws InterruptedException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
         // Get Webview to enter credentials for testing
         WebView webview = (WebView)startedActivity.findViewById(com.microsoft.adal.R.id.webView1);
         assertNotNull("Webview is not null", webview);
         webview.requestFocus();
 
-        // Send username
-        Thread.sleep(500);
-        getInstrumentation().sendStringSync(username);
-        Thread.sleep(1000); // wait for redirect script
-        sendKeys(KeyEvent.KEYCODE_TAB);
-        getInstrumentation().sendStringSync(password);
-        Thread.sleep(300);
+        String page = getLoginPage(startedActivity);
+        if (!page.contains(username)) {
+            Log.v(TAG, "Page does not have this username");
+            // Send username after sleeping to wait for the focus on the field           
+            Thread.sleep(KEY_PAUSE_SLEEP_TIME);
+            getInstrumentation().sendStringSync(username);
+            // Redirect page tracking can 
+        }else{
+            Log.v(TAG, "Page has this username");
+        }
 
+        pressKey(KeyEvent.KEYCODE_TAB);
+        // After pressing tab key, page will redirect to federated login page for federated account
+        if (waitForRedirect) {
+            // federation page redirects to login page
+            Log.v(TAG, "Sleep for redirect");
+            sleepUntilFederatedPageDisplays(redirectUrl);
+
+            Log.v(TAG, "Sleeping until it gets login page");
+            sleepUntilLoginDisplays(startedActivity);
+            
+            Log.v(TAG, "Entering credentials to login page");
+            enterCredentials(false, null, startedActivity, username, password);
+        }
+        
+        getInstrumentation().sendStringSync(password);
+        
         // Enter event sometimes is failing to submit form.
-        sendKeys(KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_ENTER);
-        sendKeys(KeyEvent.KEYCODE_ENTER);
+        pressKey(KeyEvent.KEYCODE_ENTER);
+        Log.v(TAG, "Credentials are passed");
+    }
+    
+    private void pressKey(int keycode) throws InterruptedException{
+        // It needs sleep time for simulating key press
+        Thread.sleep(KEY_PAUSE_SLEEP_TIME);
+        getInstrumentation().sendCharacterSync(keycode);
     }
 
     private void sleepUntilFederatedPageDisplays(final String federatedPageUrl)
@@ -489,7 +517,7 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.v(TAG, "sleepUntilLoginDisplays start");
 
         // This depends on connection
-        waitUntil(PAGE_LOAD_TIMEOUT * 2, new ResponseVerifier() {
+        waitUntil(LOGIN_DISPLAY_TIME_OUT, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {

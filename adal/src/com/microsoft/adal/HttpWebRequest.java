@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import android.annotation.TargetApi;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.util.Log;
 
 /**
  * AsyncTask can be executed only once. It throws exception for multiple async
@@ -40,7 +39,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     private final static int READ_TIME_OUT = 10000;
 
     private static int sDebugSimulateDelay = 0;
-    
+
     private boolean mUseCaches = false;
 
     private boolean mInstanceRedirectsFollow = true;
@@ -131,7 +130,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        Log.d(TAG, "HttpWebRequest onPreExecute thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest onPreExecute thread:" + android.os.Process.myTid());
         HttpURLConnection.setFollowRedirects(true);
         _connection = openConnection(_connection);
     }
@@ -142,7 +141,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     @Override
     protected HttpWebResponse doInBackground(Void... empty) {
 
-        Log.d(TAG, "HttpWebRequest doInBackground thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest doInBackground thread:" + android.os.Process.myTid());
         HttpWebResponse _response = new HttpWebResponse();
 
         if (_connection != null) {
@@ -152,7 +151,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
                 while (headerKeys.hasNext()) {
                     String header = headerKeys.next();
-                    Log.d(TAG, "Setting header: " + header);
+                    Logger.d(TAG, "Setting header: " + header);
                     _connection.setRequestProperty(header, mRequestHeaders.get(header));
                 }
 
@@ -180,7 +179,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 }
 
                 _response.setStatusCode(statusCode);
-                Log.d(TAG, "Statuscode:" + statusCode);
+                Logger.d(TAG, "Statuscode:" + statusCode);
 
                 byte[] responseBody = null;
                 InputStream responseStream = null;
@@ -188,7 +187,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 try {
                     responseStream = _connection.getInputStream();
                 } catch (IOException ex) {
-                    Log.d(TAG, "IOException:" + ex.getMessage());
+                    Logger.d(TAG, "IOException:" + ex.getMessage());
                     mException = ex;
                     responseStream = _connection.getErrorStream();
                 }
@@ -210,11 +209,11 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 // It will only run in debugger and set from outside for testing
                 if (android.os.Debug.isDebuggerConnected() && sDebugSimulateDelay > 0) {
                     // sleep background thread in debugging mode
-                    Log.d(TAG, "Sleeping to simulate slow network response");
+                    Logger.d(TAG, "Sleeping to simulate slow network response");
                     Thread.sleep(sDebugSimulateDelay);
                 }
-                
-                Log.d(TAG, "Response is received");
+
+                Logger.d(TAG, "Response is received");
                 _response.setBody(responseBody);
                 _response.setResponseHeaders(_connection.getHeaderFields());
             }
@@ -227,7 +226,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             // the server: all parameters in the challenge must have quote
             // marks.
             catch (Exception e) {
-                Log.e(TAG, "Exception" + e.getMessage());
+                Logger.d(TAG, "Exception:" + e.getMessage());
 
                 mException = e;
             } finally {
@@ -246,7 +245,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      */
     @Override
     protected void onCancelled() {
-        Log.d(TAG, "HttpWebRequest onCancelled thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest onCancelled thread:" + android.os.Process.myTid());
         if (null != mCallback) {
             mCallback.onComplete(null, new AuthenticationCancelError());
         }
@@ -258,7 +257,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     @Override
     protected void onPostExecute(HttpWebResponse response) {
         super.onPostExecute(response);
-        Log.d(TAG, "HttpWebRequest OnPostExecute thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest OnPostExecute thread:" + android.os.Process.myTid());
         if (null != mCallback) {
             mCallback.onComplete(response, mException);
         }
@@ -270,7 +269,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     private void sendAsync(String requestmethod, byte[] content, String contentType,
             HttpWebRequestCallback callback) {
 
-        Log.d(TAG, "HttpWebRequest thread" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest thread:" + android.os.Process.myTid());
 
         // Atomically sets to the given value and returns the previous value
         if (mUsedBefore.getAndSet(true)) {
@@ -330,7 +329,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             _connection.setConnectTimeout(mTimeOut);
 
         } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
+            Logger.d(TAG, e.getMessage());
             mException = e;
             _connection.disconnect();
             _connection = null;

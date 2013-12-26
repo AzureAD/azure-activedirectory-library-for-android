@@ -7,9 +7,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 
-import android.util.Log;
-import android.util.SparseArray;
-
 /**
  * tokenCacheItem is not persisted. Memory cache does not keep static items.
  * 
@@ -37,7 +34,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        Log.v(TAG, "Get Item from cache. Key:" + key);
+        Logger.v(TAG, "Get Item from cache. Key:" + key);
         synchronized (mCacheLock) {
             return mCache.get(key);
         }
@@ -53,7 +50,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        Log.v(TAG, "Set Item to cache. Key:" + key);
+        Logger.v(TAG, "Set Item to cache. Key:" + key);
         synchronized (mCacheLock) {
             mCache.put(key, item);
         }
@@ -65,7 +62,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        Log.v(TAG, "Remove Item from cache. Key:" + key.hashCode());
+        Logger.v(TAG, "Remove Item from cache. Key:" + key.hashCode());
         synchronized (mCacheLock) {
             mCache.remove(key);
         }
@@ -73,7 +70,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     @Override
     public void removeAll() {
-        Log.v(TAG, "Remove all items from cache. Key:");
+        Logger.v(TAG, "Remove all items from cache. Key:");
         synchronized (mCacheLock) {
             mCache.clear();
         }
@@ -95,7 +92,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        Log.v(TAG, "contains Item from cache. Key:" + key.toString());
+        Logger.v(TAG, "contains Item from cache. Key:" + key.toString());
         synchronized (mCacheLock) {
             return mCache.get(key) != null;
         }
