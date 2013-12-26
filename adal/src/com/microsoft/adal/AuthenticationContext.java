@@ -415,15 +415,19 @@ public class AuthenticationContext {
 
                     } else {
                         Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
-                        Logger.v(TAG, "Processing url");
+                        Logger.v(TAG, "Processing url for token");
 
                         oauthRequest.getToken(endingUrl,
                                 new AuthenticationCallback<AuthenticationResult>() {
 
                                     @Override
                                     public void onSuccess(AuthenticationResult result) {
-                                        Logger.v(TAG, "Token is received and setting item to cache");
-                                        setItemToCache(authenticationRequest, result);
+                                        Logger.v(TAG, "OnActivityResult processed the result");
+                                        if(result != null && !StringExtensions.IsNullOrBlank(result.getAccessToken())){
+                                            Logger.v(TAG, "OnActivityResult is setting the token to cache");
+                                            setItemToCache(authenticationRequest, result);
+                                        }
+                                        
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
                                             Logger.v(TAG, "Sending result to callback");
@@ -778,9 +782,8 @@ public class AuthenticationContext {
      * @param activity Activity to use in case refresh token does not succeed
      *            and prompt is not set to never.
      * @param request incoming request
-     * @param refreshToken refresh token
-     * @param prompt if set to never, it should not attempt to launch
-     *            authorization
+     * @param refreshItem refresh item info to remove this refresh token from cache
+     * @param useCache refresh request can be explicit without cache usage. Error message should return without trying prompt. 
      * @param externalCallback
      */
     private void refreshToken(final Activity activity, final AuthenticationRequest request,
@@ -797,7 +800,7 @@ public class AuthenticationContext {
 
                     @Override
                     public void onSuccess(AuthenticationResult result) {
-
+                        
                         if (useCache) {
                             if (result == null
                                     || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
@@ -834,7 +837,6 @@ public class AuthenticationContext {
                                 // server response
                                 externalCallback.onSuccess(result);
                             }
-
                         } else {
                             // User is not using cache and explicitly
                             // calling with refresh token. User should received

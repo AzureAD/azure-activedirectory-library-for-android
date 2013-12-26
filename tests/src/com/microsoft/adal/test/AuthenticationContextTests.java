@@ -24,6 +24,7 @@ import android.test.AndroidTestCase;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -155,8 +156,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertTrue("Server response has same correlationId", response.additionalMessage.contains(requestCorrelationId.toString()));        
     }
 
-    
-
     /**
      * if package does not have declaration for activity, it should return false
      * 
@@ -167,6 +166,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchMethodException
      * @throws ClassNotFoundException
      */
+    @SmallTest
     public void testResolveIntent() throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException {
@@ -187,6 +187,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     /**
      * Test throws for different missing arguments
      */
+    @SmallTest
     public void testAcquireTokenNegativeArguments() {
         TestMockContext mockContext = new TestMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext, "authority",
@@ -272,6 +273,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 testEmptyCallback.mException instanceof AuthenticationException);
     }
 
+    @SmallTest
     public void testAcquireToken_userId() throws ClassNotFoundException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException{
         TestMockContext mockContext = new TestMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
@@ -302,6 +304,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertEquals("resource is same", "resource56", resource);        
     }
     
+    @SmallTest
     public void testEmptyRedirect() throws ClassNotFoundException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException {
         TestMockContext mockContext = new TestMockContext(getContext());
@@ -324,6 +327,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertEquals("Redirect uri is same as package", "com.microsoft.adal.testapp", redirect);
     }
 
+    @SmallTest
     public void testPrompt() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, ClassNotFoundException {
         TestMockContext mockContext = new TestMockContext(getContext());
@@ -348,6 +352,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertEquals("Prompt param is same", PromptBehavior.Always, prompt);
     }
 
+    @SmallTest
     public void testExtraParams() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, ClassNotFoundException {
         TestMockContext mockContext = new TestMockContext(getContext());
@@ -409,6 +414,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     /**
      * Test throws for different missing arguments
      */
+    @SmallTest
     public void testAcquireTokenByRefreshTokenNegativeArguments() {
         TestMockContext mockContext = new TestMockContext(getContext());
         final AuthenticationContext contextAuthorityNull = new AuthenticationContext(mockContext,
@@ -509,6 +515,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchMethodException
      * @throws ClassNotFoundException
      */
+    @SmallTest
     public void testAcquireTokenByRefreshTokenPositive() throws IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException {
@@ -572,6 +579,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * 
      * @throws InterruptedException
      */
+    @SmallTest
     public void testAcquireTokenAuthorityMalformed() throws InterruptedException {
         // Malformed url error will come back in callback
         TestMockContext mockContext = new TestMockContext(getContext());
@@ -599,6 +607,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
+    @SmallTest
     public void testAcquireTokenValidateAuthorityReturnsValid() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
@@ -631,6 +640,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
+    @SmallTest
     public void testAcquireTokenValidateAuthorityReturnsInValid() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
@@ -665,6 +675,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
+    @SmallTest
     public void testAcquireTokenWithoutValidation() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
@@ -700,6 +711,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchMethodException
      * @throws ClassNotFoundException
      */
+    @SmallTest
     public void testRefreshTokenWebRequestHasError() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
@@ -745,6 +757,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchMethodException
      * @throws ClassNotFoundException
      */
+    @SmallTest
     public void testRefreshTokenPositive() throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException {
@@ -791,6 +804,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
+    @SmallTest
     public void testAcquireTokenCacheLookup() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
@@ -828,6 +842,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
+    @SmallTest
     public void testAcquireTokenMultiResourceToken_UserId() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
@@ -917,6 +932,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         clearCache(context);
     }
 
+    @SmallTest
     public void testAcquireTokenMultiResource_ADFSIssue() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
         // adfs does not return userid and multiresource token
