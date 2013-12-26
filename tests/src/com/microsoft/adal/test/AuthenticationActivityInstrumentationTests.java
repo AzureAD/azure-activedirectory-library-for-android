@@ -101,6 +101,7 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("Token status", tokenMsg.contains("AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED"));
     }
 
+    @MediumTest
     public void testCorrelationId() throws Exception {
         Log.v(TAG, "Started testing correlationId");
         

@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
+import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -36,8 +37,11 @@ import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IDiscovery;
 import com.microsoft.adal.ITokenCacheStore;
+import com.microsoft.adal.Logger;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
+import com.microsoft.adal.Logger.ILogger;
+import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.test.AuthenticationConstants.UIRequest;
 
 public class AuthenticationContextTests extends AndroidTestCase {
@@ -58,6 +62,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     }
 
     protected void tearDown() throws Exception {
+        Logger.getInstance().setExternalLogger(null);
         super.tearDown();
     }
 
@@ -108,13 +113,16 @@ public class AuthenticationContextTests extends AndroidTestCase {
     }
 
     /**
+     * External call to Service to get real error response.
+     * 
      * Add expired item in cache to try refresh token request. Web Request
-     * should have correlationId in the header.
+     * should have correlationId in the header. 
      * 
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      * @throws InterruptedException 
      */
+    @MediumTest
     public void testCorrelationId_InWebRequest() throws NoSuchFieldException,
             IllegalAccessException, InterruptedException {
         TestMockContext mockContext = new TestMockContext(getContext());
@@ -127,20 +135,23 @@ public class AuthenticationContextTests extends AndroidTestCase {
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         UUID requestCorrelationId = UUID.randomUUID();
-        context.setRequestCorrelationId(requestCorrelationId);
+        
         final CountDownLatch signal = new CountDownLatch(1);
-        final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
-        MockWebRequestHandler mockWebRequest = setMockWebRequest(context, expectedAccessToken);
-
-        context.acquireToken(testActivity, expectedResource, expectedClientId, "redirect",
-                PromptBehavior.Auto, callback);
+        final TestLogResponse response = new TestLogResponse();
+        listenForLogMessage(response, "Refresh token did not return accesstoken.");
+        
+        // Call acquire token with prompt never to not attempt to launch activity
+        context.setRequestCorrelationId(requestCorrelationId);
+        context.acquireToken(new MockActivity(), expectedResource, expectedClientId, "redirect", expectedUser,
+                PromptBehavior.Never, null, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that web request send correct headers
-        assertEquals("Header has correlationId", requestCorrelationId.toString(), mockWebRequest
-                .getRequestHeaders().get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID));        
+        assertTrue("Server response has same correlationId", response.additionalMessage.contains(requestCorrelationId.toString()));        
     }
+
+    
 
     /**
      * if package does not have declaration for activity, it should return false
@@ -663,21 +674,23 @@ public class AuthenticationContextTests extends AndroidTestCase {
         TestMockContext mockContext = new TestMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
         final AuthenticationContext context = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false, mockCache);
-
-        final MockActivity testActivity = new MockActivity();
+                VALID_AUTHORITY, false, mockCache);        
         final CountDownLatch signal = new CountDownLatch(1);
+        final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         webrequest.setReturnResponse(new HttpWebResponse(503, null, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
-
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
+        final TestLogResponse response = new TestLogResponse();
+        listenForLogMessage(response, "Refresh token did not return accesstoken.");
+                
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",PromptBehavior.Never, null,
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result
         assertNotNull("Error is not null", callback.mException);
+        assertTrue("Log message has same webstatus code", response.additionalMessage.contains("503"));
         assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
                 VALID_AUTHORITY, "resource", "clientId", false, "userid")));
         assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
@@ -921,6 +934,25 @@ public class AuthenticationContextTests extends AndroidTestCase {
         clearCache(context);
     }
 
+    private void listenForLogMessage(final TestLogResponse response, final String msg) {
+        Logger.getInstance().setExternalLogger(new ILogger() {
+
+            @Override
+            public void Log(String tag, String message, String additionalMessage, LogLevel level,
+                    ADALError errorCode) {
+
+                if (message == msg) {
+
+                    response.tag = tag;
+                    response.message = message;
+                    response.additionalMessage = additionalMessage;
+                    response.level = level;
+                    response.errorCode = errorCode;
+                }
+            }
+        });
+    }
+    
     private ITokenCacheStore getCacheForRefreshToken() {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         Calendar expiredTime = new GregorianCalendar();

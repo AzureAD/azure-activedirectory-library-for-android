@@ -66,6 +66,12 @@ class AuthenticationRequest implements Serializable {
         mLoginHint = loginhint;
     }
 
+    public AuthenticationRequest(String authority, String resource, String clientid) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = clientid;
+    } 
+    
     public AuthenticationRequest(String authority, String resource, String clientid,
             String redirectUri) {
         mAuthority = authority;

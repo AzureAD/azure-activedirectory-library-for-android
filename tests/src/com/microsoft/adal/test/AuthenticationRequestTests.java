@@ -92,9 +92,10 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         UUID actualId = ReflectionUtils.getterValue(UUID.class, o, "getCorrelationId");
         assertEquals("correlationId is same", correlationId, actualId);
 
+        
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".AuthenticationRequest", "authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Never, "extraQueryPAram56");
+                "loginhint55", PromptBehavior.Never, "extraQueryPAram56", correlationId);
 
         actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
         assertEquals("authority is same", "authority51", actual);
@@ -110,6 +111,8 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         assertEquals("ExtraQueryParams is same", "extraQueryPAram56", actual);
         PromptBehavior actualPrompt = ReflectionUtils.getterValue(PromptBehavior.class, o, "getPrompt");
         assertEquals("PromptBehavior is same", PromptBehavior.Never, actualPrompt);
+        actualId = ReflectionUtils.getterValue(UUID.class, o, "getCorrelationId");
+        assertEquals("correlationId is same", correlationId, actualId);
     }
 
     @SmallTest

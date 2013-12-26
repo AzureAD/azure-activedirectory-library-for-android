@@ -202,7 +202,8 @@ public class AuthenticationContext {
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters, mRequestCorrelationId);
+                clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters,
+                mRequestCorrelationId);
 
         acquireTokenLocal(activity, request, callback);
 
@@ -773,17 +774,27 @@ public class AuthenticationContext {
 
                     @Override
                     public void onSuccess(AuthenticationResult result) {
-                        
+
                         if (useCache) {
                             if (result == null
                                     || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-
+                                Logger.w(
+                                        TAG,
+                                        "Refresh token did not return accesstoken.",
+                                        request.getLogInfo() + " CorrelationId:"
+                                                + result.getCorrelationId() + " ErrorCode:"
+                                                + result.getErrorCode() + " ErrorDescription:"
+                                                + result.getErrorDescription(),
+                                        ADALError.AUTH_FAILED_NO_TOKEN);
                                 // remove item from cache to avoid same usage of
                                 // refresh token in next acquireToken call
                                 removeItemFromCache(refreshItem);
                                 acquireTokenLocal(activity, request, externalCallback);
                             } else {
-                                Log.v(TAG, "Refresh token is finished for " + request.getLogInfo());
+                                Logger.v(
+                                        TAG,
+                                        "Refresh token is finished. Request:"
+                                                + request.getLogInfo());
 
                                 // it replaces multi resource refresh token as
                                 // well with the new one since it is not stored
@@ -798,9 +809,11 @@ public class AuthenticationContext {
 
                         } else {
                             // User is not using cache and explicitly
-                            // calling with refresh token. User should received error code and error description in Authentication result for Oauth errors
+                            // calling with refresh token. User should received
+                            // error code and error description in
+                            // Authentication result for Oauth errors
                             externalCallback.onSuccess(result);
-                        }                       
+                        }
                     }
 
                     @Override
