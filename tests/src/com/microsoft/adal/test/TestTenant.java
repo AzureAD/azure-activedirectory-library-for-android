@@ -1,6 +1,6 @@
 
 package com.microsoft.adal.test;
-
+    
 public enum TestTenant {
     MANAGED("https://login.windows.net/omercantest.onmicrosoft.com",
             "https://omercantest.onmicrosoft.com/AllHandsTry",
@@ -18,7 +18,7 @@ public enum TestTenant {
      * federated ADFS20
      */
     ADFS20FEDERATED("https://login.windows-ppe.net/AdalE2ETenant2.ccsctp.net",
-            "http://arwin8/TokenConsumer", null, "9e6d1c62-3eca-4419-acdd-1226a0e7e662",
+            "http://arwin8/TokenConsumer", null, "05a0ce59-a2c7-4fc5-93ac-f80a75853944",
             "https://login.live.com/", "adaluser@ade2eadfs20.com", "P@ssw0rd"),
     /**
      * ADFS as STS
