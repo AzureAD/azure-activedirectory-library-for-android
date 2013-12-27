@@ -42,7 +42,7 @@ before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 5 # wait xvfb to start
-  - xdpyinfo -display :0 >/dev/null 2>&1 && echo "In use" || echo "Free"
+  - xdpyinfo -display :99 >/dev/null 2>&1 && echo "In use" || echo "Free"
   # create and start emulator
   - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
   - emulator -avd test -no-skin -no-audio &   
