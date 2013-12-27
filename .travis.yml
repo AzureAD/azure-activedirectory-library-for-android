@@ -6,11 +6,6 @@ env:
 
 before_install:
 
-  # Download and configure newer version of maven
-  - wget http://www.us.apache.org/dist/maven/maven-3/3.1.1/binaries/apache-maven-3.1.1-bin.tar.gz
-  - tar -zvxf apache-maven-3.1.1-bin.tar.gz;
-  - export PATH=$PWD/apache-maven-3.1.1/bin:$PATH
-
   # Download the latest android sdk and unzip
   - sudo apt-get update -qq
   - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch > /dev/null; fi
@@ -21,26 +16,28 @@ before_install:
 
   # Install required components.
   - echo y | android update sdk --filter $ANDROID_SDKS,platform-tools,extra-android-support,extra-google-google_play_services --no-ui --force --all
-  - echo y | android update sdk -u -a -t 3
+  - echo y | android update sdk --filter platform-tools,build-tools-19.0.0 --no-ui -a
+  - echo y | android update sdk --filter sysimg-19 --no-ui -a
+  - echo y | android update sdk --filter extra-android-support --no-ui -a
+  - echo y | android update sdk --filter extra-google-google_play_services --no-ui -a
 
-  # Checkout maven-android-sdk-deployer
-  - git clone git://github.com/mosabua/maven-android-sdk-deployer.git
+  # setup of appcompat library
+  - cp -r ${ANDROID_HOME}/extras/android/support/v7/appcompat ..
+  - android update lib-project -p ../appcompat --target android-19
 
-  # Install android maven repository
-  - cd $PWD/maven-android-sdk-deployer/platforms/$ANDROID_TARGET
-  - mvn  install -N --quiet
-  - cd -
+  # setup of google play services library
+  - cp -r ${ANDROID_HOME}/extras/google/google_play_services/libproject/google-play-services_lib ..
+  - android update lib-project -p ../google-play-services_lib --target android-19
 
-  # Install locally compatibility-v4
-  - cd $PWD/maven-android-sdk-deployer/extras/compatibility-v4
-  - mvn install -N --quiet
-  - cd -
-    
-install:
-  - mvn install -DskipTests=true
-   
+  # setup main and testproject
+  - android update lib-project -p androidutils-lib --target android-19
+  - android update test-project -p androidutils-tests -m androidutils-lib
+
+  # create and start emulator
+  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-audio -no-window &   
 # Create and start emulator
-  - echo no | android create avd --force -n test -t android-18 --abi armeabi-v7a
+  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
   - emulator -avd test -no-skin -no-audio -no-window &
 
 before_script:
