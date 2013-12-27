@@ -1,4 +1,3 @@
-
 package com.microsoft.adal.test;
 
 import java.util.Locale;
@@ -37,7 +36,10 @@ import com.microsoft.adal.testapp.R;
 public class AuthenticationActivityInstrumentationTests extends
         ActivityInstrumentationTestCase2<MainActivity> {
 
-    private static final int KEY_PAUSE_SLEEP_TIME = 500;
+      /**
+     * Emulator needs more sleep time than 500ms
+     */
+    private static final int KEY_PAUSE_SLEEP_TIME = 1500;
 
     private static final int ACTIVITY_WAIT_TIMEOUT = 5000;
 
@@ -349,11 +351,19 @@ public class AuthenticationActivityInstrumentationTests extends
             String password) throws InterruptedException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
         // Get Webview to enter credentials for testing
+        if(startedActivity == null){
+            Assert.fail("startedActivity is null at enterCredentials");
+        }
+        
         WebView webview = (WebView)startedActivity.findViewById(com.microsoft.adal.R.id.webView1);
         assertNotNull("Webview is not null", webview);
         webview.requestFocus();
 
         String page = getLoginPage(startedActivity);
+         if(page == null || page.isEmpty()){
+            Assert.fail("Page does not have login page");
+        }
+        
         if (!page.contains(username)) {
             Log.v(TAG, "Page does not have this username");
             // Send username after sleeping to wait for the focus on the field           
@@ -442,7 +452,11 @@ public class AuthenticationActivityInstrumentationTests extends
         int waitcount = 0;
         Log.v(TAG, "waitUntil started");
         while (waitcount < timeOut) {
-            Log.v(TAG, "waiting...");
+              
+            if(waitcount % 40 == 0){
+                Log.v(TAG, "waiting...");
+            }
+            
             if (item.hasCondition()) {
                 break;
             }
