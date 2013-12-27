@@ -5,6 +5,8 @@ import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import junit.framework.Assert;
+
 import android.app.Instrumentation.ActivityMonitor;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
@@ -37,7 +39,10 @@ import com.microsoft.adal.testapp.R;
 public class AuthenticationActivityInstrumentationTests extends
         ActivityInstrumentationTestCase2<MainActivity> {
 
-    private static final int KEY_PAUSE_SLEEP_TIME = 500;
+    /**
+     * Emulator needs more sleep time than 500ms
+     */
+    private static final int KEY_PAUSE_SLEEP_TIME = 1500;
 
     private static final int ACTIVITY_WAIT_TIMEOUT = 5000;
 
@@ -297,8 +302,6 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.v(TAG, "Entering credentials to login page");
         enterCredentials(federated, federatedPageUrl, startedActivity, username, password);
 
-        
-
         // wait for the page to set result
         Log.v(TAG, "Wait for the page to set the result");
 
@@ -349,11 +352,18 @@ public class AuthenticationActivityInstrumentationTests extends
             String password) throws InterruptedException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
         // Get Webview to enter credentials for testing
+        if(startedActivity == null){
+            Assert.fail("startedActivity is null at enterCredentials");
+        }
         WebView webview = (WebView)startedActivity.findViewById(com.microsoft.adal.R.id.webView1);
         assertNotNull("Webview is not null", webview);
         webview.requestFocus();
 
         String page = getLoginPage(startedActivity);
+        if(page == null || page.isEmpty()){
+            Assert.fail("Page does not have login page");
+        }
+        
         if (!page.contains(username)) {
             Log.v(TAG, "Page does not have this username");
             // Send username after sleeping to wait for the focus on the field           
@@ -365,6 +375,7 @@ public class AuthenticationActivityInstrumentationTests extends
         }
 
         pressKey(KeyEvent.KEYCODE_TAB);
+        
         // After pressing tab key, page will redirect to federated login page for federated account
         if (waitForRedirect) {
             // federation page redirects to login page
@@ -442,7 +453,11 @@ public class AuthenticationActivityInstrumentationTests extends
         int waitcount = 0;
         Log.v(TAG, "waitUntil started");
         while (waitcount < timeOut) {
-            Log.v(TAG, "waiting...");
+            
+            if(waitcount % 40 == 0){
+                Log.v(TAG, "waiting...");
+            }
+            
             if (item.hasCondition()) {
                 break;
             }
