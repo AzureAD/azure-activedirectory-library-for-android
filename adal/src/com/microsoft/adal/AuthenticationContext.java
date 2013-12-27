@@ -393,7 +393,7 @@ public class AuthenticationContext {
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
                     String errMessage = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
-                    Logger.v(TAG, "Error code from webview:" + errCode + " for requestId: "
+                    Logger.v(TAG, "Error info:" + errCode + " " + errMessage + " for requestId: "
                             + requestId);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
                             ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage));
@@ -415,22 +415,22 @@ public class AuthenticationContext {
 
                     } else {
                         Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
-                        Logger.v(TAG, "Processing url for token");
+                        Logger.v(TAG, "Processing url for token. " + authenticationRequest.getLogInfo());
 
                         oauthRequest.getToken(endingUrl,
                                 new AuthenticationCallback<AuthenticationResult>() {
 
                                     @Override
                                     public void onSuccess(AuthenticationResult result) {
-                                        Logger.v(TAG, "OnActivityResult processed the result");
+                                        Logger.v(TAG, "OnActivityResult processed the result. " + authenticationRequest.getLogInfo());
                                         if(result != null && !StringExtensions.IsNullOrBlank(result.getAccessToken())){
-                                            Logger.v(TAG, "OnActivityResult is setting the token to cache");
+                                            Logger.v(TAG, "OnActivityResult is setting the token to cache. " + authenticationRequest.getLogInfo());
                                             setItemToCache(authenticationRequest, result);
                                         }
                                         
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
-                                            Logger.v(TAG, "Sending result to callback");
+                                            Logger.v(TAG, "Sending result to callback. " + authenticationRequest.getLogInfo());
                                             waitingRequest.mDelagete.onSuccess(result);
                                         }
                                         removeWaitingRequest(requestId);
@@ -440,7 +440,7 @@ public class AuthenticationContext {
                                     public void onError(Exception exc) {
                                         Logger.e(
                                                 TAG,
-                                                "Error in processing code to get token",
+                                                "Error in processing code to get token. " + authenticationRequest.getLogInfo(),
                                                 ExceptionExtensions.getExceptionMessage(exc),
                                                 ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
                                                 exc);
@@ -807,10 +807,7 @@ public class AuthenticationContext {
                                 Logger.w(
                                         TAG,
                                         "Refresh token did not return accesstoken.",
-                                        request.getLogInfo() + " CorrelationId:"
-                                                + result.getCorrelationId() + " ErrorCode:"
-                                                + result.getErrorCode() + " ErrorDescription:"
-                                                + result.getErrorDescription(),
+                                        request.getLogInfo() + result.getErrorLogInfo(),
                                         ADALError.AUTH_FAILED_NO_TOKEN);
                                 
                                 // remove item from cache to avoid same usage of

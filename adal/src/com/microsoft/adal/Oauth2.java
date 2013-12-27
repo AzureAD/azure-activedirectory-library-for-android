@@ -155,7 +155,7 @@ class Oauth2 {
 
             Logger.v(
                     TAG,
-                    "Oauth error:" + response.get(AuthenticationConstants.OAuth2.ERROR)
+                    "OAuth2 error:" + response.get(AuthenticationConstants.OAuth2.ERROR)
                             + " Description:"
                             + response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION)
                             + "CorrelationId:" + correlationId);

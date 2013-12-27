@@ -386,9 +386,8 @@ public class AuthenticationActivityInstrumentationTests extends
         sleepUntilLoginDisplays(startedActivity);
 
         Log.v(TAG, "Entering credentials to login page");
+        assertTrue("Activity has login page", hasLoginPage(getLoginPage(startedActivity)));
         enterCredentials(federated, federatedPageUrl, startedActivity, username, password);
-
-        
 
         // wait for the page to set result
         Log.v(TAG, "Wait for the page to set the result");
