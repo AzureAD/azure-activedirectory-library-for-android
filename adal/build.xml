@@ -39,7 +39,7 @@
 
     <!-- The project.properties file is created and updated by the 'android'
          tool, as well as ADT.
-
+/Users/findik/Codespace/azure-activedirectory-library-for-android/adal/build.xml
          This contains project specific properties such as project target, and library
          dependencies. Lower level build properties are stored in ant.properties
          (or in .classpath for Eclipse projects).
