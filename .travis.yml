@@ -1,25 +1,59 @@
 language: java
 jdk: oraclejdk7
+env:
+    matrix:
+      - ANDROID_SDKS=android-19 ANDROID_TARGET=android-19
+
 before_install:
-    - mvn -v
-    - sudo apt-get update -qq
-    - sudo apt-get install -qq libstdc++6:i386 lib32z1
-    - export COMPONENTS=build-tools-19.0.0,android-18,addon-google_apis-google-18
-    - curl -L https://raw.github.com/embarkmobile/android-sdk-installer/version-1/android-sdk-installer | bash /dev/stdin --install=$COMPONENTS
-    - source ~/.android-sdk-installer/env
-    - git clone https://github.com/mosabua/maven-android-sdk-deployer.git
-    - cd maven-android-sdk-deployer
-    - mvn install -P 4.3
-    - cd ..
+
+  # Download and configure newer version of maven
+  - wget http://www.us.apache.org/dist/maven/maven-3/3.1.1/binaries/apache-maven-3.1.1-bin.tar.gz
+  - tar -zvxf apache-maven-3.1.1-bin.tar.gz;
+  - export PATH=$PWD/apache-maven-3.1.1/bin:$PATH
+
+  # Download the latest android sdk and unzip
+  - sudo apt-get update -qq
+  - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch > /dev/null; fi
+  - wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
+  - tar -zxf android-sdk_r22.3-linux.tgz
+  - export ANDROID_HOME=$PWD/android-sdk-linux
+  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
+
+  # Install required components.
+  - echo y | android update sdk --filter $ANDROID_SDKS,platform-tools,extra-android-support,extra-google-google_play_services --no-ui --force --all
+  - echo y | android update sdk -u -a -t 3
+
+  # Checkout maven-android-sdk-deployer
+  - git clone git://github.com/mosabua/maven-android-sdk-deployer.git
+
+  # Install android maven repository
+  - cd $PWD/maven-android-sdk-deployer/platforms/$ANDROID_TARGET
+  - mvn  install -N --quiet
+  - cd -
+
+  # Install locally compatibility-v4
+  - cd $PWD/maven-android-sdk-deployer/extras/compatibility-v4
+  - mvn install -N --quiet
+  - cd -
     
 install:
-    - mvn install -DskipTests=true
+  - mvn install -DskipTests=true
    
 # Create and start emulator
-    - echo no | android create avd --force -n test -t android-18 --abi armeabi-v7a
-    - emulator -avd test -no-skin -no-audio -no-window &
+  - echo no | android create avd --force -n test -t android-18 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-audio -no-window &
 
 before_script:
-    - wait_for_emulator
+  - wait_for_emulator
 
-script: mvn test cobertura:cobertura coveralls:cobertura -B -Dandroid.device=test
+script: 
+  - cd $PWD/adal
+  - ant clean debug
+  - cd -
+  - cd $PWD/tests
+  - ant clean emma debug install test
+  - adb shell am instrument -e coverage true -w com.microsoft.adal.test/android.test.InstrumentationTestRunner
+  - adb pull /data/data/com.microsoft.adal.test/files/coverage.ec .
+  #- java -cp $ANDROID_HOME/tools/lib/emma.jar emma report -r html -in bin/coverage.em,coverage.ec -sp ../androidutils-lib/src/
+  - java -cp tools/emmacoveralls.jar emma report -r coveralls -in bin/coverage.em,coverage.ec -sp ../adal/src/ -Dreport.coveralls.service.jobid=${TRAVIS_JOB_ID} -Dreport.coveralls.service.name=travis-ci -Dreport.coveralls.repotoken=AtIrNwy3mURM8Ctw08fTywQkGb3ZWTIqK
+  - curl --form json_file=@coverage.json https://coveralls.io/api/v1/jobs  
