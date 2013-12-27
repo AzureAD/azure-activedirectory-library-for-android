@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.test.ActivityUnitTestCase;
 import android.test.RenamingDelegatingContext;
 import android.test.UiThreadTest;
@@ -26,6 +27,8 @@ import com.microsoft.adal.R;
  * @author omercan
  */
 public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<AuthenticationActivity> {
+
+    private static final int TEST_REQUEST_ID = 123;
 
     private int buttonId;
 
@@ -55,7 +58,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
 
     private Object getTestRequest() throws ClassNotFoundException, NoSuchMethodException,
             IllegalArgumentException, InstantiationException, IllegalAccessException,
-            InvocationTargetException {
+            InvocationTargetException, NoSuchFieldException {
 
         Class<?> c = Class.forName("com.microsoft.adal.AuthenticationRequest");
 
@@ -66,6 +69,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         constructor.setAccessible(true);
         Object o = constructor.newInstance("authority", "client", "resource", "redirect",
                 "loginhint");
+        ReflectionUtils.setFieldValue(o, "mRequestId", TEST_REQUEST_ID);
 
         return o;
     }

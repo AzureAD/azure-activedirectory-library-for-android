@@ -68,7 +68,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testConstructor() {
         String authority = "authority";
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false);
-        assertSame(authority, context.getAuthority());
+        assertEquals(authority, context.getAuthority());
+        
+        authority = "https://github.com/MSOpenTech/";
+        context = new AuthenticationContext(getContext(), authority, false);
+        assertEquals("https://github.com/MSOpenTech", context.getAuthority());
     }
 
     public void testConstructorNoCache() {
@@ -237,11 +241,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
         String loginHint = (String)ReflectionUtils.getFieldValue(request, "mLoginHint");
         assertEquals("login hint same as userid", "userid123", loginHint);
         String client = (String)ReflectionUtils.getFieldValue(request, "mClientId");
-        assertEquals("client hint same as userid", "clientId345", client);
+        assertEquals("client is same", "clientId345", client);
         String authority = (String)ReflectionUtils.getFieldValue(request, "mAuthority");
-        assertEquals("client hint same as userid", "https://login.windows.net/common", authority);
+        assertEquals("authority is same", "https://login.windows.net/common", authority);
         String resource = (String)ReflectionUtils.getFieldValue(request, "mResource");
-        assertEquals("client hint same as userid", "resource56", resource);        
+        assertEquals("resource is same", "resource56", resource);        
     }
     
     public void testEmptyRedirect() throws ClassNotFoundException, IllegalArgumentException,

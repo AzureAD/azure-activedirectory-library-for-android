@@ -15,8 +15,6 @@ class AuthenticationRequest implements Serializable {
 
     private int mRequestId = 0;
 
-    private String mCode = null;
-
     private String mAuthority = null;
 
     private String mRedirectUri = null;
@@ -24,8 +22,6 @@ class AuthenticationRequest implements Serializable {
     private String mResource = null;
 
     private String mClientId = null;
-
-    private String mResponseType = null;
 
     private String mLoginHint = null;
 
@@ -83,76 +79,32 @@ class AuthenticationRequest implements Serializable {
         mResource = resource;
     }
 
-    public String getCode() {
-        return mCode;
-    }
-
-    public void setCode(String mCode) {
-        this.mCode = mCode;
-    }
-
     public String getAuthority() {
         return mAuthority;
-    }
-
-    public void setAuthority(String mAuthority) {
-        this.mAuthority = mAuthority;
     }
 
     public String getRedirectUri() {
         return mRedirectUri;
     }
 
-    public void setRedirectUri(String mRedirectUri) {
-        this.mRedirectUri = mRedirectUri;
-    }
-
     public String getResource() {
         return mResource;
-    }
-
-    public void setResource(String mResource) {
-        this.mResource = mResource;
     }
 
     public String getClientId() {
         return mClientId;
     }
 
-    public void setClientId(String mClientId) {
-        this.mClientId = mClientId;
-    }
-
-    public String getResponseType() {
-        return mResponseType;
-    }
-
-    public void setResponseType(String mResponseType) {
-        this.mResponseType = mResponseType;
-    }
-
     public String getLoginHint() {
         return mLoginHint;
-    }
-
-    public void setLoginHint(String mLoginHint) {
-        this.mLoginHint = mLoginHint;
     }
 
     public UUID getCorrelationId() {
         return this.mCorrelationId;
     }
 
-    public void setCorrelationId(UUID val) {
-        this.mCorrelationId = val;
-    }
-
     public String getExtraQueryParamsAuthentication() {
         return mExtraQueryParamsAuthentication;
-    }
-
-    public void setExtraQueryParamsAuthentication(String mExtraQueryParamsAuthentication) {
-        this.mExtraQueryParamsAuthentication = mExtraQueryParamsAuthentication;
     }
 
     public String getLogInfo() {
