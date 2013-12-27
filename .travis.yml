@@ -41,7 +41,8 @@ before_install:
   - emulator -avd test -no-skin -no-audio -no-window &
 
 before_script:
-  - wait_for_emulator
+  - chmod +x wait_for_emulator.sh
+  - bash wait_for_emulator.sh
 
 script: 
   - cd $PWD/adal
