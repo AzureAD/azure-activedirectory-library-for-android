@@ -31,7 +31,8 @@ before_install:
 
   # setup main and testproject
   - android update lib-project -p adal --target android-19
-  - android update test-project -p samples/testapp -m tests --target android-19
+  - android update project -p samples/testapp --target android-19
+  - android update test-project -p samples/testapp -m tests
 
   # create and start emulator
   - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
