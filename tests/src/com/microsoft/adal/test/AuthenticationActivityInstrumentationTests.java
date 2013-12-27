@@ -351,18 +351,15 @@ public class AuthenticationActivityInstrumentationTests extends
             String password) throws InterruptedException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
         // Get Webview to enter credentials for testing
-        if(startedActivity == null){
-            Assert.fail("startedActivity is null at enterCredentials");
-        }
+        assertNotNull("startedActivity is null at enterCredentials", startedActivity);
+
         
         WebView webview = (WebView)startedActivity.findViewById(com.microsoft.adal.R.id.webView1);
         assertNotNull("Webview is not null", webview);
         webview.requestFocus();
 
         String page = getLoginPage(startedActivity);
-         if(page == null || page.isEmpty()){
-            Assert.fail("Page does not have login page");
-        }
+        assertFalse("Page does not have login page", page == null || page.isEmpty());
         
         if (!page.contains(username)) {
             Log.v(TAG, "Page does not have this username");
