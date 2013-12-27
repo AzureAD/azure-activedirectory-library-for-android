@@ -34,14 +34,23 @@ before_install:
   - android update project -p samples/testapp --target android-19
   - android update test-project -p samples/testapp -m tests
 
-  # create and start emulator
-  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
-  - emulator -avd test -no-skin -no-audio -no-window &   
+  
 
 before_script:
+  # setup display to run interactive tests http://www.xfree86.org/4.0.1/Xvfb.1.html
+  # browser is also possible to setup http://about.travis-ci.org/docs/user/gui-and-headless-browsers/
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # wait xvfb to start
+  
+  # create and start emulator
+  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-boot-anim -no-audio &   
+  
   - chmod +x wait_for_emulator.sh
   - bash wait_for_emulator.sh
-
+  
+  
 script: 
   - cd $PWD/adal
   - ant clean debug
