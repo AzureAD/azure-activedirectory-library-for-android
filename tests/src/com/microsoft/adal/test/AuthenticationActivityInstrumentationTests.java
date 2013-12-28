@@ -2,6 +2,7 @@
 package com.microsoft.adal.test;
 
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -57,7 +58,7 @@ public class AuthenticationActivityInstrumentationTests extends
      */
     private static int PAGE_LOAD_TIMEOUT = 120;
 
-    private static final int LOGIN_DISPLAY_TIME_OUT = PAGE_LOAD_TIMEOUT * 5;
+    private static final int LOGIN_DISPLAY_TIME_OUT = PAGE_LOAD_TIMEOUT * 10;
 
     private static final int PAGE_STATUS_SET_TIME_OUT = PAGE_LOAD_TIMEOUT * 3;
 
@@ -116,7 +117,67 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.v(TAG, "Status:" + tokenMsg);
         assertTrue("Token status", tokenMsg.contains("AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED"));
     }
-    
+
+    @MediumTest
+    public void testCorrelationId() throws Exception {
+        Log.v(TAG, "Started testing correlationId");
+        
+        // Get token to test refresh token request with correlationId
+        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, false, false,
+                null);
+        
+        UUID correlationId = UUID.randomUUID();
+        activity.setRequestCorrelationId(correlationId);
+        assertNotNull("Has token before checking correlationid", activity.getResult());
+        assertNotNull("Has token before checking correlationid", activity.getResult().getAccessToken());
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        
+        // Make token expired in the instrumentation App
+        clickExpire();
+
+        // Modify resource to create a failure for refresh token request. acquireToken will try to refresh the token if it is expired.
+        activity.getTestAppHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                final EditText mClient, mPrompt;
+                mClient = (EditText)activity.findViewById(R.id.editClientid);
+                mPrompt = (EditText)activity.findViewById(R.id.editPrompt);
+                mClient.setText("invalid");
+                
+                // We dont want to try Webview to launch
+                mPrompt.setText(PromptBehavior.Never.name());
+            }
+        });
+        
+        clickRefresh();
+
+        // waiting for the page to set result
+        Log.v(TAG, "Wait for the page to set the result");
+
+        waitUntil(PAGE_STATUS_SET_TIME_OUT, new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg != MainActivity.GETTING_TOKEN;
+            }
+        });
+
+        Log.v(TAG, "Finished waiting for the result");
+        
+        String tokenMsg = (String)textViewStatus.getText();
+        Log.v(TAG, "acquireTokenExpired Status:" + tokenMsg);
+        AuthenticationResult result = activity.getResult();
+        assertNotNull("Result is not null", result);
+        assertEquals("Result status is failed", AuthenticationResult.AuthenticationStatus.Failed,
+                result.getStatus());
+        assertEquals("CorrelationId in response same as in request header", correlationId,
+                result.getCorrelationId());
+        assertNull("No token", activity.getResult().getAccessToken());
+        
+        Log.v(TAG, "Finished testing correlationId");
+    }
+
     /**
      * Sometimes, it could not post the form. Enter key event is not working
      * properly.
@@ -125,7 +186,8 @@ public class AuthenticationActivityInstrumentationTests extends
      */
     @LargeTest
     public void testAcquireTokenManaged() throws Exception {
-
+    
+        
         // Not validating
         acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, false, false,
                 null);
@@ -136,8 +198,37 @@ public class AuthenticationActivityInstrumentationTests extends
         // use existing token
         acquireTokenByRefreshToken();
 
-        // verify with webservice
+        // verify with webservice call
         verifyToken();
+
+        verifyRefreshRequest();       
+    }
+
+    private void verifyRefreshRequest() throws IllegalArgumentException, InterruptedException,
+            NoSuchFieldException, IllegalAccessException {
+
+        Log.v(TAG, "Started to test refresh token request");
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        clickExpire();
+        clickGetToken();
+        String startText = (String)textViewStatus.getText();
+
+        // wait for the page to set result
+        Log.v(TAG, "Wait for the page to set the result. Initial status:" + startText);
+
+        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg != MainActivity.GETTING_TOKEN;
+            }
+        });
+
+        String tokenMsg = (String)textViewStatus.getText();
+        Log.v(TAG, "acquireTokenExpired Status:" + tokenMsg);
+        assertTrue("Token is received", tokenMsg.contains(MainActivity.PASSED));
+        Log.v(TAG, "Finished to test refresh token request");
     }
 
     /**
@@ -300,6 +391,7 @@ public class AuthenticationActivityInstrumentationTests extends
         sleepUntilLoginDisplays(startedActivity);
 
         Log.v(TAG, "Entering credentials to login page");
+        assertTrue("Activity has login page", hasLoginPage(getLoginPage(startedActivity)));
         enterCredentials(federated, federatedPageUrl, startedActivity, username, password);
 
         // wait for the page to set result

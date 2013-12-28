@@ -4,6 +4,7 @@ package com.microsoft.adal.test;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.UUID;
 
 import com.microsoft.adal.HttpWebRequestCallback;
 import com.microsoft.adal.HttpWebResponse;
@@ -19,6 +20,8 @@ class MockWebRequestHandler implements IWebRequestHandler {
     private URL mRequestUrl;
 
     private String mRequestContent;
+
+    private UUID mCorrelationId;
 
     private HashMap<String, String> mRequestHeaders;
 
@@ -88,5 +91,10 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     public String getRequestContent() {
         return mRequestContent;
+    }
+
+    @Override
+    public void setRequestCorrelationId(UUID correlationId) {
+        mCorrelationId = correlationId;
     }
 }
