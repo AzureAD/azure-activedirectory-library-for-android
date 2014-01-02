@@ -42,7 +42,7 @@ public class AuthenticationActivityInstrumentationTests extends
     /**
      * Emulator needs more sleep time than 500ms
      */
-    private static final int KEY_PAUSE_SLEEP_TIME = 1500;
+    private static final int KEY_PAUSE_SLEEP_TIME = 2000;
 
     private static final int ACTIVITY_WAIT_TIMEOUT = 5000;
 
@@ -60,6 +60,12 @@ public class AuthenticationActivityInstrumentationTests extends
     private static final int LOGIN_DISPLAY_TIME_OUT = PAGE_LOAD_TIMEOUT * 5;
 
     private static final int PAGE_STATUS_SET_TIME_OUT = PAGE_LOAD_TIMEOUT * 3;
+
+    private static final int VERIFY_TIMEOUT = PAGE_LOAD_TIMEOUT * 10; // it
+                                                                      // depends
+                                                                      // on
+                                                                      // external
+                                                                      // site
 
     public AuthenticationActivityInstrumentationTests() {
         super(MainActivity.class);
@@ -127,16 +133,20 @@ public class AuthenticationActivityInstrumentationTests extends
     public void testAcquireTokenManaged() throws Exception {
 
         // Not validating
+        Log.v(TAG, "testing acquireTokenAfterReset for managed without validation");
         acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, false, false,
                 null);
 
         // Validation set to true
+        Log.v(TAG, "testing acquireTokenAfterReset for managed with validation");
         acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, true, false, null);
 
         // use existing token
+        Log.v(TAG, "testing acquireTokenByRefreshToken for managed");
         acquireTokenByRefreshToken();
 
         // verify with webservice
+        Log.v(TAG, "verifying token for managed");
         verifyToken();
     }
 
@@ -155,7 +165,7 @@ public class AuthenticationActivityInstrumentationTests extends
         // verify existing token at the target application
         clickVerify();
 
-        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
+        waitUntil(VERIFY_TIMEOUT, new ResponseVerifier() {
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
@@ -446,6 +456,7 @@ public class AuthenticationActivityInstrumentationTests extends
         });
 
         Log.v(TAG, "sleepUntilLoginDisplays end");
+        assertTrue(hasLoginPage(getLoginPage(startedActivity)));
     }
 
     private void waitUntil(int timeOut, ResponseVerifier item) throws InterruptedException,
