@@ -86,6 +86,7 @@ public class AuthenticationActivityInstrumentationTests extends
     @Override
     protected void tearDown() throws Exception {
         finishActivity();
+        activity.setLoggerCallback(null);
         super.tearDown();
     }
 
