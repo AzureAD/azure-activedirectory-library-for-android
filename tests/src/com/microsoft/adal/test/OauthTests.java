@@ -301,7 +301,7 @@ public class OauthTests extends AndroidTestCase {
         // Verify that callback can receive this error
         assertNotNull("callback receives error", testResult.mException);
         assertTrue("callback has status info", ((AuthenticationException)testResult.mException)
-                .getDetails().contains("503"));
+                .getMessage().contains("503"));
         assertNull("Result is null", testResult.mResult);
     }
 

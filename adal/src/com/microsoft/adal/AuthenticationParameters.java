@@ -168,10 +168,6 @@ public class AuthenticationParameters {
     static ArrayList<String> splitWithQuotes(String input, char delimiter) {
         ArrayList<String> items = new ArrayList<String>();
 
-        if (StringExtensions.IsNullOrBlank(input)) {
-            return items;
-        }
-
         int startIndex = 0;
         boolean insideString = false;
         String item;

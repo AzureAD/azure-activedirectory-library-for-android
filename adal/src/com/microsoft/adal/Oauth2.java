@@ -330,7 +330,8 @@ class Oauth2 {
                                                     + result.getErrorCode() + " "
                                                     + result.getErrorDescription());
                                     authenticationCallback.onError(new AuthenticationException(
-                                            result.getErrorCode(), result.getErrorDescription()));
+                                            ADALError.AUTH_REFRESH_FAILED, result.getErrorCode()
+                                                    + " " + result.getErrorDescription()));
                                 }
                             }
                         }
@@ -396,8 +397,9 @@ class Oauth2 {
                                 ADALError.AUTH_FAILED_NO_TOKEN));
                     }
                 } else {
-                    authenticationCallback.onError(new AuthenticationException(result
-                            .getErrorCode(), result.getErrorDescription()));
+                    authenticationCallback.onError(new AuthenticationException(
+                            ADALError.AUTH_FAILED_NO_TOKEN, result.getErrorCode() + " "
+                                    + result.getErrorDescription()));
                 }
 
             } else {
@@ -470,7 +472,8 @@ class Oauth2 {
                                 } else {
                                     // did not get token
                                     authenticationCallback.onError(new AuthenticationException(
-                                            result.getErrorCode(), result.getErrorDescription()));
+                                            ADALError.AUTH_FAILED_NO_TOKEN, result.getErrorCode()
+                                                    + " " + result.getErrorDescription()));
                                 }
                             }
                         }

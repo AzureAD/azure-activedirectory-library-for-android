@@ -116,7 +116,7 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.v(TAG, "Status:" + tokenMsg);
         assertTrue("Token status", tokenMsg.contains("AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED"));
     }
-    
+
     /**
      * Sometimes, it could not post the form. Enter key event is not working
      * properly.
@@ -348,35 +348,35 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("Token is received", tokenMsg.contains(MainActivity.PASSED));
     }
 
-    private void enterCredentials(boolean waitForRedirect, String redirectUrl, AuthenticationActivity startedActivity, String username,
-            String password) throws InterruptedException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+    private void enterCredentials(boolean waitForRedirect, String redirectUrl,
+            AuthenticationActivity startedActivity, String username, String password)
+            throws InterruptedException, IllegalArgumentException, NoSuchFieldException,
+            IllegalAccessException {
 
         // Get Webview to enter credentials for testing
-        if(startedActivity == null){
-            Assert.fail("startedActivity is null at enterCredentials");
-        }
+        assertNotNull("startedActivity is null at enterCredentials", startedActivity);
+
         WebView webview = (WebView)startedActivity.findViewById(com.microsoft.adal.R.id.webView1);
         assertNotNull("Webview is not null", webview);
         webview.requestFocus();
 
         String page = getLoginPage(startedActivity);
-        if(page == null || page.isEmpty()){
-            Assert.fail("Page does not have login page");
-        }
-        
+        assertFalse("Page does not have login page", page == null || page.isEmpty());
+
         if (!page.contains(username)) {
             Log.v(TAG, "Page does not have this username");
-            // Send username after sleeping to wait for the focus on the field           
+            // Send username after sleeping to wait for the focus on the field
             Thread.sleep(KEY_PAUSE_SLEEP_TIME);
             getInstrumentation().sendStringSync(username);
-            // Redirect page tracking can 
-        }else{
+            // Redirect page tracking can
+        } else {
             Log.v(TAG, "Page has this username");
         }
 
         pressKey(KeyEvent.KEYCODE_TAB);
-        
-        // After pressing tab key, page will redirect to federated login page for federated account
+
+        // After pressing tab key, page will redirect to federated login page
+        // for federated account
         if (waitForRedirect) {
             // federation page redirects to login page
             Log.v(TAG, "Sleep for redirect");
@@ -384,19 +384,19 @@ public class AuthenticationActivityInstrumentationTests extends
 
             Log.v(TAG, "Sleeping until it gets login page");
             sleepUntilLoginDisplays(startedActivity);
-            
+
             Log.v(TAG, "Entering credentials to login page");
             enterCredentials(false, null, startedActivity, username, password);
         }
-        
+
         getInstrumentation().sendStringSync(password);
-        
+
         // Enter event sometimes is failing to submit form.
         pressKey(KeyEvent.KEYCODE_ENTER);
         Log.v(TAG, "Credentials are passed");
     }
-    
-    private void pressKey(int keycode) throws InterruptedException{
+
+    private void pressKey(int keycode) throws InterruptedException {
         // It needs sleep time for simulating key press
         Thread.sleep(KEY_PAUSE_SLEEP_TIME);
         getInstrumentation().sendCharacterSync(keycode);
@@ -453,11 +453,11 @@ public class AuthenticationActivityInstrumentationTests extends
         int waitcount = 0;
         Log.v(TAG, "waitUntil started");
         while (waitcount < timeOut) {
-            
-            if(waitcount % 40 == 0){
+
+            if (waitcount % 40 == 0) {
                 Log.v(TAG, "waiting...");
             }
-            
+
             if (item.hasCondition()) {
                 break;
             }
