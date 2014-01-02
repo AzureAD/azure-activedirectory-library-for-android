@@ -412,7 +412,8 @@ public class AuthenticationActivity extends Activity {
                     "", ADALError.ERROR_WEBVIEW);
             reportContent(view);
             Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, errorCode);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
+                    "Error Code:" + errorCode);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
                     description);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
@@ -429,10 +430,10 @@ public class AuthenticationActivity extends Activity {
             Logger.e(TAG, "Received ssl error", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
 
             Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
-                    ERROR_FAILED_SSL_HANDSHAKE);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Code:"
+                    + ERROR_FAILED_SSL_HANDSHAKE);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
-                    error.toString());
+        error.toString());
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);

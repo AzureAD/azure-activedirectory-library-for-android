@@ -159,4 +159,9 @@ public class AuthenticationResult implements Serializable {
     public UUID getCorrelationId() {
         return mCorrelationId;
     }
+
+    public String getErrorLogInfo() {
+        return " CorrelationId:" + getCorrelationId() + " ErrorCode:" + getErrorCode()
+                + " ErrorDescription:" + getErrorDescription();
+    }
 }
