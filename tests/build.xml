@@ -68,6 +68,110 @@
     -->
     <import file="custom_rules.xml" optional="true" />
 
+     <!-- Overriding test target to configure Emma XML output and android-junit-report test runner -->
+    <target name="test" depends="-test-project-check"
+                description="Runs tests from the package defined in test.package property">
+        <property name="test.runner" value="com.zutubi.android.junitreport.JUnitReportTestRunner" />
+
+        <if condition="${project.is.test}">
+        <then>
+            <property name="tested.project.absolute.dir" location="${tested.project.dir}" />
+
+            <!-- Application package of the tested project extracted from its manifest file -->
+            <xpath input="${tested.project.absolute.dir}/AndroidManifest.xml"
+                    expression="/manifest/@package" output="tested.project.app.package" />
+
+            <if condition="${emma.enabled}">
+                <then>
+                    <getprojectpaths projectPath="${tested.project.absolute.dir}"
+                            binOut="tested.project.out.absolute.dir"
+                            srcOut="tested.project.source.absolute.dir" />
+
+                    <getlibpath projectPath="${tested.project.absolute.dir}"
+                            libraryFolderPathOut="tested.project.lib.source.path"
+                            leaf="@{source.dir}" />
+
+                </then>
+            </if>
+
+        </then>
+        <else>
+            <!-- this is a test app, the tested package is the app's own package -->
+            <property name="tested.project.app.package" value="${project.app.package}" />
+
+            <if condition="${emma.enabled}">
+                <then>
+                    <property name="tested.project.out.absolute.dir" value="${out.absolute.dir}" />
+                    <property name="tested.project.source.absolute.dir" value="${source.absolute.dir}" />
+
+                    <getlibpath
+                            libraryFolderPathOut="tested.project.lib.source.path"
+                            leaf="@{source.dir}" />
+
+                </then>
+            </if>
+
+        </else>
+        </if>
+
+        <property name="emma.dump.file"
+                value="/data/data/${tested.project.app.package}/coverage.ec" />
+
+        <if condition="${emma.enabled}">
+            <then>
+                <echo>WARNING: Code Coverage is currently only supported on the emulator and rooted devices.</echo>
+                <run-tests-helper emma.enabled="true">
+                    <extra-instrument-args>
+                        <arg value="-e" />
+                           <arg value="coverageFile" />
+                           <arg value="${emma.dump.file}" />
+                    </extra-instrument-args>
+                </run-tests-helper>
+                <echo level="info">Downloading coverage file into project directory...</echo>
+                <exec executable="${adb}" failonerror="true">
+                    <arg line="${adb.device.arg}" />
+                    <arg value="pull" />
+                    <arg value="${emma.dump.file}" />
+                    <arg path="${out.absolute.dir}/coverage.ec" />
+                </exec>
+                <echo level="info">Extracting coverage report...</echo>
+
+                <pathconvert property="tested.project.lib.source.path.value" refid="tested.project.lib.source.path">
+                    <firstmatchmapper>
+                        <regexpmapper from='^([^ ]*)( .*)$$' to='"\1\2"'/>
+                        <identitymapper/>
+                    </firstmatchmapper>
+                </pathconvert>
+
+
+                <emma>
+                    <report sourcepath="${tested.project.source.absolute.dir}:${tested.project.lib.source.path.value}"
+                            verbosity="${verbosity}">
+                        <infileset file="${out.absolute.dir}/coverage.ec" />
+                        <infileset file="${tested.project.out.absolute.dir}/coverage.em" />
+                        <html outfile="coverage/coverage.html" />
+                        <xml outfile="coverage/coverage.xml" />
+                   </report>
+                </emma>
+                <echo level="info">Cleaning up temporary files...</echo>
+                <delete file="${out.absolute.dir}/coverage.ec" />
+                <delete file="${out.absolute.dir}/coverage.em" />
+                <echo level="info">Saving HTML report file in ${basedir}/coverage/coverage.html</echo>
+                <echo level="info">Saving XML report file in ${basedir}/coverage/coverage.xml</echo>
+            </then>
+            <else>
+                <run-tests-helper />
+            </else>
+        </if>
+
+        <mkdir dir="${basedir}/junit-results"/>
+        <exec executable="${adb}" failonerror="true" dir="junit-results">
+            <arg line="${adb.device.arg}" />
+            <arg value="pull" />
+            <arg value="/data/data/${tested.project.app.package}/files/" />
+        </exec>
+    </target>
+    
     <!-- Import the actual build file.
 
          To customize existing targets, there are two options:
