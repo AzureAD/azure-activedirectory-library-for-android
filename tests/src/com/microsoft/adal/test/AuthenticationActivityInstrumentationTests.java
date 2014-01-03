@@ -65,7 +65,7 @@ public class AuthenticationActivityInstrumentationTests extends
 
     private static final int LOGIN_DISPLAY_TIME_OUT = PAGE_LOAD_TIMEOUT * 10;
 
-    private static final int PAGE_STATUS_SET_TIME_OUT = PAGE_LOAD_TIMEOUT * 3;
+    private static final int PAGE_STATUS_SET_TIME_OUT = 400;
 
     /**
      * Verification depends on external site
