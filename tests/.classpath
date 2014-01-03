@@ -8,5 +8,6 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/com.microsoft.adal.testapp"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/com.microsoft.adal"/>
+	<classpathentry exported="true" kind="lib" path="C:/GitHubAD/azure-activedirectory-library-for-android/tests/libs/robotium-solo-4.3.1.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
