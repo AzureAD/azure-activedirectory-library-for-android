@@ -22,6 +22,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.jayway.android.robotium.solo.By;
 import com.jayway.android.robotium.solo.Solo;
 import com.jayway.android.robotium.solo.WebElement;
 import com.microsoft.adal.ADALError;
@@ -521,11 +522,12 @@ public class AuthenticationActivityInstrumentationTests extends
 
         enterTextIntoWebElement(elements, usernameIDs, username);
 
-        // After pressing tab key, page will redirect to federated login page
-        // for federated account
-        pressKey(KeyEvent.KEYCODE_TAB);
-
         if (waitForRedirect) {
+            // After pressing tab key, page will redirect to federated login
+            // page
+            // for federated account
+            pressKey(KeyEvent.KEYCODE_TAB);
+
             // federation page redirects to login page
             Log.v(TAG, "Sleep for redirect");
             sleepUntilFederatedPageDisplays(redirectUrl);
@@ -561,12 +563,15 @@ public class AuthenticationActivityInstrumentationTests extends
         for (WebElement element : elements) {
             for (String id : ids) {
                 if (element.getId().equals(id)) {
-                    solo.clickOnWebElement(element);
+                    // Get element position again
+                    solo.clickOnWebElement(By.id(id));
                     Log.v(TAG, "WebElement to click:" + id);
                     return;
                 }
             }
         }
+
+        assertFalse("Element is not found at webview", true);
     }
 
     private void enterTextIntoWebElement(ArrayList<WebElement> elements, String[] ids, String text) {
@@ -577,13 +582,17 @@ public class AuthenticationActivityInstrumentationTests extends
                     if (element.getText().equals(text)) {
                         Log.v(TAG, "WebElement:" + id + " has text:" + text);
                     } else {
-                        solo.typeTextInWebElement(element, text);
+                        // Get element position again
+                        solo.clickOnWebElement(By.id(id));
+                        solo.typeTextInWebElement(By.id(id), text);
                         Log.v(TAG, "Entered " + text + " at " + id);
                     }
                     return;
                 }
             }
         }
+
+        assertFalse("Element is not found at webview", true);
     }
 
     private void pressKey(int keycode) throws InterruptedException {
