@@ -877,7 +877,7 @@ public class AuthenticationContext {
                 @Override
                 public void onError(Exception exc) {
                     Logger.e(TAG, "Instance validation returned error", "",
-                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, exc);
+                            ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
                     authenticationCallback.onError(exc);
                 }
             });

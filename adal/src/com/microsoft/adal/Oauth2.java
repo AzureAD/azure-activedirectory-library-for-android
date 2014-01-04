@@ -295,7 +295,8 @@ class Oauth2 {
         }
 
         Logger.v(TAG, "Refresh token request message:" + requestMessage);
-        postMessage(requestMessage, authenticationCallback);
+ 
+        postMessage(requestMessage, authenticationCallback); 
     }
 
     /**
@@ -347,8 +348,9 @@ class Oauth2 {
                                 ADALError.AUTH_FAILED_NO_TOKEN));
                     }
                 } else {
-                    authenticationCallback.onError(new AuthenticationException(result
-                            .getErrorCode(), result.getErrorDescription()));
+                    authenticationCallback.onError(new AuthenticationException(
+                            ADALError.AUTH_FAILED_NO_TOKEN, result.getErrorCode() + " "
+                                    + result.getErrorDescription()));
                 }
 
             } else {
