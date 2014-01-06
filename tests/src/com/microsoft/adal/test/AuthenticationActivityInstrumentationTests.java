@@ -521,12 +521,13 @@ public class AuthenticationActivityInstrumentationTests extends
         checkErrorInPage(elements);
 
         enterTextIntoWebElement(elements, usernameIDs, username);
-
+        pressKey(KeyEvent.KEYCODE_TAB);
+        
         if (waitForRedirect) {
             // After pressing tab key, page will redirect to federated login
             // page
             // for federated account
-            pressKey(KeyEvent.KEYCODE_TAB);
+            
 
             // federation page redirects to login page
             Log.v(TAG, "Sleep for redirect");
@@ -583,8 +584,10 @@ public class AuthenticationActivityInstrumentationTests extends
                         Log.v(TAG, "WebElement:" + id + " has text:" + text);
                     } else {
                         // Get element position again
-                        solo.clickOnWebElement(By.id(id));
-                        solo.typeTextInWebElement(By.id(id), text);
+                        solo.hideSoftKeyboard();
+                        
+                        // not use keyboard
+                        getInstrumentation().sendStringSync(text);
                         Log.v(TAG, "Entered " + text + " at " + id);
                     }
                     return;

@@ -89,19 +89,19 @@ public class DiscoveryTests extends AndroidTestHelper {
         callIsValidAuthority(discovery, endpointFull, response, true);
 
         assertNull("It should not have exception", response.exception);
-        assertTrue("Instance should be valid", response.result);
+        assertFalse("Instance should be valid", response.result);
 
         final URL endpointInstanceRight = new URL("https://login.windows.net/something/something");
         callIsValidAuthority(discovery, endpointInstanceRight, response, true);
 
         assertNull("It should not have exception", response.exception);
-        assertTrue("Instance should be valid", response.result);
+        assertFalse("Instance should be valid", response.result);
 
         final URL endpointInstanceOnly = new URL("https://login.windows.net");
         callIsValidAuthority(discovery, endpointInstanceOnly, response, true);
 
         assertNull("It should not have exception", response.exception);
-        assertTrue("Instance should be valid", response.result);
+        assertFalse("Instance should have tenant", response.result);
     }
 
     public void testIsValidAuthorityNegative() throws MalformedURLException,
@@ -179,7 +179,7 @@ public class DiscoveryTests extends AndroidTestHelper {
             NoSuchFieldException {
         final TestResponse response = new TestResponse();
         Object discovery = getDiscoveryInstance();
-        final URL endpointFull = new URL("https://login.windows-ppe.net/common/oauth2/authorize");
+        final URL endpointFull = new URL("https://login.windows-ppe.net/common");
         callIsValidAuthority(discovery, endpointFull, response, true);
 
         assertNull("It should not have exception", response.exception);
@@ -187,7 +187,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         // case sensitivity check
         final URL endpointCaseDifferent = new URL(
-                "https://logiN.Windows-PPE.Net/Common/oauth2/authorize");
+                "https://logiN.Windows-PPE.Net/Common");
         callIsValidAuthority(discovery, endpointCaseDifferent, response, true);
 
         assertNull("It should not have exception", response.exception);
@@ -204,7 +204,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         // return true without actual instance query
         validHosts.add("login.test-direct-add.net");
         final URL endpointTest = new URL(
-                "https://login.test-direct-add.net/common/oauth2/authorize");
+                "https://login.test-direct-add.net/common");
         callIsValidAuthority(discovery, endpointTest, response, true);
 
         assertNull("It should not have exception", response.exception);
