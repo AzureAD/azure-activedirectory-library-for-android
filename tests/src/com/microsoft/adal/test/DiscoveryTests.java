@@ -16,6 +16,7 @@ import java.util.concurrent.CountDownLatch;
 import junit.framework.Assert;
 import android.os.Handler;
 
+import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationCallback;
 
 /**
@@ -114,6 +115,50 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertNotNull("response should not be null", response);
         assertNull("It should not have exception", response.exception);
         assertFalse("Instance should be invalid", response.result);
+    }
+    
+    public void testIsValidAuthorityNegative_InvalidUrl() throws MalformedURLException,
+            IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
+            ClassNotFoundException, InstantiationException, InvocationTargetException {
+        final TestResponse response = new TestResponse();
+        Object discovery = getDiscoveryInstance();
+        final URL endpointFull = new URL("http://login.windows.net/common");
+        callIsValidAuthority(discovery, endpointFull, response, true);
+
+        assertNotNull("response should not be null", response);
+        assertFalse("Instance should be invalid since http", response.result);
+        assertNull("It should not have exception", response.exception);
+        
+        final TestResponse responseQueryParams  = new TestResponse();
+        final URL endpointQueryParams = new URL("https://login.windows.net/common?resource=2343&client_id=234");
+        callIsValidAuthority(discovery, endpointQueryParams, responseQueryParams, true);
+
+        assertNotNull("response should not be null", responseQueryParams);
+        assertFalse("Instance should be invalid", responseQueryParams.result);
+        assertNull("It should not have exception", responseQueryParams.exception);
+        
+        final TestResponse responseFragment  = new TestResponse();
+        final URL endpointFragment = new URL("https://login.windows.net/common#token=23434");
+        callIsValidAuthority(discovery, endpointFragment, responseFragment, true);
+
+        assertNotNull("response should not be null", responseFragment);
+        assertFalse("Instance should be invalid", responseFragment.result);
+        assertNull("It should not have exception", responseFragment.exception);
+        
+        final TestResponse responseAdfs  = new TestResponse();
+        final URL endpointAdfs = new URL("https://fs.ade2eadfs30.com/adfs");
+        callIsValidAuthority(discovery, endpointAdfs, responseAdfs, true);
+
+        assertNotNull("response should not be null", responseAdfs);
+        assertNotNull("It should have exception", responseAdfs.exception.getMessage().equals(ADALError.DISCOVERY_NOT_SUPPORTED.getDescription()));
+        
+        final TestResponse responseInvalidPath  = new TestResponse();
+        final URL endpointInvalidPath = new URL("https://login.windows.net/common/test/test");
+        callIsValidAuthority(discovery, endpointInvalidPath, responseInvalidPath, true);
+
+        assertNotNull("response should not be null", responseInvalidPath);
+        assertFalse("Instance should be invalid", responseInvalidPath.result);
+        assertNull("It should not have exception", responseInvalidPath.exception);
     }
 
     /**

@@ -52,13 +52,18 @@ final class Discovery implements IDiscovery {
             .synchronizedSet(new HashSet<String>());
 
     /**
-     * instances to verify given authorization instance. Verification will start
-     * from login.windows.net and then others will be used.
+     * White listed instances from login.windows.net and then others will be
+     * used.
      */
     private static ArrayList<String> mCloudInstances = new ArrayList<String>(
             Arrays.asList(new String[] {
                     "login.windows.net", "login.chinacloudapi.cn", "login.cloudgovapi.us"
             }));
+
+    /**
+     * Discovery query will go to the prod only for now.
+     */
+    private final static String TRUSTED_QUERY_INSTANCE = "login.windows.net";
 
     public Discovery() {
         initValidList();
@@ -68,19 +73,41 @@ final class Discovery implements IDiscovery {
     public void isValidAuthority(URL authorizationEndpoint, AuthenticationCallback<Boolean> callback) {
 
         // For comparison purposes, convert to lowercase Locale.US
+        //getProtocol returns scheme and it is available if it is absolute url
+        // Authority is in the form of https://Instance/tenant
+        // Authority is not supposed to have something else beside tenant
         if (authorizationEndpoint != null
-                && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getHost())) {
-            if (mValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
+                && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getHost())
+                && authorizationEndpoint.getProtocol().equals("https")  
+                && StringExtensions.IsNullOrBlank(authorizationEndpoint.getQuery())
+                && StringExtensions.IsNullOrBlank(authorizationEndpoint.getRef())
+                && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())
+                && authorizationEndpoint.getPath().indexOf("/", 1) == -1
+                ) {
+
+            if(isADFSAuthority(authorizationEndpoint)){
+                callback.onError(new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
+            }else if (mValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
                 // host can be the instance or inside the validated list.
                 // Validhosts will help to skip validation if validated before
                 // call Callback and skip the look up
                 callback.onSuccess(true);
-                return;
+            }else{
+                // Only query from Prod instance for now, not all of the instances in the list
+                queryInstance(authorizationEndpoint, callback);
             }
-        }
+        }else{
+            
+            // Not valid authority
+            callback.onSuccess(false);
+        }        
+    }
 
-        // Try instances to see if host is valid
-        queryEndpointPerInstanceNext(authorizationEndpoint, callback, mCloudInstances.iterator());
+    private boolean isADFSAuthority(URL authorizationEndpoint) {
+        // similar to ADAL.NET
+        String path = authorizationEndpoint.getPath();
+        return !StringExtensions.IsNullOrBlank(path)
+                && path.toLowerCase(Locale.ENGLISH).equals("/adfs");
     }
 
     /**
@@ -92,7 +119,8 @@ final class Discovery implements IDiscovery {
         String validHost = validhost.getHost();
         if (!StringExtensions.IsNullOrBlank(validHost)) {
             synchronized (mValidHosts) {
-                // for comparisons it uses Locale.US, so it needs to be same here
+                // for comparisons it uses Locale.US, so it needs to be same
+                // here
                 mValidHosts.add(validHost.toLowerCase(Locale.US));
             }
         }
@@ -111,53 +139,42 @@ final class Discovery implements IDiscovery {
         }
     }
 
-    private void queryEndpointPerInstanceNext(final URL authorizationEndpointUrl,
-            final AuthenticationCallback<Boolean> callback, final Iterator<String> iterator) {
+    private void queryInstance(final URL authorizationEndpointUrl,
+            final AuthenticationCallback<Boolean> callback) {
 
-        if (iterator.hasNext()) {
-            // if there are more instance to query, it will send another async
-            // call to check endpoint
-            String instanceHost = iterator.next();
+        // if there are more instances to query, it will send another async
+        // call to check endpoint
+        try {
+            // construct query string for this instance
+            URL queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE,
+                    getAuthorizationCommonEndpoint(authorizationEndpointUrl));
 
-            try {
-                // construct query string for this instance
-                URL queryUrl = buildQueryString(instanceHost,
-                        getAuthorizationCommonEndpoint(authorizationEndpointUrl));
+            // setup callback to query again if not found
+            final AuthenticationCallback<Boolean> evalStepCallback = new AuthenticationCallback<Boolean>() {
 
-                // setup callback to query again if not found
-                final AuthenticationCallback<Boolean> evalStepCallback = new AuthenticationCallback<Boolean>() {
+                @Override
+                public void onSuccess(Boolean result) {
+                    callback.onSuccess(result);
 
-                    @Override
-                    public void onSuccess(Boolean result) {
-                        if (result) {
-                            // it is validated
-                            addValidHostToList(authorizationEndpointUrl);
-                            callback.onSuccess(result);
-                        } else {
-                            queryEndpointPerInstanceNext(authorizationEndpointUrl, callback,
-                                    iterator);
-                        }
+                    if (result) {
+                        // it is validated
+                        addValidHostToList(authorizationEndpointUrl);
                     }
+                }
 
-                    @Override
-                    public void onError(Exception exc) {
-                        Log.e(TAG, exc.getMessage());
-                        callback.onError(exc);
-                    }
-                };
+                @Override
+                public void onError(Exception exc) {
+                    Log.e(TAG, exc.getMessage());
+                    callback.onError(exc);
+                }
+            };
 
-                // post async call to current instance
-                sendRequest(evalStepCallback, queryUrl);
+            // post async call to current instance
+            sendRequest(evalStepCallback, queryUrl);
 
-            } catch (MalformedURLException e) {
-                Log.e(TAG, e.getMessage());
-                callback.onError(e);
-            }
-        } else {
-            // it checked all of the instances
-            Log.w(TAG, "all of the instances returned invalid for this endpoint:"
-                    + authorizationEndpointUrl.toString());
-            callback.onSuccess(false);
+        } catch (MalformedURLException e) {
+            Log.e(TAG, e.getMessage());
+            callback.onError(e);
         }
     }
 

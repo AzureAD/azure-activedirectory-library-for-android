@@ -2,11 +2,11 @@
 package com.microsoft.adal;
 
 public enum ADALError {
-    
+
     DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED("Authority validation returned an error"),
-    
+
     DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE("Authority is not a valid instance"),
-   
+
     DEVELOPER_AUTHORITY_IS_NOT_VALID_URL("Authority url is not valid"),
 
     DEVELOPER_AUTHORITY_IS_EMPTY("Authority is empty"),
@@ -24,7 +24,7 @@ public enum ADALError {
     CALLBACK_IS_NOT_FOUND("Active callback is not found"),
 
     DEVELOPER_ACTIVITY_IS_NOT_RESOLVED("Activity is not resolved"),
-   
+
     SERVER_INVALID_REQUEST("Invalid request to server"),
 
     SERVER_ERROR("Server returned an error"),
@@ -66,7 +66,8 @@ public enum ADALError {
     DEVICE_INTERNET_IS_NOT_AVAILABLE("Internet permissions are not set for the app"),
 
     /**
-     * onActivityResult is called with null intent data. Activity may be terminated directly
+     * onActivityResult is called with null intent data. Activity may be
+     * terminated directly
      */
     ON_ACTIVITY_RESULT_INTENT_NULL("onActivityResult is called with null intent data"),
 
@@ -95,9 +96,11 @@ public enum ADALError {
 
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
 
-    SERVER_INVALID_JSON_RESPONSE("Server returned invalid json response"), 
-    
-    AUTH_REFRESH_FAILED("Refresh token request failed"), ;
+    SERVER_INVALID_JSON_RESPONSE("Server returned invalid json response"),
+
+    AUTH_REFRESH_FAILED("Refresh token request failed"),
+
+    DISCOVERY_NOT_SUPPORTED("Authority validation is not supported for this authority"), ;
 
     private String mDescription;
 
