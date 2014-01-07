@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="AAD_authority">https://login.windows.net/omercantest.onmicrosoft.com</string>
+    <string name="AAD_resourceid">https://omercantest.onmicrosoft.com/AllHandsTry</string>
+    <string name="AAD_resourceid2">https://omercantest.onmicrosoft.com/spacemonkey</string>
+    <string name="AAD_clientid">650a6609-5463-4bc4-b7c6-19df7990a8bc</string>
+    <string name="AAD_redirect">http://taskapp</string>
+    <string name="AAD_username">faruk@omercantest.onmicrosoft.com</string>
+    <string name="AAD_password">Jink1234</string>
+    
+</resources>

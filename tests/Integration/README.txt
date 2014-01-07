@@ -1,0 +1,1 @@
+These test uses an account to get token and try different cases.
