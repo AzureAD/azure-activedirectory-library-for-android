@@ -159,6 +159,70 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.v(TAG, "Status:" + tokenMsg);
         assertTrue("Token status", tokenMsg.contains("AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED"));
     }
+    
+    /**
+     * prompt always setting will force the login prompt again. It should not use the cookies, so webview should display login page.
+     * @throws Exception
+     */
+    @MediumTest
+    public void testAcquireTokenPromptAlways() throws Exception {
+        // Get token first
+        TestTenant tenant = TestTenant.MANAGED;
+        Log.v(TAG, "testAcquireTokenPromptAlways starts for authority:" + tenant.getAuthority());
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
+
+        // click to get token again and monitor authenticationActivity launch
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+        
+        
+        Log.v(TAG, "Next token request will served from cache");
+        setAuthenticationRequest(tenant, "", PromptBehavior.Auto, "", false);
+        clickGetToken();
+
+        AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
+                .waitForActivityWithTimeout(ACTIVITY_WAIT_TIMEOUT);
+        assertNull(startedActivity);
+        
+        Log.v(TAG, "Prompt always will launch ");
+        setAuthenticationRequest(tenant, "", PromptBehavior.Always, "", false);
+        clickGetToken();
+
+        startedActivity = (AuthenticationActivity)monitor
+                .waitForActivityWithTimeout(ACTIVITY_WAIT_TIMEOUT);
+        assertNotNull(startedActivity);
+        
+        sleepUntilVisibleWebElements(startedActivity);
+        assertTrue("There should be some visible web elements", solo.getCurrentWebElements().size() > 0 );
+                
+        startedActivity.finish();        
+    }
+    
+    /**
+     * Verify that extra query param works at authorization endpoint
+     * @throws Exception
+     */
+    @MediumTest
+    public void testAcquireToken_ExtraQueryParam() throws Exception {
+        // Get token first
+        TestTenant tenant = TestTenant.MANAGED;
+        Log.v(TAG, "testAcquireTokenPromptAlways starts for authority:" + tenant.getAuthority());
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
+
+        // click to get token again and monitor authenticationActivity launch
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+        
+        Log.v(TAG, "testAcquireToken_ExtraQueryParam trying extra query param");
+        setAuthenticationRequest(tenant, "", PromptBehavior.Auto, "prompt=login", false);
+        clickGetToken();
+
+        Log.v(TAG, "prompt=login param will be posted to authorization endpoint");
+        AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
+                .waitForActivityWithTimeout(ACTIVITY_WAIT_TIMEOUT);
+        assertNotNull(startedActivity);
+        startedActivity.finish();        
+    }
 
     @MediumTest
     public void testCorrelationId() throws Exception {

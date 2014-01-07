@@ -3,7 +3,6 @@ package com.microsoft.adal.testapp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.UUID;
@@ -32,7 +31,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationCancelError;
@@ -72,7 +70,7 @@ public class MainActivity extends Activity {
      */
     private AuthenticationResult mResult;
 
-    private String mActiveUser;
+    private String mActiveUser, mExtraQueryParam;
 
     final static String AUTHORITY_URL = "https://login.windows.net/omercantest.onmicrosoft.com";
 
@@ -290,7 +288,7 @@ public class MainActivity extends Activity {
         String redirect = mRedirect.getText().toString();
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, "",
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, mExtraQueryParam,
                 callback);
     }
 
@@ -384,6 +382,10 @@ public class MainActivity extends Activity {
         this.mRequestCorrelationId = mRequestCorrelationId;
     }
 
+    public void setExtraQueryParam(String extraQueryParam){
+        mExtraQueryParam = extraQueryParam;
+    }
+    
     /**
      * Simple get request for test
      * 
