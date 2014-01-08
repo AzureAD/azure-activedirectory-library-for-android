@@ -1,79 +1,46 @@
+
 package com.microsoft.adal.integration_tests;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Properties;
 
-import com.microsoft.adal.ITokenCacheStore;
-
-public class TenantInfo implements Serializable{
-     
+public class TenantInfo implements Serializable {
 
     /**
      * Serialize your settings
      */
     private static final long serialVersionUID = 3560085163832716550L;
 
-    private static final String FILE_NAME = "integration_tests.properties";
-    
-    public TenantInfo(String authority, String resource, String resource2, String clientId,
-            String redirect, String username, String password) {
+    private TenantInfo(TenantType tenantType, String authority, String resource, String resource2,
+            String clientId, String redirect, String federated, String username, String password) {
+        mType = tenantType;
         mAuthority = authority;
         mResource = resource;
         mResource2 = resource2;
         mClientId = clientId;
         mRedirect = redirect;
+        mFederated = federated;
         mUserName = username;
         mPassword = password;
     }
-    
-    public static void saveConfiguredTenants(){
-        Properties p = new Properties();
-        p.put("AAD-authority", "https://login.windows.net/omercantest.onmicrosoft.com");
-        p.put("AAD-resourceid", "https://omercantest.onmicrosoft.com/AllHandsTry");
-        p.put("AAD-resourceid2", "https://omercantest.onmicrosoft.com/spacemonkey");
-        p.put("AAD-clientid", "650a6609-5463-4bc4-b7c6-19df7990a8bc");
-        p.put("AAD-redirect", "http://taskapp");
-        p.put("AAD-username", "faruk@omercantest.onmicrosoft.com");
-        p.put("AAD-password", "Jink1235");
-        
-         
-        try {
-            p.store(new FileOutputStream(new File("integration_tests.properties"), true), "save config");
-            
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+
+    public static TenantInfo parseTenant(TenantType tenant, Properties p) {
+        String authority = p.getProperty(tenant.name() + "-authority");
+        String resource = p.getProperty(tenant.name() + "-resourceid");
+        String resource2 = p.getProperty(tenant.name() + "-resourceid2");
+        String clientid = p.getProperty(tenant.name() + "-clientid");
+        String redirect = p.getProperty(tenant.name() + "-redirect");
+        String username = p.getProperty(tenant.name() + "-username");
+        String password = p.getProperty(tenant.name() + "-password");
+        String federated = p.getProperty(tenant.name() + "-federated");
+        return new TenantInfo(tenant, authority, resource, resource2, clientid, redirect, federated, username,
+                password);
     }
 
-    public static void loadConfiguredTenants(){
-        
-        Properties p = new Properties();
-        try {
-           
-            p.load(new FileInputStream(new File("integration_tests.properties")));
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }        
+    public TenantType getTag() {
+        return mType;
     }
-    
+
     public String getAuthority() {
         return mAuthority;
     }
@@ -93,6 +60,10 @@ public class TenantInfo implements Serializable{
     public String getRedirect() {
         return mRedirect;
     }
+    
+    public String getFederated() {
+        return mFederated;
+    }
 
     public String getUserName() {
         return mUserName;
@@ -101,6 +72,12 @@ public class TenantInfo implements Serializable{
     public String getPassword() {
         return mPassword;
     }
+
+    enum TenantType {
+        AAD, ADFS30, ADFS20FEDERATED, ADFS30FEDERATED
+    }
+
+    private TenantType mType;
 
     private String mAuthority;
 
@@ -111,6 +88,8 @@ public class TenantInfo implements Serializable{
     private String mClientId;
 
     private String mRedirect;
+    
+    private String mFederated;
 
     private String mUserName;
 
