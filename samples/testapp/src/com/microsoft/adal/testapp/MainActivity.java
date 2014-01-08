@@ -309,17 +309,23 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * reset all
+     * only remove from cache but keep cookies
      */
-    private void resetToken() {
-        Log.d(TAG, "reset Token");
+    public void removeTokens(){
         if (mContext == null) {
             initContext();
         }
 
         mContext.getCache().removeAll();
         textViewStatus.setText("");
-
+    }
+    
+    /**
+     * reset all
+     */
+    private void resetToken() {
+        Log.d(TAG, "reset Token");
+        removeTokens();
         removeCookies();
     }
 

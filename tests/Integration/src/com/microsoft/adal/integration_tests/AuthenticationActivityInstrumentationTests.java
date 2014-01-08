@@ -263,6 +263,7 @@ public class AuthenticationActivityInstrumentationTests extends
 
         Log.v(TAG, "testAcquireToken_ExtraQueryParam trying extra query param");
         setAuthenticationRequest(tenant, "", PromptBehavior.Auto, "prompt=login", false);
+        activity.removeTokens();
         clickGetToken();
 
         Log.v(TAG, "prompt=login param will be posted to authorization endpoint");
@@ -451,7 +452,7 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     private void setAuthenticationRequest(final TenantInfo tenant, final String loginhint,
-            final PromptBehavior prompt, String extraQueryParam, final boolean validate) {
+            final PromptBehavior prompt, final String extraQueryParam, final boolean validate) {
         // ACtivity runs at main thread. Test runs on different thread
         Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
 
@@ -466,7 +467,7 @@ public class AuthenticationActivityInstrumentationTests extends
         mPrompt = (EditText)activity.findViewById(R.id.editPrompt);
         mRedirect = (EditText)activity.findViewById(R.id.editRedirect);
         mValidate = (CheckBox)activity.findViewById(R.id.checkBoxValidate);
-
+         
         // Use handler from this app to quickly set the fields instead of
         // sending key events
         activity.getTestAppHandler().post(new Runnable() {
@@ -481,6 +482,7 @@ public class AuthenticationActivityInstrumentationTests extends
                 mValidate.setChecked(validate);
             }
         });
+        activity.setExtraQueryParam(extraQueryParam);
     }
 
     private void clickResetTokens() {
@@ -757,12 +759,12 @@ public class AuthenticationActivityInstrumentationTests extends
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
-                return solo.getCurrentWebElements().size() > 0;
+                return solo.getCurrentWebElements().size() > 2;
             }
         });
 
         Log.v(TAG, "sleepUntilVisibleWebElements end");
-        assertTrue(solo.getCurrentWebElements().size() > 0);
+        assertTrue(solo.getCurrentWebElements().size() > 2);
     }
 
     /**
