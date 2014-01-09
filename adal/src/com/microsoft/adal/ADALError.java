@@ -97,7 +97,11 @@ public enum ADALError {
 
     SERVER_INVALID_JSON_RESPONSE("Server returned invalid json response"), 
     
-    AUTH_REFRESH_FAILED("Refresh token request failed"), ;
+    AUTH_REFRESH_FAILED("Refresh token request failed"), 
+    
+    ENCRYPTION_FAILED("Obfuscating clear text data failed"), 
+    
+    ANDROIDKEYSTORE_FAILED("AndroidKeyStore is failed"), ;
 
     private String mDescription;
 
