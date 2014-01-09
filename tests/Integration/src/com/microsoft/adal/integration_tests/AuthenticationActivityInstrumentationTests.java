@@ -132,7 +132,7 @@ public class AuthenticationActivityInstrumentationTests extends
 
     @Override
     protected void tearDown() throws Exception {
-        // finishActivity();
+        finishActivity();
         activity.setLoggerCallback(null);
         solo.finishOpenedActivities();
         super.tearDown();
@@ -164,6 +164,7 @@ public class AuthenticationActivityInstrumentationTests extends
             // TODO Auto-generated catch block
             e.printStackTrace();
             Log.d(TAG, e.getMessage());
+            Assert.fail("Config is not loaded");
         }
 
         configLoad = true;
