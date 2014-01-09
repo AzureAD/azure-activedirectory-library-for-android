@@ -111,7 +111,7 @@ class StorageHelper {
                 // secret key.
                 return getSecretKeyFromAndroidKeyStore();
             } catch (Exception e) {
-                Logger.e(TAG, "failed to get private key from AndroidKeyStore", "",
+                Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
                         ADALError.ANDROIDKEYSTORE_FAILED);
             }
         }
