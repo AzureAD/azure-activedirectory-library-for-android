@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="C:/GitHubAD/azure-activedirectory-library-for-android/tests/libs/android-junit-report-1.5.8.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/android-junit-report-1.5.8.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
@@ -8,6 +8,6 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/com.microsoft.adal.testapp"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/com.microsoft.adal"/>
-	<classpathentry exported="true" kind="lib" path="C:/GitHubAD/azure-activedirectory-library-for-android/tests/libs/robotium-solo-4.3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/robotium-solo-4.3.1.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
