@@ -11,14 +11,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
 import org.json.JSONException;
 
 import android.net.Uri;
-import android.util.Log;
 
 /**
  * Instance and Tenant discovery. It takes authorization endpoint and sends
@@ -52,15 +50,6 @@ final class Discovery implements IDiscovery {
             .synchronizedSet(new HashSet<String>());
 
     /**
-     * White listed instances from login.windows.net and then others will be
-     * used.
-     */
-    private static ArrayList<String> mCloudInstances = new ArrayList<String>(
-            Arrays.asList(new String[] {
-                    "login.windows.net", "login.chinacloudapi.cn", "login.cloudgovapi.us"
-            }));
-
-    /**
      * Discovery query will go to the prod only for now.
      */
     private final static String TRUSTED_QUERY_INSTANCE = "login.windows.net";
@@ -71,36 +60,34 @@ final class Discovery implements IDiscovery {
 
     @Override
     public void isValidAuthority(URL authorizationEndpoint, AuthenticationCallback<Boolean> callback) {
-
         // For comparison purposes, convert to lowercase Locale.US
-        //getProtocol returns scheme and it is available if it is absolute url
+        // getProtocol returns scheme and it is available if it is absolute url
         // Authority is in the form of https://Instance/tenant
         // Authority is not supposed to have something else beside tenant
         if (authorizationEndpoint != null
                 && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getHost())
-                && authorizationEndpoint.getProtocol().equals("https")  
+                && authorizationEndpoint.getProtocol().equals("https")
                 && StringExtensions.IsNullOrBlank(authorizationEndpoint.getQuery())
                 && StringExtensions.IsNullOrBlank(authorizationEndpoint.getRef())
                 && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())
-                && authorizationEndpoint.getPath().indexOf("/", 1) == -1
-                ) {
+                && authorizationEndpoint.getPath().indexOf("/", 1) == -1) {
 
-            if(isADFSAuthority(authorizationEndpoint)){
+            if (isADFSAuthority(authorizationEndpoint)) {
                 callback.onError(new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
-            }else if (mValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
+            } else if (mValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
                 // host can be the instance or inside the validated list.
-                // Validhosts will help to skip validation if validated before
+                // Valid hosts will help to skip validation if validated before
                 // call Callback and skip the look up
                 callback.onSuccess(true);
-            }else{
-                // Only query from Prod instance for now, not all of the instances in the list
+            } else {
+                // Only query from Prod instance for now, not all of the
+                // instances in the list
                 queryInstance(authorizationEndpoint, callback);
             }
-        }else{
-            
+        } else {
             // Not valid authority
             callback.onSuccess(false);
-        }        
+        }
     }
 
     private boolean isADFSAuthority(URL authorizationEndpoint) {
@@ -118,11 +105,9 @@ final class Discovery implements IDiscovery {
     private void addValidHostToList(URL validhost) {
         String validHost = validhost.getHost();
         if (!StringExtensions.IsNullOrBlank(validHost)) {
-            synchronized (mValidHosts) {
-                // for comparisons it uses Locale.US, so it needs to be same
-                // here
-                mValidHosts.add(validHost.toLowerCase(Locale.US));
-            }
+            // for comparisons it uses Locale.US, so it needs to be same
+            // here
+            mValidHosts.add(validHost.toLowerCase(Locale.US));
         }
     }
 
@@ -130,20 +115,18 @@ final class Discovery implements IDiscovery {
      * initialize initial valid host list with known instances
      */
     private void initValidList() {
-        synchronized (mValidHosts) {
-            if (mValidHosts.size() == 0) {
-                for (String instance : mCloudInstances) {
-                    mValidHosts.add(instance);
-                }
-            }
+        // mValidHosts is a sync set
+        if (mValidHosts.size() == 0) {
+            mValidHosts.add("login.windows.net");
+            mValidHosts.add("login.chinacloudapi.cn");
+            mValidHosts.add("login.cloudgovapi.us");
         }
     }
 
     private void queryInstance(final URL authorizationEndpointUrl,
             final AuthenticationCallback<Boolean> callback) {
 
-        // if there are more instances to query, it will send another async
-        // call to check endpoint
+        // It will query prod instance to verify the authority
         try {
             // construct query string for this instance
             URL queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE,
@@ -164,7 +147,8 @@ final class Discovery implements IDiscovery {
 
                 @Override
                 public void onError(Exception exc) {
-                    Log.e(TAG, exc.getMessage());
+                    Logger.e(TAG, "Error in instance discovery", "",
+                            ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
                     callback.onError(exc);
                 }
             };
@@ -173,7 +157,8 @@ final class Discovery implements IDiscovery {
             sendRequest(evalStepCallback, queryUrl);
 
         } catch (MalformedURLException e) {
-            Log.e(TAG, e.getMessage());
+            Logger.e(TAG, "Invalid authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
+                    e);
             callback.onError(e);
         }
     }
@@ -181,7 +166,7 @@ final class Discovery implements IDiscovery {
     private void sendRequest(final AuthenticationCallback<Boolean> callback, final URL queryUrl)
             throws MalformedURLException {
 
-        Log.d(TAG, "Sending discovery request to:" + queryUrl);
+        Logger.v(TAG, "Sending discovery request to:" + queryUrl);
         WebRequestHandler request = new WebRequestHandler();
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
@@ -193,10 +178,10 @@ final class Discovery implements IDiscovery {
                     try {
                         callback.onSuccess(parseResponse(webResponse));
                     } catch (IllegalArgumentException exc) {
-                        Log.e(TAG, exc.getMessage());
+                        Logger.e(TAG, exc.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
                         callback.onError(exc);
                     } catch (JSONException e) {
-                        Log.e(TAG, "Json parsing error:" + e.getMessage());
+                        Logger.e(TAG, "Json parsing error", "", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, e);
                         callback.onError(e);
                     }
                 } else
@@ -235,7 +220,7 @@ final class Discovery implements IDiscovery {
     }
 
     /**
-     * it will build url similar to
+     * It will build url similar to
      * https://login.windows.net/common/discovery/instance
      * ?api-version=1.0&authorization_endpoint
      * =https%3A%2F%2Flogin.windows.net%2F

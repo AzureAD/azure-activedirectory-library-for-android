@@ -100,8 +100,10 @@ public enum ADALError {
 
     AUTH_REFRESH_FAILED("Refresh token request failed"),
 
-    DISCOVERY_NOT_SUPPORTED("Authority validation is not supported for this authority"), ;
+    DISCOVERY_NOT_SUPPORTED("Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."), ;
 
+    
+    
     private String mDescription;
 
     private ADALError(String message) {

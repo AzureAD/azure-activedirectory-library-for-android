@@ -56,18 +56,6 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertTrue("host is in the list", validHosts.contains("login.somewhere.com"));
     }
 
-    public void testInstanceList() throws IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, MalformedURLException, NoSuchFieldException {
-
-        final Object discovery = getDiscoveryInstance();
-
-        ArrayList<String> validInstances = (ArrayList<String>)ReflectionUtils.getFieldValue(discovery,
-                "mCloudInstances");
-        assertTrue("host is in the list", validInstances.contains("login.windows.net"));
-        assertEquals(3, validInstances.size());
-    }
-
     /**
      * instance that is in the list with different path
      * 
@@ -89,19 +77,19 @@ public class DiscoveryTests extends AndroidTestHelper {
         callIsValidAuthority(discovery, endpointFull, response, true);
 
         assertNull("It should not have exception", response.exception);
-        assertFalse("Instance should be valid", response.result);
+        assertFalse("Instance should not be valid", response.result);
 
         final URL endpointInstanceRight = new URL("https://login.windows.net/something/something");
         callIsValidAuthority(discovery, endpointInstanceRight, response, true);
 
         assertNull("It should not have exception", response.exception);
-        assertFalse("Instance should be valid", response.result);
+        assertFalse("Instance should not be valid", response.result);
 
         final URL endpointInstanceOnly = new URL("https://login.windows.net");
         callIsValidAuthority(discovery, endpointInstanceOnly, response, true);
 
         assertNull("It should not have exception", response.exception);
-        assertFalse("Instance should have tenant", response.result);
+        assertFalse("Instance should not be valid", response.result);
     }
 
     public void testIsValidAuthorityNegative() throws MalformedURLException,
@@ -116,7 +104,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertNull("It should not have exception", response.exception);
         assertFalse("Instance should be invalid", response.result);
     }
-    
+
     public void testIsValidAuthorityNegative_InvalidUrl() throws MalformedURLException,
             IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
             ClassNotFoundException, InstantiationException, InvocationTargetException {
@@ -128,31 +116,35 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertNotNull("response should not be null", response);
         assertFalse("Instance should be invalid since http", response.result);
         assertNull("It should not have exception", response.exception);
-        
-        final TestResponse responseQueryParams  = new TestResponse();
-        final URL endpointQueryParams = new URL("https://login.windows.net/common?resource=2343&client_id=234");
+
+        final TestResponse responseQueryParams = new TestResponse();
+        final URL endpointQueryParams = new URL(
+                "https://login.windows.net/common?resource=2343&client_id=234");
         callIsValidAuthority(discovery, endpointQueryParams, responseQueryParams, true);
 
         assertNotNull("response should not be null", responseQueryParams);
         assertFalse("Instance should be invalid", responseQueryParams.result);
         assertNull("It should not have exception", responseQueryParams.exception);
-        
-        final TestResponse responseFragment  = new TestResponse();
+
+        final TestResponse responseFragment = new TestResponse();
         final URL endpointFragment = new URL("https://login.windows.net/common#token=23434");
         callIsValidAuthority(discovery, endpointFragment, responseFragment, true);
 
         assertNotNull("response should not be null", responseFragment);
         assertFalse("Instance should be invalid", responseFragment.result);
         assertNull("It should not have exception", responseFragment.exception);
-        
-        final TestResponse responseAdfs  = new TestResponse();
+
+        final TestResponse responseAdfs = new TestResponse();
         final URL endpointAdfs = new URL("https://fs.ade2eadfs30.com/adfs");
         callIsValidAuthority(discovery, endpointAdfs, responseAdfs, true);
 
         assertNotNull("response should not be null", responseAdfs);
-        assertNotNull("It should have exception", responseAdfs.exception.getMessage().equals(ADALError.DISCOVERY_NOT_SUPPORTED.getDescription()));
-        
-        final TestResponse responseInvalidPath  = new TestResponse();
+        assertNotNull(
+                "It should have exception",
+                responseAdfs.exception.getMessage().equals(
+                        ADALError.DISCOVERY_NOT_SUPPORTED.getDescription()));
+
+        final TestResponse responseInvalidPath = new TestResponse();
         final URL endpointInvalidPath = new URL("https://login.windows.net/common/test/test");
         callIsValidAuthority(discovery, endpointInvalidPath, responseInvalidPath, true);
 
@@ -186,8 +178,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertTrue("Instance should be valid", response.result);
 
         // case sensitivity check
-        final URL endpointCaseDifferent = new URL(
-                "https://logiN.Windows-PPE.Net/Common");
+        final URL endpointCaseDifferent = new URL("https://logiN.Windows-PPE.Net/Common");
         callIsValidAuthority(discovery, endpointCaseDifferent, response, true);
 
         assertNull("It should not have exception", response.exception);
@@ -203,8 +194,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         // add different host directly to validated host list and it should
         // return true without actual instance query
         validHosts.add("login.test-direct-add.net");
-        final URL endpointTest = new URL(
-                "https://login.test-direct-add.net/common");
+        final URL endpointTest = new URL("https://login.test-direct-add.net/common");
         callIsValidAuthority(discovery, endpointTest, response, true);
 
         assertNull("It should not have exception", response.exception);
