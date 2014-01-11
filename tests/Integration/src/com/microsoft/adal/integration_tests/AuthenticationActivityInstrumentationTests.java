@@ -264,7 +264,7 @@ public class AuthenticationActivityInstrumentationTests extends
 
         Log.v(TAG, "testAcquireToken_ExtraQueryParam trying extra query param");
         setAuthenticationRequest(tenant, "", PromptBehavior.Auto, "prompt=login", false);
-        activity.removeTokens();
+        removeTokens();
         clickGetToken();
 
         Log.v(TAG, "prompt=login param will be posted to authorization endpoint");
@@ -803,6 +803,15 @@ public class AuthenticationActivityInstrumentationTests extends
                 IllegalAccessException;
     }
 
+    private void removeTokens(){
+        activity.getTestAppHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                activity.removeTokens();
+            }
+        });
+    }
+    
     /**
      * this can change based on login page implementation
      * 
