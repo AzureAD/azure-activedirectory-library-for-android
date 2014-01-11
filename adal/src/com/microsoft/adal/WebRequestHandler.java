@@ -27,10 +27,6 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     private UUID mRequestCorrelationId = null;
 
-    // service does not return correlationId in normal response unless set to
-    // true.
-    private boolean mReturnCorrelationId = false;
-
     @Override
     public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
             HttpWebRequestCallback callback) {
@@ -110,10 +106,6 @@ public class WebRequestHandler implements IWebRequestHandler {
             }
 
             headers.put(AAD.CLIENT_REQUEST_ID, mRequestCorrelationId.toString());
-            if (mReturnCorrelationId) {
-                // default does not return
-                headers.put(AAD.RETURN_CLIENT_REQUEST_ID, "true");
-            }
         }
         return headers;
     }

@@ -17,7 +17,6 @@ import org.json.JSONObject;
 
 import android.net.Uri;
 import android.util.Base64;
-import android.util.Log;
 
 /**
  * base oauth class
@@ -48,8 +47,7 @@ class Oauth2 {
     }
 
     public String getAuthorizationEndpoint() {
-        return mRequest.getAuthority()
-                + AuthenticationSettings.INSTANCE.getAuthorizeEndpoint();
+        return mRequest.getAuthority() + AuthenticationSettings.INSTANCE.getAuthorizeEndpoint();
     }
 
     public String getTokenEndpoint() {
@@ -150,9 +148,17 @@ class Oauth2 {
                     correlationId = UUID.fromString(correlationInResponse);
                 } catch (IllegalArgumentException ex) {
                     correlationId = null;
-                    Log.e(TAG, "CorrelationId is malformed: " + correlationInResponse);
+                    Logger.e(TAG, "CorrelationId is malformed: " + correlationInResponse, "",
+                            ADALError.CORRELATION_ID_FORMAT);
                 }
             }
+
+            Logger.v(
+                    TAG,
+                    "OAuth2 error:" + response.get(AuthenticationConstants.OAuth2.ERROR)
+                            + " Description:"
+                            + response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION)
+                            + "CorrelationId:" + correlationId);
 
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.ERROR),
                     response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION), correlationId);
@@ -215,8 +221,10 @@ class Oauth2 {
 
             if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
                 String idbody = idtoken.substring(firstDot + 1, secondDot);
-                // URL_SAFE: Encoder/decoder flag bit to use "URL and filename safe" variant of Base64
-                // (see RFC 3548 section 4) where - and _ are used in place of + and /.
+                // URL_SAFE: Encoder/decoder flag bit to use
+                // "URL and filename safe" variant of Base64
+                // (see RFC 3548 section 4) where - and _ are used in place of +
+                // and /.
                 byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
                 String decodedBody = new String(data, "UTF-8");
 
@@ -272,7 +280,7 @@ class Oauth2 {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
-            Log.e(TAG, "Web request is not set correctly");
+            Logger.v(TAG, "Web request is not set correctly");
             authenticationCallback.onError(new IllegalArgumentException("webRequestHandler"));
             return;
         }
@@ -281,68 +289,14 @@ class Oauth2 {
         try {
             requestMessage = buildRefreshTokenRequestMessage(refreshToken);
         } catch (UnsupportedEncodingException encoding) {
-            Log.e(TAG, encoding.getMessage(), encoding);
+            Logger.e(TAG, encoding.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
             authenticationCallback.onError(encoding);
             return;
         }
 
-        URL authority = null;
-
-        try {
-            authority = new URL(getTokenEndpoint());
-        } catch (MalformedURLException e1) {
-            Log.e(TAG, e1.getMessage(), e1);
-            authenticationCallback.onError(e1);
-            return;
-        }
-
         Logger.v(TAG, "Refresh token request message:" + requestMessage);
-        // Async post to get token. It posts the result back to the
-        // externalCallback
-        HashMap<String, String> headers = getRequestHeaders();
-        try {
-
-            mWebRequestHandler.sendAsyncPost(authority, headers,
-                    requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
-                    "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
-
-                        @Override
-                        public void onComplete(HttpWebResponse response, Exception exception) {
-                            if (exception != null) {
-                                Log.e(TAG,
-                                        "Web request returned exception:" + exception.getMessage(),
-                                        exception);
-                                authenticationCallback.onError(exception);
-                            } else {
-                                Log.v(TAG, "Token request does not have errors");
-                                AuthenticationResult result = processTokenResponse(response);
-
-                                if (result != null
-                                        && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
-                                    Log.v(TAG, "Refresh Token is successfull");
-                                    authenticationCallback.onSuccess(result);
-                                } else {
-                                    // Did not get token
-                                    Log.v(TAG,
-                                            "Refresh Token is not successfull. ErrorCode:"
-                                                    + result.getErrorCode() + " "
-                                                    + result.getErrorDescription());
-                                    authenticationCallback.onError(new AuthenticationException(
-                                            result.getErrorCode(), result.getErrorDescription()));
-                                }
-                            }
-                        }
-                    });
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, e.getMessage(), e);
-            authenticationCallback.onError(e);
-        } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, e.getMessage(), e);
-            authenticationCallback.onError(e);
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
-            authenticationCallback.onError(e);
-        }
+ 
+        postMessage(requestMessage, authenticationCallback); 
     }
 
     /**
@@ -394,8 +348,9 @@ class Oauth2 {
                                 ADALError.AUTH_FAILED_NO_TOKEN));
                     }
                 } else {
-                    authenticationCallback.onError(new AuthenticationException(result
-                            .getErrorCode(), result.getErrorDescription()));
+                    authenticationCallback.onError(new AuthenticationException(
+                            ADALError.AUTH_FAILED_NO_TOKEN, result.getErrorCode() + " "
+                                    + result.getErrorDescription()));
                 }
 
             } else {
@@ -430,56 +385,64 @@ class Oauth2 {
         try {
             requestMessage = buildTokenRequestMessage(code);
         } catch (UnsupportedEncodingException encoding) {
-            Log.e(TAG, encoding.getMessage(), encoding);
+            Logger.e(TAG, encoding.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
             authenticationCallback.onError(encoding);
             return;
         }
 
+        postMessage(requestMessage, authenticationCallback);
+    }
+
+    private void postMessage(String requestMessage,
+            final AuthenticationCallback<AuthenticationResult> authenticationCallback) {
         URL authority = null;
 
         try {
             authority = new URL(getTokenEndpoint());
         } catch (MalformedURLException e1) {
-            Log.e(TAG, e1.getMessage(), e1);
+            Logger.e(TAG, e1.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
             authenticationCallback.onError(e1);
             return;
         }
 
         HashMap<String, String> headers = getRequestHeaders();
         try {
+            mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
             mWebRequestHandler.sendAsyncPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
 
                         @Override
                         public void onComplete(HttpWebResponse response, Exception exception) {
-                            if (exception != null) {
-                                Log.e(TAG, exception.getMessage(), exception);
+
+                            if (exception != null
+                                    && (response == null || response.getBody() == null)) {
+                                Logger.e(TAG, exception.getMessage(), "", ADALError.SERVER_ERROR,
+                                        exception);
                                 authenticationCallback.onError(exception);
                             } else {
-                                Log.d(TAG, "token request does not have errors");
-                                AuthenticationResult result = processTokenResponse(response);
-
-                                if (result != null
-                                        && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
-
+                                Logger.v(TAG, "Token request does not have errors");
+                                try {
+                                    AuthenticationResult result = processTokenResponse(response);
                                     authenticationCallback.onSuccess(result);
-                                } else {
-                                    // did not get token
-                                    authenticationCallback.onError(new AuthenticationException(
-                                            result.getErrorCode(), result.getErrorDescription()));
+                                } catch (Exception ex) {
+                                    Logger.e(TAG, exception.getMessage(), "",
+                                            ADALError.SERVER_ERROR, exception);
+                                    authenticationCallback.onError(exception);
+                                    return;
                                 }
                             }
                         }
                     });
+
         } catch (IllegalArgumentException e) {
-            Log.e(TAG, e.getMessage(), e);
+            Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
             authenticationCallback.onError(e);
         } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, e.getMessage(), e);
+            Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             authenticationCallback.onError(e);
         } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
+            Logger.e(TAG, e.getMessage(), "", ADALError.IO_EXCEPTION, e);
             authenticationCallback.onError(e);
         }
     }
@@ -540,7 +503,7 @@ class Oauth2 {
                 // There is no recovery possible here, so
                 // catch the
                 // generic Exception
-                Log.e(TAG, ex.getMessage(), ex);
+                Logger.e(TAG, ex.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
                 result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
             }
 
@@ -552,7 +515,7 @@ class Oauth2 {
             } else {
                 errMessage = "Status code:" + String.valueOf(webResponse.getStatusCode());
             }
-
+            Logger.v(TAG, "Server error message:" + errMessage);
             result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
                     errMessage, null);
         }

@@ -15,8 +15,6 @@ class AuthenticationRequest implements Serializable {
 
     private int mRequestId = 0;
 
-    private String mCode = null;
-
     private String mAuthority = null;
 
     private String mRedirectUri = null;
@@ -24,8 +22,6 @@ class AuthenticationRequest implements Serializable {
     private String mResource = null;
 
     private String mClientId = null;
-
-    private String mResponseType = null;
 
     private String mLoginHint = null;
 
@@ -40,14 +36,15 @@ class AuthenticationRequest implements Serializable {
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
-            String loginhint, PromptBehavior prompt, String extraQueryParams) {
+            String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
-        setPrompt(prompt);
+        mPrompt = prompt;
         mExtraQueryParamsAuthentication = extraQueryParams;
+        mCorrelationId = correlationId;
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
@@ -69,96 +66,64 @@ class AuthenticationRequest implements Serializable {
         mLoginHint = loginhint;
     }
 
+    public AuthenticationRequest(String authority, String resource, String clientid) {
+        mAuthority = authority;
+        mResource = resource;
+        mClientId = clientid;
+    } 
+    
     public AuthenticationRequest(String authority, String resource, String clientid,
             String redirectUri) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
         mRedirectUri = redirectUri;
-    }
-
-    public AuthenticationRequest(String authority, String resource, String clientId) {
+    } 
+    
+    public AuthenticationRequest(String authority, String resource, String clientId, UUID correlationId) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;
-    }
-
-    public String getCode() {
-        return mCode;
-    }
-
-    public void setCode(String mCode) {
-        this.mCode = mCode;
+        mCorrelationId = correlationId;
     }
 
     public String getAuthority() {
         return mAuthority;
     }
 
-    public void setAuthority(String mAuthority) {
-        this.mAuthority = mAuthority;
-    }
-
     public String getRedirectUri() {
         return mRedirectUri;
-    }
-
-    public void setRedirectUri(String mRedirectUri) {
-        this.mRedirectUri = mRedirectUri;
     }
 
     public String getResource() {
         return mResource;
     }
 
-    public void setResource(String mResource) {
-        this.mResource = mResource;
-    }
-
     public String getClientId() {
         return mClientId;
-    }
-
-    public void setClientId(String mClientId) {
-        this.mClientId = mClientId;
-    }
-
-    public String getResponseType() {
-        return mResponseType;
-    }
-
-    public void setResponseType(String mResponseType) {
-        this.mResponseType = mResponseType;
     }
 
     public String getLoginHint() {
         return mLoginHint;
     }
 
-    public void setLoginHint(String mLoginHint) {
-        this.mLoginHint = mLoginHint;
-    }
-
     public UUID getCorrelationId() {
         return this.mCorrelationId;
-    }
-
-    public void setCorrelationId(UUID val) {
-        this.mCorrelationId = val;
     }
 
     public String getExtraQueryParamsAuthentication() {
         return mExtraQueryParamsAuthentication;
     }
 
-    public void setExtraQueryParamsAuthentication(String mExtraQueryParamsAuthentication) {
-        this.mExtraQueryParamsAuthentication = mExtraQueryParamsAuthentication;
-    }
-
     public String getLogInfo() {
         // directly access values without getter to make it fast
-        return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, mResource,
-                mClientId);
+        String correlation = "";
+        if(mCorrelationId != null){
+            correlation = mCorrelationId.toString();
+        }
+        
+        return String.format("Request authority:%s resource:%s clientid:%s correlationId:%s", mAuthority, mResource,
+                mClientId, correlation);
     }
 
     public PromptBehavior getPrompt() {

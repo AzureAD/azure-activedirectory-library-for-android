@@ -4,6 +4,7 @@ package com.microsoft.adal;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.UUID;
 
 import android.os.AsyncTask;
 
@@ -73,5 +74,7 @@ public interface IWebRequestHandler {
     AsyncTask<?, ?, ?> sendAsyncPost(URL url, HashMap<String, String> headers, byte[] content,
             String contentType, HttpWebRequestCallback callback) throws IllegalArgumentException,
             IOException;
+    
+    public void setRequestCorrelationId(UUID mRequestCorrelationId);
 
 }

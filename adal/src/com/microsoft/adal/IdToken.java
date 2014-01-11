@@ -15,4 +15,8 @@ class IdToken {
     String mEmail;
 
     String mIdentityProvider;
+    
+    public IdToken(){
+        
+    }
 }

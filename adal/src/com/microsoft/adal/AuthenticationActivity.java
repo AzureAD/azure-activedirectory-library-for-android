@@ -69,25 +69,27 @@ public class AuthenticationActivity extends Activity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.v(TAG, "ActivityBroadcastReceiver onReceive");
+            Logger.v(TAG, "ActivityBroadcastReceiver onReceive");
 
             if (intent.getAction().equalsIgnoreCase(AuthenticationConstants.Browser.ACTION_CANCEL)) {
                 try {
-                    Log.v(TAG,
+                    Logger.v(TAG,
                             "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
 
                     int cancelRequestId = intent.getIntExtra(
                             AuthenticationConstants.Browser.REQUEST_ID, 0);
 
                     if (cancelRequestId == mWaitingRequestId) {
+                        Logger.v(TAG, "Waiting requestId is same and cancelling this activity");
                         AuthenticationActivity.this.finish();
                         // no need to send result back to activity. It is
                         // cancelled
                         // and callback will be called after this request.
                     }
                 } catch (Exception ex) {
-                    Log.e(TAG, "ActivityBroadcastReceiver onReceive exception: "
-                            + ExceptionExtensions.getExceptionMessage(ex));
+                    Logger.e(TAG, "ActivityBroadcastReceiver onReceive exception",
+                            ExceptionExtensions.getExceptionMessage(ex),
+                            ADALError.BROADCAST_RECEIVER_ERROR);
                 }
             }
         }
@@ -169,7 +171,7 @@ public class AuthenticationActivity extends Activity {
         wv.getSettings().setPluginState(WebSettings.PluginState.ON);
         wv.setWebViewClient(new CustomWebViewClient());
         wv.setVisibility(View.INVISIBLE);
-
+        Logger.v(TAG, "User agent:" + wv.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
 
         try {
@@ -410,7 +412,8 @@ public class AuthenticationActivity extends Activity {
                     "", ADALError.ERROR_WEBVIEW);
             reportContent(view);
             Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, errorCode);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
+                    "Error Code:" + errorCode);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
                     description);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
@@ -427,8 +430,8 @@ public class AuthenticationActivity extends Activity {
             Logger.e(TAG, "Received ssl error", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
 
             Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
-                    ERROR_FAILED_SSL_HANDSHAKE);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Code:"
+                    + ERROR_FAILED_SSL_HANDSHAKE);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
                     error.toString());
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,

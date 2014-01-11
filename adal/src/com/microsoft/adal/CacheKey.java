@@ -131,15 +131,7 @@ public class CacheKey implements Serializable {
         return mUserId;
     }
 
-    public void setUserId(String mUserId) {
-        this.mUserId = mUserId;
-    }
-
     public boolean getIsMultipleResourceRefreshToken() {
         return mIsMultipleResourceRefreshToken;
-    }
-
-    public void setIsMultipleResourceRefreshToken(boolean mIsMultipleResourceRefreshToken) {
-        this.mIsMultipleResourceRefreshToken = mIsMultipleResourceRefreshToken;
     }
 }

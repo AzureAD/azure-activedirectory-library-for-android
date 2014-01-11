@@ -3,9 +3,9 @@ package com.microsoft.adal.testapp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.UUID;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -31,7 +31,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationCancelError;
@@ -46,6 +45,8 @@ import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
 
 public class MainActivity extends Activity {
+
+    public static final String GETTING_TOKEN = "Getting token...";
 
     Button btnGetToken, btnResetToken, btnRefresh, btnSetExpired, buttonVerify,
             buttonRemoveCookies;
@@ -69,7 +70,7 @@ public class MainActivity extends Activity {
      */
     private AuthenticationResult mResult;
 
-    private String mActiveUser;
+    private String mActiveUser, mExtraQueryParam;
 
     final static String AUTHORITY_URL = "https://login.windows.net/omercantest.onmicrosoft.com";
 
@@ -86,18 +87,23 @@ public class MainActivity extends Activity {
     // Endpoint we are targeting for the deployed WebAPI service
     final static String SERVICE_URL = "https://android.azurewebsites.net/api/values";
 
+    final static String LOG_STATUS_FORMAT = "Status:%s Expires:%s";
+
     private AuthenticationContext mContext = null;
 
+    private UUID mRequestCorrelationId;
+    
     private Handler handler = new Handler();
 
     public Handler getTestAppHandler() {
         return handler;
     }
-
+    
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
 
         @Override
         public void onError(Exception exc) {
+           Log.d(TAG, "Callback returned error");
             if (exc instanceof AuthenticationCancelError) {
                 textViewStatus.setText("Cancelled");
                 Log.d(TAG, "Cancelled");
@@ -114,16 +120,23 @@ public class MainActivity extends Activity {
 
         @Override
         public void onSuccess(AuthenticationResult result) {
+            Log.d(TAG, "Callback has result");
             setResult(result);
 
             if (result == null || result.getAccessToken() == null
                     || result.getAccessToken().isEmpty()) {
                 textViewStatus.setText(FAILED);
                 Log.d(TAG, "Token is empty");
+                if (result != null) {
+                    Log.d(TAG,
+                            "Error  code:" + result.getErrorCode() + " correlationId:"
+                                    + result.getCorrelationId() + " Description:"
+                                    + result.getErrorDescription());
+                }
             } else {
                 // request is successful
-                Log.d(TAG, "Status:" + result.getStatus() + " Expired:"
-                        + result.getExpiresOn().toString());
+                Log.d(TAG, String.format(LOG_STATUS_FORMAT, result.getStatus(), result
+                        .getExpiresOn().toString()));
                 textViewStatus.setText(PASSED);
             }
         }
@@ -229,7 +242,7 @@ public class MainActivity extends Activity {
 
     private void getTokenByRefreshToken() {
         Logger.v(TAG, "get Token with refresh token");
-        textViewStatus.setText("");
+        textViewStatus.setText(GETTING_TOKEN);
         if (mResult != null && mResult.getRefreshToken() != null
                 && !mResult.getRefreshToken().isEmpty()) {
             String clientId = mClientId.getText().toString();
@@ -237,7 +250,7 @@ public class MainActivity extends Activity {
             if (clientId == null || clientId.isEmpty()) {
                 clientId = CLIENT_ID;
             }
-
+            mContext.setRequestCorrelationId(mRequestCorrelationId);
             mContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), clientId, callback);
         } else {
             textViewStatus.setText(FAILED);
@@ -246,7 +259,7 @@ public class MainActivity extends Activity {
 
     private void getToken() {
         Logger.v(TAG, "get Token");
-        textViewStatus.setText("Getting token...");
+        textViewStatus.setText(GETTING_TOKEN);
         if (mContext == null) {
             initContext();
         }
@@ -274,9 +287,9 @@ public class MainActivity extends Activity {
         // Optional field, so acquireToken accepts null fields
         String redirect = mRedirect.getText().toString();
         mResult = null;
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, "",
+        mContext.setRequestCorrelationId(mRequestCorrelationId);
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, mExtraQueryParam,
                 callback);
-
     }
 
     @Override
@@ -296,17 +309,23 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * reset all
+     * only remove from cache but keep cookies
      */
-    private void resetToken() {
-        Log.d(TAG, "reset Token");
+    public void removeTokens(){
         if (mContext == null) {
             initContext();
         }
 
         mContext.getCache().removeAll();
         textViewStatus.setText("");
-
+    }
+    
+    /**
+     * reset all
+     */
+    private void resetToken() {
+        Log.d(TAG, "reset Token");
+        removeTokens();
         removeCookies();
     }
 
@@ -348,19 +367,31 @@ public class MainActivity extends Activity {
     public AuthenticationResult getResult() {
         return mResult;
     }
-    
-    public String getActiveUser(){
+
+    public String getActiveUser() {
         return mActiveUser;
     }
 
-    public void setResult(AuthenticationResult mResult) {
-        this.mResult = mResult;
-        if (mResult != null && mResult.getUserInfo() != null) {
+    public void setResult(AuthenticationResult result) {
+        this.mResult = result;
+        if (result != null && result.getUserInfo() != null) {
             Log.v(TAG, "Active UserId:" + mActiveUser);
-            mActiveUser = mResult.getUserInfo().getUserId();
+            mActiveUser = result.getUserInfo().getUserId();
         }
     }
 
+    public UUID getRequestCorrelationId() {
+        return mRequestCorrelationId;
+    }
+
+    public void setRequestCorrelationId(UUID mRequestCorrelationId) {
+        this.mRequestCorrelationId = mRequestCorrelationId;
+    }
+
+    public void setExtraQueryParam(String extraQueryParam){
+        mExtraQueryParam = extraQueryParam;
+    }
+    
     /**
      * Simple get request for test
      * 
