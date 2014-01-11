@@ -154,7 +154,6 @@
                    </report>
                 </emma>
                 <echo level="info">Cleaning up temporary files...</echo>
-                
                 <echo level="info">Saving HTML report file in ${basedir}/coverage/coverage.html</echo>
                 <echo level="info">Saving XML report file in ${basedir}/coverage/coverage.xml</echo>
             </then>

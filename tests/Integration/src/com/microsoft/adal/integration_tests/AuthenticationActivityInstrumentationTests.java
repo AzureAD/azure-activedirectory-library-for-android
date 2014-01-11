@@ -1,8 +1,12 @@
 
-package com.microsoft.adal.test;
+package com.microsoft.adal.integration_tests;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -10,10 +14,12 @@ import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
 
 import android.app.Instrumentation.ActivityMonitor;
+import android.content.res.Resources;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
 import android.test.suitebuilder.annotation.LargeTest;
 import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.WebView;
@@ -31,6 +37,7 @@ import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.PromptBehavior;
+import com.microsoft.adal.integration_tests.TenantInfo.TenantType;
 import com.microsoft.adal.testapp.MainActivity;
 import com.microsoft.adal.testapp.R;
 
@@ -101,6 +108,10 @@ public class AuthenticationActivityInstrumentationTests extends
             "txtBoxMobileEmail", "txtBoxEmail", "userNameInput"
     };
 
+    boolean configLoad = false;
+
+    HashMap<TenantType, TenantInfo> tenants = new HashMap<TenantType, TenantInfo>();
+
     public AuthenticationActivityInstrumentationTests() {
         super(MainActivity.class);
         activity = null;
@@ -116,6 +127,7 @@ public class AuthenticationActivityInstrumentationTests extends
         setActivityInitialTouchMode(false);
         activity = getActivity();
         solo = new Solo(getInstrumentation(), activity);
+        loadConfigFromResource();
     }
 
     @Override
@@ -126,26 +138,60 @@ public class AuthenticationActivityInstrumentationTests extends
         super.tearDown();
     }
 
+    /**
+     * add integration_tests.properties file at tests/integration/assets folder
+     * 
+     * @param name
+     */
+    private void loadConfigFromResource() {
+
+        if (configLoad)
+            return;
+
+        try {
+            Log.d(TAG, "Load config from assets");
+            InputStream stream = getInstrumentation().getContext().getAssets()
+                    .open("integration_tests.properties");
+            Properties p = new Properties();
+            p.load(stream);
+            tenants.put(TenantType.AAD, TenantInfo.parseTenant(TenantType.AAD, p));
+            tenants.put(TenantType.ADFS30, TenantInfo.parseTenant(TenantType.ADFS30, p));
+            tenants.put(TenantType.ADFS20FEDERATED,
+                    TenantInfo.parseTenant(TenantType.ADFS20FEDERATED, p));
+            tenants.put(TenantType.ADFS30FEDERATED,
+                    TenantInfo.parseTenant(TenantType.ADFS30FEDERATED, p));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            Log.d(TAG, e.getMessage());
+            Assert.fail("Config is not loaded");
+        }
+
+        configLoad = true;
+    }
+
     @MediumTest
     public void testAcquireTokenADFS30Federated() throws Exception {
-        acquireTokenAfterReset(TestTenant.ADFS30FEDERATED, "", PromptBehavior.Auto, null, false,
-                true, "https://fs.ade2eadfs30.com");
+        acquireTokenAfterReset(tenants.get(TenantType.ADFS30FEDERATED), "", PromptBehavior.Auto,
+                null, false, true, "https://fs.ade2eadfs30.com");
     }
 
     @MediumTest
     public void testAcquireTokenADFS20Federated() throws Exception {
-        acquireTokenAfterReset(TestTenant.ADFS20FEDERATED, "", PromptBehavior.Auto, null, false,
-                true, "https://fs.ade2eadfs20.com");
+        TenantInfo tenant = tenants.get(TenantType.ADFS20FEDERATED);
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, true,
+                tenant.getFederated());
     }
 
     @MediumTest
     public void testAcquireTokenADFS30() throws Exception {
-        acquireTokenAfterReset(TestTenant.ADFS30, "", PromptBehavior.Auto, null, false, false, null);
+        acquireTokenAfterReset(tenants.get(TenantType.ADFS30), "", PromptBehavior.Auto, null,
+                false, false, null);
     }
 
     @MediumTest
     public void testAcquireTokenPromptNever() throws Exception {
-        TestTenant tenant = TestTenant.MANAGED;
+        TenantInfo tenant = tenants.get(TenantType.AAD);
         // Activity runs at main thread. Test runs on different thread
         Log.v(TAG, "testAcquireToken_Prompt starts for authority:" + tenant.getAuthority());
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
@@ -160,13 +206,81 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("Token status", tokenMsg.contains("AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED"));
     }
 
+    /**
+     * prompt always setting will force the login prompt again. It should not
+     * use the cookies, so webview should display login page.
+     * 
+     * @throws Exception
+     */
+    @MediumTest
+    public void testAcquireTokenPromptAlways() throws Exception {
+        // Get token first
+        TenantInfo tenant = tenants.get(TenantType.AAD);
+        Log.v(TAG, "testAcquireTokenPromptAlways starts for authority:" + tenant.getAuthority());
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
+
+        // click to get token again and monitor authenticationActivity launch
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+
+        Log.v(TAG, "Next token request will served from cache");
+        setAuthenticationRequest(tenant, "", PromptBehavior.Auto, "", false);
+        clickGetToken();
+
+        AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
+                .waitForActivityWithTimeout(ACTIVITY_WAIT_TIMEOUT);
+        assertNull(startedActivity);
+
+        Log.v(TAG, "Prompt always will launch ");
+        setAuthenticationRequest(tenant, "", PromptBehavior.Always, "", false);
+        clickGetToken();
+
+        startedActivity = (AuthenticationActivity)monitor
+                .waitForActivityWithTimeout(ACTIVITY_WAIT_TIMEOUT);
+        assertNotNull(startedActivity);
+
+        sleepUntilVisibleWebElements(startedActivity);
+        assertTrue("There should be some visible web elements",
+                solo.getCurrentWebElements().size() > 0);
+
+        startedActivity.finish();
+    }
+
+    /**
+     * Verify that extra query param works at authorization endpoint
+     * 
+     * @throws Exception
+     */
+    @MediumTest
+    public void testAcquireToken_ExtraQueryParam() throws Exception {
+        // Get token first
+        TenantInfo tenant = tenants.get(TenantType.AAD);
+        Log.v(TAG, "testAcquireTokenPromptAlways starts for authority:" + tenant.getAuthority());
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
+
+        // click to get token again and monitor authenticationActivity launch
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+
+        Log.v(TAG, "testAcquireToken_ExtraQueryParam trying extra query param");
+        setAuthenticationRequest(tenant, "", PromptBehavior.Auto, "prompt=login", false);
+        removeTokens();
+        clickGetToken();
+
+        Log.v(TAG, "prompt=login param will be posted to authorization endpoint");
+        AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
+                .waitForActivityWithTimeout(ACTIVITY_WAIT_TIMEOUT);
+        assertNotNull(startedActivity);
+        startedActivity.finish();
+    }
+
     @MediumTest
     public void testCorrelationId() throws Exception {
         Log.v(TAG, "Started testing correlationId");
 
         // Get token to test refresh token request with correlationId
-        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, false, false,
-                null);
+        TenantInfo tenant = tenants.get(TenantType.AAD);
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
 
         UUID correlationId = UUID.randomUUID();
         activity.setRequestCorrelationId(correlationId);
@@ -232,13 +346,13 @@ public class AuthenticationActivityInstrumentationTests extends
     public void testAcquireTokenManaged() throws Exception {
 
         // Not validating
+        TenantInfo tenant = tenants.get(TenantType.AAD);
         Log.v(TAG, "testing acquireTokenAfterReset for managed without validation");
-        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, false, false,
-                null);
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
 
         // Validation set to true
         Log.v(TAG, "testing acquireTokenAfterReset for managed with validation");
-        acquireTokenAfterReset(TestTenant.MANAGED, "", PromptBehavior.Auto, null, true, false, null);
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, true, false, null);
 
         // use existing token
         Log.v(TAG, "testing acquireTokenByRefreshToken for managed");
@@ -338,8 +452,8 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("Token status", tokenMsg.contains(MainActivity.PASSED));
     }
 
-    private void setAuthenticationRequest(final TestTenant tenant, final String loginhint,
-            final PromptBehavior prompt, String extraQueryParam, final boolean validate) {
+    private void setAuthenticationRequest(final TenantInfo tenant, final String loginhint,
+            final PromptBehavior prompt, final String extraQueryParam, final boolean validate) {
         // ACtivity runs at main thread. Test runs on different thread
         Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
 
@@ -354,7 +468,7 @@ public class AuthenticationActivityInstrumentationTests extends
         mPrompt = (EditText)activity.findViewById(R.id.editPrompt);
         mRedirect = (EditText)activity.findViewById(R.id.editRedirect);
         mValidate = (CheckBox)activity.findViewById(R.id.checkBoxValidate);
-
+         
         // Use handler from this app to quickly set the fields instead of
         // sending key events
         activity.getTestAppHandler().post(new Runnable() {
@@ -369,6 +483,7 @@ public class AuthenticationActivityInstrumentationTests extends
                 mValidate.setChecked(validate);
             }
         });
+        activity.setExtraQueryParam(extraQueryParam);
     }
 
     private void clickResetTokens() {
@@ -448,10 +563,10 @@ public class AuthenticationActivityInstrumentationTests extends
         assertNotNull(startedActivity);
 
         Log.v(TAG, "Sleeping until it gets the login page");
-        sleepUntilLoginDisplays(startedActivity);
+        sleepUntilVisibleWebElements(startedActivity);
 
         Log.v(TAG, "Entering credentials to login page");
-        assertTrue("Activity has login page", hasLoginPage(getLoginPage(startedActivity)));
+        checkVisibleWebElements();
         enterCredentials(federated, federatedPageUrl, startedActivity, username, password);
 
         // wait for the page to set result
@@ -477,7 +592,7 @@ public class AuthenticationActivityInstrumentationTests extends
      * 
      * @throws Exception
      */
-    private void acquireTokenAfterReset(TestTenant tenant, String loginhint, PromptBehavior prompt,
+    private void acquireTokenAfterReset(TenantInfo tenant, String loginhint, PromptBehavior prompt,
             String extraQueryParam, boolean validate, boolean federated, String federatedPageUrl)
             throws Exception {
         Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
@@ -513,27 +628,23 @@ public class AuthenticationActivityInstrumentationTests extends
         assertNotNull("Webview is not null", webview);
         webview.requestFocus();
 
-        String page = getLoginPage(startedActivity);
-        assertFalse("Page does not have login page", page == null || page.isEmpty());
-
-        ArrayList<WebElement> elements = solo.getCurrentWebElements();
-        assertNotNull(elements);
+        ArrayList<WebElement> elements = checkVisibleWebElements();
         checkErrorInPage(elements);
 
         enterTextIntoWebElement(elements, usernameIDs, username);
+        pressKey(KeyEvent.KEYCODE_TAB);
+        // After pressing tab key, page will redirect to federated login
+        // page
+        // for federated account
 
         if (waitForRedirect) {
-            // After pressing tab key, page will redirect to federated login
-            // page
-            // for federated account
-            pressKey(KeyEvent.KEYCODE_TAB);
 
             // federation page redirects to login page
             Log.v(TAG, "Sleep for redirect");
             sleepUntilFederatedPageDisplays(redirectUrl);
 
             Log.v(TAG, "Sleeping until it gets login page");
-            sleepUntilLoginDisplays(startedActivity);
+            sleepUntilVisibleWebElements(startedActivity);
 
             Log.v(TAG, "Entering credentials to login page");
             enterCredentials(false, null, startedActivity, username, password);
@@ -545,6 +656,12 @@ public class AuthenticationActivityInstrumentationTests extends
         // Enter event sometimes is failing to submit form.
         clickWebElement(elements, signInIDs);
         Log.v(TAG, "Credentials are passed");
+    }
+
+    private ArrayList<WebElement> checkVisibleWebElements() {
+        ArrayList<WebElement> elements = solo.getCurrentWebElements();
+        assertNotNull(elements);
+        return elements;
     }
 
     private void checkErrorInPage(ArrayList<WebElement> elements) {
@@ -583,8 +700,9 @@ public class AuthenticationActivityInstrumentationTests extends
                         Log.v(TAG, "WebElement:" + id + " has text:" + text);
                     } else {
                         // Get element position again
-                        solo.clickOnWebElement(By.id(id));
-                        solo.typeTextInWebElement(By.id(id), text);
+                        solo.hideSoftKeyboard();
+                        // not use keyboard
+                        getInstrumentation().sendStringSync(text);
                         Log.v(TAG, "Entered " + text + " at " + id);
                     }
                     return;
@@ -632,25 +750,6 @@ public class AuthenticationActivityInstrumentationTests extends
         }
     }
 
-    private void sleepUntilLoginDisplays(final AuthenticationActivity startedActivity)
-            throws InterruptedException, IllegalArgumentException, NoSuchFieldException,
-            IllegalAccessException {
-
-        Log.v(TAG, "sleepUntilLoginDisplays start");
-
-        // This depends on connection
-        waitUntil(LOGIN_DISPLAY_TIME_OUT, new ResponseVerifier() {
-            @Override
-            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
-                    IllegalAccessException {
-                return hasLoginPage(getLoginPage(startedActivity));
-            }
-        });
-
-        Log.v(TAG, "sleepUntilLoginDisplays end");
-        assertTrue(hasLoginPage(getLoginPage(startedActivity)));
-    }
-
     private void sleepUntilVisibleWebElements(final AuthenticationActivity startedActivity)
             throws InterruptedException, IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException {
@@ -661,12 +760,12 @@ public class AuthenticationActivityInstrumentationTests extends
             @Override
             public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
                     IllegalAccessException {
-                return solo.getCurrentWebElements().size() > 0;
+                return solo.getCurrentWebElements().size() > 2;
             }
         });
 
         Log.v(TAG, "sleepUntilVisibleWebElements end");
-        assertTrue(solo.getCurrentWebElements().size() > 0);
+        assertTrue(solo.getCurrentWebElements().size() > 2);
     }
 
     /**
@@ -704,30 +803,15 @@ public class AuthenticationActivityInstrumentationTests extends
                 IllegalAccessException;
     }
 
-    /**
-     * Login page content is written to the script object with javascript
-     * injection
-     * 
-     * @param startedActivity
-     * @return
-     * @throws IllegalArgumentException
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
-     */
-    private String getLoginPage(AuthenticationActivity startedActivity)
-            throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
-        Object scriptInterface = ReflectionUtils.getFieldValue(startedActivity, "mScriptInterface");
-
-        Object content = ReflectionUtils.getFieldValue(scriptInterface, "mHtml");
-
-        // skip empty page
-        if (content != null
-                && !content.toString().equalsIgnoreCase("<html><head></head><body></body></html>"))
-            return content.toString();
-
-        return null;
+    private void removeTokens(){
+        activity.getTestAppHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                activity.removeTokens();
+            }
+        });
     }
-
+    
     /**
      * this can change based on login page implementation
      * 
