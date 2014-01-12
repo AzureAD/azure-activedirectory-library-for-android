@@ -117,6 +117,7 @@
         <property name="emma.dump.file"
                 value="/data/data/${tested.project.app.package}/coverage.ec" />
 
+        <property name="emma.filter" value="-com.microsoft.adal.testapp.*" />
         <if condition="${emma.enabled}">
             <then>
                 <echo>WARNING: Code Coverage is currently only supported on the emulator and rooted devices.</echo>
@@ -125,6 +126,8 @@
                         <arg value="-e" />
                            <arg value="coverageFile" />
                            <arg value="${emma.dump.file}" />
+                           <arg value="-ix" />
+                           <arg value="${emma.filter}" />
                     </extra-instrument-args>
                 </run-tests-helper>
                 <echo level="info">Downloading coverage file into project directory...</echo>

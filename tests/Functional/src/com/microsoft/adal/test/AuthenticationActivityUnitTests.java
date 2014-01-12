@@ -17,7 +17,7 @@ import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.webkit.WebView;
 import android.widget.Button;
-
+import com.microsoft.adal.test.AuthenticationConstants;
 import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.R;
 
