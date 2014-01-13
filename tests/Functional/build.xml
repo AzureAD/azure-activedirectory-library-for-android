@@ -126,8 +126,6 @@
                         <arg value="-e" />
                            <arg value="coverageFile" />
                            <arg value="${emma.dump.file}" />
-                           <arg value="-ix" />
-                           <arg value="${emma.filter}" />
                     </extra-instrument-args>
                 </run-tests-helper>
                 <echo level="info">Downloading coverage file into project directory...</echo>
