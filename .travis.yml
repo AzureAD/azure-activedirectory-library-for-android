@@ -53,7 +53,9 @@ script:
   - ant clean debug
   - cd -
   - cd $PWD/tests/Functional
+  # ignore testapp files in coverage report
   - ant clean -Demma.filter="-com.microsoft.adal.testapp.*" emma debug install test
-  - adb pull /data/data/com.microsoft.adal.test/files/coverage.ec .
-  - java -cp tools/emmacoveralls.jar emma report -r coveralls -in bin/coverage.em,coverage.ec -sp ../adal/src/ -Dreport.coveralls.service.jobid=${TRAVIS_JOB_ID} -Dreport.coveralls.service.name=travis-ci -Dreport.coveralls.repotoken=AtIrNwy3mURM8Ctw08fTywQkGb3ZWTIqK
+  # pull coverage file from instrumentation app
+  - adb pull /data/data/com.microsoft.adal.testapp/coverage.ec .
+  - java -cp tools/emmacoveralls.jar emma report -r coveralls -in bin/coverage.em,coverage.ec -sp ../../adal/src/ -Dreport.coveralls.service.jobid=${TRAVIS_JOB_ID} -Dreport.coveralls.service.name=travis-ci -Dreport.coveralls.repotoken=AtIrNwy3mURM8Ctw08fTywQkGb3ZWTIqK
   - curl --form json_file=@coverage.json https://coveralls.io/api/v1/jobs  
