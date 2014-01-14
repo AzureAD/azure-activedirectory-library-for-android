@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.security.DigestException;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
@@ -49,8 +50,6 @@ public class StorageHelper {
 
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
 
-    private static final String MAC_ALGORITHM = "HmacSHA256";
-
     private final SecureRandom mRandom;
 
     private static final int KEY_SIZE = 256;
@@ -58,6 +57,7 @@ public class StorageHelper {
     /** IV Key length for AES-128 */
     public static final int DATA_KEY_LENGTH = 16;
 
+    public static final int MAC_LENGTH = 32;
     /**
      * it is needed for AndroidKeyStore
      */
@@ -87,11 +87,7 @@ public class StorageHelper {
             UnrecoverableEntryException, IOException {
         synchronized (lockObject) {
             if (sKey == null) {
-                if (Build.VERSION.SDK_INT >= 18) {
-                    // Key pair only needed for API>=18
-                    mWrapCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-                    mKeyPair = getKeyPairFromAndroidKeyStore();
-                }
+                loadKeyPair();
 
                 sKey = getSecretKeyForAPI();
             }
@@ -99,6 +95,16 @@ public class StorageHelper {
 
         if (sKey == null) {
             throw new IllegalArgumentException("key");
+        }
+    }
+
+    private void loadKeyPair() throws NoSuchAlgorithmException, NoSuchPaddingException,
+            KeyStoreException, CertificateException, IOException, NoSuchProviderException,
+            InvalidAlgorithmParameterException, UnrecoverableEntryException {
+        if (Build.VERSION.SDK_INT >= 18) {
+            // Key pair only needed for API>=18
+            mWrapCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            mKeyPair = getKeyPairFromAndroidKeyStore();
         }
     }
 
@@ -118,8 +124,17 @@ public class StorageHelper {
 
             // Set to encrypt mode
             mCipher.init(Cipher.ENCRYPT_MODE, sKey, ivSpec);
-            byte[] dataAndIV = appendIV(mCipher.doFinal(bytes), iv);
-            String encrypted = new String(Base64.encode(dataAndIV, Base64.NO_WRAP),
+            byte[] dataAndIV = appendBytes(mCipher.doFinal(bytes), iv);
+            
+            // Mac output
+            Mac m = Mac.getInstance("HmacSHA256");
+            m.init(sKey);
+            m.update(dataAndIV);
+            byte[] macDigest = m.doFinal();
+           
+            // add digest to end
+            byte[] data_IV_mac = appendBytes(dataAndIV, macDigest);
+            String encrypted = new String(Base64.encode(data_IV_mac, Base64.NO_WRAP),
                     AuthenticationConstants.ENCODING_UTF8);
             Logger.d(TAG, "Finished encryption");
             return encrypted;
@@ -135,14 +150,22 @@ public class StorageHelper {
             Logger.d(TAG, "Starting decryption");
             loadKey();
             final byte[] bytes = value != null ? Base64.decode(value, Base64.DEFAULT) : new byte[0];
-            SecretKey secretKey = getSecretKeyForAPI();
 
-            // Iv is appended at the end
-            int ivIndex = bytes.length - DATA_KEY_LENGTH;
-
+            // byte array order as data-iv-mac
+            int ivIndex = bytes.length - DATA_KEY_LENGTH - MAC_LENGTH;
+            int macIndex = bytes.length - MAC_LENGTH;
+            
+            // Calculate digest again and compare to the appended value
+            Mac m = Mac.getInstance("HmacSHA256");
+            m.init(sKey);
+            m.update(bytes, 0, macIndex );
+            byte[] macDigest = m.doFinal();
+            //compare digest
+            assertMac(bytes, macIndex, bytes.length, macDigest);
+            
             // get IV related bytes from the end and set to decryptmode with
             // that IV
-            mCipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(bytes, ivIndex,
+            mCipher.init(Cipher.DECRYPT_MODE, sKey, new IvParameterSpec(bytes, ivIndex,
                     DATA_KEY_LENGTH));
 
             // Decrypt data bytes from 0 to ivindex
@@ -157,7 +180,20 @@ public class StorageHelper {
         return value;
     }
 
-    private static byte[] appendIV(byte[] data, byte[] iv) throws Exception {
+    private void assertMac(byte[] digest, int start, int end, byte[] calculated) throws DigestException {
+        if (calculated.length != (end-start)) {
+            throw new IllegalArgumentException("Unexpected MAC length");
+        }
+        byte result = 0;
+        for (int i = start; i < end; i++) {
+            result |= calculated[i-start] ^ digest[i];
+        }
+        if (result != 0) {
+            throw new DigestException();
+        }
+    }
+
+    private static byte[] appendBytes(byte[] data, byte[] iv) throws Exception {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         os.write(data);
         os.write(iv);
@@ -209,7 +245,7 @@ public class StorageHelper {
 
         // Store secret key in a file after wrapping
         File keyFile = new File(mContext.getFilesDir(), "adal.secret.key");
-
+        loadKeyPair();
         // If keyfile does not exist, it needs to generate one
         if (!keyFile.exists()) {
             Logger.v(TAG, "Key file does not exists");
@@ -288,7 +324,7 @@ public class StorageHelper {
     @TargetApi(18)
     private SecretKey unWrap(byte[] keyBlob) throws GeneralSecurityException {
         mWrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());
-        return (SecretKey)mCipher.unwrap(keyBlob, "AES", Cipher.SECRET_KEY);
+        return (SecretKey)mWrapCipher.unwrap(keyBlob, "AES", Cipher.SECRET_KEY);
     }
 
     private static void writeKeyData(File file, byte[] data) throws IOException {
