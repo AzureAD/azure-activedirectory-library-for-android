@@ -32,7 +32,7 @@ before_install:
   # setup main and testproject
   - android update lib-project -p adal --target android-19
   - android update project -p samples/testapp --target android-19
-  - android update test-project -p samples/testapp -m tests
+  - android update test-project -p tests/Functional -m ../../samples/testapp
 
 before_script:
   # setup display to run interactive tests http://www.xfree86.org/4.0.1/Xvfb.1.html
@@ -52,8 +52,11 @@ script:
   - cd $PWD/adal
   - ant clean debug
   - cd -
-  - cd $PWD/tests
-  - ant clean emma debug install test
-  - adb pull /data/data/com.microsoft.adal.test/files/coverage.ec .
-  - java -cp tools/emmacoveralls.jar emma report -r coveralls -in bin/coverage.em,coverage.ec -sp ../adal/src/ -Dreport.coveralls.service.jobid=${TRAVIS_JOB_ID} -Dreport.coveralls.service.name=travis-ci -Dreport.coveralls.repotoken=AtIrNwy3mURM8Ctw08fTywQkGb3ZWTIqK
+  - cd $PWD/tests/Functional
+  # ignore testapp files in coverage report
+  - ant clean -Demma.filter="-com.microsoft.adal.testapp.*" emma debug install test
+  # pull coverage file from instrumentation app
+  - adb pull /data/data/com.microsoft.adal.testapp/coverage.ec .
+  - adb pull /data/data/com.microsoft.adal.testapp/coverage.em .
+  - java -cp tools/emmacoveralls.jar emma report -r coveralls -in coverage.em,coverage.ec -sp ../../adal/src/ -Dreport.coveralls.service.jobid=${TRAVIS_JOB_ID} -Dreport.coveralls.service.name=travis-ci -Dreport.coveralls.repotoken=AtIrNwy3mURM8Ctw08fTywQkGb3ZWTIqK
   - curl --form json_file=@coverage.json https://coveralls.io/api/v1/jobs  
