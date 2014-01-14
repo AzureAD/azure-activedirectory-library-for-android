@@ -1,6 +1,8 @@
 
 package com.microsoft.adal;
 
+import javax.crypto.SecretKey;
+
 /**
  * Settings to be used in AuthenticationContext
  * 
@@ -17,6 +19,7 @@ public enum AuthenticationSettings {
 
     private String mTokenEndpoint = DEFAULT_TOKEN_ENDPOINT;
 
+    private SecretKey mSecretKey = null;
     /**
      * default is /oauth2/token
      * 
@@ -61,5 +64,21 @@ public enum AuthenticationSettings {
         }
 
         return value;
+    }
+
+    /**
+     * Get secretkey to use in encrypt/decrypt
+     * @return
+     */
+    public SecretKey getSecretKey() {
+        return mSecretKey;
+    }
+    
+    /**
+     * set secret key to use in encrypt/decrypt
+     * @param key
+     */
+    public void setSecretKey(SecretKey key){
+        mSecretKey = key;
     }
 }

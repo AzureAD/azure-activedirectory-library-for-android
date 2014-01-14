@@ -96,13 +96,13 @@ public enum ADALError {
 
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
 
-    SERVER_INVALID_JSON_RESPONSE("Server returned invalid json response"),
+    SERVER_INVALID_JSON_RESPONSE("Server returned invalid JSON response"),
 
     AUTH_REFRESH_FAILED("Refresh token request failed"),
 
     ENCRYPTION_FAILED("Obfuscating clear text data failed"),
 
-    ANDROIDKEYSTORE_FAILED("AndroidKeyStore is failed"), ;
+    ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"), ;
     
 
     private String mDescription;

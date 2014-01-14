@@ -1,26 +1,34 @@
 
 package com.microsoft.adal;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
 import android.annotation.TargetApi;
@@ -30,51 +38,93 @@ import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 
 /**
- * Shared preferences store clear text. This class helps to encrypt/decrypt text to store.
- * API SDK >= 18 has more security with AndroidKeyStore
+ * Shared preferences store clear text. This class helps to encrypt/decrypt text
+ * to store. API SDK >= 18 has more security with AndroidKeyStore
+ * 
  * @author omercan
  */
-class StorageHelper {
+public class StorageHelper {
 
     private static final String TAG = "StorageHelper";
 
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
 
-    private static final String PBE_ALGORITHM = "PBEWithSHA256And256BitAES-CBC-BC";
+    private static final String MAC_ALGORITHM = "HmacSHA256";
 
-    private static final byte[] SALT = "a075150a-4307-4132-a027-02f9aa48c694".getBytes();
-
-    /**
-     * expects 16 bytes
-     */
-    private static final byte[] IV = "0123456abcdhtf73".getBytes();
-
-    private static final int NUM_OF_ITERATIONS = 20;
+    private final SecureRandom mRandom;
 
     private static final int KEY_SIZE = 256;
 
+    /** IV Key length for AES-128 */
+    public static final int DATA_KEY_LENGTH = 16;
+
+    /**
+     * it is needed for AndroidKeyStore
+     */
+    private KeyPair mKeyPair;
+
+    private Cipher mCipher, mWrapCipher;
+
     private Context mContext;
 
-    public StorageHelper(Context ctx) {
+    private static final Object lockObject = new Object();
+
+    /**
+     * Load only once
+     */
+    private static SecretKey sKey = null;
+
+    public StorageHelper(Context ctx) throws NoSuchAlgorithmException, NoSuchPaddingException {
         mContext = ctx;
+        mRandom = new SecureRandom();
+        mCipher = Cipher.getInstance(CIPHER_ALGORITHM);
+
+    }
+
+    private void loadKey() throws NoSuchAlgorithmException, InvalidKeySpecException,
+            NoSuchPaddingException, KeyStoreException, CertificateException,
+            NoSuchProviderException, InvalidAlgorithmParameterException,
+            UnrecoverableEntryException, IOException {
+        synchronized (lockObject) {
+            if (sKey == null) {
+                if (Build.VERSION.SDK_INT >= 18) {
+                    // Key pair only needed for API>=18
+                    mWrapCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+                    mKeyPair = getKeyPairFromAndroidKeyStore();
+                }
+
+                sKey = getSecretKeyForAPI();
+            }
+        }
+
+        if (sKey == null) {
+            throw new IllegalArgumentException("key");
+        }
     }
 
     protected String encrypt(String clearText) {
         try {
-            Logger.d(TAG, "Started encrypt");
-            final byte[] bytes = clearText != null ? clearText.getBytes() : new byte[0];
-            SecretKey secretKey = getSecretKeyForAPI();
+            Logger.d(TAG, "Starting encryption");
 
-            Cipher pbeCipher = Cipher.getInstance(CIPHER_ALGORITHM);
-            IvParameterSpec ivSpec = new IvParameterSpec(IV);
-            pbeCipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec);
+            // Get key for encryption
+            loadKey();
+            final byte[] bytes = clearText != null ? clearText
+                    .getBytes(AuthenticationConstants.ENCODING_UTF8) : new byte[0];
 
-            String encrypted = new String(Base64.encode(pbeCipher.doFinal(bytes), Base64.NO_WRAP),
+            // IV: Initialization vector that is needed to start CBC
+            byte[] iv = new byte[DATA_KEY_LENGTH];
+            mRandom.nextBytes(iv);
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+
+            // Set to encrypt mode
+            mCipher.init(Cipher.ENCRYPT_MODE, sKey, ivSpec);
+            byte[] dataAndIV = appendIV(mCipher.doFinal(bytes), iv);
+            String encrypted = new String(Base64.encode(dataAndIV, Base64.NO_WRAP),
                     AuthenticationConstants.ENCODING_UTF8);
             Logger.d(TAG, "Finished encryption");
             return encrypted;
         } catch (Exception e) {
-            Logger.e(TAG, "It failed to use encryption", "", ADALError.ENCRYPTION_FAILED);
+            Logger.e(TAG, "It failed to use encryption", "", ADALError.ENCRYPTION_FAILED, e);
         }
 
         return clearText;
@@ -82,23 +132,36 @@ class StorageHelper {
 
     protected String decrypt(String value) {
         try {
-            Logger.d(TAG, "Started decrypt");
+            Logger.d(TAG, "Starting decryption");
+            loadKey();
             final byte[] bytes = value != null ? Base64.decode(value, Base64.DEFAULT) : new byte[0];
             SecretKey secretKey = getSecretKeyForAPI();
 
-            Cipher pbeCipher = Cipher.getInstance(CIPHER_ALGORITHM);
-            IvParameterSpec ivSpec = new IvParameterSpec(IV);
-            pbeCipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec);
+            // Iv is appended at the end
+            int ivIndex = bytes.length - DATA_KEY_LENGTH;
 
-            String decrypted = new String(pbeCipher.doFinal(bytes),
+            // get IV related bytes from the end and set to decryptmode with
+            // that IV
+            mCipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(bytes, ivIndex,
+                    DATA_KEY_LENGTH));
+
+            // Decrypt data bytes from 0 to ivindex
+            String decrypted = new String(mCipher.doFinal(bytes, 0, ivIndex),
                     AuthenticationConstants.ENCODING_UTF8);
             Logger.d(TAG, "Finished decryption");
             return decrypted;
         } catch (Exception e) {
-            Logger.e(TAG, "It failed to use encryption", "", ADALError.ENCRYPTION_FAILED);
+            Logger.e(TAG, "It failed to use encryption", "", ADALError.ENCRYPTION_FAILED, e);
         }
 
         return value;
+    }
+
+    private static byte[] appendIV(byte[] data, byte[] iv) throws Exception {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        os.write(data);
+        os.write(iv);
+        return os.toByteArray();
     }
 
     final private SecretKey getSecretKeyForAPI() throws NoSuchAlgorithmException,
@@ -116,58 +179,72 @@ class StorageHelper {
             }
         }
 
-        return getSecretKey(new String(getPassword()));
-
-    }
-
-    private static String getDeviceSerialNumber() {
-        String num = Build.SERIAL;
-        if (!StringExtensions.IsNullOrBlank(num)) {
-            return num;
-        }
-
-        return "c5b1b988-955d-45ca-acd1-b52a1017bc48";
+        return AuthenticationSettings.INSTANCE.getSecretKey();
     }
 
     /**
-     * Pre Android API 18 does not have storage for password
+     * generate secretKey to store after wrapping with KeyStore
      * 
      * @return
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
      */
-    final private byte[] getPassword() {
-        return (mContext.getPackageName() + getDeviceSerialNumber() + Build.SERIAL + "B58AD341-0D4B-46B8-A81B-552B86051BDD")
-                .getBytes();
-    }
-
-    final private SecretKey getSecretKey(String password) throws NoSuchAlgorithmException,
+    final private SecretKey generateSecretKey() throws NoSuchAlgorithmException,
             InvalidKeySpecException {
-        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(PBE_ALGORITHM);
-        SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec(password.toCharArray(), SALT,
-                NUM_OF_ITERATIONS, KEY_SIZE));
-        SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
-        return secretKey;
+        KeyGenerator keygen = KeyGenerator.getInstance("AES");
+        keygen.init(KEY_SIZE, mRandom);
+        return keygen.generateKey();
     }
 
     /**
      * Supported API >= 18 PrivateKey is stored in AndroidKeyStore.
      * 
      * @return
-     * @throws NoSuchProviderException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidAlgorithmParameterException
      * @throws IOException
-     * @throws CertificateException
-     * @throws KeyStoreException
-     * @throws UnrecoverableEntryException
-     * @throws InvalidKeySpecException
-     * @throws NoSuchPaddingException
+     * @throws GeneralSecurityException
      */
     @TargetApi(18)
-    final private SecretKey getSecretKeyFromAndroidKeyStore() throws NoSuchAlgorithmException,
-            NoSuchProviderException, InvalidAlgorithmParameterException, CertificateException,
-            IOException, KeyStoreException, UnrecoverableEntryException, InvalidKeySpecException,
-            NoSuchPaddingException {
+    final private SecretKey getSecretKeyFromAndroidKeyStore() throws IOException,
+            GeneralSecurityException {
 
+        // Store secret key in a file after wrapping
+        File keyFile = new File(mContext.getFilesDir(), "adal.secret.key");
+
+        // If keyfile does not exist, it needs to generate one
+        if (!keyFile.exists()) {
+            Logger.v(TAG, "Key file does not exists");
+            final SecretKey key = generateSecretKey();
+            Logger.v(TAG, "Wrapping SecretKey");
+            final byte[] keyWrapped = wrap(key);
+            Logger.v(TAG, "Writing SecretKey");
+            writeKeyData(keyFile, keyWrapped);
+            Logger.v(TAG, "Finished writing SecretKey");
+        }
+
+        // Read from file again
+        Logger.v(TAG, "Reading SecretKey");
+        final byte[] encryptedKey = readKeyData(keyFile);
+        final SecretKey key = unWrap(encryptedKey);
+        Logger.v(TAG, "Finished reading SecretKey");
+        return key;
+    }
+
+    /**
+     * Get key pair
+     * 
+     * @return
+     * @throws KeyStoreException
+     * @throws IOException
+     * @throws CertificateException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidAlgorithmParameterException
+     * @throws UnrecoverableEntryException
+     */
+    @TargetApi(18)
+    private KeyPair getKeyPairFromAndroidKeyStore() throws KeyStoreException,
+            NoSuchAlgorithmException, CertificateException, IOException, NoSuchProviderException,
+            InvalidAlgorithmParameterException, UnrecoverableEntryException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
 
@@ -177,7 +254,8 @@ class StorageHelper {
             Calendar end = Calendar.getInstance();
             end.add(Calendar.YEAR, 100);
 
-            // self signed cert to use privatekey as salt
+            // self signed cert stored in AndroidKeyStore to asym. encrypt key
+            // to a file
             final KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(mContext)
                     .setAlias("AdalKey")
                     .setSubject(
@@ -194,15 +272,51 @@ class StorageHelper {
             Logger.v(TAG, "Key entry is available");
         }
 
-        // read again
-        KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry("AdalKey",
-                null);
-        // use private key info as password to generate secret key
-        String password = entry.getPrivateKey().toString();
-        if (password.length() > 150) {
-            // get after modulus
-            password = password.substring(100, 150);
-        }
-        return getSecretKey(password);
+        // Read key pair again
+        Logger.v(TAG, "Reading Key entry");
+        final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
+                "AdalKey", null);
+        return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
     }
+
+    @TargetApi(18)
+    private byte[] wrap(SecretKey key) throws GeneralSecurityException {
+        mWrapCipher.init(Cipher.WRAP_MODE, mKeyPair.getPublic());
+        return mWrapCipher.wrap(key);
+    }
+
+    @TargetApi(18)
+    private SecretKey unWrap(byte[] keyBlob) throws GeneralSecurityException {
+        mWrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());
+        return (SecretKey)mCipher.unwrap(keyBlob, "AES", Cipher.SECRET_KEY);
+    }
+
+    private static void writeKeyData(File file, byte[] data) throws IOException {
+        Logger.d(TAG, "Writing key data to a file");
+        final OutputStream out = new FileOutputStream(file);
+        try {
+            out.write(data);
+        } finally {
+            out.close();
+        }
+    }
+
+    private static byte[] readKeyData(File file) throws IOException {
+        Logger.d(TAG, "Reading key data from a file");
+        final InputStream in = new FileInputStream(file);
+
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int count;
+            while ((count = in.read(buffer)) != -1) {
+                bytes.write(buffer, 0, count);
+            }
+
+            return bytes.toByteArray();
+        } finally {
+            in.close();
+        }
+    }
+
 }
