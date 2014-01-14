@@ -171,7 +171,7 @@ public class AuthenticationActivity extends Activity {
         wv.getSettings().setPluginState(WebSettings.PluginState.ON);
         wv.setWebViewClient(new CustomWebViewClient());
         wv.setVisibility(View.INVISIBLE);
-
+        Logger.v(TAG, "User agent:" + wv.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
 
         try {
@@ -433,7 +433,7 @@ public class AuthenticationActivity extends Activity {
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Code:"
                     + ERROR_FAILED_SSL_HANDSHAKE);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
-        error.toString());
+                    error.toString());
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);

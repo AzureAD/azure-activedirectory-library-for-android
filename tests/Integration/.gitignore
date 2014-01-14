@@ -15,10 +15,6 @@ gen/
 
 # Local configuration file (sdk path, etc)
 local.properties
-integration_tests.properties
-
-#credential file
-integration_tests.properties
 
 # Eclipse project files
 .classpath
