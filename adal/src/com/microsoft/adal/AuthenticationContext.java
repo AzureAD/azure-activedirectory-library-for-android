@@ -91,7 +91,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
         mContext = appContext;
-        mAuthority = ensureNotEndsWithSlash(authority);
+        mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = new DefaultTokenCacheStore(appContext);
     }
@@ -105,7 +105,7 @@ public class AuthenticationContext {
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
-        mAuthority = ensureNotEndsWithSlash(authority);
+        mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = tokenCacheStore;
     }
@@ -121,7 +121,7 @@ public class AuthenticationContext {
     public AuthenticationContext(Context appContext, String authority,
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
-        mAuthority = ensureNotEndsWithSlash(authority);
+        mAuthority = extractAuthority(authority);
         mValidateAuthority = true;
         mTokenCacheStore = tokenCacheStore;
     }
@@ -415,22 +415,29 @@ public class AuthenticationContext {
 
                     } else {
                         Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
-                        Logger.v(TAG, "Processing url for token. " + authenticationRequest.getLogInfo());
+                        Logger.v(TAG,
+                                "Processing url for token. " + authenticationRequest.getLogInfo());
 
                         oauthRequest.getToken(endingUrl,
                                 new AuthenticationCallback<AuthenticationResult>() {
 
                                     @Override
                                     public void onSuccess(AuthenticationResult result) {
-                                        Logger.v(TAG, "OnActivityResult processed the result. " + authenticationRequest.getLogInfo());
-                                        if(result != null && !StringExtensions.IsNullOrBlank(result.getAccessToken())){
-                                            Logger.v(TAG, "OnActivityResult is setting the token to cache. " + authenticationRequest.getLogInfo());
+                                        Logger.v(TAG, "OnActivityResult processed the result. "
+                                                + authenticationRequest.getLogInfo());
+                                        if (result != null
+                                                && !StringExtensions.IsNullOrBlank(result
+                                                        .getAccessToken())) {
+                                            Logger.v(TAG,
+                                                    "OnActivityResult is setting the token to cache. "
+                                                            + authenticationRequest.getLogInfo());
                                             setItemToCache(authenticationRequest, result);
                                         }
-                                        
+
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
-                                            Logger.v(TAG, "Sending result to callback. " + authenticationRequest.getLogInfo());
+                                            Logger.v(TAG, "Sending result to callback. "
+                                                    + authenticationRequest.getLogInfo());
                                             waitingRequest.mDelagete.onSuccess(result);
                                         }
                                         removeWaitingRequest(requestId);
@@ -440,7 +447,8 @@ public class AuthenticationContext {
                                     public void onError(Exception exc) {
                                         Logger.e(
                                                 TAG,
-                                                "Error in processing code to get token. " + authenticationRequest.getLogInfo(),
+                                                "Error in processing code to get token. "
+                                                        + authenticationRequest.getLogInfo(),
                                                 ExceptionExtensions.getExceptionMessage(exc),
                                                 ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
                                                 exc);
@@ -499,7 +507,7 @@ public class AuthenticationContext {
 
     private void putWaitingRequest(int requestId, AuthenticationRequestState requestState) {
         Logger.v(TAG, "Put waiting request: " + requestId);
-        if (requestId > 0 && requestState != null) {
+        if (requestState != null) {
             writeLock.lock();
 
             try {
@@ -782,8 +790,10 @@ public class AuthenticationContext {
      * @param activity Activity to use in case refresh token does not succeed
      *            and prompt is not set to never.
      * @param request incoming request
-     * @param refreshItem refresh item info to remove this refresh token from cache
-     * @param useCache refresh request can be explicit without cache usage. Error message should return without trying prompt. 
+     * @param refreshItem refresh item info to remove this refresh token from
+     *            cache
+     * @param useCache refresh request can be explicit without cache usage.
+     *            Error message should return without trying prompt.
      * @param externalCallback
      */
     private void refreshToken(final Activity activity, final AuthenticationRequest request,
@@ -800,16 +810,14 @@ public class AuthenticationContext {
 
                     @Override
                     public void onSuccess(AuthenticationResult result) {
-                        
+
                         if (useCache) {
                             if (result == null
                                     || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                                Logger.w(
-                                        TAG,
-                                        "Refresh token did not return accesstoken.",
+                                Logger.w(TAG, "Refresh token did not return accesstoken.",
                                         request.getLogInfo() + result.getErrorLogInfo(),
                                         ADALError.AUTH_FAILED_NO_TOKEN);
-                                
+
                                 // remove item from cache to avoid same usage of
                                 // refresh token in next acquireToken call
                                 removeItemFromCache(refreshItem);
@@ -907,26 +915,7 @@ public class AuthenticationContext {
         try {
             // Start activity from callers context so that caller can intercept
             // when it is done
-            ActivityDelegate activityDelegate = new ActivityDelegate() {
-                @Override
-                public void startActivityForResult(Intent intent, int requestCode) {
-                    Logger.v(TAG, "Delegate calling startActivityForResult");
-                    activity.startActivityForResult(intent, requestCode);
-                }
-
-                @Override
-                public Activity getActivityContext() {
-                    return activity;
-                }
-
-                @Override
-                public void startActivity(Intent intent) {
-                    Logger.d(TAG, "Delegate calling startActivity");
-                    activity.startActivity(intent);
-                }
-            };
-
-            activityDelegate.startActivityForResult(intent,
+            activity.startActivityForResult(intent,
                     AuthenticationConstants.UIRequest.BROWSER_FLOW);
         } catch (ActivityNotFoundException e) {
             Logger.e(TAG, "Activity login is not found after resolving intent", "",
@@ -1006,10 +995,6 @@ public class AuthenticationContext {
             String resource, final AuthenticationCallback<AuthenticationResult> callback) {
         Logger.v(TAG, "Refresh token without cache");
 
-        if (mAuthority == null) {
-            throw new IllegalArgumentException("Authority is not provided");
-        }
-
         if (StringExtensions.IsNullOrBlank(refreshToken)) {
             throw new IllegalArgumentException("Refresh token is not provided");
         }
@@ -1077,14 +1062,32 @@ public class AuthenticationContext {
             refreshToken(null, request, refreshItem, false, callback);
         }
     }
-    
-    private static String ensureNotEndsWithSlash(String value){
-        if (!StringExtensions.IsNullOrBlank(value)) {
-            if (value.endsWith("/")) {
-                return value.substring(0, value.length() -1);
+
+    private static String extractAuthority(String authority) {
+        if (!StringExtensions.IsNullOrBlank(authority)) {
+
+            int thirdSlash = authority.indexOf("/", 8); // excluding the
+                                                        // starting https:// or
+                                                        // http://
+            if (thirdSlash >= 0 && thirdSlash != (authority.length() - 1)) // third
+                                                                           // slash
+                                                                           // is
+                                                                           // not
+                                                                           // the
+                                                                           // last
+                                                                           // character
+            {
+                int fourthSlash = authority.indexOf("/", thirdSlash + 1);
+                if (fourthSlash < 0 || fourthSlash > thirdSlash + 1) {
+                    if (fourthSlash >= 0) {
+                        return authority.substring(0, fourthSlash);
+                    }
+
+                    return authority;
+                }
             }
         }
-        
-        return value;
+
+        throw new IllegalArgumentException("authority");
     }
 }

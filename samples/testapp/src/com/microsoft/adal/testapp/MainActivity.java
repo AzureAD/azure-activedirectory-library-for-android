@@ -3,7 +3,6 @@ package com.microsoft.adal.testapp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.UUID;
@@ -32,7 +31,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationCancelError;
@@ -72,7 +70,7 @@ public class MainActivity extends Activity {
      */
     private AuthenticationResult mResult;
 
-    private String mActiveUser;
+    private String mActiveUser, mExtraQueryParam;
 
     final static String AUTHORITY_URL = "https://login.windows.net/omercantest.onmicrosoft.com";
 
@@ -296,10 +294,10 @@ public class MainActivity extends Activity {
         String redirect = mRedirect.getText().toString();
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-        
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, "",
+         
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, mExtraQueryParam,
                 new AdalCallback());
-    }
+     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -318,17 +316,23 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * reset all
+     * only remove from cache but keep cookies
      */
-    private void resetToken() {
-        Log.d(TAG, "reset Token");
+    public void removeTokens(){
         if (mContext == null) {
             initContext();
         }
 
         mContext.getCache().removeAll();
         textViewStatus.setText("");
-
+    }
+    
+    /**
+     * reset all
+     */
+    private void resetToken() {
+        Log.d(TAG, "reset Token");
+        removeTokens();
         removeCookies();
     }
 
@@ -391,6 +395,10 @@ public class MainActivity extends Activity {
         this.mRequestCorrelationId = mRequestCorrelationId;
     }
 
+    public void setExtraQueryParam(String extraQueryParam){
+        mExtraQueryParam = extraQueryParam;
+    }
+    
     /**
      * Simple get request for test
      * 

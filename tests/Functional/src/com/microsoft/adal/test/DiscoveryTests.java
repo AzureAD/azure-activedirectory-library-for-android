@@ -77,19 +77,19 @@ public class DiscoveryTests extends AndroidTestHelper {
         callIsValidAuthority(discovery, endpointFull, response, true);
 
         assertNull("It should not have exception", response.exception);
-        assertFalse("Instance should not be valid", response.result);
+        assertTrue("Instance should be valid", response.result);
 
         final URL endpointInstanceRight = new URL("https://login.windows.net/something/something");
         callIsValidAuthority(discovery, endpointInstanceRight, response, true);
 
         assertNull("It should not have exception", response.exception);
-        assertFalse("Instance should not be valid", response.result);
+        assertTrue("Instance should be valid", response.result);
 
         final URL endpointInstanceOnly = new URL("https://login.windows.net");
         callIsValidAuthority(discovery, endpointInstanceOnly, response, true);
 
         assertNull("It should not have exception", response.exception);
-        assertFalse("Instance should not be valid", response.result);
+        assertFalse("Instance should not be valid without tenant info", response.result);
     }
 
     public void testIsValidAuthorityNegative() throws MalformedURLException,
@@ -149,7 +149,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         callIsValidAuthority(discovery, endpointInvalidPath, responseInvalidPath, true);
 
         assertNotNull("response should not be null", responseInvalidPath);
-        assertFalse("Instance should be invalid", responseInvalidPath.result);
+        assertTrue("Instance should be valid. Endpoints will be added.", responseInvalidPath.result);
         assertNull("It should not have exception", responseInvalidPath.exception);
     }
 

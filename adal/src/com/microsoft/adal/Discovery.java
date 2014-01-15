@@ -62,15 +62,13 @@ final class Discovery implements IDiscovery {
     public void isValidAuthority(URL authorizationEndpoint, AuthenticationCallback<Boolean> callback) {
         // For comparison purposes, convert to lowercase Locale.US
         // getProtocol returns scheme and it is available if it is absolute url
-        // Authority is in the form of https://Instance/tenant
-        // Authority is not supposed to have something else beside tenant
+        // Authority is in the form of https://Instance/tenant/somepath
         if (authorizationEndpoint != null
                 && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getHost())
                 && authorizationEndpoint.getProtocol().equals("https")
                 && StringExtensions.IsNullOrBlank(authorizationEndpoint.getQuery())
                 && StringExtensions.IsNullOrBlank(authorizationEndpoint.getRef())
-                && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())
-                && authorizationEndpoint.getPath().indexOf("/", 1) == -1) {
+                && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())) {
 
             if (isADFSAuthority(authorizationEndpoint)) {
                 callback.onError(new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
@@ -178,10 +176,12 @@ final class Discovery implements IDiscovery {
                     try {
                         callback.onSuccess(parseResponse(webResponse));
                     } catch (IllegalArgumentException exc) {
-                        Logger.e(TAG, exc.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
+                        Logger.e(TAG, exc.getMessage(), "",
+                                ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
                         callback.onError(exc);
                     } catch (JSONException e) {
-                        Logger.e(TAG, "Json parsing error", "", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, e);
+                        Logger.e(TAG, "Json parsing error", "",
+                                ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, e);
                         callback.onError(e);
                     }
                 } else
