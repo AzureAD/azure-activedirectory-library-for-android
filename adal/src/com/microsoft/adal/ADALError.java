@@ -100,7 +100,7 @@ public enum ADALError {
 
     AUTH_REFRESH_FAILED("Refresh token request failed"),
 
-    ENCRYPTION_FAILED("Obfuscating clear text data failed"),
+    ENCRYPTION_FAILED("Encryption failed"),
 
     ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"), ;
     

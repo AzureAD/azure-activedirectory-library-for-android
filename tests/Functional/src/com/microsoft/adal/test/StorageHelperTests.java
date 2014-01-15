@@ -7,16 +7,19 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.DigestException;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
+import junit.framework.Assert;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
@@ -33,16 +36,17 @@ public class StorageHelperTests extends AndroidTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        if (Build.VERSION.SDK_INT < 18) {
-            Log.d(TAG, "setup key at settings");
-            if (AuthenticationSettings.INSTANCE.getSecretKey() == null) {
-                KeyGenerator keygen = KeyGenerator.getInstance("AES");
-                keygen.init(256, new SecureRandom());
-                SecretKey key = keygen.generateKey();
-                AuthenticationSettings.INSTANCE.setSecretKey(key);
-            }
-        }
 
+        Log.d(TAG, "setup key at settings");
+        if (AuthenticationSettings.INSTANCE.getSecretKey() == null) {
+            // use same key for tests
+            SecretKeyFactory keyFactory = SecretKeyFactory
+                    .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+            SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
+                    "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+            SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
+            AuthenticationSettings.INSTANCE.setSecretKey(secretKey);
+        }
     }
 
     public void testEncryptDecrypt() throws IllegalArgumentException, ClassNotFoundException,
@@ -50,6 +54,37 @@ public class StorageHelperTests extends AndroidTestCase {
             InvocationTargetException {
         String clearText = "SomeValue1234";
         encryptDecrypt(clearText);
+    }
+
+    public void testEncryptDecrypt_NullEmpty() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+
+        Object storageHelper = getStorageHelper();
+        Method mDecrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
+        Method mEncrypt = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
+        assertThrows(mDecrypt, storageHelper, null, "input is empty or null");
+        assertThrows(mDecrypt, storageHelper, "", "input is empty or null");
+
+        assertThrows(mEncrypt, storageHelper, null, "input is empty or null");
+        assertThrows(mEncrypt, storageHelper, "", "input is empty or null");
+    }
+
+    public void testDecrypt_InvalidInput() throws NoSuchMethodException, ClassNotFoundException,
+            InstantiationException, IllegalAccessException, InvocationTargetException,
+            UnsupportedEncodingException {
+        Object storageHelper = getStorageHelper();
+        Method mDecrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
+        Method mEncrypt = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
+        assertThrows(mDecrypt, storageHelper, "bad64", "bad base-64");
+        assertThrowsType(
+                mDecrypt,
+                storageHelper,
+                new String(Base64.encode(
+                        "U001thatShouldFail1234567890123456789012345678901234567890"
+                                .getBytes("UTF-8"), Base64.NO_WRAP), "UTF-8"),
+                DigestException.class);
+
     }
 
     /**
@@ -63,16 +98,14 @@ public class StorageHelperTests extends AndroidTestCase {
      * @throws InvocationTargetException
      * @throws UnsupportedEncodingException
      */
-    public void testEncryptDecrypt_differentSizes() throws IllegalArgumentException,
+    public void testEncryptDecrypt_DifferentSizes() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, UnsupportedEncodingException {
         Log.d(TAG, "Starting testEncryptDecrypt_differentSizes");
-        SecureRandom random = new SecureRandom();
         // try different block sizes
-        for (int i = 5; i < 100; i++) {
-            byte[] msg = new byte[i];
-            random.nextBytes(msg);
-            encryptDecrypt(new String(Base64.encode(msg, Base64.NO_WRAP), "UTF-8"));
+        StringBuilder buf = new StringBuilder(1000);
+        for (int i = 0; i < 1000; i++) {
+            encryptDecrypt(buf.append("a").toString());
         }
         Log.d(TAG, "Finished testEncryptDecrypt_differentSizes");
     }
@@ -137,9 +170,53 @@ public class StorageHelperTests extends AndroidTestCase {
         bytes[15]++;
         String modified = new String(Base64.encode(bytes, Base64.NO_WRAP), "UTF-8");
 
-        decrypted = (String)mDecrypt.invoke(storageHelper, modified);
-        assertFalse("not same text", decrypted.equals(clearText));
-        assertTrue("Failed decryption returns same thing", modified.equals(decrypted));
+        assertThrowsType(mDecrypt, storageHelper, modified, DigestException.class);
+    }
+
+    /**
+     * Make sure that version sets correctly. It needs to be tested at different
+     * emulator(18 and before 18).
+     * @throws InvocationTargetException 
+     * @throws IllegalArgumentException 
+     * @throws IllegalAccessException 
+     * @throws InstantiationException 
+     * @throws NoSuchMethodException 
+     * @throws ClassNotFoundException 
+     * @throws UnsupportedEncodingException 
+     */
+    public void testVersion() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, NoSuchMethodException, InstantiationException, UnsupportedEncodingException {
+        String value = "anvaERSgvhdfgkhrebgagagfdgadfgaadfgadfgadfg435gerhawdeADFGb #$%#gf3$%1234";
+        Object storageHelper = getStorageHelper();
+        Method m = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
+        String encrypted = (String)m.invoke(storageHelper, value);
+        final byte[] bytes = Base64.decode(encrypted, Base64.DEFAULT);
+
+        // get key version used for this data. If user upgraded to different
+        // API level, data needs to be updated
+        String keyVersionCheck = new String(bytes, 0, 4, "UTF-8");
+
+        if (Build.VERSION.SDK_INT < 18) {
+            assertEquals("It should use user defined", "U001", keyVersionCheck);
+        } else {
+            assertEquals("It should use user defined", "A001", keyVersionCheck);
+        }
+    }
+
+    @TargetApi(18)
+    public void testMigration() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, KeyStoreException, NoSuchAlgorithmException,
+            CertificateException, IOException {
+        if (Build.VERSION.SDK_INT < 18) {
+            return;
+        }
+
+        String expectedDecrypted = "SomeValue1234";
+        String encryptedInAPI17 = "VTAwMef/81JijK4xB3vn4TFufnDBgMYZEFSU6Dld4nUn2X/59OcrULyeTDm+1JEO5/Dfrrictu6QOmBAVPKCJWvF/jI=";
+        Object storageHelper = getStorageHelper();
+        Method decrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
+        String decrypted = (String)decrypt.invoke(storageHelper, encryptedInAPI17);
+        assertEquals("Expected clear text as same", expectedDecrypted, decrypted);
     }
 
     @TargetApi(18)
@@ -178,8 +255,6 @@ public class StorageHelperTests extends AndroidTestCase {
         }
 
         Object storageHelper = getStorageHelper();
-        Method load = ReflectionUtils.getTestMethod(storageHelper, "loadKey");
-        load.invoke(storageHelper);
         Method m = ReflectionUtils.getTestMethod(storageHelper, "getSecretKeyFromAndroidKeyStore");
 
         SecretKey key = (SecretKey)m.invoke(storageHelper);
@@ -198,5 +273,29 @@ public class StorageHelperTests extends AndroidTestCase {
         constructorParams.setAccessible(true);
         Object storageHelper = constructorParams.newInstance(getContext());
         return storageHelper;
+    }
+
+    private void assertThrows(Method m, Object obj, String input, String msg) {
+        try {
+            m.invoke(obj, input);
+            Assert.fail("Supposed to throw");
+        } catch (Exception e) {
+            if (e.getMessage() == null) {
+                assertTrue("Exception message", e.getCause().getMessage().contains(msg));
+            } else {
+                assertTrue("Exception message", e.getMessage().contains(msg));
+
+            }
+        }
+    }
+
+    private void assertThrowsType(Method m, Object obj, String input,
+            final Class<? extends Exception> expected) {
+        try {
+            m.invoke(obj, input);
+            Assert.fail("Supposed to throw");
+        } catch (Exception e) {
+            assertTrue(expected.isInstance(e) || expected.isInstance(e.getCause()));
+        }
     }
 }
