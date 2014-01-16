@@ -50,6 +50,10 @@ import android.util.Base64;
  */
 public class StorageHelper {
 
+    private static final String KEY_STORE_CERT_ALIAS = "AdalKey";
+
+    private static final String ADALKS = "adalks";
+
     private static final String KEYSPEC_ALGORITHM = "AES";
 
     private static final String WRAP_ALGORITHM = "RSA/ECB/PKCS1Padding";
@@ -186,7 +190,7 @@ public class StorageHelper {
                 }
             } else {
                 throw new IllegalArgumentException(
-                        "keyVersion is not supported in this SDK. AndroidKeyStore is supported API18 and above.");
+                        String.format("keyVersion %s is not supported in this SDK. AndroidKeyStore is supported API18 and above.", keyVersion));
             }
         }
 
@@ -294,11 +298,10 @@ public class StorageHelper {
             UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,
             IllegalBlockSizeException, BadPaddingException {
 
+        Logger.d(TAG, "Starting decryption");
         if (StringExtensions.IsNullOrBlank(value)) {
             throw new IllegalArgumentException("input is empty or null");
-        }
-
-        Logger.d(TAG, "Starting decryption");
+        }        
 
         final byte[] bytes = Base64.decode(value, Base64.DEFAULT);
 
@@ -315,7 +318,7 @@ public class StorageHelper {
         int macIndex = bytes.length - MAC_LENGTH;
         int encryptedLength = ivIndex - KEY_VERSION_BLOB_LENGTH;
         if (ivIndex < 0 || macIndex < 0 || encryptedLength < 0) {
-            throw new IllegalArgumentException("input is invalid");
+            throw new IllegalArgumentException("Given value is smaller than the IV vector and MAC length");
         }
 
         // Calculate digest again and compare to the appended value
@@ -397,7 +400,7 @@ public class StorageHelper {
         }
 
         // Store secret key in a file after wrapping
-        File keyFile = new File(mContext.getFilesDir(), "adalks");
+        File keyFile = new File(mContext.getFilesDir(), ADALKS);
         loadKeyPair();
 
         // If keyfile does not exist, it needs to generate one
@@ -438,7 +441,7 @@ public class StorageHelper {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
 
-        if (!keyStore.containsAlias("AdalKey")) {
+        if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
             Logger.v(TAG, "Key entry is not available");
             Calendar start = Calendar.getInstance();
             Calendar end = Calendar.getInstance();
@@ -446,9 +449,9 @@ public class StorageHelper {
 
             // self signed cert stored in AndroidKeyStore to asym. encrypt key
             // to a file
-            String certInfo = String.format("CN=%s, OU=%s", "AdalKey", mContext.getPackageName());
+            String certInfo = String.format("CN=%s, OU=%s", KEY_STORE_CERT_ALIAS, mContext.getPackageName());
             final KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(mContext)
-                    .setAlias("AdalKey").setSubject(new X500Principal(certInfo))
+                    .setAlias(KEY_STORE_CERT_ALIAS).setSubject(new X500Principal(certInfo))
                     .setSerialNumber(BigInteger.ONE).setStartDate(start.getTime())
                     .setEndDate(end.getTime()).build();
 
@@ -464,7 +467,7 @@ public class StorageHelper {
         // Read key pair again
         Logger.v(TAG, "Reading Key entry");
         final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
-                "AdalKey", null);
+                KEY_STORE_CERT_ALIAS, null);
         return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
     }
 
@@ -493,7 +496,7 @@ public class StorageHelper {
     private static byte[] readKeyData(File file) throws IOException {
         Logger.d(TAG, "Reading key data from a file");
         final InputStream in = new FileInputStream(file);
-
+        
         try {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
