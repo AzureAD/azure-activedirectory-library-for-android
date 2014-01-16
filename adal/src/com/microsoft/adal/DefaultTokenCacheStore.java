@@ -4,12 +4,26 @@
 
 package com.microsoft.adal;
 
+import java.io.IOException;
+import java.security.DigestException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import android.app.Activity;
 import android.content.Context;
@@ -29,17 +43,54 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private final static String SHARED_PREFERENCE_NAME = "com.microsoft.adal.cache";
 
+    private static final String TAG = "DefaultTokenCacheStore";
+
     SharedPreferences mPrefs;
 
     private Context mContext;
 
     private Gson gson = new Gson();
 
-    public DefaultTokenCacheStore(Context context) {
+    private static StorageHelper sHelper;
+
+    public DefaultTokenCacheStore(Context context) throws NoSuchAlgorithmException,
+            NoSuchPaddingException {
         mContext = context;
         if (context != null) {
             mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
+        } else {
+            throw new IllegalArgumentException("Context is null");
         }
+
+        if (sHelper == null) {
+            Logger.v(TAG, "Started to initialize storage helper");
+            sHelper = new StorageHelper(context);
+            Logger.v(TAG, "Finished to initialize storage helper");
+        }
+    }
+
+    private String encrypt(String value) {
+        try {
+            return sHelper.encrypt(value);
+        } catch (Exception e) {
+            Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
+        }
+
+        return null;
+    }
+
+    private String decrypt(String value) {
+        try {
+            return sHelper.decrypt(value);
+        } catch (Exception e) {
+            Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
+            Logger.v(TAG,
+                    String.format("Decryption error for key: '%s'. Item will be removed", value));
+            removeItem(value);
+            Logger.v(TAG, String.format("Item removed for key: '%s'", value));
+        }
+
+        return null;
     }
 
     @Override
@@ -53,7 +104,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         if (mPrefs.contains(key)) {
             String json = mPrefs.getString(key, "");
-            return gson.fromJson(json, TokenCacheItem.class);
+            String decrypted = decrypt(json);
+            if (decrypted != null) {
+                return gson.fromJson(decrypted, TokenCacheItem.class);
+            }
         }
 
         return null;
@@ -90,11 +144,16 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
 
         String json = gson.toJson(item);
-        Editor prefsEditor = mPrefs.edit();
-        prefsEditor.putString(key, json);
+        String encrypted = encrypt(json);
+        if (encrypted != null) {
+            Editor prefsEditor = mPrefs.edit();
+            prefsEditor.putString(key, json);
 
-        // apply will do Async disk write operation.
-        prefsEditor.apply();
+            // apply will do Async disk write operation.
+            prefsEditor.apply();
+        } else {
+            Logger.e(TAG, "Encrypted output is null", "", ADALError.ENCRYPTION_FAILED);
+        }
     }
 
     @Override
@@ -126,8 +185,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (values.hasNext()) {
             String json = values.next();
-            TokenCacheItem cacheItem = gson.fromJson(json, TokenCacheItem.class);
-            tokens.add(cacheItem);
+            String decrypted = decrypt(json);
+            if (decrypted != null) {
+                TokenCacheItem cacheItem = gson.fromJson(decrypted, TokenCacheItem.class);
+                tokens.add(cacheItem);
+            }
         }
 
         return tokens.iterator();

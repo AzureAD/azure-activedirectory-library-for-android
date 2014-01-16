@@ -23,11 +23,15 @@ public class LogOutActivity extends Activity {
     private static String TAG = "LogOut";
 
     public static final int MENU_GET_SETTINGS = Menu.FIRST;
+
     public static final int MENU_CLEAR_TOKEN = Menu.FIRST + 1;
+
     public static final int MENU_GET_TOKEN = Menu.FIRST + 2;
 
     protected AuthenticationContext mAuthContext;
+
     protected String mToken;
+
     Button loginButton;
 
     @Override
@@ -35,9 +39,14 @@ public class LogOutActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_out);
 
-        mAuthContext = new AuthenticationContext(this, Constants.AUTHORITY_URL, false);
+        try {
+            mAuthContext = new AuthenticationContext(this, Constants.AUTHORITY_URL, false);
+        } catch (Exception e) {
+            Log.e(TAG, "Encryption related exception", e);
+            Toast.makeText(LogOutActivity.this, "Encryption related exception", Toast.LENGTH_LONG);
+        }
 
-        loginButton = (Button) findViewById(R.id.btnLogOut);
+        loginButton = (Button)findViewById(R.id.btnLogOut);
         loginButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -73,8 +82,7 @@ public class LogOutActivity extends Activity {
                 return true;
             }
             case MENU_GET_SETTINGS: {
-                Intent intent = new Intent(LogOutActivity.this,
-                        SettingsActivity.class);
+                Intent intent = new Intent(LogOutActivity.this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
             }
@@ -97,14 +105,13 @@ public class LogOutActivity extends Activity {
     private void login() {
 
         mAuthContext.acquireToken(LogOutActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL,
-                Constants.USER_HINT,
+                Constants.REDIRECT_URL, Constants.USER_HINT,
                 new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onError(Exception exc) {
-                        Toast.makeText(LogOutActivity.this,
-                                exc.getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(LogOutActivity.this, exc.getMessage(), Toast.LENGTH_LONG)
+                                .show();
 
                     }
 
@@ -112,8 +119,7 @@ public class LogOutActivity extends Activity {
                     public void onSuccess(AuthenticationResult result) {
 
                         // Start todo activity
-                        Intent intent = new Intent(LogOutActivity.this,
-                                ToDoActivity.class);
+                        Intent intent = new Intent(LogOutActivity.this, ToDoActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
                         LogOutActivity.this.finish();

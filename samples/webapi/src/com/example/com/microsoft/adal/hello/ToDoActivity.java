@@ -4,11 +4,14 @@ package com.example.com.microsoft.adal.hello;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.crypto.NoSuchPaddingException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -135,7 +138,7 @@ public class ToDoActivity extends Activity {
     private static int pickerMonth;
 
     private static int pickerDayOfMonth;
-    
+
     TextView txtSummary;
 
     /**
@@ -149,7 +152,7 @@ public class ToDoActivity extends Activity {
         Toast.makeText(getApplicationContext(), TAG + "LifeCycle: OnCreate", Toast.LENGTH_SHORT)
                 .show();
 
-        txtSummary = (TextView) findViewById(R.id.textViewTitle);
+        txtSummary = (TextView)findViewById(R.id.textViewTitle);
         txtSummary.setText("TODO Services");
         mProgressBar = (ProgressBar)findViewById(R.id.loadingProgressBar);
 
@@ -163,37 +166,43 @@ public class ToDoActivity extends Activity {
         refreshInProgress = false;
 
         // Ask for token and provide callback
-        mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL, false);
+        try {
+            mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL,
+                    false);
+            mAuthContext.acquireToken(ToDoActivity.this, Constants.RESOURCE_ID,
+                    Constants.CLIENT_ID, Constants.REDIRECT_URL, Constants.USER_HINT,
+                    new AuthenticationCallback<AuthenticationResult>() {
 
-        mAuthContext.acquireToken(ToDoActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, Constants.USER_HINT,
-                new AuthenticationCallback<AuthenticationResult>() {
-
-                    @Override
-                    public void onError(Exception exc) {
-                        if (mLoginProgressDialog.isShowing()) {
-                            mLoginProgressDialog.dismiss();
-                        }
-                        Toast.makeText(getApplicationContext(),
-                                TAG + "getToken Error:" + exc.getMessage(), Toast.LENGTH_SHORT)
-                                .show();
-                        navigateToLogOut();
-                    }
-
-                    @Override
-                    public void onSuccess(AuthenticationResult result) {
-                        if (mLoginProgressDialog.isShowing()) {
-                            mLoginProgressDialog.dismiss();
-                        }
-
-                        if (result != null && !result.getAccessToken().isEmpty()) {
-                            setLocalToken(result);
-                            sendRequest();
-                        } else {
+                        @Override
+                        public void onError(Exception exc) {
+                            if (mLoginProgressDialog.isShowing()) {
+                                mLoginProgressDialog.dismiss();
+                            }
+                            Toast.makeText(getApplicationContext(),
+                                    TAG + "getToken Error:" + exc.getMessage(), Toast.LENGTH_SHORT)
+                                    .show();
                             navigateToLogOut();
                         }
-                    }
-                });
+
+                        @Override
+                        public void onSuccess(AuthenticationResult result) {
+                            if (mLoginProgressDialog.isShowing()) {
+                                mLoginProgressDialog.dismiss();
+                            }
+
+                            if (result != null && !result.getAccessToken().isEmpty()) {
+                                setLocalToken(result);
+                                sendRequest();
+                            } else {
+                                navigateToLogOut();
+                            }
+                        }
+                    });
+
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "Encryption is failed", Toast.LENGTH_SHORT)
+                    .show();
+        }
 
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
@@ -472,26 +481,33 @@ public class ToDoActivity extends Activity {
         setTokenExpire();
 
         // reset cache to normal without delay
-        mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL, false);
+        try {
+            mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL,
+                    false);
+            txtSummary.setText("TODO Services sending services...");
+            // Normal token request will be send but it will have delay
+            getToken(new AuthenticationCallback<AuthenticationResult>() {
 
-        txtSummary.setText("TODO Services sending services...");
-        // Normal token request will be send but it will have delay
-        getToken(new AuthenticationCallback<AuthenticationResult>() {
+                @Override
+                public void onError(Exception exc) {
+                    Log.e(TAG, "refreshTokenNormal error" + exc.getMessage(), exc);
+                    Toast.makeText(getApplicationContext(), exc.getMessage(), Toast.LENGTH_LONG)
+                            .show();
+                }
 
-            @Override
-            public void onError(Exception exc) {
-                Log.e(TAG, "refreshTokenNormal error" + exc.getMessage(), exc);
-                Toast.makeText(getApplicationContext(), exc.getMessage(), Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onSuccess(AuthenticationResult result) {
-                Log.d(TAG, "refreshTokenNormal onSuccess");
-                Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG).show();
-                txtSummary.setText("TODO Services refreshed");
-                setLocalToken(result);
-            }
-        });
+                @Override
+                public void onSuccess(AuthenticationResult result) {
+                    Log.d(TAG, "refreshTokenNormal onSuccess");
+                    Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG)
+                            .show();
+                    txtSummary.setText("TODO Services refreshed");
+                    setLocalToken(result);
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Refresh token normal error", e);
+            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void sendCancelRequest() {
@@ -515,38 +531,60 @@ public class ToDoActivity extends Activity {
             currentCache.setItem(CacheKey.createCacheKey(item), item);
         }
 
-        mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL, false);
+        try {
+            mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL,
+                    false);
 
-        setNetworkDelayForDebugging(5000);
+            setNetworkDelayForDebugging(5000);
 
-        // Normal token request will be send, but it will have delay
-        getToken(new AuthenticationCallback<AuthenticationResult>() {
+            // Normal token request will be send, but it will have delay
+            getToken(new AuthenticationCallback<AuthenticationResult>() {
 
-            @Override
-            public void onError(Exception exc) {
-                Log.e(TAG, "refreshTokenWithDelay error" + exc.getMessage(), exc);
-                Toast.makeText(getApplicationContext(), exc.getMessage(), Toast.LENGTH_LONG).show();
-                // reset cache to normal without delay
-                mAuthContext = new AuthenticationContext(ToDoActivity.this,
-                        Constants.AUTHORITY_URL, false);
-                setNetworkDelayForDebugging(0);
-            }
+                @Override
+                public void onError(Exception exc) {
+                    Log.e(TAG, "refreshTokenWithDelay error" + exc.getMessage(), exc);
+                    Toast.makeText(getApplicationContext(), exc.getMessage(), Toast.LENGTH_LONG)
+                            .show();
+                    // reset cache to normal without delay
+                    try {
+                        mAuthContext = new AuthenticationContext(ToDoActivity.this,
+                                Constants.AUTHORITY_URL, false);
+                    } catch (Exception e) {
+                        Log.e(TAG, "refreshTokenWithDelay", e);
+                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG)
+                                .show();
+                    }
+                    setNetworkDelayForDebugging(0);
+                }
 
-            @Override
-            public void onSuccess(AuthenticationResult result) {
-                Log.d(TAG, "refreshTokenWithDelay onSuccess");
-                Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG).show();
-                setLocalToken(result);
-                // reset cache to normal without delay
-                mAuthContext = new AuthenticationContext(ToDoActivity.this,
-                        Constants.AUTHORITY_URL, false);
-                setNetworkDelayForDebugging(0);
-            }
-        });
+                @Override
+                public void onSuccess(AuthenticationResult result) {
+                    Log.d(TAG, "refreshTokenWithDelay onSuccess");
+                    Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG)
+                            .show();
+                    setLocalToken(result);
+                    // reset cache to normal without delay
+                    try {
+                        mAuthContext = new AuthenticationContext(ToDoActivity.this,
+                                Constants.AUTHORITY_URL, false);
+                    } catch (Exception e) {
+                        Log.e(TAG, "refreshTokenWithDelay", e);
+                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG)
+                                .show();
+                    }
+                    setNetworkDelayForDebugging(0);
+                }
+            });
+
+        } catch (Exception e) {
+            Log.e(TAG, "Refresh token with delay", e);
+            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void setNetworkDelayForDebugging(int miliSeconds) {
-        // HttpWebRequest class has a static field to use to introduce delays in debugger mode
+        // HttpWebRequest class has a static field to use to introduce delays in
+        // debugger mode
         Log.d(TAG, "setNetworkDelayForDebugging:" + miliSeconds);
         Class<?> c = null;
         Field field;
@@ -568,13 +606,14 @@ public class ToDoActivity extends Activity {
         ITokenCacheStore currentCache = mAuthContext.getCache();
 
         String userid = "";
-        if(mToken != null && mToken.getUserInfo() != null && mToken.getUserInfo().getUserId() != null){
+        if (mToken != null && mToken.getUserInfo() != null
+                && mToken.getUserInfo().getUserId() != null) {
             userid = mToken.getUserInfo().getUserId();
         }
-        
+
         // make token expired to force refresh token
         TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
-                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, userid ));
+                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, userid));
         if (item != null) {
             Calendar timeExpired = new GregorianCalendar();
             timeExpired.add(Calendar.MINUTE, -50);

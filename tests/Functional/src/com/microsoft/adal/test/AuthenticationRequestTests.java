@@ -3,13 +3,12 @@ package com.microsoft.adal.test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.UUID;
-
-import com.microsoft.adal.PromptBehavior;
 
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
+
+import com.microsoft.adal.PromptBehavior;
 
 public class AuthenticationRequestTests extends AndroidTestCase {
 
