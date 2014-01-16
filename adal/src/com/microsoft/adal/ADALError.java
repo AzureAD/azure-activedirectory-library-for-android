@@ -95,16 +95,17 @@ public enum ADALError {
     CORRELATION_ID_FORMAT("Correlationid is not in UUID format"),
 
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
-
-    DISCOVERY_NOT_SUPPORTED(
-            "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."), SERVER_INVALID_JSON_RESPONSE(
-            "Server returned invalid JSON response"),
+ 
+    SERVER_INVALID_JSON_RESPONSE("Server returned invalid JSON response"),
 
     AUTH_REFRESH_FAILED("Refresh token request failed"),
 
     ENCRYPTION_FAILED("Encryption failed"),
+ 
+    ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"),
 
-    ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"), ;
+    DISCOVERY_NOT_SUPPORTED(
+            "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."), ;
 
     private String mDescription;
 
