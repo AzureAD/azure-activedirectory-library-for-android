@@ -1,6 +1,8 @@
 
 package com.microsoft.adal;
 
+import javax.crypto.SecretKey;
+
 /**
  * Settings to be used in AuthenticationContext
  * 
@@ -9,6 +11,23 @@ package com.microsoft.adal;
 public enum AuthenticationSettings {
     INSTANCE;
 
-    // encryption related items will be here
+    private SecretKey mSecretKey = null;
 
+    /**
+     * Get secretkey to use in encrypt/decrypt
+     * 
+     * @return
+     */
+    public SecretKey getSecretKey() {
+        return mSecretKey;
+    }
+
+    /**
+     * Set secret key to use in encrypt/decrypt
+     * 
+     * @param key
+     */
+    public void setSecretKey(SecretKey key) {
+        mSecretKey = key;
+    }
 }
