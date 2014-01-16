@@ -82,10 +82,6 @@ public class StorageHelper {
      */
     private KeyPair mKeyPair;
 
-    private Cipher mCipher, mWrapCipher;
-
-    private Mac mMac;
-
     private Context mContext;
 
     public static final String VERSION_ANDROID_KEY_STORE = "A001";
@@ -93,7 +89,14 @@ public class StorageHelper {
     public static final String VERSION_USER_DEFINED = "U001";
 
     private static final int KEY_VERSION_BLOB_LENGTH = 4;
+    
+    /**
+     * To keep track of encoding version
+     */
+    private static final String ENCODE_VERSION = "E001";
 
+    private static final int ENCODE_VERSION_LENGTH = 4;
+    
     private static final Object lockObject = new Object();
 
     private static String sKeyVersion;
@@ -107,9 +110,7 @@ public class StorageHelper {
 
     public StorageHelper(Context ctx) throws NoSuchAlgorithmException, NoSuchPaddingException {
         mContext = ctx;
-        mRandom = new SecureRandom();
-        mCipher = Cipher.getInstance(CIPHER_ALGORITHM);
-        mMac = Mac.getInstance(MAC_ALGORITHM);
+        mRandom = new SecureRandom();        
     }
 
     /**
@@ -228,7 +229,7 @@ public class StorageHelper {
         // AndroidKeyStore is used for API >=18
         if (Build.VERSION.SDK_INT >= 18) {
             // Key pair only needed for API>=18
-            mWrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
+           
             if (mKeyPair == null) {
                 mKeyPair = getKeyPairFromAndroidKeyStore();
             }
@@ -247,10 +248,11 @@ public class StorageHelper {
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException
      * @throws IOException
+     * @throws NoSuchPaddingException 
      */
     protected String encrypt(String clearText) throws NoSuchAlgorithmException,
             InvalidKeySpecException, InvalidKeyException, InvalidAlgorithmParameterException,
-            IllegalBlockSizeException, BadPaddingException, IOException {
+            IllegalBlockSizeException, BadPaddingException, IOException, NoSuchPaddingException {
 
         Logger.d(TAG, "Starting encryption");
         
@@ -269,15 +271,17 @@ public class StorageHelper {
         IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
         // Set to encrypt mode
-        mCipher.init(Cipher.ENCRYPT_MODE, sKey, ivSpec);
+        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        Mac mac = Mac.getInstance(MAC_ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, sKey, ivSpec);
 
-        byte[] encryptedDataAndIV = appendBytes(mCipher.doFinal(bytes), iv);
+        byte[] encryptedDataAndIV = appendBytes(cipher.doFinal(bytes), iv);
         byte[] keyVerAndEncryptedDataAndIV = appendBytes(keyVersionBlob, encryptedDataAndIV);
         // Mac output to sign encryptedData+IV. Keyversion is not included
         // in the digest. It defines what to use for Mac Key.
-        mMac.init(sMacKey);
-        mMac.update(encryptedDataAndIV);
-        byte[] macDigest = mMac.doFinal();
+        mac.init(sMacKey);
+        mac.update(encryptedDataAndIV);
+        byte[] macDigest = mac.doFinal();
 
         // Add digest to the end
         byte[] keyVerAndEncryptedDataAndIVAndMacDigest = appendBytes(keyVerAndEncryptedDataAndIV,
@@ -285,7 +289,7 @@ public class StorageHelper {
         String encrypted = new String(Base64.encode(keyVerAndEncryptedDataAndIVAndMacDigest,
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished encryption");
-        return encrypted;
+        return ENCODE_VERSION + encrypted;
     }
 
     protected String decrypt(String value) throws NoSuchAlgorithmException,
@@ -294,11 +298,15 @@ public class StorageHelper {
             UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,
             IllegalBlockSizeException, BadPaddingException {
 
+        Logger.d(TAG, "Starting decryption");
+        
         if (StringExtensions.IsNullOrBlank(value)) {
             throw new IllegalArgumentException("input is empty or null");
         }
-
-        Logger.d(TAG, "Starting decryption");
+        
+        if(!value.substring(0, ENCODE_VERSION_LENGTH).equals(ENCODE_VERSION)){
+            throw new IllegalArgumentException("Encode version does not match");
+        }       
 
         final byte[] bytes = Base64.decode(value, Base64.DEFAULT);
 
@@ -321,9 +329,11 @@ public class StorageHelper {
         // Calculate digest again and compare to the appended value
         // incoming message: version+encryptedData+IV+Digest
         // Digest of EncryptedData+IV excluding key Version and digest
-        mMac.init(versionMacKey);
-        mMac.update(bytes, KEY_VERSION_BLOB_LENGTH, macIndex - KEY_VERSION_BLOB_LENGTH);
-        byte[] macDigest = mMac.doFinal();
+        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        Mac mac = Mac.getInstance(MAC_ALGORITHM);
+        mac.init(versionMacKey);
+        mac.update(bytes, KEY_VERSION_BLOB_LENGTH, macIndex - KEY_VERSION_BLOB_LENGTH);
+        byte[] macDigest = mac.doFinal();
 
         // Compare digest of input message and calculated digest
         assertMac(bytes, macIndex, bytes.length, macDigest);
@@ -332,11 +342,11 @@ public class StorageHelper {
         // that IV
         // It is using same cipher for different version since version# change
         // will mean upgrade to AndroidKeyStore and new Key.
-        mCipher.init(Cipher.DECRYPT_MODE, versionKey, new IvParameterSpec(bytes, ivIndex,
+        cipher.init(Cipher.DECRYPT_MODE, versionKey, new IvParameterSpec(bytes, ivIndex,
                 DATA_KEY_LENGTH));
 
         // Decrypt data bytes from 0 to ivindex
-        String decrypted = new String(mCipher.doFinal(bytes, KEY_VERSION_BLOB_LENGTH,
+        String decrypted = new String(cipher.doFinal(bytes, KEY_VERSION_BLOB_LENGTH,
                 encryptedLength), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished decryption");
         return decrypted;
@@ -396,16 +406,16 @@ public class StorageHelper {
             return sSecretKeyFromAndroidKeyStore;
         }
 
-        // Store secret key in a file after wrapping
+        // Store secret key in a file after wrapping    
         File keyFile = new File(mContext.getFilesDir(), "adalks");
         loadKeyPair();
-
+        Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
         // If keyfile does not exist, it needs to generate one
         if (!keyFile.exists()) {
             Logger.v(TAG, "Key file does not exists");
             final SecretKey key = generateSecretKey();
             Logger.v(TAG, "Wrapping SecretKey");
-            final byte[] keyWrapped = wrap(key);
+            final byte[] keyWrapped = wrap(wrapCipher, key);
             Logger.v(TAG, "Writing SecretKey");
             writeKeyData(keyFile, keyWrapped);
             Logger.v(TAG, "Finished writing SecretKey");
@@ -414,7 +424,7 @@ public class StorageHelper {
         // Read from file again
         Logger.v(TAG, "Reading SecretKey");
         final byte[] encryptedKey = readKeyData(keyFile);
-        sSecretKeyFromAndroidKeyStore = unwrap(encryptedKey);
+        sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
         Logger.v(TAG, "Finished reading SecretKey");
         return sSecretKeyFromAndroidKeyStore;
     }
@@ -469,15 +479,15 @@ public class StorageHelper {
     }
 
     @TargetApi(18)
-    private byte[] wrap(SecretKey key) throws GeneralSecurityException {
-        mWrapCipher.init(Cipher.WRAP_MODE, mKeyPair.getPublic());
-        return mWrapCipher.wrap(key);
+    private byte[] wrap(Cipher wrapCipher, SecretKey key) throws GeneralSecurityException {
+        wrapCipher.init(Cipher.WRAP_MODE, mKeyPair.getPublic());
+        return wrapCipher.wrap(key);
     }
 
     @TargetApi(18)
-    private SecretKey unwrap(byte[] keyBlob) throws GeneralSecurityException {
-        mWrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());
-        return (SecretKey)mWrapCipher.unwrap(keyBlob, KEYSPEC_ALGORITHM, Cipher.SECRET_KEY);
+    private SecretKey unwrap(Cipher wrapCipher,byte[] keyBlob) throws GeneralSecurityException {
+        wrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());
+        return (SecretKey)wrapCipher.unwrap(keyBlob, KEYSPEC_ALGORITHM, Cipher.SECRET_KEY);
     }
 
     private static void writeKeyData(File file, byte[] data) throws IOException {
