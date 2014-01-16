@@ -50,6 +50,10 @@ import android.util.Base64;
  */
 public class StorageHelper {
 
+    private static final String KEY_STORE_CERT_ALIAS = "AdalKey";
+
+    private static final String ADALKS = "adalks";
+
     private static final String KEYSPEC_ALGORITHM = "AES";
 
     private static final String WRAP_ALGORITHM = "RSA/ECB/PKCS1Padding";
@@ -91,7 +95,7 @@ public class StorageHelper {
     private static final int KEY_VERSION_BLOB_LENGTH = 4;
     
     /**
-     * To keep track of encoding version
+     * To keep track of encoding version and related flags
      */
     private static final String ENCODE_VERSION = "E001";
 
@@ -187,7 +191,7 @@ public class StorageHelper {
                 }
             } else {
                 throw new IllegalArgumentException(
-                        "keyVersion is not supported in this SDK. AndroidKeyStore is supported API18 and above.");
+                        String.format("keyVersion %s is not supported in this SDK. AndroidKeyStore is supported API18 and above.", keyVersion));
             }
         }
 
@@ -264,7 +268,7 @@ public class StorageHelper {
         loadSecretKeyForAPI();
         final byte[] keyVersionBlob = sKeyVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
-
+       
         // IV: Initialization vector that is needed to start CBC
         byte[] iv = new byte[DATA_KEY_LENGTH];
         mRandom.nextBytes(iv);
@@ -274,22 +278,27 @@ public class StorageHelper {
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
         Mac mac = Mac.getInstance(MAC_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, sKey, ivSpec);
-
-        byte[] encryptedDataAndIV = appendBytes(cipher.doFinal(bytes), iv);
-        byte[] keyVerAndEncryptedDataAndIV = appendBytes(keyVersionBlob, encryptedDataAndIV);
+        
+        byte[] encrypted = cipher.doFinal(bytes);
+        
         // Mac output to sign encryptedData+IV. Keyversion is not included
         // in the digest. It defines what to use for Mac Key.
         mac.init(sMacKey);
-        mac.update(encryptedDataAndIV);
+        mac.update(encrypted);
+        mac.update(iv);
         byte[] macDigest = mac.doFinal();
 
         // Add digest to the end
-        byte[] keyVerAndEncryptedDataAndIVAndMacDigest = appendBytes(keyVerAndEncryptedDataAndIV,
-                macDigest);
-        String encrypted = new String(Base64.encode(keyVerAndEncryptedDataAndIVAndMacDigest,
+        byte[] keyVerAndEncryptedDataAndIVAndMacDigest = new byte[keyVersionBlob.length + encrypted.length + iv.length + macDigest.length ];
+        System.arraycopy(keyVersionBlob, 0, keyVerAndEncryptedDataAndIVAndMacDigest, 0,keyVersionBlob.length);
+        System.arraycopy(encrypted, 0, keyVerAndEncryptedDataAndIVAndMacDigest, keyVersionBlob.length, encrypted.length);
+        System.arraycopy(iv, 0, keyVerAndEncryptedDataAndIVAndMacDigest, keyVersionBlob.length+ encrypted.length,iv.length);
+        System.arraycopy(macDigest, 0, keyVerAndEncryptedDataAndIVAndMacDigest, keyVersionBlob.length+ encrypted.length+iv.length,macDigest.length);
+        
+        String encryptedText = new String(Base64.encode(keyVerAndEncryptedDataAndIVAndMacDigest,
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished encryption");
-        return ENCODE_VERSION + encrypted;
+        return ENCODE_VERSION + encryptedText;
     }
 
     protected String decrypt(String value) throws NoSuchAlgorithmException,
@@ -308,7 +317,7 @@ public class StorageHelper {
             throw new IllegalArgumentException("Encode version does not match");
         }       
 
-        final byte[] bytes = Base64.decode(value, Base64.DEFAULT);
+        final byte[] bytes = Base64.decode(value.substring(ENCODE_VERSION_LENGTH), Base64.DEFAULT);
 
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
@@ -323,7 +332,7 @@ public class StorageHelper {
         int macIndex = bytes.length - MAC_LENGTH;
         int encryptedLength = ivIndex - KEY_VERSION_BLOB_LENGTH;
         if (ivIndex < 0 || macIndex < 0 || encryptedLength < 0) {
-            throw new IllegalArgumentException("input is invalid");
+            throw new IllegalArgumentException("Given value is smaller than the IV vector and MAC length");
         }
 
         // Calculate digest again and compare to the appended value
@@ -359,6 +368,7 @@ public class StorageHelper {
         }
 
         byte result = 0;
+        // It does not fail fast on the first not equal byte
         for (int i = start; i < end; i++) {
             result |= calculated[i - start] ^ digest[i];
         }
@@ -366,13 +376,6 @@ public class StorageHelper {
         if (result != 0) {
             throw new DigestException();
         }
-    }
-
-    private static byte[] appendBytes(byte[] data, byte[] appendValue) throws IOException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        os.write(data);
-        os.write(appendValue);
-        return os.toByteArray();
     }
 
     /**
@@ -406,8 +409,9 @@ public class StorageHelper {
             return sSecretKeyFromAndroidKeyStore;
         }
 
-        // Store secret key in a file after wrapping    
-        File keyFile = new File(mContext.getFilesDir(), "adalks");
+        // Store secret key in a file after wrapping
+        File keyFile = new File(mContext.getFilesDir(), ADALKS);
+ 
         loadKeyPair();
         Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
         // If keyfile does not exist, it needs to generate one
@@ -442,13 +446,13 @@ public class StorageHelper {
      * @throws UnrecoverableEntryException
      */
     @TargetApi(18)
-    private KeyPair getKeyPairFromAndroidKeyStore() throws KeyStoreException,
+    private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws KeyStoreException,
             NoSuchAlgorithmException, CertificateException, IOException, NoSuchProviderException,
             InvalidAlgorithmParameterException, UnrecoverableEntryException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
 
-        if (!keyStore.containsAlias("AdalKey")) {
+        if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
             Logger.v(TAG, "Key entry is not available");
             Calendar start = Calendar.getInstance();
             Calendar end = Calendar.getInstance();
@@ -456,9 +460,9 @@ public class StorageHelper {
 
             // self signed cert stored in AndroidKeyStore to asym. encrypt key
             // to a file
-            String certInfo = String.format("CN=%s, OU=%s", "AdalKey", mContext.getPackageName());
+            String certInfo = String.format("CN=%s, OU=%s", KEY_STORE_CERT_ALIAS, mContext.getPackageName());
             final KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(mContext)
-                    .setAlias("AdalKey").setSubject(new X500Principal(certInfo))
+                    .setAlias(KEY_STORE_CERT_ALIAS).setSubject(new X500Principal(certInfo))
                     .setSerialNumber(BigInteger.ONE).setStartDate(start.getTime())
                     .setEndDate(end.getTime()).build();
 
@@ -474,7 +478,7 @@ public class StorageHelper {
         // Read key pair again
         Logger.v(TAG, "Reading Key entry");
         final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
-                "AdalKey", null);
+                KEY_STORE_CERT_ALIAS, null);
         return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
     }
 
@@ -503,7 +507,7 @@ public class StorageHelper {
     private static byte[] readKeyData(File file) throws IOException {
         Logger.d(TAG, "Reading key data from a file");
         final InputStream in = new FileInputStream(file);
-
+        
         try {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
@@ -517,5 +521,4 @@ public class StorageHelper {
             in.close();
         }
     }
-
 }

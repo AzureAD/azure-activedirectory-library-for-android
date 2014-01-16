@@ -76,13 +76,14 @@ public class StorageHelperTests extends AndroidTestCase {
         Object storageHelper = getStorageHelper();
         Method mDecrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
         Method mEncrypt = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
-        assertThrows(mDecrypt, storageHelper, "bad64", "bad base-64");
+        assertThrows(mDecrypt, storageHelper, "E001bad64", "bad base-64");
         assertThrowsType(
                 mDecrypt,
                 storageHelper,
-                new String(Base64.encode(
-                        "U001thatShouldFail1234567890123456789012345678901234567890"
-                                .getBytes("UTF-8"), Base64.NO_WRAP), "UTF-8"),
+                "E001"
+                        + new String(Base64.encode(
+                                "U001thatShouldFail1234567890123456789012345678901234567890"
+                                        .getBytes("UTF-8"), Base64.NO_WRAP), "UTF-8"),
                 DigestException.class);
 
     }
@@ -176,20 +177,25 @@ public class StorageHelperTests extends AndroidTestCase {
     /**
      * Make sure that version sets correctly. It needs to be tested at different
      * emulator(18 and before 18).
-     * @throws InvocationTargetException 
-     * @throws IllegalArgumentException 
-     * @throws IllegalAccessException 
-     * @throws InstantiationException 
-     * @throws NoSuchMethodException 
-     * @throws ClassNotFoundException 
-     * @throws UnsupportedEncodingException 
+     * 
+     * @throws InvocationTargetException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException
+     * @throws UnsupportedEncodingException
      */
-    public void testVersion() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, NoSuchMethodException, InstantiationException, UnsupportedEncodingException {
+    public void testVersion() throws IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, UnsupportedEncodingException {
         String value = "anvaERSgvhdfgkhrebgagagfdgadfgaadfgadfgadfg435gerhawdeADFGb #$%#gf3$%1234";
         Object storageHelper = getStorageHelper();
         Method m = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
         String encrypted = (String)m.invoke(storageHelper, value);
-        final byte[] bytes = Base64.decode(encrypted, Base64.DEFAULT);
+        String encodeVersion = encrypted.substring(0, 4);
+        assertEquals("Encode version is same", "E001", encodeVersion);
+        final byte[] bytes = Base64.decode(encrypted.substring(4), Base64.DEFAULT);
 
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
@@ -212,7 +218,7 @@ public class StorageHelperTests extends AndroidTestCase {
         }
 
         String expectedDecrypted = "SomeValue1234";
-        String encryptedInAPI17 = "VTAwMef/81JijK4xB3vn4TFufnDBgMYZEFSU6Dld4nUn2X/59OcrULyeTDm+1JEO5/Dfrrictu6QOmBAVPKCJWvF/jI=";
+        String encryptedInAPI17 = "E001VTAwMef/81JijK4xB3vn4TFufnDBgMYZEFSU6Dld4nUn2X/59OcrULyeTDm+1JEO5/Dfrrictu6QOmBAVPKCJWvF/jI=";
         Object storageHelper = getStorageHelper();
         Method decrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
         String decrypted = (String)decrypt.invoke(storageHelper, encryptedInAPI17);
