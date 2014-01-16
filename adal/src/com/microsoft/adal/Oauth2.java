@@ -33,6 +33,10 @@ class Oauth2 {
     private IWebRequestHandler mWebRequestHandler;
 
     private final static String TAG = "Oauth";
+    
+    private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
+
+    private final static String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
 
     private final static String JSON_PARSING_ERROR = "It failed to parse response as json";
 
@@ -47,11 +51,11 @@ class Oauth2 {
     }
 
     public String getAuthorizationEndpoint() {
-        return mRequest.getAuthority() + AuthenticationSettings.INSTANCE.getAuthorizeEndpoint();
+        return mRequest.getAuthority() + DEFAULT_AUTHORIZE_ENDPOINT;
     }
 
     public String getTokenEndpoint() {
-        return mRequest.getAuthority() + AuthenticationSettings.INSTANCE.getTokenEndpoint();
+        return mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT;
     }
 
     public String getCodeRequestUrl() throws UnsupportedEncodingException {
