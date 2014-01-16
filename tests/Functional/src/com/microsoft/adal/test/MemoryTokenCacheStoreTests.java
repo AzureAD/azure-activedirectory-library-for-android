@@ -22,7 +22,7 @@ import com.microsoft.adal.test.AuthenticationContextTests.TestMockContext;
 public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
     private static final String TAG = "MemoryTokenCacheStoreTests";
-
+    private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
     int activeTestThreads = 10;
 
     @Override
@@ -112,9 +112,9 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
     public void testMemoryCacheMultipleContext() {
         ITokenCacheStore tokenCacheA = setupItems();
         AuthenticationContext contextA = new AuthenticationContext(getInstrumentation()
-                .getContext(), "authority", false, tokenCacheA);
+                .getContext(), VALID_AUTHORITY, false, tokenCacheA);
         AuthenticationContext contextB = new AuthenticationContext(getInstrumentation()
-                .getContext(), "authority", false, tokenCacheA);
+                .getContext(), VALID_AUTHORITY, false, tokenCacheA);
 
         // Verify the cache
         TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
