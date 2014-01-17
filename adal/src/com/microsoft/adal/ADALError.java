@@ -24,6 +24,8 @@ public enum ADALError {
     CALLBACK_IS_NOT_FOUND("Active callback is not found"),
 
     DEVELOPER_ACTIVITY_IS_NOT_RESOLVED("Activity is not resolved"),
+    
+    DEVELOPER_INTERNET_PERMISSION_MISSING("android.permission.INTERNET is not added to AndroidManifest file"),
 
     SERVER_INVALID_REQUEST("Invalid request to server"),
 
@@ -81,6 +83,8 @@ public enum ADALError {
     DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE("FileCache could not write to the File"),
 
     DEVICE_FILE_CACHE_FORMAT_IS_WRONG("Wrong cache file format"),
+    
+    DEVICE_CONNECTION_IS_NOT_AVAILABLE("Connection is not available"),
 
     /**
      * IdToken is normally returned from token endpoint.

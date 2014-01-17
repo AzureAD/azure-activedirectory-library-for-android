@@ -14,15 +14,16 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import junit.framework.Assert;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
+import android.test.UiThreadTest;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 import android.test.suitebuilder.annotation.MediumTest;
@@ -38,13 +39,14 @@ import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.HttpWebResponse;
+import com.microsoft.adal.IConnectionService;
 import com.microsoft.adal.IDiscovery;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.Logger;
-import com.microsoft.adal.PromptBehavior;
-import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.Logger.LogLevel;
+import com.microsoft.adal.PromptBehavior;
+import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.test.AuthenticationConstants.UIRequest;
 
 public class AuthenticationContextTests extends AndroidTestCase {
@@ -109,6 +111,27 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertNotNull(contextDefaultCache.getCache());
     }
 
+    public void testConstructor_InternetPermission() {
+        String authority = "https://github.com/MSOpenTech";
+        TestMockContext mockContext = new TestMockContext(getContext());
+        mockContext.requestedPermissionName = "android.permission.INTERNET";
+        mockContext.responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+
+        // no exception
+        new AuthenticationContext(mockContext, authority, false);
+
+        try {
+            mockContext.responsePermissionFlag = PackageManager.PERMISSION_DENIED;
+            new AuthenticationContext(mockContext, authority, false);
+            Assert.fail("Supposed to fail");
+        } catch (Exception e) {
+
+            assertEquals("Permission related message",
+                    ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING,
+                    ((AuthenticationException)e).getCode());
+        }
+    }
+
     public void testConstructorValidateAuthority() {
         String authority = "https://github.com/MSOpenTech";
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, true);
@@ -137,6 +160,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws InterruptedException
      */
     @MediumTest
+    @UiThreadTest
     public void testCorrelationId_InWebRequest() throws NoSuchFieldException,
             IllegalAccessException, InterruptedException {
         TestMockContext mockContext = new TestMockContext(getContext());
@@ -148,6 +172,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 expectedClientId, expectedUser, false);
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
         UUID requestCorrelationId = UUID.randomUUID();
 
         final CountDownLatch signal = new CountDownLatch(1);
@@ -202,8 +227,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
     @SmallTest
     public void testAcquireTokenNegativeArguments() {
         TestMockContext mockContext = new TestMockContext(getContext());
-        final AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
-                false);
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false);
         final MockActivity testActivity = new MockActivity();
         final MockAuthenticationCallback testEmptyCallback = new MockAuthenticationCallback();
 
@@ -404,11 +429,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
     @SmallTest
     public void testAcquireTokenByRefreshTokenNegativeArguments() {
         TestMockContext mockContext = new TestMockContext(getContext());
-        
+
         // AuthenticationContext will throw at constructor if authority is null.
-        
-        final AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
-                false);
+
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false);
         final MockAuthenticationCallback mockCallback = new MockAuthenticationCallback();
 
         // null callback
@@ -471,6 +496,32 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 });
     }
 
+    @SmallTest
+    public void testAcquireTokenByRefreshToken_ConnectionNotAvailable()
+            throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        TestMockContext mockContext = new TestMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false);
+        setConnectionAvailable(context, false);
+
+        final MockAuthenticationCallback mockCallback = new MockAuthenticationCallback();
+        context.acquireTokenByRefreshToken("refresh", "clientId", "resource", mockCallback);
+        assertTrue("Exception type", mockCallback.mException instanceof AuthenticationException);
+        assertEquals("Connection related error code", ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                ((AuthenticationException)mockCallback.mException).getCode());
+    }
+
+    private void setConnectionAvailable(final AuthenticationContext context, final boolean status)
+            throws NoSuchFieldException, IllegalAccessException {
+        ReflectionUtils.setFieldValue(context, "mConnectionService", new IConnectionService() {
+
+            @Override
+            public boolean isConnectionAvailable() {
+                return status;
+            }
+        });
+    }
+
     /**
      * Test throws for different missing arguments
      * 
@@ -491,7 +542,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
-
+        setConnectionAvailable(context, true);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         String expectedAccessToken = "TokenFortestAcquireToken" + UUID.randomUUID().toString();
@@ -550,8 +601,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testAcquireTokenAuthorityMalformed() throws InterruptedException {
         // Malformed url error will come back in callback
         TestMockContext mockContext = new TestMockContext(getContext());
-        final AuthenticationContext context = new AuthenticationContext(mockContext, "abcd://vv../v",
-                false);
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                "abcd://vv../v", false);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -688,6 +739,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         ITokenCacheStore mockCache = getCacheForRefreshToken();
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
         final CountDownLatch signal = new CountDownLatch(1);
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -735,7 +787,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
-
+        setConnectionAvailable(context, true);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
@@ -829,6 +881,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 "dummyResource2", "ClienTid", "userid", true);
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
         MockWebRequestHandler mockWebRequest = setMockWebRequest(context, tokenWithRefreshToken);
 
         CountDownLatch signal = new CountDownLatch(1);
@@ -1142,7 +1195,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             if (mSignal != null)
                 mSignal.countDown();
         }
-        
+
         @Override
         public void startActivityForResult(Intent intent, int requestCode, Bundle options) {
             Log.d(TAG, "startActivityForResult:" + requestCode);
@@ -1166,8 +1219,15 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         boolean resolveIntent = true;
 
+        String requestedPermissionName;
+
+        int responsePermissionFlag;
+
         public TestMockContext(Context context) {
             mContext = context;
+            // default
+            requestedPermissionName = "android.permission.INTERNET";
+            responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
         }
 
         @Override
@@ -1178,6 +1238,12 @@ public class AuthenticationContextTests extends AndroidTestCase {
         @Override
         public Context getApplicationContext() {
             return mContext;
+        }
+
+        @Override
+        public Object getSystemService(String name) {
+            // TODO Auto-generated method stub
+            return super.getSystemService(name);
         }
 
         @Override
@@ -1197,6 +1263,14 @@ public class AuthenticationContextTests extends AndroidTestCase {
                     return new ResolveInfo();
 
                 return null;
+            }
+
+            @Override
+            public int checkPermission(String permName, String pkgName) {
+                if (permName.equals(requestedPermissionName)) {
+                    return responsePermissionFlag;
+                }
+                return PackageManager.PERMISSION_DENIED;
             }
         }
     }

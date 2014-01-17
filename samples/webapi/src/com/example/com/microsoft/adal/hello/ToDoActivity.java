@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -17,6 +18,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -89,6 +91,8 @@ public class ToDoActivity extends Activity {
 
     public static final int MENU_SHOW_TOKEN = Menu.FIRST + 10;
 
+    public static final int MENU_EXPIRE_TOKEN = Menu.FIRST + 11;
+
     private AuthenticationContext mAuthContext;
 
     private int mLastRequestId = 0;
@@ -135,7 +139,7 @@ public class ToDoActivity extends Activity {
     private static int pickerMonth;
 
     private static int pickerDayOfMonth;
-    
+
     TextView txtSummary;
 
     /**
@@ -149,7 +153,7 @@ public class ToDoActivity extends Activity {
         Toast.makeText(getApplicationContext(), TAG + "LifeCycle: OnCreate", Toast.LENGTH_SHORT)
                 .show();
 
-        txtSummary = (TextView) findViewById(R.id.textViewTitle);
+        txtSummary = (TextView)findViewById(R.id.textViewTitle);
         txtSummary.setText("TODO Services");
         mProgressBar = (ProgressBar)findViewById(R.id.loadingProgressBar);
 
@@ -360,6 +364,7 @@ public class ToDoActivity extends Activity {
         menu.add(Menu.NONE, MENU_REFRESH_TOKEN_DELAY_PROMPT, Menu.NONE, "RefreshDelayToPrompt");
         menu.add(Menu.NONE, MENU_CANCEL_REQUEST, Menu.NONE, "CancelAuthentication");
         menu.add(Menu.NONE, MENU_SHOW_TOKEN, Menu.NONE, "ShowTokens");
+        menu.add(Menu.NONE, MENU_EXPIRE_TOKEN, Menu.NONE, "Expire");
 
         return true;
     }
@@ -504,9 +509,9 @@ public class ToDoActivity extends Activity {
 
         // make token expired to force refresh token
         TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
-                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, ""));
+                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, Constants.USER_HINT));
         if (item != null) {
-            Calendar timeExpired = new GregorianCalendar();
+            Calendar timeExpired = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
             timeExpired.add(Calendar.MINUTE, -50);
             item.setExpiresOn(timeExpired.getTime());
             if (invalidateRefresh) {
@@ -546,7 +551,8 @@ public class ToDoActivity extends Activity {
     }
 
     private void setNetworkDelayForDebugging(int miliSeconds) {
-        // HttpWebRequest class has a static field to use to introduce delays in debugger mode
+        // HttpWebRequest class has a static field to use to introduce delays in
+        // debugger mode
         Log.d(TAG, "setNetworkDelayForDebugging:" + miliSeconds);
         Class<?> c = null;
         Field field;
@@ -568,15 +574,16 @@ public class ToDoActivity extends Activity {
         ITokenCacheStore currentCache = mAuthContext.getCache();
 
         String userid = "";
-        if(mToken != null && mToken.getUserInfo() != null && mToken.getUserInfo().getUserId() != null){
+        if (mToken != null && mToken.getUserInfo() != null
+                && mToken.getUserInfo().getUserId() != null) {
             userid = mToken.getUserInfo().getUserId();
         }
-        
+
         // make token expired to force refresh token
         TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
-                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, userid ));
+                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, userid));
         if (item != null) {
-            Calendar timeExpired = new GregorianCalendar();
+            Calendar timeExpired = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
             timeExpired.add(Calendar.MINUTE, -50);
             item.setExpiresOn(timeExpired.getTime());
             currentCache.setItem(CacheKey.createCacheKey(item), item);
