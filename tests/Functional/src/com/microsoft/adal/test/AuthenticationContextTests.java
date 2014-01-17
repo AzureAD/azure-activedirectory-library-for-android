@@ -116,16 +116,19 @@ public class AuthenticationContextTests extends AndroidTestCase {
         TestMockContext mockContext = new TestMockContext(getContext());
         mockContext.requestedPermissionName = "android.permission.INTERNET";
         mockContext.responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
-        
-     // no exception
+
+        // no exception
         new AuthenticationContext(mockContext, authority, false);
-        
-        try{
+
+        try {
             mockContext.responsePermissionFlag = PackageManager.PERMISSION_DENIED;
             new AuthenticationContext(mockContext, authority, false);
             Assert.fail("Supposed to fail");
-        }catch(Exception e){
-            assertTrue("Permission related message", e.getMessage().contains("permission"));
+        } catch (Exception e) {
+
+            assertEquals("Permission related message",
+                    ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING,
+                    ((AuthenticationException)e).getCode());
         }
     }
 
@@ -492,24 +495,26 @@ public class AuthenticationContextTests extends AndroidTestCase {
                     }
                 });
     }
-    
+
     @SmallTest
-    public void testAcquireTokenByRefreshToken_ConnectionNotAvailable() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+    public void testAcquireTokenByRefreshToken_ConnectionNotAvailable()
+            throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         TestMockContext mockContext = new TestMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
         setConnectionAvailable(context, false);
-        
+
         final MockAuthenticationCallback mockCallback = new MockAuthenticationCallback();
         context.acquireTokenByRefreshToken("refresh", "clientId", "resource", mockCallback);
         assertTrue("Exception type", mockCallback.mException instanceof AuthenticationException);
-        assertEquals("Connection related error code", ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE, ((AuthenticationException)mockCallback.mException).getCode());
+        assertEquals("Connection related error code", ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                ((AuthenticationException)mockCallback.mException).getCode());
     }
 
     private void setConnectionAvailable(final AuthenticationContext context, final boolean status)
             throws NoSuchFieldException, IllegalAccessException {
         ReflectionUtils.setFieldValue(context, "mConnectionService", new IConnectionService() {
-            
+
             @Override
             public boolean isConnectionAvailable() {
                 return status;
@@ -1240,7 +1245,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             // TODO Auto-generated method stub
             return super.getSystemService(name);
         }
-        
+
         @Override
         public SharedPreferences getSharedPreferences(String name, int mode) {
             return mContext.getSharedPreferences(name, mode);
@@ -1250,7 +1255,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         public PackageManager getPackageManager() {
             return new TestPackageManager();
         }
-        
+
         class TestPackageManager extends MockPackageManager {
             @Override
             public ResolveInfo resolveActivity(Intent intent, int flags) {

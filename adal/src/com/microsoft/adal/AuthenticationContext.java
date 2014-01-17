@@ -1100,11 +1100,9 @@ public class AuthenticationContext {
         PackageManager pm = mContext.getPackageManager();
         if (PackageManager.PERMISSION_GRANTED != pm.checkPermission("android.permission.INTERNET",
                 mContext.getPackageName())) {
-            throw new IllegalArgumentException(
-                    "android.permission.INTERNET is not added to AndroidManifest file");
+            throw new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING);
         }
-    }
-    
+    }    
   
     class DefaultConnectionService implements IConnectionService{
        

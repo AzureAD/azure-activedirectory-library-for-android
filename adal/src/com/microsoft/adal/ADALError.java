@@ -24,6 +24,8 @@ public enum ADALError {
     CALLBACK_IS_NOT_FOUND("Active callback is not found"),
 
     DEVELOPER_ACTIVITY_IS_NOT_RESOLVED("Activity is not resolved"),
+    
+    DEVELOPER_INTERNET_PERMISSION_MISSING("android.permission.INTERNET is not added to AndroidManifest file"),
 
     SERVER_INVALID_REQUEST("Invalid request to server"),
 
