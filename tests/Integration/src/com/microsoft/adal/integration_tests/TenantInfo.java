@@ -12,7 +12,8 @@ public class TenantInfo implements Serializable {
     private static final long serialVersionUID = 3560085163832716550L;
 
     private TenantInfo(TenantType tenantType, String authority, String resource, String resource2,
-            String clientId, String redirect, String federated, String username, String password) {
+            String clientId, String redirect, String federated, String username, String password,
+            String username2, String password2) {
         mType = tenantType;
         mAuthority = authority;
         mResource = resource;
@@ -22,6 +23,8 @@ public class TenantInfo implements Serializable {
         mFederated = federated;
         mUserName = username;
         mPassword = password;
+        mUserName2 = username2;
+        mPassword2 = password2;
     }
 
     public static TenantInfo parseTenant(TenantType tenant, Properties p) {
@@ -32,9 +35,11 @@ public class TenantInfo implements Serializable {
         String redirect = p.getProperty(tenant.name() + "-redirect");
         String username = p.getProperty(tenant.name() + "-username");
         String password = p.getProperty(tenant.name() + "-password");
+        String username2 = p.getProperty(tenant.name() + "-username2");
+        String password2 = p.getProperty(tenant.name() + "-password2");
         String federated = p.getProperty(tenant.name() + "-federated");
-        return new TenantInfo(tenant, authority, resource, resource2, clientid, redirect, federated, username,
-                password);
+        return new TenantInfo(tenant, authority, resource, resource2, clientid, redirect,
+                federated, username, password, username2, password2);
     }
 
     public TenantType getTag() {
@@ -43,6 +48,10 @@ public class TenantInfo implements Serializable {
 
     public String getAuthority() {
         return mAuthority;
+    }
+
+    public void setAuthority(String authority) {
+        mAuthority = authority;
     }
 
     public String getResource() {
@@ -60,7 +69,7 @@ public class TenantInfo implements Serializable {
     public String getRedirect() {
         return mRedirect;
     }
-    
+
     public String getFederated() {
         return mFederated;
     }
@@ -71,6 +80,22 @@ public class TenantInfo implements Serializable {
 
     public String getPassword() {
         return mPassword;
+    }
+
+    public String getUserName2() {
+        return mUserName2;
+    }
+
+    public void setUserName2(String mUserName2) {
+        this.mUserName2 = mUserName2;
+    }
+
+    public String getPassword2() {
+        return mPassword2;
+    }
+
+    public void setPassword2(String mPassword2) {
+        this.mPassword2 = mPassword2;
     }
 
     enum TenantType {
@@ -88,10 +113,14 @@ public class TenantInfo implements Serializable {
     private String mClientId;
 
     private String mRedirect;
-    
+
     private String mFederated;
 
     private String mUserName;
 
     private String mPassword;
+    
+    private String mUserName2;
+
+    private String mPassword2;
 }

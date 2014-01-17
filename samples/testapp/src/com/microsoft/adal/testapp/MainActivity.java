@@ -92,18 +92,18 @@ public class MainActivity extends Activity {
     private AuthenticationContext mContext = null;
 
     private UUID mRequestCorrelationId;
-    
+
     private Handler handler = new Handler();
 
     public Handler getTestAppHandler() {
         return handler;
     }
-    
+
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
 
         @Override
         public void onError(Exception exc) {
-           Log.d(TAG, "Callback returned error");
+            Log.d(TAG, "Callback returned error");
             if (exc instanceof AuthenticationCancelError) {
                 textViewStatus.setText("Cancelled");
                 Log.d(TAG, "Cancelled");
@@ -288,8 +288,8 @@ public class MainActivity extends Activity {
         String redirect = mRedirect.getText().toString();
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, mExtraQueryParam,
-                callback);
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt,
+                mExtraQueryParam, callback);
     }
 
     @Override
@@ -311,7 +311,7 @@ public class MainActivity extends Activity {
     /**
      * only remove from cache but keep cookies
      */
-    public void removeTokens(){
+    public void removeTokens() {
         if (mContext == null) {
             initContext();
         }
@@ -319,7 +319,7 @@ public class MainActivity extends Activity {
         mContext.getCache().removeAll();
         textViewStatus.setText("");
     }
-    
+
     /**
      * reset all
      */
@@ -334,15 +334,17 @@ public class MainActivity extends Activity {
      */
     private void setTokenExpired() {
         Log.d(TAG, "Setting item to expire...");
-
         ITokenCacheStore cache = mContext.getCache();
-        TokenCacheItem item = cache.getItem(CacheKey.createCacheKey(AUTHORITY_URL, RESOURCE_ID,
-                CLIENT_ID, false, ""));
+        String cacheKey = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource
+                .getText().toString(), mClientId.getText().toString(), false, mUserid.getText()
+                .toString());
+        Log.d(TAG, "CacheKey:" + cacheKey);
+        TokenCacheItem item = cache.getItem(cacheKey);
         if (item != null) {
             Calendar calendar = new GregorianCalendar();
             calendar.add(Calendar.MINUTE, -30);
             item.setExpiresOn(calendar.getTime());
-            cache.setItem(CacheKey.createCacheKey(item), item);
+            cache.setItem(cacheKey, item);
             Log.d(TAG, "Item is set to expire");
         } else {
             Log.d(TAG, "item is null: setTokenExpired");
@@ -388,10 +390,10 @@ public class MainActivity extends Activity {
         this.mRequestCorrelationId = mRequestCorrelationId;
     }
 
-    public void setExtraQueryParam(String extraQueryParam){
+    public void setExtraQueryParam(String extraQueryParam) {
         mExtraQueryParam = extraQueryParam;
     }
-    
+
     /**
      * Simple get request for test
      * 

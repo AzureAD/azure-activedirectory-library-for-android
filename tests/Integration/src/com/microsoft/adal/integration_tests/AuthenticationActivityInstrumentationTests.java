@@ -51,6 +51,8 @@ import com.microsoft.adal.testapp.R;
 public class AuthenticationActivityInstrumentationTests extends
         ActivityInstrumentationTestCase2<MainActivity> {
 
+    private static final int SLEEP_NEXT_REQUEST = 3000;
+
     private Solo solo;
 
     /**
@@ -69,7 +71,7 @@ public class AuthenticationActivityInstrumentationTests extends
     /**
      * until page content has something about login page
      */
-    private static int PAGE_LOAD_TIMEOUT = 120;
+    private static int PAGE_LOAD_TIMEOUT = 1200;
 
     private static final int LOGIN_DISPLAY_TIME_OUT = PAGE_LOAD_TIMEOUT * 10;
 
@@ -190,12 +192,36 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     @MediumTest
+    public void testAcquireTokenManaged_MultiUser() throws Exception {
+        TenantInfo tenant = tenants.get(TenantType.AAD);
+        Log.v(TAG, "testAcquireTokenManaged_MultiUser starts for authority:" + tenant.getAuthority());
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+        
+        AuthenticationResult result = activity.getResult();
+        Log.v(TAG, "Result from initial request. ExpiresOn:"+result.getExpiresOn().getTime());
+       
+        Log.v(TAG, "Set second user");
+        setUserForAuthenticationRequest(tenant.getUserName2());
+        clickGetToken();
+        handleCredentials(monitor, tenant.getUserName2(), tenant.getPassword2(), false,
+                null);
+        
+        Log.v(TAG, "Compare tokens");
+        AuthenticationResult result2 = activity.getResult();
+        verifyTokenNotSame(result, result2);
+        assertTrue("Multi resource token", result2.getIsMultiResourceRefreshToken());
+        assertEquals("Username same in idtoken", tenant.getUserName2(), result2.getUserInfo().getUserId());
+    }
+
+    @MediumTest
     public void testAcquireTokenPromptNever() throws Exception {
         TenantInfo tenant = tenants.get(TenantType.AAD);
         // Activity runs at main thread. Test runs on different thread
         Log.v(TAG, "testAcquireToken_Prompt starts for authority:" + tenant.getAuthority());
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
-        setAuthenticationRequest(tenant, "", PromptBehavior.Never, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Never, "", false);
 
         // press clear all button to clear tokens and cookies
         clickResetTokens();
@@ -224,7 +250,7 @@ public class AuthenticationActivityInstrumentationTests extends
                 AuthenticationActivity.class.getName(), null, false);
 
         Log.v(TAG, "Next token request will served from cache");
-        setAuthenticationRequest(tenant, "", PromptBehavior.Auto, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Auto, "", false);
         clickGetToken();
 
         AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
@@ -232,7 +258,7 @@ public class AuthenticationActivityInstrumentationTests extends
         assertNull(startedActivity);
 
         Log.v(TAG, "Prompt always will launch ");
-        setAuthenticationRequest(tenant, "", PromptBehavior.Always, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Always, "", false);
         clickGetToken();
 
         startedActivity = (AuthenticationActivity)monitor
@@ -244,6 +270,84 @@ public class AuthenticationActivityInstrumentationTests extends
                 solo.getCurrentWebElements().size() > 0);
 
         startedActivity.finish();
+    }
+
+    @MediumTest
+    public void testAcquireToken_AfterDelay() throws Exception {
+        // Get token first
+        TenantInfo tenant = tenants.get(TenantType.AAD);
+        Log.v(TAG, "testAcquireTokenPromptAlways starts for authority:" + tenant.getAuthority());
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
+        AuthenticationResult result = activity.getResult();
+
+        Log.d(TAG, "Get token after delay");
+        Thread.sleep(SLEEP_NEXT_REQUEST);
+        // Stores token based on requested userid
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Never, "", false);
+        clickGetToken();
+        AuthenticationResult result2 = activity.getResult();
+        verifyTokenSame(result, result2);
+
+        Log.d(TAG, "Refresh token compare");
+        clickExpire();
+        clickGetToken();
+        AuthenticationResult resultRefresh = activity.getResult();
+
+        verifyTokenNotSame(result, resultRefresh);
+    }
+
+    private void verifyTokenNotSame(AuthenticationResult result, AuthenticationResult result2) {
+        assertFalse("tokens are not same", result.getAccessToken().equals(result2.getAccessToken()));
+        assertFalse("refresh tokens are not same",
+                result.getRefreshToken().equals(result2.getRefreshToken()));
+        assertFalse("expire time diff more than 1000milisecs",
+                Math.abs(result.getExpiresOn().getTime() - result2.getExpiresOn().getTime()) < 1000);
+    }
+
+    private void verifyTokenSame(AuthenticationResult result, AuthenticationResult result2) {
+        assertTrue("tokens are same", result.getAccessToken().equals(result2.getAccessToken()));
+        assertTrue("tokens are same", result.getRefreshToken().equals(result2.getRefreshToken()));
+        // Date precision issue for miliseconds
+        assertTrue("expire time diff less than 1000milisecs",
+                Math.abs(result.getExpiresOn().getTime() - result2.getExpiresOn().getTime()) < 1000);
+    }
+
+    @MediumTest
+    public void testAcquireToken_MultiResource() throws Exception {
+        // Get token first
+        TenantInfo tenant = tenants.get(TenantType.AAD);
+        Log.v(TAG, "testAcquireTokenPromptAlways starts for authority:" + tenant.getAuthority());
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
+        AuthenticationResult result = activity.getResult();
+
+        Log.d(TAG, "Ask token for resource2");
+        assertTrue("token is multiresource", result.getIsMultiResourceRefreshToken());
+        // TODO: It records to cache based on request. Change that for updated
+        // logic.
+        setAuthenticationRequest(tenant, tenant.getResource2(), "", PromptBehavior.Never, "", false);
+        Thread.sleep(SLEEP_NEXT_REQUEST);
+        clickGetToken();
+        AuthenticationResult result2 = activity.getResult();
+
+        Log.d(TAG, "Refresh token should be used for second resource");
+        verifyTokenNotSame(result, result2);
+    }
+
+    @MediumTest
+    public void testAcquireToken_CacheMultiple() throws Exception {
+        TenantInfo tenant = tenants.get(TenantType.AAD);
+        Log.v(TAG, "testAcquireTokenPromptAlways starts for authority:" + tenant.getAuthority());
+        acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
+        AuthenticationResult result = activity.getResult();
+
+        Log.d(TAG, "Ask token for resource2");
+        assertTrue("token is multiresource", result.getIsMultiResourceRefreshToken());
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Never, "", false);
+        for (int i = 0; i < 10; i++) {
+            clickGetToken();
+            AuthenticationResult result2 = activity.getResult();
+            verifyTokenSame(result, result2);
+        }
     }
 
     /**
@@ -263,7 +367,8 @@ public class AuthenticationActivityInstrumentationTests extends
                 AuthenticationActivity.class.getName(), null, false);
 
         Log.v(TAG, "testAcquireToken_ExtraQueryParam trying extra query param");
-        setAuthenticationRequest(tenant, "", PromptBehavior.Auto, "prompt=login", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Auto,
+                "prompt=login", false);
         removeTokens();
         clickGetToken();
 
@@ -452,8 +557,27 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("Token status", tokenMsg.contains(MainActivity.PASSED));
     }
 
-    private void setAuthenticationRequest(final TenantInfo tenant, final String loginhint,
-            final PromptBehavior prompt, final String extraQueryParam, final boolean validate) {
+    private void setUserForAuthenticationRequest(final String userid) {
+           // press clear all button to clear tokens and cookies
+        final EditText  mUserid ;
+ 
+        mUserid = (EditText)activity.findViewById(R.id.editUserId);
+        
+
+        // Use handler from this app to quickly set the fields instead of
+        // sending key events
+        activity.getTestAppHandler().post(new Runnable() {
+            @Override
+            public void run() {
+             
+                mUserid.setText(userid);
+            }
+        });
+    }
+
+    private void setAuthenticationRequest(final TenantInfo tenant, final String resource,
+            final String loginhint, final PromptBehavior prompt, final String extraQueryParam,
+            final boolean validate) {
         // ACtivity runs at main thread. Test runs on different thread
         Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
 
@@ -468,14 +592,14 @@ public class AuthenticationActivityInstrumentationTests extends
         mPrompt = (EditText)activity.findViewById(R.id.editPrompt);
         mRedirect = (EditText)activity.findViewById(R.id.editRedirect);
         mValidate = (CheckBox)activity.findViewById(R.id.checkBoxValidate);
-         
+
         // Use handler from this app to quickly set the fields instead of
         // sending key events
         activity.getTestAppHandler().post(new Runnable() {
             @Override
             public void run() {
                 mAuthority.setText(tenant.getAuthority());
-                mResource.setText(tenant.getResource());
+                mResource.setText(resource);
                 mClientId.setText(tenant.getClientId());
                 mUserid.setText(loginhint);
                 mPrompt.setText(prompt.name());
@@ -602,7 +726,8 @@ public class AuthenticationActivityInstrumentationTests extends
         // add monitor to check for the auth activity
         final ActivityMonitor monitor = getInstrumentation().addMonitor(
                 AuthenticationActivity.class.getName(), null, false);
-        setAuthenticationRequest(tenant, loginhint, prompt, extraQueryParam, validate);
+        setAuthenticationRequest(tenant, tenant.getResource(), loginhint, prompt, extraQueryParam,
+                validate);
 
         // press clear all button to clear tokens and cookies
         clickResetTokens();
@@ -803,7 +928,7 @@ public class AuthenticationActivityInstrumentationTests extends
                 IllegalAccessException;
     }
 
-    private void removeTokens(){
+    private void removeTokens() {
         activity.getTestAppHandler().post(new Runnable() {
             @Override
             public void run() {
@@ -811,7 +936,7 @@ public class AuthenticationActivityInstrumentationTests extends
             }
         });
     }
-    
+
     /**
      * this can change based on login page implementation
      * 
