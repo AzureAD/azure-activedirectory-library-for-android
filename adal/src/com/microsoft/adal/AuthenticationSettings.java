@@ -11,23 +11,29 @@ import javax.crypto.SecretKey;
 public enum AuthenticationSettings {
     INSTANCE;
 
-    private SecretKey mSecretKey = null;
+    private final static int SECRET_RAW_KEY_LENGTH = 32;
+    
+    private byte[] mSecretKeyData = null;
 
     /**
-     * Get secretkey to use in encrypt/decrypt
+     * Get bytes to derive secretKey to use in encrypt/decrypt
      * 
      * @return
      */
-    public SecretKey getSecretKey() {
-        return mSecretKey;
+    public byte[] getSecretKeyData() {
+        return mSecretKeyData;
     }
 
     /**
-     * set secret key to use in encrypt/decrypt
+     * set raw bytes to derive secretKey to use in encrypt/decrypt
      * 
      * @param key
      */
-    public void setSecretKey(SecretKey key) {
-        mSecretKey = key;
+    public void setSecretKey(byte[] rawKey) {
+        if(rawKey == null || rawKey.length != SECRET_RAW_KEY_LENGTH){
+            throw new IllegalArgumentException("rawKey");
+        }
+        
+        mSecretKeyData = rawKey;
     }
 }

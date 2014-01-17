@@ -17,6 +17,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
@@ -49,6 +50,8 @@ import android.util.Base64;
  * @author omercan
  */
 public class StorageHelper {
+
+    private static final String MAC_KEY_HASH_ALGORITHM = "SHA256";
 
     private static final String KEY_STORE_CERT_ALIAS = "AdalKey";
 
@@ -97,9 +100,9 @@ public class StorageHelper {
     /**
      * To keep track of encoding version and related flags
      */
-    private static final String ENCODE_VERSION = "E001";
+    private static final String ENCODE_VERSION = "E1";
 
-    private static final int ENCODE_VERSION_LENGTH = 4;
+    private static final int ENCODE_VERSION_LENGTH = 2;
 
     private static final Object lockObject = new Object();
 
@@ -149,7 +152,7 @@ public class StorageHelper {
                 }
             }
 
-            sKey = AuthenticationSettings.INSTANCE.getSecretKey();
+            sKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
             sMacKey = getMacKey(sKey);
             sBlobVersion = VERSION_USER_DEFINED;
         }
@@ -174,7 +177,7 @@ public class StorageHelper {
             UnrecoverableEntryException, IOException {
 
         if (keyVersion.equals(VERSION_USER_DEFINED)) {
-            return AuthenticationSettings.INSTANCE.getSecretKey();
+            return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
         }
 
         if (keyVersion.equals(VERSION_ANDROID_KEY_STORE)) {
@@ -200,6 +203,13 @@ public class StorageHelper {
         throw new IllegalArgumentException("keyVersion");
     }
 
+    private SecretKey getSecretKey(byte[] rawBytes) {
+        if (rawBytes != null)
+            return new SecretKeySpec(rawBytes, KEYSPEC_ALGORITHM);
+
+        throw new IllegalArgumentException("rawBytes");
+    }
+    
     /**
      * Derive mac key from given key
      * 
@@ -208,12 +218,14 @@ public class StorageHelper {
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      */
-    private SecretKey getMacKey(SecretKey key) {
+    private SecretKey getMacKey(SecretKey key) throws NoSuchAlgorithmException {
         // Some keys may not produce byte[] with getEncoded
         byte[] encodedKey = key.getEncoded();
         if (encodedKey != null)
-            return new SecretKeySpec(encodedKey, KEYSPEC_ALGORITHM);
-
+        {
+            MessageDigest digester = MessageDigest.getInstance(MAC_KEY_HASH_ALGORITHM);
+            return new SecretKeySpec(digester.digest(encodedKey), KEYSPEC_ALGORITHM);
+        }
         return key;
     }
 
