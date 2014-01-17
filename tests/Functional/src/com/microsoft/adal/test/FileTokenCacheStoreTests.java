@@ -44,6 +44,8 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
     private TokenCacheItem testItem2;
 
+    private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
+
     private final String FILE_DEFAULT_NAME = "testfile";
 
     @Override
@@ -235,9 +237,9 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         setupCache(file);
         ITokenCacheStore tokenCacheA = new FileTokenCacheStore(targetContex, file);
         AuthenticationContext contextA = new AuthenticationContext(getInstrumentation()
-                .getContext(), "authority", false, tokenCacheA);
+                .getContext(), VALID_AUTHORITY, false, tokenCacheA);
         AuthenticationContext contextB = new AuthenticationContext(getInstrumentation()
-                .getContext(), "authority", false, tokenCacheA);
+                .getContext(), VALID_AUTHORITY, false, tokenCacheA);
 
         // Verify the cache
         TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));

@@ -52,7 +52,7 @@ script:
   - cd $PWD/adal
   - ant clean debug
   - cd -
-  - cd $PWD/tests
+  - cd $PWD/tests/Functional
   # instrument classes with filter. coverage.em will be saved to bin/coverage.em
   - ant clean -Demma.filter="-com.microsoft.adal.testapp.*" emma instrument
   # debug compile, install file, test all test cases

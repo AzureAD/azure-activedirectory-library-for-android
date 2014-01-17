@@ -98,9 +98,16 @@ public class MainActivity extends Activity {
     public Handler getTestAppHandler() {
         return handler;
     }
+    
+    class AdalCallback implements AuthenticationCallback<AuthenticationResult> {
+ 
 
-    private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
-
+        private UUID mId;
+        
+        public AdalCallback(){
+            mId = UUID.randomUUID();
+        }
+        
         @Override
         public void onError(Exception exc) {
             Log.d(TAG, "Callback returned error");
@@ -251,7 +258,7 @@ public class MainActivity extends Activity {
                 clientId = CLIENT_ID;
             }
             mContext.setRequestCorrelationId(mRequestCorrelationId);
-            mContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), clientId, callback);
+            mContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), clientId, new AdalCallback());
         } else {
             textViewStatus.setText(FAILED);
         }
@@ -288,9 +295,9 @@ public class MainActivity extends Activity {
         String redirect = mRedirect.getText().toString();
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt,
-                mExtraQueryParam, callback);
-    }
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, mExtraQueryParam,
+                new AdalCallback());
+     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

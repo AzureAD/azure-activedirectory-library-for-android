@@ -758,12 +758,11 @@ public class AuthenticationActivityInstrumentationTests extends
 
         enterTextIntoWebElement(elements, usernameIDs, username);
         pressKey(KeyEvent.KEYCODE_TAB);
-        // After pressing tab key, page will redirect to federated login
-        // page
-        // for federated account
 
         if (waitForRedirect) {
-
+            // After pressing tab key, page will redirect to federated login
+            // page
+            // for federated account
             // federation page redirects to login page
             Log.v(TAG, "Sleep for redirect");
             sleepUntilFederatedPageDisplays(redirectUrl);
@@ -826,6 +825,7 @@ public class AuthenticationActivityInstrumentationTests extends
                     } else {
                         // Get element position again
                         solo.hideSoftKeyboard();
+
                         // not use keyboard
                         getInstrumentation().sendStringSync(text);
                         Log.v(TAG, "Entered " + text + " at " + id);
