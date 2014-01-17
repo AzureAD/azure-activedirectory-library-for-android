@@ -103,7 +103,7 @@ public class StorageHelper {
 
     private static final Object lockObject = new Object();
 
-    private static String sKeyVersion;
+    private static String sBlobVersion;
 
     /**
      * Load only once
@@ -141,7 +141,7 @@ public class StorageHelper {
                     // used for Encryption and HMac
                     sKey = getSecretKeyFromAndroidKeyStore();
                     sMacKey = getMacKey(sKey);
-                    sKeyVersion = VERSION_ANDROID_KEY_STORE;
+                    sBlobVersion = VERSION_ANDROID_KEY_STORE;
                     return;
                 } catch (Exception e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
@@ -151,7 +151,7 @@ public class StorageHelper {
 
             sKey = AuthenticationSettings.INSTANCE.getSecretKey();
             sMacKey = getMacKey(sKey);
-            sKeyVersion = VERSION_USER_DEFINED;
+            sBlobVersion = VERSION_USER_DEFINED;
         }
     }
 
@@ -268,7 +268,7 @@ public class StorageHelper {
 
         // load key for encryption if not loaded
         loadSecretKeyForAPI();
-        final byte[] keyVersionBlob = sKeyVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
+        final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
         // IV: Initialization vector that is needed to start CBC
@@ -286,23 +286,24 @@ public class StorageHelper {
         // Mac output to sign encryptedData+IV. Keyversion is not included
         // in the digest. It defines what to use for Mac Key.
         mac.init(sMacKey);
+        mac.update(blobVersion);
         mac.update(encrypted);
         mac.update(iv);
         byte[] macDigest = mac.doFinal();
 
-        // Init array to store keyversion, encrypted data, iv, macdigest
-        byte[] keyVerAndEncryptedDataAndIVAndMacDigest = new byte[keyVersionBlob.length
+        // Init array to store blobVersion, encrypted data, iv, macdigest
+        byte[] blobVerAndEncryptedDataAndIVAndMacDigest = new byte[blobVersion.length
                 + encrypted.length + iv.length + macDigest.length];
-        System.arraycopy(keyVersionBlob, 0, keyVerAndEncryptedDataAndIVAndMacDigest, 0,
-                keyVersionBlob.length);
-        System.arraycopy(encrypted, 0, keyVerAndEncryptedDataAndIVAndMacDigest,
-                keyVersionBlob.length, encrypted.length);
-        System.arraycopy(iv, 0, keyVerAndEncryptedDataAndIVAndMacDigest, keyVersionBlob.length
+        System.arraycopy(blobVersion, 0, blobVerAndEncryptedDataAndIVAndMacDigest, 0,
+                blobVersion.length);
+        System.arraycopy(encrypted, 0, blobVerAndEncryptedDataAndIVAndMacDigest,
+                blobVersion.length, encrypted.length);
+        System.arraycopy(iv, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
                 + encrypted.length, iv.length);
-        System.arraycopy(macDigest, 0, keyVerAndEncryptedDataAndIVAndMacDigest,
-                keyVersionBlob.length + encrypted.length + iv.length, macDigest.length);
+        System.arraycopy(macDigest, 0, blobVerAndEncryptedDataAndIVAndMacDigest,
+                blobVersion.length + encrypted.length + iv.length, macDigest.length);
 
-        String encryptedText = new String(Base64.encode(keyVerAndEncryptedDataAndIVAndMacDigest,
+        String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished encryption");
         
@@ -350,7 +351,7 @@ public class StorageHelper {
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
         Mac mac = Mac.getInstance(MAC_ALGORITHM);
         mac.init(versionMacKey);
-        mac.update(bytes, KEY_VERSION_BLOB_LENGTH, macIndex - KEY_VERSION_BLOB_LENGTH);
+        mac.update(bytes, 0, macIndex);
         byte[] macDigest = mac.doFinal();
 
         // Compare digest of input message and calculated digest
