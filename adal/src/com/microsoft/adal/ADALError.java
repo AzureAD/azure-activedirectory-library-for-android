@@ -81,6 +81,8 @@ public enum ADALError {
     DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE("FileCache could not write to the File"),
 
     DEVICE_FILE_CACHE_FORMAT_IS_WRONG("Wrong cache file format"),
+    
+    DEVICE_CONNECTION_IS_NOT_AVAILABLE("Connection is not available"),
 
     /**
      * IdToken is normally returned from token endpoint.
