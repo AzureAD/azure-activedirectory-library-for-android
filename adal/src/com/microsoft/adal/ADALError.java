@@ -100,14 +100,17 @@ public enum ADALError {
 
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
 
-    SERVER_INVALID_JSON_RESPONSE("Server returned invalid json response"),
+    SERVER_INVALID_JSON_RESPONSE("Server returned invalid JSON response"),
 
     AUTH_REFRESH_FAILED("Refresh token request failed"),
 
-    DISCOVERY_NOT_SUPPORTED("Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."), ;
+    ENCRYPTION_FAILED("Encryption failed"),
 
-    
-    
+    ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"),
+
+    DISCOVERY_NOT_SUPPORTED(
+            "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."), ;
+
     private String mDescription;
 
     private ADALError(String message) {
