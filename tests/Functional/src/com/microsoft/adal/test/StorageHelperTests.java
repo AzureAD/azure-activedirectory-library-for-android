@@ -41,14 +41,11 @@ public class StorageHelperTests extends AndroidTestCase {
         Log.d(TAG, "setup key at settings");
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
-           
-
             SecretKeyFactory keyFactory = SecretKeyFactory
                     .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
                     "abcdedfdfd".getBytes("UTF-8"), 100, 256));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
-
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
     }
