@@ -12,6 +12,7 @@ import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 
 import javax.crypto.SecretKey;
@@ -38,14 +39,14 @@ public class StorageHelperTests extends AndroidTestCase {
         super.setUp();
 
         Log.d(TAG, "setup key at settings");
-        if (AuthenticationSettings.INSTANCE.getSecretKey() == null) {
+        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
                     .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
                     "abcdedfdfd".getBytes("UTF-8"), 100, 256));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
-            AuthenticationSettings.INSTANCE.setSecretKey(secretKey);
+            AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
     }
 
@@ -76,11 +77,11 @@ public class StorageHelperTests extends AndroidTestCase {
         Object storageHelper = getStorageHelper();
         Method mDecrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
         Method mEncrypt = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
-        assertThrows(mDecrypt, storageHelper, "E001bad64", "bad base-64");
+        assertThrows(mDecrypt, storageHelper, "E1bad64", "bad base-64");
         assertThrowsType(
                 mDecrypt,
                 storageHelper,
-                "E001"
+                "E1"
                         + new String(Base64.encode(
                                 "U001thatShouldFail1234567890123456789012345678901234567890"
                                         .getBytes("UTF-8"), Base64.NO_WRAP), "UTF-8"),
@@ -166,12 +167,12 @@ public class StorageHelperTests extends AndroidTestCase {
 
         String decrypted = (String)mDecrypt.invoke(storageHelper, encrypted);
         assertTrue("Same without Tampering", decrypted.equals(clearText));
-
-        final byte[] bytes = Base64.decode(encrypted, Base64.DEFAULT);
+        String flagVersion = encrypted.substring(0, 2);
+        final byte[] bytes = Base64.decode(encrypted.substring(2), Base64.DEFAULT);
         bytes[15]++;
         String modified = new String(Base64.encode(bytes, Base64.NO_WRAP), "UTF-8");
 
-        assertThrowsType(mDecrypt, storageHelper, modified, DigestException.class);
+        assertThrowsType(mDecrypt, storageHelper, flagVersion + modified, DigestException.class);
     }
 
     /**
@@ -193,9 +194,9 @@ public class StorageHelperTests extends AndroidTestCase {
         Object storageHelper = getStorageHelper();
         Method m = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
         String encrypted = (String)m.invoke(storageHelper, value);
-        String encodeVersion = encrypted.substring(0, 4);
-        assertEquals("Encode version is same", "E001", encodeVersion);
-        final byte[] bytes = Base64.decode(encrypted.substring(4), Base64.DEFAULT);
+        String encodeVersion = encrypted.substring(0, 2);
+        assertEquals("Encode version is same", "E1", encodeVersion);
+        final byte[] bytes = Base64.decode(encrypted.substring(2), Base64.DEFAULT);
 
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
@@ -218,7 +219,7 @@ public class StorageHelperTests extends AndroidTestCase {
         }
 
         String expectedDecrypted = "SomeValue1234";
-        String encryptedInAPI17 = "E001VTAwMef/81JijK4xB3vn4TFufnDBgMYZEFSU6Dld4nUn2X/59OcrULyeTDm+1JEO5/Dfrrictu6QOmBAVPKCJWvF/jI=";
+        String encryptedInAPI17 = "E1VTAwMb4ChefrTHHblCg0DYaK1UR456nW3q6+hqA9Cs2uB+bqcfsLzukiI+KOCdBGJV+JqhRJHBIDCOl68TYkLQAz65g=";
         Object storageHelper = getStorageHelper();
         Method decrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
         String decrypted = (String)decrypt.invoke(storageHelper, encryptedInAPI17);

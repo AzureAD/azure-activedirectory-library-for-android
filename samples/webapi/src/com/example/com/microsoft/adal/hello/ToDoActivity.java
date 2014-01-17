@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 
 import javax.crypto.NoSuchPaddingException;
 
@@ -20,6 +21,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -91,6 +93,8 @@ public class ToDoActivity extends Activity {
     public static final int MENU_CANCEL_REQUEST = Menu.FIRST + 9;
 
     public static final int MENU_SHOW_TOKEN = Menu.FIRST + 10;
+
+    public static final int MENU_EXPIRE_TOKEN = Menu.FIRST + 11;
 
     private AuthenticationContext mAuthContext;
 
@@ -369,6 +373,7 @@ public class ToDoActivity extends Activity {
         menu.add(Menu.NONE, MENU_REFRESH_TOKEN_DELAY_PROMPT, Menu.NONE, "RefreshDelayToPrompt");
         menu.add(Menu.NONE, MENU_CANCEL_REQUEST, Menu.NONE, "CancelAuthentication");
         menu.add(Menu.NONE, MENU_SHOW_TOKEN, Menu.NONE, "ShowTokens");
+        menu.add(Menu.NONE, MENU_EXPIRE_TOKEN, Menu.NONE, "Expire");
 
         return true;
     }
@@ -520,9 +525,9 @@ public class ToDoActivity extends Activity {
 
         // make token expired to force refresh token
         TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
-                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, ""));
+                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, Constants.USER_HINT));
         if (item != null) {
-            Calendar timeExpired = new GregorianCalendar();
+            Calendar timeExpired = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
             timeExpired.add(Calendar.MINUTE, -50);
             item.setExpiresOn(timeExpired.getTime());
             if (invalidateRefresh) {
@@ -615,7 +620,7 @@ public class ToDoActivity extends Activity {
         TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
                 Constants.RESOURCE_ID, Constants.CLIENT_ID, false, userid));
         if (item != null) {
-            Calendar timeExpired = new GregorianCalendar();
+            Calendar timeExpired = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
             timeExpired.add(Calendar.MINUTE, -50);
             item.setExpiresOn(timeExpired.getTime());
             currentCache.setItem(CacheKey.createCacheKey(item), item);

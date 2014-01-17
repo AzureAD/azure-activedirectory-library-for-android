@@ -9,7 +9,6 @@ import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
-
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -21,10 +20,12 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-
 import android.util.SparseArray;
 
 /*
@@ -76,6 +77,11 @@ public class AuthenticationContext {
      * Web request handler interface to test behaviors
      */
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
+    
+    /**
+     * Connection service interface to test different behaviors
+     */
+    private IConnectionService mConnectionService = null;
 
     /**
      * CorrelationId set by user
@@ -97,6 +103,8 @@ public class AuthenticationContext {
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
             throws NoSuchAlgorithmException, NoSuchPaddingException {
         mContext = appContext;
+        mConnectionService = new DefaultConnectionService(mContext);
+        checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = new DefaultTokenCacheStore(appContext);
@@ -111,6 +119,8 @@ public class AuthenticationContext {
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
+        mConnectionService = new DefaultConnectionService(mContext);
+        checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = tokenCacheStore;
@@ -127,6 +137,8 @@ public class AuthenticationContext {
     public AuthenticationContext(Context appContext, String authority,
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
+        mConnectionService = new DefaultConnectionService(mContext);
+        checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = true;
         mTokenCacheStore = tokenCacheStore;
@@ -809,7 +821,16 @@ public class AuthenticationContext {
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo());
 
         // Removes refresh token from cache, when this call is complete. Request
-        // may be interrupted, if app is shutdown by user.
+        // may be interrupted, if app is shutdown by user. Detect connection
+        // state to not remove refresh token if user turned Airplane mode or
+        // similar.
+        if (!mConnectionService.isConnectionAvailable()) {
+            Logger.w(TAG, "Connection is not available to refresh token", request.getLogInfo(),
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+            externalCallback.onError(new AuthenticationException(
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE));
+        }
+
         Oauth2 oauthRequest = new Oauth2(request, mWebRequest);
         oauthRequest.refreshToken(refreshItem.mRefreshToken,
                 new AuthenticationCallback<AuthenticationResult>() {
@@ -981,17 +1002,6 @@ public class AuthenticationContext {
     }
 
     /**
-     * Delegate to use for starting browser flow from activity's context
-     */
-    private interface ActivityDelegate {
-        public void startActivityForResult(Intent intent, int requestCode);
-
-        public void startActivity(Intent intent);
-
-        public Activity getActivityContext();
-    }
-
-    /**
      * Developer is using refresh token call to do refresh without cache usage.
      * App context or activity is not needed. Async requests are created,so this
      * needs to be called at UI thread.
@@ -1071,17 +1081,11 @@ public class AuthenticationContext {
     private static String extractAuthority(String authority) {
         if (!StringExtensions.IsNullOrBlank(authority)) {
 
-            int thirdSlash = authority.indexOf("/", 8); // excluding the
-                                                        // starting https:// or
-                                                        // http://
-            if (thirdSlash >= 0 && thirdSlash != (authority.length() - 1)) // third
-                                                                           // slash
-                                                                           // is
-                                                                           // not
-                                                                           // the
-                                                                           // last
-                                                                           // character
-            {
+            // excluding the starting https:// or http://
+            int thirdSlash = authority.indexOf("/", 8);
+
+            // third slash is not the last character
+            if (thirdSlash >= 0 && thirdSlash != (authority.length() - 1)) {
                 int fourthSlash = authority.indexOf("/", thirdSlash + 1);
                 if (fourthSlash < 0 || fourthSlash > thirdSlash + 1) {
                     if (fourthSlash >= 0) {
@@ -1094,5 +1098,29 @@ public class AuthenticationContext {
         }
 
         throw new IllegalArgumentException("authority");
+    }
+
+    private void checkInternetPermission() {
+        PackageManager pm = mContext.getPackageManager();
+        if (PackageManager.PERMISSION_GRANTED != pm.checkPermission("android.permission.INTERNET",
+                mContext.getPackageName())) {
+            throw new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING);
+        }
+    }    
+  
+    class DefaultConnectionService implements IConnectionService{
+       
+        private Context mConnectionContext;
+        DefaultConnectionService(Context ctx){
+            mConnectionContext = ctx;
+        }
+        
+        public boolean isConnectionAvailable(){
+            ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+            boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+            return isConnected;
+        }
     }
 }

@@ -17,6 +17,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
@@ -50,6 +51,8 @@ import android.util.Base64;
  */
 public class StorageHelper {
 
+    private static final String MAC_KEY_HASH_ALGORITHM = "SHA256";
+
     private static final String KEY_STORE_CERT_ALIAS = "AdalKey";
 
     private static final String ADALKS = "adalks";
@@ -61,9 +64,9 @@ public class StorageHelper {
     private static final String TAG = "StorageHelper";
 
     /**
-     * PKCS#5 padding is only defined for 8-byte block sizes. PKCS#7 padding
-     * would work for any block size from 2 to 255 bytes. AES is 128 bits (16
-     * bytes). Java alg name is using PKCS#5.
+     * AES is 16 bytes (128 bits), thus PKCS#5 padding should not work, but in
+     * Java AES/CBC/PKCS5Padding is default(!) algorithm name, thus PKCS5 here
+     * probably doing PKCS7. We decide to go with Java default string.
      */
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
 
@@ -97,13 +100,13 @@ public class StorageHelper {
     /**
      * To keep track of encoding version and related flags
      */
-    private static final String ENCODE_VERSION = "E001";
+    private static final String ENCODE_VERSION = "E1";
 
-    private static final int ENCODE_VERSION_LENGTH = 4;
+    private static final int ENCODE_VERSION_LENGTH = 2;
 
     private static final Object lockObject = new Object();
 
-    private static String sKeyVersion;
+    private static String sBlobVersion;
 
     /**
      * Load only once
@@ -141,7 +144,7 @@ public class StorageHelper {
                     // used for Encryption and HMac
                     sKey = getSecretKeyFromAndroidKeyStore();
                     sMacKey = getMacKey(sKey);
-                    sKeyVersion = VERSION_ANDROID_KEY_STORE;
+                    sBlobVersion = VERSION_ANDROID_KEY_STORE;
                     return;
                 } catch (Exception e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
@@ -149,9 +152,9 @@ public class StorageHelper {
                 }
             }
 
-            sKey = AuthenticationSettings.INSTANCE.getSecretKey();
+            sKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
             sMacKey = getMacKey(sKey);
-            sKeyVersion = VERSION_USER_DEFINED;
+            sBlobVersion = VERSION_USER_DEFINED;
         }
     }
 
@@ -174,7 +177,7 @@ public class StorageHelper {
             UnrecoverableEntryException, IOException {
 
         if (keyVersion.equals(VERSION_USER_DEFINED)) {
-            return AuthenticationSettings.INSTANCE.getSecretKey();
+            return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
         }
 
         if (keyVersion.equals(VERSION_ANDROID_KEY_STORE)) {
@@ -200,6 +203,13 @@ public class StorageHelper {
         throw new IllegalArgumentException("keyVersion");
     }
 
+    private SecretKey getSecretKey(byte[] rawBytes) {
+        if (rawBytes != null)
+            return new SecretKeySpec(rawBytes, KEYSPEC_ALGORITHM);
+
+        throw new IllegalArgumentException("rawBytes");
+    }
+    
     /**
      * Derive mac key from given key
      * 
@@ -208,11 +218,14 @@ public class StorageHelper {
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      */
-    private SecretKey getMacKey(SecretKey key) {
+    private SecretKey getMacKey(SecretKey key) throws NoSuchAlgorithmException {
         // Some keys may not produce byte[] with getEncoded
-        if (key.getEncoded() != null)
-            return new SecretKeySpec(key.getEncoded(), KEYSPEC_ALGORITHM);
-
+        byte[] encodedKey = key.getEncoded();
+        if (encodedKey != null)
+        {
+            MessageDigest digester = MessageDigest.getInstance(MAC_KEY_HASH_ALGORITHM);
+            return new SecretKeySpec(digester.digest(encodedKey), KEYSPEC_ALGORITHM);
+        }
         return key;
     }
 
@@ -268,7 +281,7 @@ public class StorageHelper {
 
         // load key for encryption if not loaded
         loadSecretKeyForAPI();
-        final byte[] keyVersionBlob = sKeyVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
+        final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
         // IV: Initialization vector that is needed to start CBC
@@ -286,26 +299,27 @@ public class StorageHelper {
         // Mac output to sign encryptedData+IV. Keyversion is not included
         // in the digest. It defines what to use for Mac Key.
         mac.init(sMacKey);
+        mac.update(blobVersion);
         mac.update(encrypted);
         mac.update(iv);
         byte[] macDigest = mac.doFinal();
 
-        // Init array to store keyversion, encrypted data, iv, macdigest
-        byte[] keyVerAndEncryptedDataAndIVAndMacDigest = new byte[keyVersionBlob.length
+        // Init array to store blobVersion, encrypted data, iv, macdigest
+        byte[] blobVerAndEncryptedDataAndIVAndMacDigest = new byte[blobVersion.length
                 + encrypted.length + iv.length + macDigest.length];
-        System.arraycopy(keyVersionBlob, 0, keyVerAndEncryptedDataAndIVAndMacDigest, 0,
-                keyVersionBlob.length);
-        System.arraycopy(encrypted, 0, keyVerAndEncryptedDataAndIVAndMacDigest,
-                keyVersionBlob.length, encrypted.length);
-        System.arraycopy(iv, 0, keyVerAndEncryptedDataAndIVAndMacDigest, keyVersionBlob.length
+        System.arraycopy(blobVersion, 0, blobVerAndEncryptedDataAndIVAndMacDigest, 0,
+                blobVersion.length);
+        System.arraycopy(encrypted, 0, blobVerAndEncryptedDataAndIVAndMacDigest,
+                blobVersion.length, encrypted.length);
+        System.arraycopy(iv, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
                 + encrypted.length, iv.length);
-        System.arraycopy(macDigest, 0, keyVerAndEncryptedDataAndIVAndMacDigest,
-                keyVersionBlob.length + encrypted.length + iv.length, macDigest.length);
+        System.arraycopy(macDigest, 0, blobVerAndEncryptedDataAndIVAndMacDigest,
+                blobVersion.length + encrypted.length + iv.length, macDigest.length);
 
-        String encryptedText = new String(Base64.encode(keyVerAndEncryptedDataAndIVAndMacDigest,
+        String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished encryption");
-        
+
         return ENCODE_VERSION + encryptedText;
     }
 
@@ -350,7 +364,7 @@ public class StorageHelper {
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
         Mac mac = Mac.getInstance(MAC_ALGORITHM);
         mac.init(versionMacKey);
-        mac.update(bytes, KEY_VERSION_BLOB_LENGTH, macIndex - KEY_VERSION_BLOB_LENGTH);
+        mac.update(bytes, 0, macIndex);
         byte[] macDigest = mac.doFinal();
 
         // Compare digest of input message and calculated digest
@@ -377,7 +391,8 @@ public class StorageHelper {
         }
 
         byte result = 0;
-        // It does not fail fast on the first not equal byte
+        // It does not fail fast on the first not equal byte to protect against
+        // timing attack.
         for (int i = start; i < end; i++) {
             result |= calculated[i - start] ^ digest[i];
         }
