@@ -61,9 +61,9 @@ public class StorageHelper {
     private static final String TAG = "StorageHelper";
 
     /**
-     * PKCS#5 padding is only defined for 8-byte block sizes. PKCS#7 padding
-     * would work for any block size from 2 to 255 bytes. AES is 128 bits (16
-     * bytes). Java alg name is using PKCS#5.
+     * AES is 16 bytes (128 bits), thus PKCS#5 padding should not work, but in
+     * Java AES/CBC/PKCS5Padding is default(!) algorithm name, thus PKCS5 here
+     * probably doing PKCS7. We decide to go with Java default string.
      */
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
 
@@ -210,8 +210,9 @@ public class StorageHelper {
      */
     private SecretKey getMacKey(SecretKey key) {
         // Some keys may not produce byte[] with getEncoded
-        if (key.getEncoded() != null)
-            return new SecretKeySpec(key.getEncoded(), KEYSPEC_ALGORITHM);
+        byte[] encodedKey = key.getEncoded();
+        if (encodedKey != null)
+            return new SecretKeySpec(encodedKey, KEYSPEC_ALGORITHM);
 
         return key;
     }
@@ -306,7 +307,7 @@ public class StorageHelper {
         String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished encryption");
-        
+
         return ENCODE_VERSION + encryptedText;
     }
 
@@ -378,7 +379,8 @@ public class StorageHelper {
         }
 
         byte result = 0;
-        // It does not fail fast on the first not equal byte
+        // It does not fail fast on the first not equal byte to protect against
+        // timing attack.
         for (int i = start; i < end; i++) {
             result |= calculated[i - start] ^ digest[i];
         }
