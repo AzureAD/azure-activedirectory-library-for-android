@@ -76,6 +76,11 @@ public class AuthenticationContext {
      * Web request handler interface to test behaviors
      */
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
+    
+    /**
+     * Connection service interface to test different behaviors
+     */
+    private IConnectionService mConnectionService = null;
 
     /**
      * CorrelationId set by user
@@ -94,6 +99,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
         mContext = appContext;
+        mConnectionService = new DefaultConnectionService(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
@@ -109,6 +115,7 @@ public class AuthenticationContext {
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
+        mConnectionService = new DefaultConnectionService(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
@@ -126,6 +133,7 @@ public class AuthenticationContext {
     public AuthenticationContext(Context appContext, String authority,
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
+        mConnectionService = new DefaultConnectionService(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = true;
@@ -812,7 +820,7 @@ public class AuthenticationContext {
         // may be interrupted, if app is shutdown by user. Detect connection
         // state to not remove refresh token if user turned Airplane mode or
         // similar.
-        if (!isConnectionAvailable()) {
+        if (!mConnectionService.isConnectionAvailable()) {
             Logger.w(TAG, "Connection is not available to refresh token", request.getLogInfo(),
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
             externalCallback.onError(new AuthenticationException(
@@ -1096,12 +1104,21 @@ public class AuthenticationContext {
                     "android.permission.INTERNET is not added to AndroidManifest file");
         }
     }
-
-    private boolean isConnectionAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager)mContext
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
-        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-        return isConnected;
+    
+  
+    class DefaultConnectionService implements IConnectionService{
+       
+        private Context mConnectionContext;
+        DefaultConnectionService(Context ctx){
+            mConnectionContext = ctx;
+        }
+        
+        public boolean isConnectionAvailable(){
+            ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+            boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+            return isConnected;
+        }
     }
 }
