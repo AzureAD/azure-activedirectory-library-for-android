@@ -147,7 +147,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         String encrypted = encrypt(json);
         if (encrypted != null) {
             Editor prefsEditor = mPrefs.edit();
-            prefsEditor.putString(key, json);
+            prefsEditor.putString(key, encrypted);
 
             // apply will do Async disk write operation.
             prefsEditor.apply();

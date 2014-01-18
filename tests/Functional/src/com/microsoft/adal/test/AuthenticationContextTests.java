@@ -15,6 +15,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import junit.framework.Assert;
 import android.app.Activity;
@@ -39,6 +43,7 @@ import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
+import com.microsoft.adal.AuthenticationSettings;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.HttpWebResponse;
@@ -67,6 +72,16 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
+        Log.d(TAG, "setup key at settings");
+        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
+            // use same key for tests
+            SecretKeyFactory keyFactory = SecretKeyFactory
+                    .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+            SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
+                    "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+            SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
+            AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
+        }
     }
 
     protected void tearDown() throws Exception {
@@ -121,7 +136,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testConstructor_InternetPermission() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
         String authority = "https://github.com/MSOpenTech";
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         mockContext.requestedPermissionName = "android.permission.INTERNET";
         mockContext.responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
 
@@ -177,7 +192,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testCorrelationId_InWebRequest() throws NoSuchFieldException,
             IllegalAccessException, InterruptedException, NoSuchAlgorithmException,
             NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         String expectedAccessToken = "TokenFortestAcquireToken" + UUID.randomUUID().toString();
         String expectedClientId = "client" + UUID.randomUUID().toString();
         String expectedResource = "resource" + UUID.randomUUID().toString();
@@ -222,7 +237,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testResolveIntent() throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, NoSuchAlgorithmException, NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
                 false);
         Method m = ReflectionUtils.getTestMethod(context, "resolveIntent", Intent.class);
@@ -246,7 +261,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     @SmallTest
     public void testAcquireTokenNegativeArguments() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
         final MockActivity testActivity = new MockActivity();
@@ -307,7 +322,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testAcquireToken_userId() throws ClassNotFoundException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, NoSuchAlgorithmException,
             NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "https://login.windows.net/common", false);
         final MockActivity testActivity = new MockActivity();
@@ -341,7 +356,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testEmptyRedirect() throws ClassNotFoundException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, NoSuchAlgorithmException,
             NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "https://login.windows.net/common", false);
         final MockActivity testActivity = new MockActivity();
@@ -365,7 +380,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testPrompt() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, ClassNotFoundException, NoSuchAlgorithmException,
             NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "https://login.windows.net/common", false);
         final MockActivity testActivity = new MockActivity();
@@ -391,7 +406,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testExtraParams() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, ClassNotFoundException, NoSuchAlgorithmException,
             NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "https://login.windows.net/common", false);
         final MockActivity testActivity = new MockActivity();
@@ -456,7 +471,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     @SmallTest
     public void testAcquireTokenByRefreshTokenNegativeArguments() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
 
         // AuthenticationContext will throw at constructor if authority is null.
 
@@ -528,7 +543,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testAcquireTokenByRefreshToken_ConnectionNotAvailable()
             throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
         setConnectionAvailable(context, false);
@@ -569,7 +584,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException,
             NoSuchAlgorithmException, NoSuchPaddingException {
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
 
         final AuthenticationContext context = new AuthenticationContext(mockContext,
@@ -635,7 +650,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testAcquireTokenAuthorityMalformed() throws InterruptedException,
             NoSuchAlgorithmException, NoSuchPaddingException {
         // Malformed url error will come back in callback
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "abcd://vv../v", false);
         final MockActivity testActivity = new MockActivity();
@@ -667,7 +682,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException {
 
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
                 true);
         final CountDownLatch signal = new CountDownLatch(1);
@@ -703,7 +718,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException {
 
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, true);
         final MockActivity testActivity = new MockActivity();
@@ -741,7 +756,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException {
 
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
         final MockActivity testActivity = new MockActivity();
@@ -781,7 +796,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException {
 
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
@@ -831,7 +846,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             NoSuchMethodException, InstantiationException, InvocationTargetException,
             NoSuchAlgorithmException, NoSuchPaddingException {
 
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
 
         final AuthenticationContext context = new AuthenticationContext(mockContext,
@@ -880,10 +895,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException {
 
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         String tokenToTest = "accessToken=" + UUID.randomUUID();
         String resource = "Resource" + UUID.randomUUID();
         ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        mockCache.removeAll();
         addItemToCache(mockCache, tokenToTest, "refreshToken", VALID_AUTHORITY, resource,
                 "clientId", "userId", false);
 
@@ -921,7 +937,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException {
 
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         String tokenToTest = "accessToken=" + UUID.randomUUID();
         String tokenWithRefreshToken = "accessToken=" + UUID.randomUUID();
         String resource = "Resource" + UUID.randomUUID();
@@ -1013,7 +1029,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException {
         // adfs does not return userid and multiresource token
-        TestMockContext mockContext = new TestMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         String tokenToTest = "accessToken=" + UUID.randomUUID();
         String resource = "Resource" + UUID.randomUUID();
         ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
@@ -1267,69 +1283,5 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 mSignal.countDown();
         }
 
-    }
-
-    class TestMockContext extends MockContext {
-
-        private Context mContext;
-
-        private static final String PREFIX = "test.mock.package";
-
-        boolean resolveIntent = true;
-
-        String requestedPermissionName;
-
-        int responsePermissionFlag;
-
-        public TestMockContext(Context context) {
-            mContext = context;
-            // default
-            requestedPermissionName = "android.permission.INTERNET";
-            responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
-        }
-
-        @Override
-        public String getPackageName() {
-            return PREFIX;
-        }
-
-        @Override
-        public Context getApplicationContext() {
-            return mContext;
-        }
-
-        @Override
-        public Object getSystemService(String name) {
-            // TODO Auto-generated method stub
-            return super.getSystemService(name);
-        }
-
-        @Override
-        public SharedPreferences getSharedPreferences(String name, int mode) {
-            return mContext.getSharedPreferences(name, mode);
-        }
-
-        @Override
-        public PackageManager getPackageManager() {
-            return new TestPackageManager();
-        }
-
-        class TestPackageManager extends MockPackageManager {
-            @Override
-            public ResolveInfo resolveActivity(Intent intent, int flags) {
-                if (resolveIntent)
-                    return new ResolveInfo();
-
-                return null;
-            }
-
-            @Override
-            public int checkPermission(String permName, String pkgName) {
-                if (permName.equals(requestedPermissionName)) {
-                    return responsePermissionFlag;
-                }
-                return PackageManager.PERMISSION_DENIED;
-            }
-        }
     }
 }

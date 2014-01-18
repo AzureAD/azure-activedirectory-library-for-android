@@ -1,6 +1,7 @@
 
 package com.microsoft.adal.test;
 
+import java.io.File;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -8,6 +9,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import javax.crypto.NoSuchPaddingException;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.test.mock.MockContext;
+import android.test.mock.MockPackageManager;
 
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
@@ -24,6 +33,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
     @Override
     protected void tearDown() throws Exception {
+        
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
         store.removeAll();
         super.tearDown();
@@ -103,6 +113,8 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     @Override
     protected ITokenCacheStore getTokenCacheStore() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
-        return new DefaultTokenCacheStore(ctx);
+        return new DefaultTokenCacheStore(this.getInstrumentation().getTargetContext());
     }
+    
+     
 }

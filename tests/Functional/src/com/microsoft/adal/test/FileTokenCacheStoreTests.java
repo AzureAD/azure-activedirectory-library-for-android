@@ -7,12 +7,6 @@ import java.io.ObjectOutputStream;
 import java.util.concurrent.CountDownLatch;
 
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.test.mock.MockContext;
-import android.test.mock.MockPackageManager;
 
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationContext;
@@ -266,60 +260,6 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
                 ADALError errorCode) {
             logMessage = message;
             logErrorCode = errorCode;
-        }
-    }
-
-    class FileMockContext extends MockContext {
-
-        private Context mContext;
-
-        private static final String PREFIX = "test.mock.";
-
-        boolean resolveIntent = true;
-
-        String dirName;
-
-        int fileWriteMode;
-
-        public FileMockContext(Context context) {
-            mContext = context;
-        }
-
-        @Override
-        public String getPackageName() {
-            return PREFIX;
-        }
-
-        @Override
-        public Context getApplicationContext() {
-            return mContext;
-        }
-
-        @Override
-        public File getDir(String name, int mode) {
-            dirName = name;
-            fileWriteMode = mode;
-            return null;
-        }
-
-        @Override
-        public SharedPreferences getSharedPreferences(String name, int mode) {
-            return mContext.getSharedPreferences(name, mode);
-        }
-
-        @Override
-        public PackageManager getPackageManager() {
-            return new TestPackageManager();
-        }
-
-        class TestPackageManager extends MockPackageManager {
-            @Override
-            public ResolveInfo resolveActivity(Intent intent, int flags) {
-                if (resolveIntent)
-                    return new ResolveInfo();
-
-                return null;
-            }
         }
     }
 }
