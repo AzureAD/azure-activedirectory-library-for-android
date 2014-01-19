@@ -53,6 +53,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private static StorageHelper sHelper;
 
+    private static Object sLock = new Object();
+
     public DefaultTokenCacheStore(Context context) throws NoSuchAlgorithmException,
             NoSuchPaddingException {
         mContext = context;
@@ -62,10 +64,12 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             throw new IllegalArgumentException("Context is null");
         }
 
-        if (sHelper == null) {
-            Logger.v(TAG, "Started to initialize storage helper");
-            sHelper = new StorageHelper(context);
-            Logger.v(TAG, "Finished to initialize storage helper");
+        synchronized (sLock) {
+            if (sHelper == null) {
+                Logger.v(TAG, "Started to initialize storage helper");
+                sHelper = new StorageHelper(context);
+                Logger.v(TAG, "Finished to initialize storage helper");
+            }
         }
     }
 
@@ -84,10 +88,12 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             return sHelper.decrypt(value);
         } catch (Exception e) {
             Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
-            Logger.v(TAG,
-                    String.format("Decryption error for key: '%s'. Item will be removed", value));
-            removeItem(value);
-            Logger.v(TAG, String.format("Item removed for key: '%s'", value));
+            if (!StringExtensions.IsNullOrBlank(value)) {
+                Logger.v(TAG, String.format("Decryption error for key: '%s'. Item will be removed",
+                        value));
+                removeItem(value);
+                Logger.v(TAG, String.format("Item removed for key: '%s'", value));
+            }
         }
 
         return null;
