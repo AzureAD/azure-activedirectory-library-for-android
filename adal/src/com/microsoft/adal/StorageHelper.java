@@ -280,6 +280,7 @@ public class StorageHelper {
 
         // load key for encryption if not loaded
         loadSecretKeyForAPI();
+        Logger.v(TAG, "Encrypt version:"+sBlobVersion);
         final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
