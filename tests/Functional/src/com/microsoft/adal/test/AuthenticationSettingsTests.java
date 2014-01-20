@@ -3,8 +3,6 @@ package com.microsoft.adal.test;
 
 import android.test.AndroidTestCase;
 
-import com.microsoft.adal.AuthenticationSettings;
-
 /**
  * settings to use in ADAL
  */

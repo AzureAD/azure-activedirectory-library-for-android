@@ -4,7 +4,6 @@
 
 package com.microsoft.adal;
 
-import android.content.Context;
 
 /**
  */

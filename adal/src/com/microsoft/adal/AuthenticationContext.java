@@ -6,7 +6,7 @@ package com.microsoft.adal;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.acl.Permission;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,12 +14,13 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.crypto.NoSuchPaddingException;
+
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.PermissionInfo;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -96,8 +97,11 @@ public class AuthenticationContext {
      *            to be activity.
      * @param authority Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
+     * @throws NoSuchPaddingException   DefaultTokenCacheStore uses encryption
+     * @throws NoSuchAlgorithmException
      */
-    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
+    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
+            throws NoSuchAlgorithmException, NoSuchPaddingException {
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
         checkInternetPermission();

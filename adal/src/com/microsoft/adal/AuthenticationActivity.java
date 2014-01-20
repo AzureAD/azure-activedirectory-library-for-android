@@ -168,7 +168,6 @@ public class AuthenticationActivity extends Activity {
         wv.getSettings().setDomStorageEnabled(true);
         wv.getSettings().setUseWideViewPort(true);
         wv.getSettings().setBuiltInZoomControls(true);
-        wv.getSettings().setPluginState(WebSettings.PluginState.ON);
         wv.setWebViewClient(new CustomWebViewClient());
         wv.setVisibility(View.INVISIBLE);
         Logger.v(TAG, "User agent:" + wv.getSettings().getUserAgentString());

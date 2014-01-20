@@ -3,9 +3,12 @@ package com.microsoft.adal.testapp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.UUID;
+
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -243,7 +246,15 @@ public class MainActivity extends Activity {
             authority = AUTHORITY_URL;
         }
 
-        mContext = new AuthenticationContext(MainActivity.this, authority, mValidate.isChecked());
+        try {
+            mContext = new AuthenticationContext(MainActivity.this, authority, mValidate.isChecked());
+        } catch (NoSuchAlgorithmException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     private void getTokenByRefreshToken() {

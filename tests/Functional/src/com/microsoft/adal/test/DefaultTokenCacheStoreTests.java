@@ -1,10 +1,22 @@
 
 package com.microsoft.adal.test;
 
+import java.io.File;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
+
+import javax.crypto.NoSuchPaddingException;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.test.mock.MockContext;
+import android.test.mock.MockPackageManager;
 
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
@@ -21,12 +33,13 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
     @Override
     protected void tearDown() throws Exception {
+        
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
         store.removeAll();
         super.tearDown();
     }
 
-    public void testGetAll() {
+    public void testGetAll() throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         Iterator<TokenCacheItem> results = store.getAll();
@@ -35,14 +48,14 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertNotNull("Has item", item);
     }
 
-    public void testGetUniqueUsers() {
+    public void testGetUniqueUsers() throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         HashSet<String> users = store.getUniqueUsersWithTokenCache();
         assertNotNull(users);
         assertEquals(2, users.size());
     }
 
-    public void testGetTokensForResource() {
+    public void testGetTokensForResource() throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         ArrayList<TokenCacheItem> tokens = store.getTokensForResource("resource");
@@ -53,7 +66,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 3, tokens.size());
     }
 
-    public void testGetTokensForUser() {
+    public void testGetTokensForUser() throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         ArrayList<TokenCacheItem> tokens = store.getTokensForUser("userid1");
@@ -63,7 +76,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 2, tokens.size());
     }
 
-    public void testExpiringTokens() {
+    public void testExpiringTokens() throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         ArrayList<TokenCacheItem> tokens = store.getTokensForUser("userid1");
@@ -83,7 +96,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 1, expireTokenList.size());
     }
 
-    public void testClearTokensForUser() {
+    public void testClearTokensForUser() throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         store.clearTokensForUser("userid");
@@ -98,7 +111,10 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     @Override
-    protected ITokenCacheStore getTokenCacheStore() {
-        return new DefaultTokenCacheStore(ctx);
+    protected ITokenCacheStore getTokenCacheStore() throws NoSuchAlgorithmException,
+            NoSuchPaddingException {
+        return new DefaultTokenCacheStore(this.getInstrumentation().getTargetContext());
     }
+    
+     
 }

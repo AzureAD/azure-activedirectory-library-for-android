@@ -9,12 +9,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import junit.framework.Assert;
-import android.os.Handler;
 
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationCallback;
@@ -30,8 +28,6 @@ import com.microsoft.adal.AuthenticationCallback;
  * @author omercan
  */
 public class DiscoveryTests extends AndroidTestHelper {
-
-    private static final String TAG = "DiscoveryTests";
 
     protected void setUp() throws Exception {
         super.setUp();
@@ -51,6 +47,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         m.setAccessible(true);
         m.invoke(discovery, new URL("https://login.somewhere.com"));
 
+        @SuppressWarnings("unchecked")
         Set<String> validHosts = (Set<String>)ReflectionUtils.getFieldValue(discovery,
                 "mValidHosts");
         assertTrue("host is in the list", validHosts.contains("login.somewhere.com"));
@@ -165,6 +162,7 @@ public class DiscoveryTests extends AndroidTestHelper {
      * @throws InvocationTargetException
      * @throws NoSuchFieldException
      */
+    @SuppressWarnings("unchecked")
     public void testIsValidAuthorityPositiveRequeryInList() throws MalformedURLException,
             IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
             ClassNotFoundException, InstantiationException, InvocationTargetException,
@@ -271,20 +269,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         Class<?> c = Class.forName("com.microsoft.adal.Discovery");
         Constructor<?> constructor = c.getDeclaredConstructor();
         constructor.setAccessible(true);
-        Object o = constructor.newInstance(null);
-
-        return o;
-    }
-
-    private Object getDiscoveryInstance(Handler handler) throws ClassNotFoundException,
-            NoSuchMethodException, IllegalArgumentException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
-
-        // Full package name
-        Class<?> c = Class.forName("com.microsoft.adal.Discovery");
-        Constructor<?> constructor = c.getDeclaredConstructor(Handler.class);
-        constructor.setAccessible(true);
-        Object o = constructor.newInstance(handler);
+        Object o = constructor.newInstance((Object[])null);
 
         return o;
     }

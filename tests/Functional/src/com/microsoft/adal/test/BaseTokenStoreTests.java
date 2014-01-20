@@ -1,13 +1,21 @@
 
 package com.microsoft.adal.test;
 
-import java.util.Iterator;
+import java.io.File;
+import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 
+import javax.crypto.NoSuchPaddingException;
+
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.test.mock.MockContext;
+import android.test.mock.MockPackageManager;
 
 import com.microsoft.adal.CacheKey;
-import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.UserInfo;
@@ -40,8 +48,9 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         super.tearDown();
     }
 
-    protected ITokenCacheStore setupItems() {
+    protected ITokenCacheStore setupItems() throws NoSuchAlgorithmException, NoSuchPaddingException {
         ITokenCacheStore store = getTokenCacheStore();
+        store.removeAll();
         // set items for user1
         UserInfo user = new UserInfo("userid1", "givenName", "familyName", "identity", true);
         testItem = new TokenCacheItem();
@@ -86,9 +95,9 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         return store;
     }
 
-    protected abstract ITokenCacheStore getTokenCacheStore();
+    protected abstract ITokenCacheStore getTokenCacheStore() throws NoSuchAlgorithmException, NoSuchPaddingException;
 
-    public void testGetRemoveItem() {
+    public void testGetRemoveItem() throws NoSuchAlgorithmException, NoSuchPaddingException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
@@ -155,7 +164,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertNull("Token cache item is expected to be null", item);
     }
 
-    public void testContains() {
+    public void testContains() throws NoSuchAlgorithmException, NoSuchPaddingException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
@@ -167,7 +176,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertTrue("Item is expected to be there", actual);
     }
 
-    public void testRemoveAll() {
+    public void testRemoveAll() throws NoSuchAlgorithmException, NoSuchPaddingException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
