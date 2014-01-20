@@ -84,6 +84,13 @@ class Oauth2 {
                             AuthenticationConstants.ENCODING_UTF8));
         }
 
+        if(!StringExtensions.IsNullOrBlank(mRequest.getClientTrace())){
+            requestUrl = String.format("%s&%s=%s", requestUrl,
+                    AuthenticationConstants.AAD.INFO_HEADER_NAME, URLEncoder.encode(
+                            mRequest.getClientTrace(),
+                            AuthenticationConstants.ENCODING_UTF8));
+        }
+        
         if (!StringExtensions.IsNullOrBlank(mRequest.getExtraQueryParamsAuthentication())) {
             String params = mRequest.getExtraQueryParamsAuthentication();
             if (!params.startsWith("&")) {
@@ -91,6 +98,7 @@ class Oauth2 {
             }
             requestUrl = requestUrl + params;
         }
+        
         return requestUrl;
     }
 

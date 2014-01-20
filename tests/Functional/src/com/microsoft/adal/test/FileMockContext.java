@@ -5,6 +5,7 @@ import java.io.File;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.test.mock.MockContext;
@@ -81,6 +82,16 @@ class FileMockContext extends MockContext {
                 return responsePermissionFlag;
             }
             return PackageManager.PERMISSION_DENIED;
+        }
+        
+        @Override
+        public PackageInfo getPackageInfo(String packageName, int flags)
+                throws NameNotFoundException {
+            // TODO Auto-generated method stub
+            PackageInfo info = new PackageInfo();
+            info.packageName = packageName;
+            info.versionName = "test";
+            return info;
         }
     }
 }

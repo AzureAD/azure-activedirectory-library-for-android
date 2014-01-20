@@ -16,14 +16,19 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
 
+import com.microsoft.adal.AuthenticationConstants.AAD;
+
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.SparseArray;
@@ -76,8 +81,8 @@ public class AuthenticationContext {
     /**
      * Web request handler interface to test behaviors
      */
-    private IWebRequestHandler mWebRequest = new WebRequestHandler();
-    
+    private IWebRequestHandler mWebRequest = null;
+
     /**
      * Connection service interface to test different behaviors
      */
@@ -97,7 +102,7 @@ public class AuthenticationContext {
      *            to be activity.
      * @param authority Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
-     * @throws NoSuchPaddingException   DefaultTokenCacheStore uses encryption
+     * @throws NoSuchPaddingException DefaultTokenCacheStore uses encryption
      * @throws NoSuchAlgorithmException
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
@@ -108,6 +113,7 @@ public class AuthenticationContext {
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = new DefaultTokenCacheStore(appContext);
+        mWebRequest = new WebRequestHandler(getClientTrace());
     }
 
     /**
@@ -124,6 +130,7 @@ public class AuthenticationContext {
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = tokenCacheStore;
+        mWebRequest = new WebRequestHandler(getClientTrace());
     }
 
     /**
@@ -142,6 +149,7 @@ public class AuthenticationContext {
         mAuthority = extractAuthority(authority);
         mValidateAuthority = true;
         mTokenCacheStore = tokenCacheStore;
+        mWebRequest = new WebRequestHandler(getClientTrace());
     }
 
     /**
@@ -665,6 +673,7 @@ public class AuthenticationContext {
                 // change or similar at client app.
                 mAuthorizationCallback = externalCall;
                 request.setRequestId(externalCall.hashCode());
+                request.setClientTrace(getClientTrace());
                 Logger.v(TAG,
                         "Starting Authentication Activity with callback:" + externalCall.hashCode());
                 putWaitingRequest(externalCall.hashCode(), new AuthenticationRequestState(
@@ -1000,6 +1009,26 @@ public class AuthenticationContext {
     public void setRequestCorrelationId(UUID mRequestCorrelationId) {
         this.mRequestCorrelationId = mRequestCorrelationId;
     }
+    
+    /**
+     * client trace should be same for each call
+     * @return
+     */
+    public String getClientTrace() {
+
+        if (sClientTrace == null) {
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(AAD.INFO_ADAL_PRODUCT + "=ANDROID,");
+            sb.append(AAD.INFO_ADAL_VERSION + "=" + getVersionName() + ",");
+            sb.append(AAD.INFO_OS + "=" + Build.VERSION.SDK_INT + ",");
+            sb.append(AAD.INFO_CPU + "=" + Build.CPU_ABI + ",");
+            sb.append(AAD.INFO_DM + "=" + android.os.Build.MODEL);
+            sClientTrace = sb.toString();
+        }
+
+        return sClientTrace;
+    }
 
     /**
      * Developer is using refresh token call to do refresh without cache usage.
@@ -1106,21 +1135,35 @@ public class AuthenticationContext {
                 mContext.getPackageName())) {
             throw new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING);
         }
-    }    
-  
-    class DefaultConnectionService implements IConnectionService{
-       
+    }
+
+    class DefaultConnectionService implements IConnectionService {
+
         private Context mConnectionContext;
-        DefaultConnectionService(Context ctx){
+
+        DefaultConnectionService(Context ctx) {
             mConnectionContext = ctx;
         }
-        
-        public boolean isConnectionAvailable(){
+
+        public boolean isConnectionAvailable() {
             ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
             boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
             return isConnected;
         }
+    }
+
+    private static String sClientTrace = null;
+
+    /**
+     * Version name for ADAL not for the app itself
+     * 
+     * @return
+     */
+    private String getVersionName() {
+        // Package manager does not report for ADAL
+        // AndroidManifest files are not merged, so it is returning hard coded value
+        return "1.0";
     }
 }

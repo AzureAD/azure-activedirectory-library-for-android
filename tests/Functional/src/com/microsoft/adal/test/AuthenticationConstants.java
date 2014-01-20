@@ -1,3 +1,4 @@
+
 package com.microsoft.adal.test;
 
 public class AuthenticationConstants {
@@ -22,75 +23,75 @@ public class AuthenticationConstants {
         public static final String REQUEST_ID = "com.microsoft.adal:RequestId";
     }
 
-	static final class UIResponse {
-		public static final int BROWSER_CODE_CANCEL = 2001;
+    static final class UIResponse {
+        public static final int BROWSER_CODE_CANCEL = 2001;
 
-		public static final int BROWSER_CODE_ERROR = 2002;
+        public static final int BROWSER_CODE_ERROR = 2002;
 
-		public static final int BROWSER_CODE_COMPLETE = 2003;
+        public static final int BROWSER_CODE_COMPLETE = 2003;
 
-		// Broker returns full response
-		public static final int TOKEN_BROKER_RESPONSE = 2004;
-	}
+        // Broker returns full response
+        public static final int TOKEN_BROKER_RESPONSE = 2004;
+    }
 
-	static final class UIRequest {
-		public static final int BROWSER_FLOW = 1001;
+    static final class UIRequest {
+        public static final int BROWSER_FLOW = 1001;
 
-		public static final int TOKEN_FLOW = 1002;
-	}
+        public static final int TOKEN_FLOW = 1002;
+    }
 
-	static final class OAuth2 {
-		/** Core OAuth2 strings */
-		public static final String ACCESS_TOKEN = "access_token";
+    static final class OAuth2 {
+        /** Core OAuth2 strings */
+        public static final String ACCESS_TOKEN = "access_token";
 
-		public static final String AUTHORIZATION_CODE = "authorization_code";
+        public static final String AUTHORIZATION_CODE = "authorization_code";
 
-		public static final String CLIENT_ID = "client_id";
+        public static final String CLIENT_ID = "client_id";
 
-		public static final String CLIENT_SECRET = "client_secret";
+        public static final String CLIENT_SECRET = "client_secret";
 
-		public static final String CODE = "code";
+        public static final String CODE = "code";
 
-		public static final String ERROR = "error";
+        public static final String ERROR = "error";
 
-		public static final String ERROR_DESCRIPTION = "error_description";
+        public static final String ERROR_DESCRIPTION = "error_description";
 
-		public static final String EXPIRES_IN = "expires_in";
+        public static final String EXPIRES_IN = "expires_in";
 
-		public static final String GRANT_TYPE = "grant_type";
+        public static final String GRANT_TYPE = "grant_type";
 
-		public static final String REDIRECT_URI = "redirect_uri";
+        public static final String REDIRECT_URI = "redirect_uri";
 
-		public static final String REFRESH_TOKEN = "refresh_token";
+        public static final String REFRESH_TOKEN = "refresh_token";
 
-		public static final String RESPONSE_TYPE = "response_type";
+        public static final String RESPONSE_TYPE = "response_type";
 
-		public static final String SCOPE = "scope";
+        public static final String SCOPE = "scope";
 
-		public static final String STATE = "state";
+        public static final String STATE = "state";
 
-		public static final String TOKEN_TYPE = "token_type";
+        public static final String TOKEN_TYPE = "token_type";
 
-		static final String ID_TOKEN = "id_token";
+        static final String ID_TOKEN = "id_token";
 
-		static final String ID_TOKEN_SUBJECT = "sub";
+        static final String ID_TOKEN_SUBJECT = "sub";
 
-		static final String ID_TOKEN_TENANTID = "tid";
+        static final String ID_TOKEN_TENANTID = "tid";
 
-		static final String ID_TOKEN_UPN = "upn";
+        static final String ID_TOKEN_UPN = "upn";
 
-		static final String ID_TOKEN_GIVEN_NAME = "given_name";
+        static final String ID_TOKEN_GIVEN_NAME = "given_name";
 
-		static final String ID_TOKEN_FAMILY_NAME = "family_name";
+        static final String ID_TOKEN_FAMILY_NAME = "family_name";
 
-		static final String ID_TOKEN_UNIQUE_NAME = "unique_name";
+        static final String ID_TOKEN_UNIQUE_NAME = "unique_name";
 
-		static final String ID_TOKEN_EMAIL = "email";
+        static final String ID_TOKEN_EMAIL = "email";
 
-		static final String ID_TOKEN_IDENTITY_PROVIDER = "idp";
-	}
+        static final String ID_TOKEN_IDENTITY_PROVIDER = "idp";
+    }
 
-	static final class AAD {
+    static final class AAD {
         /** AAD OAuth2 extension strings */
         public static final String RESOURCE = "resource";
 
@@ -114,12 +115,24 @@ public class AuthenticationConstants {
         public static final String QUERY_PROMPT = "prompt";
 
         public static final String QUERY_PROMPT_VALUE = "login";
+
+        public final static String INFO_HEADER_NAME = "client-trace";
+
+        public final static String INFO_ADAL_PRODUCT = "AP";
+
+        public final static String INFO_ADAL_VERSION = "AV";
+
+        public final static String INFO_CPU = "PL";
+
+        public final static String INFO_OS = "OS";
+
+        public final static String INFO_DM = "DM";
     }
 
-	/** The Constant ENCODING_UTF8. */
-	public static final String ENCODING_UTF8 = "UTF_8";
+    /** The Constant ENCODING_UTF8. */
+    public static final String ENCODING_UTF8 = "UTF_8";
 
-	public static final String BUNDLE_MESSAGE = "Message";
+    public static final String BUNDLE_MESSAGE = "Message";
 
-	public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
+    public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 }

@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import android.os.AsyncTask;
+import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -20,6 +21,7 @@ import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.HttpWebRequestCallback;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.WebRequestHandler;
+import com.microsoft.adal.test.AuthenticationConstants.AAD;
 
 /**
  * webrequest tests related to get, put, post, delete requests
@@ -40,6 +42,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
      * @throws ClassNotFoundException
      * @throws IllegalArgumentException
      */
+    @SmallTest
     public void testCorrelationIdInRequest() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
@@ -198,6 +201,33 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         assertTrue("status is 200", testResponse.httpResponse.getStatusCode() == 200);
         String responseMsg = new String(testResponse.httpResponse.getBody());
         assertTrue("request header check", responseMsg.contains("testabc-value123"));
+    }
+
+    /**
+     * WebService returns the request headers in the response
+     */
+    public void testClientTraceInHeaders() {
+        final CountDownLatch signal = new CountDownLatch(1);
+        final TestResponse testResponse = new TestResponse();
+        final HttpWebRequestCallback callback = setupCallback(signal, testResponse);
+        final String clientTraceHeaderValue = UUID.randomUUID().toString() + "clientTrace";
+        Log.d(TAG, "test get" + android.os.Process.myTid());
+
+        testAsyncNoExceptionUIOption(signal, new Runnable() {
+            @Override
+            public void run() {
+                WebRequestHandler request = new WebRequestHandler(clientTraceHeaderValue);
+                request.sendAsyncGet(getUrl(TEST_WEBAPI_URL),
+                        getTestHeaders("testClientTraceInHeaders", "valueYes"), callback);
+            }
+        }, true);
+
+        assertNull(testResponse.exception);
+        assertNotNull(testResponse.httpResponse != null);
+        assertTrue("status is 200", testResponse.httpResponse.getStatusCode() == 200);
+        String responseMsg = new String(testResponse.httpResponse.getBody());         
+        assertTrue("request header check",
+                responseMsg.contains(AAD.INFO_HEADER_NAME + "-" + clientTraceHeaderValue));
     }
 
     private HttpWebRequestCallback setupCallback(final CountDownLatch signal,

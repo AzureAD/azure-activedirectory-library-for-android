@@ -55,6 +55,7 @@ import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
+import com.microsoft.adal.test.AuthenticationConstants.AAD;
 import com.microsoft.adal.test.AuthenticationConstants.UIRequest;
 
 public class AuthenticationContextTests extends AndroidTestCase {
@@ -537,6 +538,22 @@ public class AuthenticationContextTests extends AndroidTestCase {
                         context.acquireTokenByRefreshToken("refresh", null, mockCallback);
                     }
                 });
+    }
+    
+    @SmallTest
+    public void testClientTrace() throws NoSuchAlgorithmException, NoSuchPaddingException
+             {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false);
+        
+        String trace = context.getClientTrace();
+        assertTrue("Contains keywords", trace.contains(AAD.INFO_ADAL_PRODUCT+"="));
+        assertTrue("Contains keywords", trace.contains(AAD.INFO_ADAL_VERSION+"="));
+        assertTrue("Contains keywords", trace.contains(AAD.INFO_CPU+"="));
+        assertTrue("Contains keywords", trace.contains(AAD.INFO_DM+"="));
+        assertTrue("Contains keywords", trace.contains(AAD.INFO_OS+"="));
+        // Actual message is specific the running test platform
     }
 
     @SmallTest

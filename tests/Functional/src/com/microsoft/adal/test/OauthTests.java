@@ -5,10 +5,13 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+
+import org.apache.http.client.utils.URLEncodedUtils;
 
 import junit.framework.Assert;
 import android.test.AndroidTestCase;
@@ -21,6 +24,7 @@ import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.adal.test.AuthenticationConstants.AAD;
 import com.microsoft.adal.test.AuthenticationConstants.OAuth2;
 import com.microsoft.adal.IWebRequestHandler;
 import com.microsoft.adal.UserInfo;
@@ -168,6 +172,29 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
+    public void testGetCodeRequestUrl_clientTrace() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, UnsupportedEncodingException {
+        // with login hint
+        String trace = UUID.randomUUID().toString()+"Traced+=;!#$   &'";
+        Object request = createAuthenticationRequest("http://www.something.com",
+                "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
+                "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890",
+                "loginhint 1234567890-+=;'", null, null, null);
+       
+        Method mClientTrace = ReflectionUtils.getTestMethod(request, "setClientTrace", String.class);
+        mClientTrace.invoke(request, trace);
+        
+        Object oauth = createOAuthInstance(request);
+        Method m = ReflectionUtils.getTestMethod(oauth, "getCodeRequestUrl");
+
+        String actual = (String)m.invoke(oauth);
+        assertTrue(
+                "Matching message",
+                actual.contains(AAD.INFO_HEADER_NAME+"="+URLEncoder.encode(trace, "UTF-8")));
+    }
+
+    @SmallTest
     public void testBuildTokenRequestMessage() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
@@ -312,22 +339,23 @@ public class OauthTests extends AndroidTestCase {
                 webrequest, "test");
 
         // Verify that callback can receive this error
-        assertNotNull("callback receives error code in the result after processing", testResult.mResult);
+        assertNotNull("callback receives error code in the result after processing",
+                testResult.mResult);
         assertTrue("callback has status info", testResult.mResult.getErrorCode().contains("503"));
         assertNull("Exception is null", testResult.mException);
-        
+
         // Invalid status that cause some exception at webrequest
         webrequest.setReturnException(new Exception("test-returned-exception"));
-     
+
         // send request
-        testResult = refreshToken(getValidAuthenticationRequest(),
-                webrequest, "test");
+        testResult = refreshToken(getValidAuthenticationRequest(), webrequest, "test");
 
         // Verify that callback can receive this error
         assertNotNull("callback receives error in the exception", testResult.mException);
         assertNull("Result is null", testResult.mResult);
-        assertTrue("Exception is same as mock exception", testResult.mException.getMessage().contains("test-returned-exception"));
-        
+        assertTrue("Exception is same as mock exception", testResult.mException.getMessage()
+                .contains("test-returned-exception"));
+
     }
 
     @SmallTest
