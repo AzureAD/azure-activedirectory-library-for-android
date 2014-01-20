@@ -298,8 +298,6 @@ class Oauth2 {
             return;
         }
 
-        Logger.v(TAG, "Refresh token request message:" + requestMessage);
- 
         postMessage(requestMessage, authenticationCallback); 
     }
 

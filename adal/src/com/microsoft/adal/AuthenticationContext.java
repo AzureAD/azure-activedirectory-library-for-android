@@ -6,7 +6,6 @@ package com.microsoft.adal;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.acl.Permission;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,7 +18,6 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.PermissionInfo;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -76,7 +74,7 @@ public class AuthenticationContext {
      * Web request handler interface to test behaviors
      */
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
-    
+
     /**
      * Connection service interface to test different behaviors
      */
@@ -740,9 +738,12 @@ public class AuthenticationContext {
 
         String mKey;
 
-        public RefreshItem(String keyInCache, String refreshTokenValue) {
+        boolean mMultiResource;
+
+        public RefreshItem(String keyInCache, String refreshTokenValue, boolean multiResource) {
             this.mKey = keyInCache;
             this.mRefreshToken = refreshTokenValue;
+            this.mMultiResource = multiResource;
         }
     }
 
@@ -750,6 +751,7 @@ public class AuthenticationContext {
         RefreshItem refreshItem = null;
 
         if (mTokenCacheStore != null) {
+            boolean multiResource = false;
             // target refreshToken for this resource first. CacheKey will
             // include the resourceId in the cachekey
             Logger.v(TAG, "Looking for regular refresh token");
@@ -762,11 +764,12 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Looking for Multi Resource Refresh token");
                 keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request);
                 item = mTokenCacheStore.getItem(keyUsed);
+                multiResource = true;
             }
 
             if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 Logger.v(TAG, "Refresh token is available. Key used:" + keyUsed);
-                refreshItem = new RefreshItem(keyUsed, item.getRefreshToken());
+                refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource);
             }
         }
 
@@ -787,6 +790,31 @@ public class AuthenticationContext {
                 mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request),
                         new TokenCacheItem(request, result, true));
             }
+        }
+    }
+
+    private void setRefreshItemToCache(final RefreshItem refreshItem,
+            final AuthenticationRequest request, AuthenticationResult result)
+            throws AuthenticationException {
+        if (mTokenCacheStore != null) {
+            // Use same key to store refreshed result. This key may belong to normal token or MRRT token.
+            Logger.v(TAG, "Setting refresh item to cache for key:" + refreshItem.mKey);
+            mTokenCacheStore.setItem(refreshItem.mKey, new TokenCacheItem(request, result,
+                    refreshItem.mMultiResource)); 
+            
+            if(refreshItem.mMultiResource){
+                // update normal token result as well to avoid refreshing again for next request
+                mTokenCacheStore.setItem(CacheKey.createCacheKey(request), new TokenCacheItem(request,
+                        result, false)); 
+            }else{
+                // update MRRT token as well if result is MRRT
+                if (result.getIsMultiResourceRefreshToken()) {
+                    Logger.v(TAG, "Setting Multi Resource Refresh token to cache");
+                    mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request),
+                            new TokenCacheItem(request, result, true));
+                }
+            }
+            
         }
     }
 
@@ -858,8 +886,7 @@ public class AuthenticationContext {
                                         TAG,
                                         "Cache is used. It will set item to cache"
                                                 + request.getLogInfo());
-                                setItemToCache(request, result);
-
+                                setRefreshItemToCache(refreshItem, request, result);
                                 // return result obj which has error code and
                                 // error description that is returned from
                                 // server response
@@ -1034,7 +1061,7 @@ public class AuthenticationContext {
         // It is not using cache and refresh is not expected to show
         // authentication activity.
         request.setPrompt(PromptBehavior.Never);
-        final RefreshItem refreshItem = new RefreshItem("", refreshToken);
+        final RefreshItem refreshItem = new RefreshItem("", refreshToken, false);
 
         if (mValidateAuthority) {
             Logger.v(TAG, "Validating authority");
@@ -1102,16 +1129,17 @@ public class AuthenticationContext {
                 mContext.getPackageName())) {
             throw new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING);
         }
-    }    
-  
-    class DefaultConnectionService implements IConnectionService{
-       
+    }
+
+    class DefaultConnectionService implements IConnectionService {
+
         private Context mConnectionContext;
-        DefaultConnectionService(Context ctx){
+
+        DefaultConnectionService(Context ctx) {
             mConnectionContext = ctx;
         }
-        
-        public boolean isConnectionAvailable(){
+
+        public boolean isConnectionAvailable() {
             ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
