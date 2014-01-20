@@ -6,23 +6,21 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CountDownLatch;
 
-import android.content.Context;
+import javax.crypto.NoSuchPaddingException;
 
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.CacheKey;
-import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.MemoryTokenCacheStore;
 import com.microsoft.adal.TokenCacheItem;
-import com.microsoft.adal.UserInfo;
-import com.microsoft.adal.test.AuthenticationContextTests.TestMockContext;
 
 public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
-    private static final String TAG = "MemoryTokenCacheStoreTests";
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
+
     int activeTestThreads = 10;
 
     @Override
@@ -41,8 +39,11 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
     /**
      * test the usage of cache from different threads. It is expected to work
      * with multiThreads
+     * 
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
      */
-    public void testSharedCacheGetItem() {
+    public void testSharedCacheGetItem() throws NoSuchAlgorithmException, NoSuchPaddingException {
         final ITokenCacheStore store = setupItems();
 
         final CountDownLatch signal = new CountDownLatch(activeTestThreads);
@@ -75,7 +76,8 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
         assertNull("Token cache item is expected to be null", item);
     }
 
-    public void testSerialization() throws IOException, ClassNotFoundException {
+    public void testSerialization() throws IOException, ClassNotFoundException,
+            NoSuchAlgorithmException, NoSuchPaddingException {
 
         ITokenCacheStore store = setupItems();
 
@@ -108,8 +110,12 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
     /**
      * memory cache is shared between context
+     * 
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
      */
-    public void testMemoryCacheMultipleContext() {
+    public void testMemoryCacheMultipleContext() throws NoSuchAlgorithmException,
+            NoSuchPaddingException {
         ITokenCacheStore tokenCacheA = setupItems();
         AuthenticationContext contextA = new AuthenticationContext(getInstrumentation()
                 .getContext(), VALID_AUTHORITY, false, tokenCacheA);

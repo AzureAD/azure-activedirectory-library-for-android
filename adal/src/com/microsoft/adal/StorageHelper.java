@@ -209,7 +209,7 @@ public class StorageHelper {
 
         throw new IllegalArgumentException("rawBytes");
     }
-    
+
     /**
      * Derive mac key from given key
      * 
@@ -221,8 +221,7 @@ public class StorageHelper {
     private SecretKey getMacKey(SecretKey key) throws NoSuchAlgorithmException {
         // Some keys may not produce byte[] with getEncoded
         byte[] encodedKey = key.getEncoded();
-        if (encodedKey != null)
-        {
+        if (encodedKey != null) {
             MessageDigest digester = MessageDigest.getInstance(MAC_KEY_HASH_ALGORITHM);
             return new SecretKeySpec(digester.digest(encodedKey), KEYSPEC_ALGORITHM);
         }
@@ -281,6 +280,7 @@ public class StorageHelper {
 
         // load key for encryption if not loaded
         loadSecretKeyForAPI();
+        Logger.v(TAG, "Encrypt version:"+sBlobVersion);
         final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
@@ -313,8 +313,8 @@ public class StorageHelper {
                 blobVersion.length, encrypted.length);
         System.arraycopy(iv, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
                 + encrypted.length, iv.length);
-        System.arraycopy(macDigest, 0, blobVerAndEncryptedDataAndIVAndMacDigest,
-                blobVersion.length + encrypted.length + iv.length, macDigest.length);
+        System.arraycopy(macDigest, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
+                + encrypted.length + iv.length, macDigest.length);
 
         String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
@@ -434,7 +434,8 @@ public class StorageHelper {
         }
 
         // Store secret key in a file after wrapping
-        File keyFile = new File(mContext.getFilesDir(), ADALKS);
+        File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
+                ADALKS);
 
         loadKeyPair();
         Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);

@@ -186,12 +186,16 @@ public class StorageHelperTests extends AndroidTestCase {
      * @throws NoSuchMethodException
      * @throws ClassNotFoundException
      * @throws UnsupportedEncodingException
+     * @throws NoSuchFieldException 
      */
     public void testVersion() throws IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, UnsupportedEncodingException {
+            InstantiationException, UnsupportedEncodingException, NoSuchFieldException {
+        
         String value = "anvaERSgvhdfgkhrebgagagfdgadfgaadfgadfgadfg435gerhawdeADFGb #$%#gf3$%1234";
         Object storageHelper = getStorageHelper();
+        ReflectionUtils.setFieldValue(storageHelper, "sKey", null);
+        ReflectionUtils.setFieldValue(storageHelper, "sMacKey", null);
         Method m = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
         String encrypted = (String)m.invoke(storageHelper, value);
         String encodeVersion = encrypted.substring(0, 2);
@@ -201,7 +205,7 @@ public class StorageHelperTests extends AndroidTestCase {
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
         String keyVersionCheck = new String(bytes, 0, 4, "UTF-8");
-
+        Log.v(TAG, "Key version check:" + keyVersionCheck);
         if (Build.VERSION.SDK_INT < 18) {
             assertEquals("It should use user defined", "U001", keyVersionCheck);
         } else {

@@ -10,7 +10,6 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.test.ActivityUnitTestCase;
 import android.test.RenamingDelegatingContext;
 import android.test.UiThreadTest;
@@ -145,8 +144,6 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
      * default names with a given prefix).
      */
     class ActivityMockContext extends RenamingDelegatingContext {
-
-        private static final String TAG = "ActivityMockContext";
 
         private static final String MOCK_FILE_PREFIX = "test.";
 
