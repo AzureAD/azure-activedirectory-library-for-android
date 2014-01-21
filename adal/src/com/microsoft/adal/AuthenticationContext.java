@@ -1138,6 +1138,6 @@ public class AuthenticationContext {
     public static String getVersionName() {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded value
-        return "1.0";
+        return "0.5";
     }
 }
