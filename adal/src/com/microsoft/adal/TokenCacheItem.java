@@ -37,8 +37,6 @@ public class TokenCacheItem implements Serializable {
      */
     private Date mExpiresOn;
 
-    private String mAccessTokenType;
-
     private boolean mIsMultiResourceRefreshToken;
 
     private String mTenantId;
@@ -47,20 +45,29 @@ public class TokenCacheItem implements Serializable {
 
     }
 
-    public TokenCacheItem(AuthenticationRequest request, AuthenticationResult result) {
+    public TokenCacheItem(AuthenticationRequest request, AuthenticationResult result,
+            boolean storeMultiResourceRefreshToken) {
         if (request != null) {
-            mResource = request.getResource();
             mAuthority = request.getAuthority();
             mClientId = request.getClientId();
+            if (!storeMultiResourceRefreshToken) {
+                // Cache item will not store resource info for Multi Resource
+                // Refresh Token
+                mResource = request.getResource();
+            }
         }
 
         if (result != null) {
-            mUserInfo = result.getUserInfo();
-            mAccessToken = result.getAccessToken();
             mRefreshtoken = result.getRefreshToken();
             mExpiresOn = result.getExpiresOn();
-            mIsMultiResourceRefreshToken = result.getIsMultiResourceRefreshToken();
+            mIsMultiResourceRefreshToken = storeMultiResourceRefreshToken;
             mTenantId = result.getTenantId();
+            if (!storeMultiResourceRefreshToken) {
+                // Cache item will not store accesstoken and userinfo for Multi
+                // Resource Refresh Token
+                mUserInfo = result.getUserInfo();
+                mAccessToken = result.getAccessToken();
+            }
         }
     }
 
@@ -134,13 +141,5 @@ public class TokenCacheItem implements Serializable {
 
     public void setTenantId(String mTenantId) {
         this.mTenantId = mTenantId;
-    }
-
-    public String getAccessTokenType() {
-        return mAccessTokenType;
-    }
-
-    public void setAccessTokenType(String mAccessTokenType) {
-        this.mAccessTokenType = mAccessTokenType;
     }
 }

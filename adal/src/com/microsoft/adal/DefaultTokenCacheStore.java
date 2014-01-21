@@ -4,12 +4,26 @@
 
 package com.microsoft.adal;
 
+import java.io.IOException;
+import java.security.DigestException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import android.app.Activity;
 import android.content.Context;
@@ -23,11 +37,13 @@ import com.google.gson.Gson;
  * SharedPreferences saves items when it is committed in an atomic operation.
  * One more retry is attempted in case there is a lock in commit.
  */
-public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuery  {
+public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuery {
 
     private final static long serialVersionUID = 1L;
 
     private final static String SHARED_PREFERENCE_NAME = "com.microsoft.adal.cache";
+
+    private static final String TAG = "DefaultTokenCacheStore";
 
     SharedPreferences mPrefs;
 
@@ -35,76 +51,114 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private Gson gson = new Gson();
 
-    public DefaultTokenCacheStore(Context context) {
+    private static StorageHelper sHelper;
+
+    private static Object sLock = new Object();
+
+    public DefaultTokenCacheStore(Context context) throws NoSuchAlgorithmException,
+            NoSuchPaddingException {
         mContext = context;
         if (context != null) {
             mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
+        } else {
+            throw new IllegalArgumentException("Context is null");
+        }
+
+        synchronized (sLock) {
+            if (sHelper == null) {
+                Logger.v(TAG, "Started to initialize storage helper");
+                sHelper = new StorageHelper(context);
+                Logger.v(TAG, "Finished to initialize storage helper");
+            }
         }
     }
 
-    @Override
-    public TokenCacheItem getItem(CacheKey key) {
+    private String encrypt(String value) {
+        try {
+            return sHelper.encrypt(value);
+        } catch (Exception e) {
+            Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
+        }
 
-        argumentCheck();
+        return null;
+    }
 
-        if (key == null)
-            throw new IllegalArgumentException("key");
-
-        if (mPrefs.contains(key.toString())) {
-            String json = mPrefs.getString(key.toString(), "");
-            return gson.fromJson(json, TokenCacheItem.class);
+    private String decrypt(String value) {
+        try {
+            return sHelper.decrypt(value);
+        } catch (Exception e) {
+            Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
+            if (!StringExtensions.IsNullOrBlank(value)) {
+                Logger.v(TAG, String.format("Decryption error for key: '%s'. Item will be removed",
+                        value));
+                removeItem(value);
+                Logger.v(TAG, String.format("Item removed for key: '%s'", value));
+            }
         }
 
         return null;
     }
 
     @Override
-    public void removeItem(TokenCacheItem item) {
+    public TokenCacheItem getItem(String key) {
 
         argumentCheck();
 
-        if (item == null)
-            throw new IllegalArgumentException("item");
+        if (key == null) {
+            throw new IllegalArgumentException("key");
+        }
 
-        CacheKey key = CacheKey.createCacheKey(item);
+        if (mPrefs.contains(key)) {
+            String json = mPrefs.getString(key, "");
+            String decrypted = decrypt(json);
+            if (decrypted != null) {
+                return gson.fromJson(decrypted, TokenCacheItem.class);
+            }
+        }
 
-        if (mPrefs.contains(key.toString())) {
+        return null;
+    }
+
+    @Override
+    public void removeItem(String key) {
+
+        argumentCheck();
+
+        if (key == null) {
+            throw new IllegalArgumentException("key");
+        }
+
+        if (mPrefs.contains(key)) {
             Editor prefsEditor = mPrefs.edit();
-            prefsEditor.remove(key.toString());
+            prefsEditor.remove(key);
             // apply will do Async disk write operation.
             prefsEditor.apply();
         }
     }
 
     @Override
-    public void setItem(TokenCacheItem item) {
+    public void setItem(String key, TokenCacheItem item) {
 
         argumentCheck();
 
-        if (item == null)
+        if (key == null) {
+            throw new IllegalArgumentException("key");
+        }
+
+        if (item == null) {
             throw new IllegalArgumentException("item");
+        }
 
         String json = gson.toJson(item);
-        Editor prefsEditor = mPrefs.edit();
-        prefsEditor.putString(CacheKey.createCacheKey(item).toString(), json);
-
-        // apply will do Async disk write operation.
-        prefsEditor.apply();
-    }
-
-    @Override
-    public void removeItem(CacheKey key) {
-
-        argumentCheck();
-
-        if (key == null)
-            throw new IllegalArgumentException("key");
-
-        if (mPrefs.contains(key.toString())) {
+        String encrypted = encrypt(json);
+        if (encrypted != null) {
             Editor prefsEditor = mPrefs.edit();
-            prefsEditor.remove(key.toString());
+            prefsEditor.putString(key, encrypted);
+
             // apply will do Async disk write operation.
             prefsEditor.apply();
+        } else {
+            Logger.e(TAG, "Encrypted output is null", "", ADALError.ENCRYPTION_FAILED);
         }
     }
 
@@ -112,7 +166,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     public void removeAll() {
 
         argumentCheck();
-
         Editor prefsEditor = mPrefs.edit();
         prefsEditor.clear();
         // apply will do Async disk write operation.
@@ -138,8 +191,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (values.hasNext()) {
             String json = values.next();
-            TokenCacheItem cacheItem = gson.fromJson(json, TokenCacheItem.class);
-            tokens.add(cacheItem);
+            String decrypted = decrypt(json);
+            if (decrypted != null) {
+                TokenCacheItem cacheItem = gson.fromJson(decrypted, TokenCacheItem.class);
+                tokens.add(cacheItem);
+            }
         }
 
         return tokens.iterator();
@@ -220,7 +276,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         for (TokenCacheItem item : results) {
             if (item.getUserInfo() != null
                     && item.getUserInfo().getUserId().equalsIgnoreCase(userid)) {
-                this.removeItem(item);
+                this.removeItem(CacheKey.createCacheKey(item));
             }
         }
     }
@@ -246,18 +302,21 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     private void argumentCheck() {
-        if (mContext == null)
+        if (mContext == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
+        }
 
-        if (mPrefs == null)
+        if (mPrefs == null) {
             throw new AuthenticationException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE);
+        }
     }
 
     private boolean isAboutToExpire(Date expires) {
         Date validity = getTokenValidityTime().getTime();
 
-        if (expires.before(validity))
+        if (expires != null && expires.before(validity)) {
             return true;
+        }
 
         return false;
     }
@@ -266,17 +325,18 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private static Calendar getTokenValidityTime() {
         Calendar timeAhead = Calendar.getInstance();
-        timeAhead.roll(Calendar.SECOND, TOKEN_VALIDITY_WINDOW);
+        timeAhead.add(Calendar.SECOND, TOKEN_VALIDITY_WINDOW);
         return timeAhead;
     }
 
     @Override
-    public boolean contains(CacheKey key) {
+    public boolean contains(String key) {
         argumentCheck();
 
-        if (key == null)
+        if (key == null) {
             throw new IllegalArgumentException("key");
+        }
 
-        return mPrefs.contains(key.toString());
+        return mPrefs.contains(key);
     }
 }

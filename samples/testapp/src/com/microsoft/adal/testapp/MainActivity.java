@@ -3,8 +3,15 @@ package com.microsoft.adal.testapp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.UUID;
+
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -18,6 +25,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -29,13 +37,14 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.microsoft.adal.AuthenticationCallback;
+import com.microsoft.adal.AuthenticationCancelError;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.CacheKey;
+import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.Logger;
 import com.microsoft.adal.Logger.ILogger;
@@ -44,7 +53,10 @@ import com.microsoft.adal.TokenCacheItem;
 
 public class MainActivity extends Activity {
 
-    Button btnGetToken, btnResetToken, btnShowUsers, btnSetExpired, btnCancel;
+    public static final String GETTING_TOKEN = "Getting token...";
+
+    Button btnGetToken, btnResetToken, btnRefresh, btnSetExpired, buttonVerify,
+            buttonRemoveCookies;
 
     TextView textViewStatus;
 
@@ -53,6 +65,19 @@ public class MainActivity extends Activity {
     CheckBox mValidate;
 
     private final static String TAG = "MainActivity";
+
+    public final static String FAILED = "TEST_FAILED";
+
+    public final static String PASSED = "TEST_PASSED";
+
+    public final static String TOKEN_USED = "TOKEN_USED";
+
+    /**
+     * result from recent request
+     */
+    private AuthenticationResult mResult;
+
+    private String mActiveUser, mExtraQueryParam;
 
     final static String AUTHORITY_URL = "https://login.windows.net/omercantest.onmicrosoft.com";
 
@@ -69,7 +94,67 @@ public class MainActivity extends Activity {
     // Endpoint we are targeting for the deployed WebAPI service
     final static String SERVICE_URL = "https://android.azurewebsites.net/api/values";
 
+    final static String LOG_STATUS_FORMAT = "Status:%s Expires:%s";
+
     private AuthenticationContext mContext = null;
+
+    private UUID mRequestCorrelationId;
+
+    private Handler handler = new Handler();
+
+    public Handler getTestAppHandler() {
+        return handler;
+    }
+
+    class AdalCallback implements AuthenticationCallback<AuthenticationResult> {
+ 
+
+        private UUID mId;
+
+        public AdalCallback() {
+            mId = UUID.randomUUID();
+        }
+
+        @Override
+        public void onError(Exception exc) {
+            Log.d(TAG, "Callback returned error");
+            if (exc instanceof AuthenticationCancelError) {
+                textViewStatus.setText("Cancelled");
+                Log.d(TAG, "Cancelled");
+            } else {
+                if (exc instanceof AuthenticationException) {
+                    AuthenticationException authException = (AuthenticationException)exc;
+                    textViewStatus
+                            .setText("Authentication error:" + authException.getCode().name());
+                }
+
+                Log.d(TAG, "Authentication error:" + exc.getMessage());
+            }
+        }
+
+        @Override
+        public void onSuccess(AuthenticationResult result) {
+            Log.d(TAG, "Callback has result");
+            setResult(result);
+
+            if (result == null || result.getAccessToken() == null
+                    || result.getAccessToken().isEmpty()) {
+                textViewStatus.setText(FAILED);
+                Log.d(TAG, "Token is empty");
+                if (result != null) {
+                    Log.d(TAG,
+                            "Error  code:" + result.getErrorCode() + " correlationId:"
+                                    + result.getCorrelationId() + " Description:"
+                                    + result.getErrorDescription());
+                }
+            } else {
+                // request is successful
+                Log.d(TAG, String.format(LOG_STATUS_FORMAT, result.getStatus(), result
+                        .getExpiresOn().toString()));
+                textViewStatus.setText(PASSED);
+            }
+        }
+    };
 
     public void setLoggerCallback(ILogger loggerCallback) {
         // callback hook to insert from test instrumentation to check loaded url
@@ -94,9 +179,10 @@ public class MainActivity extends Activity {
         textViewStatus = (TextView)findViewById(R.id.textViewStatus);
         btnGetToken = (Button)findViewById(R.id.buttonGetToken);
         btnResetToken = (Button)findViewById(R.id.buttonReset);
-        btnShowUsers = (Button)findViewById(R.id.buttonUsers);
         btnSetExpired = (Button)findViewById(R.id.buttonExpired);
-        btnCancel = (Button)findViewById(R.id.buttonCancel);
+        btnRefresh = (Button)findViewById(R.id.buttonRefresh);
+        buttonVerify = (Button)findViewById(R.id.buttonVerify);
+        buttonRemoveCookies = (Button)findViewById(R.id.buttonRemoveCookies);
         mAuthority = (EditText)findViewById(R.id.editAuthority);
         mResource = (EditText)findViewById(R.id.editResource);
         mClientId = (EditText)findViewById(R.id.editClientid);
@@ -104,6 +190,20 @@ public class MainActivity extends Activity {
         mPrompt = (EditText)findViewById(R.id.editPrompt);
         mRedirect = (EditText)findViewById(R.id.editRedirect);
         mValidate = (CheckBox)findViewById(R.id.checkBoxValidate);
+
+        buttonRemoveCookies.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                removeCookies();
+            }
+        });
+
+        buttonVerify.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                useToken();
+            }
+        });
 
         btnGetToken.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,13 +219,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        btnShowUsers.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showUsers();
-            }
-        });
-
         btnSetExpired.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -133,11 +226,10 @@ public class MainActivity extends Activity {
             }
         });
 
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-
+        btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cancelAuthentication();
+                getTokenByRefreshToken();
             }
         });
     }
@@ -147,10 +239,6 @@ public class MainActivity extends Activity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
-
-    private void cancelAuthentication() {
-        Log.d(TAG, "Cancel authentication Activity");
     }
 
     private void initContext() {
@@ -163,12 +251,38 @@ public class MainActivity extends Activity {
             authority = AUTHORITY_URL;
         }
 
-        mContext = new AuthenticationContext(MainActivity.this, authority, mValidate.isChecked());
+        try {
+            mContext = new AuthenticationContext(MainActivity.this, authority, mValidate.isChecked());
+        } catch (NoSuchAlgorithmException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    private void getTokenByRefreshToken() {
+        Logger.v(TAG, "get Token with refresh token");
+        textViewStatus.setText(GETTING_TOKEN);
+        if (mResult != null && mResult.getRefreshToken() != null
+                && !mResult.getRefreshToken().isEmpty()) {
+            String clientId = mClientId.getText().toString();
+
+            if (clientId == null || clientId.isEmpty()) {
+                clientId = CLIENT_ID;
+            }
+            mContext.setRequestCorrelationId(mRequestCorrelationId);
+            mContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), clientId,
+                    new AdalCallback());
+        } else {
+            textViewStatus.setText(FAILED);
+        }
     }
 
     private void getToken() {
-        Log.d(TAG, "get Token");
-        textViewStatus.setText("Getting token...");
+        Logger.v(TAG, "get Token");
+        textViewStatus.setText(GETTING_TOKEN);
         if (mContext == null) {
             initContext();
         }
@@ -195,41 +309,10 @@ public class MainActivity extends Activity {
 
         // Optional field, so acquireToken accepts null fields
         String redirect = mRedirect.getText().toString();
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, "",
-                new AuthenticationCallback<AuthenticationResult>() {
-
-                    @Override
-                    public void onError(Exception exc) {
-                        if (exc instanceof AuthenticationException) {
-                            Toast.makeText(MainActivity.this, "Authentication is cancelled",
-                                    Toast.LENGTH_LONG);
-                            textViewStatus.setText("Cancelled");
-                            Log.d(TAG, "Cancelled");
-                        } else {
-                            Toast.makeText(MainActivity.this,
-                                    "Authentication error:" + exc.getMessage(), Toast.LENGTH_LONG);
-                            textViewStatus.setText("Authentication error:" + exc.getMessage());
-                            Log.d(TAG, "Authentication error:" + exc.getMessage());
-                        }
-                    }
-
-                    @Override
-                    public void onSuccess(AuthenticationResult result) {
-                        if (result == null || result.getAccessToken() == null
-                                || result.getAccessToken().isEmpty()) {
-                            Toast.makeText(MainActivity.this, "Authentication result is null",
-                                    Toast.LENGTH_LONG);
-                            textViewStatus.setText("Token is empty");
-                            Log.d(TAG, "Token is empty");
-                        } else {
-                            // request is successful
-                            textViewStatus.setText("Status:" + result.getStatus() + " Expired:"
-                                    + result.getExpiresOn().toString());
-                            Log.d(TAG, "Status:" + result.getStatus() + " Expired:"
-                                    + result.getExpiresOn().toString());
-                        }
-                    }
-                });
+        mResult = null;
+        mContext.setRequestCorrelationId(mRequestCorrelationId);
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt,
+                mExtraQueryParam, new AdalCallback());
     }
 
     @Override
@@ -240,18 +323,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * reset all
-     */
-    private void resetToken() {
-        Log.d(TAG, "reset Token");
-        if (mContext == null) {
-            initContext();
-        }
-
-        mContext.getCache().removeAll();
-        textViewStatus.setText("");
-
+    private void removeCookies() {
         // Clear browser cookies
         CookieSyncManager.createInstance(MainActivity.this);
         CookieManager cookieManager = CookieManager.getInstance();
@@ -259,9 +331,25 @@ public class MainActivity extends Activity {
         CookieSyncManager.getInstance().sync();
     }
 
-    private void showUsers() {
-        Log.d(TAG, "show Users");
-        // TODO
+    /**
+     * only remove from cache but keep cookies
+     */
+    public void removeTokens() {
+        if (mContext == null) {
+            initContext();
+        }
+
+        mContext.getCache().removeAll();
+        textViewStatus.setText("");
+    }
+
+    /**
+     * reset all
+     */
+    private void resetToken() {
+        Log.d(TAG, "reset Token");
+        removeTokens();
+        removeCookies();
     }
 
     /**
@@ -270,27 +358,93 @@ public class MainActivity extends Activity {
     private void setTokenExpired() {
         Log.d(TAG, "Setting item to expire...");
 
+        Calendar calendar = new GregorianCalendar();
+        calendar.add(Calendar.MINUTE, -30);
+        Date date = calendar.getTime();
         ITokenCacheStore cache = mContext.getCache();
-        TokenCacheItem item = cache.getItem(CacheKey.createCacheKey(AUTHORITY_URL, RESOURCE_ID,
-                CLIENT_ID));
+        String key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
+                .toString(), mClientId.getText().toString(), false, mUserid.getText().toString());
+        TokenCacheItem item = cache.getItem(key);
+        setTime(cache, date, key, item);
+
+        key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
+                .toString(), mClientId.getText().toString(), true, mUserid.getText().toString());
+        item = cache.getItem(key);
+        setTime(cache, date, key, item);
+    }
+
+    private void setTime(ITokenCacheStore cache, Date date, String key, TokenCacheItem item) {
         if (item != null) {
             Calendar calendar = new GregorianCalendar();
             calendar.add(Calendar.MINUTE, -30);
             item.setExpiresOn(calendar.getTime());
-            cache.setItem(item);
-            Log.d(TAG, "Item is set to expire");
+
+            cache.setItem(key, item);
+            Log.d(TAG, "Item is set to expire for key:" + key);
         } else {
             Log.d(TAG, "item is null: setTokenExpired");
         }
     }
 
     /**
-     * send token in the header
+     * set all expired
+     */
+    public ArrayList<TokenCacheItem> getTokens() {
+        Log.d(TAG, "Setting item to expire...");
+        ArrayList<TokenCacheItem> items = new ArrayList<TokenCacheItem>();
+        DefaultTokenCacheStore cache = (DefaultTokenCacheStore)mContext.getCache();
+        Iterator<TokenCacheItem> iterator = cache.getAll();
+        while (iterator.hasNext()) {
+            TokenCacheItem item = iterator.next();
+            if (item != null) {
+                items.add(item);
+            }
+        }
+
+        return items;
+    }
+
+    /**
+     * send token in the header with async task
      * 
      * @param result
      */
-    private void useToken(AuthenticationResult result) {
-        new RequestTask(SERVICE_URL, result.getAccessToken()).execute();
+    private void useToken() {
+        if (mResult != null && mResult.getRefreshToken() != null
+                && !mResult.getRefreshToken().isEmpty()) {
+            textViewStatus.setText("");
+            new RequestTask(SERVICE_URL, mResult.getAccessToken()).execute();
+        } else {
+            textViewStatus.setText(FAILED);
+        }
+    }
+
+    public AuthenticationResult getResult() {
+        return mResult;
+    }
+
+    public String getActiveUser() {
+        return mActiveUser;
+    }
+
+    public void setResult(AuthenticationResult result) {
+        this.mResult = result;
+        if (result != null && result.getUserInfo() != null) {
+            Log.v(TAG, "Active UserId:" + mActiveUser);
+            mActiveUser = result.getUserInfo().getUserId();
+        }
+    }
+
+    public UUID getRequestCorrelationId() {
+        return mRequestCorrelationId;
+    }
+
+    public void setRequestCorrelationId(UUID mRequestCorrelationId) {
+        this.mRequestCorrelationId = mRequestCorrelationId;
+    }
+
+    public void setExtraQueryParam(String extraQueryParam) {
+        mExtraQueryParam = extraQueryParam;
     }
 
     /**
@@ -351,13 +505,8 @@ public class MainActivity extends Activity {
 
             textViewStatus.setText("");
             if (result != null && !result.isEmpty()) {
-                textViewStatus.setText(result);
+                textViewStatus.setText(TOKEN_USED);
             }
         }
     }
-
-    class Response {
-
-    }
-
 }

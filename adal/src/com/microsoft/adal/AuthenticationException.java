@@ -4,8 +4,6 @@
 
 package com.microsoft.adal;
 
-import android.content.Context;
-
 
 /**
  */
@@ -13,10 +11,6 @@ public class AuthenticationException extends RuntimeException {
     static final long serialVersionUID = 1;
 
     private ADALError mCode;
-
-    private String mErrorMessage;
-
-    private String mDetails;
 
     /**
      * Constructs a new AuthenticationError.
@@ -26,30 +20,6 @@ public class AuthenticationException extends RuntimeException {
 
     public AuthenticationException(ADALError code) {
         mCode = code;
-        mErrorMessage = null;
-    }
-
-    /**
-     * Constructs a new AuthenticationError.
-     * 
-     * @param code
-     * @param details the detail message of this exception
-     * @param throwable the cause of this exception
-     */
-    public AuthenticationException(ADALError code, String details, Throwable throwable) {
-        mCode = code;
-        mErrorMessage = null;
-        mDetails = details;
-    }
-
-    /**
-     * Constructs a new AuthenticationError.
-     * 
-     * @param throwable the cause of this exception
-     */
-    public AuthenticationException(ADALError code, Throwable throwable) {
-        mCode = code;
-        mErrorMessage = null;
     }
 
     /**
@@ -60,40 +30,30 @@ public class AuthenticationException extends RuntimeException {
      *            info
      */
     public AuthenticationException(ADALError code, String details) {
+        super(details);
         mCode = code;
-        mErrorMessage = null;
-        mDetails = details;
     }
-
-    public AuthenticationException(String errorCode, String errorDescription) {
-        mCode = null;
-        mErrorMessage = errorCode;
-        mDetails = errorDescription;
+    
+    public AuthenticationException(ADALError code, String details, Throwable throwable) {
+        super(details, throwable);
+        mCode = code;
     }
-
+   
     public ADALError getCode() {
         return mCode;
     }
 
-    /**
-     * gets message from strings.xml file related to this error code if code is present.
-     * 
-     * @param appContext Context is needed to access resource files
-     * @return Translated message
-     */
-    public String getMessage(Context appContext) {
-        if (!StringExtensions.IsNullOrBlank(mErrorMessage)) {
-            return mErrorMessage;
+    @Override    
+    public String getMessage() {
+         
+        if (!StringExtensions.IsNullOrBlank(super.getMessage())) {
+            return super.getMessage();
         }
 
         if (mCode != null) {
-            return ErrorCodes.getMessage(appContext, mCode);
+            return mCode.getDescription();
         }
 
         return null;
-    }
-
-    public String getDetails() {
-        return mDetails;
     }
 }

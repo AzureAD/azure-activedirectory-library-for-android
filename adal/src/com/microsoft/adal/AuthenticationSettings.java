@@ -1,6 +1,8 @@
 
 package com.microsoft.adal;
 
+import javax.crypto.SecretKey;
+
 /**
  * Settings to be used in AuthenticationContext
  * 
@@ -9,57 +11,29 @@ package com.microsoft.adal;
 public enum AuthenticationSettings {
     INSTANCE;
 
-    private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
-
-    private final static String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
-
-    private String mAuthorizeEndpoint = DEFAULT_AUTHORIZE_ENDPOINT;
-
-    private String mTokenEndpoint = DEFAULT_TOKEN_ENDPOINT;
+    private final static int SECRET_RAW_KEY_LENGTH = 32;
+    
+    private byte[] mSecretKeyData = null;
 
     /**
-     * default is /oauth2/token
+     * Get bytes to derive secretKey to use in encrypt/decrypt
      * 
-     * @param value forward slash is added as prefix
+     * @return
      */
-    public void setTokenEndpoint(String value) {
-        if (value == null) {
-            throw new IllegalArgumentException("tokenEndpoint");
-        }
-
-        value = ensureStartsWithSlash(value);
-        mTokenEndpoint = value;
-    }
-
-    public String getTokenEndpoint() {
-        return mTokenEndpoint;
+    public byte[] getSecretKeyData() {
+        return mSecretKeyData;
     }
 
     /**
-     * set authorize endpoint value
+     * set raw bytes to derive secretKey to use in encrypt/decrypt
      * 
-     * @param value forward slash is added as prefix
+     * @param key
      */
-    public void setAuthorizeEndpoint(String value) {
-        if (value == null) {
-            throw new IllegalArgumentException("authorizeEndpoint");
+    public void setSecretKey(byte[] rawKey) {
+        if(rawKey == null || rawKey.length != SECRET_RAW_KEY_LENGTH){
+            throw new IllegalArgumentException("rawKey");
         }
-
-        value = ensureStartsWithSlash(value);
-        mAuthorizeEndpoint = value;
-    }
-
-    public String getAuthorizeEndpoint() {
-        return mAuthorizeEndpoint;
-    }
-
-    private String ensureStartsWithSlash(String value) {
-        if (!StringExtensions.IsNullOrBlank(value)) {
-            if (!value.startsWith("/")) {
-                return "/" + value;
-            }
-        }
-
-        return value;
+        
+        mSecretKeyData = rawKey;
     }
 }

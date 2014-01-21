@@ -1,0 +1,63 @@
+language: java
+jdk: oraclejdk7
+env:
+    matrix:
+      - ANDROID_SDKS=android-19 ANDROID_TARGET=android-19
+
+before_install:
+
+  # Download the latest android sdk and unzip
+  - sudo apt-get update -qq
+  - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch > /dev/null; fi
+  - wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
+  - tar -zxf android-sdk_r22.3-linux.tgz
+  - export ANDROID_HOME=$PWD/android-sdk-linux
+  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
+
+  # Install required components.
+  - echo y | android update sdk --filter $ANDROID_SDKS,platform-tools,extra-android-support,extra-google-google_play_services --no-ui --force --all
+  - echo y | android update sdk --filter platform-tools,build-tools-19.0.0 --no-ui -a
+  - echo y | android update sdk --filter sysimg-19 --no-ui -a
+  - echo y | android update sdk --filter extra-android-support --no-ui -a
+  - echo y | android update sdk --filter extra-google-google_play_services --no-ui -a
+
+  # setup of appcompat library
+  - cp -r ${ANDROID_HOME}/extras/android/support/v7/appcompat ..
+  - android update lib-project -p ../appcompat --target android-19
+
+  # setup of google play services library
+  - cp -r ${ANDROID_HOME}/extras/google/google_play_services/libproject/google-play-services_lib ..
+  - android update lib-project -p ../google-play-services_lib --target android-19
+
+  # setup main and testproject
+  - android update lib-project -p adal --target android-19
+  - android update project -p samples/testapp --target android-19
+  - android update test-project -p samples/testapp -m tests
+
+before_script:
+  # setup display to run interactive tests http://www.xfree86.org/4.0.1/Xvfb.1.html
+  # browser is also possible to setup http://about.travis-ci.org/docs/user/gui-and-headless-browsers/
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 5 # wait xvfb to start
+  - xdpyinfo -display :99 >/dev/null 2>&1 && echo "In use" || echo "Free"
+  # create and start emulator
+  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-audio &   
+  # wait for emulator to start
+  - chmod +x wait_for_emulator.sh
+  - bash wait_for_emulator.sh
+  
+script: 
+  - cd $PWD/adal
+  - ant clean debug
+  - cd -
+  - cd $PWD/tests/Functional
+  # instrument classes with filter. coverage.em will be saved to bin/coverage.em
+  - ant clean -Demma.filter="-com.microsoft.adal.testapp.*" emma instrument
+  # debug compile, install file, test all test cases
+  - ant -Demma.filter="-com.microsoft.adal.testapp.*" emma debug install test
+  # - adb pull /data/data/com.microsoft.adal.test/files/coverage.ec .
+  # need key for this repo
+  # - java -cp tools/emmacoveralls.jar emma report -r coveralls -in bin/coverage.em,coverage.ec -sp ../adal/src/ -Dreport.coveralls.service.jobid=${TRAVIS_JOB_ID} -Dreport.coveralls.service.name=travis-ci -Dreport.coveralls.repotoken=AtIrNwy3mURM8Ctw08fTywQkGb3ZWTIqK
+  # - curl --form json_file=@coverage.json https://coveralls.io/api/v1/jobs  
