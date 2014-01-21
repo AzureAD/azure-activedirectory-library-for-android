@@ -17,6 +17,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.microsoft.adal.AuthenticationCancelError;
+import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.HttpWebRequestCallback;
 import com.microsoft.adal.HttpWebResponse;
@@ -210,13 +211,12 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         final CountDownLatch signal = new CountDownLatch(1);
         final TestResponse testResponse = new TestResponse();
         final HttpWebRequestCallback callback = setupCallback(signal, testResponse);
-        final String clientTraceHeaderValue = UUID.randomUUID().toString() + "clientTrace";
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
         testAsyncNoExceptionUIOption(signal, new Runnable() {
             @Override
             public void run() {
-                WebRequestHandler request = new WebRequestHandler(clientTraceHeaderValue);
+                WebRequestHandler request = new WebRequestHandler();
                 request.sendAsyncGet(getUrl(TEST_WEBAPI_URL),
                         getTestHeaders("testClientTraceInHeaders", "valueYes"), callback);
             }
@@ -227,7 +227,9 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         assertTrue("status is 200", testResponse.httpResponse.getStatusCode() == 200);
         String responseMsg = new String(testResponse.httpResponse.getBody());         
         assertTrue("request header check",
-                responseMsg.contains(AAD.INFO_HEADER_NAME + "-" + clientTraceHeaderValue));
+                responseMsg.contains(AAD.INFO_ADAL_PRODUCT + "-Android"));
+        assertTrue("request header check",
+                responseMsg.contains(AAD.INFO_ADAL_VERSION + "-" + AuthenticationContext.getVersionName()));
     }
 
     private HttpWebRequestCallback setupCallback(final CountDownLatch signal,

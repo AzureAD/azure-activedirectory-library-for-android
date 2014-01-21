@@ -81,7 +81,7 @@ public class AuthenticationContext {
     /**
      * Web request handler interface to test behaviors
      */
-    private IWebRequestHandler mWebRequest = null;
+    private IWebRequestHandler mWebRequest = new WebRequestHandler();
 
     /**
      * Connection service interface to test different behaviors
@@ -113,7 +113,6 @@ public class AuthenticationContext {
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = new DefaultTokenCacheStore(appContext);
-        mWebRequest = new WebRequestHandler(getClientTrace());
     }
 
     /**
@@ -130,7 +129,6 @@ public class AuthenticationContext {
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = tokenCacheStore;
-        mWebRequest = new WebRequestHandler(getClientTrace());
     }
 
     /**
@@ -149,7 +147,6 @@ public class AuthenticationContext {
         mAuthority = extractAuthority(authority);
         mValidateAuthority = true;
         mTokenCacheStore = tokenCacheStore;
-        mWebRequest = new WebRequestHandler(getClientTrace());
     }
 
     /**
@@ -673,7 +670,6 @@ public class AuthenticationContext {
                 // change or similar at client app.
                 mAuthorizationCallback = externalCall;
                 request.setRequestId(externalCall.hashCode());
-                request.setClientTrace(getClientTrace());
                 Logger.v(TAG,
                         "Starting Authentication Activity with callback:" + externalCall.hashCode());
                 putWaitingRequest(externalCall.hashCode(), new AuthenticationRequestState(
@@ -1011,26 +1007,6 @@ public class AuthenticationContext {
     }
     
     /**
-     * client trace should be same for each call
-     * @return
-     */
-    public String getClientTrace() {
-
-        if (sClientTrace == null) {
-
-            StringBuilder sb = new StringBuilder();
-            sb.append(AAD.INFO_ADAL_PRODUCT + "=ANDROID,");
-            sb.append(AAD.INFO_ADAL_VERSION + "=" + getVersionName() + ",");
-            sb.append(AAD.INFO_OS + "=" + Build.VERSION.SDK_INT + ",");
-            sb.append(AAD.INFO_CPU + "=" + Build.CPU_ABI + ",");
-            sb.append(AAD.INFO_DM + "=" + android.os.Build.MODEL);
-            sClientTrace = sb.toString();
-        }
-
-        return sClientTrace;
-    }
-
-    /**
      * Developer is using refresh token call to do refresh without cache usage.
      * App context or activity is not needed. Async requests are created,so this
      * needs to be called at UI thread.
@@ -1154,14 +1130,12 @@ public class AuthenticationContext {
         }
     }
 
-    private static String sClientTrace = null;
-
     /**
      * Version name for ADAL not for the app itself
      * 
      * @return
      */
-    private String getVersionName() {
+    public static String getVersionName() {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded value
         return "1.0";

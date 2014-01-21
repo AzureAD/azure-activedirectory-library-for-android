@@ -539,23 +539,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                     }
                 });
     }
-    
-    @SmallTest
-    public void testClientTrace() throws NoSuchAlgorithmException, NoSuchPaddingException
-             {
-        FileMockContext mockContext = new FileMockContext(getContext());
-        final AuthenticationContext context = new AuthenticationContext(mockContext,
-                VALID_AUTHORITY, false);
-        
-        String trace = context.getClientTrace();
-        assertTrue("Contains keywords", trace.contains(AAD.INFO_ADAL_PRODUCT+"="));
-        assertTrue("Contains keywords", trace.contains(AAD.INFO_ADAL_VERSION+"="));
-        assertTrue("Contains keywords", trace.contains(AAD.INFO_CPU+"="));
-        assertTrue("Contains keywords", trace.contains(AAD.INFO_DM+"="));
-        assertTrue("Contains keywords", trace.contains(AAD.INFO_OS+"="));
-        // Actual message is specific the running test platform
-    }
-
+   
     @SmallTest
     public void testAcquireTokenByRefreshToken_ConnectionNotAvailable()
             throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException,

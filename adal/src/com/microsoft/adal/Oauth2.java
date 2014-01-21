@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.net.Uri;
+import android.os.Build;
 import android.util.Base64;
 
 /**
@@ -33,7 +34,7 @@ class Oauth2 {
     private IWebRequestHandler mWebRequestHandler;
 
     private final static String TAG = "Oauth";
-    
+
     private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
 
     private final static String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
@@ -75,19 +76,25 @@ class Oauth2 {
                             mRequest.getLoginHint(), AuthenticationConstants.ENCODING_UTF8));
         }
 
+        requestUrl = String.format("%s&%s=%s", requestUrl,
+                AuthenticationConstants.AAD.INFO_ADAL_PRODUCT, "Android");
+        requestUrl = String.format("%s&%s=%s", requestUrl,
+                AuthenticationConstants.AAD.INFO_ADAL_VERSION, URLEncoder.encode(
+                        AuthenticationContext.getVersionName(),
+                        AuthenticationConstants.ENCODING_UTF8));
+        requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.INFO_OS,
+                URLEncoder
+                        .encode("" + Build.VERSION.SDK_INT, AuthenticationConstants.ENCODING_UTF8));
+        requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.INFO_DM,
+                URLEncoder.encode("" + android.os.Build.MODEL,
+                        AuthenticationConstants.ENCODING_UTF8));
+        
         // Setting prompt behavior to always will skip the cookies for webview.
         // It is added to authorization url.
         if (mRequest.getPrompt() == PromptBehavior.Always) {
             requestUrl = String.format("%s&%s=%s", requestUrl,
                     AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
                             AuthenticationConstants.AAD.QUERY_PROMPT_VALUE,
-                            AuthenticationConstants.ENCODING_UTF8));
-        }
-
-        if(!StringExtensions.IsNullOrBlank(mRequest.getClientTrace())){
-            requestUrl = String.format("%s&%s=%s", requestUrl,
-                    AuthenticationConstants.AAD.INFO_HEADER_NAME, URLEncoder.encode(
-                            mRequest.getClientTrace(),
                             AuthenticationConstants.ENCODING_UTF8));
         }
         
@@ -98,7 +105,7 @@ class Oauth2 {
             }
             requestUrl = requestUrl + params;
         }
-        
+
         return requestUrl;
     }
 
@@ -307,8 +314,8 @@ class Oauth2 {
         }
 
         Logger.v(TAG, "Refresh token request message:" + requestMessage);
- 
-        postMessage(requestMessage, authenticationCallback); 
+
+        postMessage(requestMessage, authenticationCallback);
     }
 
     /**

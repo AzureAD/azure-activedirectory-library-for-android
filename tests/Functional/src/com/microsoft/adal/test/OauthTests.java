@@ -19,6 +19,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
 import com.microsoft.adal.AuthenticationCallback;
+import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.HttpWebResponse;
@@ -172,26 +173,24 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testGetCodeRequestUrl_clientTrace() throws IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, UnsupportedEncodingException {
+    public void testGetCodeRequestUrl_clientTrace() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, UnsupportedEncodingException {
         // with login hint
-        String trace = UUID.randomUUID().toString()+"Traced+=;!#$   &'";
         Object request = createAuthenticationRequest("http://www.something.com",
                 "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
                 "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890",
                 "loginhint 1234567890-+=;'", null, null, null);
-       
-        Method mClientTrace = ReflectionUtils.getTestMethod(request, "setClientTrace", String.class);
-        mClientTrace.invoke(request, trace);
-        
+
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "getCodeRequestUrl");
 
         String actual = (String)m.invoke(oauth);
+        assertTrue("Matching message", actual.contains(AAD.INFO_ADAL_PRODUCT + "=Android"));
         assertTrue(
                 "Matching message",
-                actual.contains(AAD.INFO_HEADER_NAME+"="+URLEncoder.encode(trace, "UTF-8")));
+                actual.contains(AAD.INFO_ADAL_VERSION + "="
+                        + AuthenticationContext.getVersionName()));
     }
 
     @SmallTest

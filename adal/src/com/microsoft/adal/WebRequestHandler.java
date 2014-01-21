@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 
 import com.microsoft.adal.AuthenticationConstants.AAD;
@@ -27,14 +28,8 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     private UUID mRequestCorrelationId = null;
 
-    private String mTraceInfo = "";
-
     public WebRequestHandler() {
 
-    }
-
-    public WebRequestHandler(String trace) {
-        mTraceInfo = trace;
     }
 
     @Override
@@ -117,10 +112,11 @@ public class WebRequestHandler implements IWebRequestHandler {
             headers.put(AAD.CLIENT_REQUEST_ID, mRequestCorrelationId.toString());
         }
 
-        if (mTraceInfo != null) {
-            headers.put(AAD.INFO_HEADER_NAME, mTraceInfo);
-        }
-        
+        headers.put(AAD.INFO_ADAL_PRODUCT, "Android");
+        headers.put(AAD.INFO_ADAL_VERSION, AuthenticationContext.getVersionName());
+        headers.put(AAD.INFO_OS, "" + Build.VERSION.SDK_INT);
+        headers.put(AAD.INFO_DM, android.os.Build.MODEL);
+
         return headers;
     }
 

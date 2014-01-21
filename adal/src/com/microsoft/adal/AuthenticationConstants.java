@@ -116,17 +116,15 @@ class AuthenticationConstants {
 
         public static final String QUERY_PROMPT_VALUE = "login";
         
-        public final static String INFO_HEADER_NAME = "client-trace";
+        public final static String INFO_ADAL_PRODUCT = "x-adal-product";
 
-        public final static String INFO_ADAL_PRODUCT = "AP";
+        public final static String INFO_ADAL_VERSION = "x-adal-version";
 
-        public final static String INFO_ADAL_VERSION = "AV";
+        public final static String INFO_CPU = "x-adal-PL";
 
-        public final static String INFO_CPU = "PL";
+        public final static String INFO_OS = "x-adal-OS";
 
-        public final static String INFO_OS = "OS";
-
-        public final static String INFO_DM = "DM";
+        public final static String INFO_DM = "x-adal-DM";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.adal";

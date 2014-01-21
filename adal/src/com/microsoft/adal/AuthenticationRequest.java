@@ -31,8 +31,6 @@ class AuthenticationRequest implements Serializable {
 
     private PromptBehavior mPrompt;
 
-    private String mClientTrace;
-    
     public AuthenticationRequest() {
 
     }
@@ -149,13 +147,4 @@ class AuthenticationRequest implements Serializable {
     public void setRequestId(int requestId) {
         this.mRequestId = requestId;
     }
-
-    public void setClientTrace(String clientTrace) {
-        mClientTrace = clientTrace;        
-    }
-    
-    public String getClientTrace() {
-        return mClientTrace;       
-    }
-    
 }
