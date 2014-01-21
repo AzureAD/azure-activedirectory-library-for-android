@@ -11,15 +11,17 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Assert;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
+import junit.framework.Assert;
 import android.app.Instrumentation.ActivityMonitor;
-import android.content.res.Resources;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
 import android.test.suitebuilder.annotation.LargeTest;
 import android.test.suitebuilder.annotation.MediumTest;
-import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.WebView;
@@ -34,6 +36,9 @@ import com.jayway.android.robotium.solo.WebElement;
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationResult;
+import com.microsoft.adal.AuthenticationSettings;
+import com.microsoft.adal.DefaultTokenCacheStore;
+import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.PromptBehavior;
@@ -130,6 +135,15 @@ public class AuthenticationActivityInstrumentationTests extends
         activity = getActivity();
         solo = new Solo(getInstrumentation(), activity);
         loadConfigFromResource();
+        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
+            // use same key for tests
+            SecretKeyFactory keyFactory = SecretKeyFactory
+                    .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+            SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
+                    "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+            SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
+            AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
+        }
     }
 
     @Override
@@ -468,6 +482,53 @@ public class AuthenticationActivityInstrumentationTests extends
         verifyToken();
 
         verifyRefreshRequest();
+    }
+
+    /**
+     * get token with loginhing, refresh and check cache to make sure there are
+     * only one entry for normal token
+     * 
+     * @throws Exception
+     */
+    @LargeTest
+    public void testAcquireToken_RefreshCacheStorage() throws Exception {
+
+        // Not validating
+        TenantInfo tenant = tenants.get(TenantType.AAD);
+        Log.v(TAG, "testing acquireTokenAfterReset for managed without validation");
+        acquireTokenAfterReset(tenant, tenant.getUserName(), PromptBehavior.Auto, null, false,
+                false, null);
+
+        // Expire token
+        clickExpire();
+
+        // acquireToken call again will find the refresh token and send a
+        // request.
+        clickGetToken();
+        // wait for the page to set result
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        Log.v(TAG, "Waiting for the refresh request to complete");
+
+        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg != MainActivity.GETTING_TOKEN;
+            }
+        });
+
+        // Check cache from target app
+        activity.getTestAppHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<TokenCacheItem> items = activity.getTokens();
+                Log.v(TAG, "Checking token sizes: " + items.size());
+                assertTrue("Only normal token and multiresource refresh token", items.size() == 2);
+                assertTrue("Only one is MRRT", items.get(0).getIsMultiResourceRefreshToken()
+                        ^ items.get(1).getIsMultiResourceRefreshToken());
+            }
+        });
     }
 
     private void verifyRefreshRequest() throws IllegalArgumentException, InterruptedException,

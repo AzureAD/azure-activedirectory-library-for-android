@@ -82,13 +82,13 @@ class Oauth2 {
                 AuthenticationConstants.AAD.ADAL_ID_VERSION, URLEncoder.encode(
                         AuthenticationContext.getVersionName(),
                         AuthenticationConstants.ENCODING_UTF8));
-        requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.ADAL_ID_OS_VER,
-                URLEncoder
-                        .encode("" + Build.VERSION.SDK_INT, AuthenticationConstants.ENCODING_UTF8));
+        requestUrl = String.format("%s&%s=%s", requestUrl,
+                AuthenticationConstants.AAD.ADAL_ID_OS_VER, URLEncoder.encode(""
+                        + Build.VERSION.SDK_INT, AuthenticationConstants.ENCODING_UTF8));
         requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.ADAL_ID_DM,
                 URLEncoder.encode("" + android.os.Build.MODEL,
                         AuthenticationConstants.ENCODING_UTF8));
-        
+
         // Setting prompt behavior to always will skip the cookies for webview.
         // It is added to authorization url.
         if (mRequest.getPrompt() == PromptBehavior.Always) {
@@ -97,7 +97,7 @@ class Oauth2 {
                             AuthenticationConstants.AAD.QUERY_PROMPT_VALUE,
                             AuthenticationConstants.ENCODING_UTF8));
         }
-        
+
         if (!StringExtensions.IsNullOrBlank(mRequest.getExtraQueryParamsAuthentication())) {
             String params = mRequest.getExtraQueryParamsAuthentication();
             if (!params.startsWith("&")) {
@@ -312,8 +312,6 @@ class Oauth2 {
             authenticationCallback.onError(encoding);
             return;
         }
-
-        Logger.v(TAG, "Refresh token request message:" + requestMessage);
 
         postMessage(requestMessage, authenticationCallback);
     }

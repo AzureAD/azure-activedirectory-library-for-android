@@ -4,8 +4,11 @@ package com.microsoft.adal.testapp;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.UUID;
 
 import javax.crypto.NoSuchPaddingException;
@@ -41,6 +44,7 @@ import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.CacheKey;
+import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.Logger;
 import com.microsoft.adal.Logger.ILogger;
@@ -101,16 +105,16 @@ public class MainActivity extends Activity {
     public Handler getTestAppHandler() {
         return handler;
     }
-    
+
     class AdalCallback implements AuthenticationCallback<AuthenticationResult> {
  
 
         private UUID mId;
-        
-        public AdalCallback(){
+
+        public AdalCallback() {
             mId = UUID.randomUUID();
         }
-        
+
         @Override
         public void onError(Exception exc) {
             Log.d(TAG, "Callback returned error");
@@ -269,7 +273,8 @@ public class MainActivity extends Activity {
                 clientId = CLIENT_ID;
             }
             mContext.setRequestCorrelationId(mRequestCorrelationId);
-            mContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), clientId, new AdalCallback());
+            mContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), clientId,
+                    new AdalCallback());
         } else {
             textViewStatus.setText(FAILED);
         }
@@ -306,9 +311,9 @@ public class MainActivity extends Activity {
         String redirect = mRedirect.getText().toString();
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt, mExtraQueryParam,
-                new AdalCallback());
-     }
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt,
+                mExtraQueryParam, new AdalCallback());
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -352,21 +357,51 @@ public class MainActivity extends Activity {
      */
     private void setTokenExpired() {
         Log.d(TAG, "Setting item to expire...");
+
+        Calendar calendar = new GregorianCalendar();
+        calendar.add(Calendar.MINUTE, -30);
+        Date date = calendar.getTime();
         ITokenCacheStore cache = mContext.getCache();
-        String cacheKey = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource
-                .getText().toString(), mClientId.getText().toString(), false, mUserid.getText()
-                .toString());
-        Log.d(TAG, "CacheKey:" + cacheKey);
-        TokenCacheItem item = cache.getItem(cacheKey);
+        String key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
+                .toString(), mClientId.getText().toString(), false, mUserid.getText().toString());
+        TokenCacheItem item = cache.getItem(key);
+        setTime(cache, date, key, item);
+
+        key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
+                .toString(), mClientId.getText().toString(), true, mUserid.getText().toString());
+        item = cache.getItem(key);
+        setTime(cache, date, key, item);
+    }
+
+    private void setTime(ITokenCacheStore cache, Date date, String key, TokenCacheItem item) {
         if (item != null) {
             Calendar calendar = new GregorianCalendar();
             calendar.add(Calendar.MINUTE, -30);
             item.setExpiresOn(calendar.getTime());
-            cache.setItem(cacheKey, item);
-            Log.d(TAG, "Item is set to expire");
+
+            cache.setItem(key, item);
+            Log.d(TAG, "Item is set to expire for key:" + key);
         } else {
             Log.d(TAG, "item is null: setTokenExpired");
         }
+    }
+
+    /**
+     * set all expired
+     */
+    public ArrayList<TokenCacheItem> getTokens() {
+        Log.d(TAG, "Setting item to expire...");
+        ArrayList<TokenCacheItem> items = new ArrayList<TokenCacheItem>();
+        DefaultTokenCacheStore cache = (DefaultTokenCacheStore)mContext.getCache();
+        Iterator<TokenCacheItem> iterator = cache.getAll();
+        while (iterator.hasNext()) {
+            TokenCacheItem item = iterator.next();
+            if (item != null) {
+                items.add(item);
+            }
+        }
+
+        return items;
     }
 
     /**

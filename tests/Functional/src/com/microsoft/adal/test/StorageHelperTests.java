@@ -186,12 +186,12 @@ public class StorageHelperTests extends AndroidTestCase {
      * @throws NoSuchMethodException
      * @throws ClassNotFoundException
      * @throws UnsupportedEncodingException
-     * @throws NoSuchFieldException 
+     * @throws NoSuchFieldException
      */
     public void testVersion() throws IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, UnsupportedEncodingException, NoSuchFieldException {
-        
+
         String value = "anvaERSgvhdfgkhrebgagagfdgadfgaadfgadfgadfg435gerhawdeADFGb #$%#gf3$%1234";
         Object storageHelper = getStorageHelper();
         ReflectionUtils.setFieldValue(storageHelper, "sKey", null);
@@ -239,13 +239,14 @@ public class StorageHelperTests extends AndroidTestCase {
             return;
         }
 
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
         Object storageHelper = getStorageHelper();
         Method m = ReflectionUtils.getTestMethod(storageHelper, "getKeyPairFromAndroidKeyStore");
 
         KeyPair kp = (KeyPair)m.invoke(storageHelper);
 
         assertNotNull("Keypair is not null", kp);
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
 
         assertTrue("Keystore has the alias", keyStore.containsAlias("AdalKey"));
@@ -260,7 +261,7 @@ public class StorageHelperTests extends AndroidTestCase {
             return;
         }
 
-        File keyFile = new File(getContext().getFilesDir(), "adal.secret.key");
+        File keyFile = new File(getContext().getFilesDir(), "adalks");
         if (keyFile.exists()) {
             keyFile.delete();
         }
