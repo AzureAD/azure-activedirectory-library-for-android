@@ -115,14 +115,26 @@ class AuthenticationConstants {
         public static final String QUERY_PROMPT = "prompt";
 
         public static final String QUERY_PROMPT_VALUE = "login";
+        
+        public final static String ADAL_ID_PLATFORM = "x-client-SKU";
+
+        public final static String ADAL_ID_VERSION = "x-client-Ver";
+
+        public final static String ADAL_ID_CPU = "x-client-CPU";
+
+        public final static String ADAL_ID_OS_VER = "x-client-OS";
+
+        public final static String ADAL_ID_DM = "x-client-DM";
     }
 
+    public static final String ADAL_PACKAGE_NAME = "com.microsoft.adal";
+    
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
 
     public static final String BUNDLE_MESSAGE = "Message";
 
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
-    
+
     public static final String AUTHENTICATION_FILE_DIRECTORY = "com.microsoft.adal.authentication";
 }
