@@ -186,10 +186,10 @@ public class OauthTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(oauth, "getCodeRequestUrl");
 
         String actual = (String)m.invoke(oauth);
-        assertTrue("Matching message", actual.contains(AAD.INFO_ADAL_PRODUCT + "=Android"));
+        assertTrue("Matching message", actual.contains(AAD.ADAL_ID_PLATFORM + "=Android"));
         assertTrue(
                 "Matching message",
-                actual.contains(AAD.INFO_ADAL_VERSION + "="
+                actual.contains(AAD.ADAL_ID_VERSION + "="
                         + AuthenticationContext.getVersionName()));
     }
 

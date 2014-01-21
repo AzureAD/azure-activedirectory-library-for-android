@@ -225,11 +225,12 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         assertNull(testResponse.exception);
         assertNotNull(testResponse.httpResponse != null);
         assertTrue("status is 200", testResponse.httpResponse.getStatusCode() == 200);
-        String responseMsg = new String(testResponse.httpResponse.getBody());         
-        assertTrue("request header check",
-                responseMsg.contains(AAD.INFO_ADAL_PRODUCT + "-Android"));
-        assertTrue("request header check",
-                responseMsg.contains(AAD.INFO_ADAL_VERSION + "-" + AuthenticationContext.getVersionName()));
+        String responseMsg = new String(testResponse.httpResponse.getBody());
+        assertTrue("request header check", responseMsg.contains(AAD.ADAL_ID_PLATFORM + "-Android"));
+        assertTrue(
+                "request header check",
+                responseMsg.contains(AAD.ADAL_ID_VERSION + "-"
+                        + AuthenticationContext.getVersionName()));
     }
 
     private HttpWebRequestCallback setupCallback(final CountDownLatch signal,

@@ -77,15 +77,15 @@ class Oauth2 {
         }
 
         requestUrl = String.format("%s&%s=%s", requestUrl,
-                AuthenticationConstants.AAD.INFO_ADAL_PRODUCT, "Android");
+                AuthenticationConstants.AAD.ADAL_ID_PLATFORM, "Android");
         requestUrl = String.format("%s&%s=%s", requestUrl,
-                AuthenticationConstants.AAD.INFO_ADAL_VERSION, URLEncoder.encode(
+                AuthenticationConstants.AAD.ADAL_ID_VERSION, URLEncoder.encode(
                         AuthenticationContext.getVersionName(),
                         AuthenticationConstants.ENCODING_UTF8));
-        requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.INFO_OS,
+        requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.ADAL_ID_OS_VER,
                 URLEncoder
                         .encode("" + Build.VERSION.SDK_INT, AuthenticationConstants.ENCODING_UTF8));
-        requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.INFO_DM,
+        requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.ADAL_ID_DM,
                 URLEncoder.encode("" + android.os.Build.MODEL,
                         AuthenticationConstants.ENCODING_UTF8));
         
