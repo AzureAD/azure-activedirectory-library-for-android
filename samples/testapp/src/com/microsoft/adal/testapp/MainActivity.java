@@ -107,6 +107,7 @@ public class MainActivity extends Activity {
     }
 
     class AdalCallback implements AuthenticationCallback<AuthenticationResult> {
+ 
 
         private UUID mId;
 
@@ -310,7 +311,6 @@ public class MainActivity extends Activity {
         String redirect = mRedirect.getText().toString();
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-
         mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt,
                 mExtraQueryParam, new AdalCallback());
     }
@@ -357,6 +357,7 @@ public class MainActivity extends Activity {
      */
     private void setTokenExpired() {
         Log.d(TAG, "Setting item to expire...");
+
         Calendar calendar = new GregorianCalendar();
         calendar.add(Calendar.MINUTE, -30);
         Date date = calendar.getTime();
@@ -377,6 +378,7 @@ public class MainActivity extends Activity {
             Calendar calendar = new GregorianCalendar();
             calendar.add(Calendar.MINUTE, -30);
             item.setExpiresOn(calendar.getTime());
+
             cache.setItem(key, item);
             Log.d(TAG, "Item is set to expire for key:" + key);
         } else {

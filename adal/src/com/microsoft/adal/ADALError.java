@@ -24,8 +24,9 @@ public enum ADALError {
     CALLBACK_IS_NOT_FOUND("Active callback is not found"),
 
     DEVELOPER_ACTIVITY_IS_NOT_RESOLVED("Activity is not resolved"),
-    
-    DEVELOPER_INTERNET_PERMISSION_MISSING("android.permission.INTERNET is not added to AndroidManifest file"),
+
+    DEVELOPER_INTERNET_PERMISSION_MISSING(
+            "android.permission.INTERNET is not added to AndroidManifest file"),
 
     SERVER_INVALID_REQUEST("Invalid request to server"),
 
@@ -83,7 +84,7 @@ public enum ADALError {
     DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE("FileCache could not write to the File"),
 
     DEVICE_FILE_CACHE_FORMAT_IS_WRONG("Wrong cache file format"),
-    
+
     DEVICE_CONNECTION_IS_NOT_AVAILABLE("Connection is not available"),
 
     /**
@@ -99,17 +100,19 @@ public enum ADALError {
     CORRELATION_ID_FORMAT("Correlationid is not in UUID format"),
 
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
- 
+
     SERVER_INVALID_JSON_RESPONSE("Server returned invalid JSON response"),
 
     AUTH_REFRESH_FAILED("Refresh token request failed"),
 
     ENCRYPTION_FAILED("Encryption failed"),
- 
+
     ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"),
 
     DISCOVERY_NOT_SUPPORTED(
-            "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."), ;
+            "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."),
+
+    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."), ;
 
     private String mDescription;
 

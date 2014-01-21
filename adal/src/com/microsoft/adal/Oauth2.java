@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.net.Uri;
+import android.os.Build;
 import android.util.Base64;
 
 /**
@@ -33,7 +34,7 @@ class Oauth2 {
     private IWebRequestHandler mWebRequestHandler;
 
     private final static String TAG = "Oauth";
-    
+
     private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
 
     private final static String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
@@ -75,6 +76,19 @@ class Oauth2 {
                             mRequest.getLoginHint(), AuthenticationConstants.ENCODING_UTF8));
         }
 
+        requestUrl = String.format("%s&%s=%s", requestUrl,
+                AuthenticationConstants.AAD.ADAL_ID_PLATFORM, "Android");
+        requestUrl = String.format("%s&%s=%s", requestUrl,
+                AuthenticationConstants.AAD.ADAL_ID_VERSION, URLEncoder.encode(
+                        AuthenticationContext.getVersionName(),
+                        AuthenticationConstants.ENCODING_UTF8));
+        requestUrl = String.format("%s&%s=%s", requestUrl,
+                AuthenticationConstants.AAD.ADAL_ID_OS_VER, URLEncoder.encode(""
+                        + Build.VERSION.SDK_INT, AuthenticationConstants.ENCODING_UTF8));
+        requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.ADAL_ID_DM,
+                URLEncoder.encode("" + android.os.Build.MODEL,
+                        AuthenticationConstants.ENCODING_UTF8));
+
         // Setting prompt behavior to always will skip the cookies for webview.
         // It is added to authorization url.
         if (mRequest.getPrompt() == PromptBehavior.Always) {
@@ -91,6 +105,7 @@ class Oauth2 {
             }
             requestUrl = requestUrl + params;
         }
+
         return requestUrl;
     }
 
@@ -298,7 +313,7 @@ class Oauth2 {
             return;
         }
 
-        postMessage(requestMessage, authenticationCallback); 
+        postMessage(requestMessage, authenticationCallback);
     }
 
     /**

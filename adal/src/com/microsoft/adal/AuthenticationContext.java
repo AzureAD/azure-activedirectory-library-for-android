@@ -16,14 +16,19 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
 
+import com.microsoft.adal.AuthenticationConstants.AAD;
+
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.SparseArray;
@@ -97,7 +102,7 @@ public class AuthenticationContext {
      *            to be activity.
      * @param authority Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
-     * @throws NoSuchPaddingException   DefaultTokenCacheStore uses encryption
+     * @throws NoSuchPaddingException DefaultTokenCacheStore uses encryption
      * @throws NoSuchAlgorithmException
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
@@ -1029,7 +1034,7 @@ public class AuthenticationContext {
     public void setRequestCorrelationId(UUID mRequestCorrelationId) {
         this.mRequestCorrelationId = mRequestCorrelationId;
     }
-
+    
     /**
      * Developer is using refresh token call to do refresh without cache usage.
      * App context or activity is not needed. Async requests are created,so this
@@ -1152,5 +1157,16 @@ public class AuthenticationContext {
             boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
             return isConnected;
         }
+    }
+
+    /**
+     * Version name for ADAL not for the app itself
+     * 
+     * @return
+     */
+    public static String getVersionName() {
+        // Package manager does not report for ADAL
+        // AndroidManifest files are not merged, so it is returning hard coded value
+        return "0.5";
     }
 }

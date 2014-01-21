@@ -5,10 +5,11 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.UUID;
 
-import com.microsoft.adal.AuthenticationConstants.AAD;
-
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
+
+import com.microsoft.adal.AuthenticationConstants.AAD;
 
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple
@@ -27,6 +28,10 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     private UUID mRequestCorrelationId = null;
 
+    public WebRequestHandler() {
+
+    }
+
     @Override
     public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
             HttpWebRequestCallback callback) {
@@ -37,7 +42,7 @@ public class WebRequestHandler implements IWebRequestHandler {
         Log.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         HttpWebRequest request = new HttpWebRequest(url);
-        headers = addCorrelationIdToHeaders(headers);
+        headers = updateHeaders(headers);
         addHeadersToRequest(headers, request);
         request.sendAsyncGet(callback);
         return request;
@@ -53,7 +58,7 @@ public class WebRequestHandler implements IWebRequestHandler {
         Log.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         HttpWebRequest request = new HttpWebRequest(url);
-        headers = addCorrelationIdToHeaders(headers);
+        headers = updateHeaders(headers);
         addHeadersToRequest(headers, request);
         request.sendAsyncDelete(callback);
         return request;
@@ -69,7 +74,7 @@ public class WebRequestHandler implements IWebRequestHandler {
         Log.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         HttpWebRequest request = new HttpWebRequest(url);
-        headers = addCorrelationIdToHeaders(headers);
+        headers = updateHeaders(headers);
         addHeadersToRequest(headers, request);
         request.sendAsyncPut(content, contentType, callback);
         return request;
@@ -85,7 +90,7 @@ public class WebRequestHandler implements IWebRequestHandler {
         Log.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         HttpWebRequest request = new HttpWebRequest(url);
-        headers = addCorrelationIdToHeaders(headers);
+        headers = updateHeaders(headers);
         addHeadersToRequest(headers, request);
         request.sendAsyncPost(content, contentType, callback);
         return request;
@@ -97,20 +102,26 @@ public class WebRequestHandler implements IWebRequestHandler {
         }
     }
 
-    private HashMap<String, String> addCorrelationIdToHeaders(HashMap<String, String> headers) {
+    private HashMap<String, String> updateHeaders(HashMap<String, String> headers) {
+
+        if (headers == null) {
+            headers = new HashMap<String, String>();
+        }
 
         if (mRequestCorrelationId != null) {
-
-            if (headers == null) {
-                headers = new HashMap<String, String>();
-            }
-
             headers.put(AAD.CLIENT_REQUEST_ID, mRequestCorrelationId.toString());
         }
+
+        headers.put(AAD.ADAL_ID_PLATFORM, "Android");
+        headers.put(AAD.ADAL_ID_VERSION, AuthenticationContext.getVersionName());
+        headers.put(AAD.ADAL_ID_OS_VER, "" + Build.VERSION.SDK_INT);
+        headers.put(AAD.ADAL_ID_DM, android.os.Build.MODEL);
+
         return headers;
     }
 
     public void setRequestCorrelationId(UUID mRequestCorrelationId) {
         this.mRequestCorrelationId = mRequestCorrelationId;
     }
+
 }
