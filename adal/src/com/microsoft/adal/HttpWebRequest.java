@@ -161,25 +161,11 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 _connection.setRequestMethod(mRequestMethod);
                 setRequestBody(_connection);
 
-                // Get the response to the request along with the response
-                // body
-                int statusCode = HttpURLConnection.HTTP_OK;
-
-                try {
-                    statusCode = _connection.getResponseCode();
-                } catch (IOException ex) {
-                    // HttpUrlConnection does not understand Bearer challenge
-                    // Second time query will get the correct status.
-                    // it will throw, if it is a different status related to
-                    // connection problem
-                    statusCode = _connection.getResponseCode();
-                    if (statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        throw ex;
-                    }
+                if (mRequestMethod != REQUEST_METHOD_GET) {
+                    // If request is not get, it will have the status from
+                    // getOutputStream call.
+                    getStatusCode(_response);
                 }
-
-                _response.setStatusCode(statusCode);
-                Logger.d(TAG, "Statuscode:" + statusCode);
 
                 byte[] responseBody = null;
                 InputStream responseStream = null;
@@ -187,9 +173,15 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 try {
                     responseStream = _connection.getInputStream();
                 } catch (IOException ex) {
-                    Logger.d(TAG, "IOException:" + ex.getMessage());
+                    Logger.v(TAG, "IOException:" + ex.getMessage());
                     mException = ex;
                     responseStream = _connection.getErrorStream();
+                }
+
+                // GET request should read status after getInputStream to make
+                // this work for different SDKs
+                if (mRequestMethod == REQUEST_METHOD_GET) {
+                    getStatusCode(_response);
                 }
 
                 if (responseStream != null) {
@@ -226,8 +218,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             // the server: all parameters in the challenge must have quote
             // marks.
             catch (Exception e) {
-                Logger.d(TAG, "Exception:" + e.getMessage());
-
+                Logger.e(TAG, "Exception:" + e.getMessage()," Method:"+mRequestMethod, ADALError.SERVER_ERROR, e);
                 mException = e;
             } finally {
                 _connection.disconnect();
@@ -236,6 +227,37 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
         }
 
         return _response;
+    }
+
+    private void getStatusCode(HttpWebResponse _response) throws IOException {
+        int statusCode = HttpURLConnection.HTTP_OK;
+
+        try {
+            statusCode = _connection.getResponseCode();
+        } catch (IOException ex) {
+
+            if (Build.VERSION.SDK_INT < 18) {
+                // this exception is hardcoded in HttpUrlConnection class inside
+                // Android source code for previous SDKs.
+                // Status code handling is throwing exceptions if it does not
+                // see challenge
+                if (ex.getMessage() == "Received authentication challenge is null") {
+                    statusCode = HttpURLConnection.HTTP_UNAUTHORIZED;
+                }
+            } else {
+                // HttpUrlConnection does not understand Bearer challenge
+                // Second time query will get the correct status.
+                // it will throw, if it is a different status related to
+                // connection problem
+                statusCode = _connection.getResponseCode();
+            }
+            if (statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
+                throw ex;
+            }
+
+        }
+        _response.setStatusCode(statusCode);
+        Logger.v(TAG, "Statuscode:" + statusCode);
     }
 
     /**
