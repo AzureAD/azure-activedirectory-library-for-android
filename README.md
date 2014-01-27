@@ -109,13 +109,6 @@ Logger.getInstance().setExternalLogger(new ILogger() {
 Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
 ```
 
-## Settings
-Token and authorization endpoint can be customized.
-```
-AuthenticationSettings.INSTANCE.setAuthorizeEndpoint("yourAuthorizeEndpoint");
-AuthenticationSettings.INSTANCE.setTokenEndpoint("/oauth2/token");
-```
-
 ## Oauth2 Bearer challange
 AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challange.
 
