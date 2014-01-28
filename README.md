@@ -16,7 +16,7 @@ We have released a Preview of the ADAL for iOS! [You can grab the release here] 
 2. Add reference to your project as Android library
 3. Add project dependency for debugging in your project settings
 4. Update your proejct's AndroidManifest.xml file to include:
-```
+```Java
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <application
@@ -39,12 +39,13 @@ We have released a Preview of the ADAL for iOS! [You can grab the release here] 
   * You need clientId and redirectUri parameters 
   * Select webapis in the list and give permission to previously registered(Step5) WebAPI 
 7. Create an instance of AuthenticationContext at your main Activity. You can look at sample projects that is used for testing.
-```
+ 
+```Java
   mContext = new AuthenticationContext(MainActivity.this, authority, true); // This will use SharedPreferences as default cache
 ```
   mContext is a field in your activity
 8. Copy this code block to handle the end of AuthenticationActivity after user enters credentials and receives authorization code:
-```
+```Java
  @Override
  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
      super.onActivityResult(requestCode, resultCode, data);
@@ -54,7 +55,7 @@ We have released a Preview of the ADAL for iOS! [You can grab the release here] 
  }
 ```
 9. To ask for a token, you need to define a callback:
-```
+```Java
 private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
 
         @Override
@@ -86,7 +87,7 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
     };
 ```
 10. Ask for a token:
-```
+```Java
  mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, PromptBehavior.Auto, "",
                 callback);
 ```
@@ -99,17 +100,17 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
 
 ### Querying cache items
 ADAL provides Default cache in SharedPrefrecens with some simple cache query fucntions. You can get the current cache from AuthenticationContext with:
-```
+```Java
  ITokenCacheStore cache = mContext.getCache();
 ```
 You can also provide your cache implementation, if you want to customize it.
-```
+```Java
 mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCache);
 ```
 
 ### Logger
 ADAL provides simple callback logger. You can set your callback for logging.
-```
+```Java
 Logger.getInstance().setExternalLogger(new ILogger() {
     @Override
     public void Log(String tag, String message, String additionalMessage, LogLevel level, ADALError errorCode) {
