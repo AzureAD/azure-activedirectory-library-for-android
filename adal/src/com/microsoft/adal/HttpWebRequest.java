@@ -24,6 +24,8 @@ import android.os.Build;
  * doInBackground directly
  */
 class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
+    private static final String UNAUTHORIZED_ERROR_MESSAGE_PRE18 = "Received authentication challenge is null";
+
     private static final String TAG = "HttpWebRequest";
 
     final static String REQUEST_METHOD_POST = "POST";
@@ -173,7 +175,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 try {
                     responseStream = _connection.getInputStream();
                 } catch (IOException ex) {
-                    Logger.v(TAG, "IOException:" + ex.getMessage());
+                    Logger.e(TAG, "IOException:" + ex.getMessage(), "", ADALError.SERVER_ERROR);
                     mException = ex;
                     responseStream = _connection.getErrorStream();
                 }
@@ -218,7 +220,8 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
             // the server: all parameters in the challenge must have quote
             // marks.
             catch (Exception e) {
-                Logger.e(TAG, "Exception:" + e.getMessage()," Method:"+mRequestMethod, ADALError.SERVER_ERROR, e);
+                Logger.e(TAG, "Exception:" + e.getMessage(), " Method:" + mRequestMethod,
+                        ADALError.SERVER_ERROR, e);
                 mException = e;
             } finally {
                 _connection.disconnect();
@@ -241,7 +244,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 // Android source code for previous SDKs.
                 // Status code handling is throwing exceptions if it does not
                 // see challenge
-                if (ex.getMessage() == "Received authentication challenge is null") {
+                if (ex.getMessage() == UNAUTHORIZED_ERROR_MESSAGE_PRE18) {
                     statusCode = HttpURLConnection.HTTP_UNAUTHORIZED;
                 }
             } else {
@@ -257,7 +260,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
         }
         _response.setStatusCode(statusCode);
-        Logger.v(TAG, "Statuscode:" + statusCode);
+        Logger.v(TAG, "Status code:" + statusCode);
     }
 
     /**
