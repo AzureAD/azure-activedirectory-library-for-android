@@ -5,6 +5,7 @@
 package com.microsoft.adal;
 
 import java.net.URL;
+import java.util.UUID;
 
 public interface IDiscovery {
 
@@ -16,4 +17,6 @@ public interface IDiscovery {
      * @param callback result will be post here
      */
     void isValidAuthority(URL authorizationEndpoint, AuthenticationCallback<Boolean> callback);
+
+    void setCorrelationId(UUID requestCorrelationId);
 }

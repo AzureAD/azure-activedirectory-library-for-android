@@ -539,7 +539,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                     }
                 });
     }
-   
+
     @SmallTest
     public void testAcquireTokenByRefreshToken_ConnectionNotAvailable()
             throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException,
@@ -700,6 +700,37 @@ public class AuthenticationContextTests extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result
+        assertNull("Error is null", callback.mException);
+        assertEquals("Activity was attempted to start with request code",
+                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                testActivity.mStartActivityRequestCode);
+    }
+
+    @SmallTest
+    public void testCorrelationId_InDiscovery()
+            throws InterruptedException, IllegalArgumentException, NoSuchFieldException,
+            IllegalAccessException, NoSuchAlgorithmException, NoSuchPaddingException {
+
+        FileMockContext mockContext = new FileMockContext(getContext());
+        AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
+                true);
+        final CountDownLatch signal = new CountDownLatch(1);
+        UUID correlationId = UUID.randomUUID();
+        MockActivity testActivity = new MockActivity();
+        testActivity.mSignal = signal;
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        MockDiscovery discovery = new MockDiscovery(true);
+        ReflectionUtils.setFieldValue(context, "mDiscovery", discovery);
+
+        // API call
+        context.setRequestCorrelationId(correlationId);
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
+                callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // Check correlationID that was set in the Discovery obj
+        assertEquals("CorrelationId in discovery needs to be same as in request", correlationId,
+                discovery.correlationId);
         assertNull("Error is null", callback.mException);
         assertEquals("Activity was attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
@@ -1214,6 +1245,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         private URL authorizationUrl;
 
+        private UUID correlationId;
+
         MockDiscovery(boolean validFlag) {
             isValid = validFlag;
         }
@@ -1227,6 +1260,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         public URL getAuthorizationUrl() {
             return authorizationUrl;
+        }
+
+        @Override
+        public void setCorrelationId(UUID requestCorrelationId) {
+            correlationId = requestCorrelationId;
         }
     }
 

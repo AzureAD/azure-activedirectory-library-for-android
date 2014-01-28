@@ -73,6 +73,8 @@ public enum ADALError {
      * terminated directly
      */
     ON_ACTIVITY_RESULT_INTENT_NULL("onActivityResult is called with null intent data"),
+    
+    ON_ACTIVITY_RESULT_CALLBACK_NOT_FOUND("onActivityResult is called, but callback is not found"),
 
     DEVICE_SHARED_PREF_IS_NOT_AVAILABLE("Shared preferences are not available"),
 
@@ -97,7 +99,10 @@ public enum ADALError {
     BROADCAST_CANCEL_NOT_SUCCESSFUL(
             "Cancel message is not successfully delivered to broadcast receiver. It may be not registered yet. AuthenticationActivity will register that at onResume."),
 
-    CORRELATION_ID_FORMAT("Correlationid is not in UUID format"),
+    CORRELATION_ID_FORMAT("Correlationid is not in UUID format"), 
+    
+    CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE(
+            "Correlationid provided in requrest is not matching the response"),
 
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
 
@@ -112,7 +117,7 @@ public enum ADALError {
     DISCOVERY_NOT_SUPPORTED(
             "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."),
 
-    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."), ;
+    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."), DIGEST_ERROR("Error in generating hash with MessageDigest"), ;
 
     private String mDescription;
 

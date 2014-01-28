@@ -164,4 +164,8 @@ public class AuthenticationResult implements Serializable {
         return " CorrelationId:" + getCorrelationId() + " ErrorCode:" + getErrorCode()
                 + " ErrorDescription:" + getErrorDescription();
     }
+
+    public void setCorrelationId(UUID correlation) {
+        mCorrelationId = correlation;
+    }
 }
