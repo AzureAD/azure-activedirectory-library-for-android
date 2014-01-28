@@ -6,7 +6,7 @@ The ADAL SDK for Android  gives you the ability to add Windows Azure Active Dire
 ## Latest Preview Release
 ---
 
-We have released a Preview of the ADAL for iOS! [You can grab the release here] (https://github.com/MSOpenTech/azure-activedirectory-library-for-android/releases/tag/v0.5-alpha)
+We have released a Preview of the ADAL for Android! [You can grab the release here] (https://github.com/MSOpenTech/azure-activedirectory-library-for-android/releases/tag/v0.5-alpha)
 
 ## Quick Start
 
