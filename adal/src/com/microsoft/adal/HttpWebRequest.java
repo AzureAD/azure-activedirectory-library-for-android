@@ -36,9 +36,9 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
     final static String REQUEST_METHOD_DELETE = "DELETE";
 
-    final static int CONNECT_TIME_OUT = 10000;
+    final static int CONNECT_TIME_OUT = 30000;
 
-    private final static int READ_TIME_OUT = 10000;
+    private final static int READ_TIME_OUT = 30000;
 
     private static int sDebugSimulateDelay = 0;
 
