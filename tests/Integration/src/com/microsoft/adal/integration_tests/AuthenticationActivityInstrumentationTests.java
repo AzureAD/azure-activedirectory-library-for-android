@@ -208,25 +208,26 @@ public class AuthenticationActivityInstrumentationTests extends
     @MediumTest
     public void testAcquireTokenManaged_MultiUser() throws Exception {
         TenantInfo tenant = tenants.get(TenantType.AAD);
-        Log.v(TAG, "testAcquireTokenManaged_MultiUser starts for authority:" + tenant.getAuthority());
+        Log.v(TAG,
+                "testAcquireTokenManaged_MultiUser starts for authority:" + tenant.getAuthority());
         acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
         final ActivityMonitor monitor = getInstrumentation().addMonitor(
                 AuthenticationActivity.class.getName(), null, false);
-        
+
         AuthenticationResult result = activity.getResult();
-        Log.v(TAG, "Result from initial request. ExpiresOn:"+result.getExpiresOn().getTime());
-       
+        Log.v(TAG, "Result from initial request. ExpiresOn:" + result.getExpiresOn().getTime());
+
         Log.v(TAG, "Set second user");
         setUserForAuthenticationRequest(tenant.getUserName2());
         clickGetToken();
-        handleCredentials(monitor, tenant.getUserName2(), tenant.getPassword2(), false,
-                null);
-        
+        handleCredentials(monitor, tenant.getUserName2(), tenant.getPassword2(), false, null);
+
         Log.v(TAG, "Compare tokens");
         AuthenticationResult result2 = activity.getResult();
         verifyTokenNotSame(result, result2);
         assertTrue("Multi resource token", result2.getIsMultiResourceRefreshToken());
-        assertEquals("Username same in idtoken", tenant.getUserName2(), result2.getUserInfo().getUserId());
+        assertEquals("Username same in idtoken", tenant.getUserName2(), result2.getUserInfo()
+                .getUserId());
     }
 
     @MediumTest
@@ -448,8 +449,8 @@ public class AuthenticationActivityInstrumentationTests extends
         assertNotNull("Result is not null", result);
         assertEquals("Result status is failed", AuthenticationResult.AuthenticationStatus.Failed,
                 result.getStatus());
-        assertEquals("CorrelationId in response same as in request header", correlationId,
-                result.getCorrelationId());
+        assertEquals("CorrelationId in response same as in request header", correlationId, result
+                .getErrorDescription().contains(correlationId.toString()));
         assertNull("No token", activity.getResult().getAccessToken());
 
         Log.v(TAG, "Finished testing correlationId");
@@ -619,18 +620,17 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     private void setUserForAuthenticationRequest(final String userid) {
-           // press clear all button to clear tokens and cookies
-        final EditText  mUserid ;
- 
+        // press clear all button to clear tokens and cookies
+        final EditText mUserid;
+
         mUserid = (EditText)activity.findViewById(R.id.editUserId);
-        
 
         // Use handler from this app to quickly set the fields instead of
         // sending key events
         activity.getTestAppHandler().post(new Runnable() {
             @Override
             public void run() {
-             
+
                 mUserid.setText(userid);
             }
         });

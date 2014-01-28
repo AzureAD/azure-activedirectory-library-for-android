@@ -107,7 +107,6 @@ public class MainActivity extends Activity {
     }
 
     class AdalCallback implements AuthenticationCallback<AuthenticationResult> {
- 
 
         private UUID mId;
 
@@ -143,8 +142,7 @@ public class MainActivity extends Activity {
                 Log.d(TAG, "Token is empty");
                 if (result != null) {
                     Log.d(TAG,
-                            "Error  code:" + result.getErrorCode() + " correlationId:"
-                                    + result.getCorrelationId() + " Description:"
+                            "Error  code:" + result.getErrorCode() + " Description:"
                                     + result.getErrorDescription());
                 }
             } else {
@@ -252,7 +250,8 @@ public class MainActivity extends Activity {
         }
 
         try {
-            mContext = new AuthenticationContext(MainActivity.this, authority, mValidate.isChecked());
+            mContext = new AuthenticationContext(MainActivity.this, authority,
+                    mValidate.isChecked());
         } catch (NoSuchAlgorithmException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

@@ -52,12 +52,6 @@ public class AuthenticationResult implements Serializable {
 
     private String mErrorDescription;
 
-    /**
-     * Failed requests will have correlationid. Azure webservices are supposed
-     * to follow the same protocol and return this.
-     */
-    private UUID mCorrelationId;
-
     private boolean mIsMultiResourceRefreshToken;
 
     private UserInfo mUserInfo;
@@ -97,11 +91,10 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Succeeded;
     }
 
-    AuthenticationResult(String errorCode, String errDescription, UUID correlationId) {
+    AuthenticationResult(String errorCode, String errDescription) {
         mErrorCode = errorCode;
         mErrorDescription = errDescription;
         mStatus = AuthenticationStatus.Failed;
-        mCorrelationId = correlationId;
     }
 
     public String createAuthorizationHeader() {
@@ -156,16 +149,8 @@ public class AuthenticationResult implements Serializable {
         return mErrorDescription;
     }
 
-    public UUID getCorrelationId() {
-        return mCorrelationId;
-    }
-
     public String getErrorLogInfo() {
-        return " CorrelationId:" + getCorrelationId() + " ErrorCode:" + getErrorCode()
+        return " ErrorCode:" + getErrorCode()
                 + " ErrorDescription:" + getErrorDescription();
-    }
-
-    public void setCorrelationId(UUID correlation) {
-        mCorrelationId = correlation;
     }
 }
