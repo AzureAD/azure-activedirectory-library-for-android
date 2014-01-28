@@ -55,7 +55,7 @@ We have released a Preview of the ADAL for iOS! [You can grab the release here] 
  }
 ```
 9. To ask for a token, you need to define a callback:
-```
+```Java
 private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
 
         @Override
