@@ -1,13 +1,8 @@
 
 package com.example.com.microsoft.adal.hello;
 
-import java.util.UUID;
-import com.microsoft.adal.AuthenticationCallback;
-import com.microsoft.adal.AuthenticationContext;
-import com.microsoft.adal.AuthenticationResult;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -17,6 +12,10 @@ import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.microsoft.adal.AuthenticationCallback;
+import com.microsoft.adal.AuthenticationContext;
+import com.microsoft.adal.AuthenticationResult;
 
 public class LogOutActivity extends Activity {
 
@@ -40,6 +39,7 @@ public class LogOutActivity extends Activity {
         setContentView(R.layout.activity_log_out);
 
         try {
+            Utils.setupKeyForSample();
             mAuthContext = new AuthenticationContext(this, Constants.AUTHORITY_URL, false);
         } catch (Exception e) {
             Log.e(TAG, "Encryption related exception", e);
