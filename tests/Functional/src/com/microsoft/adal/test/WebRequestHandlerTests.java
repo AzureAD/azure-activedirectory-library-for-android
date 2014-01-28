@@ -29,7 +29,7 @@ import com.microsoft.adal.test.AuthenticationConstants.AAD;
  */
 public class WebRequestHandlerTests extends AndroidTestHelper {
 
-    private final static String TEST_WEBAPI_URL = "http://graphtestrun.azurewebsites.net/api/WebRequestTest";
+    private final static String TEST_WEBAPI_URL = "https://graphtestrun.azurewebsites.net/api/WebRequestTest";
 
     protected static final String TAG = "WebRequestHandlerTests";
 

@@ -1,10 +1,12 @@
 ﻿
 package com.example.com.microsoft.adal.hello;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -12,7 +14,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -21,7 +26,6 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -55,15 +59,12 @@ import com.google.gson.GsonBuilder;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
+import com.microsoft.adal.AuthenticationSettings;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.TokenCacheItem;
 
-/*
- * TODO:
- * 1- q	
- */
 public class ToDoActivity extends Activity {
 
     private final static String TAG = "ToDoActivity";
@@ -171,6 +172,7 @@ public class ToDoActivity extends Activity {
 
         // Ask for token and provide callback
         try {
+            Utils.setupKeyForSample();
             mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL,
                     false);
             mAuthContext.acquireToken(ToDoActivity.this, Constants.RESOURCE_ID,
@@ -210,7 +212,7 @@ public class ToDoActivity extends Activity {
 
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
-
+    
     private void sendRequest() {
 
         if (refreshInProgress || mToken == null || mToken.getAccessToken().isEmpty())

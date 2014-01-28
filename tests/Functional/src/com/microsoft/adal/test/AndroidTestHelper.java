@@ -10,7 +10,7 @@ import android.util.Log;
 
 public class AndroidTestHelper extends InstrumentationTestCase {
 
-    protected final static int REQUEST_TIME_OUT = 20000; // miliseconds
+    protected final static int REQUEST_TIME_OUT = 40000; // miliseconds
 
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";

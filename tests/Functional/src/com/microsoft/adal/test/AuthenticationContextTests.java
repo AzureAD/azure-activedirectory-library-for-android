@@ -28,6 +28,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.test.UiThreadTest;
@@ -193,6 +194,12 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testCorrelationId_InWebRequest() throws NoSuchFieldException,
             IllegalAccessException, InterruptedException, NoSuchAlgorithmException,
             NoSuchPaddingException {
+        
+        if(Build.VERSION.SDK_INT <= 15){
+            Log.v(TAG, "Server is returning 401 status code without challange. HttpUrlConnection does not return error stream for that in SDK 15. Without error stream, this test is useless.");
+            return;
+        }
+        
         FileMockContext mockContext = new FileMockContext(getContext());
         String expectedAccessToken = "TokenFortestAcquireToken" + UUID.randomUUID().toString();
         String expectedClientId = "client" + UUID.randomUUID().toString();
