@@ -22,18 +22,12 @@ import javax.crypto.spec.SecretKeySpec;
 
 import junit.framework.Assert;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.test.UiThreadTest;
-import android.test.mock.MockContext;
-import android.test.mock.MockPackageManager;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
@@ -52,11 +46,8 @@ import com.microsoft.adal.IConnectionService;
 import com.microsoft.adal.IDiscovery;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.Logger;
-import com.microsoft.adal.Logger.ILogger;
-import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
-import com.microsoft.adal.test.AuthenticationConstants.AAD;
 import com.microsoft.adal.test.AuthenticationConstants.UIRequest;
 
 public class AuthenticationContextTests extends AndroidTestCase {
@@ -194,12 +185,13 @@ public class AuthenticationContextTests extends AndroidTestCase {
     public void testCorrelationId_InWebRequest() throws NoSuchFieldException,
             IllegalAccessException, InterruptedException, NoSuchAlgorithmException,
             NoSuchPaddingException {
-        
-        if(Build.VERSION.SDK_INT <= 15){
-            Log.v(TAG, "Server is returning 401 status code without challange. HttpUrlConnection does not return error stream for that in SDK 15. Without error stream, this test is useless.");
+
+        if (Build.VERSION.SDK_INT <= 15) {
+            Log.v(TAG,
+                    "Server is returning 401 status code without challange. HttpUrlConnection does not return error stream for that in SDK 15. Without error stream, this test is useless.");
             return;
         }
-        
+
         FileMockContext mockContext = new FileMockContext(getContext());
         String expectedAccessToken = "TokenFortestAcquireToken" + UUID.randomUUID().toString();
         String expectedClientId = "client" + UUID.randomUUID().toString();
@@ -211,14 +203,19 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 VALID_AUTHORITY, false, mockCache);
         setConnectionAvailable(context, true);
         UUID requestCorrelationId = UUID.randomUUID();
-
+        Log.d(TAG, "test correlationId:" + requestCorrelationId.toString());
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final TestLogResponse response = new TestLogResponse();
-        listenForLogMessage(response, "Refresh token did not return accesstoken.");
+        response.listenForLogMessage(
+                "Error in refresh token for request:Request authority:https://Login.windows.net/Omercantest.Onmicrosoft.com resource:"
+                        + expectedResource
+                        + " clientid:"
+                        + expectedClientId
+                        + " correlationId:"
+                        + requestCorrelationId.toString(), signal);
 
-        // Call acquire token with prompt never to not attempt to launch
-        // activity
+        // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
         context.acquireToken(new MockActivity(), expectedResource, expectedClientId, "redirect",
                 expectedUser, PromptBehavior.Never, null, callback);
@@ -226,7 +223,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         // Verify that web request send correct headers
         assertTrue("Server response has same correlationId",
-                response.additionalMessage.contains(requestCorrelationId.toString()));
+                response.message.contains(requestCorrelationId.toString()));
     }
 
     /**
@@ -546,7 +543,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                     }
                 });
     }
-   
+
     @SmallTest
     public void testAcquireTokenByRefreshToken_ConnectionNotAvailable()
             throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException,
@@ -818,7 +815,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         webrequest.setReturnResponse(new HttpWebResponse(503, null, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         final TestLogResponse response = new TestLogResponse();
-        listenForLogMessage(response, "Refresh token did not return accesstoken.");
+        response.listenForLogMessage("Refresh token did not return accesstoken.", signal);
 
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
                 PromptBehavior.Never, null, callback);
@@ -1082,25 +1079,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertTrue("Attemps to launch", testActivity.mStartActivityRequestCode != -1);
 
         clearCache(context);
-    }
-
-    private void listenForLogMessage(final TestLogResponse response, final String msg) {
-        Logger.getInstance().setExternalLogger(new ILogger() {
-
-            @Override
-            public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                    ADALError errorCode) {
-
-                if (message == msg) {
-
-                    response.tag = tag;
-                    response.message = message;
-                    response.additionalMessage = additionalMessage;
-                    response.level = level;
-                    response.errorCode = errorCode;
-                }
-            }
-        });
     }
 
     private ITokenCacheStore getCacheForRefreshToken() throws NoSuchAlgorithmException,

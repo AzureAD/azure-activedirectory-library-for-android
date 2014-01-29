@@ -196,7 +196,7 @@ public class AuthenticationActivity extends Activity {
         });
 
         // Create the broadcast receiver for cancel
-        Log.v(TAG, "Init broadcastReceiver with requestId:" + mAuthRequest.getRequestId());
+        Logger.v(TAG, "Init broadcastReceiver with requestId:" + mAuthRequest.getRequestId());
         mReceiver = new ActivityBroadcastReceiver();
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         mRestartWebview = false;
@@ -211,7 +211,7 @@ public class AuthenticationActivity extends Activity {
      * @param data
      */
     private void ReturnToCaller(int resultCode, Intent data) {
-        Log.d(TAG, "Return To Caller:" + resultCode);
+        Logger.d(TAG, "Return To Caller:" + resultCode);
         displaySpinner(false);
 
         if (data == null) {
@@ -220,10 +220,11 @@ public class AuthenticationActivity extends Activity {
 
         if (mAuthRequest != null) {
             // set request id related to this response to send the delegateId
-            Log.d(TAG, "Return To Caller REQUEST_ID:" + mAuthRequest.getRequestId());
+            Logger.d(TAG, "Return To Caller REQUEST_ID:" + mAuthRequest.getRequestId());
             data.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthRequest.getRequestId());
         } else {
-            Log.w(TAG, "Request object is null");
+            Logger.w(TAG, "Request object is null", "",
+                    ADALError.ACTIVITY_REQUEST_INTENT_DATA_IS_NULL);
         }
 
         setResult(resultCode, data);
@@ -232,7 +233,7 @@ public class AuthenticationActivity extends Activity {
 
     @Override
     protected void onPause() {
-        Log.d(TAG, "AuthenticationActivity onPause unregister receiver");
+        Logger.d(TAG, "AuthenticationActivity onPause unregister receiver");
         super.onPause();
 
         // Unregister the cancel action listener from the local broadcast
@@ -247,7 +248,7 @@ public class AuthenticationActivity extends Activity {
 
     @Override
     protected void onStart() {
-        Log.d(TAG, "AuthenticationActivity onStart");
+        Logger.d(TAG, "AuthenticationActivity onStart");
         super.onStart();
     }
 
@@ -260,11 +261,11 @@ public class AuthenticationActivity extends Activity {
         // of redirect url.
         // If it reaches the final url, it will set result back to caller.
         if (mRestartWebview) {
-            Log.v(TAG, "Webview onResume will post start url again:" + mStartUrl);
+            Logger.v(TAG, "Webview onResume will post start url again:" + mStartUrl);
             final String postUrl = mStartUrl;
 
             if (mReceiver != null) {
-                Log.v(TAG, "Webview onResume register broadcast receiver for requestId"
+                Logger.v(TAG, "Webview onResume register broadcast receiver for requestId"
                         + mReceiver.mWaitingRequestId);
                 LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
                         new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
@@ -283,7 +284,7 @@ public class AuthenticationActivity extends Activity {
 
     @Override
     protected void onRestart() {
-        Log.d(TAG, "AuthenticationActivity onRestart");
+        Logger.d(TAG, "AuthenticationActivity onRestart");
         super.onRestart();
         mRestartWebview = true;
     }
@@ -291,13 +292,13 @@ public class AuthenticationActivity extends Activity {
     @Override
     protected void onStop() {
         // Called when you are no longer visible to the user.
-        Log.d(TAG, "AuthenticationActivity onStop");
+        Logger.d(TAG, "AuthenticationActivity onStop");
         super.onStop();
     }
 
     @Override
     public void onBackPressed() {
-        Log.d(TAG, "Back button is pressed");
+        Logger.d(TAG, "Back button is pressed");
 
         // Ask user if they rally want to cancel the flow, if navigation is not
         // possible

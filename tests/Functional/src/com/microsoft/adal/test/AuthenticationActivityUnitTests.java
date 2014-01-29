@@ -5,11 +5,16 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.test.ActivityUnitTestCase;
 import android.test.RenamingDelegatingContext;
 import android.test.UiThreadTest;
@@ -28,6 +33,8 @@ import com.microsoft.adal.R;
 public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<AuthenticationActivity> {
 
     private static final int TEST_REQUEST_ID = 123;
+
+    private static final long CONTEXT_REQUEST_TIME_OUT = 20000;
 
     private int buttonId;
 
@@ -104,6 +111,74 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
 
     @SmallTest
     @UiThreadTest
+    public void testReturnToCaller() throws IllegalArgumentException, NoSuchFieldException,
+            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException {
+
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+
+        Method returnToCaller = ReflectionUtils.getTestMethod(activity, "ReturnToCaller",
+                int.class, Intent.class);
+
+        // call null intent
+        returnToCaller.invoke(activity, AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                null);
+        assertTrue(isFinishCalled());
+
+        // verify result code that includes requestid
+        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL);
+        assertEquals(TEST_REQUEST_ID,
+                data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testOnPauseSetsRestartWebview() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException {
+
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+
+        Method onPause = ReflectionUtils.getTestMethod(activity, "onPause");
+
+        onPause.invoke(activity);
+
+        // get field value to check
+        boolean restartWebView = (Boolean)ReflectionUtils
+                .getFieldValue(activity, "mRestartWebview");
+        assertTrue("Restart flag is set", restartWebView);
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testOnResumeRestartWebview() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException,
+            InterruptedException {
+
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+
+        final CountDownLatch signal = new CountDownLatch(1);
+        final TestLogResponse logResponse = new TestLogResponse();
+        logResponse.listenForLogMessage(
+                "Webview onResume register broadcast receiver for requestId" + TEST_REQUEST_ID,
+                signal);
+        ReflectionUtils.setFieldValue(activity, "mRestartWebview", true);
+        Method onResume = ReflectionUtils.getTestMethod(activity, "onResume");
+
+        onResume.invoke(activity);
+
+        // get field value to check
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        assertTrue("verify log message",
+                logResponse.message.startsWith("Webview onResume register broadcast"));
+    }
+
+    @SmallTest
+    @UiThreadTest
     public void testEmptyIntentData() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException {
 
@@ -117,6 +192,50 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR);
         assertEquals(AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST,
                 data.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE));
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testReceiver() throws NoSuchFieldException, IllegalArgumentException,
+            IllegalAccessException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, InvocationTargetException, InterruptedException {
+
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        String broadcastCancelMsg1 = "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity";
+        String broadcastCancelMsg2 = "Waiting requestId is same and cancelling this activity";
+
+        // Test onReceive call with wrong request id
+        TestLogResponse response = new TestLogResponse();
+        final CountDownLatch signal = new CountDownLatch(1);
+        response.listenForLogMessage(broadcastCancelMsg1, signal);
+        BroadcastReceiver receiver = (BroadcastReceiver)ReflectionUtils.getFieldValue(activity,
+                "mReceiver");
+        final Intent intent = new Intent(AuthenticationConstants.Browser.ACTION_CANCEL);
+        final Bundle extras = new Bundle();
+        intent.putExtras(extras);
+        intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, TEST_REQUEST_ID + 43);
+
+        receiver.onReceive(getInstrumentation().getTargetContext(), intent);
+
+        // Test onReceive call with correct request id
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        assertTrue("log the message for correct Intent",
+                response.message.equals(broadcastCancelMsg1));
+
+        // update requestId to match the AuthenticationRequest
+        final CountDownLatch signal2 = new CountDownLatch(1);
+        TestLogResponse response2 = new TestLogResponse();
+        response2.listenForLogMessage(broadcastCancelMsg2, signal2);
+        final Intent intent2 = new Intent(AuthenticationConstants.Browser.ACTION_CANCEL);
+        intent2.putExtras(extras);
+        intent2.putExtra(AuthenticationConstants.Browser.REQUEST_ID, TEST_REQUEST_ID);
+        receiver.onReceive(getInstrumentation().getTargetContext(), intent2);
+
+        // verify that it received intent
+        signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        assertTrue("log the message for correct Intent",
+                response2.message.equals(broadcastCancelMsg2));
     }
 
     @Override
