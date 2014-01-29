@@ -21,6 +21,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import junit.framework.Assert;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -1287,6 +1288,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             mSignal = signal;
         }
 
+        @SuppressLint("Registered")
         public MockActivity() {
             // TODO Auto-generated constructor stub
         }

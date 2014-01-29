@@ -565,7 +565,8 @@ class Oauth2 {
 
                 Logger.v(TAG, "Response correlationId:" + correlationIdInHeader);
             } catch (Exception ex) {
-                Logger.e(TAG, "Correlation is not parsed", "", ADALError.CORRELATION_ID_FORMAT, ex);
+                Logger.e(TAG, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
+                        ADALError.CORRELATION_ID_FORMAT, ex);
             }
         }
 
