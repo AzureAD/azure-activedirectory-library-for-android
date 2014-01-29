@@ -873,8 +873,9 @@ public class AuthenticationContext {
     private void logReturnedToken(final AuthenticationRequest request, final AuthenticationResult result) {
         if (result != null && result.getAccessToken() != null) {
             String accessTokenHash = createHash(result.getAccessToken());
-            Logger.v(TAG, String.format("Token with hash %s returned. CorrelationId: %s",
-                    accessTokenHash, request.getCorrelationId()));
+            String refreshTokenHash = createHash(result.getRefreshToken());
+            Logger.v(TAG, String.format("Access TokenID %s and Refresh TokenID %s returned. CorrelationId: %s",
+                    accessTokenHash, refreshTokenHash, request.getCorrelationId()));
         }
     }
 
