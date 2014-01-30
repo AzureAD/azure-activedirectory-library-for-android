@@ -823,10 +823,13 @@ public class AuthenticationContext {
             }
 
             if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
-                Logger.v(TAG, "Refresh token is available. Key used:" + keyUsed
-                        + getCorrelationLogInfo());
+                String refreshTokenHash = createHash(item.getRefreshToken());
+                
+                Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
+                        + " Key used:" + keyUsed + getCorrelationLogInfo());
                 refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource);
             }
+
         }
 
         return refreshItem;
@@ -867,14 +870,17 @@ public class AuthenticationContext {
 
     /**
      * Calculate hash for accessToken and log that
+     * 
      * @param request
      * @param result
      */
-    private void logReturnedToken(final AuthenticationRequest request, final AuthenticationResult result) {
+    private void logReturnedToken(final AuthenticationRequest request,
+            final AuthenticationResult result) {
         if (result != null && result.getAccessToken() != null) {
             String accessTokenHash = createHash(result.getAccessToken());
             String refreshTokenHash = createHash(result.getRefreshToken());
-            Logger.v(TAG, String.format("Access TokenID %s and Refresh TokenID %s returned. CorrelationId: %s",
+            Logger.v(TAG, String.format(
+                    "Access TokenID %s and Refresh TokenID %s returned. CorrelationId: %s",
                     accessTokenHash, refreshTokenHash, request.getCorrelationId()));
         }
     }
@@ -933,7 +939,8 @@ public class AuthenticationContext {
             final RefreshItem refreshItem, final boolean useCache,
             final AuthenticationCallback<AuthenticationResult> externalCallback) {
 
-        Logger.v(TAG, "Process refreshToken for " + request.getLogInfo());
+         
+        Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:" + createHash(refreshItem.mRefreshToken));
 
         // Removes refresh token from cache, when this call is complete. Request
         // may be interrupted, if app is shutdown by user. Detect connection
