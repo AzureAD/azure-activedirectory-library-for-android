@@ -452,8 +452,8 @@ public class AuthenticationActivityInstrumentationTests extends
         assertNotNull("Result is not null", result);
         assertEquals("Result status is failed", AuthenticationResult.AuthenticationStatus.Failed,
                 result.getStatus());
-        assertEquals("CorrelationId in response same as in request header", correlationId,
-                result.getCorrelationId());
+        assertEquals("CorrelationId in response same as in request header", correlationId, result
+                .getErrorDescription().contains(correlationId.toString()));
         assertNull("No token", activity.getResult().getAccessToken());
 
         Log.v(TAG, "Finished testing correlationId");

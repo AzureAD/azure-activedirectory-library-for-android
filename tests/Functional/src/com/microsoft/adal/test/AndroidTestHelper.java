@@ -1,6 +1,7 @@
 
 package com.microsoft.adal.test;
 
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +28,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
 
             if (hasMessage != null && !hasMessage.isEmpty()) {
                 assertTrue("Message has the text",
-                        (result.getMessage().toLowerCase().contains(hasMessage)));
+                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
             }
         }
     }

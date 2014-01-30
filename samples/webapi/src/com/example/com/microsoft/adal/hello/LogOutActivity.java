@@ -43,7 +43,7 @@ public class LogOutActivity extends Activity {
             mAuthContext = new AuthenticationContext(this, Constants.AUTHORITY_URL, false);
         } catch (Exception e) {
             Log.e(TAG, "Encryption related exception", e);
-            Toast.makeText(LogOutActivity.this, "Encryption related exception", Toast.LENGTH_LONG);
+            Toast.makeText(LogOutActivity.this, "Encryption related exception", Toast.LENGTH_LONG).show();
         }
 
         loginButton = (Button)findViewById(R.id.btnLogOut);

@@ -462,35 +462,6 @@ public class OauthTests extends AndroidTestCase {
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
     }
 
-    @SmallTest
-    public void testCorrelationIdInErrorResponse() throws IllegalArgumentException,
-            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException {
-        HashMap<String, String> response = new HashMap<String, String>();
-        Object request = createAuthenticationRequest("http://login.windows.net", "resource",
-                "client", "redirect", "loginhint", null, null, null);
-        Object oauth = createOAuthInstance(request);
-        Method m = ReflectionUtils.getTestMethod(oauth, "processUIResponseParams", HashMap.class);
-        UUID correlationIdExpected = UUID.randomUUID();
-        response.put(AuthenticationConstants.AAD.CORRELATION_ID, correlationIdExpected.toString());
-        response.put(AuthenticationConstants.OAuth2.ERROR, "errorCodeHere");
-        response.put(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, "errorDescription");
-
-        // call to process response
-        AuthenticationResult result = (AuthenticationResult)m.invoke(null, response);
-        assertEquals("Failed status", AuthenticationStatus.Failed, result.getStatus());
-        assertEquals("Same error", "errorCodeHere", result.getErrorCode());
-        assertEquals("Same error description", "errorDescription", result.getErrorDescription());
-        assertEquals("Same correlationid", correlationIdExpected, result.getCorrelationId());
-
-        // malformed correlationid
-        response.put(AuthenticationConstants.AAD.CORRELATION_ID, "333-4");
-
-        // call to get null correlationid
-        result = (AuthenticationResult)m.invoke(null, response);
-        assertNull("Null correlationid", result.getCorrelationId());
-    }
-
     private Object getValidAuthenticationRequest() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {

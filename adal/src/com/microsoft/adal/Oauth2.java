@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import org.json.JSONException;
@@ -88,6 +89,12 @@ class Oauth2 {
         requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.ADAL_ID_DM,
                 URLEncoder.encode("" + android.os.Build.MODEL,
                         AuthenticationConstants.ENCODING_UTF8));
+
+        if (mRequest.getCorrelationId() != null) {
+            requestUrl = String.format("%s&%s=%s", requestUrl,
+                    AuthenticationConstants.AAD.CLIENT_REQUEST_ID, URLEncoder.encode(mRequest
+                            .getCorrelationId().toString(), AuthenticationConstants.ENCODING_UTF8));
+        }
 
         // Setting prompt behavior to always will skip the cookies for webview.
         // It is added to authorization url.
@@ -180,7 +187,7 @@ class Oauth2 {
                             + "CorrelationId:" + correlationId);
 
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.ERROR),
-                    response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION), correlationId);
+                    response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION));
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
@@ -507,6 +514,17 @@ class Oauth2 {
     private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) {
         AuthenticationResult result = new AuthenticationResult();
         HashMap<String, String> responseItems = new HashMap<String, String>();
+        String correlationIdInHeader = null;
+        if (webResponse.getResponseHeaders() != null
+                && webResponse.getResponseHeaders().containsKey(
+                        AuthenticationConstants.AAD.CLIENT_REQUEST_ID)) {
+            // headers are returning as a list
+            List<String> listOfHeaders = webResponse.getResponseHeaders().get(
+                    AuthenticationConstants.AAD.CLIENT_REQUEST_ID);
+            if (listOfHeaders != null && listOfHeaders.size() > 0) {
+                correlationIdInHeader = listOfHeaders.get(0);
+            }
+        }
 
         if (webResponse.getBody() != null && webResponse.getBody().length > 0) {
 
@@ -521,9 +539,8 @@ class Oauth2 {
                 // catch the
                 // generic Exception
                 Logger.e(TAG, ex.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
-                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
+                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage());
             }
-
         } else {
             String errMessage = null;
             byte[] message = webResponse.getBody();
@@ -534,7 +551,23 @@ class Oauth2 {
             }
             Logger.v(TAG, "Server error message:" + errMessage);
             result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    errMessage, null);
+                    errMessage);
+        }
+
+        // Set correlationId in the result
+        if (correlationIdInHeader != null && !correlationIdInHeader.isEmpty()) {
+            try {
+                UUID correlation = UUID.fromString(correlationIdInHeader);
+                if (correlation != mRequest.getCorrelationId()) {
+                    Logger.w(TAG, "CorrelationId is not matching", "",
+                            ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE);
+                }
+
+                Logger.v(TAG, "Response correlationId:" + correlationIdInHeader);
+            } catch (Exception ex) {
+                Logger.e(TAG, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
+                        ADALError.CORRELATION_ID_FORMAT, ex);
+            }
         }
 
         return result;

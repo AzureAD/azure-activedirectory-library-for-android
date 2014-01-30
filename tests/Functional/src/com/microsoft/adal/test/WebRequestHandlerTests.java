@@ -55,13 +55,12 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         assertEquals("400 error code", 400, testResponse.httpResponse.getStatusCode());
         assertNotNull("Callback should report 400 for this error", testResponse.exception);
         assertNotNull("webresponse is not null", testResponse.httpResponse);
-        AuthenticationResult result = getAuthenticationResult(testResponse.httpResponse);
-        assertEquals("same correlationid", testID, result.getCorrelationId());
+        assertEquals("same correlationid", testID.toString(), testResponse.httpResponse.getResponseHeaders().get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID).get(0));
 
         // same id for next request
         TestResponse testResponse2 = sendCorrelationIdRequest(testUrl, testID, true);
         AuthenticationResult result2 = getAuthenticationResult(testResponse2.httpResponse);
-        assertEquals("same correlationid for next request", testID, result2.getCorrelationId());
+        assertEquals("same correlationid", testID.toString(), testResponse2.httpResponse.getResponseHeaders().get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID).get(0));
     }
 
     private TestResponse sendCorrelationIdRequest(final String message, final UUID testID,
@@ -90,26 +89,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         }, true);
 
         return testResponse;
-    }
-
-    public void testCorrelationIdNotInRequest() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
-        final String testUrl = "https://login.windows.net/omercantest.onmicrosoft.com/oauth2/token";
-
-        TestResponse testResponse = sendCorrelationIdRequest(testUrl, null, false);
-        TestResponse testResponse2 = sendCorrelationIdRequest(testUrl, null, true);
-
-        AuthenticationResult result = getAuthenticationResult(testResponse.httpResponse);
-        UUID testIDResponse1 = result.getCorrelationId();
-
-        result = getAuthenticationResult(testResponse2.httpResponse);
-        UUID testIDResponse2 = result.getCorrelationId();
-
-        assertNotNull("correlationID is always set for error", testIDResponse1);
-        assertNotNull("correlationID is always set for error", testIDResponse2);
-        assertTrue("They are not same", testIDResponse1 != testIDResponse2);
-
     }
 
     public void testNullUrl() {

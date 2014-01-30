@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 import org.json.JSONException;
 
@@ -52,8 +53,10 @@ final class Discovery implements IDiscovery {
      */
     private final static String TRUSTED_QUERY_INSTANCE = "login.windows.net";
 
+    private UUID mCorrelationId;
+    
     public Discovery() {
-        initValidList();
+        initValidList();       
     }
 
     @Override
@@ -166,6 +169,12 @@ final class Discovery implements IDiscovery {
         WebRequestHandler request = new WebRequestHandler();
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
+        
+        // CorrelationId is used to track the request at the Azure services
+        if(mCorrelationId != null){
+            headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, mCorrelationId.toString());
+            headers.put(AuthenticationConstants.AAD.RETURN_CLIENT_REQUEST_ID, "true");
+        }
         request.sendAsyncGet(queryUrl, headers, new HttpWebRequestCallback() {
             @Override
             public void onComplete(HttpWebResponse webResponse, Exception exception) {
@@ -240,5 +249,10 @@ final class Discovery implements IDiscovery {
         builder.appendQueryParameter(API_VERSION_KEY, API_VERSION_VALUE);
         builder.appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);
         return new URL(builder.build().toString());
+    }
+
+    @Override
+    public void setCorrelationId(UUID requestCorrelationId) {
+        mCorrelationId = requestCorrelationId;        
     }
 }
