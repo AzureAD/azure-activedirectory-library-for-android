@@ -773,6 +773,9 @@ public class AuthenticationContext {
             // get token if resourceid matches to cache key.
             TokenCacheItem item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request));
             if (item != null) {
+                Logger.v(TAG, "getItemFromCache accessTokenId" + createHash(item.getAccessToken())
+                        + " refreshTokenId:" + createHash(item.getRefreshToken()));
+
                 AuthenticationResult result = new AuthenticationResult(item.getAccessToken(),
                         item.getRefreshToken(), item.getExpiresOn(),
                         item.getIsMultiResourceRefreshToken());
@@ -824,7 +827,7 @@ public class AuthenticationContext {
 
             if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 String refreshTokenHash = createHash(item.getRefreshToken());
-                
+
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed + getCorrelationLogInfo());
                 refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource);
@@ -857,15 +860,19 @@ public class AuthenticationContext {
 
     private String createHash(String msg) {
         try {
-            MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
-            final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
-            String hash = new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
-                    AuthenticationConstants.ENCODING_UTF8);
-            return hash;
+            if (!StringExtensions.IsNullOrBlank(msg)) {
+                MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
+                final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
+                String hash = new String(
+                        Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
+                        AuthenticationConstants.ENCODING_UTF8);
+                return hash;
+            }
         } catch (Exception e) {
             Logger.e(TAG, "Message digest error", "", ADALError.DIGEST_ERROR, e);
         }
-        return null;
+        
+        return "";
     }
 
     /**
@@ -939,8 +946,8 @@ public class AuthenticationContext {
             final RefreshItem refreshItem, final boolean useCache,
             final AuthenticationCallback<AuthenticationResult> externalCallback) {
 
-         
-        Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:" + createHash(refreshItem.mRefreshToken));
+        Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
+                + createHash(refreshItem.mRefreshToken));
 
         // Removes refresh token from cache, when this call is complete. Request
         // may be interrupted, if app is shutdown by user. Detect connection
