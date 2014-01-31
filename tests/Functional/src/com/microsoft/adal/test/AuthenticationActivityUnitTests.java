@@ -161,18 +161,16 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         startActivity(intentToStartActivity, null, null);
         activity = getActivity();
 
-        final CountDownLatch signal = new CountDownLatch(1);
         final TestLogResponse logResponse = new TestLogResponse();
         logResponse.listenForLogMessage(
                 "Webview onResume register broadcast receiver for requestId" + TEST_REQUEST_ID,
-                signal);
+                null);
         ReflectionUtils.setFieldValue(activity, "mRestartWebview", true);
         Method onResume = ReflectionUtils.getTestMethod(activity, "onResume");
 
         onResume.invoke(activity);
 
         // get field value to check
-        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("verify log message",
                 logResponse.message.startsWith("Webview onResume register broadcast"));
     }

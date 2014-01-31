@@ -4,6 +4,7 @@ package com.microsoft.adal;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -24,7 +25,6 @@ import android.view.View;
 import android.view.Window;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -95,6 +95,7 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -379,7 +380,6 @@ public class AuthenticationActivity extends Activity {
         }
 
         @Override
-        @SuppressWarnings("deprecation")
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
 
             Logger.d(TAG, "shouldOverrideUrlLoading:url=" + url);
