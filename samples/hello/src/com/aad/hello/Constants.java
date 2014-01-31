@@ -1,5 +1,5 @@
 
-package com.example.com.microsoft.adal.hello;
+package com.aad.hello;
 
 public class Constants {
     public static final String SDK_VERSION = "1.0";
@@ -23,7 +23,7 @@ public class Constants {
 
     static final String REDIRECT_URL = "http://msopentech.com";
 
-    static String USER_HINT = "admin@p365ppetap04.ccsctp.net";
+    static String USER_HINT = "android2@p365ppetap04.ccsctp.net";
 
     // Endpoint we are targeting for the deployed WebAPI service
     static final String SERVICE_URL = "https://android.azurewebsites.net";
