@@ -1,7 +1,6 @@
 
 package com.microsoft.adal;
 
-import javax.crypto.SecretKey;
 
 /**
  * Settings to be used in AuthenticationContext

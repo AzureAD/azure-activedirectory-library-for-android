@@ -45,6 +45,8 @@ public enum ADALError {
      * webview has some generic error
      */
     ERROR_WEBVIEW("Webview returned an error"),
+    
+    ACTIVITY_REQUEST_INTENT_DATA_IS_NULL("Request object is needed to start AuthenticationActivity"),
 
     BROADCAST_RECEIVER_ERROR("Broadcast receiver has an error"),
 
