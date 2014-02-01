@@ -21,9 +21,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.aad.hello.Constants;
+
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
@@ -128,14 +130,34 @@ public class MainActivity extends Activity {
     public void onClickUseToken(View view) {
         if (mResult != null && mResult.getAccessToken() != null) {
             textView1.setText("");
-            Toast.makeText(getApplicationContext(), "Sending token to a service",
-                    Toast.LENGTH_SHORT).show();
+            displayMessage("Sending token to a service");
             new RequestTask(Constants.SERVICE_URL, mResult.getAccessToken()).execute();
         } else {
             textView1.setText("Token is empty");
         }
     }
 
+    public void onClickClearTokens(View view) {
+        if (mAuthContext != null && mAuthContext.getCache() != null) {
+            displayMessage("Clearing tokens");
+            mAuthContext.getCache().removeAll();
+        } else {
+            textView1.setText("Cache is null");
+        }
+    }
+    
+    public void onClickClearCookies(View view) {
+        CookieSyncManager.createInstance(MainActivity.this);
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.removeAllCookie();
+        CookieSyncManager.getInstance().sync();
+    }
+    
+    private void displayMessage(String msg){
+        Toast.makeText(getApplicationContext(), msg,
+                Toast.LENGTH_SHORT).show();
+    }
+    
     /**
      * Simple get request for test
      * 

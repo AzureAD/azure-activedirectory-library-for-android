@@ -13,24 +13,25 @@ public class Constants {
 
     public static final String HEADER_AUTHORIZATION_VALUE_PREFIX = "Bearer ";
 
-    // -------------------------------AAD
-    // PARAMETERS----------------------------------
-    static final String AUTHORITY_URL = "https://login.windows-ppe.net/common";
+    // AAD PARAMETERS
+    // https://login.windows.net/tenantInfo
+    static final String AUTHORITY_URL = "https://login.windows.net/omercantest.onmicrosoft.com";
 
-    static final String CLIENT_ID = "a7558c9a-c964-4fbf-be19-2f277f78a586";
+    // Clientid is given from AAD page when you register your Android app
+    static final String CLIENT_ID = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
 
-    static final String RESOURCE_ID = "00000002-0000-0ff1-ce00-000000000000"; 
+    // RedirectUri
+    static final String REDIRECT_URL = "http://taskapp";
 
-    static final String REDIRECT_URL = "http://msopentech.com";
+    // URI for the resource. You need to setup this resource at AAD
+    static final String RESOURCE_ID = "https://omercantest.onmicrosoft.com/AllHandsTry";
 
-    static String USER_HINT = "android2@p365ppetap04.ccsctp.net";
+    static String USER_HINT = "";
 
     // Endpoint we are targeting for the deployed WebAPI service
-    static final String SERVICE_URL = "https://android.azurewebsites.net";
+    static final String SERVICE_URL = "https://android.azurewebsites.net/api/values";
 
     // ------------------------------------------------------------------------------------------
-
-    static final String TABLE_WORKITEM = "WorkItem";
 
     public static final String SHARED_PREFERENCE_NAME = "com.example.com.test.settings";
 
