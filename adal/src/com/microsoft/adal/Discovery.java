@@ -54,13 +54,13 @@ final class Discovery implements IDiscovery {
     private final static String TRUSTED_QUERY_INSTANCE = "login.windows.net";
 
     private UUID mCorrelationId;
-    
+
     public Discovery() {
-        initValidList();       
+        initValidList();
     }
 
     @Override
-    public void isValidAuthority(URL authorizationEndpoint, AuthenticationCallback<Boolean> callback) {
+    public boolean isValidAuthority(URL authorizationEndpoint) {
         // For comparison purposes, convert to lowercase Locale.US
         // getProtocol returns scheme and it is available if it is absolute url
         // Authority is in the form of https://Instance/tenant/somepath
@@ -72,21 +72,20 @@ final class Discovery implements IDiscovery {
                 && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())) {
 
             if (isADFSAuthority(authorizationEndpoint)) {
-                callback.onError(new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
+                throw new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED);
             } else if (mValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
                 // host can be the instance or inside the validated list.
                 // Valid hosts will help to skip validation if validated before
                 // call Callback and skip the look up
-                callback.onSuccess(true);
+                return true;
             } else {
                 // Only query from Prod instance for now, not all of the
                 // instances in the list
-                queryInstance(authorizationEndpoint, callback);
+                return queryInstance(authorizationEndpoint);
             }
-        } else {
-            // Not valid authority
-            callback.onSuccess(false);
         }
+
+        return false;
     }
 
     private boolean isADFSAuthority(URL authorizationEndpoint) {
@@ -122,79 +121,63 @@ final class Discovery implements IDiscovery {
         }
     }
 
-    private void queryInstance(final URL authorizationEndpointUrl,
-            final AuthenticationCallback<Boolean> callback) {
+    private boolean queryInstance(final URL authorizationEndpointUrl) {
 
         // It will query prod instance to verify the authority
+        // construct query string for this instance
+        URL queryUrl;
+        boolean result = false;
         try {
-            // construct query string for this instance
-            URL queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE,
+            queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE,
                     getAuthorizationCommonEndpoint(authorizationEndpointUrl));
 
-            // setup callback to query again if not found
-            final AuthenticationCallback<Boolean> evalStepCallback = new AuthenticationCallback<Boolean>() {
-
-                @Override
-                public void onSuccess(Boolean result) {
-                    callback.onSuccess(result);
-
-                    if (result) {
-                        // it is validated
-                        addValidHostToList(authorizationEndpointUrl);
-                    }
-                }
-
-                @Override
-                public void onError(Exception exc) {
-                    Logger.e(TAG, "Error in instance discovery", "",
-                            ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
-                    callback.onError(exc);
-                }
-            };
-
-            // post async call to current instance
-            sendRequest(evalStepCallback, queryUrl);
-
+            result = sendRequest(queryUrl);
         } catch (MalformedURLException e) {
             Logger.e(TAG, "Invalid authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
                     e);
-            callback.onError(e);
+            result = false;
+        } catch (JSONException e) {
+            Logger.e(TAG, "Json parsing error", "",
+                    ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, e);
+            result = false;
         }
+
+        if (result) {
+            // it is validated
+            addValidHostToList(authorizationEndpointUrl);
+        }
+
+        return result;
     }
 
-    private void sendRequest(final AuthenticationCallback<Boolean> callback, final URL queryUrl)
-            throws MalformedURLException {
+    private boolean sendRequest(final URL queryUrl) throws MalformedURLException, JSONException {
 
         Logger.v(TAG, "Sending discovery request to:" + queryUrl);
         WebRequestHandler request = new WebRequestHandler();
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
-        
+
         // CorrelationId is used to track the request at the Azure services
-        if(mCorrelationId != null){
+        if (mCorrelationId != null) {
             headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, mCorrelationId.toString());
             headers.put(AuthenticationConstants.AAD.RETURN_CLIENT_REQUEST_ID, "true");
         }
-        request.sendAsyncGet(queryUrl, headers, new HttpWebRequestCallback() {
-            @Override
-            public void onComplete(HttpWebResponse webResponse, Exception exception) {
 
-                if (webResponse != null) {
-                    try {
-                        callback.onSuccess(parseResponse(webResponse));
-                    } catch (IllegalArgumentException exc) {
-                        Logger.e(TAG, exc.getMessage(), "",
-                                ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
-                        callback.onError(exc);
-                    } catch (JSONException e) {
-                        Logger.e(TAG, "Json parsing error", "",
-                                ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, e);
-                        callback.onError(e);
-                    }
-                } else
-                    callback.onError(exception);
-            }
-        });
+        HttpWebResponse webResponse = null;
+        try {
+            webResponse = request.sendGet(queryUrl, headers);
+
+            // parse discovery response to find tenant info
+            return parseResponse(webResponse);
+        } catch (IllegalArgumentException exc) {
+            Logger.e(TAG, exc.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
+                    exc);
+            throw exc;
+        } catch (JSONException e) {
+            Logger.e(TAG, "Json parsing error", "",
+                    ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, e);
+            throw e;
+        }
     }
 
     /**
@@ -253,6 +236,6 @@ final class Discovery implements IDiscovery {
 
     @Override
     public void setCorrelationId(UUID requestCorrelationId) {
-        mCorrelationId = requestCorrelationId;        
+        mCorrelationId = requestCorrelationId;
     }
 }

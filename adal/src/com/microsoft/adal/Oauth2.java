@@ -301,14 +301,12 @@ class Oauth2 {
         }
     }
 
-    public void refreshToken(String refreshToken,
-            final AuthenticationCallback<AuthenticationResult> authenticationCallback) {
+    public AuthenticationResult refreshToken(String refreshToken) {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
-            authenticationCallback.onError(new IllegalArgumentException("webRequestHandler"));
-            return;
+            throw new IllegalArgumentException("webRequestHandler");
         }
 
         // Token request message
@@ -316,11 +314,10 @@ class Oauth2 {
             requestMessage = buildRefreshTokenRequestMessage(refreshToken);
         } catch (UnsupportedEncodingException encoding) {
             Logger.e(TAG, encoding.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
-            authenticationCallback.onError(encoding);
-            return;
+            return null;
         }
 
-        postMessage(requestMessage, authenticationCallback);
+        return postMessage(requestMessage);
     }
 
     /**
@@ -331,12 +328,10 @@ class Oauth2 {
      *            or token for next step
      * @param authenticationCallback
      */
-    public void getToken(String authorizationUrl,
-            AuthenticationCallback<AuthenticationResult> authenticationCallback) {
+    public AuthenticationResult getToken(String authorizationUrl) {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
-            authenticationCallback.onError(new IllegalArgumentException("finalUrl"));
-            return;
+            throw new IllegalArgumentException("finalUrl");
         }
 
         // Success
@@ -362,30 +357,26 @@ class Oauth2 {
                     if (!result.getCode().isEmpty()) {
 
                         // Get token and use external callback to set result
-                        getTokenForCode(result.getCode(), authenticationCallback);
+                        return getTokenForCode(result.getCode());
 
                     } else if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                         // We have token directly with implicit flow
-                        authenticationCallback.onSuccess(result);
+                        return result;
                     } else {
-                        authenticationCallback.onError(new AuthenticationException(
-                                ADALError.AUTH_FAILED_NO_TOKEN));
+                        throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN);
                     }
                 } else {
-                    authenticationCallback.onError(new AuthenticationException(
-                            ADALError.AUTH_FAILED_NO_TOKEN, result.getErrorCode() + " "
-                                    + result.getErrorDescription()));
+                    throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN,
+                            result.getErrorCode() + " " + result.getErrorDescription());
                 }
 
             } else {
-                authenticationCallback.onError(new AuthenticationException(
-                        ADALError.AUTH_FAILED_BAD_STATE));
+                throw new AuthenticationException(ADALError.AUTH_FAILED_BAD_STATE);
             }
         } else {
 
             // The response from the server had no state
-            authenticationCallback.onError(new AuthenticationException(
-                    ADALError.AUTH_FAILED_NO_STATE));
+            throw new AuthenticationException(ADALError.AUTH_FAILED_NO_STATE);
         }
     }
 
@@ -396,9 +387,7 @@ class Oauth2 {
      * @param code
      * @param authenticationCallback
      */
-    public void getTokenForCode(String code,
-            final AuthenticationCallback<AuthenticationResult> authenticationCallback)
-            throws IllegalArgumentException {
+    public AuthenticationResult getTokenForCode(String code) throws IllegalArgumentException {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -410,65 +399,44 @@ class Oauth2 {
             requestMessage = buildTokenRequestMessage(code);
         } catch (UnsupportedEncodingException encoding) {
             Logger.e(TAG, encoding.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
-            authenticationCallback.onError(encoding);
-            return;
+            return null;
         }
 
-        postMessage(requestMessage, authenticationCallback);
+        return postMessage(requestMessage);
     }
 
-    private void postMessage(String requestMessage,
-            final AuthenticationCallback<AuthenticationResult> authenticationCallback) {
+    private AuthenticationResult postMessage(String requestMessage) {
         URL authority = null;
-
+        AuthenticationResult result = null;
         try {
             authority = new URL(getTokenEndpoint());
         } catch (MalformedURLException e1) {
             Logger.e(TAG, e1.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
-            authenticationCallback.onError(e1);
-            return;
         }
 
         HashMap<String, String> headers = getRequestHeaders();
         try {
             mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
-            mWebRequestHandler.sendAsyncPost(authority, headers,
+
+            HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
-                    "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
+                    "application/x-www-form-urlencoded");
 
-                        @Override
-                        public void onComplete(HttpWebResponse response, Exception exception) {
+            Logger.v(TAG, "Token request does not have errors");
 
-                            if (exception != null
-                                    && (response == null || response.getBody() == null)) {
-                                Logger.e(TAG, exception.getMessage(), "", ADALError.SERVER_ERROR,
-                                        exception);
-                                authenticationCallback.onError(exception);
-                            } else {
-                                Logger.v(TAG, "Token request does not have errors");
-                                try {
-                                    AuthenticationResult result = processTokenResponse(response);
-                                    authenticationCallback.onSuccess(result);
-                                } catch (Exception ex) {
-                                    Logger.e(TAG, exception.getMessage(), "",
-                                            ADALError.SERVER_ERROR, exception);
-                                    authenticationCallback.onError(exception);
-                                    return;
-                                }
-                            }
-                        }
-                    });
+            result = processTokenResponse(response);
 
         } catch (IllegalArgumentException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
-            authenticationCallback.onError(e);
         } catch (UnsupportedEncodingException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-            authenticationCallback.onError(e);
         } catch (IOException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.IO_EXCEPTION, e);
-            authenticationCallback.onError(e);
+        } catch (Exception e) {
+            Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
         }
+
+        return result;
     }
 
     public static String decodeProtocolState(String encodedState) {
