@@ -50,7 +50,7 @@ class HttpWebRequest {
 
     byte[] mRequestContent = null;
 
-    String mRequestContentType = null;
+    private String mRequestContentType = null;
 
     int mTimeOut = CONNECT_TIME_OUT;
 
@@ -88,12 +88,15 @@ class HttpWebRequest {
                 && !mUrl.getProtocol().equalsIgnoreCase("https")) {
             throw new IllegalArgumentException("requestURL");
         }
+
         HttpURLConnection.setFollowRedirects(true);
         mConnection = openConnection(mConnection);
     }
 
     /**
      * send the request
+     * 
+     * @param contentType
      */
     public HttpWebResponse send() {
 
@@ -175,6 +178,7 @@ class HttpWebRequest {
             }
         }
 
+        _response.setResponseException(mException);
         return _response;
     }
 
@@ -235,8 +239,8 @@ class HttpWebRequest {
         if (null != mRequestContent) {
             connection.setDoOutput(true);
 
-            if (null != mRequestContentType && !mRequestContentType.isEmpty()) {
-                connection.setRequestProperty("Content-Type", mRequestContentType);
+            if (null != getRequestContentType() && !getRequestContentType().isEmpty()) {
+                connection.setRequestProperty("Content-Type", getRequestContentType());
             }
 
             connection.setRequestProperty("Content-Length",
@@ -288,5 +292,17 @@ class HttpWebRequest {
 
     void setRequestMethod(String mRequestMethod) {
         this.mRequestMethod = mRequestMethod;
+    }
+
+    String getRequestContentType() {
+        return mRequestContentType;
+    }
+
+    void setRequestContentType(String mRequestContentType) {
+        this.mRequestContentType = mRequestContentType;
+    }
+
+    void setRequestContent(byte[] data) {
+        this.mRequestContent = data;
     }
 }

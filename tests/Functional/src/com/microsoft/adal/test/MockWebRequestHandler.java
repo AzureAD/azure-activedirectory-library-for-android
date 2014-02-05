@@ -6,11 +6,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.UUID;
 
-import com.microsoft.adal.HttpWebRequestCallback;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
-
-import android.os.AsyncTask;
 
 /**
  * handler to return mock responses
@@ -27,50 +24,34 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     private HttpWebResponse mReturnResponse;
 
-    private Exception mReturnException;
+    private String mReturnException;
 
     @Override
-    public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
-            HttpWebRequestCallback callback) throws IllegalArgumentException, IOException {
-        mRequestUrl = url;
-        mRequestHeaders = headers;
-        callback.onComplete(mReturnResponse, mReturnException);
-        return null;
-    }
-
-    @Override
-    public AsyncTask<?, ?, ?> sendAsyncDelete(URL url, HashMap<String, String> headers,
-            HttpWebRequestCallback callback) throws IllegalArgumentException, IOException {
-        mRequestUrl = url;
-        mRequestHeaders = headers;
-        callback.onComplete(mReturnResponse, mReturnException);
-        return null;
-    }
-
-    @Override
-    public AsyncTask<?, ?, ?> sendAsyncPut(URL url, HashMap<String, String> headers,
-            byte[] content, String contentType, HttpWebRequestCallback callback)
+    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers)
             throws IllegalArgumentException, IOException {
+        mRequestUrl = url;
+        mRequestHeaders = headers;
+        if (mReturnException != null) {
+            throw new IllegalArgumentException(mReturnException);
+        }
+
+        return mReturnResponse;
+    }
+
+    @Override
+    public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
+            String contentType) throws IllegalArgumentException, IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {
             mRequestContent = new String(content, "UTF-8");
         }
-        callback.onComplete(mReturnResponse, mReturnException);
-        return null;
-    }
 
-    @Override
-    public AsyncTask<?, ?, ?> sendAsyncPost(URL url, HashMap<String, String> headers,
-            byte[] content, String contentType, HttpWebRequestCallback callback)
-            throws IllegalArgumentException, IOException {
-        mRequestUrl = url;
-        mRequestHeaders = headers;
-        if (content != null) {
-            mRequestContent = new String(content, "UTF-8");
+        if (mReturnException != null) {
+            throw new IllegalArgumentException(mReturnException);
         }
-        callback.onComplete(mReturnResponse, mReturnException);
-        return null;
+
+        return mReturnResponse;
     }
 
     public URL getRequestUrl() {
@@ -85,8 +66,8 @@ class MockWebRequestHandler implements IWebRequestHandler {
         this.mReturnResponse = mReturnResponse;
     }
 
-    public void setReturnException(Exception mReturnException) {
-        this.mReturnException = mReturnException;
+    public void setReturnException(String exception) {
+        this.mReturnException = exception;
     }
 
     public String getRequestContent() {

@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -187,7 +186,7 @@ public class AuthenticationContext {
      * @param callback required
      * @return
      */
-    public Future<?> acquireToken(Activity activity, String resource, String clientId,
+    public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
@@ -195,7 +194,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, userId, PromptBehavior.Auto, null, getRequestCorrelationId());
 
-        return acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(activity, request, callback);
     }
 
     /**
@@ -219,7 +218,7 @@ public class AuthenticationContext {
      * @param callback
      * @return
      */
-    public Future<?> acquireToken(Activity activity, String resource, String clientId,
+    public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
@@ -229,7 +228,7 @@ public class AuthenticationContext {
                 clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters,
                 getRequestCorrelationId());
 
-        return acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(activity, request, callback);
     }
 
     /**
@@ -250,7 +249,7 @@ public class AuthenticationContext {
      * @param callback
      * @return
      */
-    public Future<?> acquireToken(Activity activity, String resource, String clientId,
+    public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt,
             AuthenticationCallback<AuthenticationResult> callback) {
 
@@ -259,7 +258,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, null, getRequestCorrelationId());
 
-        return acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(activity, request, callback);
     }
 
     /**
@@ -281,7 +280,7 @@ public class AuthenticationContext {
      * @param callback
      * @return
      */
-    public Future<?> acquireToken(Activity activity, String resource, String clientId,
+    public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
@@ -291,7 +290,7 @@ public class AuthenticationContext {
                 clientId, redirectUri, null, prompt, extraQueryParameters,
                 getRequestCorrelationId());
 
-        return acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(activity, request, callback);
     }
 
     /**
@@ -314,7 +313,7 @@ public class AuthenticationContext {
      * @param extraQueryParameters Optional. added to authorization url
      * @param callback
      */
-    public Future<?> acquireToken(Activity activity, String resource, String clientId,
+    public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
@@ -324,7 +323,7 @@ public class AuthenticationContext {
                 clientId, redirectUri, userId, prompt, extraQueryParameters,
                 getRequestCorrelationId());
 
-        return acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(activity, request, callback);
     }
 
     private String checkInputParameters(Activity activity, String resource, String clientId,
@@ -365,9 +364,9 @@ public class AuthenticationContext {
      * @param clientId Required.
      * @param callback Required
      */
-    public Future<?> acquireTokenByRefreshToken(String refreshToken, String clientId,
+    public void acquireTokenByRefreshToken(String refreshToken, String clientId,
             AuthenticationCallback<AuthenticationResult> callback) {
-        return refreshTokenWithoutCache(refreshToken, clientId, null, callback);
+        refreshTokenWithoutCache(refreshToken, clientId, null, callback);
     }
 
     /**
@@ -380,9 +379,9 @@ public class AuthenticationContext {
      * @param resource
      * @param callback Required
      */
-    public Future<?> acquireTokenByRefreshToken(String refreshToken, String clientId,
-            String resource, AuthenticationCallback<AuthenticationResult> callback) {
-        return refreshTokenWithoutCache(refreshToken, clientId, resource, callback);
+    public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
+            AuthenticationCallback<AuthenticationResult> callback) {
+        refreshTokenWithoutCache(refreshToken, clientId, resource, callback);
     }
 
     /**
@@ -462,8 +461,6 @@ public class AuthenticationContext {
                         // immediately to
                         // UI thread. All UI
                         // related actions will be performed using the Handler.
-                        // This
-                        // part is not cancellable by user
                         sThreadExecutor.submit(new Runnable() {
 
                             @Override
@@ -695,7 +692,7 @@ public class AuthenticationContext {
         }
     }
 
-    private Future<?> acquireTokenLocal(final Activity activity,
+    private void acquireTokenLocal(final Activity activity,
             final AuthenticationRequest request,
             final AuthenticationCallback<AuthenticationResult> externalCall) {
         getHandler();
@@ -704,18 +701,14 @@ public class AuthenticationContext {
 
         // Executes all the calls inside the Runnable to return immediately to
         // user. All UI
-        // related actions will be performed using Handler. Since it may launch
-        // an activity, it did not make sense to provide
-        // Future<AuthenticationResult> and let them to blocking call
-        Future<?> taskItem = sThreadExecutor.submit(new Runnable() {
+        // related actions will be performed using Handler.
+        sThreadExecutor.submit(new Runnable() {
 
             @Override
             public void run() {
                 acquireTokenLocalCall(callbackHandle, activity, request);
             }
         });
-
-        return taskItem;
     }
 
     /**
@@ -1211,7 +1204,7 @@ public class AuthenticationContext {
      * App context or activity is not needed. Async requests are created,so this
      * needs to be called at UI thread.
      */
-    private Future<?> refreshTokenWithoutCache(final String refreshToken, final String clientId,
+    private void refreshTokenWithoutCache(final String refreshToken, final String clientId,
             final String resource, final AuthenticationCallback<AuthenticationResult> externalCall) {
         Logger.v(TAG, "Refresh token without cache" + getCorrelationLogInfo());
 
@@ -1231,7 +1224,7 @@ public class AuthenticationContext {
 
         // Execute all the calls inside Runnable to return immediately. All UI
         // related actions will be performed using Handler.
-        Future<?> taskItem = sThreadExecutor.submit(new Runnable() {
+        sThreadExecutor.submit(new Runnable() {
             @Override
             public void run() {
 
@@ -1287,7 +1280,6 @@ public class AuthenticationContext {
             }
         });
 
-        return taskItem;
     }
 
     private Handler getHandler() {

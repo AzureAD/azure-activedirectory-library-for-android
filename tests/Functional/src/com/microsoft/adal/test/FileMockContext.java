@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Looper;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 
@@ -34,6 +35,11 @@ class FileMockContext extends MockContext {
         responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
     }
 
+    @Override
+    public Looper getMainLooper() {
+        return mContext.getMainLooper();
+    }
+    
     @Override
     public String getPackageName() {
         return PREFIX;

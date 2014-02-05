@@ -36,7 +36,6 @@ import android.util.SparseArray;
 
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationActivity;
-import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationSettings;
@@ -1238,10 +1237,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         }
 
         @Override
-        public void isValidAuthority(URL authorizationEndpoint,
-                AuthenticationCallback<Boolean> callback) {
+        public boolean isValidAuthority(URL authorizationEndpoint) {
             authorizationUrl = authorizationEndpoint;
-            callback.onSuccess(isValid);
+            return isValid;
         }
 
         public URL getAuthorizationUrl() {

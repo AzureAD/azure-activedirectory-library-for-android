@@ -18,7 +18,7 @@ public class WebRequestHandler implements IWebRequestHandler {
     public final static String HEADER_ACCEPT_JSON = "application/json";
 
     private UUID mRequestCorrelationId = null;
-    
+
     public WebRequestHandler() {
 
     }
@@ -41,6 +41,8 @@ public class WebRequestHandler implements IWebRequestHandler {
 
         HttpWebRequest request = new HttpWebRequest(url);
         request.setRequestMethod(HttpWebRequest.REQUEST_METHOD_POST);
+        request.setRequestContentType(contentType);
+        request.setRequestContent(content);
         headers = updateHeaders(headers);
         addHeadersToRequest(headers, request);
         return request.send();

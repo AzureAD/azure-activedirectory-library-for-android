@@ -5,13 +5,10 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-
-import org.apache.http.client.utils.URLEncodedUtils;
 
 import junit.framework.Assert;
 import android.test.AndroidTestCase;
@@ -20,15 +17,13 @@ import android.util.Base64;
 
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
-import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
-import com.microsoft.adal.HttpWebResponse;
-import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.adal.test.AuthenticationConstants.AAD;
-import com.microsoft.adal.test.AuthenticationConstants.OAuth2;
+import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
+import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.UserInfo;
+import com.microsoft.adal.test.AuthenticationConstants.AAD;
 
 public class OauthTests extends AndroidTestCase {
 
@@ -314,7 +309,7 @@ public class OauthTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        webrequest.setReturnException(new Exception("request should return error"));
+        webrequest.setReturnException("request should return error");
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -344,7 +339,7 @@ public class OauthTests extends AndroidTestCase {
         assertNull("Exception is null", testResult.mException);
 
         // Invalid status that cause some exception at webrequest
-        webrequest.setReturnException(new Exception("test-returned-exception"));
+        webrequest.setReturnException("test-returned-exception");
 
         // send request
         testResult = refreshToken(getValidAuthenticationRequest(), webrequest, "test");
