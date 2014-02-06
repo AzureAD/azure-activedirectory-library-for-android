@@ -26,7 +26,7 @@ public class Constants {
     static String USER_HINT = "faruk@omercantest.onmicrosoft.com";
 
     // Endpoint we are targeting for the deployed WebAPI service
-    static final String SERVICE_URL = "https://p365ppetap04.spoppe.com";
+    static final String SERVICE_URL = "https://android.azurewebsites.net";
 
     // ------------------------------------------------------------------------------------------
 
