@@ -301,7 +301,7 @@ class Oauth2 {
         }
     }
 
-    public AuthenticationResult refreshToken(String refreshToken) {
+    public AuthenticationResult refreshToken(String refreshToken) throws Exception {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -327,8 +327,9 @@ class Oauth2 {
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
      * @param authenticationCallback
+     * @throws Exception 
      */
-    public AuthenticationResult getToken(String authorizationUrl) {
+    public AuthenticationResult getToken(String authorizationUrl) throws Exception {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
             throw new IllegalArgumentException("finalUrl");
@@ -353,7 +354,7 @@ class Oauth2 {
                 AuthenticationResult result = processUIResponseParams(parameters);
 
                 // Check if we have token or code
-                if (result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
+                if (result != null && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
                     if (!result.getCode().isEmpty()) {
 
                         // Get token and use external callback to set result
@@ -386,8 +387,9 @@ class Oauth2 {
      * @param request
      * @param code
      * @param authenticationCallback
+     * @throws Exception 
      */
-    public AuthenticationResult getTokenForCode(String code) throws IllegalArgumentException {
+    public AuthenticationResult getTokenForCode(String code) throws Exception {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -405,13 +407,14 @@ class Oauth2 {
         return postMessage(requestMessage);
     }
 
-    private AuthenticationResult postMessage(String requestMessage) {
+    private AuthenticationResult postMessage(String requestMessage) throws Exception {
         URL authority = null;
         AuthenticationResult result = null;
         try {
             authority = new URL(getTokenEndpoint());
         } catch (MalformedURLException e1) {
             Logger.e(TAG, e1.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
+            throw e1;
         }
 
         HashMap<String, String> headers = getRequestHeaders();
@@ -428,12 +431,16 @@ class Oauth2 {
 
         } catch (IllegalArgumentException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
+            throw e;
         } catch (UnsupportedEncodingException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+            throw e;
         } catch (IOException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.IO_EXCEPTION, e);
+            throw e;
         } catch (Exception e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+            throw e;
         }
 
         return result;

@@ -27,6 +27,8 @@ import com.microsoft.adal.test.AuthenticationConstants.AAD;
 
 public class OauthTests extends AndroidTestCase {
 
+    private static final String TEST_RETURNED_EXCEPTION = "test-returned-exception";
+
     @SmallTest
     public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
@@ -280,8 +282,8 @@ public class OauthTests extends AndroidTestCase {
                 refreshToken);
 
         // Verify that we have error for request handler
-        assertTrue("web request argument error",
-                testResult.mException.getMessage().contains("webRequestHandler"));
+        assertTrue("web request argument error", testResult.mException.getCause().getMessage()
+                .contains("webRequestHandler"));
         assertNull("Result is null", testResult.mResult);
     }
 
@@ -298,7 +300,8 @@ public class OauthTests extends AndroidTestCase {
         MockAuthenticationCallback testResult = refreshToken(request, webrequest, "test");
 
         // Verify that we have error for request handler
-        assertTrue("web request argument error", testResult.mException.getMessage().contains("url"));
+        assertTrue("web request argument error", testResult.mException.getCause().getMessage()
+                .contains("url"));
         assertNull("Result is null", testResult.mResult);
     }
 
@@ -314,8 +317,8 @@ public class OauthTests extends AndroidTestCase {
                 webrequest, "test");
 
         // Verify that callback can receive this error
-        assertTrue("callback receives error",
-                testResult.mException.getMessage().contains("request should return error"));
+        assertTrue("callback receives error", testResult.mException.getCause().getMessage()
+                .contains("request should return error"));
         assertNull("Result is null", testResult.mResult);
     }
 
@@ -337,17 +340,16 @@ public class OauthTests extends AndroidTestCase {
         assertNull("Exception is null", testResult.mException);
 
         // Invalid status that cause some exception at webrequest
-        webrequest.setReturnException("test-returned-exception");
+        webrequest.setReturnException(TEST_RETURNED_EXCEPTION);
 
         // send request
+        TestLogResponse response = new TestLogResponse();
+        response.listenForLogMessage(TEST_RETURNED_EXCEPTION, null);
         testResult = refreshToken(getValidAuthenticationRequest(), webrequest, "test");
 
-        // Verify that callback can receive this error
-        assertNotNull("callback receives error in the exception", testResult.mException);
+        // Verify that result returns null from this error
         assertNull("Result is null", testResult.mResult);
-        assertTrue("Exception is same as mock exception", testResult.mException.getMessage()
-                .contains("test-returned-exception"));
-
+        assertEquals("Exception has same error message", TEST_RETURNED_EXCEPTION, response.message);
     }
 
     @SmallTest

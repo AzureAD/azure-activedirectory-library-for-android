@@ -550,14 +550,17 @@ public class AuthenticationContextTests extends AndroidTestCase {
     @SmallTest
     public void testAcquireTokenByRefreshToken_ConnectionNotAvailable()
             throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException,
-            NoSuchAlgorithmException, NoSuchPaddingException {
+            NoSuchAlgorithmException, NoSuchPaddingException, InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
         setConnectionAvailable(context, false);
 
-        final MockAuthenticationCallback mockCallback = new MockAuthenticationCallback();
+        CountDownLatch signal = new CountDownLatch(1);
+        final MockAuthenticationCallback mockCallback = new MockAuthenticationCallback(signal);
         context.acquireTokenByRefreshToken("refresh", "clientId", "resource", mockCallback);
+        
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("Exception type", mockCallback.mException instanceof AuthenticationException);
         assertEquals("Connection related error code", ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                 ((AuthenticationException)mockCallback.mException).getCode());

@@ -138,7 +138,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertNotNull("response should not be null", responseAdfs);
         assertNotNull(
                 "It should have exception",
-                responseAdfs.exception.getMessage().equals(
+                responseAdfs.exception.getCause().getMessage().equals(
                         ADALError.DISCOVERY_NOT_SUPPORTED.getDescription()));
 
         final TestResponse responseInvalidPath = new TestResponse();
