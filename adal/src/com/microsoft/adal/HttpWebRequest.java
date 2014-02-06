@@ -90,7 +90,7 @@ class HttpWebRequest {
         }
 
         HttpURLConnection.setFollowRedirects(true);
-        mConnection = openConnection(mConnection);
+        mConnection = openConnection();
     }
 
     /**
@@ -118,10 +118,10 @@ class HttpWebRequest {
                 mConnection.setReadTimeout(READ_TIME_OUT);
                 mConnection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
                 mConnection.setUseCaches(mUseCaches);
-                mConnection.setRequestMethod(getRequestMethod());
-                setRequestBody(mConnection);
+                mConnection.setRequestMethod(mRequestMethod);
+                setRequestBody();
 
-                if (getRequestMethod() != REQUEST_METHOD_GET) {
+                if (mRequestMethod != REQUEST_METHOD_GET) {
                     // If request is not get, it will have the status from
                     // getOutputStream call.
                     getStatusCode(_response);
@@ -140,7 +140,7 @@ class HttpWebRequest {
 
                 // GET request should read status after getInputStream to make
                 // this work for different SDKs
-                if (getRequestMethod() == REQUEST_METHOD_GET) {
+                if (mRequestMethod == REQUEST_METHOD_GET) {
                     getStatusCode(_response);
                 }
 
@@ -169,7 +169,7 @@ class HttpWebRequest {
                 _response.setBody(responseBody);
                 _response.setResponseHeaders(mConnection.getHeaderFields());
             } catch (Exception e) {
-                Logger.e(TAG, "Exception:" + e.getMessage(), " Method:" + getRequestMethod(),
+                Logger.e(TAG, "Exception:" + e.getMessage(), " Method:" + mRequestMethod,
                         ADALError.SERVER_ERROR, e);
                 mException = e;
             } finally {
@@ -217,37 +217,35 @@ class HttpWebRequest {
      * open connection. If there is any error, set exception inside the response
      * 
      * @param _response
-     * @param _connection
      * @return
      */
-    private HttpURLConnection openConnection(HttpURLConnection _connection) {
+    private HttpURLConnection openConnection() {
+        HttpURLConnection connection = null;
         try {
 
-            _connection = (HttpURLConnection)mUrl.openConnection();
-            _connection.setConnectTimeout(mTimeOut);
+            connection = (HttpURLConnection)mUrl.openConnection();
+            connection.setConnectTimeout(mTimeOut);
 
         } catch (IOException e) {
             Logger.d(TAG, e.getMessage());
-            mException = e;
-            _connection.disconnect();
-            _connection = null;
+            mException = e;            
         }
-        return _connection;
+        return connection;
     }
 
-    private void setRequestBody(HttpURLConnection connection) throws IOException {
+    private void setRequestBody() throws IOException {
         if (null != mRequestContent) {
-            connection.setDoOutput(true);
+            mConnection.setDoOutput(true);
 
             if (null != getRequestContentType() && !getRequestContentType().isEmpty()) {
-                connection.setRequestProperty("Content-Type", getRequestContentType());
+                mConnection.setRequestProperty("Content-Type", getRequestContentType());
             }
 
-            connection.setRequestProperty("Content-Length",
+            mConnection.setRequestProperty("Content-Length",
                     Integer.toString(mRequestContent.length));
-            connection.setFixedLengthStreamingMode(mRequestContent.length);
+            mConnection.setFixedLengthStreamingMode(mRequestContent.length);
 
-            OutputStream out = connection.getOutputStream();
+            OutputStream out = mConnection.getOutputStream();
             out.write(mRequestContent);
             out.close();
         }
@@ -284,10 +282,6 @@ class HttpWebRequest {
      */
     public HashMap<String, String> getRequestHeaders() {
         return mRequestHeaders;
-    }
-
-    String getRequestMethod() {
-        return mRequestMethod;
     }
 
     void setRequestMethod(String mRequestMethod) {

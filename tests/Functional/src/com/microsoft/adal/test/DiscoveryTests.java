@@ -223,42 +223,14 @@ public class DiscoveryTests extends AndroidTestHelper {
             InstantiationException, InvocationTargetException {
         final String methodName = "isValidAuthority";
         Class<?> c = discovery.getClass();
-        final Method m = c.getDeclaredMethod(methodName, URL.class, AuthenticationCallback.class);
-        final CountDownLatch signal = new CountDownLatch(1);
-
-        testAsyncNoExceptionUIOption(signal, new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    // callback needs to signal for completion to test to the
-                    // end
-                    m.invoke(discovery, endpoint, new AuthenticationCallback<Boolean>() {
-
-                        @Override
-                        public void onSuccess(Boolean result) {
-                            response.result = result;
-                            signal.countDown();
-                        }
-
-                        @Override
-                        public void onError(Exception exc) {
-                            response.exception = exc;
-                            signal.countDown();
-                        }
-                    });
-                } catch (IllegalArgumentException e) {
-                    Assert.fail("IllegalArgumentException");
-                    signal.countDown();
-                } catch (IllegalAccessException e) {
-                    Assert.fail("IllegalAccessException");
-                    signal.countDown();
-                } catch (InvocationTargetException e) {
-                    Assert.fail("InvocationTargetException");
-                    signal.countDown();
-                }
-            }
-        }, runAtUIThread);
+        final Method m = c.getDeclaredMethod(methodName, URL.class);
+        try {
+            // callback needs to signal for completion to test to the
+            // end
+            response.result = (Boolean)m.invoke(discovery, endpoint);
+        } catch (Exception e) {
+            response.exception = e;
+        }
     }
 
     private Object getDiscoveryInstance() throws ClassNotFoundException, NoSuchMethodException,

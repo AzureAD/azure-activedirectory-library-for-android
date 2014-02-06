@@ -207,13 +207,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final TestLogResponse response = new TestLogResponse();
-        response.listenForLogMessage(
-                "Error in refresh token for request:Request authority:https://Login.windows.net/Omercantest.Onmicrosoft.com resource:"
-                        + expectedResource
-                        + " clientid:"
-                        + expectedClientId
-                        + " correlationId:"
-                        + requestCorrelationId.toString(), signal);
+        response.listenLogForMessageSegments(signal, "OAuth2 error:invalid_grant",
+                "Refresh Token is not valid.", "CorrelationId:" + requestCorrelationId.toString());
 
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
@@ -326,7 +321,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     @SmallTest
     public void testAcquireToken_userId() throws ClassNotFoundException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, NoSuchAlgorithmException,
-            NoSuchPaddingException {
+            NoSuchPaddingException, InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "https://login.windows.net/common", false);
@@ -337,6 +332,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         context.acquireToken(testActivity, "resource56", "clientId345", "redirect123", "userid123",
                 callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // verify request
         Intent intent = testActivity.mStartActivityIntent;
@@ -360,7 +356,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     @SmallTest
     public void testEmptyRedirect() throws ClassNotFoundException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, NoSuchAlgorithmException,
-            NoSuchPaddingException {
+            NoSuchPaddingException, InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "https://login.windows.net/common", false);
@@ -370,7 +366,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
         testActivity.mSignal = signal;
 
         context.acquireToken(testActivity, "resource", "clientId", "", "userid", callback);
-
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        
         Intent intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
         Serializable request = intent
@@ -384,7 +381,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     @SmallTest
     public void testPrompt() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, ClassNotFoundException, NoSuchAlgorithmException,
-            NoSuchPaddingException {
+            NoSuchPaddingException, InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "https://login.windows.net/common", false);
@@ -396,7 +393,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
         // 1 - Send prompt always
         context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, callback);
-
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        
         // get intent from activity to verify extraparams are send
         Intent intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
@@ -410,7 +408,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
     @SmallTest
     public void testExtraParams() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, ClassNotFoundException, NoSuchAlgorithmException,
-            NoSuchPaddingException {
+            NoSuchPaddingException, InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "https://login.windows.net/common", false);
@@ -423,7 +421,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
         // 1 - Send extra param
         context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, expected, callback);
-
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        
         // get intent from activity to verify extraparams are send
         Intent intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
@@ -438,9 +437,13 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         // 2- Don't send extraqueryparam
         ReflectionUtils.setFieldValue(context, "mAuthorizationCallback", null);
+        CountDownLatch signal2 = new CountDownLatch(1);
+        callback = new MockAuthenticationCallback(signal2);
+        testActivity.mSignal = signal2;
         context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, null, callback);
-
+        signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        
         // verify from mocked activity intent
         intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
@@ -711,9 +714,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testCorrelationId_InDiscovery()
-            throws InterruptedException, IllegalArgumentException, NoSuchFieldException,
-            IllegalAccessException, NoSuchAlgorithmException, NoSuchPaddingException {
+    public void testCorrelationId_InDiscovery() throws InterruptedException,
+            IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+            NoSuchAlgorithmException, NoSuchPaddingException {
 
         FileMockContext mockContext = new FileMockContext(getContext());
         AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
@@ -846,7 +849,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         webrequest.setReturnResponse(new HttpWebResponse(503, null, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         final TestLogResponse response = new TestLogResponse();
-        response.listenForLogMessage("Refresh token did not return accesstoken.", signal);
+        response.listenForLogMessage("Prompt is not allowed and failed to get token:", signal);
+        TestLogResponse response2 = new TestLogResponse();
+        response2.listenLogForMessageSegments(null, "Refresh token did not return accesstoken", "503");
 
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
                 PromptBehavior.Never, null, callback);
@@ -855,7 +860,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         // Check response in callback result
         assertNotNull("Error is not null", callback.mException);
         assertTrue("Log message has same webstatus code",
-                response.additionalMessage.contains("503"));
+                response2.additionalMessage.contains("503"));
         assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
                 VALID_AUTHORITY, "resource", "clientId", false, "userid")));
         assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
@@ -1036,10 +1041,14 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 .getRequestContent().contains(tokenId));
 
         // Same call again to use it from cache
+        signal = new CountDownLatch(1);
+        callback = new MockAuthenticationCallback(signal);
         callback.mResult = null;
         removeMockWebRequest(context);
         context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri",
                 "userid", callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
         assertEquals("Same token in response as in cache for same call", tokenInfo,
                 callback.mResult.getAccessToken());
 

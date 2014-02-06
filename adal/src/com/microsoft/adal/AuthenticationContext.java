@@ -692,8 +692,7 @@ public class AuthenticationContext {
         }
     }
 
-    private void acquireTokenLocal(final Activity activity,
-            final AuthenticationRequest request,
+    private void acquireTokenLocal(final Activity activity, final AuthenticationRequest request,
             final AuthenticationCallback<AuthenticationResult> externalCall) {
         getHandler();
 
@@ -702,10 +701,12 @@ public class AuthenticationContext {
         // Executes all the calls inside the Runnable to return immediately to
         // user. All UI
         // related actions will be performed using Handler.
+        Logger.v(TAG, "Sending async task from thread:" + android.os.Process.myTid());
         sThreadExecutor.submit(new Runnable() {
 
             @Override
             public void run() {
+                Logger.v(TAG, "Running task in thread:" + android.os.Process.myTid());
                 acquireTokenLocalCall(callbackHandle, activity, request);
             }
         });

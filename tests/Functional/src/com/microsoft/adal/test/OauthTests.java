@@ -182,10 +182,8 @@ public class OauthTests extends AndroidTestCase {
 
         String actual = (String)m.invoke(oauth);
         assertTrue("Matching message", actual.contains(AAD.ADAL_ID_PLATFORM + "=Android"));
-        assertTrue(
-                "Matching message",
-                actual.contains(AAD.ADAL_ID_VERSION + "="
-                        + AuthenticationContext.getVersionName()));
+        assertTrue("Matching message",
+                actual.contains(AAD.ADAL_ID_VERSION + "=" + AuthenticationContext.getVersionName()));
     }
 
     @SmallTest
@@ -472,20 +470,12 @@ public class OauthTests extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         final MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final Object oauth = createOAuthInstance(request, webrequest);
-        final Method m = ReflectionUtils.getTestMethod(oauth, "refreshToken", String.class,
-                AuthenticationCallback.class);
-
-        AssertUtils.assertAsync(signal, new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    m.invoke(oauth, refreshToken, callback);
-                } catch (Exception e) {
-                    Assert.fail("Reflection issue");
-                }
-            }
-        });
+        final Method m = ReflectionUtils.getTestMethod(oauth, "refreshToken", String.class);
+        try {
+            callback.mResult = (AuthenticationResult)m.invoke(oauth, refreshToken);
+        } catch (Exception e) {
+            callback.mException = e;
+        }
 
         // callback has set the result from the call
         return callback;
