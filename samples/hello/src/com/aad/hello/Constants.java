@@ -1,0 +1,41 @@
+
+package com.aad.hello;
+
+public class Constants {
+    public static final String SDK_VERSION = "1.0";
+
+    /**
+     * UTF-8 encoding
+     */
+    public static final String UTF8_ENCODING = "UTF-8";
+
+    public static final String HEADER_AUTHORIZATION = "Authorization";
+
+    public static final String HEADER_AUTHORIZATION_VALUE_PREFIX = "Bearer ";
+
+    // AAD PARAMETERS
+    // https://login.windows.net/tenantInfo
+    static final String AUTHORITY_URL = "https://login.windows.net/omercantest.onmicrosoft.com";
+
+    // Clientid is given from AAD page when you register your Android app
+    static final String CLIENT_ID = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
+
+    // RedirectUri
+    static final String REDIRECT_URL = "http://taskapp";
+
+    // URI for the resource. You need to setup this resource at AAD
+    static final String RESOURCE_ID = "https://omercantest.onmicrosoft.com/AllHandsTry";
+
+    static String USER_HINT = "";
+
+    // Endpoint we are targeting for the deployed WebAPI service
+    static final String SERVICE_URL = "https://android.azurewebsites.net/api/values";
+
+    // ------------------------------------------------------------------------------------------
+
+    public static final String SHARED_PREFERENCE_NAME = "com.example.com.test.settings";
+
+    public static final String KEY_NAME_ASK_BROKER_INSTALL = "test.settings.ask.broker";
+
+    public static final String KEY_NAME_CHECK_BROKER = "test.settings.check.broker";
+}

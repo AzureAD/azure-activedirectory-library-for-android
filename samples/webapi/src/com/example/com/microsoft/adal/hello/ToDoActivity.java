@@ -212,7 +212,7 @@ public class ToDoActivity extends Activity {
 
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
-    
+
     private void sendRequest() {
 
         if (refreshInProgress || mToken == null || mToken.getAccessToken().isEmpty())
@@ -612,20 +612,14 @@ public class ToDoActivity extends Activity {
         // default cache is in use by default
         ITokenCacheStore currentCache = mAuthContext.getCache();
 
-        String userid = "";
-        if (mToken != null && mToken.getUserInfo() != null
-                && mToken.getUserInfo().getUserId() != null) {
-            userid = mToken.getUserInfo().getUserId();
-        }
-
-        // make token expired to force refresh token
-        TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
-                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, userid));
+        String key = CacheKey.createCacheKey(Constants.AUTHORITY_URL, Constants.RESOURCE_ID,
+                Constants.CLIENT_ID, false, Constants.USER_HINT);
+        TokenCacheItem item = currentCache.getItem(key);
         if (item != null) {
             Calendar timeExpired = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
             timeExpired.add(Calendar.MINUTE, -50);
             item.setExpiresOn(timeExpired.getTime());
-            currentCache.setItem(CacheKey.createCacheKey(item), item);
+            currentCache.setItem(key, item);
         }
     }
 
