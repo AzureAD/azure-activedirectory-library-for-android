@@ -8,7 +8,6 @@ package com.microsoft.adal;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * Result class to keep code, token and other info Serializable properties Mark

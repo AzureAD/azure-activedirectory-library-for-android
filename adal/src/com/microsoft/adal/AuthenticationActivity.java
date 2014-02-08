@@ -23,7 +23,6 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
-import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -51,11 +50,6 @@ public class AuthenticationActivity extends Activity {
     private String redirectUrl;
 
     private AuthenticationRequest mAuthRequest;
-
-    /**
-     * JavascriptInterface to report page content in errors
-     */
-    private JavaScriptInterface mScriptInterface;
 
     // Broadcast receiver for cancel
     private ActivityBroadcastReceiver mReceiver = null;
@@ -147,8 +141,6 @@ public class AuthenticationActivity extends Activity {
         // Create the Web View to show the page
         wv = (WebView)findViewById(R.id.webView1);
         wv.getSettings().setJavaScriptEnabled(true);
-        mScriptInterface = new JavaScriptInterface();
-        wv.addJavascriptInterface(mScriptInterface, "ScriptInterface");
         wv.requestFocus(View.FOCUS_DOWN);
 
         // Set focus to the view for touch event
@@ -347,37 +339,7 @@ public class AuthenticationActivity extends Activity {
                 }).create().show();
     }
 
-    /**
-     * javascript injection to the loaded page to retrieve content
-     */
-    private class JavaScriptInterface {
-        String mHtml;
-
-        @JavascriptInterface
-        public void setContent(String html) {
-            mHtml = html;
-        }
-
-        public String getContent() {
-            return mHtml;
-        }
-    }
-
     private class CustomWebViewClient extends WebViewClient {
-
-        private void loadContent(WebView view) {
-            // Get page content to report
-            // Load page content
-            wv.loadUrl("javascript:window.ScriptInterface.setContent('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
-        }
-
-        private void reportContent(WebView view) {
-            loadContent(view);
-            if (mScriptInterface != null
-                    && !StringExtensions.IsNullOrBlank(mScriptInterface.getContent())) {
-                Logger.v(TAG, "Webview content:" + mScriptInterface.getContent());
-            }
-        }
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -410,7 +372,6 @@ public class AuthenticationActivity extends Activity {
             displaySpinner(false);
             Logger.e(TAG, "Webview received an error. Errorcode:" + errorCode + " " + description,
                     "", ADALError.ERROR_WEBVIEW);
-            reportContent(view);
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
                     "Error Code:" + errorCode);
@@ -456,9 +417,6 @@ public class AuthenticationActivity extends Activity {
              * Once web view is fully loaded,set to visible
              */
             wv.setVisibility(View.VISIBLE);
-
-            // Load page content to use in reporting errors
-            loadContent(wv);
         }
     }
 
