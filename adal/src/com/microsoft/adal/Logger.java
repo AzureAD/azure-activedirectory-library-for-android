@@ -29,6 +29,7 @@ public class Logger {
          */
         Debug(4);
 
+        @SuppressWarnings("unused")
         private int value;
 
         private LogLevel(int val) {
