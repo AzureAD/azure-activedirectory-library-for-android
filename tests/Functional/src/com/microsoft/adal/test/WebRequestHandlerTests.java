@@ -38,22 +38,25 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
      * @throws NoSuchMethodException
      * @throws ClassNotFoundException
      * @throws IllegalArgumentException
+     * @throws UnsupportedEncodingException
      */
     @SmallTest
     public void testCorrelationIdInRequest() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
+            IllegalAccessException, InvocationTargetException, UnsupportedEncodingException {
         final String testUrl = "https://login.windows.net/omercantest.onmicrosoft.com/oauth2/token";
         final UUID testID = UUID.randomUUID();
         Log.d(TAG, "Test correlationid:" + testID.toString());
         final HttpWebResponse testResponse = sendCorrelationIdRequest(testUrl, testID, false);
 
         assertEquals("400 error code", 400, testResponse.getStatusCode());
-        assertNotNull("Callback should report 400 for this error",
-                testResponse.getResponseException());
+        String responseBody = new String(testResponse.getBody(),
+                AuthenticationConstants.ENCODING_UTF8);
         assertNotNull("webresponse is not null", testResponse);
         assertEquals("same correlationid", testID.toString(), testResponse.getResponseHeaders()
                 .get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID).get(0));
+        assertTrue("correlationid in response",
+                responseBody.contains(testID.toString()));
 
         // same id for next request
         HttpWebResponse testResponse2 = sendCorrelationIdRequest(testUrl, testID, true);

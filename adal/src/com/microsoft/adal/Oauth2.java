@@ -327,7 +327,7 @@ class Oauth2 {
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
      * @param authenticationCallback
-     * @throws Exception 
+     * @throws Exception
      */
     public AuthenticationResult getToken(String authorizationUrl) throws Exception {
 
@@ -354,7 +354,8 @@ class Oauth2 {
                 AuthenticationResult result = processUIResponseParams(parameters);
 
                 // Check if we have token or code
-                if (result != null && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
+                if (result != null
+                        && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
                     if (!result.getCode().isEmpty()) {
 
                         // Get token and use external callback to set result
@@ -387,7 +388,7 @@ class Oauth2 {
      * @param request
      * @param code
      * @param authenticationCallback
-     * @throws Exception 
+     * @throws Exception
      */
     public AuthenticationResult getTokenForCode(String code) throws Exception {
 
@@ -425,10 +426,11 @@ class Oauth2 {
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
 
-            Logger.v(TAG, "Token request does not have errors");
-
-            result = processTokenResponse(response);
-
+            if (response.getResponseException() == null) {
+                // Protocol related errors will read the error stream and report the error and error description
+                Logger.v(TAG, "Token request does not have exception");
+                result = processTokenResponse(response);
+            }
         } catch (IllegalArgumentException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
             throw e;

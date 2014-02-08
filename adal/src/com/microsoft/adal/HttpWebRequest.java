@@ -115,10 +115,17 @@ class HttpWebRequest {
                     mConnection.setRequestProperty(header, mRequestHeaders.get(header));
                 }
 
+                // Work around pre-Froyo bugs in HTTP connection reuse.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
+                    System.setProperty("http.keepAlive", "false");
+                }
+
                 mConnection.setReadTimeout(READ_TIME_OUT);
                 mConnection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
                 mConnection.setUseCaches(mUseCaches);
                 mConnection.setRequestMethod(mRequestMethod);
+                mConnection.setDoInput(true); // it will at least read status
+                                              // code. Default is true.
                 setRequestBody();
 
                 if (mRequestMethod != REQUEST_METHOD_GET) {
@@ -134,7 +141,8 @@ class HttpWebRequest {
                     responseStream = mConnection.getInputStream();
                 } catch (IOException ex) {
                     Logger.e(TAG, "IOException:" + ex.getMessage(), "", ADALError.SERVER_ERROR);
-                    mException = ex;
+                    // If it does not get the error stream, it will return
+                    // exception in the httpresponse
                     responseStream = mConnection.getErrorStream();
                 }
 
@@ -183,13 +191,13 @@ class HttpWebRequest {
     }
 
     private void getStatusCode(HttpWebResponse _response) throws IOException {
-        int statusCode = HttpURLConnection.HTTP_OK;
+        int statusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         try {
             statusCode = mConnection.getResponseCode();
         } catch (IOException ex) {
 
-            if (Build.VERSION.SDK_INT < 18) {
+            if (Build.VERSION.SDK_INT < 16) {
                 // this exception is hardcoded in HttpUrlConnection class inside
                 // Android source code for previous SDKs.
                 // Status code handling is throwing exceptions if it does not
@@ -204,10 +212,13 @@ class HttpWebRequest {
                 // connection problem
                 statusCode = mConnection.getResponseCode();
             }
-            if (statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
+
+            // if status is 200 or 401 after reading again, it can read the
+            // response body for messages
+            if (statusCode != HttpURLConnection.HTTP_OK
+                    && statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
                 throw ex;
             }
-
         }
         _response.setStatusCode(statusCode);
         Logger.v(TAG, "Status code:" + statusCode);
@@ -228,7 +239,7 @@ class HttpWebRequest {
 
         } catch (IOException e) {
             Logger.d(TAG, e.getMessage());
-            mException = e;            
+            mException = e;
         }
         return connection;
     }

@@ -217,6 +217,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that web request send correct headers
+        Log.v(TAG, "Response msg:" + response.message);
         assertTrue("Server response has same correlationId",
                 response.message.contains(requestCorrelationId.toString()));
     }
@@ -367,7 +368,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
         context.acquireToken(testActivity, "resource", "clientId", "", "userid", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        
+
         Intent intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
         Serializable request = intent
@@ -394,7 +395,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        
+
         // get intent from activity to verify extraparams are send
         Intent intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
@@ -422,7 +423,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, expected, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        
+
         // get intent from activity to verify extraparams are send
         Intent intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
@@ -443,7 +444,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, null, callback);
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        
+
         // verify from mocked activity intent
         intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
@@ -559,7 +560,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         CountDownLatch signal = new CountDownLatch(1);
         final MockAuthenticationCallback mockCallback = new MockAuthenticationCallback(signal);
         context.acquireTokenByRefreshToken("refresh", "clientId", "resource", mockCallback);
-        
+
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("Exception type", mockCallback.mException instanceof AuthenticationException);
         assertEquals("Connection related error code", ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
@@ -854,7 +855,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
         final TestLogResponse response = new TestLogResponse();
         response.listenForLogMessage("Prompt is not allowed and failed to get token:", signal);
         TestLogResponse response2 = new TestLogResponse();
-        response2.listenLogForMessageSegments(null, "Refresh token did not return accesstoken", "503");
+        response2.listenLogForMessageSegments(null, "Refresh token did not return accesstoken",
+                "503");
 
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
                 PromptBehavior.Never, null, callback);

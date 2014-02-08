@@ -184,7 +184,6 @@ public class AuthenticationContext {
      *            provided.
      * @param userId Optional.
      * @param callback required
-     * @return
      */
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, AuthenticationCallback<AuthenticationResult> callback) {
@@ -216,7 +215,6 @@ public class AuthenticationContext {
      *            is to the query string in the HTTP authentication request to
      *            the authority. The parameter can be null.
      * @param callback
-     * @return
      */
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, String extraQueryParameters,
@@ -247,7 +245,6 @@ public class AuthenticationContext {
      *            for this.
      * @param prompt Optional. added as query parameter to authorization url
      * @param callback
-     * @return
      */
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt,
@@ -278,7 +275,6 @@ public class AuthenticationContext {
      * @param prompt Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
      * @param callback
-     * @return
      */
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
