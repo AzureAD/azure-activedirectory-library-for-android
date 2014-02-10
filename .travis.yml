@@ -57,7 +57,7 @@ script:
   - ant clean -Demma.filter="-com.microsoft.adal.testapp.*" emma instrument
   # debug compile, install file, test all test cases
   - ant -Demma.filter="-com.microsoft.adal.testapp.*" emma debug install test
-  - adb pull /data/data/com.microsoft.adal.test/files/coverage.ec .
+  - adb pull /data/data/com.microsoft.adal.testapp/coverage.ec .
   # need key for this repo
-  - java -cp tools/emmacoveralls.jar emma report -r coveralls -in bin/coverage.em,coverage.ec -sp ../adal/src/ -Dreport.coveralls.service.jobid=${TRAVIS_JOB_ID} -Dreport.coveralls.service.name=travis-ci
+  - java -cp tools/emmacoveralls.jar emma report -r coveralls -in ../../samples/testapp/bin/coverage.em,coverage.ec -sp ../../adal/src/ -Dreport.coveralls.service.jobid=${TRAVIS_JOB_ID} -Dreport.coveralls.service.name=travis-ci
   - curl --form json_file=@coverage.json https://coveralls.io/api/v1/jobs
