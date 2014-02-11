@@ -3,7 +3,6 @@ package com.microsoft.adal;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Calendar;
@@ -332,7 +331,7 @@ class Oauth2 {
     public AuthenticationResult getToken(String authorizationUrl) throws Exception {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
-            throw new IllegalArgumentException("finalUrl");
+            throw new IllegalArgumentException("authorizationUrl");
         }
 
         // Success
@@ -411,11 +410,9 @@ class Oauth2 {
     private AuthenticationResult postMessage(String requestMessage) throws Exception {
         URL authority = null;
         AuthenticationResult result = null;
-        try {
-            authority = new URL(getTokenEndpoint());
-        } catch (MalformedURLException e1) {
-            Logger.e(TAG, e1.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
-            throw e1;
+        authority = StringExtensions.getUrl(getTokenEndpoint());
+        if (authority == null) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
         HashMap<String, String> headers = getRequestHeaders();
@@ -427,7 +424,8 @@ class Oauth2 {
                     "application/x-www-form-urlencoded");
 
             if (response.getResponseException() == null) {
-                // Protocol related errors will read the error stream and report the error and error description
+                // Protocol related errors will read the error stream and report
+                // the error and error description
                 Logger.v(TAG, "Token request does not have exception");
                 result = processTokenResponse(response);
             }

@@ -4,7 +4,6 @@
 
 package com.microsoft.adal;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -382,7 +381,7 @@ public class AuthenticationContext {
 
     /**
      * This method wraps the implementation for onActivityResult at the related
-     * Activity class. This is called at UI thread.
+     * Activity class. This method is called at UI thread.
      * 
      * @param requestCode
      * @param resultCode
@@ -466,36 +465,43 @@ public class AuthenticationContext {
                                         "Processing url for token. "
                                                 + authenticationRequest.getLogInfo());
                                 Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
-
+                                AuthenticationResult result = null;
                                 try {
-                                    AuthenticationResult result = oauthRequest.getToken(endingUrl);
+                                    result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                    if (result != null
-                                            && !StringExtensions.IsNullOrBlank(result
-                                                    .getAccessToken())) {
-                                        Logger.v(TAG,
-                                                "OnActivityResult is setting the token to cache. "
-                                                        + authenticationRequest.getLogInfo());
-                                        setItemToCache(authenticationRequest, result);
-                                    }
 
-                                    if (waitingRequest != null && waitingRequest.mDelagete != null) {
-                                        Logger.v(TAG, "Sending result to callback. "
-                                                + authenticationRequest.getLogInfo());
-                                        callbackHandle.onSuccess(result);
-                                    }
-                                    removeWaitingRequest(requestId);
                                 } catch (Exception exc) {
                                     Logger.e(TAG, "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo(),
                                             ExceptionExtensions.getExceptionMessage(exc),
                                             ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
                                             exc);
+
                                     // Call error at UI thread
                                     waitingRequestOnError(callbackHandle, waitingRequest,
                                             requestId, exc);
+                                    return;
                                 }
+
+                                if (result != null
+                                        && !StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+                                    Logger.v(TAG,
+                                            "OnActivityResult is setting the token to cache. "
+                                                    + authenticationRequest.getLogInfo());
+
+                                    setItemToCache(authenticationRequest, result);
+                                    if (waitingRequest != null && waitingRequest.mDelagete != null) {
+                                        Logger.v(TAG, "Sending result to callback. "
+                                                + authenticationRequest.getLogInfo());
+                                        callbackHandle.onSuccess(result);
+                                    }
+                                } else {
+                                    callbackHandle.onError(new AuthenticationException(
+                                            ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN));
+                                }
+
+                                removeWaitingRequest(requestId);
                             }
                         });
                     }
@@ -719,11 +725,8 @@ public class AuthenticationContext {
     private void acquireTokenLocalCall(final CallbackHandler callbackHandle,
             final Activity activity, final AuthenticationRequest request) {
 
-        URL authorityUrl = null;
-
-        try {
-            authorityUrl = new URL(mAuthority);
-        } catch (MalformedURLException e) {
+        URL authorityUrl = StringExtensions.getUrl(mAuthority);
+        if (authorityUrl == null) {
             callbackHandle.onError(new AuthenticationException(
                     ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
             return;
@@ -1038,38 +1041,10 @@ public class AuthenticationContext {
             return;
         }
 
+        AuthenticationResult result = null;
         try {
             Oauth2 oauthRequest = new Oauth2(request, mWebRequest);
-            AuthenticationResult result = oauthRequest.refreshToken(refreshItem.mRefreshToken);
-            if (useCache) {
-                if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                    Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
-                            + result.getErrorLogInfo(), ADALError.AUTH_FAILED_NO_TOKEN);
-
-                    // remove item from cache to avoid same usage of
-                    // refresh token in next acquireToken call
-                    removeItemFromCache(refreshItem);
-                    acquireTokenLocalCall(callbackHandle, activity, request);
-                } else {
-                    Logger.v(TAG, "Refresh token is finished. Request:" + request.getLogInfo());
-
-                    // it replaces multi resource refresh token as
-                    // well with the new one since it is not stored
-                    // with resource.
-                    Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
-                    setRefreshItemToCache(refreshItem, request, result);
-                    // return result obj which has error code and
-                    // error description that is returned from
-                    // server response
-                    callbackHandle.onSuccess(result);
-                }
-            } else {
-                // User is not using cache and explicitly
-                // calling with refresh token. User should received
-                // error code and error description in
-                // Authentication result for Oauth errors
-                callbackHandle.onSuccess(result);
-            }
+            result = oauthRequest.refreshToken(refreshItem.mRefreshToken);
         } catch (Exception exc) {
             // remove item from cache
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
@@ -1083,6 +1058,38 @@ public class AuthenticationContext {
             }
 
             callbackHandle.onError(exc);
+            return;
+        }
+
+        if (useCache) {
+            if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+                Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
+                        + result.getErrorLogInfo(), ADALError.AUTH_FAILED_NO_TOKEN);
+
+                // remove item from cache to avoid same usage of
+                // refresh token in next acquireToken call
+                removeItemFromCache(refreshItem);
+                acquireTokenLocalCall(callbackHandle, activity, request);
+            } else {
+                Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
+
+                // it replaces multi resource refresh token as
+                // well with the new one since it is not stored
+                // with resource.
+                Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
+                setRefreshItemToCache(refreshItem, request, result);
+                // return result obj which has error code and
+                // error description that is returned from
+                // server response
+                callbackHandle.onSuccess(result);
+            }
+        } else {
+            // User is not using cache and explicitly
+            // calling with refresh token. User should received
+            // error code and error description in
+            // Authentication result for Oauth errors
+            Logger.v(TAG, "Cache is not used for Request:" + request.getLogInfo());
+            callbackHandle.onSuccess(result);
         }
     }
 
@@ -1202,7 +1209,8 @@ public class AuthenticationContext {
      * needs to be called at UI thread.
      */
     private void refreshTokenWithoutCache(final String refreshToken, final String clientId,
-            final String resource, final AuthenticationCallback<AuthenticationResult> externalCall) {
+            final String resource,
+            final AuthenticationCallback<AuthenticationResult> externalCallback) {
         Logger.v(TAG, "Refresh token without cache" + getCorrelationLogInfo());
 
         if (StringExtensions.IsNullOrBlank(refreshToken)) {
@@ -1213,24 +1221,19 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("ClientId is not provided");
         }
 
-        if (externalCall == null) {
+        if (externalCallback == null) {
             throw new IllegalArgumentException("Callback is not provided");
         }
 
-        final CallbackHandler callbackHandle = new CallbackHandler(getHandler(), externalCall);
+        final CallbackHandler callbackHandle = new CallbackHandler(getHandler(), externalCallback);
 
         // Execute all the calls inside Runnable to return immediately. All UI
         // related actions will be performed using Handler.
         sThreadExecutor.submit(new Runnable() {
             @Override
             public void run() {
-
-                final URL authorityUrl;
-                try {
-                    authorityUrl = new URL(mAuthority);
-                } catch (MalformedURLException e) {
-                    Logger.e(TAG, "Authority is invalid:" + mAuthority + getCorrelationLogInfo(),
-                            null, ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
+                final URL authorityUrl = StringExtensions.getUrl(mAuthority);
+                if (authorityUrl == null) {
                     callbackHandle.onError(new AuthenticationException(
                             ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
 
@@ -1261,7 +1264,6 @@ public class AuthenticationContext {
                                     ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
                             return;
                         }
-
                     } catch (Exception exc) {
                         Logger.e(TAG, "Authority validation is failed" + getCorrelationLogInfo(),
                                 ExceptionExtensions.getExceptionMessage(exc),
@@ -1276,10 +1278,9 @@ public class AuthenticationContext {
                 refreshToken(callbackHandle, null, request, refreshItem, false);
             }
         });
-
     }
 
-    private Handler getHandler() {
+    private synchronized Handler getHandler() {
         if (mHandler == null) {
             // Use current main looper
             mHandler = new Handler(mContext.getMainLooper());

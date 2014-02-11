@@ -590,31 +590,31 @@ public class AuthenticationContextTests extends AndroidTestCase {
      * @throws ClassNotFoundException
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
+     * @throws InterruptedException 
      */
     @SmallTest
     public void testAcquireTokenByRefreshTokenPositive() throws IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException,
-            NoSuchAlgorithmException, NoSuchPaddingException {
+            NoSuchAlgorithmException, NoSuchPaddingException, InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken();
 
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         setConnectionAvailable(context, true);
-        final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         String id = UUID.randomUUID().toString();
         String expectedAccessToken = "accessToken" + id;
         String expectedClientId = "client" + UUID.randomUUID().toString();
         String exptedResource = "resource" + UUID.randomUUID().toString();
-        testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         MockWebRequestHandler mockWebRequest = setMockWebRequest(context, id);
 
         context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientId, callback);
-
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        
         // Verify that new refresh token is matching to mock response
         assertEquals("Same token", expectedAccessToken, callback.mResult.getAccessToken());
         assertEquals("Same refresh token", "refreshToken" + id, callback.mResult.getRefreshToken());
@@ -623,8 +623,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertFalse("Content does not have resource in the message", mockWebRequest
                 .getRequestContent().contains(exptedResource));
 
+        final CountDownLatch signal2 = new CountDownLatch(1);
+        callback = new MockAuthenticationCallback(signal2);
         context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientId, exptedResource,
                 callback);
+        signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that new refresh token is matching to mock response
         assertEquals("Same token", expectedAccessToken, callback.mResult.getAccessToken());

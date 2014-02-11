@@ -116,6 +116,7 @@ class HttpWebRequest {
                 }
 
                 // Work around pre-Froyo bugs in HTTP connection reuse.
+                // http://developer.android.com/reference/java/net/HttpURLConnection.html see: Avoiding Bugs In Earlier Releases
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
                     System.setProperty("http.keepAlive", "false");
                 }
