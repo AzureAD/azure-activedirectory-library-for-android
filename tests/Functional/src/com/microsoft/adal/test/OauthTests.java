@@ -5,13 +5,10 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-
-import org.apache.http.client.utils.URLEncodedUtils;
 
 import junit.framework.Assert;
 import android.test.AndroidTestCase;
@@ -20,17 +17,17 @@ import android.util.Base64;
 
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
-import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
-import com.microsoft.adal.HttpWebResponse;
-import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.adal.test.AuthenticationConstants.AAD;
-import com.microsoft.adal.test.AuthenticationConstants.OAuth2;
+import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
+import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.UserInfo;
+import com.microsoft.adal.test.AuthenticationConstants.AAD;
 
 public class OauthTests extends AndroidTestCase {
+
+    private static final String TEST_RETURNED_EXCEPTION = "test-returned-exception";
 
     @SmallTest
     public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
@@ -187,10 +184,8 @@ public class OauthTests extends AndroidTestCase {
 
         String actual = (String)m.invoke(oauth);
         assertTrue("Matching message", actual.contains(AAD.ADAL_ID_PLATFORM + "=Android"));
-        assertTrue(
-                "Matching message",
-                actual.contains(AAD.ADAL_ID_VERSION + "="
-                        + AuthenticationContext.getVersionName()));
+        assertTrue("Matching message",
+                actual.contains(AAD.ADAL_ID_VERSION + "=" + AuthenticationContext.getVersionName()));
     }
 
     @SmallTest
@@ -287,8 +282,8 @@ public class OauthTests extends AndroidTestCase {
                 refreshToken);
 
         // Verify that we have error for request handler
-        assertTrue("web request argument error",
-                testResult.mException.getMessage().contains("webRequestHandler"));
+        assertTrue("web request argument error", testResult.mException.getCause().getMessage()
+                .contains("webRequestHandler"));
         assertNull("Result is null", testResult.mResult);
     }
 
@@ -305,7 +300,8 @@ public class OauthTests extends AndroidTestCase {
         MockAuthenticationCallback testResult = refreshToken(request, webrequest, "test");
 
         // Verify that we have error for request handler
-        assertTrue("web request argument error", testResult.mException.getMessage().contains("url"));
+        assertTrue("web request argument error", testResult.mException.getCause().getMessage()
+                .contains("url"));
         assertNull("Result is null", testResult.mResult);
     }
 
@@ -314,15 +310,15 @@ public class OauthTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        webrequest.setReturnException(new Exception("request should return error"));
+        webrequest.setReturnException("request should return error");
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
                 webrequest, "test");
 
         // Verify that callback can receive this error
-        assertTrue("callback receives error",
-                testResult.mException.getMessage().contains("request should return error"));
+        assertTrue("callback receives error", testResult.mException.getCause().getMessage()
+                .contains("request should return error"));
         assertNull("Result is null", testResult.mResult);
     }
 
@@ -344,17 +340,16 @@ public class OauthTests extends AndroidTestCase {
         assertNull("Exception is null", testResult.mException);
 
         // Invalid status that cause some exception at webrequest
-        webrequest.setReturnException(new Exception("test-returned-exception"));
+        webrequest.setReturnException(TEST_RETURNED_EXCEPTION);
 
         // send request
+        TestLogResponse response = new TestLogResponse();
+        response.listenForLogMessage(TEST_RETURNED_EXCEPTION, null);
         testResult = refreshToken(getValidAuthenticationRequest(), webrequest, "test");
 
-        // Verify that callback can receive this error
-        assertNotNull("callback receives error in the exception", testResult.mException);
+        // Verify that result returns null from this error
         assertNull("Result is null", testResult.mResult);
-        assertTrue("Exception is same as mock exception", testResult.mException.getMessage()
-                .contains("test-returned-exception"));
-
+        assertEquals("Exception has same error message", TEST_RETURNED_EXCEPTION, response.message);
     }
 
     @SmallTest
@@ -477,20 +472,12 @@ public class OauthTests extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         final MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final Object oauth = createOAuthInstance(request, webrequest);
-        final Method m = ReflectionUtils.getTestMethod(oauth, "refreshToken", String.class,
-                AuthenticationCallback.class);
-
-        AssertUtils.assertAsync(signal, new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    m.invoke(oauth, refreshToken, callback);
-                } catch (Exception e) {
-                    Assert.fail("Reflection issue");
-                }
-            }
-        });
+        final Method m = ReflectionUtils.getTestMethod(oauth, "refreshToken", String.class);
+        try {
+            callback.mResult = (AuthenticationResult)m.invoke(oauth, refreshToken);
+        } catch (Exception e) {
+            callback.mException = e;
+        }
 
         // callback has set the result from the call
         return callback;

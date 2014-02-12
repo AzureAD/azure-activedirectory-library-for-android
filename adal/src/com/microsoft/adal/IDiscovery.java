@@ -16,7 +16,7 @@ public interface IDiscovery {
      * @param authorizationEndpoint
      * @param callback result will be post here
      */
-    void isValidAuthority(URL authorizationEndpoint, AuthenticationCallback<Boolean> callback);
+    boolean isValidAuthority(URL authorizationEndpoint);
 
     void setCorrelationId(UUID requestCorrelationId);
 }
