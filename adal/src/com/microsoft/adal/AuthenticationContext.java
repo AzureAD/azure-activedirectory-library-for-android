@@ -484,24 +484,29 @@ public class AuthenticationContext {
                                     return;
                                 }
 
-                                if (result != null
-                                        && !StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                                    Logger.v(TAG,
-                                            "OnActivityResult is setting the token to cache. "
+                                try {
+                                    if (result != null
+                                            && !StringExtensions.IsNullOrBlank(result
+                                                    .getAccessToken())) {
+                                        Logger.v(TAG,
+                                                "OnActivityResult is setting the token to cache. "
+                                                        + authenticationRequest.getLogInfo());
+
+                                        setItemToCache(authenticationRequest, result);
+                                        if (waitingRequest != null
+                                                && waitingRequest.mDelagete != null) {
+                                            Logger.v(TAG, "Sending result to callback. "
                                                     + authenticationRequest.getLogInfo());
-
-                                    setItemToCache(authenticationRequest, result);
-                                    if (waitingRequest != null && waitingRequest.mDelagete != null) {
-                                        Logger.v(TAG, "Sending result to callback. "
-                                                + authenticationRequest.getLogInfo());
-                                        callbackHandle.onSuccess(result);
+                                            callbackHandle.onSuccess(result);
+                                        }
+                                    } else {
+                                        callbackHandle
+                                                .onError(new AuthenticationException(
+                                                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN));
                                     }
-                                } else {
-                                    callbackHandle.onError(new AuthenticationException(
-                                            ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN));
+                                } finally {
+                                    removeWaitingRequest(requestId);
                                 }
-
-                                removeWaitingRequest(requestId);
                             }
                         });
                     }
