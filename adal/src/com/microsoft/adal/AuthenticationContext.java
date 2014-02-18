@@ -4,6 +4,7 @@
 
 package com.microsoft.adal;
 
+import java.io.IOException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -18,6 +19,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
 
+import com.example.userapp.Constants;
+import com.example.userapp.MainActivity;
+
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -30,6 +40,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
+import android.util.Log;
 import android.util.SparseArray;
 
 /**
@@ -1352,4 +1363,76 @@ public class AuthenticationContext {
         // value
         return "0.5";
     }
+
+    private Bundle getBrokerBlockingOptions(){
+        Bundle brokerOptions = new Bundle();
+        brokerOptions.putString(Constants.ACCOUNT_AUTHORITY, AUTHORIZATION_URL);
+        brokerOptions.putString(Constants.ACCOUNT_RESOURCE, resource);
+        brokerOptions.putString(Constants.ACCOUNT_REDIRECT, REDIRECT_URL);
+        brokerOptions.putString(Constants.ACCOUNT_LOGIN_HINT, USER_HINT);
+        brokerOptions.putString(Constants.ACCOUNT_CORRELATIONID, UUID.randomUUID().toString());
+    }
+    
+    private AccountManagerCallback<Bundle> getCallback(final Activity activity){
+        return new AccountManagerCallback<Bundle>() {
+            @Override
+            public void run(AccountManagerFuture<Bundle> result) {
+
+                // get result from bundle
+                Bundle bundle = null;
+                try {
+                    bundle = result.getResult();
+                } catch (OperationCanceledException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (AuthenticatorException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
+                if (intent == null) {
+                    showMessage("Intent is null");
+                } else {
+                    // needs to start for result so that activity at
+                    // acct manager can get the caller
+                    activity.startActivityForResult(intent, BROKER_REQUEST_ID);
+                }
+            }
+        };
+    }
+    
+    
+    private void getAuthToken(final Activity activity) {
+        final AccountManager am = AccountManager.get(MainActivity.this);
+        // if there is not any user added to account, it returns empty
+        Account[] accountList = am.getAccountsByType(Constants.ACCOUNT_TYPE);
+        Log.v(TAG, "Account list length:" + accountList.length);
+
+        Account targetAccount = getAccount(accountList, USER_HINT);
+
+        if (targetAccount != null) {
+            // add some dummy values to make a test call
+            Bundle brokerOptions = getBrokerBlockingOptions();
+
+            // blocking call to get token from cache or refresh
+            String accessToken = am.blockingGetAuthToken(targetAccount, Constants.AUTHTOKEN_TYPE,
+                    true/* notifyAuthFailure */);
+            if(accessToken == nulll ||accessToken.isEmpty()){
+                // refresh failed or account is not valid. Call addAccount to only get intent to start it from activity
+                // BrokerActivity will verify callingActivity and clientid
+                Bundle optonsForIntent = updateOptionsForAddAccount(brokerOptions);
+                AccountManagerFuture<Bundle> resultSync = am.addAccount(Constants.ACCOUNT_TYPE,
+                        Constants.AUTHTOKEN_TYPE, null, optonsForIntent, null/*passing null for activity to get intent*/,
+                        getCallback(activity), getHandler());
+            }
+        }
+    }
+    
+    
+    
+    
 }

@@ -10,12 +10,10 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
-import junit.framework.Assert;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
-import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
@@ -24,6 +22,10 @@ import com.microsoft.adal.IWebRequestHandler;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.UserInfo;
 import com.microsoft.adal.test.AuthenticationConstants.AAD;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class OauthTests extends AndroidTestCase {
 
@@ -55,6 +57,35 @@ public class OauthTests extends AndroidTestCase {
                 new String(Base64.decode("TWF+MA", Base64.DEFAULT), "UTF-8"));
         assertEquals("BAse64 url safe encode", expected,
                 new String(Base64.decode("TWF+MA==", Base64.DEFAULT), "UTF-8"));
+    }
+
+    @SmallTest
+    public void testEncodeDecodeProtocolState() throws UnsupportedEncodingException,
+            IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException {
+        String resource = "resource:" + UUID.randomUUID().toString();
+        Object request = createAuthenticationRequest("http://www.something.com", resource,
+                "client", "redirect", "loginhint@ggg.com", null, null, null);
+        Object oauth = createOAuthInstance(request);
+        Method decodeMethod = ReflectionUtils.getTestMethod(oauth, "decodeProtocolState",
+                String.class);
+        Method encodeMethod = ReflectionUtils.getTestMethod(oauth, "encodeProtocolState");
+
+        String encoded = (String)encodeMethod.invoke(oauth);
+        String decoded = (String)decodeMethod.invoke(oauth, encoded);
+        assertTrue("State contains authority", decoded.contains("http://www.something.com"));
+        assertTrue("State contains resource", decoded.contains(resource));
+    }
+
+    @SmallTest
+    public void testGetToken_() throws UnsupportedEncodingException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException {
+        String resource = "resource:" + UUID.randomUUID().toString();
+        Object request = createAuthenticationRequest("http://www.something.com", resource,
+                "client", "redirect", "loginhint@ggg.com", null, null, null);
+        Object oauth = createOAuthInstance(request);
+
     }
 
     @SmallTest
