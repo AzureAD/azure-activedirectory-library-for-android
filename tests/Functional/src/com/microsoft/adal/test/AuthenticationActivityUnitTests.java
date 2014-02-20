@@ -1,6 +1,8 @@
 
 package com.microsoft.adal.test;
 
+import static org.mockito.Mockito.*;
+
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -166,13 +168,81 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
                 "Webview onResume register broadcast receiver for requestId" + TEST_REQUEST_ID,
                 null);
         ReflectionUtils.setFieldValue(activity, "mRestartWebview", true);
-        Method onResume = ReflectionUtils.getTestMethod(activity, "onResume");
+        Method methodOnResume = ReflectionUtils.getTestMethod(activity, "onResume");
 
-        onResume.invoke(activity);
+        methodOnResume.invoke(activity);
 
         // get field value to check
         assertTrue("verify log message",
                 logResponse.message.startsWith("Webview onResume register broadcast"));
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testOnRestart() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, NoSuchFieldException, InterruptedException {
+
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+
+        ReflectionUtils.setFieldValue(activity, "mRestartWebview", false);
+        Method methodOnResume = ReflectionUtils.getTestMethod(activity, "onRestart");
+
+        methodOnResume.invoke(activity);
+
+        // get field value to check
+        boolean fieldVal = (Boolean)ReflectionUtils.getFieldValue(activity, "mRestartWebview");
+        assertTrue("RestartWebview set to true", fieldVal);
+    }
+    
+    @SmallTest
+    @UiThreadTest
+    public void testOnBackPressed() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, NoSuchFieldException, InterruptedException {
+
+        // Case1: returns false
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        WebView mockWebView = mock(WebView.class);
+        ReflectionUtils.setFieldValue(activity, "mWebView", mockWebView);
+        when(mockWebView.canGoBack()).thenReturn(false);
+         
+        // call
+        activity.onBackPressed();
+        
+        //verify that correct method called
+        verify(mockWebView).canGoBack();
+        verify(mockWebView, never()).goBack();  
+        
+        // Case 2: returns true
+        when(mockWebView.canGoBack()).thenReturn(true);
+        
+        // call
+        activity.onBackPressed();
+        
+        //verify that correct method called
+        verify(mockWebView).canGoBack();
+        verify(mockWebView, times(1)).goBack();  
+    }
+    
+    @SmallTest
+    @UiThreadTest
+    public void testOnBackPressed_BackTrue() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, NoSuchFieldException, InterruptedException {
+
+        AuthenticationActivity mockActivity = mock(AuthenticationActivity.class);
+        WebView mockWebView = mock(WebView.class);
+        when(mockWebView.canGoBack()).thenReturn(false);
+         
+        // call
+        mockActivity.onBackPressed();
+        
+        //verify that correct method called
+        verify(mockWebView).canGoBack();
+        verify(mockWebView, never()).goBack();       
     }
 
     @SmallTest

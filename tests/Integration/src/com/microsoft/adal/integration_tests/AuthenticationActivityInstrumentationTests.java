@@ -186,6 +186,7 @@ public class AuthenticationActivityInstrumentationTests extends
         configLoad = true;
     }
 
+    
     @MediumTest
     public void testAcquireTokenADFS30Federated() throws Exception {
         acquireTokenAfterReset(tenants.get(TenantType.ADFS30FEDERATED), "", PromptBehavior.Auto,
@@ -197,6 +198,54 @@ public class AuthenticationActivityInstrumentationTests extends
         TenantInfo tenant = tenants.get(TenantType.ADFS20FEDERATED);
         acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, true,
                 tenant.getFederated());
+    }
+    
+    @MediumTest
+    public void testFakeBackEnd_AcquireToken() throws Exception {
+        TenantInfo tenant = new TenantInfo(TenantType.AAD,"https://adal.azurewebsites.net/WebRequest","short-live-token", "resource2", "client1","https://adal.azurewebsites.net/", null, null,null,null,null);
+        
+        Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
+
+        // Activity runs at main thread. Test runs on different thread
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        // add monitor to check for the auth activity
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "loginhint", PromptBehavior.Auto, null,
+                false);
+
+        // press clear all button to clear tokens and cookies
+        clickResetTokens();
+        clickGetToken();
+        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg == MainActivity.GETTING_TOKEN;
+            }
+        });
+
+        final String startText = textViewStatus.getText().toString();
+        assertEquals("Token action", MainActivity.GETTING_TOKEN, startText);
+
+        // Wait to start activity and loading the page
+        AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
+                .waitForActivityWithTimeout(ACTIVITY_WAIT_TIMEOUT);
+        assertNotNull(startedActivity);
+
+        waitUntil(PAGE_STATUS_SET_TIME_OUT, new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg != startText;
+            }
+        });
+
+        String tokenMsg = (String)textViewStatus.getText();
+        Log.v(TAG, "Status:" + tokenMsg);
+        assertTrue("Token is received", tokenMsg.contains(MainActivity.PASSED));
     }
 
     @MediumTest
