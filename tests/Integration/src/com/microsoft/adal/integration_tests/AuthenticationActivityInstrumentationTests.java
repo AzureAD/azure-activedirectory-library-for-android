@@ -30,6 +30,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.jayway.android.robotium.solo.By;
 import com.jayway.android.robotium.solo.Solo;
 import com.jayway.android.robotium.solo.WebElement;
@@ -186,7 +187,6 @@ public class AuthenticationActivityInstrumentationTests extends
         configLoad = true;
     }
 
-    
     @MediumTest
     public void testAcquireTokenADFS30Federated() throws Exception {
         acquireTokenAfterReset(tenants.get(TenantType.ADFS30FEDERATED), "", PromptBehavior.Auto,
@@ -199,20 +199,22 @@ public class AuthenticationActivityInstrumentationTests extends
         acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, true,
                 tenant.getFederated());
     }
-    
+
     @MediumTest
     public void testFakeBackEnd_AcquireToken() throws Exception {
-        TenantInfo tenant = new TenantInfo(TenantType.AAD,"https://adal.azurewebsites.net/WebRequest","short-live-token", "resource2", "client1","https://adal.azurewebsites.net/", null, null,null,null,null);
-        
-        Log.v(TAG, "acquireTokenAfterReset starts for authority:" + tenant.getAuthority());
+        TenantInfo tenant = new TenantInfo(TenantType.AAD,
+                "https://adal.azurewebsites.net/WebRequest", "resource", "resource2",
+                "short-live-token", "https://adal.azurewebsites.net/", null, null, null, null, null);
+
+        Log.v(TAG, "testFakeBackEnd_AcquireToken starts for authority:" + tenant.getAuthority());
 
         // Activity runs at main thread. Test runs on different thread
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
         // add monitor to check for the auth activity
         final ActivityMonitor monitor = getInstrumentation().addMonitor(
                 AuthenticationActivity.class.getName(), null, false);
-        setAuthenticationRequest(tenant, tenant.getResource(), "loginhint", PromptBehavior.Auto, null,
-                false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "loginhint", PromptBehavior.Auto,
+                null, false);
 
         // press clear all button to clear tokens and cookies
         clickResetTokens();
@@ -1050,13 +1052,5 @@ public class AuthenticationActivityInstrumentationTests extends
         });
     }
 
-    /**
-     * this can change based on login page implementation
-     * 
-     * @param htmlContent
-     * @return
-     */
-    private boolean hasLoginPage(String htmlContent) {
-        return htmlContent != null && !htmlContent.isEmpty() && htmlContent.contains("password");
-    }
+   
 }
