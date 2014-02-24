@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -23,7 +25,7 @@ import com.microsoft.adal.WebRequestHandler;
 public class TestScriptRunner {
     private static final String TAG = "TestScriptRunner";
 
-    private static final String TARGET_URL = "https://adal.azurewebsites.net/api/values";
+    private static final String TARGET_URL = "https://adal.azurewebsites.net/";
 
     private Gson gson = new Gson();
 
@@ -31,6 +33,20 @@ public class TestScriptRunner {
 
     public TestScriptRunner(Activity activity) {
         mActivity = activity;
+    }
+
+    public void runRemoteScript() {
+        new RetrieveTask(TARGET_URL + "WebRequest/GetTestScript", new ResponseListener() {
+
+            @Override
+            public void onResponse(TestScriptInfo script) {
+
+                Log.v(TAG, "received test script");
+                TestResultInfo[] results = script.run();
+                Log.v(TAG, "executed test script");
+                postResults(results);
+            }
+        });
     }
 
     public void processTestScript(String script) {
@@ -46,7 +62,7 @@ public class TestScriptRunner {
 
     private void postResults(TestResultInfo[] results) {
         // TODO Auto-generated method stub
-        new TestSubmitTask(TARGET_URL, gson.toJson(results));
+        new TestSubmitTask(TARGET_URL + "api/Values", gson.toJson(results));
     }
 
     public String makeScript() {
@@ -83,8 +99,8 @@ public class TestScriptRunner {
                         results[i] = testCases[i].run();
                     } catch (Exception e) {
                         results[i] = new TestResultInfo(testCases[i].testName);
-                        results[i].mStatusOk = false;
-                        results[i].mTestMsg = e.getMessage();
+                        results[i].statusOk = false;
+                        results[i].testMsg = e.getMessage();
                     }
                 }
 
@@ -100,28 +116,21 @@ public class TestScriptRunner {
 
         TestAction[] testActions;
 
-        AssertFlag[] testAsserts;
-
         public TestResultInfo run() throws InterruptedException {
             Log.v(TAG, "running test case:" + testName);
             TestResultInfo testResult = new TestResultInfo(testName);
             TestData testRunData = new TestData();
             for (int i = 0; i < testActions.length; i++) {
-                TestAction action = getAction(testActions[i].mName, testActions[i].mTarget,
-                        testActions[i].mValue);
-                Log.v(TAG, "running test case:" + testName + " action:" + action.mName + " target:"
-                        + action.mTarget);
+                TestAction action = getAction(testActions[i].name, testActions[i].target,
+                        testActions[i].targetValue);
+                Log.v(TAG, "running test case:" + testName + " action:" + action.name + " target:"
+                        + action.target);
 
                 action.perform(testRunData);
                 // call api directly if possible or do click actions on UI
-            }
-
-            for (AssertFlag flagCheck : testAsserts) {
-                Log.v(TAG, "verifying test case:" + testName + " flag:" + flagCheck.mTarget);
-                flagCheck.perform(testRunData);
-                if (!flagCheck.mValue) {
-                    testResult.mStatusOk = false;
-                    testResult.mTestMsg = flagCheck.mTarget + " failed";
+                if (testRunData.mErrorInRun) {
+                    testResult.statusOk = false;
+                    testResult.testMsg = action.target + " failed";
                     break;
                 }
             }
@@ -136,36 +145,17 @@ public class TestScriptRunner {
      * @author omercan
      */
     class TestResultInfo {
-        String mTestName;
+        String testName;
 
-        boolean mStatusOk = true;
+        boolean statusOk = true;
 
-        String mTestMsg;
+        String testMsg;
 
         public TestResultInfo() {
         }
 
         public TestResultInfo(String name) {
-            mTestName = name;
-        }
-    }
-
-    /**
-     * target can be success or fail that is set at textbox
-     * 
-     * @author omercan
-     */
-    class AssertFlag {
-        private String mTarget;
-
-        private boolean mValue;
-
-        public void perform(TestData testRunData) {
-            // define factory method and subtypes for asserts if necessary
-            if (mTarget.equals("HasAccessToken")) {
-                mValue = testRunData != null && testRunData.mResult != null
-                        && !testRunData.mResult.getAccessToken().isEmpty();
-            }
+            testName = name;
         }
     }
 
@@ -177,9 +167,45 @@ public class TestScriptRunner {
             return new ResetAllTokensAction(name, target, value);
         } else if (name.equals("Enter")) {
             return new EnterAction(name, target, value);
+        } else if (name.equals("Wait")) {
+            return new WaitAction(name, target, value);
+        } else if (name.equals("Verify")) {
+            return new VerifyAction(name, target, value);
         }
 
         return null;
+    }
+
+    /**
+     * target can be success or fail that is set at textbox
+     * 
+     * @author omercan
+     */
+    class VerifyAction extends TestAction {
+        public VerifyAction() {
+        }
+
+        public VerifyAction(String name, String target, String value) {
+            super(name, target, value);
+        }
+
+        public void perform(final TestData testRunData) throws InterruptedException {
+            if (testRunData.mErrorInRun)
+                return;
+
+            // define factory method and subtypes for asserts if necessary
+            if (target.equals("HasAccessToken")) {
+                testRunData.mErrorInRun = testRunData.mResult == null
+                        || testRunData.mResult.getAccessToken().isEmpty();
+            } else if (target.equals("SameAsReferenceToken")) {
+                testRunData.mErrorInRun = testRunData.mResult == null
+                        || testRunData.mResult.getAccessToken().equals(
+                                testRunData.referenceResult.getAccessToken());
+            } else if (target.equals("AccessTokenContains")) {
+                testRunData.mErrorInRun = testRunData.mResult == null
+                        || testRunData.mResult.getAccessToken().contains(targetValue);
+            }
+        }
     }
 
     class EnterAction extends TestAction {
@@ -195,10 +221,39 @@ public class TestScriptRunner {
             if (data.mErrorInRun)
                 return;
 
-            if (mTarget.equals("resource")) {
-                data.mResource = mValue;
+            if (target.equals("resource")) {
+                data.mResource = targetValue;
+            } else if (target.equals("clientid")) {
+                data.mClientId = targetValue;
+            } else if (target.equals("authority")) {
+                data.mAuthority = targetValue;
+            } else if (target.equals("redirect")) {
+                data.mRedirect = targetValue;
             }
         }
+    }
+
+    class WaitAction extends TestAction {
+        public WaitAction() {
+        }
+
+        public WaitAction(String name, String target, String value) {
+            super(name, target, value);
+        }
+
+        public void perform(final TestData data) throws InterruptedException {
+            if (data.mErrorInRun)
+                return;
+            try {
+                int sleeptime = Integer.parseInt(targetValue);
+
+                Thread.sleep(sleeptime);
+            } catch (Exception ex) {
+                data.mErrorInRun = true;
+                data.mErrorMessage = ex.getMessage();
+            }
+        }
+
     }
 
     class ResetAllTokensAction extends TestAction {
@@ -269,6 +324,8 @@ public class TestScriptRunner {
     class TestData {
         AuthenticationContext mContext;
 
+        AuthenticationResult referenceResult;
+
         String mAuthority;
 
         String mResource;
@@ -293,28 +350,27 @@ public class TestScriptRunner {
     }
 
     class TestAction {
-        protected String mName;
+        protected String name;
 
-        protected String mTarget;
+        protected String target;
 
-        protected String mValue;
+        protected String targetValue;
 
         public TestAction() {
-            mName = "N/A";
-            mValue = "N/A";
-            mTarget = "N/A";
+            name = "N/A";
+            targetValue = "N/A";
+            target = "N/A";
         }
 
-        public TestAction(String name, String target, String val) {
-            mName = name;
-            mTarget = target;
-            mValue = val;
+        public TestAction(String action_name, String action_target, String action_val) {
+            name = action_name;
+            target = action_target;
+            targetValue = action_val;
         }
 
         public void perform(TestData data) throws InterruptedException {
 
         }
-
     }
 
     /**
@@ -342,8 +398,8 @@ public class TestScriptRunner {
             headers.put("Accept", "application/json");
             HttpWebResponse response = null;
             try {
-                response = request.sendPost(new URL(mUrl), headers,
-                        mData.getBytes("UTF-8"), "application/json");
+                response = request.sendPost(new URL(mUrl), headers, mData.getBytes("UTF-8"),
+                        "application/json");
             } catch (MalformedURLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -354,8 +410,55 @@ public class TestScriptRunner {
 
             Log.v(TAG, "Send data status:" + response.getStatusCode());
             return null;
-
         }
     }
 
+    interface ResponseListener {
+        void onResponse(TestScriptInfo script);
+
+    }
+
+    class RetrieveTask extends AsyncTask<Void, Void, TestScriptInfo> {
+
+        private String mUrl;
+
+        private ResponseListener mCallback;
+
+        public RetrieveTask(String url, ResponseListener callback) {
+            mUrl = url;
+            mCallback = callback;
+        }
+
+        @Override
+        protected TestScriptInfo doInBackground(Void... empty) {
+
+            WebRequestHandler request = new WebRequestHandler();
+            HashMap<String, String> headers = new HashMap<String, String>();
+
+            headers.put("Accept", "application/json");
+            HttpWebResponse response = null;
+            try {
+                response = request.sendGet(new URL(mUrl), headers);
+                String body = new String(response.getBody(), "UTF-8");
+                TestScriptInfo scriptInfo = gson.fromJson(body, TestScriptInfo.class);
+                return scriptInfo;
+            } catch (MalformedURLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+            Log.v(TAG, "Send data status:" + response.getStatusCode());
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(TestScriptInfo result) {
+            super.onPostExecute(result);
+            mCallback.onResponse(result);
+        }
+
+    }
 }
