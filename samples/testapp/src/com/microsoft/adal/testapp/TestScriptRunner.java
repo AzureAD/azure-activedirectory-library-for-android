@@ -6,12 +6,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -23,30 +24,51 @@ import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.WebRequestHandler;
 
 public class TestScriptRunner {
-    private static final String TAG = "TestScriptRunner";
+    static final String TAG = "TestScriptRunner";
 
     private static final String TARGET_URL = "https://adal.azurewebsites.net/";
 
     private Gson gson = new Gson();
 
-    private Activity mActivity;
+    private final MainActivity mActivity;
 
-    public TestScriptRunner(Activity activity) {
+    private Handler mHandler;
+
+    private static ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
+
+    public TestScriptRunner(MainActivity activity) {
         mActivity = activity;
+        mHandler = new Handler(activity.getMainLooper());
+    }
+
+    public MainActivity getActivity() {
+        return mActivity;
     }
 
     public void runRemoteScript() {
         new RetrieveTask(TARGET_URL + "WebRequest/GetTestScript", new ResponseListener() {
 
             @Override
-            public void onResponse(TestScriptInfo script) {
+            public void onResponse(final ScriptInfo script) {
 
-                Log.v(TAG, "received test script");
-                TestResultInfo[] results = script.run();
-                Log.v(TAG, "executed test script");
-                postResults(results);
+                sThreadExecutor.submit(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        // TODO Auto-generated method stub
+                        // this will be called at UI thread and test related API
+                        // calls
+                        // will be send from UI thread
+                        Log.v(TAG, "received test script");
+                        script.setActivity(mActivity);
+                        script.setHandler(mHandler);
+                        TestResult[] results = script.run();
+                        Log.v(TAG, "executed test script");
+                        postResults(results);
+                    }
+                });
             }
-        });
+        }).execute();
     }
 
     public void processTestScript(String script) {
@@ -54,51 +76,82 @@ public class TestScriptRunner {
         // 2- generate TestCommand object
         // 3- run test command
         Log.v(TAG, "received test script");
-        TestScriptInfo cacheItem = gson.fromJson(script, TestScriptInfo.class);
-        TestResultInfo[] results = cacheItem.run();
+        ScriptInfo cacheItem = gson.fromJson(script, ScriptInfo.class);
+        TestResult[] results = cacheItem.run();
         Log.v(TAG, "executed test script");
         postResults(results);
     }
 
-    private void postResults(TestResultInfo[] results) {
+    private void postResults(final TestResult[] results) {
         // TODO Auto-generated method stub
-        new TestSubmitTask(TARGET_URL + "api/Values", gson.toJson(results));
+        mHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+                new TestSubmitTask(TARGET_URL + "api/Values", gson.toJson(results)).execute();
+            }
+        });
     }
 
     public String makeScript() {
         // to test it
-        TestScriptInfo script = new TestScriptInfo();
-        TestCaseInfo test1 = new TestCaseInfo();
-        TestAction action1 = getAction("Enter", "resource", "resource-test");
+        ScriptInfo script = new ScriptInfo();
+        TestCase test1 = new TestCase("checkScript");
+        TestAction action1 = new TestAction("Enter", "resource", "resource-test");
         test1.testActions = new TestAction[1];
         test1.testActions[0] = action1;
-        script.testCases = new TestCaseInfo[1];
+        script.testCases = new TestCase[1];
         script.testCases[0] = test1;
 
         String checkText = gson.toJson(script);
         return checkText;
     }
 
-    class TestScriptInfo {
-        TestCaseInfo[] testCases;
+    /**
+     * wrapper to have results as key for the array at webapi
+     * 
+     * @author omercan
+     */
+    class TestResultInfo {
+        TestResult[] results;
+    }
 
-        TestResultInfo[] results;
+    class ScriptInfo {
+        TestCase[] testCases;
+
+        TestResult[] results;
+
+        private transient MainActivity mActivity;
+
+        private transient Handler mHandler;
+
+        public void setActivity(MainActivity activity) {
+            mActivity = activity;
+        }
+
+        public void setHandler(Handler handler) {
+            mHandler = handler;
+        }
 
         /**
          * Run all of the test cases
          */
-        public TestResultInfo[] run() {
+        public TestResult[] run() {
             // run each test case and collect result
             if (testCases != null) {
 
-                TestResultInfo[] results = new TestResultInfo[testCases.length];
+                TestResult[] results = new TestResult[testCases.length];
 
                 for (int i = 0; i < testCases.length; i++) {
 
                     try {
+                        testCases[i].setActivity(this.mActivity);
+                        testCases[i].setHandler(this.mHandler);
                         results[i] = testCases[i].run();
                     } catch (Exception e) {
-                        results[i] = new TestResultInfo(testCases[i].testName);
+                        Log.e(TestScriptRunner.TAG, "error:", e);
+                        results[i] = new TestResult(testCases[i].testName);
                         results[i].statusOk = false;
                         results[i].testMsg = e.getMessage();
                     }
@@ -110,32 +163,95 @@ public class TestScriptRunner {
         }
     }
 
-    class TestCaseInfo {
+    class TestCase {
+
+        private transient MainActivity mActivity;
+
+        private transient Handler mHandler;
+
+        public TestCase() {
+            testName = null;
+        }
+
+        public void setHandler(Handler handler) {
+            mHandler = handler;
+        }
+
+        public void setActivity(MainActivity activity) {
+            this.mActivity = activity;
+        }
+
+        public TestCase(String name) {
+            testName = name;
+        }
 
         String testName;
 
         TestAction[] testActions;
 
-        public TestResultInfo run() throws InterruptedException {
-            Log.v(TAG, "running test case:" + testName);
-            TestResultInfo testResult = new TestResultInfo(testName);
+        public TestResult run() throws InterruptedException {
+            Log.v(TestScriptRunner.TAG, "running test case:" + testName);
+            TestResult testResult = new TestResult(testName);
             TestData testRunData = new TestData();
-            for (int i = 0; i < testActions.length; i++) {
-                TestAction action = getAction(testActions[i].name, testActions[i].target,
-                        testActions[i].targetValue);
-                Log.v(TAG, "running test case:" + testName + " action:" + action.name + " target:"
-                        + action.target);
 
-                action.perform(testRunData);
-                // call api directly if possible or do click actions on UI
-                if (testRunData.mErrorInRun) {
+            for (int i = 0; i < testActions.length; i++) {
+
+                TestAction command = createAction(testActions[i].name, testActions[i].target,
+                        testActions[i].targetValue);
+
+                if (command != null) {
+                    Log.v(TestScriptRunner.TAG, "running test case:" + testName + " action:"
+                            + command.name + " target:" + command.target);
+
+                    command.execute(testRunData);
+                    // call api directly if possible or do click actions on UI
+                    if (testRunData.mErrorInRun) {
+                        testResult.statusOk = false;
+                        testResult.testMsg = command.target + " failed";
+                        break;
+                    }
+                } else {
+                    testRunData.mErrorInRun = true;
                     testResult.statusOk = false;
-                    testResult.testMsg = action.target + " failed";
-                    break;
+                    testResult.testMsg = testActions[i].target + " failed to parse to action";
                 }
             }
 
             return testResult;
+        }
+
+        /**
+         * Get action object based on name
+         * 
+         * @param name
+         * @param target
+         * @param value
+         * @return
+         */
+        private TestAction createAction(String name, String target, String value) {
+            // add different actions related to the API here
+            Log.d(TestScriptRunner.TAG, "getAction for " + name + " target:" + target + " value:"
+                    + value);
+            if (name == null || name.isEmpty())
+                return null;
+
+            // Explicitly passing outer class activity to inner since access
+            // request from inner to outer will fail
+            if (name.equals("InitContext")) {
+                return new InitContextAction(this.mActivity, this.mHandler, name, target, value);
+            } else if (name.equals("AcquireToken")) {
+                return new AcquireTokenAction(this.mActivity, this.mHandler, name, target, value);
+            } else if (name.equals("ResetAllTokens")) {
+                return new ResetAllTokensAction(name, target, value);
+            } else if (name.equals("Enter")) {
+                return new EnterAction(name, target, value);
+            } else if (name.equals("Wait")) {
+                return new WaitAction(name, target, value);
+            } else if (name.equals("Verify")) {
+                return new VerifyAction(name, target, value);
+            }
+
+            return null;
         }
     }
 
@@ -144,36 +260,19 @@ public class TestScriptRunner {
      * 
      * @author omercan
      */
-    class TestResultInfo {
+    class TestResult {
         String testName;
 
         boolean statusOk = true;
 
         String testMsg;
 
-        public TestResultInfo() {
+        public TestResult() {
         }
 
-        public TestResultInfo(String name) {
+        public TestResult(String name) {
             testName = name;
         }
-    }
-
-    private TestAction getAction(String name, String target, String value) {
-        // add different actions related to the API here
-        if (name.equals("AcquireToken")) {
-            return new AcquireTokenAction(name, target, value);
-        } else if (name.equals("ResetAllTokens")) {
-            return new ResetAllTokensAction(name, target, value);
-        } else if (name.equals("Enter")) {
-            return new EnterAction(name, target, value);
-        } else if (name.equals("Wait")) {
-            return new WaitAction(name, target, value);
-        } else if (name.equals("Verify")) {
-            return new VerifyAction(name, target, value);
-        }
-
-        return null;
     }
 
     /**
@@ -185,11 +284,11 @@ public class TestScriptRunner {
         public VerifyAction() {
         }
 
-        public VerifyAction(String name, String target, String value) {
+        public VerifyAction(final String name, final String target, final String value) {
             super(name, target, value);
         }
 
-        public void perform(final TestData testRunData) throws InterruptedException {
+        public void execute(final TestData testRunData) throws InterruptedException {
             if (testRunData.mErrorInRun)
                 return;
 
@@ -213,20 +312,20 @@ public class TestScriptRunner {
         public EnterAction() {
         }
 
-        public EnterAction(String name, String target, String value) {
+        public EnterAction(final String name, final String target, final String value) {
             super(name, target, value);
         }
 
-        public void perform(final TestData data) throws InterruptedException {
+        public void execute(final TestData data) throws InterruptedException {
             if (data.mErrorInRun)
                 return;
 
-            if (target.equals("resource")) {
+            if (target.equals("authority")) {
+                data.mAuthority = targetValue;
+            } else if (target.equals("resource")) {
                 data.mResource = targetValue;
             } else if (target.equals("clientid")) {
                 data.mClientId = targetValue;
-            } else if (target.equals("authority")) {
-                data.mAuthority = targetValue;
             } else if (target.equals("redirect")) {
                 data.mRedirect = targetValue;
             }
@@ -237,11 +336,11 @@ public class TestScriptRunner {
         public WaitAction() {
         }
 
-        public WaitAction(String name, String target, String value) {
+        public WaitAction(final String name, final String target, final String value) {
             super(name, target, value);
         }
 
-        public void perform(final TestData data) throws InterruptedException {
+        public void execute(final TestData data) throws InterruptedException {
             if (data.mErrorInRun)
                 return;
             try {
@@ -253,7 +352,6 @@ public class TestScriptRunner {
                 data.mErrorMessage = ex.getMessage();
             }
         }
-
     }
 
     class ResetAllTokensAction extends TestAction {
@@ -261,11 +359,11 @@ public class TestScriptRunner {
         public ResetAllTokensAction() {
         }
 
-        public ResetAllTokensAction(String name, String target, String value) {
+        public ResetAllTokensAction(final String name, final String target, final String value) {
             super(name, target, value);
         }
 
-        public void perform(final TestData data) throws InterruptedException {
+        public void execute(final TestData data) throws InterruptedException {
             if (data.mErrorInRun)
                 return;
 
@@ -278,17 +376,53 @@ public class TestScriptRunner {
         }
     }
 
-    class AcquireTokenAction extends TestAction {
-        private static final long CONTEXT_REQUEST_TIME_OUT = 30000;
+    class InitContextAction extends TestAction {
+        private transient MainActivity mContextActivity;
 
-        public AcquireTokenAction() {
+        private transient Handler mHandler;
+
+        public InitContextAction(MainActivity activity, Handler handler, String name, String target,
+                String value) {
+            super(name, target, value);
+            mContextActivity = activity;
+            mHandler = handler;
         }
 
-        public AcquireTokenAction(String name, String target, String value) {
+        public InitContextAction(final String name, final String target, final String value) {
             super(name, target, value);
         }
 
-        public void perform(final TestData data) throws InterruptedException {
+        public void execute(final TestData data) throws InterruptedException {
+            if (data.mErrorInRun)
+                return;
+
+            try {
+                data.mContext = new AuthenticationContext(mContextActivity, data.mAuthority, false);
+                mContextActivity.setContextForScriptRun(data.mContext);
+            } catch (Exception e) {
+                data.mErrorInRun = true;
+                data.mErrorMessage = e.getMessage();
+            }
+
+        }
+    }
+
+    class AcquireTokenAction extends TestAction {
+        private static final long CONTEXT_REQUEST_TIME_OUT = 60000;
+
+        private transient Activity mContextActivity;
+
+        private transient Handler mHandler;
+
+        public AcquireTokenAction(final Activity activity, final Handler handler,
+                final String name, final String target, final String value) {
+            super(name, target, value);
+
+            this.mContextActivity = activity;
+            this.mHandler = handler;
+        }
+
+        public void execute(final TestData data) throws InterruptedException {
             if (data.mErrorInRun)
                 return;
 
@@ -298,25 +432,41 @@ public class TestScriptRunner {
             } else {
                 // related api call needs to block until it finishes
                 final CountDownLatch signal = new CountDownLatch(1);
-                data.mContext.acquireToken(mActivity, data.mResource, data.mClientId,
-                        data.mRedirect, data.mLoginHint, PromptBehavior.valueOf(data.mPrompt),
-                        data.mExtraQuery, new AuthenticationCallback<AuthenticationResult>() {
+                Log.v(TAG, "acquiretoken request");
+                mHandler.post(new Runnable() {
 
-                            @Override
-                            public void onSuccess(AuthenticationResult result) {
-                                data.mResult = result;
-                                signal.countDown();
-                            }
+                    @Override
+                    public void run() {
+                        // Call API from handler
+                        data.mContext.acquireToken(mContextActivity, data.mResource,
+                                data.mClientId, data.mRedirect, data.mLoginHint,
+                                data.getPromptBehavior(), data.mExtraQuery,
+                                new AuthenticationCallback<AuthenticationResult>() {
 
-                            @Override
-                            public void onError(Exception exc) {
-                                data.mErrorInRun = true;
-                                data.mErrorMessage = exc.getMessage();
-                                signal.countDown();
-                            }
-                        });
+                                    @Override
+                                    public void onSuccess(AuthenticationResult result) {
+                                        Log.v(TAG,
+                                                "AcquireToken is success:"
+                                                        + result.getAccessToken());
+                                        data.mResult = result;
+                                        signal.countDown();
+                                    }
+
+                                    @Override
+                                    public void onError(Exception exc) {
+                                        Log.v(TAG, "Error in AcquireToken");
+
+                                        data.mErrorInRun = true;
+                                        data.mErrorMessage = exc.getMessage();
+                                        signal.countDown();
+                                    }
+                                });
+
+                    }
+                });
 
                 signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+                Log.v(TAG, "acquiretoken request is processed");
             }
         }
     }
@@ -347,6 +497,14 @@ public class TestScriptRunner {
         boolean mErrorInRun;
 
         String mErrorMessage;
+
+        public PromptBehavior getPromptBehavior() {
+            if (mPrompt != null && !mPrompt.isEmpty()) {
+                return PromptBehavior.valueOf(mPrompt);
+            }
+
+            return null;
+        }
     }
 
     class TestAction {
@@ -368,7 +526,7 @@ public class TestScriptRunner {
             targetValue = action_val;
         }
 
-        public void perform(TestData data) throws InterruptedException {
+        public void execute(TestData data) throws InterruptedException {
 
         }
     }
@@ -414,11 +572,11 @@ public class TestScriptRunner {
     }
 
     interface ResponseListener {
-        void onResponse(TestScriptInfo script);
+        void onResponse(ScriptInfo script);
 
     }
 
-    class RetrieveTask extends AsyncTask<Void, Void, TestScriptInfo> {
+    class RetrieveTask extends AsyncTask<Void, Void, ScriptInfo> {
 
         private String mUrl;
 
@@ -430,7 +588,7 @@ public class TestScriptRunner {
         }
 
         @Override
-        protected TestScriptInfo doInBackground(Void... empty) {
+        protected ScriptInfo doInBackground(Void... empty) {
 
             WebRequestHandler request = new WebRequestHandler();
             HashMap<String, String> headers = new HashMap<String, String>();
@@ -440,7 +598,8 @@ public class TestScriptRunner {
             try {
                 response = request.sendGet(new URL(mUrl), headers);
                 String body = new String(response.getBody(), "UTF-8");
-                TestScriptInfo scriptInfo = gson.fromJson(body, TestScriptInfo.class);
+                Log.v(TAG, "testScript:" + body);
+                ScriptInfo scriptInfo = gson.fromJson(body, ScriptInfo.class);
                 return scriptInfo;
             } catch (MalformedURLException e) {
                 // TODO Auto-generated catch block
@@ -455,7 +614,7 @@ public class TestScriptRunner {
         }
 
         @Override
-        protected void onPostExecute(TestScriptInfo result) {
+        protected void onPostExecute(ScriptInfo result) {
             super.onPostExecute(result);
             mCallback.onResponse(result);
         }

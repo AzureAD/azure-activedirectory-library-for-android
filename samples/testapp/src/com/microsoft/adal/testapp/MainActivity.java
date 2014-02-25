@@ -193,9 +193,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 TestScriptRunner runner = new TestScriptRunner(MainActivity.this);
-                String script = runner.makeScript();
-
-                runner.processTestScript(script);
+                runner.runRemoteScript();
             }
         });
 
@@ -332,6 +330,10 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void setContextForScriptRun(final AuthenticationContext context){
+        this.mContext = context;
+    }
+    
     private void removeCookies() {
         // Clear browser cookies
         CookieSyncManager.createInstance(MainActivity.this);
