@@ -398,6 +398,7 @@ public class TestScriptRunner {
 
             try {
                 data.mContext = new AuthenticationContext(mContextActivity, data.mAuthority, false);
+                data.mContext.getCache().removeAll();
                 mContextActivity.setContextForScriptRun(data.mContext);
             } catch (Exception e) {
                 data.mErrorInRun = true;

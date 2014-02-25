@@ -198,55 +198,6 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
     
     @SmallTest
     @UiThreadTest
-    public void testOnBackPressed() throws IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, NoSuchFieldException, InterruptedException {
-
-        // Case1: returns false
-        startActivity(intentToStartActivity, null, null);
-        activity = getActivity();
-        WebView mockWebView = mock(WebView.class);
-        ReflectionUtils.setFieldValue(activity, "mWebView", mockWebView);
-        when(mockWebView.canGoBack()).thenReturn(false);
-         
-        // call
-        activity.onBackPressed();
-        
-        //verify that correct method called
-        verify(mockWebView).canGoBack();
-        verify(mockWebView, never()).goBack();  
-        
-        // Case 2: returns true
-        when(mockWebView.canGoBack()).thenReturn(true);
-        
-        // call
-        activity.onBackPressed();
-        
-        //verify that correct method called
-        verify(mockWebView).canGoBack();
-        verify(mockWebView, times(1)).goBack();  
-    }
-    
-    @SmallTest
-    @UiThreadTest
-    public void testOnBackPressed_BackTrue() throws IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, NoSuchFieldException, InterruptedException {
-
-        AuthenticationActivity mockActivity = mock(AuthenticationActivity.class);
-        WebView mockWebView = mock(WebView.class);
-        when(mockWebView.canGoBack()).thenReturn(false);
-         
-        // call
-        mockActivity.onBackPressed();
-        
-        //verify that correct method called
-        verify(mockWebView).canGoBack();
-        verify(mockWebView, never()).goBack();       
-    }
-
-    @SmallTest
-    @UiThreadTest
     public void testEmptyIntentData() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException {
 
