@@ -91,6 +91,44 @@ class AuthenticationConstants {
         static final String ID_TOKEN_IDENTITY_PROVIDER = "idp";
     }
 
+    static final class Broker {
+
+        public static final int BROKER_REQUEST_ID = 1177;
+        public static final String ACCOUNT_TYPE = "com.microsoft.aadbroker.adal.account";
+
+        public static final String ACCOUNT_INITIAL_NAME = "aad";
+
+        public static final String AUTHTOKEN_TYPE = "com.microsoft.aadbroker.adal.oauth2";
+
+        public static final String ACCOUNT_CLIENTID_KEY = "com.microsoft.aadbroker.clientid";
+
+        public static final String ACCOUNT_CORRELATIONID = "com.microsoft.aadbroker.correlationid";
+
+        public static final String ACCOUNT_PROMPT = "com.microsoft.aadbroker.prompt";
+
+        public static final String ACCOUNT_EXTRA_QUERY_PARAM = "com.microsoft.aadbroker.extraqueryparam";
+
+        public static final String ACCOUNT_LOGIN_HINT = "com.microsoft.aadbroker.loginhint";
+
+        public static final String ACCOUNT_RESOURCE = "com.microsoft.aadbroker.resource";
+
+        public static final String ACCOUNT_REDIRECT = "com.microsoft.aadbroker.redirect";
+
+        public static final String ACCOUNT_AUTHORITY = "com.microsoft.aadbroker.authority";
+
+        public static final String ACCOUNT_REFRESH_TOKEN = "com.microsoft.aadbroker.refreshtoken";
+
+        public static final String ACCOUNT_ACCESS_TOKEN = "com.microsoft.aadbroker.accesstoken";
+
+        public static final String ACCOUNT_EXPIREDATE = "com.microsoft.aadbroker.expiredate";
+
+        public static final String MULTI_RESOURCE_TOKEN = "com.microsoft.aadbroker.multiresourcetoken";
+
+        public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountanme";
+        public static final String PACKAGE_NAME = "com.microsoft.ssp";
+        public static final String SIGNATURE = "somesignature";
+    }
+
     static final class AAD {
         /** AAD OAuth2 extension strings */
         public static final String RESOURCE = "resource";
@@ -115,7 +153,7 @@ class AuthenticationConstants {
         public static final String QUERY_PROMPT = "prompt";
 
         public static final String QUERY_PROMPT_VALUE = "login";
-        
+
         public final static String ADAL_ID_PLATFORM = "x-client-SKU";
 
         public final static String ADAL_ID_VERSION = "x-client-Ver";
@@ -128,7 +166,7 @@ class AuthenticationConstants {
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.adal";
-    
+
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
 

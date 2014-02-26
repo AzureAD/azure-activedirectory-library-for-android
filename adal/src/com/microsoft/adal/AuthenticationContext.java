@@ -19,28 +19,26 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
 
-import com.example.userapp.Constants;
-import com.example.userapp.MainActivity;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorDescription;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
+import android.content.pm.Signature;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
-import android.util.Log;
 import android.util.SparseArray;
 
 /**
@@ -1364,75 +1362,82 @@ public class AuthenticationContext {
         return "0.5";
     }
 
-    private Bundle getBrokerBlockingOptions(){
+    private Bundle getBrokerBlockingOptions(final AuthenticationRequest request) {
         Bundle brokerOptions = new Bundle();
-        brokerOptions.putString(Constants.ACCOUNT_AUTHORITY, AUTHORIZATION_URL);
-        brokerOptions.putString(Constants.ACCOUNT_RESOURCE, resource);
-        brokerOptions.putString(Constants.ACCOUNT_REDIRECT, REDIRECT_URL);
-        brokerOptions.putString(Constants.ACCOUNT_LOGIN_HINT, USER_HINT);
-        brokerOptions.putString(Constants.ACCOUNT_CORRELATIONID, UUID.randomUUID().toString());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY, mAuthority);
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE,
+                request.getResource());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT,
+                request.getRedirectUri());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT,
+                request.getLoginHint());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID, request
+                .getCorrelationId().toString());
+        return brokerOptions;
     }
-    
-    private AccountManagerCallback<Bundle> getCallback(final Activity activity){
-        return new AccountManagerCallback<Bundle>() {
-            @Override
-            public void run(AccountManagerFuture<Bundle> result) {
 
-                // get result from bundle
-                Bundle bundle = null;
-                try {
-                    bundle = result.getResult();
-                } catch (OperationCanceledException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (AuthenticatorException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+    private boolean verifyBroker(final AccountManager am) {
+        try {
+            PackageInfo info = mContext.getPackageManager().getPackageInfo(
+                    AuthenticationConstants.Broker.PACKAGE_NAME, PackageManager.GET_SIGNATURES);
 
-                Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
-                if (intent == null) {
-                    showMessage("Intent is null");
-                } else {
-                    // needs to start for result so that activity at
-                    // acct manager can get the caller
-                    activity.startActivityForResult(intent, BROKER_REQUEST_ID);
+            // App can be signed with multiple cert. It will look all of them
+            // until it finds the correct one for ADAL broker.
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                String tag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+                if (tag.equals(AuthenticationConstants.Broker.SIGNATURE)) {
+                  AuthenticatorDescription[] authenticators =  am.getAuthenticatorTypes();
+                  for(AuthenticatorDescription authenticator : authenticators){
+                      
+                  }
                 }
             }
-        };
-    }
-    
-    
-    private void getAuthToken(final Activity activity) {
-        final AccountManager am = AccountManager.get(MainActivity.this);
-        // if there is not any user added to account, it returns empty
-        Account[] accountList = am.getAccountsByType(Constants.ACCOUNT_TYPE);
-        Log.v(TAG, "Account list length:" + accountList.length);
+        } catch (NameNotFoundException e) {
+            Logger.e(TAG, "Broker related package does not exist", "",
+                    ADALError.BROKER_PACKAGE_NAME_NOT_FOUND);
+        } catch (NoSuchAlgorithmException e) {
+        }
 
-        Account targetAccount = getAccount(accountList, USER_HINT);
+        return false;
+    }
+
+    private Account getAccount(Account[] accounts, String username) {
+        throw new UnsupportedOperationException();
+    }
+
+    private String getAuthTokenBackground(final AuthenticationRequest request) {
+        final AccountManager am = AccountManager.get(mContext);
+        // if there is not any user added to account, it returns empty
+        Account[] accountList = am.getAccountsByType(AuthenticationConstants.Broker.ACCOUNT_TYPE);
+        Logger.v(TAG, "Account list length:" + accountList.length);
+        Account targetAccount = getAccount(accountList, request.getLoginHint());
 
         if (targetAccount != null) {
             // add some dummy values to make a test call
-            Bundle brokerOptions = getBrokerBlockingOptions();
+            Bundle brokerOptions = getBrokerBlockingOptions(request);
 
             // blocking call to get token from cache or refresh
-            String accessToken = am.blockingGetAuthToken(targetAccount, Constants.AUTHTOKEN_TYPE,
-                    true/* notifyAuthFailure */);
-            if(accessToken == nulll ||accessToken.isEmpty()){
-                // refresh failed or account is not valid. Call addAccount to only get intent to start it from activity
-                // BrokerActivity will verify callingActivity and clientid
-                Bundle optonsForIntent = updateOptionsForAddAccount(brokerOptions);
-                AccountManagerFuture<Bundle> resultSync = am.addAccount(Constants.ACCOUNT_TYPE,
-                        Constants.AUTHTOKEN_TYPE, null, optonsForIntent, null/*passing null for activity to get intent*/,
-                        getCallback(activity), getHandler());
+            String accessToken = null;
+            try {
+                accessToken = am.blockingGetAuthToken(targetAccount,
+                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE, true/* notifyAuthFailure */);
+            } catch (OperationCanceledException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (AuthenticatorException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
+
+            return accessToken;
         }
+
+        return null;
     }
-    
-    
-    
-    
+
 }
