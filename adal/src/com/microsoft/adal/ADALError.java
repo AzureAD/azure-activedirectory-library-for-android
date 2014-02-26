@@ -28,7 +28,8 @@ public enum ADALError {
     DEVELOPER_INTERNET_PERMISSION_MISSING(
             "android.permission.INTERNET is not added to AndroidManifest file"),
 
-    SERVER_INVALID_REQUEST("Invalid request to server"),
+    DEVELOPER_CALLING_ON_MAIN_THREAD("Calling from main thread for background operation"), SERVER_INVALID_REQUEST(
+            "Invalid request to server"),
 
     SERVER_ERROR("Server returned an error"),
 
@@ -119,9 +120,15 @@ public enum ADALError {
     DISCOVERY_NOT_SUPPORTED(
             "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."),
 
-    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."), DIGEST_ERROR(
-            "Error in generating hash with MessageDigest"), BROKER_PACKAGE_NAME_NOT_FOUND(
-            "Broker is not installed in your system"), ;
+    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."),
+
+    DIGEST_ERROR("Error in generating hash with MessageDigest"),
+
+    BROKER_PACKAGE_NAME_NOT_FOUND("Broker is not installed in your system"),
+
+    BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"), BROKER_AUTHENTICATOR_IO_EXCEPTION(
+            "Authenticator has IO Exception"), DEVICE_NO_SUCH_ALGORITHM(
+            "Device does not support the algorithm"), ;
 
     private String mDescription;
 

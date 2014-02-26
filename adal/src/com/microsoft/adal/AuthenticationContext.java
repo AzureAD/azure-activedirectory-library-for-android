@@ -4,7 +4,6 @@
 
 package com.microsoft.adal;
 
-import java.io.IOException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -19,20 +18,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AuthenticatorDescription;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
-import android.content.pm.Signature;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -61,6 +52,10 @@ public class AuthenticationContext {
     private boolean mAuthorityValidated = false;
 
     private ITokenCacheStore mTokenCacheStore;
+    
+    // TODO integrate to flow
+    @SuppressWarnings("unused")
+    private IBrokerProxy mBrokerProxy;
 
     private final static ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 
@@ -116,6 +111,7 @@ public class AuthenticationContext {
             throws NoSuchAlgorithmException, NoSuchPaddingException {
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
+        mBrokerProxy = new BrokerProxy(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
@@ -132,6 +128,7 @@ public class AuthenticationContext {
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
+        mBrokerProxy = new BrokerProxy(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
@@ -150,6 +147,7 @@ public class AuthenticationContext {
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
+        mBrokerProxy = new BrokerProxy(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = true;
@@ -1361,83 +1359,4 @@ public class AuthenticationContext {
         // value
         return "0.5";
     }
-
-    private Bundle getBrokerBlockingOptions(final AuthenticationRequest request) {
-        Bundle brokerOptions = new Bundle();
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY, mAuthority);
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE,
-                request.getResource());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT,
-                request.getRedirectUri());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT,
-                request.getLoginHint());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID, request
-                .getCorrelationId().toString());
-        return brokerOptions;
-    }
-
-    private boolean verifyBroker(final AccountManager am) {
-        try {
-            PackageInfo info = mContext.getPackageManager().getPackageInfo(
-                    AuthenticationConstants.Broker.PACKAGE_NAME, PackageManager.GET_SIGNATURES);
-
-            // App can be signed with multiple cert. It will look all of them
-            // until it finds the correct one for ADAL broker.
-            for (Signature signature : info.signatures) {
-                MessageDigest md = MessageDigest.getInstance("SHA");
-                md.update(signature.toByteArray());
-                String tag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
-                if (tag.equals(AuthenticationConstants.Broker.SIGNATURE)) {
-                  AuthenticatorDescription[] authenticators =  am.getAuthenticatorTypes();
-                  for(AuthenticatorDescription authenticator : authenticators){
-                      
-                  }
-                }
-            }
-        } catch (NameNotFoundException e) {
-            Logger.e(TAG, "Broker related package does not exist", "",
-                    ADALError.BROKER_PACKAGE_NAME_NOT_FOUND);
-        } catch (NoSuchAlgorithmException e) {
-        }
-
-        return false;
-    }
-
-    private Account getAccount(Account[] accounts, String username) {
-        throw new UnsupportedOperationException();
-    }
-
-    private String getAuthTokenBackground(final AuthenticationRequest request) {
-        final AccountManager am = AccountManager.get(mContext);
-        // if there is not any user added to account, it returns empty
-        Account[] accountList = am.getAccountsByType(AuthenticationConstants.Broker.ACCOUNT_TYPE);
-        Logger.v(TAG, "Account list length:" + accountList.length);
-        Account targetAccount = getAccount(accountList, request.getLoginHint());
-
-        if (targetAccount != null) {
-            // add some dummy values to make a test call
-            Bundle brokerOptions = getBrokerBlockingOptions(request);
-
-            // blocking call to get token from cache or refresh
-            String accessToken = null;
-            try {
-                accessToken = am.blockingGetAuthToken(targetAccount,
-                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE, true/* notifyAuthFailure */);
-            } catch (OperationCanceledException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (AuthenticatorException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-            return accessToken;
-        }
-
-        return null;
-    }
-
 }
