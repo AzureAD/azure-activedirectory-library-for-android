@@ -33,14 +33,22 @@ class BrokerProxy implements IBrokerProxy {
 
     private Context mContext;
 
+    private AccountManager mAcctManager;
+
+    private Handler mHandler;
+
+    public BrokerProxy() {
+    }
+
     public BrokerProxy(final Context ctx) {
         mContext = ctx;
+        mAcctManager = AccountManager.get(mContext);
+        mHandler = new Handler(mContext.getMainLooper());
     }
 
     @Override
     public boolean canSwitchToBroker() {
-        final AccountManager am = AccountManager.get(mContext);
-        return verifyBroker() && verifyAuthenticator(am);
+        return verifyBroker() && verifyAuthenticator(mAcctManager);
     }
 
     private void verifyNotOnMainThread() {
@@ -58,14 +66,13 @@ class BrokerProxy implements IBrokerProxy {
 
     @Override
     public String getAuthTokenInBackground(final AuthenticationRequest request) {
-        final AccountManager am = AccountManager.get(mContext);
 
         String accessToken = null;
         verifyNotOnMainThread();
-        Handler handler = new Handler(mContext.getMainLooper());
 
         // if there is not any user added to account, it returns empty
-        Account[] accountList = am.getAccountsByType(AuthenticationConstants.Broker.ACCOUNT_TYPE);
+        Account[] accountList = mAcctManager
+                .getAccountsByType(AuthenticationConstants.Broker.ACCOUNT_TYPE);
         Logger.v(TAG, "Account list length:" + accountList.length);
         String accountLookupUsername = getAccountLookupUsername(request);
         Account targetAccount = getAccount(accountList, accountLookupUsername);
@@ -83,9 +90,9 @@ class BrokerProxy implements IBrokerProxy {
                 // AccountManager.
                 // false notifyAuthFailure: auth failure prompt is not requested
                 //
-                result = am.getAuthToken(targetAccount,
+                result = mAcctManager.getAuthToken(targetAccount,
                         AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions, false,
-                        null /* set to null to avoid callback */, handler);
+                        null /* set to null to avoid callback */, mHandler);
 
                 // Making blocking request here
                 Bundle bundleResult = result.getResult();
@@ -121,9 +128,44 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request) {
         // TODO get intent
-        // TODO launch from activity
+        Intent intent = null;
+        AccountManagerFuture<Bundle> result = null;
+        try {
 
-        return null;
+            // Callback is not passed since it is making a blocking call to get
+            // intent.
+            // Activity needs to be launched from calling app to get the calling
+            // app's metadata if needed at BrokerActivity.
+            Bundle addAccountOptions = getBrokerBlockingOptions(request);
+            result = mAcctManager.addAccount(AuthenticationConstants.Broker.ACCOUNT_TYPE,
+                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null,
+                    null, mHandler);
+
+            // Making blocking request here
+            Bundle bundleResult = result.getResult();
+            // Authenticator should throw OperationCanceledException if
+            // token is not available
+            // TODO add test to broker side
+            intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
+
+        } catch (OperationCanceledException e) {
+            // TODO verify that authenticator exceptions are recorded in the
+            // calling app
+            Logger.e(TAG, "Authenticator cancels the request", "", ADALError.AUTH_FAILED_CANCELLED,
+                    e);
+        } catch (AuthenticatorException e) {
+            //
+            // TODO add retry logic since authenticator is not responding to
+            // the request
+            Logger.e(TAG, "Authenticator cancels the request", "",
+                    ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+        } catch (IOException e) {
+            // Authenticator gets problem from webrequest or file read/write
+            Logger.e(TAG, "Authenticator cancels the request", "",
+                    ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
+        }
+
+        return intent;
     }
 
     private Bundle getBrokerBlockingOptions(final AuthenticationRequest request) {
@@ -132,31 +174,35 @@ class BrokerProxy implements IBrokerProxy {
         return brokerOptions;
     }
 
-    private String getAccountLookupUsername(final AuthenticationRequest request){
-        if(!StringExtensions.IsNullOrBlank(request.getLoginHint()))
-        {
-            //TODO ADAL uses loginhint to cache tokens for user. Cache changes will affect this.
+    private String getAccountLookupUsername(final AuthenticationRequest request) {
+        if (!StringExtensions.IsNullOrBlank(request.getLoginHint())) {
+            // TODO ADAL uses loginhint to cache tokens for user. Cache changes
+            // will affect this.
             return request.getLoginHint();
         }
-        
-        // If idtoken is not present, userid is unknown. Authenticator will group the tokens based on account, so it needs to pass some userid.
+
+        // If idtoken is not present, userid is unknown. Authenticator will
+        // group the tokens based on account, so it needs to pass some userid.
         return NULL_USER;
     }
-    
+
     private boolean verifyBroker() {
         try {
             PackageInfo info = mContext.getPackageManager().getPackageInfo(
                     AuthenticationConstants.Broker.PACKAGE_NAME, PackageManager.GET_SIGNATURES);
 
-            // Broker App can be signed with multiple certificates. It will look
-            // all of them
-            // until it finds the correct one for ADAL broker.
-            for (Signature signature : info.signatures) {
-                MessageDigest md = MessageDigest.getInstance("SHA");
-                md.update(signature.toByteArray());
-                String tag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
-                if (tag.equals(AuthenticationConstants.Broker.SIGNATURE)) {
-                    return true;
+            if (info != null && info.signatures != null) {
+                // Broker App can be signed with multiple certificates. It will
+                // look
+                // all of them
+                // until it finds the correct one for ADAL broker.
+                for (Signature signature : info.signatures) {
+                    MessageDigest md = MessageDigest.getInstance("SHA");
+                    md.update(signature.toByteArray());
+                    String tag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+                    if (tag.equals(AuthenticationConstants.Broker.SIGNATURE)) {
+                        return true;
+                    }
                 }
             }
         } catch (NameNotFoundException e) {
@@ -165,6 +211,9 @@ class BrokerProxy implements IBrokerProxy {
         } catch (NoSuchAlgorithmException e) {
             Logger.e(TAG, "Digest SHA algorithm does not exists", "",
                     ADALError.DEVICE_NO_SUCH_ALGORITHM);
+        } catch (Exception e) {
+            Logger.e(TAG, "Error in verifying signature", "",
+                    ADALError.BROKER_VERIFICATION_FAILED, e);
         }
 
         return false;
@@ -188,14 +237,14 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private Account getAccount(Account[] accounts, String username) {
-        if(accounts != null){
-            for(Account account : accounts){
-                if(account.name.equals(username)){
+        if (accounts != null) {
+            for (Account account : accounts) {
+                if (account.name.equals(username)) {
                     return account;
                 }
             }
         }
-        
+
         return null;
     }
 }

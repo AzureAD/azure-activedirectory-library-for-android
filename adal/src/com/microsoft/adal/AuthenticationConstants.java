@@ -127,7 +127,7 @@ class AuthenticationConstants {
 
         public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountanme";
         public static final String PACKAGE_NAME = "com.microsoft.ssp";
-        public static final String SIGNATURE = "somesignature";
+        public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
     }
 
     static final class AAD {

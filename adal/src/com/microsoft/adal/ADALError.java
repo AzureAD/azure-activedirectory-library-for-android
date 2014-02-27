@@ -128,7 +128,7 @@ public enum ADALError {
 
     BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"), BROKER_AUTHENTICATOR_IO_EXCEPTION(
             "Authenticator has IO Exception"), DEVICE_NO_SUCH_ALGORITHM(
-            "Device does not support the algorithm"), ;
+            "Device does not support the algorithm"), BROKER_VERIFICATION_FAILED("Signature could not be verified"), ;
 
     private String mDescription;
 
