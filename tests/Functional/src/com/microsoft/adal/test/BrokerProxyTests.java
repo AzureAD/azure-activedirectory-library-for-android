@@ -1,23 +1,36 @@
 
 package com.microsoft.adal.test;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 
+import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorDescription;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
+import android.os.Bundle;
+import android.os.Handler;
 import android.test.AndroidTestCase;
-import android.util.Base64;
-import android.util.Log;
+
+import com.microsoft.adal.PromptBehavior;
 
 public class BrokerProxyTests extends AndroidTestCase {
 
@@ -127,12 +140,131 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertTrue("verify should return true", result);
     }
 
-    public void testGetAuthTokenInBackground() {
-        // TODO
+    public void testGetAuthTokenInBackground_emptyAccts() throws IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, NoSuchFieldException {
+
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
+
+        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
+                "resource", "client", "redirect", "loginhint", PromptBehavior.Auto, "",
+                UUID.randomUUID());
+        String acctType = "invalid_type";
+        AccountManager mockAcctManager = mock(AccountManager.class);
+        when(mockAcctManager.getAccountsByType(anyString())).thenReturn(new Account[0]);
+        Context mockContext = mock(Context.class);
+        when(mockContext.getMainLooper()).thenReturn(null);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+        
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
+                authRequest.getClass());
+        String token = (String)m.invoke(brokerProxy, authRequest);
+        assertNull("token should return null", token);
+    }
+
+    public void testGetAuthTokenInBackground_InvalidAccount() throws IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, NoSuchFieldException {
+
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
+
+        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
+                "resource", "client", "redirect", "invalid_username", PromptBehavior.Auto, "",
+                UUID.randomUUID());
+        Account[] accts = getAccountList("valid", authenticatorType);
+        AccountManager mockAcctManager = mock(AccountManager.class);
+        when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accts);
+        Context mockContext = mock(Context.class);
+        when(mockContext.getMainLooper()).thenReturn(null);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+       
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
+                authRequest.getClass());
+        String token = (String)m.invoke(brokerProxy, authRequest);
+        assertNull("token should return null", token);
+    }
+
+    public void testGetAuthTokenInBackground_ValidAccount_EmptyBundle()
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            OperationCanceledException, AuthenticatorException, IOException, NoSuchFieldException {
+
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
+                "resource", "client", "redirect", "loginhint", PromptBehavior.Auto, "",
+                UUID.randomUUID());
+        String acctType = "loginhint";
+        Account[] accts = getAccountList(acctType, authenticatorType);
+        AccountManager mockAcctManager = mock(AccountManager.class);
+        Bundle expected = new Bundle();
+        AccountManagerFuture<Bundle> mockFuture = mock(AccountManagerFuture.class);
+        when(mockFuture.getResult()).thenReturn(expected);
+        when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accts);
+        when(
+                mockAcctManager.getAuthToken(any(Account.class), anyString(), any(Bundle.class), eq(false),
+                        (AccountManagerCallback<Bundle>)eq(null), any(Handler.class))).thenReturn(mockFuture);
+        Context mockContext = mock(Context.class);
+        when(mockContext.getMainLooper()).thenReturn(null);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+       
+        
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
+                authRequest.getClass());
+        String token = (String)m.invoke(brokerProxy, authRequest);
+        assertNull("token should return null", token);
+    }
+
+    public void testGetAuthTokenInBackground_Positive() throws IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, OperationCanceledException,
+            AuthenticatorException, IOException, NoSuchFieldException {
+
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
+                "resource", "client", "redirect", "loginhint", PromptBehavior.Auto, "",
+                UUID.randomUUID());
+        String acctType = "loginhint";
+        Account[] accts = getAccountList(acctType, authenticatorType);
+        AccountManager mockAcctManager = mock(AccountManager.class);
+        Bundle expected = new Bundle();
+        expected.putString(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN, "token123");
+        AccountManagerFuture<Bundle> mockFuture = mock(AccountManagerFuture.class);
+        when(mockFuture.getResult()).thenReturn(expected);
+        when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accts);
+        when(
+                mockAcctManager.getAuthToken(any(Account.class), anyString(), any(Bundle.class), eq(false),
+                        (AccountManagerCallback<Bundle>)eq(null), any(Handler.class))).thenReturn(mockFuture);
+        Context mockContext = mock(Context.class);
+        when(mockContext.getMainLooper()).thenReturn(null);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+               
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
+                authRequest.getClass());
+        String token = (String)m.invoke(brokerProxy, authRequest);
+        assertEquals("token is expected", "token123", token);
     }
 
     public void testGetIntentForBrokerActivity() {
         // TODO
+    }
+
+    private Account[] getAccountList(String accountname, String authenticatorType) {
+        Account account = new Account(accountname, authenticatorType);
+        Account[] accts = new Account[1];
+        accts[0] = account;
+        return accts;
     }
 
     private void prepareProxyForTest(Object brokerProxy, String authenticatorType,
@@ -178,5 +310,22 @@ public class BrokerProxyTests extends AndroidTestCase {
         items[0] = new AuthenticatorDescription(authenticatorType, packagename, 0, 0, 0, 0, true);
 
         return items;
+    }
+
+    private static Object createAuthenticationRequest(String authority, String resource,
+            String client, String redirect, String loginhint, PromptBehavior prompt,
+            String extraQueryParams, UUID correlationId) throws ClassNotFoundException,
+            NoSuchMethodException, IllegalArgumentException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+
+        Class<?> c = Class.forName("com.microsoft.adal.AuthenticationRequest");
+
+        Constructor<?> constructor = c.getDeclaredConstructor(String.class, String.class,
+                String.class, String.class, String.class, PromptBehavior.class, String.class,
+                UUID.class);
+        constructor.setAccessible(true);
+        Object o = constructor.newInstance(authority, resource, client, redirect, loginhint,
+                prompt, extraQueryParams, correlationId);
+        return o;
     }
 }
