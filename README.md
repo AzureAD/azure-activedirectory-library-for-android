@@ -131,6 +131,9 @@ If you want to build with Maven, you can use the pom.xml inside the adal folder.
   * go to adal src folder
   * mvn install
 
+### Encryption
+ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details.
+
 ### Oauth2 Bearer challange
 AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challange.
 
