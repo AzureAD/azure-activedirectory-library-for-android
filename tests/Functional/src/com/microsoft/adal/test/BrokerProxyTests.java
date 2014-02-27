@@ -33,8 +33,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
-        PackageInfo info = mContext.getPackageManager().getPackageInfo("com.microsoft.adal.testapp",
-                PackageManager.GET_SIGNATURES);
+        PackageInfo info = mContext.getPackageManager().getPackageInfo(
+                "com.microsoft.adal.testapp", PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
@@ -95,7 +95,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
-         
+
         Signature signature = new Signature("74657374696e67");
 
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, signature);
@@ -125,6 +125,14 @@ public class BrokerProxyTests extends AndroidTestCase {
         boolean result = (Boolean)m.invoke(brokerProxy);
 
         assertTrue("verify should return true", result);
+    }
+
+    public void testGetAuthTokenInBackground() {
+        // TODO
+    }
+
+    public void testGetIntentForBrokerActivity() {
+        // TODO
     }
 
     private void prepareProxyForTest(Object brokerProxy, String authenticatorType,
