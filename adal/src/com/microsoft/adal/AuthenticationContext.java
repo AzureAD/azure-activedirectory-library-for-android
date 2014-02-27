@@ -53,10 +53,6 @@ public class AuthenticationContext {
 
     private ITokenCacheStore mTokenCacheStore;
     
-    // TODO integrate to flow
-    @SuppressWarnings("unused")
-    private IBrokerProxy mBrokerProxy;
-
     private final static ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 
     private final static Lock readLock = rwl.readLock();
@@ -111,7 +107,6 @@ public class AuthenticationContext {
             throws NoSuchAlgorithmException, NoSuchPaddingException {
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
-        mBrokerProxy = new BrokerProxy(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
@@ -128,7 +123,6 @@ public class AuthenticationContext {
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
-        mBrokerProxy = new BrokerProxy(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
@@ -147,7 +141,6 @@ public class AuthenticationContext {
             ITokenCacheStore tokenCacheStore) {
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
-        mBrokerProxy = new BrokerProxy(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = true;
