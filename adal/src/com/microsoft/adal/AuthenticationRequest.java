@@ -9,7 +9,7 @@ import java.util.UUID;
  * 
  * @author omercan
  */
-class AuthenticationRequest implements Serializable {
+public class AuthenticationRequest implements Serializable {
 
     private final static long serialVersionUID = 1L;
 
