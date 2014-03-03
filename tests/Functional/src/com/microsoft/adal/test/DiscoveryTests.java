@@ -10,12 +10,8 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-
-import junit.framework.Assert;
 
 import com.microsoft.adal.ADALError;
-import com.microsoft.adal.AuthenticationCallback;
 
 /**
  * Discovery class is not public, so it needs reflection to make a call to

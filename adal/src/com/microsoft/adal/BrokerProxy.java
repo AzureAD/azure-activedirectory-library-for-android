@@ -24,6 +24,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
 
+/**
+ * Responsible for broker related interactions (ex: getting token in background,
+ * calling intent for authentication Activity from AccountManager, verifying
+ * broker related components)
+ */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class BrokerProxy implements IBrokerProxy {
 
@@ -46,6 +51,9 @@ class BrokerProxy implements IBrokerProxy {
         mHandler = new Handler(mContext.getMainLooper());
     }
 
+    /**
+     * Verifies the broker related app and AD-Authenticator in Account Manager
+     */
     @Override
     public boolean canSwitchToBroker() {
         return verifyBroker() && verifyAuthenticator(mAcctManager);
@@ -64,6 +72,9 @@ class BrokerProxy implements IBrokerProxy {
         }
     }
 
+    /**
+     * Gets accessToken from Broker component.
+     */
     @Override
     public String getAuthTokenInBackground(final AuthenticationRequest request) {
 
@@ -125,6 +136,10 @@ class BrokerProxy implements IBrokerProxy {
         return null;
     }
 
+    /**
+     * Gets intent for authentication activity from Broker component to start
+     * from calling app's activity to control the lifetime of the activity.
+     */
     @Override
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request) {
         // TODO get intent
@@ -212,8 +227,8 @@ class BrokerProxy implements IBrokerProxy {
             Logger.e(TAG, "Digest SHA algorithm does not exists", "",
                     ADALError.DEVICE_NO_SUCH_ALGORITHM);
         } catch (Exception e) {
-            Logger.e(TAG, "Error in verifying signature", "",
-                    ADALError.BROKER_VERIFICATION_FAILED, e);
+            Logger.e(TAG, "Error in verifying signature", "", ADALError.BROKER_VERIFICATION_FAILED,
+                    e);
         }
 
         return false;

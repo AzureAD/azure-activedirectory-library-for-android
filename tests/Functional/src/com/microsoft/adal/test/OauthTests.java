@@ -22,10 +22,6 @@ import com.microsoft.adal.IWebRequestHandler;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.UserInfo;
 import com.microsoft.adal.test.AuthenticationConstants.AAD;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class OauthTests extends AndroidTestCase {
 
