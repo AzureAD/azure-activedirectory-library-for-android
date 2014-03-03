@@ -1,5 +1,6 @@
 
 package com.microsoft.adal.test;
+import static org.mockito.Mockito.*;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
@@ -457,6 +458,10 @@ public class OauthTests extends AndroidTestCase {
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
     }
 
+    public void testGetTokenEndpoint(){
+        
+    }
+    
     private Object getValidAuthenticationRequest() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {

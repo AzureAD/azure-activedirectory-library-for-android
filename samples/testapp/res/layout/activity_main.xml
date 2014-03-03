@@ -137,4 +137,12 @@
         android:layout_toRightOf="@+id/buttonExpired"
         android:text="-Cookie" />
 
+    <Button
+        android:id="@+id/buttonTestScriptRun"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/buttonRemoveCookies"
+        android:layout_alignLeft="@+id/buttonRefresh"
+        android:text="Script" />
+
 </RelativeLayout>
