@@ -38,6 +38,8 @@ public class AuthenticationConstants {
         public static final int BROWSER_FLOW = 1001;
 
         public static final int TOKEN_FLOW = 1002;
+        
+        public static final int BROKER_FLOW = 1003;
     }
 
     public static final class OAuth2 {
@@ -167,10 +169,13 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_ACCESS_TOKEN = "com.microsoft.aadbroker.accesstoken";
 
         public static final String ACCOUNT_EXPIREDATE = "com.microsoft.aadbroker.expiredate";
+        
+        public static final String ACCOUNT_RESULT = "com.microsoft.aadbroker.result";
 
         public static final String MULTI_RESOURCE_TOKEN = "com.microsoft.aadbroker.multiresourcetoken";
 
         public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountanme";
+        
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.adal";
