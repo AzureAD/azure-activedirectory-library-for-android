@@ -9,13 +9,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
 
-final class StringExtensions {
+import android.util.Base64;
+
+public final class StringExtensions {
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
 
     private static final String TAG = "StringExtensions";
 
+    private static final String TOKEN_HASH_ALGORITHM = "SHA256";
+    
     /**
      * checks if string is null or empty
      * 
@@ -28,6 +33,23 @@ final class StringExtensions {
         }
 
         return false;
+    }
+    
+    public static String createHash(String msg) {
+        try {
+            if (!StringExtensions.IsNullOrBlank(msg)) {
+                MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
+                final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
+                String hash = new String(
+                        Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
+                        AuthenticationConstants.ENCODING_UTF8);
+                return hash;
+            }
+        } catch (Exception e) {
+            Logger.e(TAG, "Message digest error", "", ADALError.DIGEST_ERROR, e);
+        }
+
+        return "";
     }
 
     /**

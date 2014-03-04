@@ -1,4 +1,4 @@
-#Windows Azure Active Directory Authentication Library (ADAL) for Android
+﻿#Windows Azure Active Directory Authentication Library (ADAL) for Android
 ===========
 
 [![Build Status](https://travis-ci.org/MSOpenTech/azure-activedirectory-library-for-android.png?branch=dev)](https://travis-ci.org/MSOpenTech/azure-activedirectory-library-for-android)
@@ -120,6 +120,19 @@ Logger.getInstance().setExternalLogger(new ILogger() {
 // you can manage min log level as well
 Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
 ```
+### Maven
+If you want to build with Maven, you can use the pom.xml inside the adal folder.
+  * Install Maven 3.1.1, if you don't have
+  * Install https://github.com/mosabua/maven-android-sdk-deployer and follow instructions to install android repos locally for maven. Go to compatibility-v4 to install compatibility library as well.
+  * go to maven-android-sdk-deployer
+  * mvn install -P 4.4
+  * cd extras/compatibility-v4
+  * mvn install 
+  * go to adal src folder
+  * mvn install
+
+### Encryption
+ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details.
 
 ### Oauth2 Bearer challange
 AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challange.

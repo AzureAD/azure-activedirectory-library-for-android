@@ -24,7 +24,7 @@ import android.util.Base64;
  * 
  * @author omercan
  */
-class Oauth2 {
+public class Oauth2 {
 
     private AuthenticationRequest mRequest;
 
@@ -46,7 +46,7 @@ class Oauth2 {
         mWebRequestHandler = null;
     }
 
-    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
+    public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
     }

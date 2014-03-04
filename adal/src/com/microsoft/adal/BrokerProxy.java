@@ -185,7 +185,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private Bundle getBrokerBlockingOptions(final AuthenticationRequest request) {
         Bundle brokerOptions = new Bundle();
-        brokerOptions.putSerializable(AuthenticationConstants.Broker.BROKER_REQUEST, request);
+        brokerOptions.putSerializable(AuthenticationConstants.Broker.BACKGROUND_REQUEST_MESSAGE, request);
         return brokerOptions;
     }
 
