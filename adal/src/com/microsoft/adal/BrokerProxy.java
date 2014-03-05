@@ -34,8 +34,6 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final String TAG = "BrokerProxy";
 
-    private static final String NULL_USER = "UnknownUserName";
-
     private Context mContext;
 
     private AccountManager mAcctManager;
@@ -185,7 +183,13 @@ class BrokerProxy implements IBrokerProxy {
 
     private Bundle getBrokerBlockingOptions(final AuthenticationRequest request) {
         Bundle brokerOptions = new Bundle();
-        brokerOptions.putSerializable(AuthenticationConstants.Broker.BACKGROUND_REQUEST_MESSAGE, request);
+        // request needs to be parcelable to send across process
+        brokerOptions.putInt(AuthenticationConstants.Browser.REQUEST_ID, request.getRequestId());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY, request.getAuthority());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE, request.getResource());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT, request.getRedirectUri());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY, request.getClientId());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, request.getLoginHint());
         return brokerOptions;
     }
 
@@ -197,8 +201,8 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         // If idtoken is not present, userid is unknown. Authenticator will
-        // group the tokens based on account, so it needs to pass some userid.
-        return NULL_USER;
+        // group the tokens based on account, so it needs to pass packagename to group unknown users.
+        return mContext.getPackageName();
     }
 
     private boolean verifyBroker() {

@@ -146,6 +146,10 @@ public enum ADALError {
     ENCRYPTION_ERROR("Encryption related error"),
 
     BROKER_ACTIVITY_IS_NOT_RESOLVED("Broker activity is not resolved"),
+    
+    BROKER_ACTIVITY_INVALID_REQUEST("Invalid request parameters in request"),
+    
+    BROKER_ACCOUNT_SAVE_FAILED("Broker could not save the new account"),
 
     ;
     private String mDescription;

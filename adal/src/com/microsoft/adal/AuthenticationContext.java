@@ -798,6 +798,11 @@ public class AuthenticationContext {
                 Intent brokerIntent = broker.getIntentForBrokerActivity(request);
                 if (brokerIntent != null) {
                     try {
+
+                        Logger.v(TAG, "Calling activity pid:" + android.os.Process.myPid()
+                                + " tid:" + android.os.Process.myTid() + "uid:"
+                                + android.os.Process.myUid());
+
                         activity.startActivityForResult(brokerIntent,
                                 AuthenticationConstants.UIRequest.BROWSER_FLOW);
                     } catch (ActivityNotFoundException e) {
