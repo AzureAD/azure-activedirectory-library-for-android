@@ -773,6 +773,62 @@ public class AuthenticationContext {
             final Activity activity, final AuthenticationRequest request) {
         Logger.v(TAG, "Token request started" + getCorrelationLogInfo());
 
+        // BROKER flow intercepts here
+        BrokerProxy broker = new BrokerProxy(mContext);
+        if (broker.canSwitchToBroker()) {
+            // cache and refresh call happens through the authenticator service
+            String accessToken = broker.getAuthTokenInBackground(request);
+            if (accessToken != null && !accessToken.isEmpty()) {
+                AuthenticationResult result = new AuthenticationResult(accessToken, "", null, false);
+                callbackHandle.onSuccess(result);
+                return;
+            }
+
+            // launch broker activity
+            if (request.getPrompt() != PromptBehavior.Never) {
+                mAuthorizationCallback = callbackHandle.callback;
+                request.setRequestId(callbackHandle.callback.hashCode());
+                Logger.v(TAG, "Starting Authentication Activity with callback:"
+                        + callbackHandle.callback.hashCode() + getCorrelationLogInfo());
+                putWaitingRequest(callbackHandle.callback.hashCode(),
+                        new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
+                                callbackHandle.callback));
+
+                // onActivityResult will receive the response
+                Intent brokerIntent = broker.getIntentForBrokerActivity(request);
+                if (brokerIntent != null) {
+                    try {
+                        activity.startActivityForResult(brokerIntent,
+                                AuthenticationConstants.UIRequest.BROWSER_FLOW);
+                    } catch (ActivityNotFoundException e) {
+                        Logger.e(TAG, "Activity login is not found after resolving intent"
+                                + getCorrelationLogInfo(), "",
+                                ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED, e);
+                        callbackHandle.onError(new AuthenticationException(
+                                ADALError.BROKER_ACTIVITY_IS_NOT_RESOLVED));
+                    }
+                } else {
+                    callbackHandle.onError(new AuthenticationException(
+                            ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
+                }
+
+            } else {
+                // it can come here if user set to never for the prompt and
+                // refresh token failed.
+                Logger.e(TAG, "Prompt is not allowed and failed to get token:"
+                        + callbackHandle.callback.hashCode() + getCorrelationLogInfo(), "",
+                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+                callbackHandle.onError(new AuthenticationException(
+                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
+            }
+        } else {
+            localFlow(callbackHandle, activity, request);
+        }
+    }
+
+    private void localFlow(CallbackHandler callbackHandle, final Activity activity,
+            final AuthenticationRequest request) {
+
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
         if (request.getPrompt() != PromptBehavior.Always && isValidCache(cachedItem)) {

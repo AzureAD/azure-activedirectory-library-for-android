@@ -138,14 +138,14 @@ public enum ADALError {
     BROKER_ACTIVITY_INFO_NOT_FOUND("Activity information is not retrieved"),
 
     BROKER_SIGNATURE_NOT_SAVED("Signature is not saved"),
-    
+
     DEVICE_NO_SUCH_ALGORITHM("Device does not support the algorithm"),
 
     APP_PACKAGE_NAME_NOT_FOUND("App package name is not found in the package manager"),
 
     ENCRYPTION_ERROR("Encryption related error"),
-    
-    
+
+    BROKER_ACTIVITY_IS_NOT_RESOLVED("Broker activity is not resolved"),
 
     ;
     private String mDescription;
