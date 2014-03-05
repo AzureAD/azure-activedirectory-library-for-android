@@ -1,9 +1,9 @@
 
 package com.microsoft.adal;
 
-class AuthenticationConstants {
+public class AuthenticationConstants {
 
-    static final class Browser {
+    public static final class Browser {
         public static final String REQUEST_MESSAGE = "com.microsoft.adal:BrowserRequestMessage";
 
         public static final String RESPONSE_REQUEST_INFO = "com.microsoft.adal:BrowserRequestInfo";
@@ -23,7 +23,7 @@ class AuthenticationConstants {
         public static final String REQUEST_ID = "com.microsoft.adal:RequestId";
     }
 
-    static final class UIResponse {
+    public static final class UIResponse {
         public static final int BROWSER_CODE_CANCEL = 2001;
 
         public static final int BROWSER_CODE_ERROR = 2002;
@@ -34,13 +34,15 @@ class AuthenticationConstants {
         public static final int TOKEN_BROKER_RESPONSE = 2004;
     }
 
-    static final class UIRequest {
+    public static final class UIRequest {
         public static final int BROWSER_FLOW = 1001;
 
         public static final int TOKEN_FLOW = 1002;
+        
+        public static final int BROKER_FLOW = 1003;
     }
 
-    static final class OAuth2 {
+    public static final class OAuth2 {
         /** Core OAuth2 strings */
         public static final String ACCESS_TOKEN = "access_token";
 
@@ -91,7 +93,7 @@ class AuthenticationConstants {
         static final String ID_TOKEN_IDENTITY_PROVIDER = "idp";
     }
 
-    static final class AAD {
+    public static final class AAD {
         /** AAD OAuth2 extension strings */
         public static final String RESOURCE = "resource";
 
@@ -115,7 +117,7 @@ class AuthenticationConstants {
         public static final String QUERY_PROMPT = "prompt";
 
         public static final String QUERY_PROMPT_VALUE = "login";
-        
+
         public final static String ADAL_ID_PLATFORM = "x-client-SKU";
 
         public final static String ADAL_ID_VERSION = "x-client-Ver";
@@ -127,8 +129,57 @@ class AuthenticationConstants {
         public final static String ADAL_ID_DM = "x-client-DM";
     }
 
+    public static final class Broker {
+        /**
+         * Account type string.
+         */
+        public static final String ACCOUNT_TYPE = "com.microsoft.aadbroker.adal.account";
+
+        public static final String ACCOUNT_INITIAL_NAME = "aad";
+        
+        public static final String BACKGROUND_REQUEST_MESSAGE = "com.microsoft.aadbroker.adal.request";
+
+        /**
+         * Authtoken type string.
+         */
+        public static final String AUTHTOKEN_TYPE = "com.microsoft.aadbroker.adal.oauth2";
+
+        public static final String BROKER_FINAL_URL = "com.microsoft.aadbroker.adal.finalurl";
+
+        public static final String ACCOUNT_CLIENTID_KEY = "com.microsoft.aadbroker.clientid";
+
+        public static final String ACCOUNT_CLIENT_SECRET_KEY = "com.microsoft.aadbroker.clientsecret";
+
+        public static final String ACCOUNT_CORRELATIONID = "com.microsoft.aadbroker.correlationid";
+
+        public static final String ACCOUNT_PROMPT = "com.microsoft.aadbroker.prompt";
+
+        public static final String ACCOUNT_EXTRA_QUERY_PARAM = "com.microsoft.aadbroker.extraqueryparam";
+
+        public static final String ACCOUNT_LOGIN_HINT = "com.microsoft.aadbroker.loginhint";
+
+        public static final String ACCOUNT_RESOURCE = "com.microsoft.aadbroker.resource";
+
+        public static final String ACCOUNT_REDIRECT = "com.microsoft.aadbroker.redirect";
+
+        public static final String ACCOUNT_AUTHORITY = "com.microsoft.aadbroker.authority";
+
+        public static final String ACCOUNT_REFRESH_TOKEN = "com.microsoft.aadbroker.refreshtoken";
+
+        public static final String ACCOUNT_ACCESS_TOKEN = "com.microsoft.aadbroker.accesstoken";
+
+        public static final String ACCOUNT_EXPIREDATE = "com.microsoft.aadbroker.expiredate";
+        
+        public static final String ACCOUNT_RESULT = "com.microsoft.aadbroker.result";
+
+        public static final String MULTI_RESOURCE_TOKEN = "com.microsoft.aadbroker.multiresourcetoken";
+
+        public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountanme";
+        
+    }
+
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.adal";
-    
+
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
 
