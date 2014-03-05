@@ -222,11 +222,12 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String acctName = "LoginHint234FDFs";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
-                "resource", "client", "redirect", "loginhint", PromptBehavior.Auto, "",
+                "resource", "client", "redirect", acctName.toLowerCase(), PromptBehavior.Auto, "",
                 UUID.randomUUID());
-        String acctType = "loginhint";
-        Account[] accts = getAccountList(acctType, authenticatorType);
+       // check case sensitivity for account name
+        Account[] accts = getAccountList(acctName, authenticatorType);
         AccountManager mockAcctManager = mock(AccountManager.class);
         Bundle expected = new Bundle();
         expected.putString(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN, "token123");

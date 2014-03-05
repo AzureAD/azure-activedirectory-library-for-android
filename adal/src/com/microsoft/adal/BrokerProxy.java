@@ -4,6 +4,7 @@ package com.microsoft.adal;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -252,9 +253,9 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private Account getAccount(Account[] accounts, String username) {
-        if (accounts != null) {
-            for (Account account : accounts) {
-                if (account.name.equals(username)) {
+        if (accounts != null && username != null) {
+            for (Account account : accounts) {                
+                if (account.name.equalsIgnoreCase(username)) {
                     return account;
                 }
             }
