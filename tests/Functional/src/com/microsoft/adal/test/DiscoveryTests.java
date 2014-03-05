@@ -9,9 +9,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Set;
 
 import com.microsoft.adal.ADALError;
+import com.microsoft.adal.HttpWebResponse;
+import com.microsoft.adal.IWebRequestHandler;
+ 
 
 /**
  * Discovery class is not public, so it needs reflection to make a call to
@@ -98,6 +102,29 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertFalse("Instance should be invalid", response.result);
     }
 
+    private IWebRequestHandler getMockRequest(String json, int statusCode){
+        MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
+       
+        mockWebRequest.setReturnResponse(new HttpWebResponse(statusCode, json.getBytes(Charset
+                .defaultCharset()), null));
+        return mockWebRequest;
+    }
+    
+    public void testServerInvalidJsonResponse() throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchFieldException, MalformedURLException{
+        Object discovery = getDiscoveryInstance();
+        ReflectionUtils.setFieldValue(discovery,
+                "mWebrequestHandler", getMockRequest("{invalidJson}", 200)); 
+        final TestResponse response = new TestResponse();
+        final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
+        TestLogResponse logTrack = new TestLogResponse();
+        logTrack.listenForLogMessage("Json parsing error", null);
+        callIsValidAuthority(discovery, endpointFull, response, true);
+        
+        assertNull("Exception should not throw", response.exception);
+        assertFalse("not valid instance", response.result);
+        assertTrue("Exception msg is logged", logTrack.message.equals("Json parsing error"));
+    }
+    
     public void testIsValidAuthorityNegative_InvalidUrl() throws MalformedURLException,
             IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
             ClassNotFoundException, InstantiationException, InvocationTargetException {
@@ -132,10 +159,8 @@ public class DiscoveryTests extends AndroidTestHelper {
         callIsValidAuthority(discovery, endpointAdfs, responseAdfs, true);
 
         assertNotNull("response should not be null", responseAdfs);
-        assertNotNull(
-                "It should have exception",
-                responseAdfs.exception.getCause().getMessage().equals(
-                        ADALError.DISCOVERY_NOT_SUPPORTED.getDescription()));
+        assertNotNull("It should have exception", responseAdfs.exception.getCause().getMessage()
+                .equals(ADALError.DISCOVERY_NOT_SUPPORTED.getDescription()));
 
         final TestResponse responseInvalidPath = new TestResponse();
         final URL endpointInvalidPath = new URL("https://login.windows.net/common/test/test");

@@ -11,7 +11,7 @@ public class TenantInfo implements Serializable {
      */
     private static final long serialVersionUID = 3560085163832716550L;
 
-    private TenantInfo(TenantType tenantType, String authority, String resource, String resource2,
+    public TenantInfo(TenantType tenantType, String authority, String resource, String resource2,
             String clientId, String redirect, String federated, String username, String password,
             String username2, String password2) {
         mType = tenantType;

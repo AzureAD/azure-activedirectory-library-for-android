@@ -41,13 +41,13 @@ public class AuthenticationActivity extends Activity {
 
     private boolean mRestartWebview = false;
 
-    private WebView wv;
+    private WebView mWebView;
 
     private String mStartUrl;
 
     private ProgressDialog spinner;
 
-    private String redirectUrl;
+    private String mRedirectUrl;
 
     private AuthenticationRequest mAuthRequest;
 
@@ -114,8 +114,8 @@ public class AuthenticationActivity extends Activity {
             mAuthRequest = (AuthenticationRequest)request;
         }
 
-        redirectUrl = mAuthRequest.getRedirectUri();
-        Log.d(TAG, "OnCreate redirect" + redirectUrl);
+        mRedirectUrl = mAuthRequest.getRedirectUri();
+        Log.d(TAG, "OnCreate redirect" + mRedirectUrl);
 
         // cancel action will send the request back to onActivityResult method
         btnCancel = (Button)findViewById(R.id.btnCancel);
@@ -139,12 +139,12 @@ public class AuthenticationActivity extends Activity {
         });
 
         // Create the Web View to show the page
-        wv = (WebView)findViewById(R.id.webView1);
-        wv.getSettings().setJavaScriptEnabled(true);
-        wv.requestFocus(View.FOCUS_DOWN);
+        mWebView = (WebView)findViewById(R.id.webView1);
+        mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.requestFocus(View.FOCUS_DOWN);
 
         // Set focus to the view for touch event
-        wv.setOnTouchListener(new View.OnTouchListener() {
+        mWebView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
                 int action = event.getAction();
@@ -157,13 +157,13 @@ public class AuthenticationActivity extends Activity {
             }
         });
 
-        wv.getSettings().setLoadWithOverviewMode(true);
-        wv.getSettings().setDomStorageEnabled(true);
-        wv.getSettings().setUseWideViewPort(true);
-        wv.getSettings().setBuiltInZoomControls(true);
-        wv.setWebViewClient(new CustomWebViewClient());
-        wv.setVisibility(View.INVISIBLE);
-        Logger.v(TAG, "User agent:" + wv.getSettings().getUserAgentString());
+        mWebView.getSettings().setLoadWithOverviewMode(true);
+        mWebView.getSettings().setDomStorageEnabled(true);
+        mWebView.getSettings().setUseWideViewPort(true);
+        mWebView.getSettings().setBuiltInZoomControls(true);
+        mWebView.setWebViewClient(new CustomWebViewClient());
+        mWebView.setVisibility(View.INVISIBLE);
+        Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
 
         try {
@@ -180,11 +180,11 @@ public class AuthenticationActivity extends Activity {
 
         final String postUrl = mStartUrl;
 
-        wv.post(new Runnable() {
+        mWebView.post(new Runnable() {
             @Override
             public void run() {
-                wv.loadUrl("about:blank");// load blank first
-                wv.loadUrl(postUrl);
+                mWebView.loadUrl("about:blank");// load blank first
+                mWebView.loadUrl(postUrl);
             }
         });
 
@@ -240,12 +240,6 @@ public class AuthenticationActivity extends Activity {
     }
 
     @Override
-    protected void onStart() {
-        Logger.d(TAG, "AuthenticationActivity onStart");
-        super.onStart();
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
 
@@ -264,11 +258,11 @@ public class AuthenticationActivity extends Activity {
                         new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
             }
 
-            wv.post(new Runnable() {
+            mWebView.post(new Runnable() {
                 @Override
                 public void run() {
-                    wv.loadUrl("about:blank");// load blank first
-                    wv.loadUrl(postUrl);
+                    mWebView.loadUrl("about:blank");// load blank first
+                    mWebView.loadUrl(postUrl);
                 }
             });
         }
@@ -283,13 +277,6 @@ public class AuthenticationActivity extends Activity {
     }
 
     @Override
-    protected void onStop() {
-        // Called when you are no longer visible to the user.
-        Logger.d(TAG, "AuthenticationActivity onStop");
-        super.onStop();
-    }
-
-    @Override
     public void onBackPressed() {
         Logger.d(TAG, "Back button is pressed");
 
@@ -297,20 +284,13 @@ public class AuthenticationActivity extends Activity {
         // possible
         // User may navigated to another page and does not need confirmation to
         // go back to previous page.
-        if (!wv.canGoBack()) {
+        if (!mWebView.canGoBack()) {
             confirmCancelRequest();
         } else {
             // Don't use default back pressed action, since user can go back in
             // webview
-            wv.goBack();
+            mWebView.goBack();
         }
-
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        // TODO Auto-generated method stub
-        super.onConfigurationChanged(newConfig);
     }
 
     @Override
@@ -347,7 +327,7 @@ public class AuthenticationActivity extends Activity {
             Logger.d(TAG, "shouldOverrideUrlLoading:url=" + url);
             displaySpinner(true);
 
-            if (url.startsWith(redirectUrl)) {
+            if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
 
                 // It is pointing to redirect. Final url can be processed to get
@@ -398,13 +378,6 @@ public class AuthenticationActivity extends Activity {
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
-
-        }
-
-        @Override
-        public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            super.onPageStarted(view, url, favicon);
-            Logger.v(TAG, "Page started:" + url);
         }
 
         @Override
@@ -416,7 +389,7 @@ public class AuthenticationActivity extends Activity {
             /*
              * Once web view is fully loaded,set to visible
              */
-            wv.setVisibility(View.VISIBLE);
+            mWebView.setVisibility(View.VISIBLE);
         }
     }
 
