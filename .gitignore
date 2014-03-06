@@ -12,7 +12,8 @@
 # generated files
 bin/
 gen/
-
+libs/
+target/
 # Local configuration file (sdk path, etc)
 local.properties
 integration_tests.properties
