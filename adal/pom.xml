@@ -18,7 +18,7 @@
         <dependency>
           <groupId>android.support</groupId>
           <artifactId>compatibility-v4</artifactId>
-          <version>19.0.1</version>
+          <version>19.0.0</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
@@ -30,6 +30,34 @@
 
     <build>
         <plugins>
+<plugin>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>install-jar</id>
+            <phase>install</phase>
+            <goals>
+                <goal>copy</goal>
+            </goals>
+            <configuration>
+                <artifactItems>
+                    <artifactItem>
+                        <groupId>com.google.code.gson</groupId>
+                        <artifactId>gson</artifactId>
+                        <version>2.2.4</version>
+                    </artifactItem>
+                    <artifactItem>
+          		<groupId>android.support</groupId>
+		        <artifactId>compatibility-v4</artifactId>
+		        <version>19.0.0</version>
+                    </artifactItem>
+                 </artifactItems>
+                <outputDirectory>./libs</outputDirectory>
+                <stripVersion>true</stripVersion>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
             <plugin>
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>

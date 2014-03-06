@@ -10,7 +10,9 @@
     <modules>
         <module>adal</module>
         <module>samples/hello</module>
-        <module>samples/testapp</module>                
+        <module>samples/testapp</module>  
+        <module>samples/webapi</module> 
+        <module>tests/Functional</module>	               
      </modules>
 
     <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android</url>
@@ -35,7 +37,7 @@
         <dependency>
           <groupId>android.support</groupId>
           <artifactId>compatibility-v4</artifactId>
-          <version>19.0.1</version>
+	  <version>19.0.0</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
@@ -45,7 +47,7 @@
         </dependency>
     </dependencies>
     <build>
-         <plugins>
+	<plugins>
             <plugin>
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
