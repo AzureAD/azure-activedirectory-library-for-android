@@ -19,6 +19,7 @@
 package com.microsoft.adal;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -108,6 +109,12 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Failed;
     }
 
+    public static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
+        return new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
+                cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
+                cacheItem.getUserInfo());
+    }
+
     public String createAuthorizationHeader() {
         return AuthenticationConstants.AAD.BEARER + " " + getAccessToken();
     }
@@ -161,7 +168,20 @@ public class AuthenticationResult implements Serializable {
     }
 
     public String getErrorLogInfo() {
-        return " ErrorCode:" + getErrorCode()
-                + " ErrorDescription:" + getErrorDescription();
+        return " ErrorCode:" + getErrorCode() + " ErrorDescription:" + getErrorDescription();
+    }
+
+    public boolean isExpired() {
+        Date validity = getCurrentTime().getTime();
+
+        if (mExpiresOn != null && mExpiresOn.before(validity))
+            return true;
+
+        return false;
+    }
+
+    private static Calendar getCurrentTime() {
+        Calendar timeNow = Calendar.getInstance();
+        return timeNow;
     }
 }

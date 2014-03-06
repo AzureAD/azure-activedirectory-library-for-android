@@ -18,10 +18,12 @@
 
 package com.microsoft.adal.test;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.UUID;
+
+import junit.framework.Assert;
 
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
@@ -44,8 +46,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
     private String mReturnException;
 
     @Override
-    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers)
-            throws IllegalArgumentException, IOException {
+    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (mReturnException != null) {
@@ -57,11 +58,17 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     @Override
     public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
-            String contentType) throws IllegalArgumentException, IOException {
+            String contentType) {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {
-            mRequestContent = new String(content, "UTF-8");
+            try {
+                mRequestContent = new String(content, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                Assert.fail("Encoding");                
+            }
         }
 
         if (mReturnException != null) {

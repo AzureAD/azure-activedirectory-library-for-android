@@ -19,10 +19,7 @@
 package com.microsoft.adal;
 
 import java.net.URL;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -43,7 +40,6 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Base64;
 import android.util.SparseArray;
 
 /**
@@ -54,8 +50,6 @@ import android.util.SparseArray;
 public class AuthenticationContext {
 
     private final static String TAG = "AuthenticationContext";
-
-    private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
     private Context mContext;
 
@@ -430,7 +424,16 @@ public class AuthenticationContext {
                 // out original correlationId send with request.
                 String correlationInfo = getCorrelationInfoFromWaitingRequest(waitingRequest);
 
-                if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL) {
+                if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
+                   
+                    AuthenticationResult brokerResult = (AuthenticationResult)data
+                            .getSerializableExtra(AuthenticationConstants.Broker.ACCOUNT_RESULT);
+                    if (brokerResult != null && brokerResult.getAccessToken() != null) {
+                        waitingRequest.mDelagete.onSuccess(brokerResult);
+                        return;
+                    }
+
+                } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL) {
                     // User cancelled the flow
                     Logger.v(TAG, "User cancelled the flow RequestId:" + requestId
                             + correlationInfo);
@@ -840,24 +843,11 @@ public class AuthenticationContext {
 
     private boolean isValidCache(AuthenticationResult cachedItem) {
         if (cachedItem != null && !StringExtensions.IsNullOrBlank(cachedItem.getAccessToken())
-                && !isExpired(cachedItem.getExpiresOn())) {
+                && !cachedItem.isExpired()) {
             return true;
         }
-        return false;
-    }
-
-    private boolean isExpired(Date expires) {
-        Date validity = getCurrentTime().getTime();
-
-        if (expires != null && expires.before(validity))
-            return true;
 
         return false;
-    }
-
-    private static Calendar getCurrentTime() {
-        Calendar timeAhead = Calendar.getInstance();
-        return timeAhead;
     }
 
     /**
@@ -871,8 +861,12 @@ public class AuthenticationContext {
             // get token if resourceid matches to cache key.
             TokenCacheItem item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request));
             if (item != null) {
-                Logger.v(TAG, "getItemFromCache accessTokenId" + createHash(item.getAccessToken())
-                        + " refreshTokenId:" + createHash(item.getRefreshToken()));
+                Logger.v(
+                        TAG,
+                        "getItemFromCache accessTokenId"
+                                + StringExtensions.createHash(item.getAccessToken())
+                                + " refreshTokenId:"
+                                + StringExtensions.createHash(item.getRefreshToken()));
 
                 AuthenticationResult result = new AuthenticationResult(item.getAccessToken(),
                         item.getRefreshToken(), item.getExpiresOn(),
@@ -924,7 +918,7 @@ public class AuthenticationContext {
             }
 
             if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
-                String refreshTokenHash = createHash(item.getRefreshToken());
+                String refreshTokenHash = StringExtensions.createHash(item.getRefreshToken());
 
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed + getCorrelationLogInfo());
@@ -956,23 +950,6 @@ public class AuthenticationContext {
         }
     }
 
-    private String createHash(String msg) {
-        try {
-            if (!StringExtensions.IsNullOrBlank(msg)) {
-                MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
-                final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
-                String hash = new String(
-                        Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
-                        AuthenticationConstants.ENCODING_UTF8);
-                return hash;
-            }
-        } catch (Exception e) {
-            Logger.e(TAG, "Message digest error", "", ADALError.DIGEST_ERROR, e);
-        }
-
-        return "";
-    }
-
     /**
      * Calculate hash for accessToken and log that
      * 
@@ -982,8 +959,8 @@ public class AuthenticationContext {
     private void logReturnedToken(final AuthenticationRequest request,
             final AuthenticationResult result) {
         if (result != null && result.getAccessToken() != null) {
-            String accessTokenHash = createHash(result.getAccessToken());
-            String refreshTokenHash = createHash(result.getRefreshToken());
+            String accessTokenHash = StringExtensions.createHash(result.getAccessToken());
+            String refreshTokenHash = StringExtensions.createHash(result.getRefreshToken());
             Logger.v(TAG, String.format(
                     "Access TokenID %s and Refresh TokenID %s returned. CorrelationId: %s",
                     accessTokenHash, refreshTokenHash, request.getCorrelationId()));
@@ -1046,7 +1023,7 @@ public class AuthenticationContext {
             final boolean useCache) {
 
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
-                + createHash(refreshItem.mRefreshToken));
+                + StringExtensions.createHash(refreshItem.mRefreshToken));
 
         // Removes refresh token from cache, when this call is complete. Request
         // may be interrupted, if app is shutdown by user. Detect connection

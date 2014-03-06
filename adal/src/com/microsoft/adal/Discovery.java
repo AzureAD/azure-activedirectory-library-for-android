@@ -68,9 +68,15 @@ final class Discovery implements IDiscovery {
     private final static String TRUSTED_QUERY_INSTANCE = "login.windows.net";
 
     private UUID mCorrelationId;
+    
+    /**
+     * interface to use in testing
+     */
+    private IWebRequestHandler mWebrequestHandler;
 
     public Discovery() {
         initValidList();
+        mWebrequestHandler = new WebRequestHandler();
     }
 
     @Override
@@ -167,7 +173,6 @@ final class Discovery implements IDiscovery {
     private boolean sendRequest(final URL queryUrl) throws MalformedURLException, JSONException {
 
         Logger.v(TAG, "Sending discovery request to:" + queryUrl);
-        WebRequestHandler request = new WebRequestHandler();
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 
@@ -179,7 +184,7 @@ final class Discovery implements IDiscovery {
 
         HttpWebResponse webResponse = null;
         try {
-            webResponse = request.sendGet(queryUrl, headers);
+            webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
 
             // parse discovery response to find tenant info
             return parseResponse(webResponse);

@@ -115,7 +115,7 @@ public class CacheKey implements Serializable {
      * @param requestItem
      * @return
      */
-    static String createCacheKey(AuthenticationRequest item) {
+    public static String createCacheKey(AuthenticationRequest item) {
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
                 item.getLoginHint());
     }
@@ -127,7 +127,7 @@ public class CacheKey implements Serializable {
      * @param item
      * @return
      */
-    static String createMultiResourceRefreshTokenKey(AuthenticationRequest item) {
+    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item) {
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
                 item.getLoginHint());
     }

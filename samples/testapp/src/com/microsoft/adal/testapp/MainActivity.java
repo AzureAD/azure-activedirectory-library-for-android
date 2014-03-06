@@ -206,6 +206,14 @@ public class MainActivity extends Activity {
         mRedirect = (EditText)findViewById(R.id.editRedirect);
         mValidate = (CheckBox)findViewById(R.id.checkBoxValidate);
 
+        findViewById(R.id.buttonTestScriptRun).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TestScriptRunner runner = new TestScriptRunner(MainActivity.this);
+                runner.runRemoteScript();
+            }
+        });
+
         buttonRemoveCookies.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -339,6 +347,10 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void setContextForScriptRun(final AuthenticationContext context){
+        this.mContext = context;
+    }
+    
     private void removeCookies() {
         // Clear browser cookies
         CookieSyncManager.createInstance(MainActivity.this);
@@ -525,4 +537,5 @@ public class MainActivity extends Activity {
             }
         }
     }
+
 }

@@ -62,7 +62,7 @@ public enum ADALError {
      * webview has some generic error
      */
     ERROR_WEBVIEW("Webview returned an error"),
-    
+
     ACTIVITY_REQUEST_INTENT_DATA_IS_NULL("Request object is needed to start AuthenticationActivity"),
 
     BROADCAST_RECEIVER_ERROR("Broadcast receiver has an error"),
@@ -92,7 +92,7 @@ public enum ADALError {
      * terminated directly
      */
     ON_ACTIVITY_RESULT_INTENT_NULL("onActivityResult is called with null intent data"),
-    
+
     ON_ACTIVITY_RESULT_CALLBACK_NOT_FOUND("onActivityResult is called, but callback is not found"),
 
     DEVICE_SHARED_PREF_IS_NOT_AVAILABLE("Shared preferences are not available"),
@@ -118,8 +118,8 @@ public enum ADALError {
     BROADCAST_CANCEL_NOT_SUCCESSFUL(
             "Cancel message is not successfully delivered to broadcast receiver. It may be not registered yet. AuthenticationActivity will register that at onResume."),
 
-    CORRELATION_ID_FORMAT("Correlationid is not in UUID format"), 
-    
+    CORRELATION_ID_FORMAT("Correlationid is not in UUID format"),
+
     CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE(
             "Correlationid provided in requrest is not matching the response"),
 
@@ -136,8 +136,17 @@ public enum ADALError {
     DISCOVERY_NOT_SUPPORTED(
             "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."),
 
-    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."), DIGEST_ERROR("Error in generating hash with MessageDigest"), ;
+    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."), DIGEST_ERROR(
+            "Error in generating hash with MessageDigest"),
 
+    BROKER_AUTHENTICATION_REQUEST_IS_NULL("Authentication request is null"), BROKER_APP_VERIFICATION_FAILED(
+            "Calling app could not be verified"), BROKER_ACTIVITY_INFO_NOT_FOUND(
+            "Activity information is not retrieved"), DEVICE_NO_SUCH_ALGORITHM(
+            "Device does not support the algorithm"), APP_PACKAGE_NAME_NOT_FOUND(
+            "App package name is not found in the package manager"), ENCRYPTION_ERROR(
+            "Encryption related error"),
+
+    ;
     private String mDescription;
 
     private ADALError(String message) {
