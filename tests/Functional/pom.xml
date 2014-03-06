@@ -12,24 +12,26 @@
   <artifactId>functionaltest</artifactId>
   <packaging>apk</packaging>
   <name>Functional Test</name>
-
+  <properties>
+    <android.version>4.1.1.4</android.version>
+    <android.support.version>[18,)</android.support.version>
+  </properties>
   <dependencies>
     <dependency>
-      <groupId>android</groupId>
+      <groupId>com.google.android</groupId>
       <artifactId>android</artifactId>
-      <version>4.4.2_r2</version>
+      <version>${android.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>android.support</groupId>
+      <artifactId>compatibility-v4</artifactId>
+      <version>${android.support.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.android</groupId>
       <artifactId>android-test</artifactId>
       <version>4.1.1.4</version>
-    </dependency>
-    <dependency>
-      <groupId>android.support</groupId>
-      <artifactId>compatibility-v4</artifactId>
-      <version>19.0.0</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
@@ -47,7 +49,7 @@
       <artifactId>mockito-all</artifactId>
       <version>1.9.5</version>
     </dependency>
-  
+
   </dependencies>
   <build>
     <plugins>

@@ -12,19 +12,21 @@
   <artifactId>sampleapp</artifactId>
   <packaging>apk</packaging>
   <name>Sample App for manual testing</name>
-
+  <properties>
+    <android.version>4.1.1.4</android.version>
+    <android.support.version>[18,)</android.support.version>
+  </properties>
   <dependencies>
     <dependency>
-      <groupId>android</groupId>
+      <groupId>com.google.android</groupId>
       <artifactId>android</artifactId>
-      <version>4.4.2_r2</version>
+      <version>${android.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>android.support</groupId>
       <artifactId>compatibility-v4</artifactId>
-      <version>19.0.0</version>
-      <scope>provided</scope>
+      <version>${android.support.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
