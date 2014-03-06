@@ -62,7 +62,7 @@
                 <artifactItem>
                   <groupId>android.support</groupId>
                   <artifactId>compatibility-v4</artifactId>
-                  <version>19.0.0</version>
+                  <version>LATEST</version>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>./libs</outputDirectory>
