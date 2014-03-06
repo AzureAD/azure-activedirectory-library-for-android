@@ -1,39 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.microsoft.adal.android</groupId>
-    <artifactId>adal-aggregator</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>ADAL ANDROID-API</name>
-
-    <modules>
-        <module>adal</module>
-        <module>samples/hello</module>
-        <module>samples/testapp</module>  
-        <module>samples/webapi</module> 
-        <module>tests/Functional</module>	               
-     </modules>
-
-    <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android</url>
-    <inceptionYear>2013</inceptionYear>
+    <groupId>com.microsoft.adal</groupId>
+    <artifactId>adal</artifactId>
+    <version>0.5-alpha</version>
+    <packaging>aar</packaging>
+    <name>adal</name>
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scm.branch>master</scm.branch>
-        <maven.version>3.1.1</maven.version>
         <android.version>4.1.1.4</android.version>
         <android.support.version>[18,)</android.support.version>
     </properties>
-    </properties>
-    <scm>
-        <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/${scm.branch}</url>
-        <connection>scm:git:git://github.com/MSOpenTech/azure-activedirectory-library-for-android.git</connection>
-        <developerConnection>scm:git:https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git</developerConnection>
-    </scm>
     <dependencies>
         <dependency>
           <groupId>com.google.android</groupId>
-          <artifactId>android</artifactId>
+     	  <artifactId>android</artifactId>
           <version>${android.version}</version>
           <scope>provided</scope>
         </dependency>
@@ -41,6 +22,7 @@
           <groupId>android.support</groupId>
           <artifactId>compatibility-v4</artifactId>
           <version>${android.support.version}</version>
+          <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -48,8 +30,37 @@
             <version>2.2.4</version>
         </dependency>
     </dependencies>
+
     <build>
-	<plugins>
+        <plugins>
+<plugin>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>install-jar</id>
+            <phase>install</phase>
+            <goals>
+                <goal>copy</goal>
+            </goals>
+            <configuration>
+                <artifactItems>
+                    <artifactItem>
+                        <groupId>com.google.code.gson</groupId>
+                        <artifactId>gson</artifactId>
+                        <version>2.2.4</version>
+                    </artifactItem>
+                    <artifactItem>
+          		<groupId>android.support</groupId>
+		        <artifactId>compatibility-v4</artifactId>
+		        <version>LATEST</version>
+                    </artifactItem>
+                 </artifactItems>
+                <outputDirectory>./libs</outputDirectory>
+                <stripVersion>true</stripVersion>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
             <plugin>
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
@@ -77,5 +88,5 @@
                 </configuration>
             </plugin>
         </plugins>
-     </build>
+    </build>
 </project>

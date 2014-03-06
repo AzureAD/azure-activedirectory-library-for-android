@@ -57,14 +57,15 @@ before_script:
   - bash wait_for_emulator.sh
   
 script: 
-  - cd $PWD/adal
-  # get dependent libraries 
+  - cd $PWD
   - mvn clean install
+  - cd $PWD/adal
   - ant clean debug
   - cd -
   - cd $PWD/tests/Functional
+  - chmod +x getLibs.sh
+  - bash getLibs.sh
   # instrument classes with filter. coverage.em will be saved to bin/coverage.em
   - ant clean -Demma.filter="-com.microsoft.adal.testapp.*" emma instrument
   # debug compile, install file, test all test cases
   - ant -Demma.filter="-com.microsoft.adal.testapp.*" emma debug install test
-
