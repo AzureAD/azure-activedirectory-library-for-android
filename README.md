@@ -10,9 +10,41 @@ The ADAL SDK for Android  gives you the ability to add Windows Azure Active Dire
 
 We have released a Preview of the ADAL for Android! [You can grab the release here] (https://github.com/MSOpenTech/azure-activedirectory-library-for-android/releases/tag/v0.5-alpha)
 
-## Quick Start
+### Prerequisites
 
-1. Clone this repo and import code into your eclipse workspace
+* Maven 3.1.1+
+* Git
+* Android SDK
+* AVD image running (API level 14) or higher.
+* Android SDK with *ALL* packages installed
+* You may use any IDE that supports Maven. Eclipse ADT will work fine after you complete prereq step.
+
+
+#### Setup Maven Android SDK Deployer
+
+Some of the Android libraries are not at the maven repo, so you need to have the [Android Maven SDK Deployer](https://github.com/mosabua/maven-android-sdk-deployer) installed and configured. You can read at the Android Maven SDK Deployer GitHub in depth install guide.
+
+Before you run the SDK Deployer, you should have installed ALL PACKAGES in the Android SDK.  Once that has finished, you may run the following.
+
+    git clone https://github.com/mosabua/maven-android-sdk-deployer.git
+    cd maven-android-sdk-deployer\platforms\android-19
+    mvn clean install
+    cd ..\..\extras\compatibility-v4
+    mvn clean install
+
+Now Maven will have android-19 and support-v4 as dependencies in local m2 repo.
+
+#### Install This Repo
+
+You can clone and install from cmd line:
+
+    git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
+    cd azure-activedirectory-library-for-android
+    mvn clean install
+
+## Usage
+
+1. Follow Prerequisites
 2. Add reference to your project as Android library
 3. Add project dependency for debugging in your project settings
 4. Update your proejct's AndroidManifest.xml file to include:
