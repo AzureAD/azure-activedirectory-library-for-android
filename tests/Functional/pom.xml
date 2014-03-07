@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.microsoft.adal</groupId>
-  <artifactId>adal</artifactId>
-  <version>0.5-alpha</version>
-  <packaging>aar</packaging>
-  <name>adal</name>
+  <parent>
+    <groupId>com.microsoft.adal.android</groupId>
+    <artifactId>adal-aggregator</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <groupId>com.microsoft.adal.test</groupId>
+  <artifactId>functionaltest</artifactId>
+  <packaging>apk</packaging>
+  <name>Functional Test</name>
   <properties>
     <android.version>4.1.1.4</android.version>
     <android.support.version>[18,)</android.support.version>
@@ -24,12 +29,28 @@
       <version>${android.support.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.google.android</groupId>
+      <artifactId>android-test</artifactId>
+      <version>4.1.1.4</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>2.2.4</version>
     </dependency>
-  </dependencies>
 
+    <dependency>
+      <groupId>com.jayway.android.robotium</groupId>
+      <artifactId>robotium-solo</artifactId>
+      <version>4.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.9.5</version>
+    </dependency>
+
+  </dependencies>
   <build>
     <plugins>
       <plugin>
@@ -52,6 +73,27 @@
                   <groupId>android.support</groupId>
                   <artifactId>compatibility-v4</artifactId>
                   <version>LATEST</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.jayway.android.robotium</groupId>
+                  <artifactId>robotium-solo</artifactId>
+                  <version>4.3.1</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.mockito</groupId>
+                  <artifactId>mockito-all</artifactId>
+                  <version>1.9.5</version>
+                </artifactItem>
+
+                <artifactItem>
+                  <groupId>com.google.dexmaker</groupId>
+                  <artifactId>dexmaker</artifactId>
+                  <version>1.0</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.google.dexmaker</groupId>
+                  <artifactId>dexmaker-mockito</artifactId>
+                  <version>1.0</version>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>./libs</outputDirectory>
@@ -88,4 +130,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>
