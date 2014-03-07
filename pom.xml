@@ -9,7 +9,6 @@
 
     <modules>
         <module>adal</module>
-        <module>samples/hello</module>
         <module>samples/testapp</module>  
         <module>samples/webapi</module> 
         <module>tests/Functional</module>	               
@@ -23,7 +22,6 @@
         <maven.version>3.1.1</maven.version>
         <android.version>4.1.1.4</android.version>
         <android.support.version>[18,)</android.support.version>
-    </properties>
     </properties>
     <scm>
         <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/${scm.branch}</url>
