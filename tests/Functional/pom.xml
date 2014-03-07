@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.microsoft.adal.android</groupId>
+        <artifactId>adal-aggregator</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+	<relativePath>../../pom.xml</relativePath>
+    </parent>
+    <groupId>com.microsoft.adal.test</groupId>
+    <artifactId>functionaltest</artifactId>
+    <packaging>apk</packaging>
+    <name>Functional Test</name>
+
+    <dependencies>
+        <dependency>
+          <groupId>android</groupId>
+          <artifactId>android</artifactId>
+          <version>4.4.2_r2</version>
+          <scope>provided</scope> 
+        </dependency>
+        <dependency>
+          <groupId>com.google.android</groupId>
+          <artifactId>android-test</artifactId>
+          <version>4.1.1.4</version>
+        </dependency>
+        <dependency>
+          <groupId>android.support</groupId>
+          <artifactId>compatibility-v4</artifactId>
+          <version>19.0.1</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.2.4</version>
+        </dependency>
+        
+        <dependency>
+      	    <groupId>com.jayway.android.robotium</groupId>
+	    <artifactId>robotium-solo</artifactId>
+            <version>4.3.1</version>
+    	</dependency>
+        <dependency>
+	    <groupId>org.mockito</groupId>
+	    <artifactId>mockito-all</artifactId>
+            <version>1.9.5</version>
+        </dependency>
+	<dependency>
+            <groupId>com.google.dexmaker</groupId>
+            <artifactId>dexmaker</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.dexmaker</groupId>
+            <artifactId>dexmaker-mockito</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
+
+      <build>
+        <plugins>
+            <plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>android-maven-plugin</artifactId>
+                <version>3.8.2</version>
+                <configuration>
+                    <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
+                    <assetsDirectory>${project.basedir}/assets</assetsDirectory>
+                    <resourceDirectory>${project.basedir}/res</resourceDirectory>
+                    <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
+                    <sdk>
+                        <platform>19</platform>
+                    </sdk>
+                    <deleteConflictingFiles>true</deleteConflictingFiles>
+                    <undeployBeforeDeploy>true</undeployBeforeDeploy>
+                </configuration>
+                <extensions>true</extensions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
