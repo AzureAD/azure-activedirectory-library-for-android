@@ -12,31 +12,22 @@
   <artifactId>functionaltest</artifactId>
   <packaging>apk</packaging>
   <name>Functional Test</name>
-
+  <properties>
+    <android.version>4.1.1.4</android.version>
+    <android.support.version>[18,)</android.support.version>
+  </properties>
   <dependencies>
     <dependency>
-      <groupId>android</groupId>
+      <groupId>com.google.android</groupId>
       <artifactId>android</artifactId>
-      <version>4.4.2_r2</version>
+      <version>${android.version}</version>
       <scope>provided</scope>
-    </dependency>
+    </dependency>    
     <dependency>
       <groupId>com.google.android</groupId>
       <artifactId>android-test</artifactId>
-      <version>4.1.1.4</version>
-    </dependency>
-    <dependency>
-      <groupId>android.support</groupId>
-      <artifactId>compatibility-v4</artifactId>
-      <version>19.0.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.2.4</version>
-    </dependency>
-
+      <version>${android.version}</version>
+    </dependency>  
     <dependency>
       <groupId>com.jayway.android.robotium</groupId>
       <artifactId>robotium-solo</artifactId>
@@ -46,8 +37,7 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>1.9.5</version>
-    </dependency>
-  
+    </dependency>  
   </dependencies>
   <build>
     <plugins>
@@ -61,17 +51,7 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>com.google.code.gson</groupId>
-                  <artifactId>gson</artifactId>
-                  <version>2.2.4</version>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>android.support</groupId>
-                  <artifactId>compatibility-v4</artifactId>
-                  <version>19.0.0</version>
-                </artifactItem>
+              <artifactItems>                
                 <artifactItem>
                   <groupId>com.jayway.android.robotium</groupId>
                   <artifactId>robotium-solo</artifactId>
