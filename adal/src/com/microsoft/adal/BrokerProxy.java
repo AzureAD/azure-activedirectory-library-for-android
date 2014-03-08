@@ -189,7 +189,8 @@ class BrokerProxy implements IBrokerProxy {
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE, request.getResource());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT, request.getRedirectUri());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY, request.getClientId());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, request.getLoginHint());
+       // TODO: this will be linked to account name
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, getAccountLookupUsername(request));
         return brokerOptions;
     }
 

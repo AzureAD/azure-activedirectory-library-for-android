@@ -1,6 +1,20 @@
-/**
- * Copyright (c) Microsoft Corporation. All rights reserved. 
- */
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal.test;
 
@@ -9,9 +23,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Set;
 
 import com.microsoft.adal.ADALError;
+import com.microsoft.adal.HttpWebResponse;
+import com.microsoft.adal.IWebRequestHandler;
+
 
 /**
  * Discovery class is not public, so it needs reflection to make a call to
@@ -98,6 +116,29 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertFalse("Instance should be invalid", response.result);
     }
 
+    private IWebRequestHandler getMockRequest(String json, int statusCode){
+        MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
+       
+        mockWebRequest.setReturnResponse(new HttpWebResponse(statusCode, json.getBytes(Charset
+                .defaultCharset()), null));
+        return mockWebRequest;
+    }
+    
+    public void testServerInvalidJsonResponse() throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchFieldException, MalformedURLException{
+        Object discovery = getDiscoveryInstance();
+        ReflectionUtils.setFieldValue(discovery,
+                "mWebrequestHandler", getMockRequest("{invalidJson}", 200)); 
+        final TestResponse response = new TestResponse();
+        final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
+        TestLogResponse logTrack = new TestLogResponse();
+        logTrack.listenForLogMessage("Json parsing error", null);
+        callIsValidAuthority(discovery, endpointFull, response, true);
+        
+        assertNull("Exception should not throw", response.exception);
+        assertFalse("not valid instance", response.result);
+        assertTrue("Exception msg is logged", logTrack.message.equals("Json parsing error"));
+    }
+    
     public void testIsValidAuthorityNegative_InvalidUrl() throws MalformedURLException,
             IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
             ClassNotFoundException, InstantiationException, InvocationTargetException {
@@ -132,10 +173,8 @@ public class DiscoveryTests extends AndroidTestHelper {
         callIsValidAuthority(discovery, endpointAdfs, responseAdfs, true);
 
         assertNotNull("response should not be null", responseAdfs);
-        assertNotNull(
-                "It should have exception",
-                responseAdfs.exception.getCause().getMessage().equals(
-                        ADALError.DISCOVERY_NOT_SUPPORTED.getDescription()));
+        assertNotNull("It should have exception", responseAdfs.exception.getCause().getMessage()
+                .equals(ADALError.DISCOVERY_NOT_SUPPORTED.getDescription()));
 
         final TestResponse responseInvalidPath = new TestResponse();
         final URL endpointInvalidPath = new URL("https://login.windows.net/common/test/test");

@@ -21,6 +21,14 @@ before_install:
   - echo y | android update sdk --filter extra-android-support --no-ui -a
   - echo y | android update sdk --filter extra-google-google_play_services --no-ui -a
 
+  # setup maven android sdk deployer
+  - git clone git://github.com/mosabua/maven-android-sdk-deployer.git
+  - cd $PWD/maven-android-sdk-deployer/platforms/android-19
+  - mvn clean install
+  - cd -
+  - cd $PWD/maven-android-sdk-deployer/extras/compatibility-v4
+  - mvn install
+  - cd -
   # setup of appcompat library
   - cp -r ${ANDROID_HOME}/extras/android/support/v7/appcompat ..
   - android update lib-project -p ../appcompat --target android-19
@@ -49,15 +57,16 @@ before_script:
   - bash wait_for_emulator.sh
   
 script: 
+  - cd $PWD
+  - mvn clean install
   - cd $PWD/adal
   - ant clean debug
   - cd -
   - cd $PWD/tests/Functional
+  - chmod +x getLibs.sh
+  - bash getLibs.sh
   # instrument classes with filter. coverage.em will be saved to bin/coverage.em
   - ant clean -Demma.filter="-com.microsoft.adal.testapp.*" emma instrument
   # debug compile, install file, test all test cases
   - ant -Demma.filter="-com.microsoft.adal.testapp.*" emma debug install test
-  - adb pull /data/data/com.microsoft.adal.testapp/coverage.ec .
-  # need key for this repo
-  - java -cp tools/emmacoveralls.jar emma report -r coveralls -in ../../samples/testapp/bin/coverage.em,coverage.ec -sp ../../adal/src/ -Dreport.coveralls.service.jobid=${TRAVIS_JOB_ID} -Dreport.coveralls.service.name=travis-ci
-  - curl --form json_file=@coverage.json https://coveralls.io/api/v1/jobs
+ 

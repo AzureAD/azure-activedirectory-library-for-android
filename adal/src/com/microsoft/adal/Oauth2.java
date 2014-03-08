@@ -1,7 +1,23 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -434,9 +450,6 @@ public class Oauth2 {
             throw e;
         } catch (UnsupportedEncodingException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-            throw e;
-        } catch (IOException e) {
-            Logger.e(TAG, e.getMessage(), "", ADALError.IO_EXCEPTION, e);
             throw e;
         } catch (Exception e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);

@@ -1,10 +1,29 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal.test;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.UUID;
+
+import junit.framework.Assert;
 
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
@@ -27,8 +46,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
     private String mReturnException;
 
     @Override
-    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers)
-            throws IllegalArgumentException, IOException {
+    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (mReturnException != null) {
@@ -40,11 +58,17 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     @Override
     public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
-            String contentType) throws IllegalArgumentException, IOException {
+            String contentType) {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {
-            mRequestContent = new String(content, "UTF-8");
+            try {
+                mRequestContent = new String(content, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                Assert.fail("Encoding");                
+            }
         }
 
         if (mReturnException != null) {

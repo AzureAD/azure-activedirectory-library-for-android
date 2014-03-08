@@ -1,11 +1,26 @@
-/**
- * Copyright (c) Microsoft Corporation. All rights reserved. 
- */
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal;
 
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -411,8 +426,14 @@ public class AuthenticationContext {
                 String correlationInfo = getCorrelationInfoFromWaitingRequest(waitingRequest);
 
                 if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
-                    AuthenticationResult brokerResult = (AuthenticationResult)data
-                            .getSerializableExtra(AuthenticationConstants.Broker.ACCOUNT_RESULT);
+                    
+                  String accessToken =  data.getStringExtra( AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
+                  long expireTime = data.getLongExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
+                  Date expire = new Date(expireTime);
+                  
+                  //TODO: return userinfo as well
+                  AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null, expire,false );
+                    
                     if (brokerResult != null && brokerResult.getAccessToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                         return;

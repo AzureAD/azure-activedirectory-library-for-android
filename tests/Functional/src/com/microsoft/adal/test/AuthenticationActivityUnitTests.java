@@ -1,5 +1,24 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal.test;
+
+import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -166,15 +185,34 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
                 "Webview onResume register broadcast receiver for requestId" + TEST_REQUEST_ID,
                 null);
         ReflectionUtils.setFieldValue(activity, "mRestartWebview", true);
-        Method onResume = ReflectionUtils.getTestMethod(activity, "onResume");
+        Method methodOnResume = ReflectionUtils.getTestMethod(activity, "onResume");
 
-        onResume.invoke(activity);
+        methodOnResume.invoke(activity);
 
         // get field value to check
         assertTrue("verify log message",
                 logResponse.message.startsWith("Webview onResume register broadcast"));
     }
 
+    @SmallTest
+    @UiThreadTest
+    public void testOnRestart() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, NoSuchFieldException, InterruptedException {
+
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+
+        ReflectionUtils.setFieldValue(activity, "mRestartWebview", false);
+        Method methodOnResume = ReflectionUtils.getTestMethod(activity, "onRestart");
+
+        methodOnResume.invoke(activity);
+
+        // get field value to check
+        boolean fieldVal = (Boolean)ReflectionUtils.getFieldValue(activity, "mRestartWebview");
+        assertTrue("RestartWebview set to true", fieldVal);
+    }
+    
     @SmallTest
     @UiThreadTest
     public void testEmptyIntentData() throws IllegalArgumentException, NoSuchFieldException,

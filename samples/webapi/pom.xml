@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.microsoft.adal</groupId>
-  <artifactId>adal</artifactId>
-  <version>0.5-alpha</version>
-  <packaging>aar</packaging>
-  <name>adal</name>
+  <parent>
+    <groupId>com.microsoft.adal.android</groupId>
+    <artifactId>adal-aggregator</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <groupId>com.example.com.microsoft.adal.hello</groupId>
+  <artifactId>sampleapp</artifactId>
+  <packaging>apk</packaging>
+  <name>Sample App for manual testing</name>
   <properties>
+    <android.version>4.1.1.4</android.version>
     <android.support.version>[18,)</android.support.version>
   </properties>
   <dependencies>
     <dependency>
-          <groupId>android</groupId>
-          <artifactId>android</artifactId>
-          <version>4.4.2_r2</version>
-          <scope>provided</scope>
+      <groupId>com.google.android</groupId>
+      <artifactId>android</artifactId>
+      <version>${android.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>android.support</groupId>
@@ -27,10 +33,15 @@
       <artifactId>gson</artifactId>
       <version>2.2.4</version>
     </dependency>
+    <dependency>
+      <groupId>com.microsoft.adal</groupId>
+      <artifactId>adal</artifactId>
+      <version>0.5-alpha</version>
+      <type>aar</type>
+    </dependency>
   </dependencies>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -88,4 +99,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>
