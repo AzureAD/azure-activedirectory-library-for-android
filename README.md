@@ -44,7 +44,7 @@ You can clone and install from cmd line:
 ## Usage
 
 1. Follow Prerequisites
-2. Add reference to your project as Android library
+2. Add reference to your project as Android library. Please check here: http://developer.android.com/tools/projects/projects-eclipse.html
 3. Add project dependency for debugging in your project settings
 4. Update your proejct's AndroidManifest.xml file to include:
 ```Java
