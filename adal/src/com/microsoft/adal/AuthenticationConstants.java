@@ -194,6 +194,8 @@ public class AuthenticationConstants {
 
         public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountanme";
 
+        public static final String USERDATA_PREFIX = "userdata";
+        public static final String USERDATA_UID_KEY = "calling.uid";
         /**
          * Change this package to aadbroker
          */

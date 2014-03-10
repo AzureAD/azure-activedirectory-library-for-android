@@ -185,12 +185,19 @@ class BrokerProxy implements IBrokerProxy {
         Bundle brokerOptions = new Bundle();
         // request needs to be parcelable to send across process
         brokerOptions.putInt(AuthenticationConstants.Browser.REQUEST_ID, request.getRequestId());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY, request.getAuthority());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE, request.getResource());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT, request.getRedirectUri());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY, request.getClientId());
-       // TODO: this will be linked to account name
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, getAccountLookupUsername(request));
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY,
+                request.getAuthority());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE,
+                request.getResource());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT,
+                request.getRedirectUri());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY,
+                request.getClientId());
+        // TODO: this will be linked to account name
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT,
+                request.getLoginHint());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME,
+                getAccountLookupUsername(request));
         return brokerOptions;
     }
 
@@ -202,8 +209,10 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         // If idtoken is not present, userid is unknown. Authenticator will
-        // group the tokens based on account, so it needs to pass packagename to group unknown users.
-        return mContext.getPackageName();
+        // group the tokens based on account, so it needs to pass clientid to
+        // group unknown users. Different apps signed by same certificates may
+        // use same clientid, but they will have differnt packagenames.
+        return request.getClientId();
     }
 
     private boolean verifyBroker() {

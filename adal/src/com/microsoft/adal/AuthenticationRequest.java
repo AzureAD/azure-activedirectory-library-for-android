@@ -41,6 +41,8 @@ public class AuthenticationRequest implements Serializable {
     private String mClientId = null;
 
     private String mLoginHint = null;
+    
+    private String mBrokerAccountName = null;
 
     private UUID mCorrelationId;
 
@@ -163,5 +165,13 @@ public class AuthenticationRequest implements Serializable {
      */
     public void setRequestId(int requestId) {
         this.mRequestId = requestId;
+    }
+
+    public String getBrokerAccountName() {
+        return mBrokerAccountName;
+    }
+
+    public void setBrokerAccountName(String mBrokerAccountName) {
+        this.mBrokerAccountName = mBrokerAccountName;
     }
 }
