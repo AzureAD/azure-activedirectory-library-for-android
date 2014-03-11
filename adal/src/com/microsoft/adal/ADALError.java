@@ -158,14 +158,16 @@ public enum ADALError {
 
     DEVICE_NO_SUCH_ALGORITHM("Device does not support the algorithm"),
 
+    DEVICE_ALGORITHM_PADDING_EXCEPTION("Requested padding is not available"),
+
     APP_PACKAGE_NAME_NOT_FOUND("App package name is not found in the package manager"),
 
     ENCRYPTION_ERROR("Encryption related error"),
 
     BROKER_ACTIVITY_IS_NOT_RESOLVED("Broker activity is not resolved"),
-    
+
     BROKER_ACTIVITY_INVALID_REQUEST("Invalid request parameters in request"),
-    
+
     BROKER_ACCOUNT_SAVE_FAILED("Broker could not save the new account"),
 
     ;
