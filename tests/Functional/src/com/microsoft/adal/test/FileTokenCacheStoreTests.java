@@ -36,11 +36,6 @@ import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.UserInfo;
 
-/**
- * TODO: Cache related tests will be merged later.
- * 
- * @author omercan
- */
 public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
     int activeTestThreads = 10;

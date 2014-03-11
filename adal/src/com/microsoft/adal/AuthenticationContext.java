@@ -45,7 +45,6 @@ import android.util.SparseArray;
 /**
  * ADAL context to get access token, refresh token, and lookup from cache
  * 
- * @author omercan
  */
 public class AuthenticationContext {
 

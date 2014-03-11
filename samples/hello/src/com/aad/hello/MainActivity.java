@@ -174,11 +174,9 @@ public class MainActivity extends Activity {
 		Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
 	}
 
-	/**
-	 * Simple get request for test
-	 * 
-	 * @author omercan
-	 */
+    /**
+     * Simple get request for test
+     */
 	class RequestTask extends AsyncTask<Void, String, String> {
 
 		private String mUrl;

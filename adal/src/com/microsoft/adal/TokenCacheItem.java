@@ -24,8 +24,6 @@ import java.util.Date;
 /**
  * Extended result to store more info Queries will be performed over this item
  * not the key
- * 
- * @author omercan
  */
 public class TokenCacheItem implements Serializable {
 
