@@ -20,13 +20,10 @@ package com.microsoft.adal;
 
 import android.util.Log;
 
-
 /**
  * Android log output can. If externalLogger is set, it will use that as well.
  * Usage: Logger.v(TAG, message, additionalMessage, errorCode) to log. Set
  * custom logger: Logger.setExternalLogger(..);
- * 
- * @author omercan
  */
 public class Logger {
 

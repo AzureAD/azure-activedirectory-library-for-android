@@ -26,8 +26,6 @@ import java.util.HashMap;
 
 /**
  * tokenCacheItem is not persisted. Memory cache does not keep static items.
- * 
- * @author omercan
  */
 public class MemoryTokenCacheStore implements ITokenCacheStore {
 

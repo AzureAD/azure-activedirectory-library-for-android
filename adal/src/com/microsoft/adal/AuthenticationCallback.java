@@ -21,8 +21,6 @@ package com.microsoft.adal;
 /**
  * Callback to use with token request. User implements this callback to use
  * result in their context.
- * 
- * @author omercan
  */
 public interface AuthenticationCallback<T> {
 

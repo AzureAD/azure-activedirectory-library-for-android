@@ -12,9 +12,9 @@ public class Connection {
 		this.mContext = context;
 	}
 
-	/**
-	 * Check connection
-	 * **/
+    /**
+     * Check connection
+     **/
 	public boolean isConnectingToInternet() {
 		ConnectivityManager connectivity = (ConnectivityManager) mContext
 				.getSystemService(Context.CONNECTIVITY_SERVICE);

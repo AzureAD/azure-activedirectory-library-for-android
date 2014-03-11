@@ -25,8 +25,6 @@ import java.util.Date;
 /**
  * Result class to keep code, token and other info Serializable properties Mark
  * temp properties as Transient if you dont want to keep them in serialization
- * 
- * @author omercan
  */
 public class AuthenticationResult implements Serializable {
 

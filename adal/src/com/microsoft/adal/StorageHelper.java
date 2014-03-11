@@ -63,8 +63,6 @@ import android.util.Base64;
 /**
  * Shared preferences store clear text. This class helps to encrypt/decrypt text
  * to store. API SDK >= 18 has more security with AndroidKeyStore
- * 
- * @author omercan
  */
 public class StorageHelper {
 
