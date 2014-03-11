@@ -23,8 +23,6 @@ import java.util.UUID;
 
 /**
  * represent request and keeps authorization code and similar info
- * 
- * @author omercan
  */
 class AuthenticationRequest implements Serializable {
 

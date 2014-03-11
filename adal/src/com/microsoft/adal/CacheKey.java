@@ -23,8 +23,6 @@ import java.util.Locale;
 
 /**
  * CacheKey will be the object for key
- * 
- * @author omercan
  */
 public class CacheKey implements Serializable {
 

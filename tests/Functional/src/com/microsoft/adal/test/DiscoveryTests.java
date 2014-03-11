@@ -38,8 +38,6 @@ import com.microsoft.adal.AuthenticationCallback;
  * /discovery/instance?api-version=1.0&authorization_endpoint
  * =https%3A%2F%2Flogin
  * .windows.net%2Faaltest.onmicrosoft.com%2Foauth2%2Fauthorize
- * 
- * @author omercan
  */
 public class DiscoveryTests extends AndroidTestHelper {
 

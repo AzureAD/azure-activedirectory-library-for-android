@@ -48,8 +48,6 @@ import android.widget.Button;
 
 /**
  * activity to launch webview for authentication
- * 
- * @author omercan
  */
 public class AuthenticationActivity extends Activity {
 

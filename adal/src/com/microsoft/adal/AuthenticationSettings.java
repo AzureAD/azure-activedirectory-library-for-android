@@ -22,8 +22,6 @@ import javax.crypto.SecretKey;
 
 /**
  * Settings to be used in AuthenticationContext
- * 
- * @author omercan
  */
 public enum AuthenticationSettings {
     INSTANCE;

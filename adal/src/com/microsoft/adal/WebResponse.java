@@ -20,9 +20,6 @@ package com.microsoft.adal;
 
 /**
  * response object
- * 
- * @author omercan
- * 
  */
 class WebResponse {
 	private HttpWebResponse response = null;

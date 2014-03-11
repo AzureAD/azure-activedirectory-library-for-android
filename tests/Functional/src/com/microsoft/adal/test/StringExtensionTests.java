@@ -29,8 +29,6 @@ import android.util.Log;
 
 /**
  * StringExtensions class has helper methods and it is not public
- * 
- * @author omercan
  */
 public class StringExtensionTests extends AndroidTestHelper {
     protected void setUp() throws Exception {
