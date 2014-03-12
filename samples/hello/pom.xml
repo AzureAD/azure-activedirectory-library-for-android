@@ -13,14 +13,13 @@
   <packaging>apk</packaging>
   <name>Hello App for Demo</name>
   <properties>
-    <android.version>4.1.1.4</android.version>
     <android.support.version>[18,)</android.support.version>
   </properties>
   <dependencies>
     <dependency>
-      <groupId>com.google.android</groupId>
+      <groupId>android</groupId>
       <artifactId>android</artifactId>
-      <version>${android.version}</version>
+      <version>4.4.2_r2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -42,6 +41,7 @@
   </dependencies>
 
   <build>
+    <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
         <groupId>com.jayway.maven.plugins.android.generation2</groupId>
