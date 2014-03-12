@@ -18,8 +18,6 @@
 
 package com.microsoft.adal.test;
 
-import static org.mockito.Mockito.*;
-
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

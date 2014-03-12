@@ -17,7 +17,6 @@
 // governing permissions and limitations under the License.
 
 package com.microsoft.adal.test;
-import static org.mockito.Mockito.*;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;

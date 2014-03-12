@@ -4,7 +4,6 @@ package com.microsoft.adal;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Locale;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -42,14 +41,18 @@ class BrokerProxy implements IBrokerProxy {
     private AccountManager mAcctManager;
 
     private Handler mHandler;
+    
+    private final String mBrokerTag;
 
     public BrokerProxy() {
+        mBrokerTag = AuthenticationConstants.Broker.SIGNATURE;
     }
 
     public BrokerProxy(final Context ctx) {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
         mHandler = new Handler(mContext.getMainLooper());
+        mBrokerTag = AuthenticationConstants.Broker.SIGNATURE;
     }
 
     /**
@@ -216,7 +219,7 @@ class BrokerProxy implements IBrokerProxy {
                     MessageDigest md = MessageDigest.getInstance("SHA");
                     md.update(signature.toByteArray());
                     String tag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
-                    if (tag.equals(AuthenticationConstants.Broker.SIGNATURE)) {
+                    if (tag.equals(mBrokerTag)) {
                         return true;
                     }
                 }
@@ -263,4 +266,5 @@ class BrokerProxy implements IBrokerProxy {
 
         return null;
     }
+    
 }
