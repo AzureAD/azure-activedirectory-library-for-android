@@ -125,7 +125,7 @@ public class MainActivity extends Activity {
 
     class AdalCallback implements AuthenticationCallback<AuthenticationResult> {
 
-        private UUID mId;
+        UUID mId;
 
         public AdalCallback() {
             mId = UUID.randomUUID();
@@ -477,8 +477,6 @@ public class MainActivity extends Activity {
 
     /**
      * Simple get request for test
-     * 
-     * @author omercan
      */
     class RequestTask extends AsyncTask<Void, String, String> {
 
