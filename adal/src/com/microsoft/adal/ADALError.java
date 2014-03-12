@@ -121,8 +121,7 @@ public enum ADALError {
 
     CORRELATION_ID_FORMAT("Correlationid is not in UUID format"),
 
-    CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE(
-            "Correlationid provided in requrest is not matching the response"),
+    CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE("Correlationid provided in requrest is not matching the response"),
 
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
 
@@ -145,8 +144,9 @@ public enum ADALError {
 
     BROKER_VERIFICATION_FAILED("Signature could not be verified"),
 
-    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."), DIGEST_ERROR(
-            "Error in generating hash with MessageDigest"),
+    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."),
+
+    DIGEST_ERROR("Error in generating hash with MessageDigest"),
 
     BROKER_AUTHENTICATION_REQUEST_IS_NULL("Authentication request is null"),
 

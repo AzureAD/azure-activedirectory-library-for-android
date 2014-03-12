@@ -30,7 +30,6 @@ import com.microsoft.adal.ADALError;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
 
-
 /**
  * Discovery class is not public, so it needs reflection to make a call to
  * non-public class in different package Valid call:
@@ -39,7 +38,6 @@ import com.microsoft.adal.IWebRequestHandler;
  * =https%3A%2F%2Flogin
  * .windows.net%2Faaltest.onmicrosoft.com%2Foauth2%2Fauthorize
  * 
- * @author omercan
  */
 public class DiscoveryTests extends AndroidTestHelper {
 

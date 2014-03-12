@@ -23,8 +23,6 @@ import java.util.Map;
 
 /**
  * web response to keep status, response body, headers and related exceptions
- * 
- * @author omercan
  */
 public class HttpWebResponse {
     private int mStatusCode;

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
@@ -31,6 +32,7 @@ import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.Handler;
 import android.test.AndroidTestCase;
+import android.util.Base64;
 import android.util.Log;
 
 import com.microsoft.adal.PromptBehavior;
@@ -40,6 +42,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     private static final String TAG = "BrokerProxyTests";
 
     private byte[] testSignature;
+    private String testTag;
 
     @Override
     protected void setUp() throws Exception {
@@ -57,6 +60,9 @@ public class BrokerProxyTests extends AndroidTestCase {
         // until it finds the correct one for ADAL broker.
         for (Signature signature : info.signatures) {
             testSignature = signature.toByteArray();
+            MessageDigest md = MessageDigest.getInstance("SHA");
+            md.update(testSignature);
+            testTag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
             break;
         }
         Log.d(TAG, "testSignature is set");
@@ -126,7 +132,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
         Signature signature = new Signature(testSignature);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, signature);
-
+        ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", testTag);
+        
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
         boolean result = (Boolean)m.invoke(brokerProxy);
@@ -222,11 +229,12 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String acctName = "LoginHint234FDFs";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
-                "resource", "client", "redirect", "loginhint", PromptBehavior.Auto, "",
+                "resource", "client", "redirect", acctName.toLowerCase(), PromptBehavior.Auto, "",
                 UUID.randomUUID());
-        String acctType = "loginhint";
-        Account[] accts = getAccountList(acctType, authenticatorType);
+       // check case sensitivity for account name
+        Account[] accts = getAccountList(acctName, authenticatorType);
         AccountManager mockAcctManager = mock(AccountManager.class);
         Bundle expected = new Bundle();
         expected.putString(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN, "token123");

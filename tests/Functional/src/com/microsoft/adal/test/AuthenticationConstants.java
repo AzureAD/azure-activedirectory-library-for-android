@@ -108,19 +108,35 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_IDENTITY_PROVIDER = "idp";
     }
 
-    static final class Broker {
+    public static final class Broker {
 
         public static final int BROKER_REQUEST_ID = 1177;
 
+        public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.request";
+
+        public static final String PACKAGE_NAME = "com.microsoft.ssp";
+
+        public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
+
+        /**
+         * Account type string.
+         */
         public static final String ACCOUNT_TYPE = "com.microsoft.aadbroker.adal.account";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 
-        public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.request";
+        public static final String BACKGROUND_REQUEST_MESSAGE = "com.microsoft.aadbroker.adal.request";
 
+        /**
+         * Authtoken type string.
+         */
         public static final String AUTHTOKEN_TYPE = "com.microsoft.aadbroker.adal.oauth2";
 
+        public static final String BROKER_FINAL_URL = "com.microsoft.aadbroker.adal.finalurl";
+
         public static final String ACCOUNT_CLIENTID_KEY = "com.microsoft.aadbroker.clientid";
+
+        public static final String ACCOUNT_CLIENT_SECRET_KEY = "com.microsoft.aadbroker.clientsecret";
 
         public static final String ACCOUNT_CORRELATIONID = "com.microsoft.aadbroker.correlationid";
 
@@ -142,13 +158,12 @@ public class AuthenticationConstants {
 
         public static final String ACCOUNT_EXPIREDATE = "com.microsoft.aadbroker.expiredate";
 
+        public static final String ACCOUNT_RESULT = "com.microsoft.aadbroker.result";
+
         public static final String MULTI_RESOURCE_TOKEN = "com.microsoft.aadbroker.multiresourcetoken";
 
         public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountanme";
 
-        public static final String PACKAGE_NAME = "com.microsoft.ssp";
-
-        public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=";
     }
 
     static final class AAD {

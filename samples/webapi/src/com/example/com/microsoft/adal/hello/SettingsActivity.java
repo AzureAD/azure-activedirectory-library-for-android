@@ -11,8 +11,6 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 
 /**
  * Settings page to try broker by options
- * @author omercan
- *
  */
 public class SettingsActivity extends Activity {
 

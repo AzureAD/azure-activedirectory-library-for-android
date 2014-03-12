@@ -23,8 +23,6 @@ import java.util.UUID;
 
 /**
  * represent request and keeps authorization code and similar info
- * 
- * @author omercan
  */
 public class AuthenticationRequest implements Serializable {
 
@@ -89,17 +87,18 @@ public class AuthenticationRequest implements Serializable {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
-    } 
-    
+    }
+
     public AuthenticationRequest(String authority, String resource, String clientid,
             String redirectUri) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
         mRedirectUri = redirectUri;
-    } 
-    
-    public AuthenticationRequest(String authority, String resource, String clientId, UUID correlationId) {
+    }
+
+    public AuthenticationRequest(String authority, String resource, String clientId,
+            UUID correlationId) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;
@@ -137,12 +136,12 @@ public class AuthenticationRequest implements Serializable {
     public String getLogInfo() {
         // directly access values without getter to make it fast
         String correlation = "";
-        if(mCorrelationId != null){
+        if (mCorrelationId != null) {
             correlation = mCorrelationId.toString();
         }
-        
-        return String.format("Request authority:%s resource:%s clientid:%s correlationId:%s", mAuthority, mResource,
-                mClientId, correlation);
+
+        return String.format("Request authority:%s resource:%s clientid:%s correlationId:%s",
+                mAuthority, mResource, mClientId, correlation);
     }
 
     public PromptBehavior getPrompt() {

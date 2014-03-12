@@ -37,8 +37,6 @@ import android.util.Base64;
 
 /**
  * base oauth class
- * 
- * @author omercan
  */
 public class Oauth2 {
 

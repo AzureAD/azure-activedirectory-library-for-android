@@ -30,8 +30,6 @@ import android.content.Context;
  * Persisted cache that keeps cache in-memory until write operation. Filename
  * should not be used on another instance of FiletokenCacheStore since read
  * operations are not synced to file.
- * 
- * @author omercan
  */
 public class FileTokenCacheStore implements ITokenCacheStore {
 

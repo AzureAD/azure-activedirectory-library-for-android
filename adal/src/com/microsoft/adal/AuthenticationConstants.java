@@ -148,6 +148,11 @@ public class AuthenticationConstants {
     }
 
     public static final class Broker {
+
+        public static final int BROKER_REQUEST_ID = 1177;
+
+        public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.request";
+
         /**
          * Account type string.
          */
@@ -195,13 +200,16 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountanme";
 
         public static final String USERDATA_PREFIX = "userdata";
+
         public static final String USERDATA_UID_KEY = "calling.uid";
+
         /**
          * Change this package to aadbroker
          */
         public static final String PACKAGE_NAME = "com.microsoft.aadbroker";
 
         public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
+
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.adal";
