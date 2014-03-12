@@ -44,9 +44,8 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 
 /**
- * activity to launch webview for authentication
+ * Activity to launch webview for authentication
  * 
- * @author omercan
  */
 public class AuthenticationActivity extends Activity {
 

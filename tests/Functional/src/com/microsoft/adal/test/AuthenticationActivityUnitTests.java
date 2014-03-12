@@ -46,8 +46,6 @@ import com.microsoft.adal.R;
 
 /**
  * Unit test to verify buttons, webview and other items.
- * 
- * @author omercan
  */
 public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<AuthenticationActivity> {
 
