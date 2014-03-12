@@ -1,19 +1,30 @@
-/**
- * ---------------------------------------------------------------- 
- * Copyright (c) Microsoft Corporation. All rights reserved. 
- * ----------------------------------------------------------------
- */
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
  * Result class to keep code, token and other info Serializable properties Mark
  * temp properties as Transient if you dont want to keep them in serialization
- * 
- * @author omercan
  */
 public class AuthenticationResult implements Serializable {
 
@@ -96,6 +107,12 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Failed;
     }
 
+    public static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
+        return new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
+                cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
+                cacheItem.getUserInfo());
+    }
+
     public String createAuthorizationHeader() {
         return AuthenticationConstants.AAD.BEARER + " " + getAccessToken();
     }
@@ -149,7 +166,20 @@ public class AuthenticationResult implements Serializable {
     }
 
     public String getErrorLogInfo() {
-        return " ErrorCode:" + getErrorCode()
-                + " ErrorDescription:" + getErrorDescription();
+        return " ErrorCode:" + getErrorCode() + " ErrorDescription:" + getErrorDescription();
+    }
+
+    public boolean isExpired() {
+        Date validity = getCurrentTime().getTime();
+
+        if (mExpiresOn != null && mExpiresOn.before(validity))
+            return true;
+
+        return false;
+    }
+
+    private static Calendar getCurrentTime() {
+        Calendar timeNow = Calendar.getInstance();
+        return timeNow;
     }
 }

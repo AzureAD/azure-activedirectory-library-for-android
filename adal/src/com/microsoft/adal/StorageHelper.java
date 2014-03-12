@@ -1,3 +1,20 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal;
 
@@ -46,8 +63,6 @@ import android.util.Base64;
 /**
  * Shared preferences store clear text. This class helps to encrypt/decrypt text
  * to store. API SDK >= 18 has more security with AndroidKeyStore
- * 
- * @author omercan
  */
 public class StorageHelper {
 
@@ -268,7 +283,7 @@ public class StorageHelper {
      * @throws IOException
      * @throws NoSuchPaddingException
      */
-    protected String encrypt(String clearText) throws NoSuchAlgorithmException,
+    public String encrypt(String clearText) throws NoSuchAlgorithmException,
             InvalidKeySpecException, InvalidKeyException, InvalidAlgorithmParameterException,
             IllegalBlockSizeException, BadPaddingException, IOException, NoSuchPaddingException {
 
@@ -323,7 +338,7 @@ public class StorageHelper {
         return ENCODE_VERSION + encryptedText;
     }
 
-    protected String decrypt(String value) throws NoSuchAlgorithmException,
+    public String decrypt(String value) throws NoSuchAlgorithmException,
             InvalidKeySpecException, NoSuchPaddingException, KeyStoreException,
             CertificateException, NoSuchProviderException, InvalidAlgorithmParameterException,
             UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,

@@ -1,6 +1,20 @@
-/**
- * Copyright (c) Microsoft Corporation. All rights reserved. 
- */
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal;
 
@@ -9,13 +23,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
 
-final class StringExtensions {
+import android.util.Base64;
+
+public final class StringExtensions {
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
 
     private static final String TAG = "StringExtensions";
 
+    private static final String TOKEN_HASH_ALGORITHM = "SHA256";
+    
     /**
      * checks if string is null or empty
      * 
@@ -28,6 +47,23 @@ final class StringExtensions {
         }
 
         return false;
+    }
+    
+    public static String createHash(String msg) {
+        try {
+            if (!StringExtensions.IsNullOrBlank(msg)) {
+                MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
+                final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
+                String hash = new String(
+                        Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
+                        AuthenticationConstants.ENCODING_UTF8);
+                return hash;
+            }
+        } catch (Exception e) {
+            Logger.e(TAG, "Message digest error", "", ADALError.DIGEST_ERROR, e);
+        }
+
+        return "";
     }
 
     /**

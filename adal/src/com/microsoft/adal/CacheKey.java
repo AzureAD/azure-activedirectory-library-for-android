@@ -1,3 +1,20 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal;
 
@@ -6,8 +23,6 @@ import java.util.Locale;
 
 /**
  * CacheKey will be the object for key
- * 
- * @author omercan
  */
 public class CacheKey implements Serializable {
 
@@ -98,7 +113,7 @@ public class CacheKey implements Serializable {
      * @param requestItem
      * @return
      */
-    static String createCacheKey(AuthenticationRequest item) {
+    public static String createCacheKey(AuthenticationRequest item) {
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
                 item.getLoginHint());
     }
@@ -110,7 +125,7 @@ public class CacheKey implements Serializable {
      * @param item
      * @return
      */
-    static String createMultiResourceRefreshTokenKey(AuthenticationRequest item) {
+    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item) {
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
                 item.getLoginHint());
     }

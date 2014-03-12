@@ -1,8 +1,6 @@
 ﻿#Windows Azure Active Directory Authentication Library (ADAL) for Android
 ===========
 
-[![Build Status](https://travis-ci.org/MSOpenTech/azure-activedirectory-library-for-android.png?branch=dev)](https://travis-ci.org/MSOpenTech/azure-activedirectory-library-for-android)
-
 The ADAL SDK for Android  gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers. This SDK gives your application the full functionality of Windows Azure AD, including industry standard protocol support for OAuth2, Web API integration, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries.
 
 ## Latest Preview Release
@@ -10,10 +8,42 @@ The ADAL SDK for Android  gives you the ability to add Windows Azure Active Dire
 
 We have released a Preview of the ADAL for Android! [You can grab the release here] (https://github.com/MSOpenTech/azure-activedirectory-library-for-android/releases/tag/v0.5-alpha)
 
-## Quick Start
+### Prerequisites
 
-1. Clone this repo and import code into your eclipse workspace
-2. Add reference to your project as Android library
+* Maven 3.1.1+
+* Git
+* Android SDK
+* AVD image running (API level 14) or higher.
+* Android SDK with *ALL* packages installed
+* You may use any IDE that supports Maven. Eclipse ADT will work fine after you complete prereq step.
+
+
+#### Setup Maven Android SDK Deployer
+
+Some of the Android libraries are not at the maven repo, so you need to have the [Android Maven SDK Deployer](https://github.com/mosabua/maven-android-sdk-deployer) installed and configured. You can read at the Android Maven SDK Deployer GitHub in depth install guide.
+
+Before you run the SDK Deployer, you should have installed ALL PACKAGES in the Android SDK.  Once that has finished, you may run the following.
+
+    git clone https://github.com/mosabua/maven-android-sdk-deployer.git
+    cd maven-android-sdk-deployer\platforms\android-19
+    mvn clean install
+    cd ..\..\extras\compatibility-v4
+    mvn clean install
+
+Now Maven will have android-19 and support-v4 as dependencies in local m2 repo.
+
+#### Install This Repo
+
+You can clone and install from cmd line:
+
+    git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
+    cd azure-activedirectory-library-for-android
+    mvn clean install
+
+## Usage
+
+1. Follow Prerequisites
+2. Add reference to your project as Android library. Please check here: http://developer.android.com/tools/projects/projects-eclipse.html
 3. Add project dependency for debugging in your project settings
 4. Update your proejct's AndroidManifest.xml file to include:
 ```Java
@@ -120,16 +150,16 @@ Logger.getInstance().setExternalLogger(new ILogger() {
 // you can manage min log level as well
 Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
 ```
-### Maven
-If you want to build with Maven, you can use the pom.xml inside the adal folder.
-  * Install Maven 3.1.1, if you don't have
-  * Install https://github.com/mosabua/maven-android-sdk-deployer and follow instructions to install android repos locally for maven. Go to compatibility-v4 to install compatibility library as well.
-  * go to maven-android-sdk-deployer
-  * mvn install -P 4.4
-  * cd extras/compatibility-v4
-  * mvn install 
-  * go to adal src folder
-  * mvn install
+### Maven Sample project to run on a device
+If you want to build with Maven, you can use the pom.xml at top level
+  * Follow the steps at Prerequests section to setup your maven for android
+  * Setup emulator with SDK 18
+  * go to root folder
+  * mvn clean install
+  * cd samples\hello
+  * mvn install android:deploy android:install
+  * You should see app launching
+  * Enter test user credentials to try
 
 ### Encryption
 ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details.

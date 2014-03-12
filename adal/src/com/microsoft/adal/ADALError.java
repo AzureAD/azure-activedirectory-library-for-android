@@ -1,3 +1,20 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal;
 
@@ -126,10 +143,25 @@ public enum ADALError {
 
     BROKER_PACKAGE_NAME_NOT_FOUND("Broker is not installed in your system"),
 
-    BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"), BROKER_AUTHENTICATOR_IO_EXCEPTION(
-            "Authenticator has IO Exception"), DEVICE_NO_SUCH_ALGORITHM(
-            "Device does not support the algorithm"), BROKER_VERIFICATION_FAILED("Signature could not be verified"), ;
+    BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"),
 
+    BROKER_AUTHENTICATOR_IO_EXCEPTION("Authenticator has IO Exception"),
+
+    BROKER_VERIFICATION_FAILED("Signature could not be verified"),
+
+    BROKER_AUTHENTICATION_REQUEST_IS_NULL("Authentication request is null"),
+
+    BROKER_APP_VERIFICATION_FAILED("Calling app could not be verified"),
+
+    BROKER_ACTIVITY_INFO_NOT_FOUND("Activity information is not retrieved"),
+
+    DEVICE_NO_SUCH_ALGORITHM("Device does not support the algorithm"),
+
+    APP_PACKAGE_NAME_NOT_FOUND("App package name is not found in the package manager"),
+
+    ENCRYPTION_ERROR("Encryption related error"),
+
+    ;
     private String mDescription;
 
     private ADALError(String message) {
