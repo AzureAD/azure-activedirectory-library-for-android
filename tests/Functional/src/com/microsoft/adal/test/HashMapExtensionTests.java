@@ -18,12 +18,9 @@
 
 package com.microsoft.adal.test;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-
-import junit.framework.Assert;
 
 public class HashMapExtensionTests extends AndroidTestHelper {
     protected void setUp() throws Exception {

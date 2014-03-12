@@ -59,7 +59,7 @@ public class AuthenticationContext {
     private boolean mAuthorityValidated = false;
 
     private ITokenCacheStore mTokenCacheStore;
-
+    
     private final static ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 
     private final static Lock readLock = rwl.readLock();

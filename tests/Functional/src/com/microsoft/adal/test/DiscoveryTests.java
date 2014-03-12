@@ -29,6 +29,7 @@ import java.util.Set;
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
+ 
 
 /**
  * Discovery class is not public, so it needs reflection to make a call to

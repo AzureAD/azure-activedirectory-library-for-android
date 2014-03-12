@@ -55,7 +55,7 @@ public class AuthenticationConstants {
         public static final int BROWSER_FLOW = 1001;
 
         public static final int TOKEN_FLOW = 1002;
-        
+
         public static final int BROKER_FLOW = 1003;
     }
 
@@ -111,6 +111,7 @@ public class AuthenticationConstants {
     }
 
     public static final class AAD {
+
         /** AAD OAuth2 extension strings */
         public static final String RESOURCE = "resource";
 
@@ -147,13 +148,22 @@ public class AuthenticationConstants {
     }
 
     public static final class Broker {
+
+        public static final int BROKER_REQUEST_ID = 1177;
+
+        public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.request";
+
+        public static final String PACKAGE_NAME = "com.microsoft.ssp";
+
+        public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
+
         /**
          * Account type string.
          */
         public static final String ACCOUNT_TYPE = "com.microsoft.aadbroker.adal.account";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
-        
+
         public static final String BACKGROUND_REQUEST_MESSAGE = "com.microsoft.aadbroker.adal.request";
 
         /**
@@ -186,13 +196,13 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_ACCESS_TOKEN = "com.microsoft.aadbroker.accesstoken";
 
         public static final String ACCOUNT_EXPIREDATE = "com.microsoft.aadbroker.expiredate";
-        
+
         public static final String ACCOUNT_RESULT = "com.microsoft.aadbroker.result";
 
         public static final String MULTI_RESOURCE_TOKEN = "com.microsoft.aadbroker.multiresourcetoken";
 
         public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountanme";
-        
+
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.adal";
