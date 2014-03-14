@@ -18,8 +18,11 @@
 
 package com.microsoft.adal.test;
 
+import static org.mockito.Mockito.mock;
+
 import java.io.File;
 
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -29,7 +32,6 @@ import android.content.pm.ResolveInfo;
 import android.os.Looper;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
-
 
 class FileMockContext extends MockContext {
 
@@ -42,6 +44,7 @@ class FileMockContext extends MockContext {
     String dirName;
 
     int fileWriteMode;
+
     String requestedPermissionName;
 
     int responsePermissionFlag;
@@ -57,7 +60,7 @@ class FileMockContext extends MockContext {
     public Looper getMainLooper() {
         return mContext.getMainLooper();
     }
-    
+
     @Override
     public String getPackageName() {
         return PREFIX;
@@ -74,11 +77,13 @@ class FileMockContext extends MockContext {
         fileWriteMode = mode;
         return null;
     }
-    
+
     @Override
     public Object getSystemService(String name) {
-        // TODO Auto-generated method stub
-        return super.getSystemService(name);
+        if (name.equals("account")) {
+            return mock(AccountManager.class);
+        }
+        return new Object();
     }
 
     @Override
@@ -99,7 +104,7 @@ class FileMockContext extends MockContext {
 
             return null;
         }
-        
+
         @Override
         public int checkPermission(String permName, String pkgName) {
             if (permName.equals(requestedPermissionName)) {
@@ -107,7 +112,7 @@ class FileMockContext extends MockContext {
             }
             return PackageManager.PERMISSION_DENIED;
         }
-        
+
         @Override
         public PackageInfo getPackageInfo(String packageName, int flags)
                 throws NameNotFoundException {

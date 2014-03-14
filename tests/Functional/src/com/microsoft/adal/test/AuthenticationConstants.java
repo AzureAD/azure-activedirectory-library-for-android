@@ -114,7 +114,10 @@ public class AuthenticationConstants {
 
         public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.request";
 
-        public static final String PACKAGE_NAME = "com.microsoft.ssp";
+        /**
+         * Change this package to aadbroker
+         */
+        public static final String PACKAGE_NAME = "com.microsoft.aadbroker";
 
         public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
 
