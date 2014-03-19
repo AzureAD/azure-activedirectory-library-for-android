@@ -165,13 +165,13 @@ public class AuthenticationConstants {
         /**
          * Authtoken type string.
          */
-        public static final String AUTHTOKEN_TYPE = "com.microsoft.aadbroker.adal.oauth2";
+        public static final String AUTHTOKEN_TYPE = "com.microsoft.aadbroker.adal.authtoken.type";
 
         public static final String BROKER_FINAL_URL = "com.microsoft.aadbroker.adal.finalurl";
 
-        public static final String ACCOUNT_CLIENTID_KEY = "com.microsoft.aadbroker.clientid";
+        public static final String ACCOUNT_CLIENTID_KEY = "com.microsoft.aadbroker.clientid.key";
 
-        public static final String ACCOUNT_CLIENT_SECRET_KEY = "com.microsoft.aadbroker.clientsecret";
+        public static final String ACCOUNT_CLIENT_SECRET_KEY = "com.microsoft.aadbroker.clientsecret.key";
 
         public static final String ACCOUNT_CORRELATIONID = "com.microsoft.aadbroker.correlationid";
 
@@ -197,17 +197,22 @@ public class AuthenticationConstants {
 
         public static final String MULTI_RESOURCE_TOKEN = "com.microsoft.aadbroker.multiresourcetoken";
 
-        public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountanme";
+        public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountname";
 
         public static final String USERDATA_PREFIX = "userdata";
 
         public static final String USERDATA_UID_KEY = "calling.uid";
 
         /**
-         * Change this package to aadbroker
+         * Apk packagename that will install AD-Authenticator. It is used to
+         * query if this app installed or not from package manager
          */
         public static final String PACKAGE_NAME = "com.microsoft.aadbroker";
 
+        /**
+         * Signature info for AD-Authenticator installing app to verify broker
+         * component
+         */
         public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
 
     }

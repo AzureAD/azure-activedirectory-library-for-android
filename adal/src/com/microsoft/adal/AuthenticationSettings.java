@@ -22,6 +22,9 @@ package com.microsoft.adal;
  * Settings to be used in AuthenticationContext
  */
 public enum AuthenticationSettings {
+    /**
+     * Singleton setting instance
+     */
     INSTANCE;
 
     private final static int SECRET_RAW_KEY_LENGTH = 32;
@@ -31,7 +34,7 @@ public enum AuthenticationSettings {
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt
      * 
-     * @return
+     * @return byte[] secret data
      */
     public byte[] getSecretKeyData() {
         return mSecretKeyData;
@@ -40,7 +43,7 @@ public enum AuthenticationSettings {
     /**
      * set raw bytes to derive secretKey to use in encrypt/decrypt
      * 
-     * @param key
+     * @param rawKey
      */
     public void setSecretKey(byte[] rawKey) {
         if (rawKey == null || rawKey.length != SECRET_RAW_KEY_LENGTH) {

@@ -35,6 +35,7 @@ import android.test.AndroidTestCase;
 import android.util.Base64;
 import android.util.Log;
 
+import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.PromptBehavior;
 
 public class BrokerProxyTests extends AndroidTestCase {
@@ -217,8 +218,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
                 authRequest.getClass());
-        String token = (String)m.invoke(brokerProxy, authRequest);
-        assertNull("token should return null", token);
+        AuthenticationResult result = (AuthenticationResult)m.invoke(brokerProxy, authRequest);
+        assertNull("token should return null", result.getAccessToken());
     }
 
     @SuppressWarnings("unchecked")
@@ -253,8 +254,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
                 authRequest.getClass());
-        String token = (String)m.invoke(brokerProxy, authRequest);
-        assertEquals("token is expected", "token123", token);
+        AuthenticationResult result = (AuthenticationResult)m.invoke(brokerProxy, authRequest);
+        assertEquals("token is expected", "token123", result.getAccessToken());
     }
 
     public void testGetIntentForBrokerActivity_emptyIntent() throws IllegalArgumentException,

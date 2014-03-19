@@ -27,7 +27,7 @@ import java.util.Locale;
 public class CacheKey implements Serializable {
 
     /**
-     * 
+     * serial version id
      */
     private static final long serialVersionUID = 8067972995583126404L;
 
@@ -52,7 +52,7 @@ public class CacheKey implements Serializable {
         return String.format("%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
                 (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId);
     }
-    
+
     public static String createCacheKey(String authority, String resource, String clientId,
             boolean isMultiResourceRefreshToken, String userId) {
 
@@ -114,6 +114,10 @@ public class CacheKey implements Serializable {
      * @return
      */
     public static String createCacheKey(AuthenticationRequest item) {
+        if (item == null) {
+            throw new IllegalArgumentException("AuthenticationRequest");
+        }
+        
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
                 item.getLoginHint());
     }
@@ -126,6 +130,10 @@ public class CacheKey implements Serializable {
      * @return
      */
     public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item) {
+        if (item == null) {
+            throw new IllegalArgumentException("AuthenticationRequest");
+        }
+                
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
                 item.getLoginHint());
     }

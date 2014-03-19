@@ -19,7 +19,6 @@
 package com.microsoft.adal.test;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -78,7 +77,7 @@ import com.microsoft.adal.test.AuthenticationConstants.UIRequest;
 public class AuthenticationContextTests extends AndroidTestCase {
 
     /**
-     * check case-insensitive lookup
+     * Check case-insensitive lookup
      */
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
@@ -91,6 +90,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         Log.d(TAG, "setup key at settings");
+        getContext().getCacheDir();
+        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory

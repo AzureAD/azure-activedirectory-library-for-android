@@ -22,7 +22,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * represent request and keeps authorization code and similar info
+ * Represent request and keeps authorization code and similar info
  */
 public class AuthenticationRequest implements Serializable {
 
@@ -39,7 +39,7 @@ public class AuthenticationRequest implements Serializable {
     private String mClientId = null;
 
     private String mLoginHint = null;
-    
+
     private String mBrokerAccountName = null;
 
     private UUID mCorrelationId;

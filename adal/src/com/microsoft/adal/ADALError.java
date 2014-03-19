@@ -18,6 +18,9 @@
 
 package com.microsoft.adal;
 
+/**
+ * Error codes
+ */
 public enum ADALError {
 
     DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED("Authority validation returned an error"),
@@ -45,8 +48,9 @@ public enum ADALError {
     DEVELOPER_INTERNET_PERMISSION_MISSING(
             "android.permission.INTERNET is not added to AndroidManifest file"),
 
-    DEVELOPER_CALLING_ON_MAIN_THREAD("Calling from main thread for background operation"), SERVER_INVALID_REQUEST(
-            "Invalid request to server"),
+    DEVELOPER_CALLING_ON_MAIN_THREAD("Calling from main thread for background operation"),
+
+    SERVER_INVALID_REQUEST("Invalid request to server"),
 
     SERVER_ERROR("Server returned an error"),
 
@@ -121,7 +125,8 @@ public enum ADALError {
 
     CORRELATION_ID_FORMAT("Correlationid is not in UUID format"),
 
-    CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE("Correlationid provided in requrest is not matching the response"),
+    CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE(
+            "Correlationid provided in requrest is not matching the response"),
 
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
 
@@ -166,7 +171,7 @@ public enum ADALError {
 
     BROKER_ACTIVITY_IS_NOT_RESOLVED("Broker activity is not resolved"),
 
-    BROKER_ACTIVITY_INVALID_REQUEST("Invalid request parameters in request"),
+    BROKER_ACTIVITY_INVALID_REQUEST("Invalid request parameters"),
 
     BROKER_ACCOUNT_SAVE_FAILED("Broker could not save the new account"),
 
