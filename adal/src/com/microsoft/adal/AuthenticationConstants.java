@@ -151,16 +151,16 @@ public class AuthenticationConstants {
 
         public static final int BROKER_REQUEST_ID = 1177;
 
-        public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.request";
+        public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.broker.request";
 
         /**
          * Account type string.
          */
-        public static final String ACCOUNT_TYPE = "com.microsoft.aadbroker.adal.account";
+        public static final String ACCOUNT_TYPE = "com.microsoft.aadbroker.adal.account.type";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 
-        public static final String BACKGROUND_REQUEST_MESSAGE = "com.microsoft.aadbroker.adal.request";
+        public static final String BACKGROUND_REQUEST_MESSAGE = "com.microsoft.aadbroker.adal.background.request";
 
         /**
          * Authtoken type string.

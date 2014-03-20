@@ -38,7 +38,7 @@ import android.util.Base64;
 /**
  * base oauth class
  */
-public class Oauth2 {
+class Oauth2 {
 
     private AuthenticationRequest mRequest;
 

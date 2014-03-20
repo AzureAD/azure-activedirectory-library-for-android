@@ -1,3 +1,20 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal.test;
 
@@ -43,11 +60,11 @@ public class BrokerProxyTests extends AndroidTestCase {
     private static final String TAG = "BrokerProxyTests";
 
     private byte[] testSignature;
+
     private String testTag;
 
     @Override
     protected void setUp() throws Exception {
-        // TODO Auto-generated method stub
         super.setUp();
         getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
@@ -134,12 +151,39 @@ public class BrokerProxyTests extends AndroidTestCase {
         Signature signature = new Signature(testSignature);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, signature);
         ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", testTag);
-        
+
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
         boolean result = (Boolean)m.invoke(brokerProxy);
 
         assertTrue("verify should return true", result);
+    }
+
+    public void testCanSwitchToBroker_ValidBroker_AuthenticatorInternalCall()
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException, InvocationTargetException,
+            NoSuchFieldException, NameNotFoundException {
+
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        Signature signature = new Signature(testSignature);
+        AccountManager mockAcctManager = mock(AccountManager.class);
+        AuthenticatorDescription[] descriptions = getAuthenticator(authenticatorType, brokerPackage);
+        Context mockContext = getMockContext(signature, brokerPackage);
+        when(mockAcctManager.getAuthenticatorTypes()).thenReturn(descriptions);
+        when(mockContext.getPackageName()).thenReturn(brokerPackage);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+        ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", testTag);
+
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
+        boolean result = (Boolean)m.invoke(brokerProxy);
+
+        assertFalse(
+                "It should not try to call Ad-Authenticator again for internal call from Ad-Authenticator",
+                result);
     }
 
     public void testGetAuthTokenInBackground_emptyAccts() throws IllegalAccessException,
@@ -234,7 +278,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
                 "resource", "client", "redirect", acctName.toLowerCase(), PromptBehavior.Auto, "",
                 UUID.randomUUID());
-       // check case sensitivity for account name
+        // check case sensitivity for account name
         Account[] accts = getAccountList(acctName, authenticatorType);
         AccountManager mockAcctManager = mock(AccountManager.class);
         Bundle expected = new Bundle();
@@ -339,7 +383,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         // insert packagemanager mocks
         PackageManager mockPackageManager = getPackageManager(signature, packageName);
         when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
-
+        when(mockContext.getPackageName()).thenReturn("com.package");
         return mockContext;
     }
 

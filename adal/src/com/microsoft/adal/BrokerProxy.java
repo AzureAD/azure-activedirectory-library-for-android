@@ -1,9 +1,27 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.adal;
 
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.StringTokenizer;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -12,8 +30,11 @@ import android.accounts.AuthenticatorDescription;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -40,6 +61,12 @@ class BrokerProxy implements IBrokerProxy {
 
     private final String mBrokerTag;
 
+    private static final String KEY_ACCOUNT_LIST_DELIM = "||";
+
+    private static final String KEY_SHARED_PREF_ACCOUNT_LIST = "com.microsoft.adal.account.list";
+
+    private static final String KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL = "AppAccountsForTokenRemoval";
+
     public BrokerProxy() {
         mBrokerTag = AuthenticationConstants.Broker.SIGNATURE;
     }
@@ -53,10 +80,15 @@ class BrokerProxy implements IBrokerProxy {
 
     /**
      * Verifies the broker related app and AD-Authenticator in Account Manager
+     * ADAL directs call to AccountManager if component is valid and present. It
+     * does not direct call if the caller is from Authenticator itself.
      */
     @Override
     public boolean canSwitchToBroker() {
-        return verifyBroker() && verifyAuthenticator(mAcctManager);
+        return verifyBroker()
+                && verifyAuthenticator(mAcctManager)
+                && !mContext.getPackageName().equalsIgnoreCase(
+                        AuthenticationSettings.INSTANCE.getBrokerPackageName());
     }
 
     private void verifyNotOnMainThread() {
@@ -99,13 +131,13 @@ class BrokerProxy implements IBrokerProxy {
                 // It does not expect activity to be launched.
                 // AuthenticatorService is handling the request at
                 // AccountManager.
-                // false notifyAuthFailure: auth failure prompt is not requested
                 //
                 result = mAcctManager.getAuthToken(targetAccount,
                         AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions, false,
                         null /* set to null to avoid callback */, mHandler);
 
                 // Making blocking request here
+                Logger.v(TAG, "Received result from Authenticator");
                 Bundle bundleResult = result.getResult();
                 // Authenticator should throw OperationCanceledException if
                 // token is not available
@@ -138,11 +170,50 @@ class BrokerProxy implements IBrokerProxy {
             throw new IllegalArgumentException("bundleResult");
         }
 
+        String accountName = bundleResult.getString(AccountManager.KEY_ACCOUNT_NAME);
+        // record this account for calling app so that clear token can remove
+        // this account
+        saveAccount(accountName);
         AuthenticationResult result = new AuthenticationResult(
-                bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN), "",
-                null, false);
+                bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false);
+
         // TODO pull userinfo as well
         return result;
+    }
+
+    @Override
+    public void saveAccount(String accountName) {
+        SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST,
+                Activity.MODE_PRIVATE);
+        String delAccount = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
+        delAccount += KEY_ACCOUNT_LIST_DELIM + accountName;
+        Editor prefsEditor = prefs.edit();
+        prefsEditor.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, delAccount);
+
+        // apply will do Async disk write operation.
+        prefsEditor.apply();
+    }
+
+    @Override
+    public void removeAccounts() {
+        Account[] accountList = mAcctManager
+                .getAccountsByType(AuthenticationConstants.Broker.ACCOUNT_TYPE);
+
+        SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST,
+                Activity.MODE_PRIVATE);
+        String delAccount = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
+        StringTokenizer st = new StringTokenizer(delAccount, KEY_ACCOUNT_LIST_DELIM);
+        while (st.hasMoreTokens()) {
+            String name = st.nextToken();
+            if (name != null && !name.isEmpty()) {
+                Logger.v(TAG, "Removing account:" + name);
+                Account targetAccount = getAccount(accountList, name);
+                if (targetAccount != null) {
+                    mAcctManager.removeAccount(targetAccount, null, null);
+                    Logger.v(TAG, "Account exists and removed:" + name);
+                }
+            }
+        }
     }
 
     /**

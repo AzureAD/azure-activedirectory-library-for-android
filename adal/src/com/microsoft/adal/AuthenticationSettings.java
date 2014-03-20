@@ -31,6 +31,10 @@ public enum AuthenticationSettings {
 
     private byte[] mSecretKeyData = null;
 
+    private String mBrokerPackageName = AuthenticationConstants.Broker.PACKAGE_NAME;
+
+    private String mBrokerSignature = AuthenticationConstants.Broker.SIGNATURE;
+
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt
      * 
@@ -51,5 +55,41 @@ public enum AuthenticationSettings {
         }
 
         mSecretKeyData = rawKey;
+    }
+
+    /**
+     * Gets packagename for broker app that installed authenticator
+     * 
+     * @return packagename
+     */
+    public String getBrokerPackageName() {
+        return mBrokerPackageName;
+    }
+
+    /**
+     * Sets packagename for broker app that installed authenticator
+     * 
+     * @param packageName
+     */
+    public void setBrokerPackageName(String packageName) {
+        mBrokerPackageName = packageName;
+    }
+
+    /**
+     * Gets broker signature for broker app that installed authenticator
+     * 
+     * @return signature
+     */
+    public String getBrokerSignature() {
+        return mBrokerSignature;
+    }
+
+    /**
+     * Sets broker app info for ADAL to use
+     * 
+     * @param mBrokerSignature
+     */
+    public void setBrokerSignature(String mBrokerSignature) {
+        this.mBrokerSignature = mBrokerSignature;
     }
 }

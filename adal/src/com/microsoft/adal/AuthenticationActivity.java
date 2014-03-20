@@ -18,9 +18,22 @@
 
 package com.microsoft.adal;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+import android.accounts.Account;
+import android.accounts.AccountAuthenticatorResponse;
+import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -31,6 +44,7 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.http.SslError;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -43,9 +57,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 
+import com.google.gson.Gson;
+
 /**
  * Activity to launch webview for authentication
- * 
  */
 @SuppressLint("SetJavaScriptEnabled")
 public class AuthenticationActivity extends Activity {
@@ -68,6 +83,22 @@ public class AuthenticationActivity extends Activity {
 
     // Broadcast receiver for cancel
     private ActivityBroadcastReceiver mReceiver = null;
+
+    private Intent mCallingIntent;
+
+    private String mCallingPackage;
+
+    private String mSignatureDigest;
+
+    private int mWaitingRequestId;
+
+    private int mCallingUID;
+
+    private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
+
+    private Bundle mAuthenticatorResultBundle = null;
+
+    private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
@@ -111,12 +142,11 @@ public class AuthenticationActivity extends Activity {
         setContentView(R.layout.activity_authentication);
 
         // Get the message from the intent
-        Intent intent = getIntent();
-        Serializable request = intent
-                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+        mAuthRequest = null;
+        mCallingIntent = getIntent();
+        setAuthenticationRequestFromIntent();
 
-        if (!(request instanceof AuthenticationRequest)) {
-
+        if (mAuthRequest == null) {
             Log.d(TAG, "Request item is null, so it returns to caller");
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
@@ -125,14 +155,85 @@ public class AuthenticationActivity extends Activity {
                     "Intent does not have request details");
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
             return;
-        } else {
-            mAuthRequest = (AuthenticationRequest)request;
+        }
+
+        if (mAuthRequest.getAuthority() == null || mAuthRequest.getAuthority().isEmpty()) {
+            returnError(ADALError.ARGUMENT_EXCEPTION,
+                    AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
+            return;
+        }
+
+        if (mAuthRequest.getResource() == null || mAuthRequest.getResource().isEmpty()) {
+            returnError(ADALError.ARGUMENT_EXCEPTION,
+                    AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
+            return;
+        }
+
+        if (mAuthRequest.getClientId() == null || mAuthRequest.getClientId().isEmpty()) {
+            returnError(ADALError.ARGUMENT_EXCEPTION,
+                    AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY);
+            return;
+        }
+
+        if (mAuthRequest.getRedirectUri() == null || mAuthRequest.getRedirectUri().isEmpty()) {
+            returnError(ADALError.ARGUMENT_EXCEPTION,
+                    AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
+            return;
         }
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
         Log.d(TAG, "OnCreate redirect" + mRedirectUrl);
 
-        // cancel action will send the request back to onActivityResult method
+        setupWebView();
+        Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
+        mStartUrl = "about:blank";
+
+        try {
+            mStartUrl = new Oauth2(mAuthRequest, null).getCodeRequestUrl();
+        } catch (UnsupportedEncodingException e) {
+            Log.d(TAG, e.getMessage());
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                    mAuthRequest);
+            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+        }
+
+        if (!insideBroker()) {
+            // Create the broadcast receiver for cancel
+            Logger.v(TAG, "Init broadcastReceiver with requestId:" + mAuthRequest.getRequestId());
+            mReceiver = new ActivityBroadcastReceiver();
+            mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
+            LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
+                    new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
+        } else {
+            // to use one activity
+            mAccountAuthenticatorResponse = getIntent().getParcelableExtra(
+                    AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
+
+            if (mAccountAuthenticatorResponse != null) {
+                mAccountAuthenticatorResponse.onRequestContinued();
+            }
+            PackageHelper info = new PackageHelper(AuthenticationActivity.this);
+            mCallingPackage = getCallingPackage();
+            mCallingUID = info.getUIDForPackage(mCallingPackage);
+            mSignatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
+            Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
+                    + " calling package:" + mCallingPackage + " signatureDigest:"
+                    + mSignatureDigest + " accountName" + mAuthRequest.getBrokerAccountName()
+                    + " loginHint" + mAuthRequest.getLoginHint());
+        }
+        mRestartWebview = false;
+        final String postUrl = mStartUrl;
+        mWebView.post(new Runnable() {
+            @Override
+            public void run() {
+                mWebView.loadUrl("about:blank");// load blank first
+                mWebView.loadUrl(getLoadUrl(postUrl));
+            }
+        });
+    }
+
+    private void setupWebView() {
         btnCancel = (Button)findViewById(R.id.btnCancel);
         btnCancel.setOnClickListener(new View.OnClickListener() {
 
@@ -178,38 +279,78 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setBuiltInZoomControls(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
-        Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
-        mStartUrl = "about:blank";
+    }
 
-        try {
-            mStartUrl = new Oauth2(mAuthRequest, null).getCodeRequestUrl();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            Log.d(TAG, e.getMessage());
+    private void setAuthenticationRequestFromIntent() {
+        mAuthRequest = null;
+        if (insideBroker()) {
+            String authority = mCallingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
+            String resource = mCallingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
+            String redirect = mCallingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
+            String loginhint = mCallingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT);
+            String accountName = mCallingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
+            String clientid = mCallingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY);
+            mWaitingRequestId = mCallingIntent.getIntExtra(
+                    AuthenticationConstants.Browser.REQUEST_ID, 0);
+            mAuthRequest = new AuthenticationRequest(authority, resource, clientid, redirect,
+                    loginhint);
+            mAuthRequest.setBrokerAccountName(accountName);
+        } else {
+            Serializable request = mCallingIntent
+                    .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
 
-            Intent resultIntent = new Intent();
+            if (request instanceof AuthenticationRequest) {
+                mAuthRequest = (AuthenticationRequest)request;
+            }
+        }
+    }
+
+    /**
+     * Return error to caller and finish this activity
+     */
+    private void returnError(ADALError errorCode, String argument) {
+
+        // Set result back to account manager call
+        Log.w(TAG, "Argument error:" + argument);
+        Intent resultIntent = new Intent();
+        // TODO only send adalerror from activity side as int
+        resultIntent
+                .putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, errorCode.name());
+        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE, argument);
+        if (mAuthRequest != null) {
+            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
-            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
+        this.setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+        this.finish();
+    }
 
-        final String postUrl = mStartUrl;
-
-        mWebView.post(new Runnable() {
-            @Override
-            public void run() {
-                mWebView.loadUrl("about:blank");// load blank first
-                mWebView.loadUrl(postUrl);
+    private String getLoadUrl(String loadUrl) {
+        if (insideBroker() && !StringExtensions.IsNullOrBlank(mCallingPackage)
+                && !StringExtensions.IsNullOrBlank(mSignatureDigest)) {
+            try {
+                return loadUrl + "&package_name="
+                        + URLEncoder.encode(mCallingPackage, AuthenticationConstants.ENCODING_UTF8)
+                        + "&signature=" + mSignatureDigest;
+            } catch (UnsupportedEncodingException e) {
+                // This encoding issue will happen at the beginning of API call,
+                // if it is not supported on this device. ADAL uses one encoding
+                // type.
+                Log.e(TAG, "Encoding", e);
             }
-        });
+        }
+        return loadUrl;
+    }
 
-        // Create the broadcast receiver for cancel
-        Logger.v(TAG, "Init broadcastReceiver with requestId:" + mAuthRequest.getRequestId());
-        mReceiver = new ActivityBroadcastReceiver();
-        mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
-        mRestartWebview = false;
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
-                new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
+    private boolean insideBroker() {
+        return getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
     }
 
     /**
@@ -345,16 +486,28 @@ public class AuthenticationActivity extends Activity {
             if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
 
-                // It is pointing to redirect. Final url can be processed to get
-                // the code or error.
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                        mAuthRequest);
-                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
-                        resultIntent);
-                view.stopLoading();
-                return true;
+                if (!insideBroker()) {
+                    // It is pointing to redirect. Final url can be processed to
+                    // get
+                    // the code or error.
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
+                    resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                            mAuthRequest);
+                    ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
+                            resultIntent);
+                    view.stopLoading();
+                    return true;
+                } else {
+                    displaySpinnerWithMessage(AuthenticationActivity.this.getResources().getString(
+                            R.string.broker_processing));
+                    view.stopLoading();
+
+                    // do async task and show spinner while exchanging code for
+                    // access token
+                    new TokenTask(mAuthRequest, url, mCallingPackage, mCallingUID).execute();
+                    return true;
+                }
             }
 
             return false;
@@ -423,5 +576,197 @@ public class AuthenticationActivity extends Activity {
                 spinner.dismiss();
             }
         }
+    }
+
+    private void displaySpinnerWithMessage(String msg) {
+        if (!AuthenticationActivity.this.isFinishing() && spinner != null) {
+            spinner.show();
+            spinner.setTitle("Processing ");
+            spinner.setMessage(msg);
+
+        }
+    }
+
+    private void returnResult(int resultcode, Intent intent) {
+        // Set result back to account manager call
+        this.setAccountAuthenticatorResult(intent.getExtras());
+        this.setResult(resultcode, intent);
+        this.finish();
+    }
+
+    /**
+     * Sends the result or a Constants.ERROR_CODE_CANCELED error if a result
+     * isn't present.
+     */
+    @Override
+    public void finish() {
+        // Added here to make Authenticator work with one common code base
+        if (insideBroker() && mAccountAuthenticatorResponse != null) {
+            // send the result bundle back if set, otherwise send an error.
+            if (mAuthenticatorResultBundle != null) {
+                mAccountAuthenticatorResponse.onResult(mAuthenticatorResultBundle);
+            } else {
+                mAccountAuthenticatorResponse.onError(AccountManager.ERROR_CODE_CANCELED,
+                        "canceled");
+            }
+            mAccountAuthenticatorResponse = null;
+        }
+        super.finish();
+    }
+
+    /**
+     * Set the result that is to be sent as the result of the request that
+     * caused this Activity to be launched. If result is null or this method is
+     * never called then the request will be canceled.
+     * 
+     * @param result this is returned as the result of the
+     *            AbstractAccountAuthenticator request
+     */
+    private final void setAccountAuthenticatorResult(Bundle result) {
+        mAuthenticatorResultBundle = result;
+    }
+
+    /**
+     * Processes the authorization code to get token and store inside the
+     * Authenticator. This is used only for broker related call.
+     */
+    class TokenTask extends AsyncTask<Void, String, TokenTaskResult> {
+
+        String mUrl;
+
+        String mPackageName;
+
+        int mAppCallingUID;
+
+        AuthenticationRequest mRequest;
+
+        public TokenTask(final AuthenticationRequest request, final String url,
+                final String packagename, final int callingUID) {
+            mRequest = request;
+            mUrl = url;
+            mPackageName = packagename;
+            mAppCallingUID = callingUID;
+        }
+
+        @Override
+        protected TokenTaskResult doInBackground(Void... empty) {
+            Oauth2 oauthRequest = new Oauth2(mAuthRequest, mWebRequestHandler);
+            TokenTaskResult result = new TokenTaskResult();
+            try {
+                result.taskResult = oauthRequest.getToken(mUrl);
+                Logger.v(TAG, "TokenTask processed the result. " + mAuthRequest.getLogInfo());
+            } catch (Exception exc) {
+                Logger.e(TAG,
+                        "Error in processing code to get a token. " + mAuthRequest.getLogInfo(),
+                        "", ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
+                result.taskException = exc;
+            }
+
+            if (result != null && result.taskResult != null
+                    && result.taskResult.getAccessToken() != null) {
+                Logger.v(TAG, "Setting account:" + mAuthRequest.getLogInfo());
+
+                // Record account in the AccountManager service
+                try {
+                    setAccount(result);
+                } catch (Exception exc) {
+                    Logger.e(TAG, "Error in setting the account" + mAuthRequest.getLogInfo(), "",
+                            ADALError.BROKER_ACCOUNT_SAVE_FAILED, exc);
+                    result.taskException = exc;
+                }
+            }
+
+            return result;
+        }
+
+        private void setAccount(final TokenTaskResult result) throws InvalidKeyException,
+                InvalidKeySpecException, InvalidAlgorithmParameterException,
+                IllegalBlockSizeException, BadPaddingException, IOException {
+            // TODO Add token logging
+            // TODO update for new cache logic
+
+            try {
+                AccountManager am = AccountManager.get(AuthenticationActivity.this);
+                String name = mRequest.getBrokerAccountName();
+                result.accountName = name;
+
+                Logger.v(TAG, "Setting account. Account name: " + name + " package:"
+                        + mCallingPackage + " calling app UID:" + mAppCallingUID);
+                Account newaccount = new Account(name, AuthenticationConstants.Broker.ACCOUNT_TYPE);
+                Bundle userdata = new Bundle();
+                // First add account. Account may exists before from another
+                // app. Result will be added to userdata if account exists.
+                am.addAccountExplicitly(newaccount, "nopass", userdata);
+
+                // Cache logic will be changed based on latest logic
+                // This is currently keeping accesstoken and MRRT separate
+                // Encrypted Results are saved to AccountManager Service
+                // sqllite database. Only Authenticator and similar UID can
+                // access.
+                Gson gson = new Gson();
+                StorageHelper cryptoHelper = new StorageHelper(getApplicationContext());
+                TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
+                String json = gson.toJson(item);
+                String encrypted = cryptoHelper.encrypt(json);
+                if (encrypted != null) {
+                    String key = CacheKey.createCacheKey(mRequest);
+                    am.setUserData(newaccount, key, encrypted);
+                }
+
+                if (result.taskResult.getIsMultiResourceRefreshToken()) {
+                    TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
+                    json = gson.toJson(itemMRRT);
+                    encrypted = cryptoHelper.encrypt(json);
+                    if (encrypted != null) {
+                        String key = CacheKey.createMultiResourceRefreshTokenKey(mRequest);
+                        am.setUserData(newaccount, key, encrypted);
+                    }
+                }
+
+                // record signature info for this app. If another app is
+                // signed with same certs, it will have the recorded
+                // signature as well
+                Logger.v(TAG, "Set calling uid:" + mAppCallingUID);
+                am.setUserData(
+                        newaccount,
+                        AuthenticationConstants.Broker.USERDATA_UID_KEY,
+                        cryptoHelper.encrypt(AuthenticationConstants.Broker.USERDATA_PREFIX
+                                + mAppCallingUID));
+
+            } catch (NoSuchAlgorithmException e) {
+                Logger.e(TAG, "Cache is not working", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
+                result.taskException = e;
+            } catch (NoSuchPaddingException e) {
+                Logger.e(TAG, "Cache is not working", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
+                result.taskException = e;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(TokenTaskResult result) {
+            displaySpinner(false);
+            Intent intent = new Intent();
+            if (result.taskResult != null) {
+                intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
+                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN,
+                        result.taskResult.getAccessToken());
+                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, result.accountName);
+                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
+                        result.taskResult.getExpiresOn().getTime());
+
+                returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
+            } else {
+                returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+                        result.taskException.getMessage());
+            }
+        }
+    }
+
+    class TokenTaskResult {
+        AuthenticationResult taskResult;
+
+        Exception taskException;
+
+        String accountName;
     }
 }
