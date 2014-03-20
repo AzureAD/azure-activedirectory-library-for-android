@@ -107,7 +107,13 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Failed;
     }
 
-    public static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
+    static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
+        if (cacheItem == null) {
+            AuthenticationResult result = new AuthenticationResult();
+            result.mStatus = AuthenticationStatus.Failed;
+            return result;
+        }
+
         return new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
                 cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
                 cacheItem.getUserInfo());

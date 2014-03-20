@@ -110,8 +110,6 @@ public class TestScriptRunner {
 
     /**
      * wrapper to have results as key for the array at webapi
-     * 
-     * @author omercan
      */
     class TestResultInfo {
         TestResult[] results;
@@ -257,8 +255,6 @@ public class TestScriptRunner {
 
     /**
      * rsult to submit back
-     * 
-     * @author omercan
      */
     class TestResult {
         String testName;
@@ -277,8 +273,6 @@ public class TestScriptRunner {
 
     /**
      * target can be success or fail that is set at textbox
-     * 
-     * @author omercan
      */
     class VerifyAction extends TestAction {
         public VerifyAction() {
@@ -379,7 +373,7 @@ public class TestScriptRunner {
     class InitContextAction extends TestAction {
         private transient MainActivity mContextActivity;
 
-        private transient Handler mHandler;
+        transient Handler mHandler;
 
         public InitContextAction(MainActivity activity, Handler handler, String name, String target,
                 String value) {
@@ -534,8 +528,6 @@ public class TestScriptRunner {
 
     /**
      * Simple get request for test
-     * 
-     * @author omercan
      */
     class TestSubmitTask extends AsyncTask<Void, Void, Void> {
 

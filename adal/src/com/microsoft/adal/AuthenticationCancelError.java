@@ -19,6 +19,9 @@
 package com.microsoft.adal;
 
 
+/**
+ * Cancellation error *
+ */
 public class AuthenticationCancelError extends AuthenticationException {
     static final long serialVersionUID = 1;
 
@@ -31,7 +34,7 @@ public class AuthenticationCancelError extends AuthenticationException {
     /**
      * Constructs a new AuthenticationCancelError.
      * 
-     * @param code Cancellation code such as certificate issue
+     * @param cancelCode Error code to indicate the reason
      */
     public AuthenticationCancelError(ADALError cancelCode) {
     }

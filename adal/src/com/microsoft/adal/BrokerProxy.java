@@ -25,23 +25,19 @@ import android.os.Looper;
 import android.util.Base64;
 
 /**
- * Responsible for broker related interactions (ex: getting token in background,
- * calling intent for authentication Activity from AccountManager, verifying
- * broker related components)
+ * Handles interactions to authenticator inside the Account Manager
  */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class BrokerProxy implements IBrokerProxy {
 
     private static final String TAG = "BrokerProxy";
 
-    private static final String NULL_USER = "UnknownUserName";
-
     private Context mContext;
 
     private AccountManager mAcctManager;
 
     private Handler mHandler;
-    
+
     private final String mBrokerTag;
 
     public BrokerProxy() {
@@ -80,9 +76,9 @@ class BrokerProxy implements IBrokerProxy {
      * Gets accessToken from Broker component.
      */
     @Override
-    public String getAuthTokenInBackground(final AuthenticationRequest request) {
+    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request) {
 
-        String accessToken = null;
+        AuthenticationResult authResult = null;
         verifyNotOnMainThread();
 
         // if there is not any user added to account, it returns empty
@@ -94,7 +90,7 @@ class BrokerProxy implements IBrokerProxy {
 
         if (targetAccount != null) {
             // add some dummy values to make a test call
-            Bundle brokerOptions = getBrokerBlockingOptions(request);
+            Bundle brokerOptions = getBrokerOptions(request);
 
             // blocking call to get token from cache or refresh request in
             // background at Authenticator
@@ -114,16 +110,13 @@ class BrokerProxy implements IBrokerProxy {
                 // Authenticator should throw OperationCanceledException if
                 // token is not available
                 // TODO add test to broker side
-                accessToken = bundleResult
-                        .getString(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
-
+                authResult = getResultFromBrokerResponse(bundleResult);
             } catch (OperationCanceledException e) {
                 // TODO verify that authenticator exceptions are recorded in the
                 // calling app
                 Logger.e(TAG, "Authenticator cancels the request", "",
                         ADALError.AUTH_FAILED_CANCELLED, e);
             } catch (AuthenticatorException e) {
-                //
                 // TODO add retry logic since authenticator is not responding to
                 // the request
                 Logger.e(TAG, "Authenticator cancels the request", "",
@@ -134,10 +127,22 @@ class BrokerProxy implements IBrokerProxy {
                         ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
             }
 
-            return accessToken;
+            return authResult;
         }
 
         return null;
+    }
+
+    private AuthenticationResult getResultFromBrokerResponse(Bundle bundleResult) {
+        if (bundleResult == null) {
+            throw new IllegalArgumentException("bundleResult");
+        }
+
+        AuthenticationResult result = new AuthenticationResult(
+                bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN), "",
+                null, false);
+        // TODO pull userinfo as well
+        return result;
     }
 
     /**
@@ -146,16 +151,14 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request) {
-        // TODO get intent
         Intent intent = null;
         AccountManagerFuture<Bundle> result = null;
         try {
-
             // Callback is not passed since it is making a blocking call to get
             // intent.
             // Activity needs to be launched from calling app to get the calling
             // app's metadata if needed at BrokerActivity.
-            Bundle addAccountOptions = getBrokerBlockingOptions(request);
+            Bundle addAccountOptions = getBrokerOptions(request);
             result = mAcctManager.addAccount(AuthenticationConstants.Broker.ACCOUNT_TYPE,
                     AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null,
                     null, mHandler);
@@ -164,9 +167,7 @@ class BrokerProxy implements IBrokerProxy {
             Bundle bundleResult = result.getResult();
             // Authenticator should throw OperationCanceledException if
             // token is not available
-            // TODO add test to broker side
             intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
-
         } catch (OperationCanceledException e) {
             // TODO verify that authenticator exceptions are recorded in the
             // calling app
@@ -187,9 +188,23 @@ class BrokerProxy implements IBrokerProxy {
         return intent;
     }
 
-    private Bundle getBrokerBlockingOptions(final AuthenticationRequest request) {
+    private Bundle getBrokerOptions(final AuthenticationRequest request) {
         Bundle brokerOptions = new Bundle();
-        brokerOptions.putSerializable(AuthenticationConstants.Broker.BROKER_REQUEST, request);
+        // request needs to be parcelable to send across process
+        brokerOptions.putInt(AuthenticationConstants.Browser.REQUEST_ID, request.getRequestId());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY,
+                request.getAuthority());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE,
+                request.getResource());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT,
+                request.getRedirectUri());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY,
+                request.getClientId());
+        // TODO: this will be linked to account name
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT,
+                request.getLoginHint());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME,
+                getAccountLookupUsername(request));
         return brokerOptions;
     }
 
@@ -201,8 +216,10 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         // If idtoken is not present, userid is unknown. Authenticator will
-        // group the tokens based on account, so it needs to pass some userid.
-        return NULL_USER;
+        // group the tokens based on account, so it needs to pass clientid to
+        // group unknown users. Different apps signed by same certificates may
+        // use same clientid, but they will have differnt packagenames.
+        return request.getClientId();
     }
 
     private boolean verifyBroker() {
@@ -257,7 +274,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private Account getAccount(Account[] accounts, String username) {
         if (accounts != null && username != null) {
-            for (Account account : accounts) {                
+            for (Account account : accounts) {
                 if (account.name.equalsIgnoreCase(username)) {
                     return account;
                 }
@@ -266,5 +283,4 @@ class BrokerProxy implements IBrokerProxy {
 
         return null;
     }
-    
 }

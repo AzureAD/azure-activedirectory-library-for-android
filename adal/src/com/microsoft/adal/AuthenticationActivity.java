@@ -47,6 +47,7 @@ import android.widget.Button;
  * Activity to launch webview for authentication
  * 
  */
+@SuppressLint("SetJavaScriptEnabled")
 public class AuthenticationActivity extends Activity {
 
     private final String TAG = "AuthenticationActivity";

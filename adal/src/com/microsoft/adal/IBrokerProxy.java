@@ -15,7 +15,7 @@ interface IBrokerProxy {
      * @param request
      * @return
      */
-    String getAuthTokenInBackground(final AuthenticationRequest request);
+    AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request);
 
     /**
      * only gets intent to start from calling app's activity

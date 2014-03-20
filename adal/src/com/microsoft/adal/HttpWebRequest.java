@@ -143,12 +143,6 @@ class HttpWebRequest {
                                               // code. Default is true.
                 setRequestBody();
 
-                if (mRequestMethod != REQUEST_METHOD_GET) {
-                    // If request is not get, it will have the status from
-                    // getOutputStream call.
-                    getStatusCode(_response);
-                }
-
                 byte[] responseBody = null;
                 InputStream responseStream = null;
 
@@ -163,9 +157,8 @@ class HttpWebRequest {
 
                 // GET request should read status after getInputStream to make
                 // this work for different SDKs
-                if (mRequestMethod == REQUEST_METHOD_GET) {
-                    getStatusCode(_response);
-                }
+                
+                getStatusCode(_response);                
 
                 if (responseStream != null) {
 

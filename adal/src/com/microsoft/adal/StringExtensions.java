@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import android.util.Base64;
 
@@ -34,7 +35,7 @@ public final class StringExtensions {
     private static final String TAG = "StringExtensions";
 
     private static final String TOKEN_HASH_ALGORITHM = "SHA256";
-    
+
     /**
      * checks if string is null or empty
      * 
@@ -48,22 +49,18 @@ public final class StringExtensions {
 
         return false;
     }
-    
-    public static String createHash(String msg) {
-        try {
-            if (!StringExtensions.IsNullOrBlank(msg)) {
-                MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
-                final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
-                String hash = new String(
-                        Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
-                        AuthenticationConstants.ENCODING_UTF8);
-                return hash;
-            }
-        } catch (Exception e) {
-            Logger.e(TAG, "Message digest error", "", ADALError.DIGEST_ERROR, e);
-        }
 
-        return "";
+    public static String createHash(String msg) throws NoSuchAlgorithmException,
+            UnsupportedEncodingException {
+
+        if (!StringExtensions.IsNullOrBlank(msg)) {
+            MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
+            final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
+            String hash = new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
+                    AuthenticationConstants.ENCODING_UTF8);
+            return hash;
+        }
+        return msg;
     }
 
     /**

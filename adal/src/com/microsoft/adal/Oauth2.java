@@ -18,7 +18,6 @@
 
 package com.microsoft.adal;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -449,9 +448,6 @@ public class Oauth2 {
             throw e;
         } catch (UnsupportedEncodingException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-            throw e;
-        } catch (IOException e) {
-            Logger.e(TAG, e.getMessage(), "", ADALError.IO_EXCEPTION, e);
             throw e;
         } catch (Exception e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);

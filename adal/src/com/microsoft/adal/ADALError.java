@@ -18,6 +18,9 @@
 
 package com.microsoft.adal;
 
+/**
+ * Error codes
+ */
 public enum ADALError {
 
     DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED("Authority validation returned an error"),
@@ -45,8 +48,9 @@ public enum ADALError {
     DEVELOPER_INTERNET_PERMISSION_MISSING(
             "android.permission.INTERNET is not added to AndroidManifest file"),
 
-    DEVELOPER_CALLING_ON_MAIN_THREAD("Calling from main thread for background operation"), SERVER_INVALID_REQUEST(
-            "Invalid request to server"),
+    DEVELOPER_CALLING_ON_MAIN_THREAD("Calling from main thread for background operation"),
+
+    SERVER_INVALID_REQUEST("Invalid request to server"),
 
     SERVER_ERROR("Server returned an error"),
 
@@ -137,10 +141,6 @@ public enum ADALError {
     DISCOVERY_NOT_SUPPORTED(
             "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."),
 
-    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."),
-
-    DIGEST_ERROR("Error in generating hash with MessageDigest"),
-
     BROKER_PACKAGE_NAME_NOT_FOUND("Broker is not installed in your system"),
 
     BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"),
@@ -149,17 +149,31 @@ public enum ADALError {
 
     BROKER_VERIFICATION_FAILED("Signature could not be verified"),
 
+    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."),
+
+    DIGEST_ERROR("Error in generating hash with MessageDigest"),
+
     BROKER_AUTHENTICATION_REQUEST_IS_NULL("Authentication request is null"),
 
     BROKER_APP_VERIFICATION_FAILED("Calling app could not be verified"),
 
     BROKER_ACTIVITY_INFO_NOT_FOUND("Activity information is not retrieved"),
 
+    BROKER_SIGNATURE_NOT_SAVED("Signature is not saved"),
+
     DEVICE_NO_SUCH_ALGORITHM("Device does not support the algorithm"),
+
+    DEVICE_ALGORITHM_PADDING_EXCEPTION("Requested padding is not available"),
 
     APP_PACKAGE_NAME_NOT_FOUND("App package name is not found in the package manager"),
 
     ENCRYPTION_ERROR("Encryption related error"),
+
+    BROKER_ACTIVITY_IS_NOT_RESOLVED("Broker activity is not resolved"),
+
+    BROKER_ACTIVITY_INVALID_REQUEST("Invalid request parameters"),
+
+    BROKER_ACCOUNT_SAVE_FAILED("Broker could not save the new account"),
 
     ;
     private String mDescription;
