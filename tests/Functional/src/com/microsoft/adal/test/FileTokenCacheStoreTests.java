@@ -27,6 +27,7 @@ import android.content.Context;
 
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationContext;
+import com.microsoft.adal.AuthenticationSettings;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.FileTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
@@ -54,6 +55,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     protected void setUp() throws Exception {
         super.setUp();
         targetContex = this.getInstrumentation().getTargetContext();
+        AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid");
     }
 
     @Override

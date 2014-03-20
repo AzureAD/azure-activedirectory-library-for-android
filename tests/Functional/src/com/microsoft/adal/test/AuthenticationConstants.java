@@ -124,7 +124,7 @@ public class AuthenticationConstants {
         /**
          * Account type string.
          */
-        public static final String ACCOUNT_TYPE = "com.microsoft.aadbroker.adal.account";
+        public static final String ACCOUNT_TYPE = "com.microsoft.aadbroker.adal.account.type";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 

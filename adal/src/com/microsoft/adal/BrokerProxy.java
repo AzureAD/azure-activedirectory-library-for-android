@@ -75,7 +75,7 @@ class BrokerProxy implements IBrokerProxy {
         mContext = ctx;
         mAcctManager = AccountManager.get(mContext);
         mHandler = new Handler(mContext.getMainLooper());
-        mBrokerTag = AuthenticationConstants.Broker.SIGNATURE;
+        mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
     /**
@@ -183,12 +183,15 @@ class BrokerProxy implements IBrokerProxy {
 
     @Override
     public void saveAccount(String accountName) {
+        if (accountName == null || accountName.isEmpty())
+            return;
+
         SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST,
                 Activity.MODE_PRIVATE);
-        String delAccount = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
-        delAccount += KEY_ACCOUNT_LIST_DELIM + accountName;
+        String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
+        accountList += KEY_ACCOUNT_LIST_DELIM + accountName;
         Editor prefsEditor = prefs.edit();
-        prefsEditor.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, delAccount);
+        prefsEditor.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
 
         // apply will do Async disk write operation.
         prefsEditor.apply();

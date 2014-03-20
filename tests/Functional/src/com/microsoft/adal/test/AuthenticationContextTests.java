@@ -22,11 +22,14 @@ import static org.mockito.Mockito.mock;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.UUID;
@@ -1302,6 +1305,52 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertTrue("Attemps to launch", testActivity.mStartActivityRequestCode != -1);
 
         clearCache(context);
+    }
+
+    @SmallTest
+    public void testGetCache_CanSwitchBroker() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException {
+        // Prepare mock objects so that it switches to broker and return cache
+        // impl for broker side
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, null);
+        final ArrayList<String> methodCalls = new ArrayList<String>();
+        Object brokerProxy = getBrokerProxy(authContext, true, methodCalls);
+        ReflectionUtils.setFieldValue(authContext, "mBrokerProxy", brokerProxy);
+
+        authContext.getCache().removeAll();
+        authContext.getCache().removeItem("key");
+        authContext.getCache().setItem("key", new TokenCacheItem());
+        authContext.getCache().getItem("key");
+        boolean result = authContext.getCache().contains("key");
+
+        assertTrue("It called canSwitchToBroker", methodCalls.contains("canSwitchToBroker"));
+        assertTrue("It called removeAccounts", methodCalls.contains("removeAccounts"));
+        assertFalse("It does not contain this item", result);
+    }
+
+    private Object getBrokerProxy(AuthenticationContext context, final boolean switchToBroker,
+            final ArrayList<String> methodCalls) throws ClassNotFoundException {
+        Class<?> iclazz = Class.forName("com.microsoft.adal.IBrokerProxy");
+        Object dynamic = (Object)Proxy.newProxyInstance(context.getClass().getClassLoader(),
+                new Class<?>[] {
+                    iclazz
+                }, new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
+                        methodCalls.add(m.getName());
+                        if (m.getName().equals("canSwitchToBroker")) {
+                            return switchToBroker;
+                        } else if (m.getName().equals("removeAccounts")) {
+
+                        }
+                        return null;
+                    }
+                });
+
+        return dynamic;
     }
 
     private AuthenticationContext getAuthenticationContext(Context mockContext, String authority,

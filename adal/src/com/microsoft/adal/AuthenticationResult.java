@@ -33,6 +33,9 @@ public class AuthenticationResult implements Serializable {
      */
     private static final long serialVersionUID = 2243372613182536368L;
 
+    /**
+     * Status for authentication
+     */
     public enum AuthenticationStatus {
         /**
          * User cancelled login activity
@@ -107,6 +110,11 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Failed;
     }
 
+    /**
+     * Creates result from {@link TokenCacheItem} 
+     * @param cacheItem
+     * @return AuthenticationResult
+     */
     public static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
         if (cacheItem == null) {
             AuthenticationResult result = new AuthenticationResult();
@@ -119,6 +127,10 @@ public class AuthenticationResult implements Serializable {
                 cacheItem.getUserInfo());
     }
 
+    /**
+     * Uses access token to create header for web requests
+     * @return AuthorizationHeader
+     */
     public String createAuthorizationHeader() {
         return AuthenticationConstants.AAD.BEARER + " " + getAccessToken();
     }
