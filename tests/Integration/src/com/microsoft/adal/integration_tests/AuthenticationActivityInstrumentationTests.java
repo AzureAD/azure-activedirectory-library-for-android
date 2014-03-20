@@ -47,7 +47,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
 import com.jayway.android.robotium.solo.By;
 import com.jayway.android.robotium.solo.Solo;
 import com.jayway.android.robotium.solo.WebElement;
@@ -55,11 +54,10 @@ import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationSettings;
-import com.microsoft.adal.DefaultTokenCacheStore;
-import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.PromptBehavior;
+import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.integration_tests.TenantInfo.TenantType;
 import com.microsoft.adal.testapp.MainActivity;
 import com.microsoft.adal.testapp.R;
@@ -150,7 +148,7 @@ public class AuthenticationActivityInstrumentationTests extends
         setActivityInitialTouchMode(false);
         activity = getActivity();
         solo = new Solo(getInstrumentation(), activity);
-        loadConfigFromResource();
+        //loadConfigFromResource();
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
