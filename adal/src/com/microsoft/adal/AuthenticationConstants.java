@@ -167,19 +167,19 @@ public class AuthenticationConstants {
          */
         public static final String AUTHTOKEN_TYPE = "com.microsoft.aadbroker.adal.authtoken.type";
 
-        public static final String BROKER_FINAL_URL = "com.microsoft.aadbroker.adal.finalurl";
+        public static final String BROKER_FINAL_URL = "com.microsoft.aadbroker.adal.final.url";
 
         public static final String ACCOUNT_CLIENTID_KEY = "com.microsoft.aadbroker.clientid.key";
 
-        public static final String ACCOUNT_CLIENT_SECRET_KEY = "com.microsoft.aadbroker.clientsecret.key";
+        public static final String ACCOUNT_CLIENT_SECRET_KEY = "com.microsoft.aadbroker.client.secret.key";
 
         public static final String ACCOUNT_CORRELATIONID = "com.microsoft.aadbroker.correlationid";
 
         public static final String ACCOUNT_PROMPT = "com.microsoft.aadbroker.prompt";
 
-        public static final String ACCOUNT_EXTRA_QUERY_PARAM = "com.microsoft.aadbroker.extraqueryparam";
+        public static final String ACCOUNT_EXTRA_QUERY_PARAM = "com.microsoft.aadbroker.extra.query.param";
 
-        public static final String ACCOUNT_LOGIN_HINT = "com.microsoft.aadbroker.loginhint";
+        public static final String ACCOUNT_LOGIN_HINT = "com.microsoft.aadbroker.login.hint";
 
         public static final String ACCOUNT_RESOURCE = "com.microsoft.aadbroker.resource";
 
@@ -187,21 +187,21 @@ public class AuthenticationConstants {
 
         public static final String ACCOUNT_AUTHORITY = "com.microsoft.aadbroker.authority";
 
-        public static final String ACCOUNT_REFRESH_TOKEN = "com.microsoft.aadbroker.refreshtoken";
+        public static final String ACCOUNT_REFRESH_TOKEN = "com.microsoft.aadbroker.refresh.token";
 
-        public static final String ACCOUNT_ACCESS_TOKEN = "com.microsoft.aadbroker.accesstoken";
+        public static final String ACCOUNT_ACCESS_TOKEN = "com.microsoft.aadbroker.access.token";
 
         public static final String ACCOUNT_EXPIREDATE = "com.microsoft.aadbroker.expiredate";
 
         public static final String ACCOUNT_RESULT = "com.microsoft.aadbroker.result";
 
-        public static final String MULTI_RESOURCE_TOKEN = "com.microsoft.aadbroker.multiresourcetoken";
+        public static final String MULTI_RESOURCE_TOKEN = "com.microsoft.aadbroker.multi.resource.token";
 
-        public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.accountname";
+        public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.account.name";
 
-        public static final String USERDATA_PREFIX = "userdata";
+        public static final String USERDATA_PREFIX = "userdata.prefix";
 
-        public static final String USERDATA_UID_KEY = "calling.uid";
+        public static final String USERDATA_UID_KEY = "calling.uid.key";
 
         /**
          * Apk packagename that will install AD-Authenticator. It is used to

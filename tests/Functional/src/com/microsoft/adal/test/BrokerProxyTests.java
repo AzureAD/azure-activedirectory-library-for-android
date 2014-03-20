@@ -143,7 +143,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
         boolean result = (Boolean)m.invoke(brokerProxy);
-     
+
         // assert
         assertFalse("verify should return false", result);
     }
@@ -241,7 +241,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
                 authRequest.getClass());
         String token = (String)m.invoke(brokerProxy, authRequest);
-        
+
         // assert
         assertNull("token should return null", token);
     }
@@ -278,7 +278,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
                 authRequest.getClass());
         AuthenticationResult result = (AuthenticationResult)m.invoke(brokerProxy, authRequest);
-        
+
         // assert
         assertNull("token should return null", result.getAccessToken());
     }
@@ -299,7 +299,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Account[] accts = getAccountList(acctName, authenticatorType);
         AccountManager mockAcctManager = mock(AccountManager.class);
         Bundle expected = new Bundle();
-        expected.putString(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN, "token123");
+        expected.putString(AccountManager.KEY_AUTHTOKEN, "token123");
         AccountManagerFuture<Bundle> mockFuture = mock(AccountManagerFuture.class);
         when(mockFuture.getResult()).thenReturn(expected);
         when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accts);
@@ -317,7 +317,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
                 authRequest.getClass());
         AuthenticationResult result = (AuthenticationResult)m.invoke(brokerProxy, authRequest);
-        
+
         // assert
         assertEquals("token is expected", "token123", result.getAccessToken());
     }
@@ -338,7 +338,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "getIntentForBrokerActivity",
                 authRequest.getClass());
         Intent intent = (Intent)m.invoke(brokerProxy, authRequest);
-        
+
         // assert
         assertNull("intent is null", intent);
     }
@@ -360,18 +360,19 @@ public class BrokerProxyTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "getIntentForBrokerActivity",
                 authRequest.getClass());
         Intent intent = (Intent)m.invoke(brokerProxy, authRequest);
-        
+
         // assert
         assertNotNull("intent is not null", intent);
     }
 
-    private void updateContextToSaveAccount(Context mockContext, String initialList, String savingAccount){
+    private void updateContextToSaveAccount(Context mockContext, String initialList,
+            String savingAccount) {
         SharedPreferences mockPrefs = mock(SharedPreferences.class);
         when(mockPrefs.getString(anyString(), Mockito.eq(""))).thenReturn(initialList);
-        Editor mockEditor = mock(Editor.class);        
+        Editor mockEditor = mock(Editor.class);
         when(mockPrefs.edit()).thenReturn(mockEditor);
     }
-    
+
     @SuppressWarnings("unchecked")
     private void prepareAddAccount(Object brokerProxy, AccountManager mockAcctManager,
             Bundle expected) throws OperationCanceledException, IOException,

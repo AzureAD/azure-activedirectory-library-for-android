@@ -29,7 +29,7 @@ import java.util.Date;
 public class AuthenticationResult implements Serializable {
 
     /**
-     * Serial varsion number for serialization
+     * Serial version number for serialization
      */
     private static final long serialVersionUID = 2243372613182536368L;
 
@@ -111,11 +111,13 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * Creates result from {@link TokenCacheItem} 
+     * Creates result from {@link TokenCacheItem}
+     * 
      * @param cacheItem
      * @return AuthenticationResult
      */
-    public static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
+    static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
+
         if (cacheItem == null) {
             AuthenticationResult result = new AuthenticationResult();
             result.mStatus = AuthenticationStatus.Failed;
@@ -129,6 +131,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Uses access token to create header for web requests
+     * 
      * @return AuthorizationHeader
      */
     public String createAuthorizationHeader() {
