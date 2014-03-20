@@ -71,6 +71,7 @@ You can clone and install from cmd line:
 7. Create an instance of AuthenticationContext at your main Activity. You can look at sample projects that is used for testing.
  
 ```Java
+  // Authority is in the form of https://login.windows.net/yourtenant.onmicrosoft.com
   mContext = new AuthenticationContext(MainActivity.this, authority, true); // This will use SharedPreferences as default cache
 ```
   mContext is a field in your activity
@@ -127,6 +128,10 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
 
 ## Usage
 
+### Authority Url and ADFS
+ADFS is not recognized as production STS, so you need to turn of instance discovery and pass false at AuthenticationContext constructor.
+
+Authority url needs STS instance and tenant name: https://login.windows.net/yourtenant.onmicrosoft.com
 
 ### Querying cache items
 ADAL provides Default cache in SharedPrefrecens with some simple cache query fucntions. You can get the current cache from AuthenticationContext with:
