@@ -871,7 +871,7 @@ public class AuthenticationContext {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             // cache and refresh call happens through the authenticator service
             AuthenticationResult result = mBrokerProxy.getAuthTokenInBackground(request);
-            if (result != null && !result.getAccessToken().isEmpty()) {
+            if (result != null && result.getAccessToken() != null && !result.getAccessToken().isEmpty()) {
                 callbackHandle.onSuccess(result);
                 return;
             }

@@ -159,6 +159,7 @@ class BrokerProxy implements IBrokerProxy {
                         ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
             }
 
+            Logger.v(TAG, "Returning result from Authenticator");
             return authResult;
         }
 
