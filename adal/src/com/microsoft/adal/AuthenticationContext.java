@@ -422,6 +422,7 @@ public class AuthenticationContext {
      */
     public void acquireTokenByRefreshToken(String refreshToken, String clientId,
             AuthenticationCallback<AuthenticationResult> callback) {
+        // Authenticator is not supported if user is managing the cache
         refreshTokenWithoutCache(refreshToken, clientId, null, callback);
     }
 
@@ -437,6 +438,7 @@ public class AuthenticationContext {
      */
     public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
             AuthenticationCallback<AuthenticationResult> callback) {
+        // Authenticator is not supported if user is managing the cache
         refreshTokenWithoutCache(refreshToken, clientId, resource, callback);
     }
 
@@ -871,7 +873,8 @@ public class AuthenticationContext {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             // cache and refresh call happens through the authenticator service
             AuthenticationResult result = mBrokerProxy.getAuthTokenInBackground(request);
-            if (result != null && result.getAccessToken() != null && !result.getAccessToken().isEmpty()) {
+            if (result != null && result.getAccessToken() != null
+                    && !result.getAccessToken().isEmpty()) {
                 callbackHandle.onSuccess(result);
                 return;
             }

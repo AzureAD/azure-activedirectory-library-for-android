@@ -115,7 +115,7 @@ class BrokerProxy implements IBrokerProxy {
 
         // if there is not any user added to account, it returns empty
         Account[] accountList = mAcctManager
-                .getAccountsByType(AuthenticationConstants.Broker.ACCOUNT_TYPE);
+                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         Logger.v(TAG, "Account list length:" + accountList.length);
         String accountLookupUsername = getAccountLookupUsername(request);
         Account targetAccount = getAccount(accountList, accountLookupUsername);
@@ -201,7 +201,7 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public void removeAccounts() {
         Account[] accountList = mAcctManager
-                .getAccountsByType(AuthenticationConstants.Broker.ACCOUNT_TYPE);
+                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
         SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST,
                 Activity.MODE_PRIVATE);
@@ -234,7 +234,7 @@ class BrokerProxy implements IBrokerProxy {
             // Activity needs to be launched from calling app to get the calling
             // app's metadata if needed at BrokerActivity.
             Bundle addAccountOptions = getBrokerOptions(request);
-            result = mAcctManager.addAccount(AuthenticationConstants.Broker.ACCOUNT_TYPE,
+            result = mAcctManager.addAccount(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                     AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null,
                     null, mHandler);
 
@@ -339,7 +339,7 @@ class BrokerProxy implements IBrokerProxy {
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
             if (authenticator.packageName.equals(AuthenticationConstants.Broker.PACKAGE_NAME)
-                    && authenticator.type.equals(AuthenticationConstants.Broker.ACCOUNT_TYPE)) {
+                    && authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
                 return true;
             }
         }

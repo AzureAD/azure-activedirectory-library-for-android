@@ -31,6 +31,8 @@ import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
+import com.microsoft.adal.AuthenticationConstants;
+import com.microsoft.adal.AuthenticationConstants.AAD;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationResult.AuthenticationStatus;
@@ -38,7 +40,6 @@ import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.UserInfo;
-import com.microsoft.adal.test.AuthenticationConstants.AAD;
 
 public class OauthTests extends AndroidTestCase {
 

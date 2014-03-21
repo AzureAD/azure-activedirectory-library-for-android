@@ -49,7 +49,7 @@ public class CacheKey implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
+        return String.format(Locale.US, "%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
                 (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId);
     }
 
@@ -110,14 +110,14 @@ public class CacheKey implements Serializable {
     /**
      * get cache key for query.
      * 
-     * @param requestItem
+     * @param item
      * @return
      */
     public static String createCacheKey(AuthenticationRequest item) {
         if (item == null) {
             throw new IllegalArgumentException("AuthenticationRequest");
         }
-        
+
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
                 item.getLoginHint());
     }
@@ -133,7 +133,7 @@ public class CacheKey implements Serializable {
         if (item == null) {
             throw new IllegalArgumentException("AuthenticationRequest");
         }
-                
+
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
                 item.getLoginHint());
     }

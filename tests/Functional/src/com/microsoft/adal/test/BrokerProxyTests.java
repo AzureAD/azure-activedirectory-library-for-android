@@ -56,6 +56,7 @@ import android.test.AndroidTestCase;
 import android.util.Base64;
 import android.util.Log;
 
+import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationSettings;
 import com.microsoft.adal.PromptBehavior;
@@ -97,7 +98,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             NameNotFoundException, NoSuchAlgorithmException {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
-        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = "wrong";
         Signature signature = new Signature(testSignature);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, signature);
@@ -135,7 +136,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             NameNotFoundException {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
-        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
         Signature signature = new Signature("74657374696e67");
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, signature);
@@ -154,11 +155,11 @@ public class BrokerProxyTests extends AndroidTestCase {
             NameNotFoundException {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
-        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationSettings.INSTANCE.getBrokerPackageName();
         Signature signature = new Signature(testSignature);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, signature);
-        ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", testTag);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -174,7 +175,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             NoSuchFieldException, NameNotFoundException {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
-        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
         Signature signature = new Signature(testSignature);
         AccountManager mockAcctManager = mock(AccountManager.class);
@@ -184,6 +185,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         when(mockContext.getPackageName()).thenReturn(brokerPackage);
         ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
         ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", testTag);
 
         // action
@@ -225,7 +227,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             NoSuchMethodException, InstantiationException, NoSuchFieldException {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
-        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
                 "resource", "client", "redirect", "invalid_username", PromptBehavior.Auto, "",
                 UUID.randomUUID());
@@ -253,7 +255,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             OperationCanceledException, AuthenticatorException, IOException, NoSuchFieldException {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
-        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
                 "resource", "client", "redirect", "loginhint", PromptBehavior.Auto, "",
                 UUID.randomUUID());
@@ -290,7 +292,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             AuthenticatorException, IOException, NoSuchFieldException {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
-        String authenticatorType = AuthenticationConstants.Broker.ACCOUNT_TYPE;
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String acctName = "LoginHint234FDFs";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
                 "resource", "client", "redirect", acctName.toLowerCase(), PromptBehavior.Auto, "",

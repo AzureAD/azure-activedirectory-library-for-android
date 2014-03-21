@@ -62,6 +62,7 @@ import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationCancelError;
 import com.microsoft.adal.AuthenticationConstants;
+import com.microsoft.adal.AuthenticationConstants.UIRequest;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
@@ -75,7 +76,6 @@ import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.Logger;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
-import com.microsoft.adal.test.AuthenticationConstants.UIRequest;
 
 public class AuthenticationContextTests extends AndroidTestCase {
 
@@ -104,6 +104,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
+        AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid_do_no_switch");
+        AuthenticationSettings.INSTANCE.setBrokerSignature("invalid_do_no_switch");
     }
 
     protected void tearDown() throws Exception {
