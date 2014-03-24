@@ -293,7 +293,6 @@ class Oauth2 {
                                     + userinfo.getUserId());
                 }
             }
-
         } catch (Exception ex) {
             Logger.e(TAG, "Error in parsing user id token", null,
                     ADALError.IDTOKEN_PARSING_FAILURE, ex);

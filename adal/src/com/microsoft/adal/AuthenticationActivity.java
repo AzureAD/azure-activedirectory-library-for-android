@@ -692,7 +692,6 @@ public class AuthenticationActivity extends Activity {
                 NoSuchPaddingException, IOException {
             // include UID in the key for broker to store caches for different
             // apps under same account entry
-
             String digestKey = StringExtensions
                     .createHash(AuthenticationConstants.Broker.USERDATA_UID_KEY + mAppCallingUID
                             + cacheKey);
@@ -737,7 +736,6 @@ public class AuthenticationActivity extends Activity {
                 AccountManager am = AccountManager.get(AuthenticationActivity.this);
                 String name = mRequest.getBrokerAccountName();
                 result.accountName = name;
-
                 Logger.v(TAG, "Setting account. Account name: " + name + " package:"
                         + mCallingPackage + " calling app UID:" + mAppCallingUID);
                 Account newaccount = new Account(name,
