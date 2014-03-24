@@ -46,6 +46,7 @@ import android.widget.Toast;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
+import com.microsoft.adal.AuthenticationSettings;
 
 public class MainActivity extends Activity {
 
