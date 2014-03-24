@@ -103,23 +103,29 @@ public class AuthenticationContext {
 
     /**
      * Constructs context to use with known authority to get the token. It uses
-     * default cache.
+     * default cache that stores encrypted tokens. 
      * 
      * @param appContext It needs to have handle to the context to use the
      *            SharedPreferences as a Default cache storage. It does not need
      *            to be activity.
      * @param authority Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
-     * @throws NoSuchPaddingException DefaultTokenCacheStore uses encryption
-     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException Algorithm padding does not exist in the device
+     * @throws NoSuchAlgorithmException Encryption Algorithm does not exist in the device. Please see the log record for details.
+     * @throws SecurityException if a fix is needed but could not be applied.
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
-            throws NoSuchAlgorithmException, NoSuchPaddingException {
+            throws NoSuchAlgorithmException, NoSuchPaddingException, SecurityException {
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
+        Logger.d(TAG, "Applying PRNG fixes related to the SecureRandom.");
+        // Fixes are required for SDK 16-18
+        // The fixes need to be applied before any use of Java Cryptography
+        // Architecture primitives
+        PRNGFixes.apply();
         mTokenCacheStore = new DefaultTokenCacheStore(appContext);
         mBrokerProxy = new BrokerProxy(mContext);
     }
