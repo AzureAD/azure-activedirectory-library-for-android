@@ -27,12 +27,11 @@
     <dependency>
       <groupId>com.microsoft.adal</groupId>
       <artifactId>adal</artifactId>
-      <version>0.5-alpha</version>
+      <version>0.6-alpha</version>
       <scope>compile</scope>
       <type>aar</type>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>      
       <plugin>
@@ -52,7 +51,6 @@
         </configuration>
         <extensions>true</extensions>
       </plugin>
-
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
@@ -63,5 +61,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>
