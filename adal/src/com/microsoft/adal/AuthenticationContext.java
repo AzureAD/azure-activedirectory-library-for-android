@@ -115,13 +115,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
             throws NoSuchAlgorithmException, NoSuchPaddingException {
-        mContext = appContext;
-        mConnectionService = new DefaultConnectionService(mContext);
-        checkInternetPermission();
-        mAuthority = extractAuthority(authority);
-        mValidateAuthority = validateAuthority;
-        mTokenCacheStore = new DefaultTokenCacheStore(appContext);
-        mBrokerProxy = new BrokerProxy(mContext);
+        initialize(appContext, authority, new DefaultTokenCacheStore(appContext), validateAuthority, true);
     }
 
     /**
@@ -132,13 +126,7 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             ITokenCacheStore tokenCacheStore) {
-        mContext = appContext;
-        mConnectionService = new DefaultConnectionService(mContext);
-        checkInternetPermission();
-        mAuthority = extractAuthority(authority);
-        mValidateAuthority = validateAuthority;
-        mTokenCacheStore = tokenCacheStore;
-        mBrokerProxy = new BrokerProxy(mContext);
+        initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
     }
 
     /**
@@ -151,13 +139,21 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority,
             ITokenCacheStore tokenCacheStore) {
+        initialize(appContext, authority, tokenCacheStore, true, false);
+    }
+
+    private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
+            boolean validateAuthority, boolean defaultCache) {
+        mBrokerProxy = new BrokerProxy(appContext);
+        if (!defaultCache && mBrokerProxy.canSwitchToBroker()) {
+            throw new UnsupportedOperationException("Local cache is not supported for broker usage");
+        }
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
-        mValidateAuthority = true;
-        mTokenCacheStore = tokenCacheStore;
-        mBrokerProxy = new BrokerProxy(mContext);
+        mValidateAuthority = validateAuthority;
+        mTokenCacheStore = tokenCacheStore;        
     }
 
     /**
@@ -179,12 +175,14 @@ public class AuthenticationContext {
 
                 @Override
                 public void setItem(String key, TokenCacheItem item) {
-                    // No direct access from another app
+                    throw new UnsupportedOperationException(
+                            "Broker cache does not support direct setItem operation");
                 }
 
                 @Override
                 public void removeItem(String key) {
-                    // No direct access from another app
+                    throw new UnsupportedOperationException(
+                            "Broker cache does not support direct removeItem operation");
                 }
 
                 @Override
@@ -194,14 +192,14 @@ public class AuthenticationContext {
 
                 @Override
                 public TokenCacheItem getItem(String key) {
-                    // No direct access from another app
-                    return null;
+                    throw new UnsupportedOperationException(
+                            "Broker cache does not support direct getItem operation");
                 }
 
                 @Override
                 public boolean contains(String key) {
-                    // No direct access from another app
-                    return false;
+                    throw new UnsupportedOperationException(
+                            "Broker cache does not support contains operation");
                 }
             };
         }

@@ -185,6 +185,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         when(mockContext.getPackageName()).thenReturn(brokerPackage);
         ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
         ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+        AuthenticationSettings.INSTANCE.setBrokerPackageName(brokerPackage);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", testTag);
 

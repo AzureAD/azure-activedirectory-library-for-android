@@ -85,10 +85,9 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public boolean canSwitchToBroker() {
-        return verifyBroker()
-                && verifyAuthenticator(mAcctManager)
-                && !mContext.getPackageName().equalsIgnoreCase(
-                        AuthenticationSettings.INSTANCE.getBrokerPackageName());
+        return !mContext.getPackageName().equalsIgnoreCase(
+                AuthenticationSettings.INSTANCE.getBrokerPackageName())
+                && verifyBroker() && verifyAuthenticator(mAcctManager);
     }
 
     private void verifyNotOnMainThread() {
@@ -182,6 +181,11 @@ class BrokerProxy implements IBrokerProxy {
         return result;
     }
 
+    /**
+     * Tracks accounts that user of the ADAL accessed from AccountManager. It
+     * uses this list, when app calls remove accounts. It limits the account
+     * removal to specific subset.
+     */
     @Override
     public void saveAccount(String accountName) {
         if (accountName == null || accountName.isEmpty())
@@ -190,19 +194,23 @@ class BrokerProxy implements IBrokerProxy {
         SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST,
                 Activity.MODE_PRIVATE);
         String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
-        accountList += KEY_ACCOUNT_LIST_DELIM + accountName;
-        Editor prefsEditor = prefs.edit();
-        prefsEditor.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
+        if (!accountList.contains(KEY_ACCOUNT_LIST_DELIM + accountName)) {
+            accountList += KEY_ACCOUNT_LIST_DELIM + accountName;
+            Editor prefsEditor = prefs.edit();
+            prefsEditor.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
 
-        // apply will do Async disk write operation.
-        prefsEditor.apply();
+            // apply will do Async disk write operation.
+            prefsEditor.apply();
+        }
     }
 
+    /**
+     * Removes account from AccountManager that ADAL accessed from this context
+     */
     @Override
     public void removeAccounts() {
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-
         SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST,
                 Activity.MODE_PRIVATE);
         String delAccount = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
@@ -339,7 +347,8 @@ class BrokerProxy implements IBrokerProxy {
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
             if (authenticator.packageName.equals(AuthenticationConstants.Broker.PACKAGE_NAME)
-                    && authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
+                    && authenticator.type
+                            .equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
                 return true;
             }
         }

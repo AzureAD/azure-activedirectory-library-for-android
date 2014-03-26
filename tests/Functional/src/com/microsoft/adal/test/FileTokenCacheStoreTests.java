@@ -56,6 +56,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         super.setUp();
         targetContex = this.getInstrumentation().getTargetContext();
         AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid");
+        AuthenticationSettings.INSTANCE.setBrokerSignature("signature");
     }
 
     @Override

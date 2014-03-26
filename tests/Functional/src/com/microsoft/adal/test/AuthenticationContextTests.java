@@ -1323,14 +1323,9 @@ public class AuthenticationContextTests extends AndroidTestCase {
         ReflectionUtils.setFieldValue(authContext, "mBrokerProxy", brokerProxy);
 
         authContext.getCache().removeAll();
-        authContext.getCache().removeItem("key");
-        authContext.getCache().setItem("key", new TokenCacheItem());
-        authContext.getCache().getItem("key");
-        boolean result = authContext.getCache().contains("key");
 
         assertTrue("It called canSwitchToBroker", methodCalls.contains("canSwitchToBroker"));
         assertTrue("It called removeAccounts", methodCalls.contains("removeAccounts"));
-        assertFalse("It does not contain this item", result);
     }
 
     private Object getBrokerProxy(AuthenticationContext context, final boolean switchToBroker,

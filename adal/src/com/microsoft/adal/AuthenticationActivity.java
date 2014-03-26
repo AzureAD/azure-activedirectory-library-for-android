@@ -31,6 +31,7 @@ import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -89,11 +90,7 @@ public class AuthenticationActivity extends Activity {
     // Broadcast receiver for cancel
     private ActivityBroadcastReceiver mReceiver = null;
 
-    private Intent mCallingIntent;
-
     private String mCallingPackage;
-
-    private String mSignatureDigest;
 
     private int mWaitingRequestId;
 
@@ -147,10 +144,7 @@ public class AuthenticationActivity extends Activity {
         setContentView(R.layout.activity_authentication);
 
         // Get the message from the intent
-        mAuthRequest = null;
-        mCallingIntent = getIntent();
-        setAuthenticationRequestFromIntent();
-
+        mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
             Log.d(TAG, "Request item is null, so it returns to caller");
             Intent resultIntent = new Intent();
@@ -204,30 +198,31 @@ public class AuthenticationActivity extends Activity {
         }
 
         // Create the broadcast receiver for cancel
-        Logger.v(TAG, "Init broadcastReceiver with requestId:" + mAuthRequest.getRequestId());
+        Logger.v(TAG, "Init broadcastReceiver with requestId:" + mAuthRequest.getRequestId() + " "
+                + mAuthRequest.getLogInfo());
         mReceiver = new ActivityBroadcastReceiver();
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
                 new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
-
         if (insideBroker()) {
             // This activity is started from calling app and running in
             // Authenticator's process
             mAccountAuthenticatorResponse = getIntent().getParcelableExtra(
                     AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
-
             if (mAccountAuthenticatorResponse != null) {
                 mAccountAuthenticatorResponse.onRequestContinued();
             }
             PackageHelper info = new PackageHelper(AuthenticationActivity.this);
             mCallingPackage = getCallingPackage();
             mCallingUID = info.getUIDForPackage(mCallingPackage);
-            mSignatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
-            Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
-                    + " calling package:" + mCallingPackage + " signatureDigest:"
-                    + mSignatureDigest + " current Context Package: " + getPackageName()
-                    + " accountName:" + mAuthRequest.getBrokerAccountName() + " loginHint:"
-                    + mAuthRequest.getLoginHint());
+            String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
+            mStartUrl = getBrokerUrl(mStartUrl, mCallingPackage, signatureDigest);
+            Logger.v(TAG,
+                    "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
+                            + " calling package:" + mCallingPackage + " signatureDigest:"
+                            + signatureDigest + " current Context Package: " + getPackageName()
+                            + " accountName:" + mAuthRequest.getBrokerAccountName() + " loginHint:"
+                            + mAuthRequest.getLoginHint());
         }
         mRestartWebview = false;
         final String postUrl = mStartUrl;
@@ -235,7 +230,7 @@ public class AuthenticationActivity extends Activity {
             @Override
             public void run() {
                 mWebView.loadUrl("about:blank");// load blank first
-                mWebView.loadUrl(getLoadUrl(postUrl));
+                mWebView.loadUrl(postUrl);
             }
         });
     }
@@ -288,34 +283,47 @@ public class AuthenticationActivity extends Activity {
         mWebView.setVisibility(View.INVISIBLE);
     }
 
-    private void setAuthenticationRequestFromIntent() {
-        mAuthRequest = null;
+    private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
+        AuthenticationRequest authRequest = null;
         if (insideBroker()) {
-            String authority = mCallingIntent
+            String authority = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
-            String resource = mCallingIntent
+            String resource = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
-            String redirect = mCallingIntent
+            String redirect = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
-            String loginhint = mCallingIntent
+            String loginhint = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT);
-            String accountName = mCallingIntent
+            String accountName = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
-            String clientid = mCallingIntent
+            String clientid = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY);
-            mWaitingRequestId = mCallingIntent.getIntExtra(
+            String correlationId = callingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
+            mWaitingRequestId = callingIntent.getIntExtra(
                     AuthenticationConstants.Browser.REQUEST_ID, 0);
-            mAuthRequest = new AuthenticationRequest(authority, resource, clientid, redirect,
-                    loginhint);
-            mAuthRequest.setBrokerAccountName(accountName);
+            UUID correlationIdParsed = null;
+            if (!StringExtensions.IsNullOrBlank(correlationId)) {
+                try {
+                    correlationIdParsed = UUID.fromString(correlationId);
+                } catch (IllegalArgumentException ex) {
+                    correlationIdParsed = null;
+                    Logger.e(TAG, "CorrelationId is malformed: " + correlationId, "",
+                            ADALError.CORRELATION_ID_FORMAT);
+                }
+            }
+            authRequest = new AuthenticationRequest(authority, resource, clientid, redirect,
+                    loginhint, correlationIdParsed);
+            authRequest.setBrokerAccountName(accountName);
         } else {
-            Serializable request = mCallingIntent
+            Serializable request = callingIntent
                     .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
 
             if (request instanceof AuthenticationRequest) {
-                mAuthRequest = (AuthenticationRequest)request;
+                authRequest = (AuthenticationRequest)request;
             }
         }
+        return authRequest;
     }
 
     /**
@@ -339,13 +347,13 @@ public class AuthenticationActivity extends Activity {
         this.finish();
     }
 
-    private String getLoadUrl(String loadUrl) {
-        if (insideBroker() && !StringExtensions.IsNullOrBlank(mCallingPackage)
-                && !StringExtensions.IsNullOrBlank(mSignatureDigest)) {
+    private String getBrokerUrl(String loadUrl, String packageName, String signatureDigest) {
+        if (!StringExtensions.IsNullOrBlank(packageName)
+                && !StringExtensions.IsNullOrBlank(signatureDigest)) {
             try {
                 return loadUrl + "&package_name="
-                        + URLEncoder.encode(mCallingPackage, AuthenticationConstants.ENCODING_UTF8)
-                        + "&signature=" + mSignatureDigest;
+                        + URLEncoder.encode(packageName, AuthenticationConstants.ENCODING_UTF8)
+                        + "&signature=" + signatureDigest;
             } catch (UnsupportedEncodingException e) {
                 // This encoding issue will happen at the beginning of API call,
                 // if it is not supported on this device. ADAL uses one encoding

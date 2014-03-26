@@ -339,6 +339,7 @@ class Oauth2 {
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
      * @param authenticationCallback
+     * @return 
      * @throws Exception
      */
     public AuthenticationResult getToken(String authorizationUrl) throws Exception {
