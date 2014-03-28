@@ -72,6 +72,7 @@ import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.Logger;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
+import com.microsoft.adal.UserInfo;
 import com.microsoft.adal.test.AuthenticationConstants.UIRequest;
 
 public class AuthenticationContextTests extends AndroidTestCase {
@@ -996,6 +997,51 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 callback.mResult.getAccessToken());
         clearCache(context);
     }
+    
+    @SmallTest
+    public void testAcquireTokenCacheLookup_ReturnWrongUserId() throws InterruptedException,
+            IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+            NoSuchAlgorithmException, NoSuchPaddingException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        String tokenToTest = "accessToken=" + UUID.randomUUID();
+        String resource = "Resource" + UUID.randomUUID();
+        String clientId = "clientid"+ UUID.randomUUID();
+        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        mockCache.removeAll();
+        Calendar timeAhead = new GregorianCalendar();
+        timeAhead.add(Calendar.MINUTE, 10);
+        TokenCacheItem refreshItem = new TokenCacheItem();
+        refreshItem.setAuthority(VALID_AUTHORITY);
+        refreshItem.setResource(resource);
+        refreshItem.setClientId(clientId);
+        refreshItem.setAccessToken("token");
+        refreshItem.setRefreshToken("refreshToken");
+        refreshItem.setExpiresOn(timeAhead.getTime());
+        refreshItem.setIsMultiResourceRefreshToken(false);
+        UserInfo userinfo = new UserInfo("user2", "test", "test","idp",true);
+        refreshItem.setUserInfo(userinfo);
+        String key = CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false,
+                "user1");
+        mockCache.setItem(key, refreshItem);
+        TokenCacheItem item = mockCache.getItem(key);
+        assertNotNull("item is in cache", item);
+        
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+
+        // acquire token call will return from cache
+        context.acquireToken(testActivity, resource, clientId, "redirectUri", "user1", callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // Check response in callback
+        assertNotNull("Error is not null", callback.mException);
+        assertTrue("Error is related to user mismatch", callback.mException.getMessage().contains("login hint is different than returned user info")); 
+        clearCache(context);
+    }
 
     @SmallTest
     public void testOnActivityResult_MissingIntentData() throws NoSuchAlgorithmException,
@@ -1195,8 +1241,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
                 callback.mResult.getAccessToken());
 
         // -----------Acquire token call will not return from cache for broad
-        // Token-
-        // cached item does not have access token since it was broad refresh
+        // Token-cached item does not have access token since it was broad refresh
         // token
         signal = new CountDownLatch(1);
         callback = new MockAuthenticationCallback(signal);

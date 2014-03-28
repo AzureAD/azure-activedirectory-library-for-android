@@ -103,15 +103,17 @@ public class AuthenticationContext {
 
     /**
      * Constructs context to use with known authority to get the token. It uses
-     * default cache that stores encrypted tokens. 
+     * default cache that stores encrypted tokens.
      * 
      * @param appContext It needs to have handle to the context to use the
      *            SharedPreferences as a Default cache storage. It does not need
      *            to be activity.
      * @param authority Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
-     * @throws NoSuchPaddingException Algorithm padding does not exist in the device
-     * @throws NoSuchAlgorithmException Encryption Algorithm does not exist in the device. Please see the log record for details.
+     * @throws NoSuchPaddingException Algorithm padding does not exist in the
+     *             device
+     * @throws NoSuchAlgorithmException Encryption Algorithm does not exist in
+     *             the device. Please see the log record for details.
      * @throws SecurityException if a fix is needed but could not be applied.
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
@@ -433,7 +435,6 @@ public class AuthenticationContext {
                 // Cancel or browser error can use recorded request to figure
                 // out original correlationId send with request.
                 String correlationInfo = getCorrelationInfoFromWaitingRequest(waitingRequest);
-
                 if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
                     String accessToken = data
                             .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
@@ -455,7 +456,6 @@ public class AuthenticationContext {
                             + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId,
                             new AuthenticationCancelError());
-
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
                     String errCode = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
@@ -465,7 +465,6 @@ public class AuthenticationContext {
                             + requestId + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
                             ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage));
-
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
@@ -503,7 +502,10 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-
+                                    if(isUserMisMatch(authenticationRequest.getLoginHint(), result))
+                                    {
+                                        throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH);
+                                    }
                                 } catch (Exception exc) {
                                     Logger.e(TAG, "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo(),
@@ -546,6 +548,12 @@ public class AuthenticationContext {
                 }
             }
         }
+    }
+
+    private static boolean isUserMisMatch(final String userId, final AuthenticationResult result) {
+        return (!StringExtensions.IsNullOrBlank(userId) && result.getUserInfo() != null
+                && result.getUserInfo().getUserId() != null
+                && !userId.equalsIgnoreCase(result.getUserInfo().getUserId())); 
     }
 
     /**
@@ -866,15 +874,19 @@ public class AuthenticationContext {
 
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
+        if (isUserMisMatch(request.getLoginHint(), cachedItem)) {
+            callbackHandle
+                    .onError(new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH));
+        }
+        
         if (request.getPrompt() != PromptBehavior.Always && isValidCache(cachedItem)) {
             Logger.v(TAG, "Token is returned from cache" + getCorrelationLogInfo());
             callbackHandle.onSuccess(cachedItem);
             return;
         }
-
+        
         Logger.v(TAG, "Checking refresh tokens" + getCorrelationLogInfo());
         RefreshItem refreshItem = getRefreshToken(request);
-
         if (request.getPrompt() != PromptBehavior.Always && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token"
