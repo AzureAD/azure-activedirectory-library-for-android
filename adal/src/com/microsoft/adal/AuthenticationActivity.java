@@ -208,7 +208,7 @@ public class AuthenticationActivity extends Activity {
             // This activity is started from calling app and running in
             // Authenticator's process
             mCallingPackage = getCallingPackage();
-            if(mCallingPackage == null){
+            if (mCallingPackage == null) {
                 Log.d(TAG, "startActivityForResult is not used to call this activity");
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
@@ -307,7 +307,7 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT);
             String accountName = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
-            String clientid = callingIntent
+            String clientidKey = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY);
             String correlationId = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
@@ -323,7 +323,7 @@ public class AuthenticationActivity extends Activity {
                             ADALError.CORRELATION_ID_FORMAT);
                 }
             }
-            authRequest = new AuthenticationRequest(authority, resource, clientid, redirect,
+            authRequest = new AuthenticationRequest(authority, resource, clientidKey, redirect,
                     loginhint, correlationIdParsed);
             authRequest.setBrokerAccountName(accountName);
         } else {
@@ -341,7 +341,6 @@ public class AuthenticationActivity extends Activity {
      * Return error to caller and finish this activity
      */
     private void returnError(ADALError errorCode, String argument) {
-
         // Set result back to account manager call
         Log.w(TAG, "Argument error:" + argument);
         Intent resultIntent = new Intent();
@@ -508,7 +507,6 @@ public class AuthenticationActivity extends Activity {
             displaySpinner(true);
             if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
-
                 if (!insideBroker()) {
                     // It is pointing to redirect. Final url can be processed to
                     // get the code or error.
@@ -559,7 +557,6 @@ public class AuthenticationActivity extends Activity {
             displaySpinner(false);
             handler.cancel();
             Logger.e(TAG, "Received ssl error", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
-
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Code:"
                     + ERROR_FAILED_SSL_HANDSHAKE);
@@ -575,7 +572,6 @@ public class AuthenticationActivity extends Activity {
             super.onPageFinished(view, url);
             Logger.v(TAG, "Page finished:" + url);
             displaySpinner(false);
-
             /*
              * Once web view is fully loaded,set to visible
              */
@@ -682,7 +678,8 @@ public class AuthenticationActivity extends Activity {
             } catch (Exception exc) {
                 Logger.e(TAG,
                         "Error in processing code to get a token. " + mAuthRequest.getLogInfo(),
-                        "", ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
+                        "Request url:" + mUrl,
+                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
                 result.taskException = exc;
             }
 
