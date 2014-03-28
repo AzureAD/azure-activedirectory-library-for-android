@@ -144,6 +144,12 @@ public class AuthenticationContext {
 
     private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
             boolean validateAuthority, boolean defaultCache) {
+        if(appContext == null){
+            throw new IllegalArgumentException("appContext");
+        }
+        if(authority == null){
+            throw new IllegalArgumentException("authority");
+        }        
         mBrokerProxy = new BrokerProxy(appContext);
         if (!defaultCache && mBrokerProxy.canSwitchToBroker()) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");

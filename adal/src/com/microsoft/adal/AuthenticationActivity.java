@@ -207,6 +207,17 @@ public class AuthenticationActivity extends Activity {
         if (insideBroker()) {
             // This activity is started from calling app and running in
             // Authenticator's process
+            mCallingPackage = getCallingPackage();
+            if(mCallingPackage == null){
+                Log.d(TAG, "startActivityForResult is not used to call this activity");
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
+                        AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
+                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
+                        "startActivityForResult is not used to call this activity");
+                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+                return;
+            }
             mAccountAuthenticatorResponse = getIntent().getParcelableExtra(
                     AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
             if (mAccountAuthenticatorResponse != null) {
@@ -353,7 +364,8 @@ public class AuthenticationActivity extends Activity {
             try {
                 return loadUrl + "&package_name="
                         + URLEncoder.encode(packageName, AuthenticationConstants.ENCODING_UTF8)
-                        + "&signature=" + signatureDigest;
+                        + "&signature="
+                        + URLEncoder.encode(signatureDigest, AuthenticationConstants.ENCODING_UTF8);
             } catch (UnsupportedEncodingException e) {
                 // This encoding issue will happen at the beginning of API call,
                 // if it is not supported on this device. ADAL uses one encoding
@@ -401,8 +413,7 @@ public class AuthenticationActivity extends Activity {
         super.onPause();
 
         // Unregister the cancel action listener from the local broadcast
-        // manager
-        // since activity is not visible
+        // manager since activity is not visible
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
         }
@@ -500,8 +511,7 @@ public class AuthenticationActivity extends Activity {
 
                 if (!insideBroker()) {
                     // It is pointing to redirect. Final url can be processed to
-                    // get
-                    // the code or error.
+                    // get the code or error.
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
                     resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
@@ -595,7 +605,6 @@ public class AuthenticationActivity extends Activity {
             spinner.show();
             spinner.setTitle("Processing ");
             spinner.setMessage(msg);
-
         }
     }
 
@@ -766,21 +775,16 @@ public class AuthenticationActivity extends Activity {
                 TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
                 String json = gson.toJson(item);
                 String encrypted = cryptoHelper.encrypt(json);
-                if (encrypted != null) {
-                    String key = CacheKey.createCacheKey(mRequest);
-                    am.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key), encrypted);
-                }
+                String key = CacheKey.createCacheKey(mRequest);
+                am.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key), encrypted);
 
                 if (result.taskResult.getIsMultiResourceRefreshToken()) {
                     // ADAL stores MRRT refresh token separately
                     TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
                     json = gson.toJson(itemMRRT);
                     encrypted = cryptoHelper.encrypt(json);
-                    if (encrypted != null) {
-                        String key = CacheKey.createMultiResourceRefreshTokenKey(mRequest);
-                        am.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
-                                encrypted);
-                    }
+                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest);
+                    am.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key), encrypted);
                 }
 
                 // Record calling UID for this account so that app can get token
@@ -789,25 +793,30 @@ public class AuthenticationActivity extends Activity {
                 Logger.v(TAG, "Set calling uid:" + mAppCallingUID);
                 appendAppUIDToAccount(cryptoHelper, am, newaccount);
             } catch (NoSuchAlgorithmException e) {
-                Logger.e(TAG, "Cache is not working", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
+                Logger.e(TAG, "Algorithm does not exist in the device", "",
+                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
                 result.taskException = e;
             } catch (NoSuchPaddingException e) {
-                Logger.e(TAG, "Cache is not working", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
+                Logger.e(TAG, "Padding type does not exist in the device", "",
+                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
                 result.taskException = e;
             } catch (KeyStoreException e) {
-                Logger.e(TAG, "Cache is not working", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
+                Logger.e(TAG, "Key store type is not supported", "",
+                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
                 result.taskException = e;
             } catch (CertificateException e) {
-                Logger.e(TAG, "Cache is not working", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
+                Logger.e(TAG, "Certificate exception", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
                 result.taskException = e;
             } catch (NoSuchProviderException e) {
-                Logger.e(TAG, "Cache is not working", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
+                Logger.e(TAG, "Requested security provider does not exists in the device", "",
+                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
                 result.taskException = e;
             } catch (UnrecoverableEntryException e) {
-                Logger.e(TAG, "Cache is not working", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
+                Logger.e(TAG, "Key entry is not recoverable", "",
+                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
                 result.taskException = e;
             } catch (DigestException e) {
-                Logger.e(TAG, "Cache is not working", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
+                Logger.e(TAG, "Digest is not valid", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
                 result.taskException = e;
             }
         }
@@ -823,7 +832,6 @@ public class AuthenticationActivity extends Activity {
                 intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, result.accountName);
                 intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
                         result.taskResult.getExpiresOn().getTime());
-
                 returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
             } else {
                 returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,

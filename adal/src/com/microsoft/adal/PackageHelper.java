@@ -45,6 +45,7 @@ class PackageHelper {
 
     /**
      * Creates helper to check caller info
+     * 
      * @param ctx
      */
     public PackageHelper(Context ctx) {
@@ -98,13 +99,11 @@ class PackageHelper {
         try {
             PackageInfo info = mContext.getPackageManager().getPackageInfo(packagename,
                     PackageManager.GET_SIGNATURES);
-
             if (info != null && info.signatures != null && info.signatures.length > 0) {
                 Signature signature = info.signatures[0];
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
-                String tag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
-                return tag;
+                return Base64.encodeToString(md.digest(), Base64.DEFAULT);
                 // Server side needs to register all other tags. ADAL will
                 // send one of them.
             }
@@ -115,12 +114,12 @@ class PackageHelper {
             Logger.e(TAG, "Digest SHA algorithm does not exists", "",
                     ADALError.DEVICE_NO_SUCH_ALGORITHM);
         }
-
         return null;
     }
 
     /**
      * Gets package UID
+     * 
      * @param packagename
      * @return UID
      */
@@ -128,12 +127,13 @@ class PackageHelper {
         int callingUID = 0;
         try {
             ApplicationInfo info = mContext.getPackageManager().getApplicationInfo(packagename, 0);
-            callingUID = info.uid;
+            if (info != null) {
+                callingUID = info.uid;
+            }
         } catch (NameNotFoundException e) {
             Logger.e(TAG, "Package " + packagename + " is not found", "",
                     ADALError.PACKAGE_NAME_NOT_FOUND, e);
         }
-
         return callingUID;
     }
 }

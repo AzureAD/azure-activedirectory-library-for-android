@@ -68,7 +68,7 @@ class BrokerProxy implements IBrokerProxy {
     private static final String KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL = "AppAccountsForTokenRemoval";
 
     public BrokerProxy() {
-        mBrokerTag = AuthenticationConstants.Broker.SIGNATURE;
+        mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
     public BrokerProxy(final Context ctx) {
@@ -116,8 +116,7 @@ class BrokerProxy implements IBrokerProxy {
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         Logger.v(TAG, "Account list length:" + accountList.length);
-        String accountLookupUsername = getAccountLookupUsername(request);
-        Account targetAccount = getAccount(accountList, accountLookupUsername);
+        Account targetAccount = getAccount(accountList, getAccountLookupUsername(request));
 
         if (targetAccount != null) {
             // add some dummy values to make a test call
@@ -223,6 +222,9 @@ class BrokerProxy implements IBrokerProxy {
                 if (targetAccount != null) {
                     mAcctManager.removeAccount(targetAccount, null, null);
                     Logger.v(TAG, "Account exists and removed:" + name);
+                } else {
+                    Logger.w(TAG, "Account does not exists" + name, "",
+                            ADALError.BROKER_ACCOUNT_DOES_NOT_EXIST);
                 }
             }
         }
@@ -308,7 +310,8 @@ class BrokerProxy implements IBrokerProxy {
     private boolean verifyBroker() {
         try {
             PackageInfo info = mContext.getPackageManager().getPackageInfo(
-                    AuthenticationConstants.Broker.PACKAGE_NAME, PackageManager.GET_SIGNATURES);
+                    AuthenticationSettings.INSTANCE.getBrokerPackageName(),
+                    PackageManager.GET_SIGNATURES);
 
             if (info != null && info.signatures != null) {
                 // Broker App can be signed with multiple certificates. It will
@@ -346,7 +349,8 @@ class BrokerProxy implements IBrokerProxy {
         // queue up and will be active after first one is uninstalled.
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
-            if (authenticator.packageName.equals(AuthenticationConstants.Broker.PACKAGE_NAME)
+            if (authenticator.packageName.equals(AuthenticationSettings.INSTANCE
+                    .getBrokerPackageName())
                     && authenticator.type
                             .equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
                 return true;
