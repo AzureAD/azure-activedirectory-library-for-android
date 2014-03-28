@@ -112,6 +112,8 @@ public enum ADALError {
     DEVICE_FILE_CACHE_FORMAT_IS_WRONG("Wrong cache file format"),
 
     DEVICE_CONNECTION_IS_NOT_AVAILABLE("Connection is not available"),
+    
+    DEVICE_PRNG_FIX_ERROR("PRNG fixes are not applied"),
 
     /**
      * IdToken is normally returned from token endpoint.
