@@ -38,7 +38,7 @@ import android.util.Base64;
 /**
  * base oauth class
  */
-public class Oauth2 {
+class Oauth2 {
 
     private AuthenticationRequest mRequest;
 
@@ -293,7 +293,6 @@ public class Oauth2 {
                                     + userinfo.getUserId());
                 }
             }
-
         } catch (Exception ex) {
             Logger.e(TAG, "Error in parsing user id token", null,
                     ADALError.IDTOKEN_PARSING_FAILURE, ex);
@@ -340,6 +339,7 @@ public class Oauth2 {
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
      * @param authenticationCallback
+     * @return 
      * @throws Exception
      */
     public AuthenticationResult getToken(String authorizationUrl) throws Exception {

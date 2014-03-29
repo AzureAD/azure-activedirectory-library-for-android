@@ -22,11 +22,14 @@ import static org.mockito.Mockito.mock;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.UUID;
@@ -59,6 +62,7 @@ import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationCancelError;
 import com.microsoft.adal.AuthenticationConstants;
+import com.microsoft.adal.AuthenticationConstants.UIRequest;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationException;
 import com.microsoft.adal.AuthenticationResult;
@@ -72,7 +76,6 @@ import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.Logger;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
-import com.microsoft.adal.test.AuthenticationConstants.UIRequest;
 
 public class AuthenticationContextTests extends AndroidTestCase {
 
@@ -101,6 +104,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
+        AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid_do_no_switch");
+        AuthenticationSettings.INSTANCE.setBrokerSignature("invalid_do_no_switch");
     }
 
     protected void tearDown() throws Exception {
@@ -1302,6 +1307,47 @@ public class AuthenticationContextTests extends AndroidTestCase {
         assertTrue("Attemps to launch", testActivity.mStartActivityRequestCode != -1);
 
         clearCache(context);
+    }
+
+    @SmallTest
+    public void testGetCache_CanSwitchBroker() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException {
+        // Prepare mock objects so that it switches to broker and return cache
+        // impl for broker side
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, null);
+        final ArrayList<String> methodCalls = new ArrayList<String>();
+        Object brokerProxy = getBrokerProxy(authContext, true, methodCalls);
+        ReflectionUtils.setFieldValue(authContext, "mBrokerProxy", brokerProxy);
+
+        authContext.getCache().removeAll();
+
+        assertTrue("It called canSwitchToBroker", methodCalls.contains("canSwitchToBroker"));
+        assertTrue("It called removeAccounts", methodCalls.contains("removeAccounts"));
+    }
+
+    private Object getBrokerProxy(AuthenticationContext context, final boolean switchToBroker,
+            final ArrayList<String> methodCalls) throws ClassNotFoundException {
+        Class<?> iclazz = Class.forName("com.microsoft.adal.IBrokerProxy");
+        Object dynamic = (Object)Proxy.newProxyInstance(context.getClass().getClassLoader(),
+                new Class<?>[] {
+                    iclazz
+                }, new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
+                        methodCalls.add(m.getName());
+                        if (m.getName().equals("canSwitchToBroker")) {
+                            return switchToBroker;
+                        } else if (m.getName().equals("removeAccounts")) {
+
+                        }
+                        return null;
+                    }
+                });
+
+        return dynamic;
     }
 
     private AuthenticationContext getAuthenticationContext(Context mockContext, String authority,

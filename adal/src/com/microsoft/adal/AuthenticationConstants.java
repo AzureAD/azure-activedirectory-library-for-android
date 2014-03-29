@@ -151,54 +151,56 @@ public class AuthenticationConstants {
 
         public static final int BROKER_REQUEST_ID = 1177;
 
-        public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.request";
+        public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.broker.request";
 
         /**
          * Account type string.
          */
-        public static final String ACCOUNT_TYPE = "com.microsoft.aadbroker.adal.account";
+        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.aadbroker.adal";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 
-        public static final String BACKGROUND_REQUEST_MESSAGE = "com.microsoft.aadbroker.adal.request";
+        public static final String BACKGROUND_REQUEST_MESSAGE = "background.request";
 
         /**
          * Authtoken type string.
          */
-        public static final String AUTHTOKEN_TYPE = "com.microsoft.aadbroker.adal.authtoken.type";
+        public static final String AUTHTOKEN_TYPE = "adal.authtoken.type";
 
-        public static final String BROKER_FINAL_URL = "com.microsoft.aadbroker.adal.final.url";
+        public static final String BROKER_FINAL_URL = "adal.final.url";
 
-        public static final String ACCOUNT_CLIENTID_KEY = "com.microsoft.aadbroker.clientid.key";
+        public static final String ACCOUNT_CLIENTID_KEY = "account.clientid.key";
 
-        public static final String ACCOUNT_CLIENT_SECRET_KEY = "com.microsoft.aadbroker.client.secret.key";
+        public static final String ACCOUNT_CLIENT_SECRET_KEY = "account.client.secret.key";
 
-        public static final String ACCOUNT_CORRELATIONID = "com.microsoft.aadbroker.correlationid";
+        public static final String ACCOUNT_CORRELATIONID = "account.correlationid";
 
-        public static final String ACCOUNT_PROMPT = "com.microsoft.aadbroker.prompt";
+        public static final String ACCOUNT_PROMPT = "account.prompt";
 
-        public static final String ACCOUNT_EXTRA_QUERY_PARAM = "com.microsoft.aadbroker.extra.query.param";
+        public static final String ACCOUNT_EXTRA_QUERY_PARAM = "account.extra.query.param";
 
-        public static final String ACCOUNT_LOGIN_HINT = "com.microsoft.aadbroker.login.hint";
+        public static final String ACCOUNT_LOGIN_HINT = "account.login.hint";
 
-        public static final String ACCOUNT_RESOURCE = "com.microsoft.aadbroker.resource";
+        public static final String ACCOUNT_RESOURCE = "account.resource";
 
-        public static final String ACCOUNT_REDIRECT = "com.microsoft.aadbroker.redirect";
+        public static final String ACCOUNT_REDIRECT = "account.redirect";
 
-        public static final String ACCOUNT_AUTHORITY = "com.microsoft.aadbroker.authority";
+        public static final String ACCOUNT_AUTHORITY = "account.authority";
 
-        public static final String ACCOUNT_REFRESH_TOKEN = "com.microsoft.aadbroker.refresh.token";
+        public static final String ACCOUNT_REFRESH_TOKEN = "account.refresh.token";
 
-        public static final String ACCOUNT_ACCESS_TOKEN = "com.microsoft.aadbroker.access.token";
+        public static final String ACCOUNT_ACCESS_TOKEN = "account.access.token";
 
-        public static final String ACCOUNT_EXPIREDATE = "com.microsoft.aadbroker.expiredate";
+        public static final String ACCOUNT_EXPIREDATE = "account.expiredate";
 
-        public static final String ACCOUNT_RESULT = "com.microsoft.aadbroker.result";
+        public static final String ACCOUNT_RESULT = "account.result";
 
-        public static final String MULTI_RESOURCE_TOKEN = "com.microsoft.aadbroker.multi.resource.token";
+        public static final String MULTI_RESOURCE_TOKEN = "account.multi.resource.token";
 
-        public static final String ACCOUNT_NAME = "com.microsoft.aadbroker.account.name";
+        public static final String ACCOUNT_NAME = "account.name";
 
+        public static final String ACCOUNT_UID_CACHES = "account.uid.caches";
+        
         public static final String USERDATA_PREFIX = "userdata.prefix";
 
         public static final String USERDATA_UID_KEY = "calling.uid.key";

@@ -58,6 +58,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private static Object sLock = new Object();
 
+    /**
+     * @param context
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     */
     public DefaultTokenCacheStore(Context context) throws NoSuchAlgorithmException,
             NoSuchPaddingException {
         mContext = context;

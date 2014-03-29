@@ -116,35 +116,23 @@ public class AuthenticationContext {
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
             throws NoSuchAlgorithmException, NoSuchPaddingException, SecurityException {
-        mContext = appContext;
-        mConnectionService = new DefaultConnectionService(mContext);
-        checkInternetPermission();
-        mAuthority = extractAuthority(authority);
-        mValidateAuthority = validateAuthority;
-        Logger.d(TAG, "Applying PRNG fixes related to the SecureRandom.");
         // Fixes are required for SDK 16-18
         // The fixes need to be applied before any use of Java Cryptography
-        // Architecture primitives
+        // Architecture primitives. Default cache uses encryption
         PRNGFixes.apply();
-        mTokenCacheStore = new DefaultTokenCacheStore(appContext);
-        mBrokerProxy = new BrokerProxy(mContext);
+        initialize(appContext, authority, new DefaultTokenCacheStore(appContext),
+                validateAuthority, true);
     }
 
     /**
      * @param appContext
      * @param authority
      * @param validateAuthority
-     * @param cache Set to null if you don't want cache.
+     * @param tokenCacheStore
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             ITokenCacheStore tokenCacheStore) {
-        mContext = appContext;
-        mConnectionService = new DefaultConnectionService(mContext);
-        checkInternetPermission();
-        mAuthority = extractAuthority(authority);
-        mValidateAuthority = validateAuthority;
-        mTokenCacheStore = tokenCacheStore;
-        mBrokerProxy = new BrokerProxy(mContext);
+        initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
     }
 
     /**
@@ -153,38 +141,95 @@ public class AuthenticationContext {
      * 
      * @param appContext
      * @param authority
-     * @param cache
+     * @param tokenCacheStore
      */
     public AuthenticationContext(Context appContext, String authority,
             ITokenCacheStore tokenCacheStore) {
+        initialize(appContext, authority, tokenCacheStore, true, false);
+    }
+
+    private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
+            boolean validateAuthority, boolean defaultCache) {
+        if(appContext == null){
+            throw new IllegalArgumentException("appContext");
+        }
+        if(authority == null){
+            throw new IllegalArgumentException("authority");
+        }        
+        mBrokerProxy = new BrokerProxy(appContext);
+        if (!defaultCache && mBrokerProxy.canSwitchToBroker()) {
+            throw new UnsupportedOperationException("Local cache is not supported for broker usage");
+        }
         mContext = appContext;
         mConnectionService = new DefaultConnectionService(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
-        mValidateAuthority = true;
-        mTokenCacheStore = tokenCacheStore;
-        mBrokerProxy = new BrokerProxy(mContext);
+        mValidateAuthority = validateAuthority;
+        mTokenCacheStore = tokenCacheStore;        
     }
 
     /**
      * returns referenced cache. You can use default cache, which uses
      * SharedPreferences and handles synchronization by itself.
      * 
-     * @return
+     * @return ITokenCacheStore Current cache used
      */
     public ITokenCacheStore getCache() {
+        if (mBrokerProxy.canSwitchToBroker()) {
+            // return cache implementation related to broker so that app can
+            // clear tokens for related accounts
+            return new ITokenCacheStore() {
+
+                /**
+                 * default serial #
+                 */
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void setItem(String key, TokenCacheItem item) {
+                    throw new UnsupportedOperationException(
+                            "Broker cache does not support direct setItem operation");
+                }
+
+                @Override
+                public void removeItem(String key) {
+                    throw new UnsupportedOperationException(
+                            "Broker cache does not support direct removeItem operation");
+                }
+
+                @Override
+                public void removeAll() {
+                    mBrokerProxy.removeAccounts();
+                }
+
+                @Override
+                public TokenCacheItem getItem(String key) {
+                    throw new UnsupportedOperationException(
+                            "Broker cache does not support direct getItem operation");
+                }
+
+                @Override
+                public boolean contains(String key) {
+                    throw new UnsupportedOperationException(
+                            "Broker cache does not support contains operation");
+                }
+            };
+        }
         return mTokenCacheStore;
     }
 
     /**
      * gets authority that is used for this object of AuthenticationContext
      * 
-     * @return
+     * @return Authority
      */
     public String getAuthority() {
         return mAuthority;
     }
 
+    /**
+     * @return True when authority is valid
+     */
     public boolean getValidateAuthority() {
         return mValidateAuthority;
     }
@@ -206,7 +251,8 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String userId, AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri,
+                PromptBehavior.Auto, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, userId, PromptBehavior.Auto, null, getRequestCorrelationId());
@@ -238,7 +284,8 @@ public class AuthenticationContext {
             String redirectUri, String userId, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri,
+                PromptBehavior.Auto, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters,
@@ -268,7 +315,8 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, prompt,
+                callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, null, getRequestCorrelationId());
@@ -298,7 +346,8 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, prompt,
+                callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, extraQueryParameters,
@@ -331,7 +380,8 @@ public class AuthenticationContext {
             String redirectUri, String userId, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, callback);
+        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, prompt,
+                callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, userId, prompt, extraQueryParameters,
@@ -341,12 +391,14 @@ public class AuthenticationContext {
     }
 
     private String checkInputParameters(Activity activity, String resource, String clientId,
-            String redirectUri, AuthenticationCallback<AuthenticationResult> callback) {
+            String redirectUri, PromptBehavior behavior,
+            AuthenticationCallback<AuthenticationResult> callback) {
         if (mContext == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
         }
 
-        if (activity == null) {
+        // Not required if prompt behavior is never
+        if (activity == null && behavior != PromptBehavior.Never) {
             throw new IllegalArgumentException("activity");
         }
 
@@ -380,6 +432,7 @@ public class AuthenticationContext {
      */
     public void acquireTokenByRefreshToken(String refreshToken, String clientId,
             AuthenticationCallback<AuthenticationResult> callback) {
+        // Authenticator is not supported if user is managing the cache
         refreshTokenWithoutCache(refreshToken, clientId, null, callback);
     }
 
@@ -395,6 +448,7 @@ public class AuthenticationContext {
      */
     public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
             AuthenticationCallback<AuthenticationResult> callback) {
+        // Authenticator is not supported if user is managing the cache
         refreshTokenWithoutCache(refreshToken, clientId, resource, callback);
     }
 
@@ -437,6 +491,9 @@ public class AuthenticationContext {
                 if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
                     String accessToken = data
                             .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
+                    String accountName = data
+                            .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
+                    mBrokerProxy.saveAccount(accountName);
                     long expireTime = data.getLongExtra(
                             AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
                     Date expire = new Date(expireTime);
@@ -647,6 +704,7 @@ public class AuthenticationContext {
      * be cancelled if activity is not launched yet. RequestId is the hashcode
      * of your AuthenticationCallback.
      * 
+     * @param requestId
      * @return true: if there is a valid waiting request and cancel message send
      *         successfully. false: Request does not exist or cancel message not
      *         send
@@ -742,14 +800,29 @@ public class AuthenticationContext {
         // user. All UI
         // related actions will be performed using Handler.
         Logger.v(TAG, "Sending async task from thread:" + android.os.Process.myTid());
-        sThreadExecutor.submit(new Runnable() {
+        if (!insideBroker()) {
+            sThreadExecutor.submit(new Runnable() {
 
-            @Override
-            public void run() {
-                Logger.v(TAG, "Running task in thread:" + android.os.Process.myTid());
-                acquireTokenLocalCall(callbackHandle, activity, request);
-            }
-        });
+                @Override
+                public void run() {
+                    Logger.v(TAG, "Running task in thread:" + android.os.Process.myTid());
+                    acquireTokenLocalCall(callbackHandle, activity, request);
+                }
+            });
+        } else {
+            // Broker is operating inside the AccountManager in a different
+            // process.
+            // It needs sync call to make sure incoming requests are handled at
+            // Authenticator and returned without callback to simplify the flow
+            Logger.v(TAG,
+                    "Running for broker without executor service:" + android.os.Process.myTid());
+            acquireTokenLocalCall(callbackHandle, activity, request);
+        }
+    }
+
+    private boolean insideBroker() {
+        return mContext.getPackageName().equals(
+                AuthenticationSettings.INSTANCE.getBrokerPackageName());
     }
 
     /**
@@ -807,15 +880,18 @@ public class AuthenticationContext {
 
         // BROKER flow intercepts here
         if (mBrokerProxy.canSwitchToBroker()) {
+            Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             // cache and refresh call happens through the authenticator service
             AuthenticationResult result = mBrokerProxy.getAuthTokenInBackground(request);
-            if (result != null && !result.getAccessToken().isEmpty()) {
+            if (result != null && result.getAccessToken() != null
+                    && !result.getAccessToken().isEmpty()) {
                 callbackHandle.onSuccess(result);
                 return;
             }
 
             // launch broker activity
             if (request.getPrompt() != PromptBehavior.Never) {
+                Logger.v(TAG, "Launch activity for Authenticator");
                 mAuthorizationCallback = callbackHandle.callback;
                 request.setRequestId(callbackHandle.callback.hashCode());
                 Logger.v(TAG, "Starting Authentication Activity with callback:"
@@ -1263,7 +1339,7 @@ public class AuthenticationContext {
     /**
      * get the CorrelationId set by user
      * 
-     * @return
+     * @return UUID
      */
     public UUID getRequestCorrelationId() {
         if (mRequestCorrelationId == null) {
@@ -1419,7 +1495,7 @@ public class AuthenticationContext {
     /**
      * Version name for ADAL not for the app itself
      * 
-     * @return
+     * @return Version
      */
     public static String getVersionName() {
         // Package manager does not report for ADAL

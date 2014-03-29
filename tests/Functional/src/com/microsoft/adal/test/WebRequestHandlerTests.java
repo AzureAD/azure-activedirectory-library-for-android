@@ -32,10 +32,11 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.microsoft.adal.AuthenticationConstants;
+import com.microsoft.adal.AuthenticationConstants.AAD;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.WebRequestHandler;
-import com.microsoft.adal.test.AuthenticationConstants.AAD;
 
 /**
  * webrequest tests related to get, put, post, delete requests
