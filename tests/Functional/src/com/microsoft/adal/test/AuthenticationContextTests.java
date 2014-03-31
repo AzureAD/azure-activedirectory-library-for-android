@@ -954,6 +954,11 @@ public class AuthenticationContextTests extends AndroidTestCase {
                         false, "userid")));
         assertNull("Cache is empty for multiresource token", mockCache.getItem(CacheKey
                 .createCacheKey(VALID_AUTHORITY, "resource", "clientId", true, "userid")));
+        assertNotNull("Cache is NOT empty for this userid for regular token",
+                mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
+                        false, "userid")));
+        assertTrue("Refresh token has userinfo",
+                callback.mResult.getUserInfo().getUserId().equalsIgnoreCase("userid"));        
         clearCache(context);
     }
 
@@ -1387,6 +1392,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         refreshItem.setAccessToken("accessToken");
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(expiredTime.getTime());
+        refreshItem.setUserInfo(new UserInfo("userId", "givenName", "familyName", "identityProvider", true));
         cache.setItem(
                 CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userId"),
                 refreshItem);
