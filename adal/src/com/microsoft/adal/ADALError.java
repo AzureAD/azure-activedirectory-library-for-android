@@ -90,7 +90,7 @@ public enum ADALError {
 
     AUTH_FAILED_INTERNAL_ERROR("Invalid parameters for authorization operation"),
 
-    AUTH_FAILED_USER_MISMATCH("User's login hint is different than returned user info"),
+    AUTH_FAILED_USER_MISMATCH("User returned by service does not match the one in the request"),
 
     DEVICE_INTERNET_IS_NOT_AVAILABLE("Internet permissions are not set for the app"),
 
