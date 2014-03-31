@@ -1214,7 +1214,6 @@ public class AuthenticationContextTests extends AndroidTestCase {
         String tokenId = "id" + UUID.randomUUID().toString().replace("-", "");
         String tokenInfo = "accessToken" + tokenId;
         String resource = "Resource" + UUID.randomUUID();
-
         ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
         addItemToCache(mockCache, tokenToTest, "refreshTokenNormal", VALID_AUTHORITY, resource,
@@ -1231,8 +1230,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        // -----------Acquire token call will return from
-        // cache--------------------
+        // -----------Acquire token call will return from cache
         context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", "userid", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 

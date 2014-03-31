@@ -874,17 +874,18 @@ public class AuthenticationContext {
 
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
-        if (isUserMisMatch(request.getLoginHint(), cachedItem)) {
+        if (cachedItem != null && isUserMisMatch(request.getLoginHint(), cachedItem)) {
             callbackHandle
                     .onError(new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH));
+            return;
         }
-        
+
         if (request.getPrompt() != PromptBehavior.Always && isValidCache(cachedItem)) {
             Logger.v(TAG, "Token is returned from cache" + getCorrelationLogInfo());
             callbackHandle.onSuccess(cachedItem);
             return;
         }
-        
+
         Logger.v(TAG, "Checking refresh tokens" + getCorrelationLogInfo());
         RefreshItem refreshItem = getRefreshToken(request);
         if (request.getPrompt() != PromptBehavior.Always && refreshItem != null
@@ -954,7 +955,7 @@ public class AuthenticationContext {
 
                 AuthenticationResult result = new AuthenticationResult(item.getAccessToken(),
                         item.getRefreshToken(), item.getExpiresOn(),
-                        item.getIsMultiResourceRefreshToken());
+                        item.getIsMultiResourceRefreshToken(), item.getUserInfo());
                 return result;
             }
         }
