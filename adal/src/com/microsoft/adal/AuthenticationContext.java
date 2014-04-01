@@ -103,15 +103,17 @@ public class AuthenticationContext {
 
     /**
      * Constructs context to use with known authority to get the token. It uses
-     * default cache that stores encrypted tokens. 
+     * default cache that stores encrypted tokens.
      * 
      * @param appContext It needs to have handle to the context to use the
      *            SharedPreferences as a Default cache storage. It does not need
      *            to be activity.
      * @param authority Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
-     * @throws NoSuchPaddingException Algorithm padding does not exist in the device
-     * @throws NoSuchAlgorithmException Encryption Algorithm does not exist in the device. Please see the log record for details.
+     * @throws NoSuchPaddingException Algorithm padding does not exist in the
+     *             device
+     * @throws NoSuchAlgorithmException Encryption Algorithm does not exist in
+     *             the device. Please see the log record for details.
      * @throws SecurityException if a fix is needed but could not be applied.
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
@@ -128,7 +130,7 @@ public class AuthenticationContext {
      * @param appContext
      * @param authority
      * @param validateAuthority
-     * @param tokenCacheStore
+     * @param tokenCacheStore Set to null if you don't want cache.
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             ITokenCacheStore tokenCacheStore) {
@@ -150,12 +152,12 @@ public class AuthenticationContext {
 
     private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
             boolean validateAuthority, boolean defaultCache) {
-        if(appContext == null){
+        if (appContext == null) {
             throw new IllegalArgumentException("appContext");
         }
-        if(authority == null){
+        if (authority == null) {
             throw new IllegalArgumentException("authority");
-        }        
+        }
         mBrokerProxy = new BrokerProxy(appContext);
         if (!defaultCache && mBrokerProxy.canSwitchToBroker()) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
@@ -165,7 +167,7 @@ public class AuthenticationContext {
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
-        mTokenCacheStore = tokenCacheStore;        
+        mTokenCacheStore = tokenCacheStore;
     }
 
     /**
@@ -499,7 +501,6 @@ public class AuthenticationContext {
                     // TODO: return userinfo as well
                     AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false);
-
                     if (brokerResult != null && brokerResult.getAccessToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                         return;
@@ -554,7 +555,10 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-
+                                    if (isUserMisMatch(authenticationRequest.getLoginHint(), result)) {
+                                        throw new AuthenticationException(
+                                                ADALError.AUTH_FAILED_USER_MISMATCH);
+                                    }
                                 } catch (Exception exc) {
                                     Logger.e(TAG, "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo(),
@@ -597,6 +601,12 @@ public class AuthenticationContext {
                 }
             }
         }
+    }
+
+    private static boolean isUserMisMatch(final String userId, final AuthenticationResult result) {
+        return (!StringExtensions.IsNullOrBlank(userId) && result.getUserInfo() != null
+                && result.getUserInfo().getUserId() != null && !userId.equalsIgnoreCase(result
+                .getUserInfo().getUserId()));
     }
 
     /**
@@ -698,7 +708,8 @@ public class AuthenticationContext {
      * be cancelled if activity is not launched yet. RequestId is the hashcode
      * of your AuthenticationCallback.
      * 
-     * @param requestId
+     * @param requestId Hash code value of your callback to cancel activity
+     *            launch
      * @return true: if there is a valid waiting request and cancel message send
      *         successfully. false: Request does not exist or cancel message not
      *         send
@@ -879,6 +890,7 @@ public class AuthenticationContext {
             AuthenticationResult result = mBrokerProxy.getAuthTokenInBackground(request);
             if (result != null && result.getAccessToken() != null
                     && !result.getAccessToken().isEmpty()) {
+                Logger.v(TAG, "Token is returned from background call " + getCorrelationLogInfo());
                 callbackHandle.onSuccess(result);
                 return;
             }
@@ -898,11 +910,9 @@ public class AuthenticationContext {
                 Intent brokerIntent = mBrokerProxy.getIntentForBrokerActivity(request);
                 if (brokerIntent != null) {
                     try {
-
                         Logger.v(TAG, "Calling activity pid:" + android.os.Process.myPid()
                                 + " tid:" + android.os.Process.myTid() + "uid:"
                                 + android.os.Process.myUid());
-
                         activity.startActivityForResult(brokerIntent,
                                 AuthenticationConstants.UIRequest.BROWSER_FLOW);
                     } catch (ActivityNotFoundException e) {
@@ -916,7 +926,6 @@ public class AuthenticationContext {
                     callbackHandle.onError(new AuthenticationException(
                             ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
                 }
-
             } else {
                 // it can come here if user set to never for the prompt and
                 // refresh token failed.
@@ -933,9 +942,14 @@ public class AuthenticationContext {
 
     private void localFlow(CallbackHandler callbackHandle, final Activity activity,
             final AuthenticationRequest request) {
-
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
+        if (cachedItem != null && isUserMisMatch(request.getLoginHint(), cachedItem)) {
+            callbackHandle
+                    .onError(new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH));
+            return;
+        }
+
         if (request.getPrompt() != PromptBehavior.Always && isValidCache(cachedItem)) {
             Logger.v(TAG, "Token is returned from cache" + getCorrelationLogInfo());
             callbackHandle.onSuccess(cachedItem);
@@ -944,7 +958,6 @@ public class AuthenticationContext {
 
         Logger.v(TAG, "Checking refresh tokens" + getCorrelationLogInfo());
         RefreshItem refreshItem = getRefreshToken(request);
-
         if (request.getPrompt() != PromptBehavior.Always && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token"
@@ -1012,7 +1025,7 @@ public class AuthenticationContext {
 
                 AuthenticationResult result = new AuthenticationResult(item.getAccessToken(),
                         item.getRefreshToken(), item.getExpiresOn(),
-                        item.getIsMultiResourceRefreshToken());
+                        item.getIsMultiResourceRefreshToken(), item.getUserInfo());
                 return result;
             }
         }
@@ -1044,16 +1057,19 @@ public class AuthenticationContext {
 
         boolean mMultiResource;
 
-        public RefreshItem(String keyInCache, String refreshTokenValue, boolean multiResource) {
+        UserInfo mUserInfo;
+
+        public RefreshItem(String keyInCache, String refreshTokenValue, boolean multiResource,
+                UserInfo userInfo) {
             this.mKey = keyInCache;
             this.mRefreshToken = refreshTokenValue;
             this.mMultiResource = multiResource;
+            this.mUserInfo = userInfo;
         }
     }
 
     private RefreshItem getRefreshToken(final AuthenticationRequest request) {
         RefreshItem refreshItem = null;
-
         if (mTokenCacheStore != null) {
             boolean multiResource = false;
             // target refreshToken for this resource first. CacheKey will
@@ -1061,7 +1077,6 @@ public class AuthenticationContext {
             Logger.v(TAG, "Looking for regular refresh token" + getCorrelationLogInfo());
             String keyUsed = CacheKey.createCacheKey(request);
             TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
-
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 // if not present, check multiResource item in cache. Cache key
                 // will not include resourceId in the cache key string.
@@ -1076,9 +1091,9 @@ public class AuthenticationContext {
 
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed + getCorrelationLogInfo());
-                refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource);
+                refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource,
+                        item.getUserInfo());
             }
-
         }
 
         return refreshItem;
@@ -1222,7 +1237,10 @@ public class AuthenticationContext {
                 acquireTokenLocalCall(callbackHandle, activity, request);
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
-
+                if (refreshItem.mUserInfo != null) {
+                    Logger.v(TAG, "UserInfo is updated:" + request.getLogInfo());
+                    result.setUserInfo(refreshItem.mUserInfo);
+                }
                 // it replaces multi resource refresh token as
                 // well with the new one since it is not stored
                 // with resource.
@@ -1231,6 +1249,7 @@ public class AuthenticationContext {
                 // return result obj which has error code and
                 // error description that is returned from
                 // server response
+
                 callbackHandle.onSuccess(result);
             }
         } else {
@@ -1396,7 +1415,7 @@ public class AuthenticationContext {
                 // show
                 // authentication activity.
                 request.setPrompt(PromptBehavior.Never);
-                final RefreshItem refreshItem = new RefreshItem("", refreshToken, false);
+                final RefreshItem refreshItem = new RefreshItem("", refreshToken, false, null);
 
                 if (mValidateAuthority) {
                     Logger.v(TAG, "Validating authority" + getCorrelationLogInfo());
