@@ -819,7 +819,7 @@ public class AuthenticationContext {
             // cache and refresh call happens through the authenticator service
             AuthenticationResult result = mBrokerProxy.getAuthTokenInBackground(request);
             if (result != null && !result.getAccessToken().isEmpty()) {
-                Logger.v(TAG, "Token is returned from background call" + getCorrelationLogInfo());
+                Logger.v(TAG, "Token is returned from background call " + getCorrelationLogInfo());
                 callbackHandle.onSuccess(result);
                 return;
             }
