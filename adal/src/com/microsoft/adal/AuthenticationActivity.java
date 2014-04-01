@@ -829,6 +829,20 @@ public class AuthenticationActivity extends Activity {
                 intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, result.accountName);
                 intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
                         result.taskResult.getExpiresOn().getTime());
+                if (result.taskResult.getUserInfo() != null) {
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
+                            result.taskResult.getUserInfo().getUserId());
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
+                            result.taskResult.getUserInfo().getGivenName());
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
+                            result.taskResult.getUserInfo().getFamilyName());
+                    intent.putExtra(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
+                            result.taskResult.getUserInfo().getIdentityProvider());
+                    intent.putExtra(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
+                            result.taskResult.getUserInfo().getIsUserIdDisplayable());
+                }
                 returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
             } else {
                 returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
