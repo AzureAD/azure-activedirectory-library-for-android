@@ -179,6 +179,7 @@ public enum ADALError {
 
     BROKER_ACCOUNT_SAVE_FAILED("Broker could not save the new account"),
 
+    BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist"),
     ;
     private String mDescription;
 

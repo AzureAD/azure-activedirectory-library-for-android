@@ -40,6 +40,7 @@ import android.webkit.WebView;
 import android.widget.Button;
 
 import com.microsoft.adal.AuthenticationActivity;
+import com.microsoft.adal.AuthenticationConstants;
 import com.microsoft.adal.R;
 
 /**

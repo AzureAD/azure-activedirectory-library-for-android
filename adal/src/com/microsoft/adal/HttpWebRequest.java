@@ -97,14 +97,16 @@ class HttpWebRequest {
         if (mUrl == null) {
             throw new IllegalArgumentException("requestURL");
         }
-
         if (!mUrl.getProtocol().equalsIgnoreCase("http")
                 && !mUrl.getProtocol().equalsIgnoreCase("https")) {
             throw new IllegalArgumentException("requestURL");
         }
-
         HttpURLConnection.setFollowRedirects(true);
         mConnection = openConnection();
+        // To prevent EOF exception.
+        if (Build.VERSION.SDK_INT > 13) {
+            mConnection.setRequestProperty("Connection", "close");
+        }
     }
 
     /**
@@ -129,12 +131,8 @@ class HttpWebRequest {
                     mConnection.setRequestProperty(header, mRequestHeaders.get(header));
                 }
 
-                // Work around pre-Froyo bugs in HTTP connection reuse.
-                // http://developer.android.com/reference/java/net/HttpURLConnection.html see: Avoiding Bugs In Earlier Releases
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
-                    System.setProperty("http.keepAlive", "false");
-                }
-
+                // Avoid reuse of existing sockets to avoid random EOF errors
+                System.setProperty("http.keepAlive", "false");
                 mConnection.setReadTimeout(READ_TIME_OUT);
                 mConnection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
                 mConnection.setUseCaches(mUseCaches);
@@ -157,8 +155,7 @@ class HttpWebRequest {
 
                 // GET request should read status after getInputStream to make
                 // this work for different SDKs
-                
-                getStatusCode(_response);                
+                getStatusCode(_response);
 
                 if (responseStream != null) {
 

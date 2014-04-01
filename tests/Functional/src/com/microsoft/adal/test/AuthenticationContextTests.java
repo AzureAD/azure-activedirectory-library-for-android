@@ -73,7 +73,6 @@ import com.microsoft.adal.Logger;
 import com.microsoft.adal.PromptBehavior;
 import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.UserInfo;
-import com.microsoft.adal.test.AuthenticationConstants.UIRequest;
 
 public class AuthenticationContextTests extends AndroidTestCase {
 
@@ -235,8 +234,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final TestLogResponse response = new TestLogResponse();
-        response.listenLogForMessageSegments(signal, "OAuth2 error:invalid_grant",
-                "Refresh Token is not valid.", "CorrelationId:" + requestCorrelationId.toString());
+        response.listenLogForMessageSegments(signal, "Refresh token did not return accesstoken.", "correlationId:" + requestCorrelationId.toString());
 
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
@@ -247,7 +245,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         // Verify that web request send correct headers
         Log.v(TAG, "Response msg:" + response.message);
         assertTrue("Server response has same correlationId",
-                response.message.contains(requestCorrelationId.toString()));
+                response.additionalMessage.contains(requestCorrelationId.toString()));
     }
 
     /**
@@ -1008,9 +1006,8 @@ public class AuthenticationContextTests extends AndroidTestCase {
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException {
         FileMockContext mockContext = new FileMockContext(getContext());
-        String tokenToTest = "accessToken=" + UUID.randomUUID();
         String resource = "Resource" + UUID.randomUUID();
-        String clientId = "clientid"+ UUID.randomUUID();
+        String clientId = "clientid" + UUID.randomUUID();
         ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
         Calendar timeAhead = new GregorianCalendar();
@@ -1023,14 +1020,13 @@ public class AuthenticationContextTests extends AndroidTestCase {
         refreshItem.setRefreshToken("refreshToken");
         refreshItem.setExpiresOn(timeAhead.getTime());
         refreshItem.setIsMultiResourceRefreshToken(false);
-        UserInfo userinfo = new UserInfo("user2", "test", "test","idp",true);
+        UserInfo userinfo = new UserInfo("user2", "test", "test", "idp", true);
         refreshItem.setUserInfo(userinfo);
-        String key = CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false,
-                "user1");
+        String key = CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, "user1");
         mockCache.setItem(key, refreshItem);
         TokenCacheItem item = mockCache.getItem(key);
         assertNotNull("item is in cache", item);
-        
+
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         final MockActivity testActivity = new MockActivity();
@@ -1038,13 +1034,16 @@ public class AuthenticationContextTests extends AndroidTestCase {
         testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        // acquire token call will return from cache
+        // Acquire token call will return from cache
         context.acquireToken(testActivity, resource, clientId, "redirectUri", "user1", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
         assertNotNull("Error is not null", callback.mException);
-        assertTrue("Error is related to user mismatch", callback.mException.getMessage().contains("login hint is different than returned user info")); 
+        assertTrue(
+                "Error is related to user mismatch",
+                callback.mException.getMessage().contains(
+                        "User returned by service does not match the one in the request"));
         clearCache(context);
     }
 
@@ -1293,7 +1292,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         assertNull("Result is null since it tries to start activity", callback.mResult);
-        assertEquals("ACtivity was attempted to start.", UIRequest.BROWSER_FLOW,
+        assertEquals("Activity was attempted to start.", AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
 
         clearCache(context);
