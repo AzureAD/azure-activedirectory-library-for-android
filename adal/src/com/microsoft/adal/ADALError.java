@@ -90,6 +90,8 @@ public enum ADALError {
 
     AUTH_FAILED_INTERNAL_ERROR("Invalid parameters for authorization operation"),
 
+    AUTH_FAILED_USER_MISMATCH("User returned by service does not match the one in the request"),
+
     DEVICE_INTERNET_IS_NOT_AVAILABLE("Internet permissions are not set for the app"),
 
     /**
@@ -112,7 +114,7 @@ public enum ADALError {
     DEVICE_FILE_CACHE_FORMAT_IS_WRONG("Wrong cache file format"),
 
     DEVICE_CONNECTION_IS_NOT_AVAILABLE("Connection is not available"),
-    
+
     DEVICE_PRNG_FIX_ERROR("PRNG fixes are not applied"),
 
     /**

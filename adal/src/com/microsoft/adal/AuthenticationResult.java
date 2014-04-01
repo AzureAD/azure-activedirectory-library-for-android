@@ -162,6 +162,14 @@ public class AuthenticationResult implements Serializable {
         return mUserInfo;
     }
 
+    /**
+     * Set userinfo after refresh from previous idtoken
+     * @param userinfo
+     */
+    void setUserInfo(UserInfo userinfo) {
+        mUserInfo = userinfo;
+    }
+
     public String getTenantId() {
         return mTenantId;
     }
