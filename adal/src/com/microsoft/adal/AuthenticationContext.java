@@ -152,12 +152,12 @@ public class AuthenticationContext {
 
     private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
             boolean validateAuthority, boolean defaultCache) {
-        if(appContext == null){
+        if (appContext == null) {
             throw new IllegalArgumentException("appContext");
         }
-        if(authority == null){
+        if (authority == null) {
             throw new IllegalArgumentException("authority");
-        }        
+        }
         mBrokerProxy = new BrokerProxy(appContext);
         if (!defaultCache && mBrokerProxy.canSwitchToBroker()) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
@@ -167,7 +167,7 @@ public class AuthenticationContext {
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
-        mTokenCacheStore = tokenCacheStore;        
+        mTokenCacheStore = tokenCacheStore;
     }
 
     /**
@@ -559,9 +559,9 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                    if(isUserMisMatch(authenticationRequest.getLoginHint(), result))
-                                    {
-                                        throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH);
+                                    if (isUserMisMatch(authenticationRequest.getLoginHint(), result)) {
+                                        throw new AuthenticationException(
+                                                ADALError.AUTH_FAILED_USER_MISMATCH);
                                     }
                                 } catch (Exception exc) {
                                     Logger.e(TAG, "Error in processing code to get token. "
@@ -609,8 +609,8 @@ public class AuthenticationContext {
 
     private static boolean isUserMisMatch(final String userId, final AuthenticationResult result) {
         return (!StringExtensions.IsNullOrBlank(userId) && result.getUserInfo() != null
-                && result.getUserInfo().getUserId() != null
-                && !userId.equalsIgnoreCase(result.getUserInfo().getUserId())); 
+                && result.getUserInfo().getUserId() != null && !userId.equalsIgnoreCase(result
+                .getUserInfo().getUserId()));
     }
 
     /**
@@ -711,7 +711,9 @@ public class AuthenticationContext {
      * Active authentication activity can be cancelled if it exists. It may not
      * be cancelled if activity is not launched yet. RequestId is the hashcode
      * of your AuthenticationCallback.
-     * @param requestId Hash code value of your callback to cancel activity launch
+     * 
+     * @param requestId Hash code value of your callback to cancel activity
+     *            launch
      * @return true: if there is a valid waiting request and cancel message send
      *         successfully. false: Request does not exist or cancel message not
      *         send
@@ -1058,10 +1060,11 @@ public class AuthenticationContext {
         String mKey;
 
         boolean mMultiResource;
-        
+
         UserInfo mUserInfo;
 
-        public RefreshItem(String keyInCache, String refreshTokenValue, boolean multiResource, UserInfo userInfo) {
+        public RefreshItem(String keyInCache, String refreshTokenValue, boolean multiResource,
+                UserInfo userInfo) {
             this.mKey = keyInCache;
             this.mRefreshToken = refreshTokenValue;
             this.mMultiResource = multiResource;
@@ -1092,7 +1095,8 @@ public class AuthenticationContext {
 
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed + getCorrelationLogInfo());
-                refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource, item.getUserInfo());
+                refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource,
+                        item.getUserInfo());
             }
         }
 
@@ -1237,7 +1241,7 @@ public class AuthenticationContext {
                 acquireTokenLocalCall(callbackHandle, activity, request);
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
-                if(refreshItem.mUserInfo != null){
+                if (refreshItem.mUserInfo != null) {
                     Logger.v(TAG, "UserInfo is updated:" + request.getLogInfo());
                     result.setUserInfo(refreshItem.mUserInfo);
                 }
@@ -1249,7 +1253,7 @@ public class AuthenticationContext {
                 // return result obj which has error code and
                 // error description that is returned from
                 // server response
-                
+
                 callbackHandle.onSuccess(result);
             }
         } else {
