@@ -1061,6 +1061,10 @@ public class AuthenticationContextTests extends AndroidTestCase {
         // assert
         assertTrue("Returns cancel error",
                 callback.callbackException instanceof AuthenticationCancelError);
+        assertTrue(
+                "Cancel error has message",
+                callback.callbackException.getMessage().contains(
+                        ADALError.AUTH_FAILED_CANCELLED.getDescription()));
     }
 
     private Intent setWaitingRequestToContext(final AuthenticationContext authContext,

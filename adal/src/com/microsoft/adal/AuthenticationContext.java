@@ -472,7 +472,6 @@ public class AuthenticationContext {
                 Bundle extras = data.getExtras();
                 final int requestId = extras.getInt(AuthenticationConstants.Browser.REQUEST_ID);
                 final AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
-
                 if (waitingRequest != null) {
                     Logger.v(TAG, "onActivityResult RequestId:" + requestId
                             + getCorrelationLogInfo());
@@ -487,7 +486,6 @@ public class AuthenticationContext {
                 // Cancel or browser error can use recorded request to figure
                 // out original correlationId send with request.
                 String correlationInfo = getCorrelationInfoFromWaitingRequest(waitingRequest);
-
                 if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
                     String accessToken = data
                             .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
@@ -511,8 +509,7 @@ public class AuthenticationContext {
                     Logger.v(TAG, "User cancelled the flow RequestId:" + requestId
                             + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId,
-                            new AuthenticationCancelError());
-
+                            new AuthenticationCancelError(ADALError.AUTH_FAILED_CANCELLED));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
                     String errCode = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
@@ -522,14 +519,11 @@ public class AuthenticationContext {
                             + requestId + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
                             ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage));
-
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
-
                     final String endingUrl = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_FINAL_URL);
-
                     if (endingUrl.isEmpty()) {
                         Logger.v(TAG, "Webview did not reach the redirectUrl. "
                                 + authenticationRequest.getLogInfo());
