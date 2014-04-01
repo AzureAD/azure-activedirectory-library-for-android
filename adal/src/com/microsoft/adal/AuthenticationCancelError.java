@@ -37,5 +37,6 @@ public class AuthenticationCancelError extends AuthenticationException {
      * @param cancelCode Error code to indicate the reason
      */
     public AuthenticationCancelError(ADALError cancelCode) {
+        mCode = cancelCode;
     }
 }

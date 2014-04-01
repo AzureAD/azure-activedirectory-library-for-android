@@ -101,6 +101,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
+        AuthenticationSettings.INSTANCE.setBrokerPackageName("skipForTestByDefault");
     }
 
     protected void tearDown() throws Exception {
@@ -1106,6 +1107,10 @@ public class AuthenticationContextTests extends AndroidTestCase {
         // assert
         assertTrue("Returns cancel error",
                 callback.callbackException instanceof AuthenticationCancelError);
+        assertTrue(
+                "Cancel error has message",
+                callback.callbackException.getMessage().contains(
+                        ADALError.AUTH_FAILED_CANCELLED.getDescription()));
     }
 
     private Intent setWaitingRequestToContext(final AuthenticationContext authContext,
