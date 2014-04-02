@@ -20,6 +20,9 @@ package com.microsoft.adal;
 
 import java.io.Serializable;
 
+import android.content.Intent;
+import android.os.Bundle;
+
 public class UserInfo implements Serializable {
 
     /**
@@ -70,6 +73,19 @@ public class UserInfo implements Serializable {
             mFamilyName = token.mFamilyName;
             mIdentityProvider = token.mIdentityProvider;
         }
+    }
+
+    static UserInfo getUserInfoFromBrokerResult(final Bundle bundle) {
+        String userid = bundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
+        String givenName = bundle
+                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME);
+        String familyName = bundle
+                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME);
+        String identityProvider = bundle
+                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER);
+        Boolean displayable = bundle.getBoolean(
+                AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE, false);
+        return new UserInfo(userid, givenName, familyName, identityProvider, displayable);
     }
 
     public String getUserId() {

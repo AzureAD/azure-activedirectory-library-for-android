@@ -173,10 +173,9 @@ class BrokerProxy implements IBrokerProxy {
         // record this account for calling app so that clear token can remove
         // this account
         saveAccount(accountName);
+        UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
         AuthenticationResult result = new AuthenticationResult(
-                bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false);
-
-        // TODO pull userinfo as well
+                bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false, userinfo);
         return result;
     }
 

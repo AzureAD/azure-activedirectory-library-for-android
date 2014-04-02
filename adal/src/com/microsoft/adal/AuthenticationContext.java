@@ -498,7 +498,7 @@ public class AuthenticationContext {
                     long expireTime = data.getLongExtra(
                             AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
                     Date expire = new Date(expireTime);
-                    UserInfo userinfo = getUserInfoFromBrokerResult(data);
+                    UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo);
                     if (brokerResult != null && brokerResult.getAccessToken() != null) {
@@ -603,18 +603,6 @@ public class AuthenticationContext {
                 }
             }
         }
-    }
-
-    private UserInfo getUserInfoFromBrokerResult(Intent data) {
-        String userid = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
-        String givenName = data
-                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME);
-        String familyName = data
-                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME);
-        String identityProvider = data
-                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER);
-        Boolean displayable = data.getBooleanExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE, false);
-        return new UserInfo(userid, givenName, familyName, identityProvider, displayable);
     }
 
     private static boolean isUserMisMatch(final String userId, final AuthenticationResult result) {
