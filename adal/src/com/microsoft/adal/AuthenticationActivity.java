@@ -525,7 +525,8 @@ public class AuthenticationActivity extends Activity {
 
                     // do async task and show spinner while exchanging code for
                     // access token
-                    new TokenTask(mAuthRequest, url, mCallingPackage, mCallingUID).execute();
+                    new TokenTask(mWebRequestHandler, mAuthRequest, mCallingPackage, mCallingUID)
+                            .execute(url);
                     return true;
                 }
             }
@@ -652,46 +653,51 @@ public class AuthenticationActivity extends Activity {
      */
     class TokenTask extends AsyncTask<Void, String, TokenTaskResult> {
 
-        String mUrl;
-
         String mPackageName;
 
         int mAppCallingUID;
 
         AuthenticationRequest mRequest;
 
-        public TokenTask(final AuthenticationRequest request, final String url,
+        AccountManager mAccountManager;
+
+        IWebRequestHandler mRequestHandler;
+
+        public TokenTask() {
+        }
+
+        public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
                 final String packagename, final int callingUID) {
+            mRequestHandler = webHandler;
             mRequest = request;
-            mUrl = url;
             mPackageName = packagename;
             mAppCallingUID = callingUID;
+            mAccountManager = AccountManager.get(AuthenticationActivity.this);
         }
 
         @Override
         protected TokenTaskResult doInBackground(Void... empty) {
-            Oauth2 oauthRequest = new Oauth2(mAuthRequest, mWebRequestHandler);
+            Oauth2 oauthRequest = new Oauth2(mRequest, mRequestHandler);
             TokenTaskResult result = new TokenTaskResult();
             try {
-                result.taskResult = oauthRequest.getToken(mUrl);
-                Logger.v(TAG, "TokenTask processed the result. " + mAuthRequest.getLogInfo());
+                result.taskResult = oauthRequest.getToken(urlItems[0]);
+                Logger.v(TAG, "TokenTask processed the result. " + mRequest.getLogInfo());
             } catch (Exception exc) {
-                Logger.e(TAG,
-                        "Error in processing code to get a token. " + mAuthRequest.getLogInfo(),
-                        "Request url:" + mUrl,
+                Logger.e(TAG, "Error in processing code to get a token. " + mRequest.getLogInfo(),
+                        "Request url:" + urlItems[0],
                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
                 result.taskException = exc;
             }
 
             if (result != null && result.taskResult != null
                     && result.taskResult.getAccessToken() != null) {
-                Logger.v(TAG, "Setting account:" + mAuthRequest.getLogInfo());
+                Logger.v(TAG, "Setting account:" + mRequest.getLogInfo());
 
                 // Record account in the AccountManager service
                 try {
                     setAccount(result);
                 } catch (Exception exc) {
-                    Logger.e(TAG, "Error in setting the account" + mAuthRequest.getLogInfo(), "",
+                    Logger.e(TAG, "Error in setting the account" + mRequest.getLogInfo(), "",
                             ADALError.BROKER_ACCOUNT_SAVE_FAILED, exc);
                     result.taskException = exc;
                 }
@@ -714,13 +720,12 @@ public class AuthenticationActivity extends Activity {
             return digestKey;
         }
 
-        private void appendAppUIDToAccount(StorageHelper cryptoHelper, AccountManager am,
-                Account account) throws InvalidKeyException, NoSuchAlgorithmException,
-                InvalidKeySpecException, InvalidAlgorithmParameterException,
-                IllegalBlockSizeException, BadPaddingException, NoSuchPaddingException,
-                IOException, KeyStoreException, CertificateException, NoSuchProviderException,
-                UnrecoverableEntryException, DigestException {
-            String appIdList = am.getUserData(account,
+        private void appendAppUIDToAccount(StorageHelper cryptoHelper, Account account)
+                throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException,
+                InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException,
+                NoSuchPaddingException, IOException, KeyStoreException, CertificateException,
+                NoSuchProviderException, UnrecoverableEntryException, DigestException {
+            String appIdList = mAccountManager.getUserData(account,
                     AuthenticationConstants.Broker.ACCOUNT_UID_CACHES);
             if (appIdList == null) {
                 appIdList = "";
@@ -731,11 +736,13 @@ public class AuthenticationActivity extends Activity {
             if (!appIdList.contains(AuthenticationConstants.Broker.USERDATA_UID_KEY
                     + mAppCallingUID)) {
                 Logger.v(TAG, "Account has new calling UID:" + mAppCallingUID);
-                am.setUserData(
-                        account,
-                        AuthenticationConstants.Broker.ACCOUNT_UID_CACHES,
-                        cryptoHelper.encrypt(appIdList
-                                + AuthenticationConstants.Broker.USERDATA_UID_KEY + mAppCallingUID));
+                mAccountManager
+                        .setUserData(
+                                account,
+                                AuthenticationConstants.Broker.ACCOUNT_UID_CACHES,
+                                cryptoHelper.encrypt(appIdList
+                                        + AuthenticationConstants.Broker.USERDATA_UID_KEY
+                                        + mAppCallingUID));
             }
         }
 
@@ -747,7 +754,6 @@ public class AuthenticationActivity extends Activity {
 
             // Authenticator sets the account here and stores the tokens.
             try {
-                AccountManager am = AccountManager.get(AuthenticationActivity.this);
                 String name = mRequest.getBrokerAccountName();
                 result.accountName = name;
                 Logger.v(TAG, "Setting account. Account name: " + name + " package:"
@@ -757,7 +763,7 @@ public class AuthenticationActivity extends Activity {
                 Bundle userdata = new Bundle();
                 // First add account. Account may exists before from another
                 // app. Result will be added to userdata if account exists.
-                am.addAccountExplicitly(newaccount, "nopass", userdata);
+                mAccountManager.addAccountExplicitly(newaccount, "nopass", userdata);
 
                 // Cache logic will be changed based on latest logic
                 // This is currently keeping accesstoken and MRRT separate
@@ -773,7 +779,8 @@ public class AuthenticationActivity extends Activity {
                 String json = gson.toJson(item);
                 String encrypted = cryptoHelper.encrypt(json);
                 String key = CacheKey.createCacheKey(mRequest);
-                am.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key), encrypted);
+                mAccountManager.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
+                        encrypted);
 
                 if (result.taskResult.getIsMultiResourceRefreshToken()) {
                     // ADAL stores MRRT refresh token separately
@@ -781,14 +788,15 @@ public class AuthenticationActivity extends Activity {
                     json = gson.toJson(itemMRRT);
                     encrypted = cryptoHelper.encrypt(json);
                     key = CacheKey.createMultiResourceRefreshTokenKey(mRequest);
-                    am.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key), encrypted);
+                    mAccountManager.setUserData(newaccount,
+                            getBrokerAppCacheKey(cryptoHelper, key), encrypted);
                 }
 
                 // Record calling UID for this account so that app can get token
                 // in the background call without requiring server side
                 // validation
                 Logger.v(TAG, "Set calling uid:" + mAppCallingUID);
-                appendAppUIDToAccount(cryptoHelper, am, newaccount);
+                appendAppUIDToAccount(cryptoHelper, newaccount);
             } catch (NoSuchAlgorithmException e) {
                 Logger.e(TAG, "Algorithm does not exist in the device", "",
                         ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
@@ -820,6 +828,7 @@ public class AuthenticationActivity extends Activity {
 
         @Override
         protected void onPostExecute(TokenTaskResult result) {
+            Logger.v(TAG, "Token task returns the result");
             displaySpinner(false);
             Intent intent = new Intent();
             if (result.taskResult != null) {
