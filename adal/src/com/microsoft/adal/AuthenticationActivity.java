@@ -651,7 +651,7 @@ public class AuthenticationActivity extends Activity {
      * setUserData/getUserData inside the AccountManager. This is used only for
      * broker related call.
      */
-    class TokenTask extends AsyncTask<Void, String, TokenTaskResult> {
+    class TokenTask extends AsyncTask<String, String, TokenTaskResult> {
 
         String mPackageName;
 
@@ -676,7 +676,7 @@ public class AuthenticationActivity extends Activity {
         }
 
         @Override
-        protected TokenTaskResult doInBackground(Void... empty) {
+        protected TokenTaskResult doInBackground(String... urlItems) {
             Oauth2 oauthRequest = new Oauth2(mRequest, mRequestHandler);
             TokenTaskResult result = new TokenTaskResult();
             try {
