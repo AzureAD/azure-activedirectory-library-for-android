@@ -153,7 +153,7 @@ public class ToDoActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_to_do);
-
+        setDefaultDate();
         Toast.makeText(getApplicationContext(), TAG + "LifeCycle: OnCreate", Toast.LENGTH_SHORT)
                 .show();
 
@@ -204,7 +204,6 @@ public class ToDoActivity extends Activity {
                             }
                         }
                     });
-
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Encryption is failed", Toast.LENGTH_SHORT)
                     .show();
@@ -213,13 +212,23 @@ public class ToDoActivity extends Activity {
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
 
+    private void setDefaultDate(){
+        final Calendar c = Calendar.getInstance();
+        // If user does not change the date, add button will use this date
+        pickerYear = c.get(Calendar.YEAR);
+        pickerMonth = c.get(Calendar.MONTH);
+        pickerDayOfMonth = c.get(Calendar.DAY_OF_MONTH);
+    }
+    
     private void sendRequest() {
-
         if (refreshInProgress || mToken == null || mToken.getAccessToken().isEmpty())
             return;
 
+        if (mClient == null) {
+            initAppTables();
+        }
         refreshInProgress = true;
-
+        refreshItemsFromTable();
     }
 
     private URL getEndpointUrl() {
@@ -706,19 +715,11 @@ public class ToDoActivity extends Activity {
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the current date as the default date in the picker
-            final Calendar c = Calendar.getInstance();
-
-            // If user does not change the date, add button will use this date
-            pickerYear = c.get(Calendar.YEAR);
-            pickerMonth = c.get(Calendar.MONTH);
-            pickerDayOfMonth = c.get(Calendar.DAY_OF_MONTH);
-
             // Create a new instance of DatePickerDialog and return it
             return new DatePickerDialog(getActivity(), this, pickerYear, pickerMonth,
                     pickerDayOfMonth);
         }
-
+        
         public void onDateSet(DatePicker view, int year, int month, int day) {
 
             // Update current selected date to be used in add post
@@ -745,6 +746,10 @@ public class ToDoActivity extends Activity {
             mClient.setCurrentUser(user);
         }
 
+        if(pickerYear == 0 && pickerMonth == 0 && pickerDayOfMonth == 0){
+            setDefaultDate();
+        }
+        
         // Create a new item
         WorkItem item = new WorkItem();
 
@@ -755,7 +760,6 @@ public class ToDoActivity extends Activity {
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(pickerYear, pickerMonth, pickerDayOfMonth);
-
         item.setDueDate(calendar.getTime());
 
         // Insert the new item
