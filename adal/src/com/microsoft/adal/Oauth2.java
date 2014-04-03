@@ -130,7 +130,6 @@ class Oauth2 {
     }
 
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
-
         String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
@@ -142,13 +141,6 @@ class Oauth2 {
 
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
                 StringExtensions.URLFormEncode(mRequest.getRedirectUri()));
-
-        if (!StringExtensions.IsNullOrBlank(mRequest.getLoginHint())) {
-            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.LOGIN_HINT,
-                    URLEncoder.encode(mRequest.getLoginHint(),
-                            AuthenticationConstants.ENCODING_UTF8));
-        }
-
         return message;
     }
 
@@ -339,7 +331,7 @@ class Oauth2 {
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
      * @param authenticationCallback
-     * @return 
+     * @return
      * @throws Exception
      */
     public AuthenticationResult getToken(String authorizationUrl) throws Exception {

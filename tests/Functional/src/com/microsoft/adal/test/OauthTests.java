@@ -247,7 +247,7 @@ public class OauthTests extends AndroidTestCase {
         String actual = (String)m.invoke(oauth, "authorizationcodevalue=");
         assertEquals(
                 "Token request",
-                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27&login_hint=loginhint%40ggg.com",
+                "grant_type=authorization_code&code=authorizationcodevalue%3D&client_id=client+1234567890-%2B%3D%3B%27&redirect_uri=redirect+1234567890-%2B%3D%3B%27",
                 actual);
 
         // without login hint
