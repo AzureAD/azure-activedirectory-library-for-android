@@ -497,10 +497,9 @@ public class AuthenticationContext {
                     long expireTime = data.getLongExtra(
                             AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
                     Date expire = new Date(expireTime);
-
-                    // TODO: return userinfo as well
+                    UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
-                            expire, false);
+                            expire, false, userinfo);
                     if (brokerResult != null && brokerResult.getAccessToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                         return;

@@ -101,7 +101,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
-        AuthenticationSettings.INSTANCE.setBrokerPackageName("skipForTestByDefault");
+        AuthenticationSettings.INSTANCE.setBrokerSignature("skipBrokerForTest");
     }
 
     protected void tearDown() throws Exception {

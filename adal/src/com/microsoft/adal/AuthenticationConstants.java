@@ -198,6 +198,18 @@ public class AuthenticationConstants {
         public static final String MULTI_RESOURCE_TOKEN = "account.multi.resource.token";
 
         public static final String ACCOUNT_NAME = "account.name";
+        
+        public static final String ACCOUNT_USERINFO_USERID = "account.userinfo.userid";
+        
+        public static final String ACCOUNT_USERINFO_GIVEN_NAME = "account.userinfo.given.name";
+        
+        public static final String ACCOUNT_USERINFO_FAMILY_NAME = "account.userinfo.family.name";
+        
+        public static final String ACCOUNT_USERINFO_IDENTITY_PROVIDER = "account.userinfo.identity.provider";
+        
+        public static final String ACCOUNT_USERINFO_USERID_DISPLAYABLE = "account.userinfo.userid.displayable";
+        
+        public static final String ACCOUNT_USERINFO_TENANTID = "account.userinfo.tenantid";
 
         public static final String ACCOUNT_UID_CACHES = "account.uid.caches";
         
