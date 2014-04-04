@@ -463,7 +463,9 @@ public class AuthenticationContext {
      * @param data
      */
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // This is called at UI thread.
+        // This is called at UI thread when Activity sets result back.
+        // ResultCode is set back from AuthenticationActivity. RequestCode is
+        // set when we start the activity for result.
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
             if (data == null) {
                 // If data is null, RequestId is unknown. It could not find
@@ -508,8 +510,8 @@ public class AuthenticationContext {
                     // User cancelled the flow
                     Logger.v(TAG, "User cancelled the flow RequestId:" + requestId
                             + correlationInfo);
-                    waitingRequestOnError(waitingRequest, requestId,
-                            new AuthenticationCancelError(ADALError.AUTH_FAILED_CANCELLED));
+                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
+                            ADALError.AUTH_FAILED_CANCELLED));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
                     String errCode = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
@@ -886,7 +888,15 @@ public class AuthenticationContext {
         if (mBrokerProxy.canSwitchToBroker()) {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             // cache and refresh call happens through the authenticator service
-            AuthenticationResult result = mBrokerProxy.getAuthTokenInBackground(request);
+            AuthenticationResult result = null;
+            try {
+                result = mBrokerProxy.getAuthTokenInBackground(request);
+            } catch (AuthenticationException ex) {
+                // pass back to caller for known exceptions such as failure to encrypt
+                callbackHandle.onError(ex);
+                return;
+            }
+
             if (result != null && result.getAccessToken() != null
                     && !result.getAccessToken().isEmpty()) {
                 Logger.v(TAG, "Token is returned from background call " + getCorrelationLogInfo());

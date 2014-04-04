@@ -142,13 +142,9 @@ class BrokerProxy implements IBrokerProxy {
                 // TODO add test to broker side
                 authResult = getResultFromBrokerResponse(bundleResult);
             } catch (OperationCanceledException e) {
-                // TODO verify that authenticator exceptions are recorded in the
-                // calling app
                 Logger.e(TAG, "Authenticator cancels the request", "",
                         ADALError.AUTH_FAILED_CANCELLED, e);
             } catch (AuthenticatorException e) {
-                // TODO add retry logic since authenticator is not responding to
-                // the request
                 Logger.e(TAG, "Authenticator cancels the request", "",
                         ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
             } catch (IOException e) {
@@ -169,14 +165,33 @@ class BrokerProxy implements IBrokerProxy {
             throw new IllegalArgumentException("bundleResult");
         }
 
-        String accountName = bundleResult.getString(AccountManager.KEY_ACCOUNT_NAME);
-        // record this account for calling app so that clear token can remove
-        // this account
-        saveAccount(accountName);
-        UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
-        AuthenticationResult result = new AuthenticationResult(
-                bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false, userinfo);
-        return result;
+        int errCode = bundleResult.getInt(AccountManager.KEY_ERROR_CODE);
+        String msg = bundleResult.getString(AccountManager.KEY_ERROR_MESSAGE);
+        if (!StringExtensions.IsNullOrBlank(msg)) {
+            ADALError adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
+            switch (errCode) {
+                case AccountManager.ERROR_CODE_BAD_ARGUMENTS:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS;
+                    break;
+                case AccountManager.ERROR_CODE_BAD_AUTHENTICATION:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_AUTHENTICATION;
+                    break;
+                case AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
+                    break;
+            }
+            throw new AuthenticationException(adalErrorCode, msg);
+        } else {
+            String accountName = bundleResult.getString(AccountManager.KEY_ACCOUNT_NAME);
+            // record this account for calling app so that clear token can
+            // remove
+            // this account
+            saveAccount(accountName);
+            UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
+            AuthenticationResult result = new AuthenticationResult(
+                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false, userinfo);
+            return result;
+        }
     }
 
     /**
@@ -242,6 +257,14 @@ class BrokerProxy implements IBrokerProxy {
             // intent.
             // Activity needs to be launched from calling app to get the calling
             // app's metadata if needed at BrokerActivity.
+            Account[] accountList = mAcctManager
+                    .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE); 
+            if(accountList.length == 0){
+                Logger.v(TAG, "Broker does not have any Accounts");
+                // skip cookie usage for this activity since accounts were removed
+                request.setPrompt(PromptBehavior.Always);
+            }
+            
             Bundle addAccountOptions = getBrokerOptions(request);
             result = mAcctManager.addAccount(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                     AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null,
@@ -284,7 +307,6 @@ class BrokerProxy implements IBrokerProxy {
                 request.getRedirectUri());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY,
                 request.getClientId());
-        // TODO: this will be linked to account name
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT,
                 request.getLoginHint());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME,
