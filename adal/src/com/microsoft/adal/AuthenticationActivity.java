@@ -187,6 +187,8 @@ public class AuthenticationActivity extends Activity {
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
 
+        updateRequestForAccounts();
+
         try {
             mStartUrl = new Oauth2(mAuthRequest, null).getCodeRequestUrl();
         } catch (UnsupportedEncodingException e) {
@@ -244,6 +246,19 @@ public class AuthenticationActivity extends Activity {
                 mWebView.loadUrl(postUrl);
             }
         });
+    }
+
+    private void updateRequestForAccounts() {
+        if (insideBroker()) {
+            Account[] accountList = AccountManager.get(AuthenticationActivity.this)
+                    .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+            if (accountList != null && accountList.length != 1) {
+                Logger.v(TAG, "Activity has cookies for many accounts");
+                // skip cookie usage for this activity since idtoken can return
+                // wrong value
+                mAuthRequest.setPrompt(PromptBehavior.Always);
+            }
+        }
     }
 
     private void setupWebView() {
@@ -311,6 +326,12 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY);
             String correlationId = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
+            String prompt = callingIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
+            PromptBehavior promptBehavior = PromptBehavior.Always;
+            if(!StringExtensions.IsNullOrBlank(prompt)){
+                promptBehavior = PromptBehavior.valueOf(prompt);
+            }
+            
             mWaitingRequestId = callingIntent.getIntExtra(
                     AuthenticationConstants.Browser.REQUEST_ID, 0);
             UUID correlationIdParsed = null;
@@ -326,6 +347,7 @@ public class AuthenticationActivity extends Activity {
             authRequest = new AuthenticationRequest(authority, resource, clientidKey, redirect,
                     loginhint, correlationIdParsed);
             authRequest.setBrokerAccountName(accountName);
+            authRequest.setPrompt(promptBehavior);
         } else {
             Serializable request = callingIntent
                     .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
@@ -755,6 +777,25 @@ public class AuthenticationActivity extends Activity {
             // Authenticator sets the account here and stores the tokens.
             try {
                 String name = mRequest.getBrokerAccountName();
+                if (result.taskResult.getUserInfo() != null
+                        && !StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
+                                .getUserId())) {
+                    // record account under this idtoken so that next request
+                    // with this username should not prompt. Otherwise, it will
+                    // not use cache since cache is user based.
+                    name = result.taskResult.getUserInfo().getUserId();
+                    if (mRequest.getLoginHint() == null) {
+                        // Update login hint to result so that correct cache key
+                        // is used for recording the result
+                        mRequest.setLoginHint(name);
+                    }else if(!mRequest.getLoginHint().equalsIgnoreCase(name)){
+                        Logger.e(TAG, "Userid does not match from idtoken", "", ADALError.AUTH_FAILED_USER_MISMATCH);
+                        result.taskResult = null;
+                        result.taskException = new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH);
+                        return;
+                    }
+                }
+
                 result.accountName = name;
                 Logger.v(TAG, "Setting account. Account name: " + name + " package:"
                         + mCallingPackage + " calling app UID:" + mAppCallingUID);

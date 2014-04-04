@@ -259,9 +259,9 @@ class BrokerProxy implements IBrokerProxy {
             // app's metadata if needed at BrokerActivity.
             Account[] accountList = mAcctManager
                     .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE); 
-            if(accountList.length == 0){
-                Logger.v(TAG, "Broker does not have any Accounts");
-                // skip cookie usage for this activity since accounts were removed
+            if(accountList != null && accountList.length != 1){
+                Logger.v(TAG, "Activity has cookies for many accounts");
+                // skip cookie usage for this activity since idtoken can return wrong value
                 request.setPrompt(PromptBehavior.Always);
             }
             
@@ -311,6 +311,8 @@ class BrokerProxy implements IBrokerProxy {
                 request.getLoginHint());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME,
                 getAccountLookupUsername(request));
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT,
+                request.getPrompt().name());
         return brokerOptions;
     }
 

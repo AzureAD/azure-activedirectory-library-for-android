@@ -889,12 +889,16 @@ public class AuthenticationContext {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             // cache and refresh call happens through the authenticator service
             AuthenticationResult result = null;
-            try {
-                result = mBrokerProxy.getAuthTokenInBackground(request);
-            } catch (AuthenticationException ex) {
-                // pass back to caller for known exceptions such as failure to encrypt
-                callbackHandle.onError(ex);
-                return;
+            // Dont send background request if prompt flag is always
+            if (request.getPrompt() != PromptBehavior.Always) {
+                try {
+                    result = mBrokerProxy.getAuthTokenInBackground(request);
+                } catch (AuthenticationException ex) {
+                    // pass back to caller for known exceptions such as failure
+                    // to encrypt
+                    callbackHandle.onError(ex);
+                    return;
+                }
             }
 
             if (result != null && result.getAccessToken() != null

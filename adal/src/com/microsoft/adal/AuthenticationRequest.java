@@ -173,4 +173,8 @@ class AuthenticationRequest implements Serializable {
     public void setBrokerAccountName(String mBrokerAccountName) {
         this.mBrokerAccountName = mBrokerAccountName;
     }
+
+    void setLoginHint(String name) {
+        mLoginHint = name;        
+    }
 }
