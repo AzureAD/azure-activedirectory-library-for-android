@@ -6,7 +6,6 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>ADAL ANDROID-API</name>
-
     <modules>
         <module>adal</module>
         <module>samples/testapp</module>  
@@ -17,7 +16,6 @@
     <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android</url>
     <inceptionYear>2013</inceptionYear>
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <scm.branch>master</scm.branch>
         <maven.version>3.1.1</maven.version>
         <android.version>4.1.1.4</android.version>

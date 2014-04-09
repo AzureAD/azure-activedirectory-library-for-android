@@ -7,6 +7,14 @@
 	<version>0.6-alpha</version>
 	<packaging>aar</packaging>
 	<name>adal</name>
+  <scm>
+    <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git</url>
+  </scm>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+    </license>
+  </licenses>
 	<properties>
 		<android.support.version>[18,)</android.support.version>
 	</properties>
@@ -34,6 +42,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -46,6 +55,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
