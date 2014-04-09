@@ -100,6 +100,8 @@ public class AuthenticationActivity extends Activity {
 
     private Bundle mAuthenticatorResultBundle = null;
 
+    private AccountManager mAcctManager = null;
+
     private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
@@ -144,6 +146,7 @@ public class AuthenticationActivity extends Activity {
         setContentView(R.layout.activity_authentication);
 
         // Get the message from the intent
+        mAcctManager = AccountManager.get(getApplicationContext());
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
             Log.d(TAG, "Request item is null, so it returns to caller");
@@ -186,7 +189,6 @@ public class AuthenticationActivity extends Activity {
         setupWebView();
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
-
         updateRequestForAccounts();
 
         try {
@@ -250,7 +252,7 @@ public class AuthenticationActivity extends Activity {
 
     private void updateRequestForAccounts() {
         if (insideBroker()) {
-            Account[] accountList = AccountManager.get(AuthenticationActivity.this)
+            Account[] accountList = mAcctManager
                     .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
             if (accountList != null && accountList.length != 1) {
                 Logger.v(TAG, "Activity has cookies for many accounts");
@@ -326,12 +328,13 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY);
             String correlationId = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
-            String prompt = callingIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
+            String prompt = callingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
             PromptBehavior promptBehavior = PromptBehavior.Always;
-            if(!StringExtensions.IsNullOrBlank(prompt)){
+            if (!StringExtensions.IsNullOrBlank(prompt)) {
                 promptBehavior = PromptBehavior.valueOf(prompt);
             }
-            
+
             mWaitingRequestId = callingIntent.getIntExtra(
                     AuthenticationConstants.Browser.REQUEST_ID, 0);
             UUID correlationIdParsed = null;
@@ -784,14 +787,16 @@ public class AuthenticationActivity extends Activity {
                     // with this username should not prompt. Otherwise, it will
                     // not use cache since cache is user based.
                     name = result.taskResult.getUserInfo().getUserId();
-                    if (mRequest.getLoginHint() == null) {
+                    if (mRequest.getLoginHint() == null || mRequest.getLoginHint().isEmpty()) {
                         // Update login hint to result so that correct cache key
                         // is used for recording the result
                         mRequest.setLoginHint(name);
-                    }else if(!mRequest.getLoginHint().equalsIgnoreCase(name)){
-                        Logger.e(TAG, "Userid does not match from idtoken", "", ADALError.AUTH_FAILED_USER_MISMATCH);
+                    } else if (!mRequest.getLoginHint().equalsIgnoreCase(name)) {
+                        Logger.e(TAG, "Userid does not match from idtoken", "",
+                                ADALError.AUTH_FAILED_USER_MISMATCH);
                         result.taskResult = null;
-                        result.taskException = new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH);
+                        result.taskException = new AuthenticationException(
+                                ADALError.AUTH_FAILED_USER_MISMATCH);
                         return;
                     }
                 }
