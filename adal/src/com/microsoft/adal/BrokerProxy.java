@@ -61,7 +61,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private final String mBrokerTag;
 
-    private static final String KEY_ACCOUNT_LIST_DELIM = "||";
+    private static final String KEY_ACCOUNT_LIST_DELIM = "|";
 
     private static final String KEY_SHARED_PREF_ACCOUNT_LIST = "com.microsoft.adal.account.list";
 
@@ -207,26 +207,39 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public void removeAccounts() {
-        Account[] accountList = mAcctManager
-                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST,
-                Activity.MODE_PRIVATE);
-        String delAccount = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
-        StringTokenizer st = new StringTokenizer(delAccount, KEY_ACCOUNT_LIST_DELIM);
-        while (st.hasMoreTokens()) {
-            String name = st.nextToken();
-            if (name != null && !name.isEmpty()) {
-                Logger.v(TAG, "Removing account:" + name);
-                Account targetAccount = getAccount(accountList, name);
-                if (targetAccount != null) {
-                    mAcctManager.removeAccount(targetAccount, null, null);
-                    Logger.v(TAG, "Account exists and removed:" + name);
-                } else {
-                    Logger.w(TAG, "Account does not exists" + name, "",
-                            ADALError.BROKER_ACCOUNT_DOES_NOT_EXIST);
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                // getAuthToken call will execute in async as well
+                Account[] accountList = mAcctManager
+                        .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+                SharedPreferences prefs = mContext.getSharedPreferences(
+                        KEY_SHARED_PREF_ACCOUNT_LIST, Activity.MODE_PRIVATE);
+                String delAccount = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
+                StringTokenizer st = new StringTokenizer(delAccount, KEY_ACCOUNT_LIST_DELIM);
+                while (st.hasMoreTokens()) {
+                    String name = st.nextToken();
+                    Logger.v(TAG, "remove tokens for:" + name);
+                    if (name != null && !name.isEmpty()) {
+                        Account targetAccount = getAccount(accountList, name);
+                        if (targetAccount != null) {
+                            Bundle brokerOptions = new Bundle();
+                            brokerOptions.putString(
+                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS, "remove");
+                            AccountManagerFuture<Bundle> result = null;
+                            // only this API call sets calling UID. We are
+                            // setting
+                            // special value to indicate that tokens for this
+                            // calling UID will be cleaned from this account
+                            mAcctManager.getAuthToken(targetAccount,
+                                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions,
+                                    false, null /* set to null to avoid callback */, mHandler);
+                        }
+                    }
                 }
             }
-        }
+        }).start();
     }
 
     /**

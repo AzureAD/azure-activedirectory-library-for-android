@@ -194,6 +194,8 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_EXPIREDATE = "account.expiredate";
 
         public static final String ACCOUNT_RESULT = "account.result";
+        
+        public static final String ACCOUNT_REMOVE_TOKENS = "account.remove.tokens";
 
         public static final String MULTI_RESOURCE_TOKEN = "account.multi.resource.token";
 
@@ -216,6 +218,10 @@ public class AuthenticationConstants {
         public static final String USERDATA_PREFIX = "userdata.prefix";
 
         public static final String USERDATA_UID_KEY = "calling.uid.key";
+        
+        public static final String USERDATA_CALLER_CACHEKEYS = "userdata.caller.cachekeys";
+        
+        public static final String CALLER_CACHEKEY_PREFIX = "|";
 
         /**
          * Apk packagename that will install AD-Authenticator. It is used to
