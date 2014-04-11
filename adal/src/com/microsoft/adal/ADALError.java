@@ -148,6 +148,14 @@ public enum ADALError {
     BROKER_PACKAGE_NAME_NOT_FOUND("Broker is not installed in your system"),
 
     BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"),
+    
+    BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN("Authenticator error"),
+    
+    BROKER_AUTHENTICATOR_BAD_ARGUMENTS("Invalid arguments for Authenticator request"),
+    
+    BROKER_AUTHENTICATOR_BAD_AUTHENTICATION("Authentication request failed"),
+    
+    BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION("Authenticator is not supporting this operation"),
 
     BROKER_AUTHENTICATOR_IO_EXCEPTION("Authenticator has IO Exception"),
 
