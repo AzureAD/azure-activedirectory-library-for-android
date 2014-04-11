@@ -162,6 +162,8 @@ public class AuthenticationConstants {
 
         public static final String BACKGROUND_REQUEST_MESSAGE = "background.request";
 
+        public static final String ACCOUNT_DEFAULT_NAME = "Default";
+        
         /**
          * Authtoken type string.
          */

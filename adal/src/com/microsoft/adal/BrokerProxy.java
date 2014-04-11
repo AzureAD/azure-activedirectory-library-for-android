@@ -316,7 +316,7 @@ class BrokerProxy implements IBrokerProxy {
         // group the tokens based on account, so it needs to pass clientid to
         // group unknown users. Different apps signed by same certificates may
         // use same clientid, but they will have differnt packagenames.
-        return request.getClientId();
+        return AuthenticationConstants.Broker.ACCOUNT_DEFAULT_NAME;
     }
 
     private boolean verifyBroker() {

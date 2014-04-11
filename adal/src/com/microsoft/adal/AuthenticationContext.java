@@ -604,7 +604,7 @@ public class AuthenticationContext {
 
     private static boolean isUserMisMatch(final String userId, final AuthenticationResult result) {
         return (!StringExtensions.IsNullOrBlank(userId) && result.getUserInfo() != null
-                && result.getUserInfo().getUserId() != null && !userId.equalsIgnoreCase(result
+                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId()) && !userId.equalsIgnoreCase(result
                 .getUserInfo().getUserId()));
     }
 
