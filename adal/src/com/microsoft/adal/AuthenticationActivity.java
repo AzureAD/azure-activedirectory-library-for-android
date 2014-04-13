@@ -254,8 +254,8 @@ public class AuthenticationActivity extends Activity {
         if (insideBroker()) {
             Account[] accountList = mAcctManager
                     .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-            if (accountList != null && accountList.length != 1) {
-                Logger.v(TAG, "Activity has cookies for many accounts");
+            if (accountList != null && accountList.length == 0) {
+                Logger.v(TAG, "Activity may have cookies from previous accounts");
                 // skip cookie usage for this activity since idtoken can return
                 // wrong value
                 mAuthRequest.setPrompt(PromptBehavior.Always);
@@ -825,6 +825,7 @@ public class AuthenticationActivity extends Activity {
                 String json = gson.toJson(item);
                 String encrypted = cryptoHelper.encrypt(json);
                 String key = CacheKey.createCacheKey(mRequest);
+                saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
                         encrypted);
 
@@ -834,6 +835,7 @@ public class AuthenticationActivity extends Activity {
                     json = gson.toJson(itemMRRT);
                     encrypted = cryptoHelper.encrypt(json);
                     key = CacheKey.createMultiResourceRefreshTokenKey(mRequest);
+                    saveCacheKey(key, newaccount, mAppCallingUID);
                     mAccountManager.setUserData(newaccount,
                             getBrokerAppCacheKey(cryptoHelper, key), encrypted);
                 }
@@ -869,6 +871,27 @@ public class AuthenticationActivity extends Activity {
             } catch (DigestException e) {
                 Logger.e(TAG, "Digest is not valid", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
                 result.taskException = e;
+            }
+        }
+
+        private void saveCacheKey(String key, Account cacheAccount, int callingUID) {
+            Logger.d(TAG, "Get CacheKeys for account");
+            // Store cachekeys for each UID
+            // Activity has access to packagename and UID, but background call
+            // in getAuthToken only knows about UID
+            String keylist = mAccountManager.getUserData(cacheAccount,
+                    AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + callingUID);
+            if (keylist == null) {
+                keylist = "";
+            }
+            if (!keylist.contains(AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key)) {
+                Logger.v(TAG, "Account does not have this cache key:" + key
+                        + " It will save it to accoun for the callerUID:" + callingUID);
+                keylist += AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key;
+                mAccountManager.setUserData(cacheAccount,
+                        AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + callingUID,
+                        keylist);
+                Logger.v(TAG, "keylist:"+keylist);
             }
         }
 

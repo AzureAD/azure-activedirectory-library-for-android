@@ -61,7 +61,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private final String mBrokerTag;
 
-    private static final String KEY_ACCOUNT_LIST_DELIM = "||";
+    private static final String KEY_ACCOUNT_LIST_DELIM = "|";
 
     private static final String KEY_SHARED_PREF_ACCOUNT_LIST = "com.microsoft.adal.account.list";
 
@@ -139,7 +139,6 @@ class BrokerProxy implements IBrokerProxy {
                 Bundle bundleResult = result.getResult();
                 // Authenticator should throw OperationCanceledException if
                 // token is not available
-                // TODO add test to broker side
                 authResult = getResultFromBrokerResponse(bundleResult);
             } catch (OperationCanceledException e) {
                 Logger.e(TAG, "Authenticator cancels the request", "",
@@ -222,26 +221,39 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public void removeAccounts() {
-        Account[] accountList = mAcctManager
-                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST,
-                Activity.MODE_PRIVATE);
-        String delAccount = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
-        StringTokenizer st = new StringTokenizer(delAccount, KEY_ACCOUNT_LIST_DELIM);
-        while (st.hasMoreTokens()) {
-            String name = st.nextToken();
-            if (name != null && !name.isEmpty()) {
-                Logger.v(TAG, "Removing account:" + name);
-                Account targetAccount = getAccount(accountList, name);
-                if (targetAccount != null) {
-                    mAcctManager.removeAccount(targetAccount, null, null);
-                    Logger.v(TAG, "Account exists and removed:" + name);
-                } else {
-                    Logger.w(TAG, "Account does not exists" + name, "",
-                            ADALError.BROKER_ACCOUNT_DOES_NOT_EXIST);
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                // getAuthToken call will execute in async as well
+                Account[] accountList = mAcctManager
+                        .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+                SharedPreferences prefs = mContext.getSharedPreferences(
+                        KEY_SHARED_PREF_ACCOUNT_LIST, Activity.MODE_PRIVATE);
+                String delAccount = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
+                StringTokenizer st = new StringTokenizer(delAccount, KEY_ACCOUNT_LIST_DELIM);
+                while (st.hasMoreTokens()) {
+                    String name = st.nextToken();
+                    Logger.v(TAG, "remove tokens for:" + name);
+                    if (name != null && !name.isEmpty()) {
+                        Account targetAccount = getAccount(accountList, name);
+                        if (targetAccount != null) {
+                            Bundle brokerOptions = new Bundle();
+                            brokerOptions.putString(
+                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS, "remove");
+                            AccountManagerFuture<Bundle> result = null;
+                            // only this API call sets calling UID. We are
+                            // setting
+                            // special value to indicate that tokens for this
+                            // calling UID will be cleaned from this account
+                            mAcctManager.getAuthToken(targetAccount,
+                                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions,
+                                    false, null /* set to null to avoid callback */, mHandler);
+                        }
+                    }
                 }
             }
-        }
+        }).start();
     }
 
     /**
@@ -258,13 +270,14 @@ class BrokerProxy implements IBrokerProxy {
             // Activity needs to be launched from calling app to get the calling
             // app's metadata if needed at BrokerActivity.
             Account[] accountList = mAcctManager
-                    .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE); 
-            if(accountList != null && accountList.length != 1){
-                Logger.v(TAG, "Activity has cookies for many accounts");
-                // skip cookie usage for this activity since idtoken can return wrong value
+                    .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+            if (accountList != null && accountList.length == 0) {
+                Logger.v(TAG, "Activity may have old cookies");
+                // skip cookie usage for this activity since idtoken can return
+                // wrong value
                 request.setPrompt(PromptBehavior.Always);
             }
-            
+
             Bundle addAccountOptions = getBrokerOptions(request);
             result = mAcctManager.addAccount(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                     AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null,
@@ -311,8 +324,8 @@ class BrokerProxy implements IBrokerProxy {
                 request.getLoginHint());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME,
                 getAccountLookupUsername(request));
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT,
-                request.getPrompt().name());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt()
+                .name());
         return brokerOptions;
     }
 
@@ -327,7 +340,7 @@ class BrokerProxy implements IBrokerProxy {
         // group the tokens based on account, so it needs to pass clientid to
         // group unknown users. Different apps signed by same certificates may
         // use same clientid, but they will have differnt packagenames.
-        return request.getClientId();
+        return AuthenticationConstants.Broker.ACCOUNT_DEFAULT_NAME;
     }
 
     private boolean verifyBroker() {

@@ -544,13 +544,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         AccountManager mockAcctManager = mock(AccountManager.class);
         Bundle expected = new Bundle();
         expected.putParcelable(AccountManager.KEY_INTENT, new Intent());
-        Account account1 = new Account("account1",
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        Account account2 = new Account("account2",
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        Account[] accts = new Account[] {
-                account1, account2
-        };
+        Account[] accts = new Account[0];
         when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accts);
         prepareAddAccount(brokerProxy, mockAcctManager, expected);
 
