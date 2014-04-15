@@ -198,6 +198,8 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_RESULT = "account.result";
         
         public static final String ACCOUNT_REMOVE_TOKENS = "account.remove.tokens";
+        
+        public static final String ACCOUNT_REMOVE_TOKENS_VALUE = "account.remove.tokens.value";
 
         public static final String MULTI_RESOURCE_TOKEN = "account.multi.resource.token";
 
