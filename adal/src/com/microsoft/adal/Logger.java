@@ -199,7 +199,7 @@ public class Logger {
         }
     }
 
-    private String getLogMessage(String message, String additionalMessage, ADALError errorCode) {
+    private static String getLogMessage(String message, String additionalMessage, ADALError errorCode) {
         StringBuilder msg = new StringBuilder();
         if (errorCode != null) {
             msg.append(getCodeName(errorCode)).append(":");
@@ -257,7 +257,7 @@ public class Logger {
         this.mAndroidLogEnabled = androidLogEnable;
     }
 
-    private String getCodeName(ADALError code) {
+    private static String getCodeName(ADALError code) {
         if (code != null) {
             return code.name();
         }

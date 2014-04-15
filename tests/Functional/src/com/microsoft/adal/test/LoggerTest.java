@@ -18,6 +18,9 @@
 
 package com.microsoft.adal.test;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.Logger;
 import com.microsoft.adal.Logger.ILogger;
@@ -180,6 +183,21 @@ public class LoggerTest extends AndroidTestHelper {
         assertEquals("same log message", "testMessage", response.message);
     }
 
+    public void testLogMessage() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException {
+        Method m = ReflectionUtils.getStaticTestMethod(Logger.class, "getLogMessage", String.class,
+                String.class, ADALError.class);
+
+        String msg = (String)m.invoke(null, "a", "b", ADALError.AUTH_FAILED);
+
+        assertEquals("Empty message is expected", ADALError.AUTH_FAILED.name()+":a b", msg);
+        
+        msg = (String)m.invoke(null, "a", null, ADALError.AUTH_FAILED);
+
+        assertEquals("Empty message is expected", ADALError.AUTH_FAILED.name()+":a", msg);
+    }
+
     private void verifyLogMessage(final TestLogResponse response) {
         assertEquals("same log tag", "test", response.tag);
         assertEquals("same log message", "testmessage", response.message);
@@ -188,5 +206,4 @@ public class LoggerTest extends AndroidTestHelper {
         response.reset();
     }
 
-    
 }
