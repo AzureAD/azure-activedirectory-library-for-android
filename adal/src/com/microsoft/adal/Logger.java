@@ -29,16 +29,6 @@ public class Logger {
 
     private LogLevel mLogLevel;
 
-    /**
-     * error code: message. additionalMessage
-     */
-    private final static String LOG_FORMAT_ERROR_CODE_MESSAGE_ADDITIONAL = "%s: %s. %s";
-
-    /**
-     * error code: message.
-     */
-    private final static String LOG_FORMAT_ERROR_CODE_MESSAGE = "%s: %s.";
-
     private final static String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
 
     public enum LogLevel {
