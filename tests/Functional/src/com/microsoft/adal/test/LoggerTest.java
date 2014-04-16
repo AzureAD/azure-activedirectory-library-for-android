@@ -189,13 +189,13 @@ public class LoggerTest extends AndroidTestHelper {
         Method m = ReflectionUtils.getStaticTestMethod(Logger.class, "getLogMessage", String.class,
                 String.class, ADALError.class);
 
-        String msg = (String)m.invoke(null, "a", "b", ADALError.AUTH_FAILED);
+        String msg = (String)m.invoke(null, "logMsg", "logAdditionalMsg", ADALError.AUTH_FAILED);
 
-        assertEquals("Empty message is expected", ADALError.AUTH_FAILED.name()+":a b", msg);
+        assertEquals("Empty message is expected", ADALError.AUTH_FAILED.name()+":logMsg logAdditionalMsg", msg);
         
-        msg = (String)m.invoke(null, "a", null, ADALError.AUTH_FAILED);
+        msg = (String)m.invoke(null, "logMsg", null, ADALError.AUTH_FAILED);
 
-        assertEquals("Empty message is expected", ADALError.AUTH_FAILED.name()+":a", msg);
+        assertEquals("Empty message is expected", ADALError.AUTH_FAILED.name()+":logMsg", msg);
     }
 
     private void verifyLogMessage(final TestLogResponse response) {
