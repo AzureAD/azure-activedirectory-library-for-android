@@ -241,7 +241,6 @@ class BrokerProxy implements IBrokerProxy {
                             Bundle brokerOptions = new Bundle();
                             brokerOptions.putString(
                                     AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS, AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
-                            AccountManagerFuture<Bundle> result = null;
                             // only this API call sets calling UID. We are
                             // setting
                             // special value to indicate that tokens for this
