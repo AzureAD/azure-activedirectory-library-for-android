@@ -48,6 +48,9 @@ public enum ADALError {
     DEVELOPER_INTERNET_PERMISSION_MISSING(
             "android.permission.INTERNET is not added to AndroidManifest file"),
 
+    DEVELOPER_BROKER_PERMISSIONS_MISSING(
+            "GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS are not added to AndroidManifest file"),
+
     DEVELOPER_CALLING_ON_MAIN_THREAD("Calling from main thread for background operation"),
 
     SERVER_INVALID_REQUEST("Invalid request to server"),

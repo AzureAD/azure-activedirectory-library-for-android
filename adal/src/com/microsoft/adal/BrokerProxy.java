@@ -87,7 +87,30 @@ class BrokerProxy implements IBrokerProxy {
     public boolean canSwitchToBroker() {
         return !mContext.getPackageName().equalsIgnoreCase(
                 AuthenticationSettings.INSTANCE.getBrokerPackageName())
-                && verifyBroker() && verifyAuthenticator(mAcctManager);
+                && verifyManifestPermissions()
+                && verifyBroker()
+                && verifyAuthenticator(mAcctManager);
+    }
+
+    /**
+     * App needs to give permission to AccountManager to use broker
+     */
+    private boolean verifyManifestPermissions() {
+        PackageManager pm = mContext.getPackageManager();
+        boolean permission = PackageManager.PERMISSION_GRANTED == pm.checkPermission(
+                "android.permission.GET_ACCOUNTS", mContext.getPackageName())
+                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
+                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName())
+                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
+                        "android.permission.USE_CREDENTIALS", mContext.getPackageName());
+        if (!permission) {
+            Logger.w(
+                    TAG,
+                    "Broker related permissions are missing for GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+        }
+
+        return permission;
     }
 
     private void verifyNotOnMainThread() {
@@ -240,7 +263,8 @@ class BrokerProxy implements IBrokerProxy {
                         if (targetAccount != null) {
                             Bundle brokerOptions = new Bundle();
                             brokerOptions.putString(
-                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS, AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
+                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
+                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
                             AccountManagerFuture<Bundle> result = null;
                             // only this API call sets calling UID. We are
                             // setting

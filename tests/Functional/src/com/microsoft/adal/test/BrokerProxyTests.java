@@ -109,7 +109,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = "wrong";
         Signature signature = new Signature(testSignature);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -128,7 +128,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = "invalid";
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
         Signature signature = new Signature(testSignature);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -147,7 +147,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
         Signature signature = new Signature("74657374696e67");
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -168,7 +168,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
-                signature);
+                signature, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -176,6 +176,27 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // assert
         assertTrue("verify should return true", result);
+    }
+
+    public void testCanSwitchToBroker_MissingBrokerPermission() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException,
+            NameNotFoundException {
+
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(testSignature);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
+                signature, false);
+
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
+        boolean result = (Boolean)m.invoke(brokerProxy);
+
+        // assert
+        assertFalse("missing permissions in the manifest", result);
     }
 
     public void testCanSwitchToBroker_ValidBroker_AuthenticatorInternalCall()
@@ -189,7 +210,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Signature signature = new Signature(testSignature);
         AccountManager mockAcctManager = mock(AccountManager.class);
         AuthenticatorDescription[] descriptions = getAuthenticator(authenticatorType, brokerPackage);
-        Context mockContext = getMockContext(signature, brokerPackage, brokerPackage);
+        Context mockContext = getMockContext(signature, brokerPackage, brokerPackage, true);
         when(mockAcctManager.getAuthenticatorTypes()).thenReturn(descriptions);
         when(mockContext.getPackageName()).thenReturn(brokerPackage);
         ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
@@ -592,11 +613,11 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     private void prepareProxyForTest(Object brokerProxy, String authenticatorType,
-            String brokerPackage, String contextPackage, Signature signature)
+            String brokerPackage, String contextPackage, Signature signature, boolean permissionStatus)
             throws NoSuchFieldException, IllegalAccessException, NameNotFoundException {
         AccountManager mockAcctManager = mock(AccountManager.class);
         AuthenticatorDescription[] descriptions = getAuthenticator(authenticatorType, brokerPackage);
-        Context mockContext = getMockContext(signature, brokerPackage, contextPackage);
+        Context mockContext = getMockContext(signature, brokerPackage, contextPackage, permissionStatus);
         when(mockAcctManager.getAuthenticatorTypes()).thenReturn(descriptions);
 
         ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
@@ -604,17 +625,17 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     private Context getMockContext(final Signature signature, final String brokerPackageName,
-            final String contextPackageName) throws NameNotFoundException {
+            final String contextPackageName, boolean permissionStatus) throws NameNotFoundException {
         Context mockContext = mock(Context.class);
         // insert packagemanager mocks
-        PackageManager mockPackageManager = getPackageManager(signature, brokerPackageName);
+        PackageManager mockPackageManager = getPackageManager(signature, brokerPackageName, permissionStatus);
         when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
         when(mockContext.getPackageName()).thenReturn(contextPackageName);
         return mockContext;
     }
 
-    private PackageManager getPackageManager(final Signature signature, final String packageName)
-            throws NameNotFoundException {
+    private PackageManager getPackageManager(final Signature signature, final String packageName,
+            boolean permissionStatus) throws NameNotFoundException {
         PackageManager mockPackage = mock(PackageManager.class);
         PackageInfo info = new PackageInfo();
         Signature[] signatures = new Signature[1];
@@ -622,9 +643,9 @@ public class BrokerProxyTests extends AndroidTestCase {
         info.signatures = signatures;
         when(mockPackage.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)).thenReturn(
                 info);
-        Context mock = mock(Context.class);
-        when(mock.getPackageManager()).thenReturn(mockPackage);
-
+        when(mockPackage.checkPermission(anyString(), anyString())).thenReturn(
+                permissionStatus ? PackageManager.PERMISSION_GRANTED
+                        : PackageManager.PERMISSION_DENIED);
         return mockPackage;
     }
 
