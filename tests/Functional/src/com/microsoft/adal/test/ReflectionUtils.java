@@ -48,6 +48,14 @@ public class ReflectionUtils {
         m.setAccessible(true);
         return m;
     }
+    
+    public static Method getStaticTestMethod(Class<?> c, final String methodName, Class<?>... paramtypes)
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException, InvocationTargetException {
+        Method m = c.getDeclaredMethod(methodName, paramtypes);
+        m.setAccessible(true);
+        return m;
+    }
 
     /**
      * get non public instance default constructor for testing
