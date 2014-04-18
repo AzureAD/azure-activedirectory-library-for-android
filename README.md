@@ -125,8 +125,8 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
   * Resource is required, Clientid is required. You can setup redirectUri as your packagename and it is not required to be provided for acquireToken call. PromptBehavior helps to ask for credentials to skip cache and cookie. Callback ill be called after authorization code is exchanged for a token. It will have an object of AuthenticationResult, which has accesstoken, date expired, and idtoken info. 
 11. You can always call **acquireToken** to handle caching, token refresh and credential prompt if required. Your callback implementation should handle the user cancellation for AuthenticationActivity. ADAL will return a cancellation error, if user cancels the credential entry.
 
-
-## Usage
+### Customization
+Library project resources can be overwritten by your app resources. This happens when app is building. It means that you can customize Authentication Activity layout the way you want. You need to make sure to keep id of two controls that ADAL uses(Webview and button).
 
 ### Authority Url and ADFS
 ADFS is not recognized as production STS, so you need to turn of instance discovery and pass false at AuthenticationContext constructor.
