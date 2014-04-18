@@ -240,7 +240,7 @@ class Oauth2 {
      */
     private static UserInfo parseIdToken(String idtoken) {
         UserInfo userinfo = null;
-        if (!StringExtensions.IsNullOrBlank(idtoken)) {
+        if (StringExtensions.IsNullOrBlank(idtoken)) {
             Logger.v(TAG, "IdToken is not provided");
         }
 
@@ -281,7 +281,7 @@ class Oauth2 {
                     userinfo = new UserInfo(idtokenInfo);
                     Logger.v(
                             TAG,
-                            "IdToken is extracted from token response for userid"
+                            "IdToken is extracted from token response for userid:"
                                     + userinfo.getUserId());
                 }
             }

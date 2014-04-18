@@ -21,7 +21,8 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="com.microsoft.adal.AuthenticationActivity"
-            android:label="@string/login_title" >
+            android:label="@string/login_title"
+            android:theme="@android:style/Theme.Dialog" >
         </activity>
         <activity
             android:name="com.aad.hello.MainActivity"

@@ -513,7 +513,13 @@ public class ToDoActivity extends Activity {
 
                 @Override
                 public void onSuccess(AuthenticationResult result) {
-                    Log.d(TAG, "refreshTokenNormal onSuccess");
+                    if (result.getAccessToken() != null && !result.getAccessToken().isEmpty()
+                            && result.getRefreshToken() != null
+                            && !result.getRefreshToken().isEmpty()) {
+                        Log.d(TAG, "refreshTokenNormal onSuccess");
+                    } else {
+                        Log.d(TAG, "refreshTokenNormal Problem....");
+                    }
                     Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG)
                             .show();
                     txtSummary.setText("TODO Services refreshed");

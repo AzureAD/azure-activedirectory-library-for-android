@@ -148,7 +148,7 @@ public class AuthenticationActivityInstrumentationTests extends
         setActivityInitialTouchMode(false);
         activity = getActivity();
         solo = new Solo(getInstrumentation(), activity);
-        //loadConfigFromResource();
+        loadConfigFromResource();
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
