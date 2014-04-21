@@ -212,14 +212,14 @@ public class ToDoActivity extends Activity {
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
 
-    private void setDefaultDate(){
+    private void setDefaultDate() {
         final Calendar c = Calendar.getInstance();
         // If user does not change the date, add button will use this date
         pickerYear = c.get(Calendar.YEAR);
         pickerMonth = c.get(Calendar.MONTH);
         pickerDayOfMonth = c.get(Calendar.DAY_OF_MONTH);
     }
-    
+
     private void sendRequest() {
         if (refreshInProgress || mToken == null || mToken.getAccessToken().isEmpty())
             return;
@@ -513,9 +513,7 @@ public class ToDoActivity extends Activity {
 
                 @Override
                 public void onSuccess(AuthenticationResult result) {
-                    if (result.getAccessToken() != null && !result.getAccessToken().isEmpty()
-                            && result.getRefreshToken() != null
-                            && !result.getRefreshToken().isEmpty()) {
+                    if (isNotEmpty(result.getAccessToken()) && isNotEmpty(result.getRefreshToken())) {
                         Log.d(TAG, "refreshTokenNormal onSuccess");
                     } else {
                         Log.d(TAG, "refreshTokenNormal Problem....");
@@ -530,6 +528,10 @@ public class ToDoActivity extends Activity {
             Log.e(TAG, "Refresh token normal error", e);
             Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private boolean isNotEmpty(String value) {
+        return value != null && !value.isEmpty();
     }
 
     private void sendCancelRequest() {
@@ -725,7 +727,7 @@ public class ToDoActivity extends Activity {
             return new DatePickerDialog(getActivity(), this, pickerYear, pickerMonth,
                     pickerDayOfMonth);
         }
-        
+
         public void onDateSet(DatePicker view, int year, int month, int day) {
 
             // Update current selected date to be used in add post
@@ -752,10 +754,10 @@ public class ToDoActivity extends Activity {
             mClient.setCurrentUser(user);
         }
 
-        if(pickerYear == 0 && pickerMonth == 0 && pickerDayOfMonth == 0){
+        if (pickerYear == 0 && pickerMonth == 0 && pickerDayOfMonth == 0) {
             setDefaultDate();
         }
-        
+
         // Create a new item
         WorkItem item = new WorkItem();
 
