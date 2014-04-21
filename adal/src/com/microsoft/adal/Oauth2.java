@@ -219,6 +219,8 @@ class Oauth2 {
                 String idToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(idToken)) {
                     userinfo = parseIdToken(idToken);
+                } else {
+                    Logger.v(TAG, "IdToken is not provided");
                 }
             }
 
@@ -240,10 +242,6 @@ class Oauth2 {
      */
     private static UserInfo parseIdToken(String idtoken) {
         UserInfo userinfo = null;
-        if (StringExtensions.IsNullOrBlank(idtoken)) {
-            Logger.v(TAG, "IdToken is not provided");
-        }
-
         try {
             // Message segments: Header.Body.Signature
             int firstDot = idtoken.indexOf(".");
