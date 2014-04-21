@@ -28,7 +28,7 @@ import java.security.NoSuchAlgorithmException;
 
 import android.util.Base64;
 
-public final class StringExtensions {
+final class StringExtensions {
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
 

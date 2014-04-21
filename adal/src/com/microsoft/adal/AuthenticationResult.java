@@ -138,32 +138,52 @@ public class AuthenticationResult implements Serializable {
         return AuthenticationConstants.AAD.BEARER + " " + getAccessToken();
     }
 
+    /**
+     * Access token to send to the service in Authorization Header
+     */
     public String getAccessToken() {
         return mAccessToken;
     }
 
+    /**
+     * Refresh token to get new tokens
+     */
     public String getRefreshToken() {
         return mRefreshToken;
     }
 
+    /**
+     * Token type
+     */
     public String getAccessTokenType() {
         return mTokenType;
     }
 
+    /**
+     * Epoch time for expiresOn
+     */
     public Date getExpiresOn() {
         return mExpiresOn;
     }
 
+    /**
+     * Multi-resource refresh tokens can be used to request token for another
+     * resource
+     */
     public boolean getIsMultiResourceRefreshToken() {
         return mIsMultiResourceRefreshToken;
     }
 
+    /**
+     * UserInfo returned from IdToken 
+     */
     public UserInfo getUserInfo() {
         return mUserInfo;
     }
 
     /**
      * Set userinfo after refresh from previous idtoken
+     * 
      * @param userinfo
      */
     void setUserInfo(UserInfo userinfo) {
