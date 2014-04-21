@@ -70,11 +70,11 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         assertEquals("400 error code", 400, testResponse.getStatusCode());
         String responseBody = new String(testResponse.getBody(),
                 AuthenticationConstants.ENCODING_UTF8);
+        Log.v(TAG, "Test response:" + responseBody);
         assertNotNull("webresponse is not null", testResponse);
         assertEquals("same correlationid", testID.toString(), testResponse.getResponseHeaders()
                 .get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID).get(0));
-        assertTrue("correlationid in response",
-                responseBody.contains(testID.toString()));
+        assertTrue("correlationid in response", responseBody.contains(testID.toString()));
 
         // same id for next request
         HttpWebResponse testResponse2 = sendCorrelationIdRequest(testUrl, testID, true);
@@ -95,7 +95,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         }
         return request
                 .sendPost(getUrl(message), headers, null, "application/x-www-form-urlencoded");
-
     }
 
     public void testNullUrl() {
