@@ -9,11 +9,16 @@
 # Java class files
 *.class
 
+# Mac files
+.DS_Store
+
 # generated files
 bin/
 gen/
 libs/
 target/
+Support/
+
 # Local configuration file (sdk path, etc)
 local.properties
 integration_tests.properties

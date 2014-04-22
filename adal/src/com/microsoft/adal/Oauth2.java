@@ -18,15 +18,14 @@
 
 package com.microsoft.adal;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import org.json.JSONException;
@@ -61,7 +60,7 @@ class Oauth2 {
         mWebRequestHandler = null;
     }
 
-    Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
+    public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
     }
@@ -104,6 +103,12 @@ class Oauth2 {
                 URLEncoder.encode("" + android.os.Build.MODEL,
                         AuthenticationConstants.ENCODING_UTF8));
 
+        if (mRequest.getCorrelationId() != null) {
+            requestUrl = String.format("%s&%s=%s", requestUrl,
+                    AuthenticationConstants.AAD.CLIENT_REQUEST_ID, URLEncoder.encode(mRequest
+                            .getCorrelationId().toString(), AuthenticationConstants.ENCODING_UTF8));
+        }
+
         // Setting prompt behavior to always will skip the cookies for webview.
         // It is added to authorization url.
         if (mRequest.getPrompt() == PromptBehavior.Always) {
@@ -125,7 +130,6 @@ class Oauth2 {
     }
 
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
-
         String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
@@ -137,13 +141,6 @@ class Oauth2 {
 
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
                 StringExtensions.URLFormEncode(mRequest.getRedirectUri()));
-
-        if (!StringExtensions.IsNullOrBlank(mRequest.getLoginHint())) {
-            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.LOGIN_HINT,
-                    URLEncoder.encode(mRequest.getLoginHint(),
-                            AuthenticationConstants.ENCODING_UTF8));
-        }
-
         return message;
     }
 
@@ -195,7 +192,7 @@ class Oauth2 {
                             + "CorrelationId:" + correlationId);
 
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.ERROR),
-                    response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION), correlationId);
+                    response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION));
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
@@ -222,6 +219,8 @@ class Oauth2 {
                 String idToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(idToken)) {
                     userinfo = parseIdToken(idToken);
+                } else {
+                    Logger.v(TAG, "IdToken is not provided");
                 }
             }
 
@@ -243,10 +242,6 @@ class Oauth2 {
      */
     private static UserInfo parseIdToken(String idtoken) {
         UserInfo userinfo = null;
-        if (!StringExtensions.IsNullOrBlank(idtoken)) {
-            Logger.v(TAG, "IdToken is not provided");
-        }
-
         try {
             // Message segments: Header.Body.Signature
             int firstDot = idtoken.indexOf(".");
@@ -284,11 +279,10 @@ class Oauth2 {
                     userinfo = new UserInfo(idtokenInfo);
                     Logger.v(
                             TAG,
-                            "IdToken is extracted from token response for userid"
+                            "IdToken is extracted from token response for userid:"
                                     + userinfo.getUserId());
                 }
             }
-
         } catch (Exception ex) {
             Logger.e(TAG, "Error in parsing user id token", null,
                     ADALError.IDTOKEN_PARSING_FAILURE, ex);
@@ -309,14 +303,12 @@ class Oauth2 {
         }
     }
 
-    public void refreshToken(String refreshToken,
-            final AuthenticationCallback<AuthenticationResult> authenticationCallback) {
+    public AuthenticationResult refreshToken(String refreshToken) throws Exception {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
-            authenticationCallback.onError(new IllegalArgumentException("webRequestHandler"));
-            return;
+            throw new IllegalArgumentException("webRequestHandler");
         }
 
         // Token request message
@@ -324,11 +316,10 @@ class Oauth2 {
             requestMessage = buildRefreshTokenRequestMessage(refreshToken);
         } catch (UnsupportedEncodingException encoding) {
             Logger.e(TAG, encoding.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
-            authenticationCallback.onError(encoding);
-            return;
+            return null;
         }
 
-        postMessage(requestMessage, authenticationCallback);
+        return postMessage(requestMessage);
     }
 
     /**
@@ -338,13 +329,13 @@ class Oauth2 {
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
      * @param authenticationCallback
+     * @return
+     * @throws Exception
      */
-    public void getToken(String authorizationUrl,
-            AuthenticationCallback<AuthenticationResult> authenticationCallback) {
+    public AuthenticationResult getToken(String authorizationUrl) throws Exception {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
-            authenticationCallback.onError(new IllegalArgumentException("finalUrl"));
-            return;
+            throw new IllegalArgumentException("authorizationUrl");
         }
 
         // Success
@@ -366,34 +357,31 @@ class Oauth2 {
                 AuthenticationResult result = processUIResponseParams(parameters);
 
                 // Check if we have token or code
-                if (result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
+                if (result != null
+                        && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
                     if (!result.getCode().isEmpty()) {
 
                         // Get token and use external callback to set result
-                        getTokenForCode(result.getCode(), authenticationCallback);
+                        return getTokenForCode(result.getCode());
 
                     } else if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                         // We have token directly with implicit flow
-                        authenticationCallback.onSuccess(result);
+                        return result;
                     } else {
-                        authenticationCallback.onError(new AuthenticationException(
-                                ADALError.AUTH_FAILED_NO_TOKEN));
+                        throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN);
                     }
                 } else {
-                    authenticationCallback.onError(new AuthenticationException(
-                            ADALError.AUTH_FAILED_NO_TOKEN, result.getErrorCode() + " "
-                                    + result.getErrorDescription()));
+                    throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN,
+                            result.getErrorCode() + " " + result.getErrorDescription());
                 }
 
             } else {
-                authenticationCallback.onError(new AuthenticationException(
-                        ADALError.AUTH_FAILED_BAD_STATE));
+                throw new AuthenticationException(ADALError.AUTH_FAILED_BAD_STATE);
             }
         } else {
 
             // The response from the server had no state
-            authenticationCallback.onError(new AuthenticationException(
-                    ADALError.AUTH_FAILED_NO_STATE));
+            throw new AuthenticationException(ADALError.AUTH_FAILED_NO_STATE);
         }
     }
 
@@ -403,10 +391,9 @@ class Oauth2 {
      * @param request
      * @param code
      * @param authenticationCallback
+     * @throws Exception
      */
-    public void getTokenForCode(String code,
-            final AuthenticationCallback<AuthenticationResult> authenticationCallback)
-            throws IllegalArgumentException {
+    public AuthenticationResult getTokenForCode(String code) throws Exception {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -418,65 +405,46 @@ class Oauth2 {
             requestMessage = buildTokenRequestMessage(code);
         } catch (UnsupportedEncodingException encoding) {
             Logger.e(TAG, encoding.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, encoding);
-            authenticationCallback.onError(encoding);
-            return;
+            return null;
         }
 
-        postMessage(requestMessage, authenticationCallback);
+        return postMessage(requestMessage);
     }
 
-    private void postMessage(String requestMessage,
-            final AuthenticationCallback<AuthenticationResult> authenticationCallback) {
+    private AuthenticationResult postMessage(String requestMessage) throws Exception {
         URL authority = null;
-
-        try {
-            authority = new URL(getTokenEndpoint());
-        } catch (MalformedURLException e1) {
-            Logger.e(TAG, e1.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
-            authenticationCallback.onError(e1);
-            return;
+        AuthenticationResult result = null;
+        authority = StringExtensions.getUrl(getTokenEndpoint());
+        if (authority == null) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
         HashMap<String, String> headers = getRequestHeaders();
         try {
             mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
-            mWebRequestHandler.sendAsyncPost(authority, headers,
+
+            HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
-                    "application/x-www-form-urlencoded", new HttpWebRequestCallback() {
+                    "application/x-www-form-urlencoded");
 
-                        @Override
-                        public void onComplete(HttpWebResponse response, Exception exception) {
-
-                            if (exception != null
-                                    && (response == null || response.getBody() == null)) {
-                                Logger.e(TAG, exception.getMessage(), "", ADALError.SERVER_ERROR,
-                                        exception);
-                                authenticationCallback.onError(exception);
-                            } else {
-                                Logger.v(TAG, "Token request does not have errors");
-                                try {
-                                    AuthenticationResult result = processTokenResponse(response);
-                                    authenticationCallback.onSuccess(result);
-                                } catch (Exception ex) {
-                                    Logger.e(TAG, exception.getMessage(), "",
-                                            ADALError.SERVER_ERROR, exception);
-                                    authenticationCallback.onError(exception);
-                                    return;
-                                }
-                            }
-                        }
-                    });
-
+            if (response.getResponseException() == null) {
+                // Protocol related errors will read the error stream and report
+                // the error and error description
+                Logger.v(TAG, "Token request does not have exception");
+                result = processTokenResponse(response);
+            }
         } catch (IllegalArgumentException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
-            authenticationCallback.onError(e);
+            throw e;
         } catch (UnsupportedEncodingException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-            authenticationCallback.onError(e);
-        } catch (IOException e) {
-            Logger.e(TAG, e.getMessage(), "", ADALError.IO_EXCEPTION, e);
-            authenticationCallback.onError(e);
+            throw e;
+        } catch (Exception e) {
+            Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+            throw e;
         }
+
+        return result;
     }
 
     public static String decodeProtocolState(String encodedState) {
@@ -522,6 +490,17 @@ class Oauth2 {
     private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) {
         AuthenticationResult result = new AuthenticationResult();
         HashMap<String, String> responseItems = new HashMap<String, String>();
+        String correlationIdInHeader = null;
+        if (webResponse.getResponseHeaders() != null
+                && webResponse.getResponseHeaders().containsKey(
+                        AuthenticationConstants.AAD.CLIENT_REQUEST_ID)) {
+            // headers are returning as a list
+            List<String> listOfHeaders = webResponse.getResponseHeaders().get(
+                    AuthenticationConstants.AAD.CLIENT_REQUEST_ID);
+            if (listOfHeaders != null && listOfHeaders.size() > 0) {
+                correlationIdInHeader = listOfHeaders.get(0);
+            }
+        }
 
         if (webResponse.getBody() != null && webResponse.getBody().length > 0) {
 
@@ -536,9 +515,8 @@ class Oauth2 {
                 // catch the
                 // generic Exception
                 Logger.e(TAG, ex.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
-                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
+                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage());
             }
-
         } else {
             String errMessage = null;
             byte[] message = webResponse.getBody();
@@ -549,7 +527,23 @@ class Oauth2 {
             }
             Logger.v(TAG, "Server error message:" + errMessage);
             result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    errMessage, null);
+                    errMessage);
+        }
+
+        // Set correlationId in the result
+        if (correlationIdInHeader != null && !correlationIdInHeader.isEmpty()) {
+            try {
+                UUID correlation = UUID.fromString(correlationIdInHeader);
+                if (correlation != mRequest.getCorrelationId()) {
+                    Logger.w(TAG, "CorrelationId is not matching", "",
+                            ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE);
+                }
+
+                Logger.v(TAG, "Response correlationId:" + correlationIdInHeader);
+            } catch (Exception ex) {
+                Logger.e(TAG, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
+                        ADALError.CORRELATION_ID_FORMAT, ex);
+            }
         }
 
         return result;

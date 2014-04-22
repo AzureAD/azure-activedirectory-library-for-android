@@ -19,8 +19,8 @@
 package com.microsoft.adal;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * Result class to keep code, token and other info Serializable properties Mark
@@ -29,10 +29,13 @@ import java.util.UUID;
 public class AuthenticationResult implements Serializable {
 
     /**
-     * Serial varsion number for serialization
+     * Serial version number for serialization
      */
     private static final long serialVersionUID = 2243372613182536368L;
 
+    /**
+     * Status for authentication
+     */
     public enum AuthenticationStatus {
         /**
          * User cancelled login activity
@@ -61,12 +64,6 @@ public class AuthenticationResult implements Serializable {
     private String mErrorCode;
 
     private String mErrorDescription;
-
-    /**
-     * Failed requests will have correlationid. Azure webservices are supposed
-     * to follow the same protocol and return this.
-     */
-    private UUID mCorrelationId;
 
     private boolean mIsMultiResourceRefreshToken;
 
@@ -107,39 +104,90 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Succeeded;
     }
 
-    AuthenticationResult(String errorCode, String errDescription, UUID correlationId) {
+    AuthenticationResult(String errorCode, String errDescription) {
         mErrorCode = errorCode;
         mErrorDescription = errDescription;
         mStatus = AuthenticationStatus.Failed;
-        mCorrelationId = correlationId;
     }
 
+    /**
+     * Creates result from {@link TokenCacheItem}
+     * 
+     * @param cacheItem
+     * @return AuthenticationResult
+     */
+    static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
+
+        if (cacheItem == null) {
+            AuthenticationResult result = new AuthenticationResult();
+            result.mStatus = AuthenticationStatus.Failed;
+            return result;
+        }
+
+        return new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
+                cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
+                cacheItem.getUserInfo());
+    }
+
+    /**
+     * Uses access token to create header for web requests
+     * 
+     * @return AuthorizationHeader
+     */
     public String createAuthorizationHeader() {
         return AuthenticationConstants.AAD.BEARER + " " + getAccessToken();
     }
 
+    /**
+     * Access token to send to the service in Authorization Header
+     */
     public String getAccessToken() {
         return mAccessToken;
     }
 
+    /**
+     * Refresh token to get new tokens
+     */
     public String getRefreshToken() {
         return mRefreshToken;
     }
 
+    /**
+     * Token type
+     */
     public String getAccessTokenType() {
         return mTokenType;
     }
 
+    /**
+     * Epoch time for expiresOn
+     */
     public Date getExpiresOn() {
         return mExpiresOn;
     }
 
+    /**
+     * Multi-resource refresh tokens can be used to request token for another
+     * resource
+     */
     public boolean getIsMultiResourceRefreshToken() {
         return mIsMultiResourceRefreshToken;
     }
 
+    /**
+     * UserInfo returned from IdToken 
+     */
     public UserInfo getUserInfo() {
         return mUserInfo;
+    }
+
+    /**
+     * Set userinfo after refresh from previous idtoken
+     * 
+     * @param userinfo
+     */
+    void setUserInfo(UserInfo userinfo) {
+        mUserInfo = userinfo;
     }
 
     public String getTenantId() {
@@ -166,12 +214,21 @@ public class AuthenticationResult implements Serializable {
         return mErrorDescription;
     }
 
-    public UUID getCorrelationId() {
-        return mCorrelationId;
+    public String getErrorLogInfo() {
+        return " ErrorCode:" + getErrorCode() + " ErrorDescription:" + getErrorDescription();
     }
 
-    public String getErrorLogInfo() {
-        return " CorrelationId:" + getCorrelationId() + " ErrorCode:" + getErrorCode()
-                + " ErrorDescription:" + getErrorDescription();
+    public boolean isExpired() {
+        Date validity = getCurrentTime().getTime();
+
+        if (mExpiresOn != null && mExpiresOn.before(validity))
+            return true;
+
+        return false;
+    }
+
+    private static Calendar getCurrentTime() {
+        Calendar timeNow = Calendar.getInstance();
+        return timeNow;
     }
 }

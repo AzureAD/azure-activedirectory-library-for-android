@@ -23,7 +23,6 @@ See the Apache Version 2.0 License for specific language governing permissions a
 
 package com.azure.webapi;
 
-import java.net.URLDecoder;
 import java.util.Locale;
 
 import org.apache.http.client.methods.HttpPost;

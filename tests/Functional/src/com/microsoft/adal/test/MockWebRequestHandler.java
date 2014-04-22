@@ -18,16 +18,15 @@
 
 package com.microsoft.adal.test;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.UUID;
 
-import com.microsoft.adal.HttpWebRequestCallback;
+import junit.framework.Assert;
+
 import com.microsoft.adal.HttpWebResponse;
 import com.microsoft.adal.IWebRequestHandler;
-
-import android.os.AsyncTask;
 
 /**
  * handler to return mock responses
@@ -44,50 +43,39 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     private HttpWebResponse mReturnResponse;
 
-    private Exception mReturnException;
+    private String mReturnException;
 
     @Override
-    public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
-            HttpWebRequestCallback callback) throws IllegalArgumentException, IOException {
+    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) {
         mRequestUrl = url;
         mRequestHeaders = headers;
-        callback.onComplete(mReturnResponse, mReturnException);
-        return null;
+        if (mReturnException != null) {
+            throw new IllegalArgumentException(mReturnException);
+        }
+
+        return mReturnResponse;
     }
 
     @Override
-    public AsyncTask<?, ?, ?> sendAsyncDelete(URL url, HashMap<String, String> headers,
-            HttpWebRequestCallback callback) throws IllegalArgumentException, IOException {
-        mRequestUrl = url;
-        mRequestHeaders = headers;
-        callback.onComplete(mReturnResponse, mReturnException);
-        return null;
-    }
-
-    @Override
-    public AsyncTask<?, ?, ?> sendAsyncPut(URL url, HashMap<String, String> headers,
-            byte[] content, String contentType, HttpWebRequestCallback callback)
-            throws IllegalArgumentException, IOException {
+    public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
+            String contentType) {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {
-            mRequestContent = new String(content, "UTF-8");
+            try {
+                mRequestContent = new String(content, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                Assert.fail("Encoding");                
+            }
         }
-        callback.onComplete(mReturnResponse, mReturnException);
-        return null;
-    }
 
-    @Override
-    public AsyncTask<?, ?, ?> sendAsyncPost(URL url, HashMap<String, String> headers,
-            byte[] content, String contentType, HttpWebRequestCallback callback)
-            throws IllegalArgumentException, IOException {
-        mRequestUrl = url;
-        mRequestHeaders = headers;
-        if (content != null) {
-            mRequestContent = new String(content, "UTF-8");
+        if (mReturnException != null) {
+            throw new IllegalArgumentException(mReturnException);
         }
-        callback.onComplete(mReturnResponse, mReturnException);
-        return null;
+
+        return mReturnResponse;
     }
 
     public URL getRequestUrl() {
@@ -102,8 +90,8 @@ class MockWebRequestHandler implements IWebRequestHandler {
         this.mReturnResponse = mReturnResponse;
     }
 
-    public void setReturnException(Exception mReturnException) {
-        this.mReturnException = mReturnException;
+    public void setReturnException(String exception) {
+        this.mReturnException = exception;
     }
 
     public String getRequestContent() {

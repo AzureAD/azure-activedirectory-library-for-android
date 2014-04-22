@@ -1,10 +1,12 @@
 ﻿
 package com.example.com.microsoft.adal.hello;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -12,7 +14,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -21,7 +26,6 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -55,15 +59,12 @@ import com.google.gson.GsonBuilder;
 import com.microsoft.adal.AuthenticationCallback;
 import com.microsoft.adal.AuthenticationContext;
 import com.microsoft.adal.AuthenticationResult;
+import com.microsoft.adal.AuthenticationSettings;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.DefaultTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
 import com.microsoft.adal.TokenCacheItem;
 
-/*
- * TODO:
- * 1- q	
- */
 public class ToDoActivity extends Activity {
 
     private final static String TAG = "ToDoActivity";
@@ -152,7 +153,7 @@ public class ToDoActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_to_do);
-
+        setDefaultDate();
         Toast.makeText(getApplicationContext(), TAG + "LifeCycle: OnCreate", Toast.LENGTH_SHORT)
                 .show();
 
@@ -171,6 +172,7 @@ public class ToDoActivity extends Activity {
 
         // Ask for token and provide callback
         try {
+            Utils.setupKeyForSample();
             mAuthContext = new AuthenticationContext(ToDoActivity.this, Constants.AUTHORITY_URL,
                     false);
             mAuthContext.acquireToken(ToDoActivity.this, Constants.RESOURCE_ID,
@@ -202,7 +204,6 @@ public class ToDoActivity extends Activity {
                             }
                         }
                     });
-
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Encryption is failed", Toast.LENGTH_SHORT)
                     .show();
@@ -211,13 +212,23 @@ public class ToDoActivity extends Activity {
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
 
-    private void sendRequest() {
+    private void setDefaultDate() {
+        final Calendar c = Calendar.getInstance();
+        // If user does not change the date, add button will use this date
+        pickerYear = c.get(Calendar.YEAR);
+        pickerMonth = c.get(Calendar.MONTH);
+        pickerDayOfMonth = c.get(Calendar.DAY_OF_MONTH);
+    }
 
+    private void sendRequest() {
         if (refreshInProgress || mToken == null || mToken.getAccessToken().isEmpty())
             return;
 
+        if (mClient == null) {
+            initAppTables();
+        }
         refreshInProgress = true;
-
+        refreshItemsFromTable();
     }
 
     private URL getEndpointUrl() {
@@ -502,7 +513,11 @@ public class ToDoActivity extends Activity {
 
                 @Override
                 public void onSuccess(AuthenticationResult result) {
-                    Log.d(TAG, "refreshTokenNormal onSuccess");
+                    if (isNotEmpty(result.getAccessToken()) && isNotEmpty(result.getRefreshToken())) {
+                        Log.d(TAG, "refreshTokenNormal onSuccess");
+                    } else {
+                        Log.d(TAG, "refreshTokenNormal Problem....");
+                    }
                     Toast.makeText(getApplicationContext(), "OnCompleted", Toast.LENGTH_LONG)
                             .show();
                     txtSummary.setText("TODO Services refreshed");
@@ -513,6 +528,10 @@ public class ToDoActivity extends Activity {
             Log.e(TAG, "Refresh token normal error", e);
             Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    private boolean isNotEmpty(String value) {
+        return value != null && !value.isEmpty();
     }
 
     private void sendCancelRequest() {
@@ -610,20 +629,14 @@ public class ToDoActivity extends Activity {
         // default cache is in use by default
         ITokenCacheStore currentCache = mAuthContext.getCache();
 
-        String userid = "";
-        if (mToken != null && mToken.getUserInfo() != null
-                && mToken.getUserInfo().getUserId() != null) {
-            userid = mToken.getUserInfo().getUserId();
-        }
-
-        // make token expired to force refresh token
-        TokenCacheItem item = currentCache.getItem(CacheKey.createCacheKey(Constants.AUTHORITY_URL,
-                Constants.RESOURCE_ID, Constants.CLIENT_ID, false, userid));
+        String key = CacheKey.createCacheKey(Constants.AUTHORITY_URL, Constants.RESOURCE_ID,
+                Constants.CLIENT_ID, false, Constants.USER_HINT);
+        TokenCacheItem item = currentCache.getItem(key);
         if (item != null) {
             Calendar timeExpired = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
             timeExpired.add(Calendar.MINUTE, -50);
             item.setExpiresOn(timeExpired.getTime());
-            currentCache.setItem(CacheKey.createCacheKey(item), item);
+            currentCache.setItem(key, item);
         }
     }
 
@@ -710,14 +723,6 @@ public class ToDoActivity extends Activity {
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the current date as the default date in the picker
-            final Calendar c = Calendar.getInstance();
-
-            // If user does not change the date, add button will use this date
-            pickerYear = c.get(Calendar.YEAR);
-            pickerMonth = c.get(Calendar.MONTH);
-            pickerDayOfMonth = c.get(Calendar.DAY_OF_MONTH);
-
             // Create a new instance of DatePickerDialog and return it
             return new DatePickerDialog(getActivity(), this, pickerYear, pickerMonth,
                     pickerDayOfMonth);
@@ -749,6 +754,10 @@ public class ToDoActivity extends Activity {
             mClient.setCurrentUser(user);
         }
 
+        if (pickerYear == 0 && pickerMonth == 0 && pickerDayOfMonth == 0) {
+            setDefaultDate();
+        }
+
         // Create a new item
         WorkItem item = new WorkItem();
 
@@ -759,7 +768,6 @@ public class ToDoActivity extends Activity {
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(pickerYear, pickerMonth, pickerDayOfMonth);
-
         item.setDueDate(calendar.getTime());
 
         // Insert the new item

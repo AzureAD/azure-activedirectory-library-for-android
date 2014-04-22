@@ -19,12 +19,22 @@
 package com.microsoft.adal;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import android.util.Base64;
 
 final class StringExtensions {
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
+
+    private static final String TAG = "StringExtensions";
+
+    private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
     /**
      * checks if string is null or empty
@@ -38,6 +48,19 @@ final class StringExtensions {
         }
 
         return false;
+    }
+
+    public static String createHash(String msg) throws NoSuchAlgorithmException,
+            UnsupportedEncodingException {
+
+        if (!StringExtensions.IsNullOrBlank(msg)) {
+            MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
+            final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
+            String hash = new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
+                    AuthenticationConstants.ENCODING_UTF8);
+            return hash;
+        }
+        return msg;
     }
 
     /**
@@ -62,5 +85,23 @@ final class StringExtensions {
 
         // Decode everything else
         return URLDecoder.decode(source, ENCODING_UTF8);
+    }
+
+    /**
+     * create url from given endpoint. return null if format is not right.
+     * 
+     * @param endpoint
+     * @return
+     * @throws MalformedURLException
+     */
+    static final URL getUrl(String endpoint) {
+        URL authority = null;
+        try {
+            authority = new URL(endpoint);
+        } catch (MalformedURLException e1) {
+            Logger.e(TAG, e1.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
+        }
+
+        return authority;
     }
 }

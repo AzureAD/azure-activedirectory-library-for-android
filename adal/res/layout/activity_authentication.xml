@@ -17,7 +17,7 @@
     <WebView
         android:id="@+id/webView1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:layout_above="@+id/btnCancel"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true" />

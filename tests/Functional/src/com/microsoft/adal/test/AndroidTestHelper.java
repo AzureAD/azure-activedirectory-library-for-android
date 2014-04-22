@@ -18,6 +18,7 @@
 
 package com.microsoft.adal.test;
 
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +28,7 @@ import android.util.Log;
 
 public class AndroidTestHelper extends InstrumentationTestCase {
 
-    protected final static int REQUEST_TIME_OUT = 20000; // miliseconds
+    protected final static int REQUEST_TIME_OUT = 40000; // miliseconds
 
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
@@ -44,7 +45,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
 
             if (hasMessage != null && !hasMessage.isEmpty()) {
                 assertTrue("Message has the text",
-                        (result.getMessage().toLowerCase().contains(hasMessage)));
+                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
             }
         }
     }

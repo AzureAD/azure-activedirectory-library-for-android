@@ -27,7 +27,7 @@ import java.util.Locale;
 public class CacheKey implements Serializable {
 
     /**
-     * 
+     * serial version id
      */
     private static final long serialVersionUID = 8067972995583126404L;
 
@@ -49,10 +49,10 @@ public class CacheKey implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
+        return String.format(Locale.US, "%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
                 (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId);
     }
-    
+
     public static String createCacheKey(String authority, String resource, String clientId,
             boolean isMultiResourceRefreshToken, String userId) {
 
@@ -110,10 +110,14 @@ public class CacheKey implements Serializable {
     /**
      * get cache key for query.
      * 
-     * @param requestItem
+     * @param item
      * @return
      */
-    static String createCacheKey(AuthenticationRequest item) {
+    public static String createCacheKey(AuthenticationRequest item) {
+        if (item == null) {
+            throw new IllegalArgumentException("AuthenticationRequest");
+        }
+
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
                 item.getLoginHint());
     }
@@ -125,7 +129,11 @@ public class CacheKey implements Serializable {
      * @param item
      * @return
      */
-    static String createMultiResourceRefreshTokenKey(AuthenticationRequest item) {
+    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item) {
+        if (item == null) {
+            throw new IllegalArgumentException("AuthenticationRequest");
+        }
+
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
                 item.getLoginHint());
     }

@@ -26,8 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import android.util.Log;
+import android.content.Context;
+import android.os.Handler;
 
 /**
  * Matching to ADAL.NET It provides helper methods to get the
@@ -58,6 +61,16 @@ public class AuthenticationParameters {
     private String mResource;
 
     /**
+     * Web request handler interface to test behaviors
+     */
+    private static IWebRequestHandler sWebRequest = new WebRequestHandler();
+
+    /**
+     * Singled threaded Executor for async work
+     */
+    private static ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
+
+    /**
      * get authority
      */
     public String getAuthority() {
@@ -86,30 +99,45 @@ public class AuthenticationParameters {
     /**
      * ADAL will make the call to get authority and resource info
      */
-    public static void createFromResourceUrl(URL resourceUrl, AuthenticationParamCallback callback) {
+    public static void createFromResourceUrl(Context context, final URL resourceUrl,
+            final AuthenticationParamCallback callback) {
+
         if (callback == null) {
             throw new IllegalArgumentException("callback");
         }
 
-        Log.d(TAG, "createFromResourceUrl");
+        Logger.d(TAG, "createFromResourceUrl");
+        final Handler handler = new Handler(context.getMainLooper());
 
-        HttpWebRequest webRequest = new HttpWebRequest(resourceUrl);
-        webRequest.getRequestHeaders().put(WebRequestHandler.HEADER_ACCEPT,
-                WebRequestHandler.HEADER_ACCEPT_JSON);
-        final AuthenticationParamCallback externalCallback = callback;
-
-        webRequest.sendAsyncGet(new HttpWebRequestCallback() {
+        sThreadExecutor.submit(new Runnable() {
             @Override
-            public void onComplete(HttpWebResponse webResponse, Exception exception) {
+            public void run() {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 
-                if (webResponse != null) {
-                    try {
-                        externalCallback.onCompleted(null, parseResponse(webResponse));
-                    } catch (IllegalArgumentException exc) {
-                        externalCallback.onCompleted(exc, null);
+                try {
+                    HttpWebResponse webResponse = sWebRequest.sendGet(resourceUrl, headers);
+
+                    if (webResponse != null) {
+                        try {
+                            onCompleted(null, parseResponse(webResponse));
+                        } catch (IllegalArgumentException exc) {
+                            onCompleted(exc, null);
+                        }
                     }
-                } else
-                    externalCallback.onCompleted(exception, null);
+                } catch (Exception exception) {
+                    onCompleted(exception, null);
+                }
+            }
+
+            void onCompleted(final Exception exception, final AuthenticationParameters param) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onCompleted(exception, param);
+                        return;
+                    }
+                });
             }
         });
     }
@@ -149,7 +177,7 @@ public class AuthenticationParameters {
                             key = StringExtensions.URLFormDecode(key);
                             value = StringExtensions.URLFormDecode(value);
                         } catch (UnsupportedEncodingException e) {
-                            Log.d(TAG, e.getMessage());
+                            Logger.d(TAG, e.getMessage());
                         }
 
                         key = key.trim();

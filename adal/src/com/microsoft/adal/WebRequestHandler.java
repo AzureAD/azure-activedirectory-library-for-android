@@ -22,9 +22,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.UUID;
 
-import android.os.AsyncTask;
 import android.os.Build;
-import android.util.Log;
 
 import com.microsoft.adal.AuthenticationConstants.AAD;
 
@@ -48,67 +46,28 @@ public class WebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public AsyncTask<?, ?, ?> sendAsyncGet(URL url, HashMap<String, String> headers,
-            HttpWebRequestCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
-        Log.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
+    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) {
+        Logger.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         HttpWebRequest request = new HttpWebRequest(url);
+        request.setRequestMethod(HttpWebRequest.REQUEST_METHOD_GET);
         headers = updateHeaders(headers);
         addHeadersToRequest(headers, request);
-        request.sendAsyncGet(callback);
-        return request;
+        return request.send();
     }
 
     @Override
-    public AsyncTask<?, ?, ?> sendAsyncDelete(URL url, HashMap<String, String> headers,
-            HttpWebRequestCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
-        Log.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
+    public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
+            String contentType) {
+        Logger.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         HttpWebRequest request = new HttpWebRequest(url);
+        request.setRequestMethod(HttpWebRequest.REQUEST_METHOD_POST);
+        request.setRequestContentType(contentType);
+        request.setRequestContent(content);
         headers = updateHeaders(headers);
         addHeadersToRequest(headers, request);
-        request.sendAsyncDelete(callback);
-        return request;
-    }
-
-    @Override
-    public AsyncTask<?, ?, ?> sendAsyncPut(URL url, HashMap<String, String> headers,
-            byte[] content, String contentType, HttpWebRequestCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
-        Log.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
-
-        HttpWebRequest request = new HttpWebRequest(url);
-        headers = updateHeaders(headers);
-        addHeadersToRequest(headers, request);
-        request.sendAsyncPut(content, contentType, callback);
-        return request;
-    }
-
-    @Override
-    public AsyncTask<?, ?, ?> sendAsyncPost(URL url, HashMap<String, String> headers,
-            byte[] content, String contentType, HttpWebRequestCallback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
-        }
-
-        Log.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
-
-        HttpWebRequest request = new HttpWebRequest(url);
-        headers = updateHeaders(headers);
-        addHeadersToRequest(headers, request);
-        request.sendAsyncPost(content, contentType, callback);
-        return request;
+        return request.send();
     }
 
     private void addHeadersToRequest(HashMap<String, String> headers, HttpWebRequest request) {
@@ -138,5 +97,4 @@ public class WebRequestHandler implements IWebRequestHandler {
     public void setRequestCorrelationId(UUID mRequestCorrelationId) {
         this.mRequestCorrelationId = mRequestCorrelationId;
     }
-
 }

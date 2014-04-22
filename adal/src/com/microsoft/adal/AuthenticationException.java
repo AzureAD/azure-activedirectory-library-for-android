@@ -24,7 +24,7 @@ package com.microsoft.adal;
 public class AuthenticationException extends RuntimeException {
     static final long serialVersionUID = 1;
 
-    private ADALError mCode;
+    protected ADALError mCode;
 
     /**
      * Constructs a new AuthenticationError.

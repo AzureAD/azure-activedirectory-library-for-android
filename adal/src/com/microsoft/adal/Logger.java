@@ -20,7 +20,6 @@ package com.microsoft.adal;
 
 import android.util.Log;
 
-
 /**
  * Android log output can. If externalLogger is set, it will use that as well.
  * Usage: Logger.v(TAG, message, additionalMessage, errorCode) to log. Set
@@ -29,11 +28,6 @@ import android.util.Log;
 public class Logger {
 
     private LogLevel mLogLevel;
-
-    /**
-     * error code: message. additionalMessage
-     */
-    private final static String LOG_FORMAT = "%s: %s. %s";
 
     private final static String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
 
@@ -44,6 +38,7 @@ public class Logger {
          */
         Debug(4);
 
+        @SuppressWarnings("unused")
         private int value;
 
         private LogLevel(int val) {
@@ -114,8 +109,7 @@ public class Logger {
             return;
 
         if (mAndroidLogEnabled) {
-            Log.v(tag,
-                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage));
+            Log.v(tag, getLogMessage(message, additionalMessage, errorCode));
         }
 
         if (mExternalLogger != null) {
@@ -133,8 +127,7 @@ public class Logger {
             return;
 
         if (mAndroidLogEnabled) {
-            Log.i(tag,
-                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage));
+            Log.i(tag, getLogMessage(message, additionalMessage, errorCode));
         }
 
         if (mExternalLogger != null) {
@@ -152,8 +145,7 @@ public class Logger {
             return;
 
         if (mAndroidLogEnabled) {
-            Log.w(tag,
-                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage));
+            Log.w(tag, getLogMessage(message, additionalMessage, errorCode));
         }
 
         if (mExternalLogger != null) {
@@ -168,8 +160,7 @@ public class Logger {
 
     public void error(String tag, String message, String additionalMessage, ADALError errorCode) {
         if (mAndroidLogEnabled) {
-            Log.e(tag,
-                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage));
+            Log.e(tag, getLogMessage(message, additionalMessage, errorCode));
         }
 
         if (mExternalLogger != null) {
@@ -185,9 +176,7 @@ public class Logger {
     public void error(String tag, String message, String additionalMessage, ADALError errorCode,
             Throwable err) {
         if (mAndroidLogEnabled) {
-            Log.e(tag,
-                    String.format(LOG_FORMAT, getCodeName(errorCode), message, additionalMessage),
-                    err);
+            Log.e(tag, getLogMessage(message, additionalMessage, errorCode), err);
         }
 
         if (mExternalLogger != null) {
@@ -198,6 +187,20 @@ public class Logger {
                 Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
             }
         }
+    }
+
+    private static String getLogMessage(String message, String additionalMessage, ADALError errorCode) {
+        StringBuilder msg = new StringBuilder();
+        if (errorCode != null) {
+            msg.append(getCodeName(errorCode)).append(":");
+        }
+        if (message != null) {
+            msg.append(message);
+        }
+        if (additionalMessage != null) {
+            msg.append(" ").append(additionalMessage);
+        }
+        return msg.toString();
     }
 
     public static void d(String tag, String message) {
@@ -244,7 +247,7 @@ public class Logger {
         this.mAndroidLogEnabled = androidLogEnable;
     }
 
-    private String getCodeName(ADALError code) {
+    private static String getCodeName(ADALError code) {
         if (code != null) {
             return code.name();
         }

@@ -283,7 +283,7 @@ public class StorageHelper {
      * @throws IOException
      * @throws NoSuchPaddingException
      */
-    protected String encrypt(String clearText) throws NoSuchAlgorithmException,
+    public String encrypt(String clearText) throws NoSuchAlgorithmException,
             InvalidKeySpecException, InvalidKeyException, InvalidAlgorithmParameterException,
             IllegalBlockSizeException, BadPaddingException, IOException, NoSuchPaddingException {
 
@@ -338,7 +338,7 @@ public class StorageHelper {
         return ENCODE_VERSION + encryptedText;
     }
 
-    protected String decrypt(String value) throws NoSuchAlgorithmException,
+    public String decrypt(String value) throws NoSuchAlgorithmException,
             InvalidKeySpecException, NoSuchPaddingException, KeyStoreException,
             CertificateException, NoSuchProviderException, InvalidAlgorithmParameterException,
             UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,

@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.microsoftopentechnologies</groupId>
+    <groupId>com.microsoft.adal.android</groupId>
     <artifactId>adal-aggregator</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
@@ -23,17 +23,18 @@
       <artifactId>android</artifactId>
       <version>${android.version}</version>
       <scope>provided</scope>
-    </dependency>   
+    </dependency>    
     <dependency>
-      <groupId>com.microsoftopentechnologies</groupId>
+      <groupId>com.microsoft.adal</groupId>
       <artifactId>adal</artifactId>
-      <version>0.6-alpha</version>
+      <version>0.7-alpha</version>
       <scope>compile</scope>
       <type>aar</type>
     </dependency>
   </dependencies>
+
   <build>
-    <plugins>      
+    <plugins>
       <plugin>
         <groupId>com.jayway.maven.plugins.android.generation2</groupId>
         <artifactId>android-maven-plugin</artifactId>
@@ -51,6 +52,7 @@
         </configuration>
         <extensions>true</extensions>
       </plugin>
+
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
@@ -61,4 +63,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>

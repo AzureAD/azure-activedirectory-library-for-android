@@ -18,19 +18,12 @@
 
 package com.microsoft.adal.test;
 
-import java.io.File;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 
 import javax.crypto.NoSuchPaddingException;
 
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.test.mock.MockContext;
-import android.test.mock.MockPackageManager;
 
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.ITokenCacheStore;

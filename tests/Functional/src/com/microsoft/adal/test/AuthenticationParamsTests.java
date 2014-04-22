@@ -281,7 +281,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
             @Override
             public void run() {
-                AuthenticationParameters.createFromResourceUrl(url, null);
+                AuthenticationParameters.createFromResourceUrl(getInstrumentation().getTargetContext(), url, null);
             }
         });
 
@@ -317,7 +317,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             @Override
             public void run() {
                 try {
-                    AuthenticationParameters.createFromResourceUrl(new URL(requestUrl), callback);
+                    AuthenticationParameters.createFromResourceUrl(getInstrumentation().getTargetContext(), new URL(requestUrl), callback);
                 } catch (MalformedURLException e) {
                     Assert.fail("unexpected url error");
                     signal.countDown();

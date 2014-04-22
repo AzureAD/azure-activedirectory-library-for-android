@@ -27,6 +27,7 @@ import android.content.Context;
 
 import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationContext;
+import com.microsoft.adal.AuthenticationSettings;
 import com.microsoft.adal.CacheKey;
 import com.microsoft.adal.FileTokenCacheStore;
 import com.microsoft.adal.ITokenCacheStore;
@@ -36,9 +37,6 @@ import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.UserInfo;
 
-/**
- * TODO: Cache related tests will be merged later.
- */
 public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
     int activeTestThreads = 10;
@@ -57,6 +55,8 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     protected void setUp() throws Exception {
         super.setUp();
         targetContex = this.getInstrumentation().getTargetContext();
+        AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid");
+        AuthenticationSettings.INSTANCE.setBrokerSignature("signature");
     }
 
     @Override

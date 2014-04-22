@@ -18,6 +18,9 @@
 
 package com.microsoft.adal;
 
+/**
+ * Error codes
+ */
 public enum ADALError {
 
     DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED("Authority validation returned an error"),
@@ -45,6 +48,11 @@ public enum ADALError {
     DEVELOPER_INTERNET_PERMISSION_MISSING(
             "android.permission.INTERNET is not added to AndroidManifest file"),
 
+    DEVELOPER_BROKER_PERMISSIONS_MISSING(
+            "GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS are not added to AndroidManifest file"),
+
+    DEVELOPER_CALLING_ON_MAIN_THREAD("Calling from main thread for background operation"),
+
     SERVER_INVALID_REQUEST("Invalid request to server"),
 
     SERVER_ERROR("Server returned an error"),
@@ -62,6 +70,8 @@ public enum ADALError {
      * webview has some generic error
      */
     ERROR_WEBVIEW("Webview returned an error"),
+
+    ACTIVITY_REQUEST_INTENT_DATA_IS_NULL("Request object is needed to start AuthenticationActivity"),
 
     BROADCAST_RECEIVER_ERROR("Broadcast receiver has an error"),
 
@@ -83,6 +93,8 @@ public enum ADALError {
 
     AUTH_FAILED_INTERNAL_ERROR("Invalid parameters for authorization operation"),
 
+    AUTH_FAILED_USER_MISMATCH("User returned by service does not match the one in the request"),
+
     DEVICE_INTERNET_IS_NOT_AVAILABLE("Internet permissions are not set for the app"),
 
     /**
@@ -90,6 +102,8 @@ public enum ADALError {
      * terminated directly
      */
     ON_ACTIVITY_RESULT_INTENT_NULL("onActivityResult is called with null intent data"),
+
+    ON_ACTIVITY_RESULT_CALLBACK_NOT_FOUND("onActivityResult is called, but callback is not found"),
 
     DEVICE_SHARED_PREF_IS_NOT_AVAILABLE("Shared preferences are not available"),
 
@@ -104,6 +118,8 @@ public enum ADALError {
 
     DEVICE_CONNECTION_IS_NOT_AVAILABLE("Connection is not available"),
 
+    DEVICE_PRNG_FIX_ERROR("PRNG fixes are not applied"),
+
     /**
      * IdToken is normally returned from token endpoint.
      */
@@ -115,6 +131,9 @@ public enum ADALError {
             "Cancel message is not successfully delivered to broadcast receiver. It may be not registered yet. AuthenticationActivity will register that at onResume."),
 
     CORRELATION_ID_FORMAT("Correlationid is not in UUID format"),
+
+    CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE(
+            "Correlationid provided in requrest is not matching the response"),
 
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
 
@@ -129,8 +148,50 @@ public enum ADALError {
     DISCOVERY_NOT_SUPPORTED(
             "Authority validation is not supported for ADFS authority. Authority validation needs to be disabled for ADFS."),
 
-    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."), ;
+    BROKER_PACKAGE_NAME_NOT_FOUND("Broker is not installed in your system"),
 
+    BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"),
+    
+    BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN("Authenticator error"),
+    
+    BROKER_AUTHENTICATOR_BAD_ARGUMENTS("Invalid arguments for Authenticator request"),
+    
+    BROKER_AUTHENTICATOR_BAD_AUTHENTICATION("Authentication request failed"),
+    
+    BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION("Authenticator is not supporting this operation"),
+
+    BROKER_AUTHENTICATOR_IO_EXCEPTION("Authenticator has IO Exception"),
+
+    BROKER_VERIFICATION_FAILED("Signature could not be verified"),
+
+    PACKAGE_NAME_NOT_FOUND("Package name is not resolved."),
+
+    DIGEST_ERROR("Error in generating hash with MessageDigest"),
+
+    BROKER_AUTHENTICATION_REQUEST_IS_NULL("Authentication request is null"),
+
+    BROKER_APP_VERIFICATION_FAILED("Calling app could not be verified"),
+
+    BROKER_ACTIVITY_INFO_NOT_FOUND("Activity information is not retrieved"),
+
+    BROKER_SIGNATURE_NOT_SAVED("Signature is not saved"),
+
+    DEVICE_NO_SUCH_ALGORITHM("Device does not support the algorithm"),
+
+    DEVICE_ALGORITHM_PADDING_EXCEPTION("Requested padding is not available"),
+
+    APP_PACKAGE_NAME_NOT_FOUND("App package name is not found in the package manager"),
+
+    ENCRYPTION_ERROR("Encryption related error"),
+
+    BROKER_ACTIVITY_IS_NOT_RESOLVED("Broker activity is not resolved"),
+
+    BROKER_ACTIVITY_INVALID_REQUEST("Invalid request parameters"),
+
+    BROKER_ACCOUNT_SAVE_FAILED("Broker could not save the new account"),
+
+    BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist"),
+    ;
     private String mDescription;
 
     private ADALError(String message) {

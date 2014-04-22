@@ -26,18 +26,16 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import android.annotation.TargetApi;
-import android.os.AsyncTask;
 import android.os.Build;
 
 /**
- * AsyncTask can be executed only once. It throws exception for multiple async
- * calls on same object. Do not call onPreExecute, onPostExecute or
- * doInBackground directly
+ * Webrequest are called in background thread from API level. HttpWebRequest
+ * does not create another thread.
  */
-class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
+class HttpWebRequest {
+    private static final String UNAUTHORIZED_ERROR_MESSAGE_PRE18 = "Received authentication challenge is null";
+
     private static final String TAG = "HttpWebRequest";
 
     final static String REQUEST_METHOD_POST = "POST";
@@ -48,9 +46,9 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
     final static String REQUEST_METHOD_DELETE = "DELETE";
 
-    final static int CONNECT_TIME_OUT = 10000;
+    final static int CONNECT_TIME_OUT = 30000;
 
-    private final static int READ_TIME_OUT = 10000;
+    private final static int READ_TIME_OUT = 30000;
 
     private static int sDebugSimulateDelay = 0;
 
@@ -58,28 +56,21 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
     private boolean mInstanceRedirectsFollow = true;
 
-    String mRequestMethod;
+    private String mRequestMethod;
 
     URL mUrl;
 
-    HttpWebRequestCallback mCallback;
-
-    HttpURLConnection _connection = null;
+    HttpURLConnection mConnection = null;
 
     byte[] mRequestContent = null;
 
-    String mRequestContentType = null;
+    private String mRequestContentType = null;
 
     int mTimeOut = CONNECT_TIME_OUT;
 
     Exception mException = null;
 
     HashMap<String, String> mRequestHeaders = null;
-
-    /**
-     * Async task can be only used once.
-     */
-    AtomicBoolean mUsedBefore = new AtomicBoolean(false);
 
     public HttpWebRequest(URL requestURL) {
         mUrl = requestURL;
@@ -99,66 +90,37 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
     }
 
     /**
-     * Asynchronous GET.
-     * 
-     * @param callback
+     * setupConnection before sending the request
      */
-    public void sendAsyncGet(HttpWebRequestCallback callback) {
-        sendAsync(REQUEST_METHOD_GET, null, null, callback);
-    }
-
-    /**
-     * Async delete
-     * 
-     * @param callback
-     */
-    public void sendAsyncDelete(HttpWebRequestCallback callback) {
-        sendAsync(REQUEST_METHOD_DELETE, null, null, callback);
-    }
-
-    /**
-     * send async put request
-     * 
-     * @param content
-     * @param contentType
-     * @param callback
-     */
-    public void sendAsyncPut(byte[] content, String contentType, HttpWebRequestCallback callback) {
-        sendAsync(REQUEST_METHOD_PUT, content, contentType, callback);
-    }
-
-    /**
-     * send async post request
-     * 
-     * @param content
-     * @param contentType
-     * @param callback
-     */
-    public void sendAsyncPost(byte[] content, String contentType, HttpWebRequestCallback callback) {
-        sendAsync(REQUEST_METHOD_POST, content, contentType, callback);
-    }
-
-    /**
-     * Async task Step1: This should not be called directly.
-     */
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        Logger.d(TAG, "HttpWebRequest onPreExecute thread:" + android.os.Process.myTid());
+    private void setupConnection() {
+        Logger.d(TAG, "HttpWebRequest setupConnection thread:" + android.os.Process.myTid());
+        if (mUrl == null) {
+            throw new IllegalArgumentException("requestURL");
+        }
+        if (!mUrl.getProtocol().equalsIgnoreCase("http")
+                && !mUrl.getProtocol().equalsIgnoreCase("https")) {
+            throw new IllegalArgumentException("requestURL");
+        }
         HttpURLConnection.setFollowRedirects(true);
-        _connection = openConnection(_connection);
+        mConnection = openConnection();
+        // To prevent EOF exception.
+        if (Build.VERSION.SDK_INT > 13) {
+            mConnection.setRequestProperty("Connection", "close");
+        }
     }
 
     /**
-     * Async task Step2: background work
+     * send the request
+     * 
+     * @param contentType
      */
-    @Override
-    protected HttpWebResponse doInBackground(Void... empty) {
+    public HttpWebResponse send() {
 
-        Logger.d(TAG, "HttpWebRequest doInBackground thread:" + android.os.Process.myTid());
+        Logger.d(TAG, "HttpWebRequest send thread:" + android.os.Process.myTid());
+        setupConnection();
         HttpWebResponse _response = new HttpWebResponse();
 
-        if (_connection != null) {
+        if (mConnection != null) {
             try {
                 // Apply the request headers
                 final Iterator<String> headerKeys = mRequestHeaders.keySet().iterator();
@@ -166,45 +128,34 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                 while (headerKeys.hasNext()) {
                     String header = headerKeys.next();
                     Logger.d(TAG, "Setting header: " + header);
-                    _connection.setRequestProperty(header, mRequestHeaders.get(header));
+                    mConnection.setRequestProperty(header, mRequestHeaders.get(header));
                 }
 
-                _connection.setReadTimeout(READ_TIME_OUT);
-                _connection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
-                _connection.setUseCaches(mUseCaches);
-                _connection.setRequestMethod(mRequestMethod);
-                setRequestBody(_connection);
-
-                // Get the response to the request along with the response
-                // body
-                int statusCode = HttpURLConnection.HTTP_OK;
-
-                try {
-                    statusCode = _connection.getResponseCode();
-                } catch (IOException ex) {
-                    // HttpUrlConnection does not understand Bearer challenge
-                    // Second time query will get the correct status.
-                    // it will throw, if it is a different status related to
-                    // connection problem
-                    statusCode = _connection.getResponseCode();
-                    if (statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        throw ex;
-                    }
-                }
-
-                _response.setStatusCode(statusCode);
-                Logger.d(TAG, "Statuscode:" + statusCode);
+                // Avoid reuse of existing sockets to avoid random EOF errors
+                System.setProperty("http.keepAlive", "false");
+                mConnection.setReadTimeout(READ_TIME_OUT);
+                mConnection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
+                mConnection.setUseCaches(mUseCaches);
+                mConnection.setRequestMethod(mRequestMethod);
+                mConnection.setDoInput(true); // it will at least read status
+                                              // code. Default is true.
+                setRequestBody();
 
                 byte[] responseBody = null;
                 InputStream responseStream = null;
 
                 try {
-                    responseStream = _connection.getInputStream();
+                    responseStream = mConnection.getInputStream();
                 } catch (IOException ex) {
-                    Logger.d(TAG, "IOException:" + ex.getMessage());
-                    mException = ex;
-                    responseStream = _connection.getErrorStream();
+                    Logger.e(TAG, "IOException:" + ex.getMessage(), "", ADALError.SERVER_ERROR);
+                    // If it does not get the error stream, it will return
+                    // exception in the httpresponse
+                    responseStream = mConnection.getErrorStream();
                 }
+
+                // GET request should read status after getInputStream to make
+                // this work for different SDKs
+                getStatusCode(_response);
 
                 if (responseStream != null) {
 
@@ -213,7 +164,7 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
                     int bytesRead = -1;
 
                     // Continue to read from stream if not cancelled and not EOF
-                    while (!isCancelled() && (bytesRead = responseStream.read(buffer)) > 0) {
+                    while ((bytesRead = responseStream.read(buffer)) > 0) {
                         byteStream.write(buffer, 0, bytesRead);
                     }
 
@@ -229,141 +180,88 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
 
                 Logger.d(TAG, "Response is received");
                 _response.setBody(responseBody);
-                _response.setResponseHeaders(_connection.getHeaderFields());
-            }
-            // TODO: Exceptions that occur here need to be channeled back
-            // to the original caller instead of returning a null response.
-            // NOTE: On Android API 17, incorrectly formatted
-            // WWW-Authenticate
-            // headers can cause this exception on a 401 or 407 response
-            // from
-            // the server: all parameters in the challenge must have quote
-            // marks.
-            catch (Exception e) {
-                Logger.d(TAG, "Exception:" + e.getMessage());
-
+                _response.setResponseHeaders(mConnection.getHeaderFields());
+            } catch (Exception e) {
+                Logger.e(TAG, "Exception:" + e.getMessage(), " Method:" + mRequestMethod,
+                        ADALError.SERVER_ERROR, e);
                 mException = e;
             } finally {
-                _connection.disconnect();
-                _connection = null;
+                mConnection.disconnect();
+                mConnection = null;
             }
         }
 
+        _response.setResponseException(mException);
         return _response;
     }
 
-    /**
-     * after task is cancelled and doInBackground finished, it will call this
-     * method instead of onPostExecute. This can do UI thread work similar to
-     * onPostExecute.
-     */
-    @Override
-    protected void onCancelled() {
-        Logger.d(TAG, "HttpWebRequest onCancelled thread:" + android.os.Process.myTid());
-        if (null != mCallback) {
-            mCallback.onComplete(null, new AuthenticationCancelError());
+    private void getStatusCode(HttpWebResponse _response) throws IOException {
+        int statusCode = HttpURLConnection.HTTP_BAD_REQUEST;
+
+        try {
+            statusCode = mConnection.getResponseCode();
+        } catch (IOException ex) {
+
+            if (Build.VERSION.SDK_INT < 16) {
+                // this exception is hardcoded in HttpUrlConnection class inside
+                // Android source code for previous SDKs.
+                // Status code handling is throwing exceptions if it does not
+                // see challenge
+                if (ex.getMessage() == UNAUTHORIZED_ERROR_MESSAGE_PRE18) {
+                    statusCode = HttpURLConnection.HTTP_UNAUTHORIZED;
+                }
+            } else {
+                // HttpUrlConnection does not understand Bearer challenge
+                // Second time query will get the correct status.
+                // it will throw, if it is a different status related to
+                // connection problem
+                statusCode = mConnection.getResponseCode();
+            }
+
+            // if status is 200 or 401 after reading again, it can read the
+            // response body for messages
+            if (statusCode != HttpURLConnection.HTTP_OK
+                    && statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
+                throw ex;
+            }
         }
-    }
-
-    /**
-     * Async task final step
-     */
-    @Override
-    protected void onPostExecute(HttpWebResponse response) {
-        super.onPostExecute(response);
-        Logger.d(TAG, "HttpWebRequest OnPostExecute thread:" + android.os.Process.myTid());
-        if (null != mCallback) {
-            mCallback.onComplete(response, mException);
-        }
-    }
-
-    /**
-     * Asynchronous POST/PUT Argument check before sending the request
-     */
-    private void sendAsync(String requestmethod, byte[] content, String contentType,
-            HttpWebRequestCallback callback) {
-
-        Logger.d(TAG, "HttpWebRequest thread:" + android.os.Process.myTid());
-
-        // Atomically sets to the given value and returns the previous value
-        if (mUsedBefore.getAndSet(true)) {
-
-            // Async task will throw exception by Android system if it is reused
-            // again, but this is catching
-            // misuse early.
-            throw new AuthenticationException(ADALError.DEVELOPER_ASYNC_TASK_REUSED);
-        }
-
-        if (mUrl == null) {
-            throw new IllegalArgumentException("requestURL");
-        }
-
-        if (!mUrl.getProtocol().equalsIgnoreCase("http")
-                && !mUrl.getProtocol().equalsIgnoreCase("https")) {
-            throw new IllegalArgumentException("requestURL");
-        }
-
-        mRequestMethod = requestmethod;
-        mCallback = callback;
-        mRequestContent = content;
-        mRequestContentType = contentType;
-        mException = null;
-
-        // AsyncTasks were initially executed serially on a single background
-        // thread.
-        // Starting with DONUT, this was changed to a pool of threads allowing
-        // multiple tasks to operate in parallel.
-        // Starting with HONEYCOMB, tasks are executed on a single thread
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            executeParallel();
-        } else {
-            execute((Void[])null);
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private void executeParallel() {
-        // At Honeycomb, execute was changed to run on a serialized thread pool
-        // but we want the request to run fully parallel so we force use of
-        // the THREAD_POOL_EXECUTOR
-        executeOnExecutor(THREAD_POOL_EXECUTOR, (Void[])null);
+        _response.setStatusCode(statusCode);
+        Logger.v(TAG, "Status code:" + statusCode);
     }
 
     /**
      * open connection. If there is any error, set exception inside the response
      * 
      * @param _response
-     * @param _connection
      * @return
      */
-    private HttpURLConnection openConnection(HttpURLConnection _connection) {
+    private HttpURLConnection openConnection() {
+        HttpURLConnection connection = null;
         try {
 
-            _connection = (HttpURLConnection)mUrl.openConnection();
-            _connection.setConnectTimeout(mTimeOut);
+            connection = (HttpURLConnection)mUrl.openConnection();
+            connection.setConnectTimeout(mTimeOut);
 
         } catch (IOException e) {
             Logger.d(TAG, e.getMessage());
             mException = e;
-            _connection.disconnect();
-            _connection = null;
         }
-        return _connection;
+        return connection;
     }
 
-    private void setRequestBody(HttpURLConnection connection) throws IOException {
+    private void setRequestBody() throws IOException {
         if (null != mRequestContent) {
-            connection.setDoOutput(true);
+            mConnection.setDoOutput(true);
 
-            if (null != mRequestContentType && !mRequestContentType.isEmpty()) {
-                connection.setRequestProperty("Content-Type", mRequestContentType);
+            if (null != getRequestContentType() && !getRequestContentType().isEmpty()) {
+                mConnection.setRequestProperty("Content-Type", getRequestContentType());
             }
 
-            connection.setRequestProperty("Content-Length",
+            mConnection.setRequestProperty("Content-Length",
                     Integer.toString(mRequestContent.length));
-            connection.setFixedLengthStreamingMode(mRequestContent.length);
+            mConnection.setFixedLengthStreamingMode(mRequestContent.length);
 
-            OutputStream out = connection.getOutputStream();
+            OutputStream out = mConnection.getOutputStream();
             out.write(mRequestContent);
             out.close();
         }
@@ -400,5 +298,21 @@ class HttpWebRequest extends AsyncTask<Void, Void, HttpWebResponse> {
      */
     public HashMap<String, String> getRequestHeaders() {
         return mRequestHeaders;
+    }
+
+    void setRequestMethod(String mRequestMethod) {
+        this.mRequestMethod = mRequestMethod;
+    }
+
+    String getRequestContentType() {
+        return mRequestContentType;
+    }
+
+    void setRequestContentType(String mRequestContentType) {
+        this.mRequestContentType = mRequestContentType;
+    }
+
+    void setRequestContent(byte[] data) {
+        this.mRequestContent = data;
     }
 }

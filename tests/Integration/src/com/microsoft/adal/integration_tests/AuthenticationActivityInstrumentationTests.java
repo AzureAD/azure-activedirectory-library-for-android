@@ -54,11 +54,10 @@ import com.microsoft.adal.ADALError;
 import com.microsoft.adal.AuthenticationActivity;
 import com.microsoft.adal.AuthenticationResult;
 import com.microsoft.adal.AuthenticationSettings;
-import com.microsoft.adal.DefaultTokenCacheStore;
-import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.Logger.ILogger;
 import com.microsoft.adal.Logger.LogLevel;
 import com.microsoft.adal.PromptBehavior;
+import com.microsoft.adal.TokenCacheItem;
 import com.microsoft.adal.integration_tests.TenantInfo.TenantType;
 import com.microsoft.adal.testapp.MainActivity;
 import com.microsoft.adal.testapp.R;
@@ -215,6 +214,56 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     @MediumTest
+    public void testFakeBackEnd_AcquireToken() throws Exception {
+        TenantInfo tenant = new TenantInfo(TenantType.AAD,
+                "https://adal.azurewebsites.net/WebRequest", "resource", "resource2",
+                "short-live-token", "https://adal.azurewebsites.net/", null, null, null, null, null);
+
+        Log.v(TAG, "testFakeBackEnd_AcquireToken starts for authority:" + tenant.getAuthority());
+
+        // Activity runs at main thread. Test runs on different thread
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        // add monitor to check for the auth activity
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "loginhint", PromptBehavior.Auto,
+                null, false);
+
+        // press clear all button to clear tokens and cookies
+        clickResetTokens();
+        clickGetToken();
+        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg == MainActivity.GETTING_TOKEN;
+            }
+        });
+
+        final String startText = textViewStatus.getText().toString();
+        assertEquals("Token action", MainActivity.GETTING_TOKEN, startText);
+
+        // Wait to start activity and loading the page
+        AuthenticationActivity startedActivity = (AuthenticationActivity)monitor
+                .waitForActivityWithTimeout(ACTIVITY_WAIT_TIMEOUT);
+        assertNotNull(startedActivity);
+
+        waitUntil(PAGE_STATUS_SET_TIME_OUT, new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg != startText;
+            }
+        });
+
+        String tokenMsg = (String)textViewStatus.getText();
+        Log.v(TAG, "Status:" + tokenMsg);
+        assertTrue("Token is received", tokenMsg.contains(MainActivity.PASSED));
+    }
+
+    @MediumTest
     public void testAcquireTokenADFS30() throws Exception {
         acquireTokenAfterReset(tenants.get(TenantType.ADFS30), "", PromptBehavior.Auto, null,
                 false, false, null);
@@ -223,25 +272,29 @@ public class AuthenticationActivityInstrumentationTests extends
     @MediumTest
     public void testAcquireTokenManaged_MultiUser() throws Exception {
         TenantInfo tenant = tenants.get(TenantType.AAD);
-        Log.v(TAG, "testAcquireTokenManaged_MultiUser starts for authority:" + tenant.getAuthority());
+        Log.v(TAG,
+                "testAcquireTokenManaged_MultiUser starts for authority:" + tenant.getAuthority());
         acquireTokenAfterReset(tenant, "", PromptBehavior.Auto, null, false, false, null);
         final ActivityMonitor monitor = getInstrumentation().addMonitor(
                 AuthenticationActivity.class.getName(), null, false);
-        
+
         AuthenticationResult result = activity.getResult();
-        Log.v(TAG, "Result from initial request. ExpiresOn:"+result.getExpiresOn().getTime());
-       
+        Log.v(TAG, "Result from initial request. ExpiresOn:" + result.getExpiresOn().getTime());
+
         Log.v(TAG, "Set second user");
         setUserForAuthenticationRequest(tenant.getUserName2());
+        // it will use cookies for different user and just return Authorization
+        // code
+        clickRemoveCookies();
         clickGetToken();
-        handleCredentials(monitor, tenant.getUserName2(), tenant.getPassword2(), false,
-                null);
-        
+        handleCredentials(monitor, tenant.getUserName2(), tenant.getPassword2(), false, null);
+
         Log.v(TAG, "Compare tokens");
         AuthenticationResult result2 = activity.getResult();
         verifyTokenNotSame(result, result2);
         assertTrue("Multi resource token", result2.getIsMultiResourceRefreshToken());
-        assertEquals("Username same in idtoken", tenant.getUserName2(), result2.getUserInfo().getUserId());
+        assertEquals("Username same in idtoken", tenant.getUserName2(), result2.getUserInfo()
+                .getUserId());
     }
 
     @MediumTest
@@ -463,8 +516,8 @@ public class AuthenticationActivityInstrumentationTests extends
         assertNotNull("Result is not null", result);
         assertEquals("Result status is failed", AuthenticationResult.AuthenticationStatus.Failed,
                 result.getStatus());
-        assertEquals("CorrelationId in response same as in request header", correlationId,
-                result.getCorrelationId());
+        assertEquals("CorrelationId in response same as in request header", correlationId, result
+                .getErrorDescription().contains(correlationId.toString()));
         assertNull("No token", activity.getResult().getAccessToken());
 
         Log.v(TAG, "Finished testing correlationId");
@@ -634,18 +687,17 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     private void setUserForAuthenticationRequest(final String userid) {
-           // press clear all button to clear tokens and cookies
-        final EditText  mUserid ;
- 
+        // press clear all button to clear tokens and cookies
+        final EditText mUserid;
+
         mUserid = (EditText)activity.findViewById(R.id.editUserId);
-        
 
         // Use handler from this app to quickly set the fields instead of
         // sending key events
         activity.getTestAppHandler().post(new Runnable() {
             @Override
             public void run() {
-             
+
                 mUserid.setText(userid);
             }
         });
@@ -1013,13 +1065,5 @@ public class AuthenticationActivityInstrumentationTests extends
         });
     }
 
-    /**
-     * this can change based on login page implementation
-     * 
-     * @param htmlContent
-     * @return
-     */
-    private boolean hasLoginPage(String htmlContent) {
-        return htmlContent != null && !htmlContent.isEmpty() && htmlContent.contains("password");
-    }
+   
 }
