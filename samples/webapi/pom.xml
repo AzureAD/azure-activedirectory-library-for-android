@@ -36,7 +36,7 @@
     <dependency>
       <groupId>com.microsoftopentechnologies</groupId>
       <artifactId>adal</artifactId>
-      <version>0.6-alpha</version>
+      <version>0.7</version>
       <type>aar</type>
     </dependency>
   </dependencies>
