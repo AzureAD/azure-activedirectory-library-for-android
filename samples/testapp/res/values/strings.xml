@@ -5,5 +5,7 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_login_app">Login</string>
+    <string name="DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED">Test:DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED</string>
+    <string name="DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE">Test:DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE</string>
 
 </resources>

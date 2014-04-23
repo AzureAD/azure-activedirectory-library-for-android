@@ -18,6 +18,8 @@
 
 package com.microsoft.adal;
 
+import android.content.Context;
+
 /**
  * Error codes
  */
@@ -151,13 +153,13 @@ public enum ADALError {
     BROKER_PACKAGE_NAME_NOT_FOUND("Broker is not installed in your system"),
 
     BROKER_AUTHENTICATOR_NOT_RESPONDING("Authenticator is not responding"),
-    
+
     BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN("Authenticator error"),
-    
+
     BROKER_AUTHENTICATOR_BAD_ARGUMENTS("Invalid arguments for Authenticator request"),
-    
+
     BROKER_AUTHENTICATOR_BAD_AUTHENTICATION("Authentication request failed"),
-    
+
     BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION("Authenticator is not supporting this operation"),
 
     BROKER_AUTHENTICATOR_IO_EXCEPTION("Authenticator has IO Exception"),
@@ -190,8 +192,8 @@ public enum ADALError {
 
     BROKER_ACCOUNT_SAVE_FAILED("Broker could not save the new account"),
 
-    BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist"),
-    ;
+    BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist");
+
     private String mDescription;
 
     private ADALError(String message) {
@@ -199,6 +201,20 @@ public enum ADALError {
     }
 
     public String getDescription() {
+        return mDescription;
+    }
+
+    public String getLocalizedDescription(Context context) {
+        // Optional overwrite to error descriptions from resource files.
+        // Application can repeat the resource entries from libraries.
+        // Application resource
+        // merging operation will use the last one according to the import
+        // order.
+        if (context != null) {
+            return context.getResources().getString(
+                    context.getResources().getIdentifier(this.name(), "string",
+                            context.getPackageName()));
+        }
         return mDescription;
     }
 }
