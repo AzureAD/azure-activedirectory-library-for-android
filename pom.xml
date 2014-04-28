@@ -8,7 +8,7 @@
   <name>ADAL ANDROID-API</name>
 
   <modules>
-    <module>adal</module>
+    <module>src</module>
     <module>samples/hello</module>
     <module>samples/testapp</module>
     <module>samples/webapi</module>
