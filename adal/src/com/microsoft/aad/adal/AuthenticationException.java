@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
 
 /**
  */
@@ -47,25 +48,27 @@ public class AuthenticationException extends RuntimeException {
         super(details);
         mCode = code;
     }
-    
+
     public AuthenticationException(ADALError code, String details, Throwable throwable) {
         super(details, throwable);
         mCode = code;
     }
-   
+
     public ADALError getCode() {
         return mCode;
     }
 
-    @Override    
+    @Override
     public String getMessage() {
-         
+        return getLocalizedMessage(null);
+    }
+
+    public String getLocalizedMessage(Context context) {
         if (!StringExtensions.IsNullOrBlank(super.getMessage())) {
             return super.getMessage();
         }
-
         if (mCode != null) {
-            return mCode.getDescription();
+            return mCode.getLocalizedDescription(context);
         }
 
         return null;

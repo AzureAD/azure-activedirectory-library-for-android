@@ -18,6 +18,10 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+
 /**
  * Error codes
  */
@@ -199,6 +203,22 @@ public enum ADALError {
     }
 
     public String getDescription() {
+        return mDescription;
+    }
+
+    public String getLocalizedDescription(Context context) {
+        // Optional overwrite to error descriptions from resource files.
+        // Application can repeat the resource entries from libraries.
+        // Application resource
+        // merging operation will use the last one according to the import
+        // order.
+        if (context != null) {
+            Configuration conf = context.getResources().getConfiguration();
+            Resources resources = new Resources(context.getAssets(), context.getResources().getDisplayMetrics(), conf);
+            return resources.getString(
+                    resources.getIdentifier(this.name(), "string",
+                            context.getPackageName()));
+        }
         return mDescription;
     }
 }

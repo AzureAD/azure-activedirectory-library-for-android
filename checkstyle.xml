@@ -5,7 +5,7 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: Android for Lync checkstyle
+    Checkstyle-Configuration: Android for ADAL checkstyle
     Description: none
 -->
 <module name="Checker">
