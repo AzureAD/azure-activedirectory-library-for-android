@@ -16,7 +16,7 @@
 // See the Apache License, Version 2.0 for the specific language
 // governing permissions and limitations under the License.
 
-package com.microsoft.adal.test;
+package com.microsoft.aad.adal.test;
 
 import java.security.MessageDigest;
 import java.util.Locale;
@@ -29,9 +29,9 @@ import android.test.InstrumentationTestCase;
 import android.util.Base64;
 import android.util.Log;
 
-import com.microsoft.adal.ADALError;
-import com.microsoft.adal.AuthenticationConstants;
-import com.microsoft.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationSettings;
 
 public class ADALErrorTests extends InstrumentationTestCase {
 
