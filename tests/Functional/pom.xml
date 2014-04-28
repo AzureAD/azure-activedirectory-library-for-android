@@ -3,12 +3,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.microsoft.adal.android</groupId>
+    <groupId>com.microsoft.aad</groupId>
     <artifactId>adal-aggregator</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <groupId>com.microsoft.adal.test</groupId>
+  <groupId>com.microsoft.aad</groupId>
   <artifactId>functionaltest</artifactId>
   <packaging>apk</packaging>
   <name>Functional Test</name>

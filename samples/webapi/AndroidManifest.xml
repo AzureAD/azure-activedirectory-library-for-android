@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.com.microsoft.adal.hello"
+    package="com.microsoft.aad.samplewebapi"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -18,12 +18,12 @@
         android:theme="@style/AppTheme" >
         
         <activity
-            android:name="com.microsoft.adal.AuthenticationActivity"
+            android:name="com.microsoft.aad.adal.AuthenticationActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_login_hello_app" >
         </activity>
         <activity
-            android:name="com.example.com.microsoft.adal.hello.ToDoActivity"
+            android:name="com.microsoft.aad.samplewebapi.ToDoActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name" >
             <intent-filter>
@@ -32,16 +32,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.com.microsoft.adal.hello.LogOutActivity"
+            android:name="com.microsoft.aad.samplewebapi.LogOutActivity"
              android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_log_out" >
         </activity>
         <activity
-            android:name="com.example.com.microsoft.adal.hello.FeedActivity"
+            android:name="com.microsoft.aad.samplewebapi.FeedActivity"
             android:label="@string/title_activity_feed" >
         </activity>
         <activity
-            android:name="com.example.com.microsoft.adal.hello.SettingsActivity"
+            android:name="com.microsoft.aad.samplewebapi.SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
     </application>

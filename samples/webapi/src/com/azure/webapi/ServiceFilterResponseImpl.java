@@ -33,7 +33,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 
-import com.example.com.microsoft.adal.hello.Constants;
+import com.microsoft.aad.samplewebapi.Constants;
 
 /**
  * ServiceFilterResponse implementation

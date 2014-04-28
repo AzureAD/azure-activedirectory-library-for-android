@@ -5,6 +5,6 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/com.microsoft.adal"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/com.microsoft.aad.adal"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
