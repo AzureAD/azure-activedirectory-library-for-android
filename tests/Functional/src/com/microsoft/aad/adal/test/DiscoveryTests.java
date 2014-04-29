@@ -37,7 +37,6 @@ import com.microsoft.aad.adal.IWebRequestHandler;
  * /discovery/instance?api-version=1.0&authorization_endpoint
  * =https%3A%2F%2Flogin
  * .windows.net%2Faaltest.onmicrosoft.com%2Foauth2%2Fauthorize
- * 
  */
 public class DiscoveryTests extends AndroidTestHelper {
 
@@ -114,29 +113,32 @@ public class DiscoveryTests extends AndroidTestHelper {
         assertFalse("Instance should be invalid", response.result);
     }
 
-    private IWebRequestHandler getMockRequest(String json, int statusCode){
+    private IWebRequestHandler getMockRequest(String json, int statusCode) {
         MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
-       
+
         mockWebRequest.setReturnResponse(new HttpWebResponse(statusCode, json.getBytes(Charset
                 .defaultCharset()), null));
         return mockWebRequest;
     }
-    
-    public void testServerInvalidJsonResponse() throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchFieldException, MalformedURLException{
+
+    public void testServerInvalidJsonResponse() throws ClassNotFoundException,
+            NoSuchMethodException, IllegalArgumentException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException,
+            MalformedURLException {
         Object discovery = getDiscoveryInstance();
-        ReflectionUtils.setFieldValue(discovery,
-                "mWebrequestHandler", getMockRequest("{invalidJson}", 200)); 
+        ReflectionUtils.setFieldValue(discovery, "mWebrequestHandler",
+                getMockRequest("{invalidJson}", 200));
         final TestResponse response = new TestResponse();
         final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
         TestLogResponse logTrack = new TestLogResponse();
         logTrack.listenForLogMessage("Json parsing error", null);
         callIsValidAuthority(discovery, endpointFull, response, true);
-        
+
         assertNull("Exception should not throw", response.exception);
         assertFalse("not valid instance", response.result);
         assertTrue("Exception msg is logged", logTrack.message.equals("Json parsing error"));
     }
-    
+
     public void testIsValidAuthorityNegative_InvalidUrl() throws MalformedURLException,
             IllegalArgumentException, NoSuchMethodException, IllegalAccessException,
             ClassNotFoundException, InstantiationException, InvocationTargetException {

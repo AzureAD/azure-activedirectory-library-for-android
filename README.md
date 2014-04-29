@@ -1,12 +1,12 @@
 ﻿#Windows Azure Active Directory Authentication Library (ADAL) for Android
 ===========
 
-The ADAL SDK for Android  gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers. This SDK gives your application the full functionality of Windows Azure AD, including industry standard protocol support for OAuth2, Web API integration, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries.
+The ADAL SDK for Android  gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers. This SDK gives your application the full functionality of Windows Azure AD, including industry standard protocol support for OAuth2, Web API integration, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
 
 ## Latest Preview Release
----
 
-We have released a Preview of the ADAL for Android! [You can grab the release here] (https://github.com/MSOpenTech/azure-activedirectory-library-for-android/releases/tag/v0.5-alpha)
+We have released a Preview of the ADAL for Android! [You can grab the release here] (https://github.com/MSOpenTech/azure-activedirectory-library-for-android/releases/tag/v0.6-alpha)
+You can also get it from maven repo.
 
 ### Prerequisites
 

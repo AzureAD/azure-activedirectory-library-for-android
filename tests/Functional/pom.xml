@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.microsoft.aad</groupId>
@@ -22,12 +22,12 @@
       <artifactId>android</artifactId>
       <version>${android.version}</version>
       <scope>provided</scope>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>com.google.android</groupId>
       <artifactId>android-test</artifactId>
-      <version>4.1.1.4</version>
-    </dependency> 
+      <version>${android.version}</version>
+    </dependency>
     <dependency>
       <groupId>com.jayway.android.robotium</groupId>
       <artifactId>robotium-solo</artifactId>
@@ -51,7 +51,7 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <artifactItems>                
+              <artifactItems>
                 <artifactItem>
                   <groupId>com.jayway.android.robotium</groupId>
                   <artifactId>robotium-solo</artifactId>
@@ -62,7 +62,6 @@
                   <artifactId>mockito-all</artifactId>
                   <version>1.9.5</version>
                 </artifactItem>
-
                 <artifactItem>
                   <groupId>com.google.dexmaker</groupId>
                   <artifactId>dexmaker</artifactId>
@@ -97,7 +96,6 @@
         </configuration>
         <extensions>true</extensions>
       </plugin>
-
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
@@ -108,5 +106,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

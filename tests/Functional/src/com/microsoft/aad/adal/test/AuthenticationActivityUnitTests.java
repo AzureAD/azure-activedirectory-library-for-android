@@ -306,8 +306,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         assertNotNull(data
                 .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME));
     }
-    
-    
+
     @SmallTest
     @UiThreadTest
     public void testBroker_SaveCacheKey() throws IllegalArgumentException, NoSuchFieldException,
@@ -330,7 +329,10 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         Method executePostResult = ReflectionUtils.getTestMethod(tokenTask, "onPostExecute",
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
-        when(mockAct.getUserData(any(Account.class), eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + 333))).thenReturn("test");
+        when(
+                mockAct.getUserData(any(Account.class),
+                        eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + 333)))
+                .thenReturn("test");
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
         ReflectionUtils.setFieldValue(tokenTask, "mPackageName", "testpackagename");
         ReflectionUtils.setFieldValue(tokenTask, "mAccountManager", mockAct);
@@ -339,13 +341,13 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         Object result = executeDirect.invoke(tokenTask, (Object)new String[] {
             urlRequest
         });
-        
-        
+
         executePostResult.invoke(tokenTask, result);
 
         // Verification from returned intent data
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE);
-        verify(mockAct).setUserData(any(Account.class), eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + 333), anyString());
+        verify(mockAct).setUserData(any(Account.class),
+                eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + 333), anyString());
     }
 
     private MockWebRequestHandler setMockWebResponse() throws NoSuchFieldException,
@@ -395,7 +397,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         ReflectionUtils.setFieldValue(activity, "mRestartWebview", true);
         Method methodOnResume = ReflectionUtils.getTestMethod(activity, "onResume");
         methodOnResume.invoke(activity);
-                
+
         // get field value to check
         assertTrue("verify log message",
                 logResponse.message.startsWith("Webview onResume register broadcast"));

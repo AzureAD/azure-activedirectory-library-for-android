@@ -32,7 +32,6 @@
       <type>aar</type>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -52,7 +51,6 @@
         </configuration>
         <extensions>true</extensions>
       </plugin>
-
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
@@ -63,5 +61,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>
