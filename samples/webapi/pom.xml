@@ -3,13 +3,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.microsoftopentechnologies</groupId>
+    <groupId>com.microsoft.aad</groupId>
     <artifactId>adal-aggregator</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <groupId>com.example.com.microsoft.adal.hello</groupId>
-  <artifactId>sampleapp</artifactId>
+  <groupId>com.microsoft.aad</groupId>
+  <artifactId>samplewebapi</artifactId>
   <packaging>apk</packaging>
   <name>Sample App for manual testing</name>
   <properties>
@@ -34,9 +34,9 @@
       <version>2.2.4</version>
     </dependency>
     <dependency>
-      <groupId>com.microsoftopentechnologies</groupId>
+      <groupId>com.microsoft.aad</groupId>
       <artifactId>adal</artifactId>
-      <version>0.7</version>
+      <version>${adal.version}</version>
       <type>aar</type>
     </dependency>
   </dependencies>

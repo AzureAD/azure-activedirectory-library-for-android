@@ -28,7 +28,7 @@ import java.io.IOException;
 import org.apache.http.Header;
 import org.apache.http.protocol.HTTP;
 
-import com.example.com.microsoft.adal.hello.Constants;
+import com.microsoft.aad.samplewebapi.Constants;
 
 import android.os.Build;
 

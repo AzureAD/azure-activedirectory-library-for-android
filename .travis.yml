@@ -38,7 +38,7 @@ before_install:
   - android update lib-project -p ../google-play-services_lib --target android-19
 
   # setup main and testproject
-  - android update lib-project -p adal --target android-19
+  - android update lib-project -p src --target android-19
   - android update project -p samples/testapp --target android-19
   - android update test-project -p samples/testapp -m tests
 
@@ -59,13 +59,13 @@ before_script:
 script: 
   - cd $PWD
   - mvn clean install
-  - cd $PWD/adal
+  - cd $PWD/src
   - ant clean debug
   - cd -
   - cd $PWD/tests/Functional
   - chmod +x getLibs.sh
   - bash getLibs.sh
   # instrument classes with filter. coverage.em will be saved to bin/coverage.em
-  - ant clean -Demma.filter="-com.microsoft.adal.testapp.*" emma instrument
+  - ant clean -Demma.filter="-com.microsoft.aad.adal.testapp.*" emma instrument
   # debug compile, install file, test all test cases
-  - ant -Demma.filter="-com.microsoft.adal.testapp.*" emma debug install test
+  - ant -Demma.filter="-com.microsoft.aad.adal.testapp.*" emma debug install test

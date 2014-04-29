@@ -35,7 +35,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 
-import com.example.com.microsoft.adal.hello.Constants;
+import com.microsoft.aad.samplewebapi.Constants;
 
 import android.net.http.AndroidHttpClient;
 import android.os.Build;
