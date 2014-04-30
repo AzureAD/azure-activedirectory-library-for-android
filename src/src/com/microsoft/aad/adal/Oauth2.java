@@ -339,7 +339,7 @@ class Oauth2 {
         }
 
         // Success
-        HashMap<String, String> parameters = getUrlParameters(authorizationUrl);
+        HashMap<String, String> parameters = StringExtensions.getUrlParameters(authorizationUrl);
         String encodedState = parameters.get("state");
         String state = decodeProtocolState(encodedState);
 
@@ -456,18 +456,6 @@ class Oauth2 {
         }
 
         return null;
-    }
-
-    private HashMap<String, String> getUrlParameters(String finalUrl) {
-        Uri response = Uri.parse(finalUrl);
-        String fragment = response.getFragment();
-        HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
-
-        if (parameters == null || parameters.isEmpty()) {
-            String queryParameters = response.getQuery();
-            parameters = HashMapExtensions.URLFormDecode(queryParameters);
-        }
-        return parameters;
     }
 
     public String encodeProtocolState() {

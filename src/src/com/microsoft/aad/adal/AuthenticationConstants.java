@@ -163,7 +163,7 @@ public class AuthenticationConstants {
         public static final String BACKGROUND_REQUEST_MESSAGE = "background.request";
 
         public static final String ACCOUNT_DEFAULT_NAME = "Default";
-        
+
         /**
          * Authtoken type string.
          */
@@ -196,37 +196,52 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_EXPIREDATE = "account.expiredate";
 
         public static final String ACCOUNT_RESULT = "account.result";
-        
+
         public static final String ACCOUNT_REMOVE_TOKENS = "account.remove.tokens";
-        
+
         public static final String ACCOUNT_REMOVE_TOKENS_VALUE = "account.remove.tokens.value";
 
         public static final String MULTI_RESOURCE_TOKEN = "account.multi.resource.token";
 
         public static final String ACCOUNT_NAME = "account.name";
-        
+
         public static final String ACCOUNT_USERINFO_USERID = "account.userinfo.userid";
-        
+
         public static final String ACCOUNT_USERINFO_GIVEN_NAME = "account.userinfo.given.name";
-        
+
         public static final String ACCOUNT_USERINFO_FAMILY_NAME = "account.userinfo.family.name";
-        
+
         public static final String ACCOUNT_USERINFO_IDENTITY_PROVIDER = "account.userinfo.identity.provider";
-        
+
         public static final String ACCOUNT_USERINFO_USERID_DISPLAYABLE = "account.userinfo.userid.displayable";
-        
+
         public static final String ACCOUNT_USERINFO_TENANTID = "account.userinfo.tenantid";
 
         public static final String ACCOUNT_UID_CACHES = "account.uid.caches";
-        
+
         public static final String USERDATA_PREFIX = "userdata.prefix";
 
         public static final String USERDATA_UID_KEY = "calling.uid.key";
-        
+
         public static final String USERDATA_CALLER_CACHEKEYS = "userdata.caller.cachekeys";
-        
+
         public static final String CALLER_CACHEKEY_PREFIX = "|";
 
+        public static final String CLIENT_TLS_NOT_SUPPORTED = " Client-TLS-not-supported";
+
+        public static final String CHALLANGE_RESPONSE_HEADER = "Authorization";
+        
+        public static final String CHALLANGE_RESPONSE_TYPE = "CertAuth";
+
+        public static final String CHALLANGE_RESPONSE_TOKEN = "AuthToken";
+
+        public static final String CHALLANGE_RESPONSE_CONTEXT = "Context";
+        
+        /**
+         * Certificate authorities are passed with delimiter
+         */
+        public static final String CHALLANGE_REQUEST_CERT_AUTH_DELIMETER = ",";
+        
         /**
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager

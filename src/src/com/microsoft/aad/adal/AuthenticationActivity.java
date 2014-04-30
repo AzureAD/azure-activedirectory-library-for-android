@@ -310,6 +310,11 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setBuiltInZoomControls(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
+        String userAgent = mWebView.getSettings().getUserAgentString();
+        Logger.v(TAG, "UserAgent:" + userAgent);
+        mWebView.getSettings().setUserAgentString(
+                userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
+        Logger.v(TAG, "UserAgent:" + userAgent);
     }
 
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
@@ -892,7 +897,7 @@ public class AuthenticationActivity extends Activity {
                 mAccountManager.setUserData(cacheAccount,
                         AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + callingUID,
                         keylist);
-                Logger.v(TAG, "keylist:"+keylist);
+                Logger.v(TAG, "keylist:" + keylist);
             }
         }
 

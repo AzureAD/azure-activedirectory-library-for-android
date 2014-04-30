@@ -54,6 +54,7 @@ import android.widget.Button;
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.R;
 
@@ -108,6 +109,21 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         return o;
     }
 
+    @SmallTest
+    @UiThreadTest
+    public void testUserAgent() throws NoSuchFieldException, IllegalArgumentException,
+            IllegalAccessException {
+        AuthenticationSettings.INSTANCE.setBrokerPackageName(getInstrumentation().getContext().getPackageName());
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        
+        // Webview
+        WebView webview = (WebView)activity.findViewById(R.id.webView1);
+        assertNotNull(webview);
+        String ua = webview.getSettings().getUserAgentString();
+        assertTrue(ua.contains(AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED));        
+    }
+    
     @SmallTest
     @UiThreadTest
     public void testLayout() throws NoSuchFieldException, IllegalArgumentException,

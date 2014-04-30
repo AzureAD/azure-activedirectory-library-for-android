@@ -194,7 +194,9 @@ public enum ADALError {
 
     BROKER_ACCOUNT_SAVE_FAILED("Broker could not save the new account"),
 
-    BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist");
+    BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist"), 
+    KEY_CHAIN_PRIVATE_KEY_EXCEPTION("Key Chain private key exception"), 
+    SIGNATURE_EXCEPTION("Signature exception");
 
     private String mDescription;
 
