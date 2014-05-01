@@ -75,6 +75,7 @@ class JWSBuilder implements IJWSBuilder {
         // BASE64URL(JWS Signature),
         // concatenated in that order, with the three strings being separated by
         // two period ('.') characters.
+        // Base64 encoding without padding, wrapping and urlsafe. 
         if (StringExtensions.IsNullOrBlank(nonce)) {
             throw new IllegalArgumentException("nonce");
         }
@@ -100,18 +101,6 @@ class JWSBuilder implements IJWSBuilder {
         header.mCertThumbprint = thumbPrint;
         String keyId = "1";
         header.mKeyId = keyId;
-        // TODO keys is a list
-        // {"keys":
-        // [
-        // {"kty":"RSA",
-        // "n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM
-        // .JWSBuilder.",
-        // "e":"AQAB",
-        // "alg":"RS256",
-        // "kid":"1"}
-        // ]
-        // }
-
         String signingInput = "", signature = "";
         try {
             RSAKey rsaKey = new RSAKey();
@@ -139,7 +128,6 @@ class JWSBuilder implements IJWSBuilder {
         return signingInput + "." + signature;
     }
 
-    
     private static Signature getSigner() throws AuthenticationException {
         Signature signer;
         try {

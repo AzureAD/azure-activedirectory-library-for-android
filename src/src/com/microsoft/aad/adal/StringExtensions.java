@@ -94,7 +94,9 @@ final class StringExtensions {
 
     static final String encodeBase64URLSafeString(final byte[] bytes)
             throws UnsupportedEncodingException {
-        return new String(Base64.encode(bytes, Base64.NO_WRAP | Base64.URL_SAFE));
+        return new String(
+                Base64.encode(bytes, Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
+                AuthenticationConstants.ENCODING_UTF8);
     }
 
     /**
