@@ -19,6 +19,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -91,10 +92,11 @@ final class StringExtensions {
         return URLDecoder.decode(source, ENCODING_UTF8);
     }
 
-    static final String encodeBase64URLSafeString(final byte[] bytes) throws UnsupportedEncodingException {
+    static final String encodeBase64URLSafeString(final byte[] bytes)
+            throws UnsupportedEncodingException {
         return new String(Base64.encode(bytes, Base64.NO_WRAP | Base64.URL_SAFE));
     }
-    
+
     /**
      * create url from given endpoint. return null if format is not right.
      * 

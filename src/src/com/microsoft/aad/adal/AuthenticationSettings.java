@@ -35,6 +35,8 @@ public enum AuthenticationSettings {
 
     private String mBrokerSignature = AuthenticationConstants.Broker.SIGNATURE;
 
+    private Class<?> mClazzDeviceCertProxy;
+
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt
      * 
@@ -91,5 +93,30 @@ public enum AuthenticationSettings {
      */
     public void setBrokerSignature(String mBrokerSignature) {
         this.mBrokerSignature = mBrokerSignature;
+    }
+
+    /**
+     * set class for work place join related API. This is only used from
+     * Authenticator side.
+     * 
+     * @param <T>
+     * @param clazz
+     */
+    public void setDeviceCertificateProxyClass(Class clazz) {
+        if (IDeviceCertificateProxy.class.isAssignableFrom(clazz)) {
+            mClazzDeviceCertProxy = clazz;
+        } else {
+            throw new IllegalArgumentException("clazz");
+        }
+    }
+
+    /**
+     * get class for work place join related API. This is only used from
+     * Authenticator side.
+     * 
+     * @return
+     */
+    public Class<?> getDeviceCertificateProxy() {
+        return mClazzDeviceCertProxy;
     }
 }
