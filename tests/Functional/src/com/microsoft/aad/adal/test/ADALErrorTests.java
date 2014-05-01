@@ -50,7 +50,7 @@ public class ADALErrorTests extends InstrumentationTestCase {
 
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
-                .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
+                .getPackageInfo("com.microsoft.adal.testapp", PackageManager.GET_SIGNATURES);
         for (Signature signature : info.signatures) {
             testSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
@@ -68,7 +68,7 @@ public class ADALErrorTests extends InstrumentationTestCase {
         ADALError err = ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED;
         String msg = err.getDescription();
         Log.v(TAG, "Test context packagename:"
-                + getInstrumentation().getContext().getPackageName());
+                + getInstrumentation().getTargetContext().getPackageName());
         Locale locale2 = new Locale("de");
         Locale.setDefault(locale2);
         Configuration config = new Configuration();
