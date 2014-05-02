@@ -103,7 +103,7 @@ public enum AuthenticationSettings {
      * @param clazz
      */
     public void setDeviceCertificateProxyClass(Class clazz) {
-        if (IDeviceCertificateProxy.class.isAssignableFrom(clazz)) {
+        if (IDeviceCertificate.class.isAssignableFrom(clazz)) {
             mClazzDeviceCertProxy = clazz;
         } else {
             throw new IllegalArgumentException("clazz");

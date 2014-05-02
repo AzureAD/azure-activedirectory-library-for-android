@@ -84,11 +84,12 @@ class ChallangeResponseBuilder {
 
         // If not device cert exists, alias or privatekey will not exist on the
         // device
-        Class<IDeviceCertificateProxy> certClazz = (Class<IDeviceCertificateProxy>)AuthenticationSettings.INSTANCE
+        @SuppressWarnings("unchecked")
+        Class<IDeviceCertificate> certClazz = (Class<IDeviceCertificate>)AuthenticationSettings.INSTANCE
                 .getDeviceCertificateProxy();
         // TODO error handling here
 
-        IDeviceCertificateProxy deviceCertProxy = getDeviceProxyInstance(certClazz);
+        IDeviceCertificate deviceCertProxy = getWPJAPIInstance(certClazz);
         if (deviceCertProxy.isValidIssuer(request.mCertAuthorities)) {
             RSAPrivateKey privateKey = deviceCertProxy.getRSAPrivateKey();
             if (privateKey != null) {
@@ -106,12 +107,12 @@ class ChallangeResponseBuilder {
         return response;
     }
 
-    private IDeviceCertificateProxy getDeviceProxyInstance(Class<IDeviceCertificateProxy> certClazz) {
-        IDeviceCertificateProxy deviceCertProxy = null;
+    private IDeviceCertificate getWPJAPIInstance(Class<IDeviceCertificate> certClazz) {
+        IDeviceCertificate deviceCertProxy = null;
         Constructor<?> constructor;
         try {
             constructor = certClazz.getDeclaredConstructor();
-            deviceCertProxy = (IDeviceCertificateProxy)constructor.newInstance(null);
+            deviceCertProxy = (IDeviceCertificate)constructor.newInstance(null);
         } catch (NoSuchMethodException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

@@ -96,7 +96,7 @@ class JWSBuilder implements IJWSBuilder {
         // BASE64URL(JWS Signature),
         // concatenated in that order, with the three strings being separated by
         // two period ('.') characters.
-        // Base64 encoding without padding, wrapping and urlsafe. 
+        // Base64 encoding without padding, wrapping and urlsafe.
         if (StringExtensions.IsNullOrBlank(nonce)) {
             throw new IllegalArgumentException("nonce");
         }
@@ -129,15 +129,17 @@ class JWSBuilder implements IJWSBuilder {
         try {
             RSAKey rsaKey = new RSAKey();
             rsaKey.mKeyId = keyId;
-            rsaKey.mKeyE = StringExtensions.encodeBase64URLSafeString(pubKey.getPublicExponent().toByteArray());
-            rsaKey.mKeyModulous = StringExtensions.encodeBase64URLSafeString(pubKey.getModulus().toByteArray());
+            rsaKey.mKeyE = StringExtensions.encodeBase64URLSafeString(pubKey.getPublicExponent()
+                    .toByteArray());
+            rsaKey.mKeyModulous = StringExtensions.encodeBase64URLSafeString(pubKey.getModulus()
+                    .toByteArray());
             header.mKeys = new RSAKey[] {
                 rsaKey
             };
 
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
-            Logger.v(TAG, "Client certificate challange response JWS Header:"+headerJsonString);
+            Logger.v(TAG, "Client certificate challange response JWS Header:" + headerJsonString);
             signingInput = StringExtensions.encodeBase64URLSafeString(headerJsonString
                     .getBytes(AuthenticationConstants.ENCODING_UTF8))
                     + "."

@@ -9,7 +9,7 @@ import java.util.List;
  * Work place join related certificate is required to respond device challange.
  *
  */
-public interface IDeviceCertificateProxy {
+public interface IDeviceCertificate {
     
     public boolean isValidIssuer(final List<String> certAuthorities);
     
