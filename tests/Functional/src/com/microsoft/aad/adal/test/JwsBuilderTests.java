@@ -54,7 +54,6 @@ public class JwsBuilderTests extends AndroidTestHelper {
         Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
                 String.class, RSAPrivateKey.class, RSAPublicKey.class, String.class);
         KeyStore keystore = loadTestCertificate();
-        // load the key entry from the keystore
         Key key = keystore.getKey(TEST_CERT_ALIAS, PKCS12_PASS.toCharArray());
         RSAPrivateKey privKey = (RSAPrivateKey)key;
         Certificate cert = keystore.getCertificate(TEST_CERT_ALIAS);
@@ -66,14 +65,35 @@ public class JwsBuilderTests extends AndroidTestHelper {
         verify(jws, publicKey, "nonce", "https://someurl");
     }
 
-    public void testGenerateSignedJWT_negative(){
+    public void testGenerateSignedJWT_negative() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+        Object jwsBuilder = getInstance();
+        Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
+                String.class, RSAPrivateKey.class, RSAPublicKey.class, String.class);
+
+        try {
+            String jws = (String)m.invoke(jwsBuilder, null, "https://someurl", null, null, null);
+        } catch (Exception ex) {
+            assertTrue("Argument excetpion", ex.getCause().getMessage().contains("nonce"));
+        }
         
+        try {
+            String jws = (String)m.invoke(jwsBuilder, "nonce", null, null, null, null);
+        } catch (Exception ex) {
+            assertTrue("Argument excetpion", ex.getCause().getMessage().contains("submitUrl"));
+        }
+        
+        try {
+            String jws = (String)m.invoke(jwsBuilder, "nonce", "url", null, null, null);
+        } catch (Exception ex) {
+            assertTrue("Argument excetpion", ex.getCause().getMessage().contains("privateKey"));
+        }
     }
-    
+
     private void verify(final String jws, RSAPublicKey publicKey, final String nonce,
             final String submiturl) throws NoSuchAlgorithmException, InvalidKeyException,
             UnsupportedEncodingException, SignatureException {
-
         int dot1 = jws.indexOf(".");
         assertFalse("Serialization error", dot1 == -1);
         int dot2 = jws.indexOf(".", dot1 + 1);
@@ -97,6 +117,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         assertTrue("Header has type field", headerText.contains("typ\":\"jwt\""));
         assertTrue("Body has nonce field", bodyText.contains("nonce\":\"" + nonce + "\""));
         assertTrue("Body has submiturl field", bodyText.contains("aud\":\"" + submiturl + "\""));
+        assertTrue("Body has iat field", bodyText.contains("iat\":"));
     }
 
     private KeyStore loadTestCertificate() throws IOException, CertificateException,

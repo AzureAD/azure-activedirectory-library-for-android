@@ -20,6 +20,8 @@ class JWSBuilder implements IJWSBuilder {
 
     private static final String JWS_ALGORITHM = "SHA256withRSA";
 
+    private static final String TAG = null;
+
     class Claims {
         @com.google.gson.annotations.SerializedName("aud")
         protected String mAudience;
@@ -65,6 +67,9 @@ class JWSBuilder implements IJWSBuilder {
         protected String mKeyId;
     }
 
+    /**
+     * 
+     */
     public String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
             RSAPublicKey pubKey, String thumbPrint) {
         // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-25
@@ -83,7 +88,10 @@ class JWSBuilder implements IJWSBuilder {
             throw new IllegalArgumentException("submitUrl");
         }
         if (privateKey == null) {
-            throw new IllegalArgumentException("key");
+            throw new IllegalArgumentException("privateKey");
+        }
+        if (pubKey == null) {
+            throw new IllegalArgumentException("pubKey");
         }
         if (StringExtensions.IsNullOrBlank(thumbPrint)) {
             throw new IllegalArgumentException("thumbPrint");
@@ -113,6 +121,7 @@ class JWSBuilder implements IJWSBuilder {
 
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
+            Logger.v(TAG, "Client certificate challange response JWS Header:"+headerJsonString);
             signingInput = StringExtensions.encodeBase64URLSafeString(headerJsonString
                     .getBytes(AuthenticationConstants.ENCODING_UTF8))
                     + "."

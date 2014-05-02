@@ -254,6 +254,8 @@ public class AuthenticationConstants {
          */
         public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
 
+        public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:CertAuth";
+
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";

@@ -31,6 +31,7 @@ import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -52,6 +53,7 @@ import android.content.IntentFilter;
 import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.security.KeyChainException;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
@@ -65,6 +67,7 @@ import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.R;
+import com.microsoft.aad.adal.ClientCertificateHandler.ChallangeResponse;
 
 /**
  * Activity to launch webview for authentication
@@ -536,7 +539,34 @@ public class AuthenticationActivity extends Activity {
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Logger.d(TAG, "shouldOverrideUrlLoading:url=" + url);
             displaySpinner(true);
-            if (url.startsWith(mRedirectUrl)) {
+            if (url.startsWith(AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT)) {
+                Logger.v(TAG, "Webview detected request for client certificate");
+                // TODO
+                view.stopLoading();
+                // avoid main thread locking
+                final String challangeUrl = url;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // TODO move dependencies
+                        ClientCertificateHandler certHandler = new ClientCertificateHandler(
+                                getApplicationContext(), new JWSBuilder());
+                        // TODO exceptions
+                        try {
+                            ChallangeResponse challangeResponse = certHandler
+                                    .getChallangeResponse(challangeUrl);
+                            HashMap<String, String> headers = new HashMap<String, String>();
+                            headers.put("Authorization", challangeResponse.mAuthorizationHeaderValue);
+                            mWebView.loadUrl(challangeResponse.mSubmitUrl, headers);
+                        } catch (KeyChainException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+
+                return true;
+            } else if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
                 if (!insideBroker()) {
                     // It is pointing to redirect. Final url can be processed to
