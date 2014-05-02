@@ -67,7 +67,7 @@ import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.R;
-import com.microsoft.aad.adal.ClientCertificateHandler.ChallangeResponse;
+import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 /**
  * Activity to launch webview for authentication
@@ -549,14 +549,15 @@ public class AuthenticationActivity extends Activity {
                     @Override
                     public void run() {
                         // TODO move dependencies
-                        ClientCertificateHandler certHandler = new ClientCertificateHandler(
-                                getApplicationContext(), new JWSBuilder());
+                        ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                                new JWSBuilder());
                         // TODO exceptions
                         try {
                             ChallangeResponse challangeResponse = certHandler
                                     .getChallangeResponse(challangeUrl);
                             HashMap<String, String> headers = new HashMap<String, String>();
-                            headers.put("Authorization", challangeResponse.mAuthorizationHeaderValue);
+                            headers.put("Authorization",
+                                    challangeResponse.mAuthorizationHeaderValue);
                             mWebView.loadUrl(challangeResponse.mSubmitUrl, headers);
                         } catch (KeyChainException e) {
                             // TODO Auto-generated catch block

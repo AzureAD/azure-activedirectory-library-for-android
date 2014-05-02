@@ -3,24 +3,19 @@ package com.microsoft.aad.adal;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.HashMap;
 import java.util.List;
 
-import android.content.Context;
 import android.security.KeyChainException;
 
-class ClientCertificateHandler {
+class ChallangeResponseBuilder {
 
-    private static final String TAG = "ClientCertificateHandler";
-
-    private Context mContext;
+    private static final String TAG = "ChallangeResponseBuilder";
 
     private IJWSBuilder mJWSBuilder;
 
-    ClientCertificateHandler(Context ctx, IJWSBuilder jwsBuilder) {
-        mContext = ctx;
+    ChallangeResponseBuilder(IJWSBuilder jwsBuilder) {
         mJWSBuilder = jwsBuilder;
     }
 
@@ -74,7 +69,7 @@ class ClientCertificateHandler {
         // device
         Class<IDeviceCertificateProxy> certClazz = (Class<IDeviceCertificateProxy>)AuthenticationSettings.INSTANCE
                 .getDeviceCertificateProxy();
-        // TODO error here
+        // TODO error handling here
 
         IDeviceCertificateProxy deviceCertProxy = getDeviceProxyInstance(certClazz);
         if (deviceCertProxy.isValidIssuer(request.mCertAuthorities)) {
@@ -82,7 +77,8 @@ class ClientCertificateHandler {
             if (privateKey != null) {
                 response.mSubmitUrl = request.mSubmitUrl;
                 String jwt = mJWSBuilder.generateSignedJWT(request.mNonce, request.mSubmitUrl,
-                        privateKey, deviceCertProxy.getRSAPublicKey(), deviceCertProxy.getThumbPrint());
+                        privateKey, deviceCertProxy.getRSAPublicKey(),
+                        deviceCertProxy.getThumbPrint());
                 response.mAuthorizationHeaderValue = String.format(
                         "CertAuth AuthToken=\"%s\",Context=\"%s\"", jwt, request.mContext);
                 Logger.v(TAG, "Challange response:" + response.mAuthorizationHeaderValue);

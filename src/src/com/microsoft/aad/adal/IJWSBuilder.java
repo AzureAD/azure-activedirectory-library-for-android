@@ -7,7 +7,7 @@ import java.security.interfaces.RSAPublicKey;
 /**
  * simple jws message to use in responding certificate challange
  */
-interface IJWSBuilder {
+public interface IJWSBuilder {
     public String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
             RSAPublicKey pubKey, String thumbPrint);
 }
