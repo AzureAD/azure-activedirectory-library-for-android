@@ -9,11 +9,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
@@ -50,19 +53,14 @@ public class JwsBuilderTests extends AndroidTestHelper {
             InvocationTargetException, NoSuchMethodException, UnrecoverableKeyException,
             KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException,
             InvalidKeyException, SignatureException {
-        Object jwsBuilder = getInstance();
-        Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
-                String.class, RSAPrivateKey.class, RSAPublicKey.class, String.class);
         KeyStore keystore = loadTestCertificate();
         Key key = keystore.getKey(TEST_CERT_ALIAS, PKCS12_PASS.toCharArray());
         RSAPrivateKey privKey = (RSAPrivateKey)key;
         Certificate cert = keystore.getCertificate(TEST_CERT_ALIAS);
         RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
 
-        String jws = (String)m.invoke(jwsBuilder, "nonce", "https://someurl", privKey, publicKey,
+        testSignedJWT(true, "nonce", "https://someurl", privKey, publicKey,
                 getThumbPrintFromCert((X509Certificate)cert));
-
-        verify(jws, publicKey, "nonce", "https://someurl");
     }
 
     public void testGenerateSignedJWT_negative() throws IllegalArgumentException,
@@ -73,27 +71,68 @@ public class JwsBuilderTests extends AndroidTestHelper {
                 String.class, RSAPrivateKey.class, RSAPublicKey.class, String.class);
 
         try {
-            String jws = (String)m.invoke(jwsBuilder, null, "https://someurl", null, null, null);
+            m.invoke(jwsBuilder, null, "https://someurl", null, null, null);
         } catch (Exception ex) {
             assertTrue("Argument excetpion", ex.getCause().getMessage().contains("nonce"));
         }
-        
+
         try {
-            String jws = (String)m.invoke(jwsBuilder, "nonce", null, null, null, null);
+            m.invoke(jwsBuilder, "nonce", null, null, null, null);
         } catch (Exception ex) {
             assertTrue("Argument excetpion", ex.getCause().getMessage().contains("submitUrl"));
         }
-        
+
         try {
-            String jws = (String)m.invoke(jwsBuilder, "nonce", "url", null, null, null);
+            m.invoke(jwsBuilder, "nonce", "url", null, null, null);
         } catch (Exception ex) {
             assertTrue("Argument excetpion", ex.getCause().getMessage().contains("privateKey"));
         }
     }
 
-    private void verify(final String jws, RSAPublicKey publicKey, final String nonce,
-            final String submiturl) throws NoSuchAlgorithmException, InvalidKeyException,
+    /**
+     * send invalid public and private key
+     * 
+     * @throws SignatureException
+     * @throws UnsupportedEncodingException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws ClassNotFoundException
+     * @throws InvalidKeyException
+     */
+    public void testGenerateSignedJWT_KeyPair() throws InvalidKeyException, ClassNotFoundException,
+            InstantiationException, IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, NoSuchMethodException, NoSuchAlgorithmException,
             UnsupportedEncodingException, SignatureException {
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        keyGen.initialize(1024);
+        KeyPair keyPair = keyGen.genKeyPair();
+        RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
+        RSAPrivateKey privateKey = (RSAPrivateKey)keyGen.genKeyPair().getPrivate();
+
+        testSignedJWT(false, "invalid key pairs", "https://someurl", privateKey, publicKey,
+                "thumprint12323");
+    }
+
+    private void testSignedJWT(boolean validSignature, String nonce, String url,
+            RSAPrivateKey privKey, RSAPublicKey publicKey, String thumbPrint)
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+            InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException,
+            SignatureException {
+        Object jwsBuilder = getInstance();
+        Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
+                String.class, RSAPrivateKey.class, RSAPublicKey.class, String.class);
+        String jws = (String)m.invoke(jwsBuilder, nonce, url, privKey, publicKey, thumbPrint);
+        verify(validSignature, jws, publicKey, nonce, url);
+    }
+
+    private void verify(boolean validSignature, final String jws, RSAPublicKey publicKey,
+            final String nonce, final String submiturl) throws NoSuchAlgorithmException,
+            InvalidKeyException, UnsupportedEncodingException, SignatureException {
         int dot1 = jws.indexOf(".");
         assertFalse("Serialization error", dot1 == -1);
         int dot2 = jws.indexOf(".", dot1 + 1);
@@ -107,7 +146,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         Signature verifier = Signature.getInstance(JWS_ALGORITHM);
         verifier.initVerify(publicKey);
         verifier.update(signInput);
-        assertTrue("Signature verify", verifier.verify(signatureBytes));
+        assertEquals("Signature verify", validSignature, verifier.verify(signatureBytes));
 
         String headerText = new String(Base64.decode(header, Base64.DEFAULT),
                 AuthenticationConstants.ENCODING_UTF8);
