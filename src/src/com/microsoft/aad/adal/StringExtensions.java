@@ -131,7 +131,7 @@ final class StringExtensions {
 
     static final List<String> getStringTokens(final String items, final String delimeter) {
         StringTokenizer st = new StringTokenizer(items, delimeter);
-        List<String> itemList = new ArrayList<>();
+        List<String> itemList = new ArrayList<String>();
         if (st.hasMoreTokens()) {
             while (st.hasMoreTokens()) {
                 String name = st.nextToken();
