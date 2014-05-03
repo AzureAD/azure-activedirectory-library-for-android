@@ -52,6 +52,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.microsoft.aad.adal.AuthenticationConstants;
+import com.microsoft.aad.adal.Logger;
 
 public class JwsBuilderTests extends AndroidTestHelper {
 
@@ -144,6 +145,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
                 String.class, RSAPrivateKey.class, RSAPublicKey.class, String.class);
         String jws = (String)m.invoke(jwsBuilder, nonce, url, privKey, publicKey, thumbPrint);
+        Logger.v(TAG, "Generated JWS:" + jws);
         verify(validSignature, jws, publicKey, nonce, url);
     }
 
