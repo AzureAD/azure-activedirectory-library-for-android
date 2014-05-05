@@ -126,7 +126,7 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
 11. You can always call **acquireToken** to handle caching, token refresh and credential prompt if required. Your callback implementation should handle the user cancellation for AuthenticationActivity. ADAL will return a cancellation error, if user cancels the credential entry.
 
 ### Sample app
-You can try sample app in "\samples\hello" with your configuration to test the ADAL. 
+You can try sample app in "\samples\hello" with your configuration to test the ADAL. Import adal src, hello app and clean the projects. Please make sure that hello app references adal src code from library page. Go to Properies->Android->Library section->Add adal project here. If adal project build properly, sample app will work.
 
 ### Customization
 Library project resources can be overwritten by your app resources. This happens when app is building. It means that you can customize Authentication Activity layout the way you want. You need to make sure to keep id of two controls that ADAL uses(Webview and button).
