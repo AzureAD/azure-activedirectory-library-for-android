@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
@@ -512,6 +513,21 @@ public class AuthenticationContext {
                             + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
                             ADALError.AUTH_FAILED_CANCELLED));
+                } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
+                    Serializable authException = extras
+                            .getSerializable(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
+                    if (authException != null && authException instanceof AuthenticationException) {
+                        AuthenticationException exception = (AuthenticationException)authException;
+                        Logger.w(TAG, "Webview returned exception", exception.getMessage(),
+                                ADALError.WEBVIEW_RETURNED_AUTHENTICATION_EXCEPTION);
+                        waitingRequestOnError(waitingRequest, requestId, exception);
+                    } else {
+                        waitingRequestOnError(
+                                waitingRequest,
+                                requestId,
+                                new AuthenticationException(
+                                        ADALError.WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION));
+                    }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
                     String errCode = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
@@ -606,8 +622,8 @@ public class AuthenticationContext {
 
     private static boolean isUserMisMatch(final String userId, final AuthenticationResult result) {
         return (!StringExtensions.IsNullOrBlank(userId) && result.getUserInfo() != null
-                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId()) && !userId.equalsIgnoreCase(result
-                .getUserInfo().getUserId()));
+                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId()) && !userId
+                    .equalsIgnoreCase(result.getUserInfo().getUserId()));
     }
 
     /**
@@ -1525,7 +1541,8 @@ public class AuthenticationContext {
      */
     public static String getVersionName() {
         // Package manager does not report for ADAL
-        // AndroidManifest files are not merged, so it is returning hard coded value
+        // AndroidManifest files are not merged, so it is returning hard coded
+        // value
         return "0.7";
     }
 }

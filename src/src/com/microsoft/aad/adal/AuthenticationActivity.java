@@ -391,6 +391,19 @@ public class AuthenticationActivity extends Activity {
         this.finish();
     }
 
+    private void returnAuthenticationException(final AuthenticationException e) {
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION, e);
+        if (mAuthRequest != null) {
+            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                    mAuthRequest);
+        }
+        this.setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
+                resultIntent);
+        this.finish();
+    }
+
     private String getBrokerUrl(String loadUrl, String packageName, String signatureDigest) {
         if (!StringExtensions.IsNullOrBlank(packageName)
                 && !StringExtensions.IsNullOrBlank(signatureDigest)) {
@@ -541,27 +554,30 @@ public class AuthenticationActivity extends Activity {
             displaySpinner(true);
             if (url.startsWith(AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT)) {
                 Logger.v(TAG, "Webview detected request for client certificate");
-                // TODO
                 view.stopLoading();
                 // avoid main thread locking
                 final String challangeUrl = url;
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        // TODO move dependencies
-                        ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
-                                new JWSBuilder());
-                        // TODO exceptions
                         try {
+                            ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                                    new JWSBuilder());
                             ChallangeResponse challangeResponse = certHandler
                                     .getChallangeResponse(challangeUrl);
                             HashMap<String, String> headers = new HashMap<String, String>();
                             headers.put("Authorization",
                                     challangeResponse.mAuthorizationHeaderValue);
+                            // TODO construct authorization url from given based
+                            // submission url
                             mWebView.loadUrl(challangeResponse.mSubmitUrl, headers);
-                        } catch (KeyChainException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                        } catch (AuthenticationException e) {
+                            Logger.e(TAG, "It is failed to create device certificate response",
+                                    e.getMessage(), ADALError.DEVICE_CERTIFICATE_RESPONSE_FAILED, e);
+                            // It should return error code and finish the
+                            // activity, so that onActivityResult implementation
+                            // returns errors to callback.
+                            returnAuthenticationException(e);
                         }
                     }
                 }).start();

@@ -77,8 +77,7 @@ class ChallangeResponseBuilder {
      * @return
      * @throws KeyChainException
      */
-    public ChallangeResponse getChallangeResponse(final String redirectUri)
-            throws KeyChainException {
+    public ChallangeResponse getChallangeResponse(final String redirectUri) {
         ChallangeRequest request = getChallangeRequest(redirectUri);
         ChallangeResponse response = getNoDeviceCertResponse(request);
 

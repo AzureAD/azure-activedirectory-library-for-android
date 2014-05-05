@@ -61,7 +61,7 @@ import com.microsoft.aad.adal.R;
 /**
  * Unit test to verify buttons, webview and other items.
  */
-public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<AuthenticationActivity> {
+public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<AuthenticationActivity> {
 
     private static final int TEST_REQUEST_ID = 123;
 
@@ -73,7 +73,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
 
     private AuthenticationActivity activity;
 
-    public AuthenticationActivityUnitTests() {
+    public AuthenticationActivityUnitTest() {
         super(AuthenticationActivity.class);
     }
 
@@ -200,7 +200,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
         ReflectionUtils.setFieldValue(activity, "mWebRequestHandler", webrequest);
-        Object authRequest = AuthenticationContextTests.createAuthenticationRequest(
+        Object authRequest = AuthenticationContextTest.createAuthenticationRequest(
                 "https://login.windows.net/test.test.com",
                 "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect",
                 "admin@aaltests.onmicrosoft.com");
@@ -249,7 +249,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
         ReflectionUtils.setFieldValue(activity, "mWebRequestHandler", webrequest);
-        Object authRequest = AuthenticationContextTests.createAuthenticationRequest(
+        Object authRequest = AuthenticationContextTest.createAuthenticationRequest(
                 "https://login.windows.net/test.test.com",
                 "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect",
                 "different@aaltests.onmicrosoft.com");
@@ -289,7 +289,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
         ReflectionUtils.setFieldValue(activity, "mWebRequestHandler", webrequest);
-        Object authRequest = AuthenticationContextTests.createAuthenticationRequest(
+        Object authRequest = AuthenticationContextTest.createAuthenticationRequest(
                 "https://login.windows.net/test.test.com",
                 "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect", null);
         AsyncTask<String, ?, ?> tokenTask = (AsyncTask<String, ?, ?>)getTokenTask();
@@ -332,7 +332,7 @@ public class AuthenticationActivityUnitTests extends ActivityUnitTestCase<Authen
         activity = getActivity();
         String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
-        Object authRequest = AuthenticationContextTests.createAuthenticationRequest(
+        Object authRequest = AuthenticationContextTest.createAuthenticationRequest(
                 "https://login.windows.net/test.test.com",
                 "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect",
                 "admin@aaltests.onmicrosoft.com");

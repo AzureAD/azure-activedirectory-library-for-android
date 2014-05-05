@@ -74,7 +74,7 @@ import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
 
-public class AuthenticationContextTests extends AndroidTestCase {
+public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * Check case-insensitive lookup
@@ -85,7 +85,7 @@ public class AuthenticationContextTests extends AndroidTestCase {
 
     private final static String TEST_AUTHORITY = "http://login.windows.net/common";
 
-    private static final String TAG = "AuthenticationContextTests";
+    private static final String TAG = "AuthenticationContextTest";
 
     protected void setUp() throws Exception {
         super.setUp();
@@ -1138,6 +1138,28 @@ public class AuthenticationContextTests extends AndroidTestCase {
         TestAuthCallBack callback = new TestAuthCallBack();
         Intent data = setWaitingRequestToContext(authContext, callback);
 
+        // act
+        authContext.onActivityResult(requestCode, resultCode, data);
+
+        // assert
+        assertTrue("Returns error", callback.callbackException instanceof AuthenticationException);
+    }
+    
+    @SmallTest
+    public void testOnActivityResult_ResultCode_Exception() throws ClassNotFoundException,
+            InstantiationException, IllegalAccessException, InvocationTargetException,
+            NoSuchMethodException {
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cache);
+        int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
+        int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+        TestAuthCallBack callback = new TestAuthCallBack();
+        Intent data = setWaitingRequestToContext(authContext, callback);
+        AuthenticationException exception = new AuthenticationException(ADALError.AUTH_FAILED);
+        data.putExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION, (Serializable)exception);
+        
         // act
         authContext.onActivityResult(requestCode, resultCode, data);
 

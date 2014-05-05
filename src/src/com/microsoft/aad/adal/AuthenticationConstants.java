@@ -28,6 +28,8 @@ public class AuthenticationConstants {
         public static final String RESPONSE_ERROR_CODE = "com.microsoft.aad.adal:BrowserErrorCode";
 
         public static final String RESPONSE_ERROR_MESSAGE = "com.microsoft.aad.adal:BrowserErrorMessage";
+        
+        public static final String RESPONSE_AUTHENTICATION_EXCEPTION = "com.microsoft.aad.adal:AuthenticationException";
 
         public static final String RESPONSE_FINAL_URL = "com.microsoft.aad.adal:BrowserFinalUrl";
 
@@ -41,14 +43,31 @@ public class AuthenticationConstants {
     }
 
     public static final class UIResponse {
+        /**
+         * User cancelled
+         */
         public static final int BROWSER_CODE_CANCEL = 2001;
 
+        /**
+         * Browser error
+         */
         public static final int BROWSER_CODE_ERROR = 2002;
 
+        /**
+         * Flow complete
+         */
         public static final int BROWSER_CODE_COMPLETE = 2003;
 
-        // Broker returns full response
+        /**
+         * Broker returns full response
+         */
         public static final int TOKEN_BROKER_RESPONSE = 2004;
+
+        /**
+         * Webview throws Authentication exception. It needs to be send to
+         * callback.
+         */
+        public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = 2005;
     }
 
     public static final class UIRequest {
@@ -230,18 +249,18 @@ public class AuthenticationConstants {
         public static final String CLIENT_TLS_NOT_SUPPORTED = " Client-TLS-not-supported";
 
         public static final String CHALLANGE_RESPONSE_HEADER = "Authorization";
-        
+
         public static final String CHALLANGE_RESPONSE_TYPE = "CertAuth";
 
         public static final String CHALLANGE_RESPONSE_TOKEN = "AuthToken";
 
         public static final String CHALLANGE_RESPONSE_CONTEXT = "Context";
-        
+
         /**
          * Certificate authorities are passed with delimiter
          */
         public static final String CHALLANGE_REQUEST_CERT_AUTH_DELIMETER = ",";
-        
+
         /**
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager

@@ -194,9 +194,17 @@ public enum ADALError {
 
     BROKER_ACCOUNT_SAVE_FAILED("Broker could not save the new account"),
 
-    BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist"), 
-    KEY_CHAIN_PRIVATE_KEY_EXCEPTION("Key Chain private key exception"), 
-    SIGNATURE_EXCEPTION("Signature exception");
+    BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist"),
+
+    KEY_CHAIN_PRIVATE_KEY_EXCEPTION("Key Chain private key exception"),
+
+    SIGNATURE_EXCEPTION("Signature exception"),
+
+    DEVICE_CERTIFICATE_RESPONSE_FAILED("It is failed to create device certificate response"),
+
+    WEBVIEW_RETURNED_AUTHENTICATION_EXCEPTION("Webview returned Authentication Exception"),
+    
+    WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION("Webview returned invalid or null Authentication Exception");
 
     private String mDescription;
 
@@ -216,10 +224,10 @@ public enum ADALError {
         // order.
         if (context != null) {
             Configuration conf = context.getResources().getConfiguration();
-            Resources resources = new Resources(context.getAssets(), context.getResources().getDisplayMetrics(), conf);
-            return resources.getString(
-                    resources.getIdentifier(this.name(), "string",
-                            context.getPackageName()));
+            Resources resources = new Resources(context.getAssets(), context.getResources()
+                    .getDisplayMetrics(), conf);
+            return resources.getString(resources.getIdentifier(this.name(), "string",
+                    context.getPackageName()));
         }
         return mDescription;
     }
