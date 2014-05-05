@@ -235,7 +235,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final TestLogResponse response = new TestLogResponse();
-        response.listenLogForMessageSegments(signal, "Refresh token did not return accesstoken.", "correlationId:" + requestCorrelationId.toString());
+        response.listenLogForMessageSegments(signal, "Refresh token did not return accesstoken.",
+                "correlationId:" + requestCorrelationId.toString());
 
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
@@ -956,8 +957,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertNotNull("Cache is NOT empty for this userid for regular token",
                 mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
                         false, "userid")));
-        assertTrue("Refresh token has userinfo",
-                callback.mResult.getUserInfo().getUserId().equalsIgnoreCase("userid"));        
+        assertTrue("Refresh token has userinfo", callback.mResult.getUserInfo().getUserId()
+                .equalsIgnoreCase("userid"));
         clearCache(context);
     }
 
@@ -1001,7 +1002,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 callback.mResult.getAccessToken());
         clearCache(context);
     }
-    
+
     @SmallTest
     public void testAcquireTokenCacheLookup_ReturnWrongUserId() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
@@ -1144,7 +1145,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         // assert
         assertTrue("Returns error", callback.callbackException instanceof AuthenticationException);
     }
-    
+
     @SmallTest
     public void testOnActivityResult_ResultCode_Exception() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, InvocationTargetException,
@@ -1158,13 +1159,42 @@ public class AuthenticationContextTest extends AndroidTestCase {
         TestAuthCallBack callback = new TestAuthCallBack();
         Intent data = setWaitingRequestToContext(authContext, callback);
         AuthenticationException exception = new AuthenticationException(ADALError.AUTH_FAILED);
-        data.putExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION, (Serializable)exception);
-        
+        data.putExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
+                (Serializable)exception);
+
         // act
         authContext.onActivityResult(requestCode, resultCode, data);
 
         // assert
-        assertTrue("Returns error", callback.callbackException instanceof AuthenticationException);
+        assertTrue("Returns authentication exception",
+                callback.callbackException instanceof AuthenticationException);
+        assertTrue(
+                "Returns authentication exception",
+                ((AuthenticationException)callback.callbackException).getCode() == ADALError.AUTH_FAILED);
+    }
+    
+    @SmallTest
+    public void testOnActivityResult_ResultCode_ExceptionMissing() throws ClassNotFoundException,
+            InstantiationException, IllegalAccessException, InvocationTargetException,
+            NoSuchMethodException {
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cache);
+        int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
+        int resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION;
+        TestAuthCallBack callback = new TestAuthCallBack();
+        Intent data = setWaitingRequestToContext(authContext, callback);
+       
+        // act
+        authContext.onActivityResult(requestCode, resultCode, data);
+
+        // assert
+        assertTrue("Returns authentication exception",
+                callback.callbackException instanceof AuthenticationException);
+        assertTrue(
+                "Returns authentication exception",
+                ((AuthenticationException)callback.callbackException).getCode() == ADALError.WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION);
     }
 
     @SmallTest
@@ -1270,7 +1300,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 callback.mResult.getAccessToken());
 
         // -----------Acquire token call will not return from cache for broad
-        // Token-cached item does not have access token since it was broad refresh
+        // Token-cached item does not have access token since it was broad
+        // refresh
         // token
         signal = new CountDownLatch(1);
         callback = new MockAuthenticationCallback(signal);
@@ -1319,7 +1350,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         assertNull("Result is null since it tries to start activity", callback.mResult);
-        assertEquals("Activity was attempted to start.", AuthenticationConstants.UIRequest.BROWSER_FLOW,
+        assertEquals("Activity was attempted to start.",
+                AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
 
         clearCache(context);
@@ -1418,7 +1450,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         refreshItem.setAccessToken("accessToken");
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(expiredTime.getTime());
-        refreshItem.setUserInfo(new UserInfo("userId", "givenName", "familyName", "identityProvider", true));
+        refreshItem.setUserInfo(new UserInfo("userId", "givenName", "familyName",
+                "identityProvider", true));
         cache.setItem(
                 CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userId"),
                 refreshItem);

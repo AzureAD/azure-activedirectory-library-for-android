@@ -107,6 +107,8 @@ public class AuthenticationActivity extends Activity {
     private AccountManager mAcctManager = null;
 
     private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
+    
+    private IJWSBuilder mJWSBuilder = new JWSBuilder();
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
@@ -547,7 +549,8 @@ public class AuthenticationActivity extends Activity {
                 }).create().show();
     }
 
-    private class CustomWebViewClient extends WebViewClient {
+    class CustomWebViewClient extends WebViewClient {
+        
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Logger.d(TAG, "shouldOverrideUrlLoading:url=" + url);
@@ -562,7 +565,7 @@ public class AuthenticationActivity extends Activity {
                     public void run() {
                         try {
                             ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
-                                    new JWSBuilder());
+                                    mJWSBuilder);
                             ChallangeResponse challangeResponse = certHandler
                                     .getChallangeResponse(challangeUrl);
                             HashMap<String, String> headers = new HashMap<String, String>();
@@ -581,7 +584,7 @@ public class AuthenticationActivity extends Activity {
                         }
                     }
                 }).start();
-
+                
                 return true;
             } else if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");

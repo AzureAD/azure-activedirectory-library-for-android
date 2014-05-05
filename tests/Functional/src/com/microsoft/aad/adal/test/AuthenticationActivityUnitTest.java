@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.security.interfaces.RSAPrivateKey;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -49,13 +50,16 @@ import android.test.RenamingDelegatingContext;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.HttpWebResponse;
+import com.microsoft.aad.adal.IJWSBuilder;
 import com.microsoft.aad.adal.R;
 
 /**
@@ -66,6 +70,8 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
     private static final int TEST_REQUEST_ID = 123;
 
     private static final long CONTEXT_REQUEST_TIME_OUT = 20000;
+
+    private static final long DEVICE_RESPONSE_WAIT = 500;
 
     private int buttonId;
 
@@ -113,17 +119,18 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
     @UiThreadTest
     public void testUserAgent() throws NoSuchFieldException, IllegalArgumentException,
             IllegalAccessException {
-        AuthenticationSettings.INSTANCE.setBrokerPackageName(getInstrumentation().getContext().getPackageName());
+        AuthenticationSettings.INSTANCE.setBrokerPackageName(getInstrumentation().getContext()
+                .getPackageName());
         startActivity(intentToStartActivity, null, null);
         activity = getActivity();
-        
+
         // Webview
         WebView webview = (WebView)activity.findViewById(R.id.webView1);
         assertNotNull(webview);
         String ua = webview.getSettings().getUserAgentString();
-        assertTrue(ua.contains(AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED));        
+        assertTrue(ua.contains(AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED));
     }
-    
+
     @SmallTest
     @UiThreadTest
     public void testLayout() throws NoSuchFieldException, IllegalArgumentException,
@@ -174,6 +181,71 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL);
         assertEquals(TEST_REQUEST_ID,
                 data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
+    }
+
+    /**
+     * Return authentication exception at setResult so that activity receives at
+     * onActivityResult
+     * 
+     * @throws IllegalArgumentException
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws ClassNotFoundException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
+    @SmallTest
+    @UiThreadTest
+    public void testWebview_AuthenticationException() throws IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            InterruptedException, ExecutionException {
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
+        MockDeviceCertProxy.reset();
+        MockDeviceCertProxy.sValidIssuer = true;
+        MockDeviceCertProxy.sPrivateKey = null;
+        String url = AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT
+                + "?Nonce=nonce1234&CertAuthorities=ABC&Version=1.0&SubmitUrl=submiturl&Context=serverContext";
+        WebViewClient client = getCustomWebViewClient();
+        WebView mockview = new WebView(getActivity().getApplicationContext());
+        ReflectionUtils.setFieldValue(activity, "spinner", null);
+
+        // Act
+        client.shouldOverrideUrlLoading(mockview, url);
+
+        // Verify result code that includes requestid. Activity will set the
+        // result back to caller.
+        TestLogResponse response = new TestLogResponse();
+        final CountDownLatch signal = new CountDownLatch(1);
+        response.listenForLogMessage("It is failed to create device certificate response", signal);
+        int counter = 0;
+        while (!isFinishCalled() && counter < 20) {
+            Thread.sleep(DEVICE_RESPONSE_WAIT);
+            counter++;
+        }
+
+        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION);
+        Serializable serialazable = data
+                .getSerializableExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
+        AuthenticationException exception = (AuthenticationException)serialazable;
+        assertNotNull("Exception is not null", exception);
+        assertEquals("Exception has AdalError for key", ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION,
+                exception.getCode());
+    }
+
+    private WebViewClient getCustomWebViewClient() throws NoSuchMethodException,
+            ClassNotFoundException, InstantiationException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException {
+        Class clazz = Class
+                .forName("com.microsoft.aad.adal.AuthenticationActivity$CustomWebViewClient");
+        Constructor[] constructors = clazz.getDeclaredConstructors();
+        constructors[0].setAccessible(true);
+        return (WebViewClient)constructors[0].newInstance(getActivity());
     }
 
     /**
