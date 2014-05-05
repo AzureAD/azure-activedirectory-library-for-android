@@ -42,7 +42,7 @@ You can clone and install from cmd line:
 
 ## Usage
 
-1. Follow Prerequisites
+1. Follow Prerequisites with maven or download dependencies and place in libs folder
 2. Add reference to your project as Android library. Please check here: http://developer.android.com/tools/projects/projects-eclipse.html
 3. Add project dependency for debugging in your project settings
 4. Update your proejct's AndroidManifest.xml file to include:
@@ -124,6 +124,9 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
 ```
   * Resource is required, Clientid is required. You can setup redirectUri as your packagename and it is not required to be provided for acquireToken call. PromptBehavior helps to ask for credentials to skip cache and cookie. Callback ill be called after authorization code is exchanged for a token. It will have an object of AuthenticationResult, which has accesstoken, date expired, and idtoken info. 
 11. You can always call **acquireToken** to handle caching, token refresh and credential prompt if required. Your callback implementation should handle the user cancellation for AuthenticationActivity. ADAL will return a cancellation error, if user cancels the credential entry.
+
+### Sample app
+You can try sample app in "\samples\hello" with your configuration to test the ADAL. 
 
 ### Customization
 Library project resources can be overwritten by your app resources. This happens when app is building. It means that you can customize Authentication Activity layout the way you want. You need to make sure to keep id of two controls that ADAL uses(Webview and button).
