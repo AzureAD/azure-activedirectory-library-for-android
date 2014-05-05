@@ -122,7 +122,7 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
  mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, PromptBehavior.Auto, "",
                 callback);
 ```
-  * Resource is required, Clientid is required. You can setup redirectUri as your packagename and it is not required to be provided for acquireToken call. PromptBehavior helps to ask for credentials to skip cache and cookie. Callback ill be called after authorization code is exchanged for a token. It will have an object of AuthenticationResult, which has accesstoken, date expired, and idtoken info. 
+  * Resource is required, Clientid is required. You can setup redirectUri as your packagename and it is not required to be provided for acquireToken call. PromptBehavior helps to ask for credentials to skip cache and cookie. Callback will be called after authorization code is exchanged for a token. It will have an object of AuthenticationResult, which has accesstoken, date expired, and idtoken info. 
 11. You can always call **acquireToken** to handle caching, token refresh and credential prompt if required. Your callback implementation should handle the user cancellation for AuthenticationActivity. ADAL will return a cancellation error, if user cancels the credential entry.
 
 ### Customization
