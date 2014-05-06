@@ -574,6 +574,13 @@ public class AuthenticationActivity extends Activity {
                             // TODO construct authorization url from given based
                             // submission url
                             mWebView.loadUrl(challangeResponse.mSubmitUrl, headers);
+                        } catch (IllegalArgumentException e) {
+                            Logger.e(TAG, "Argument exception",
+                                    e.getMessage(), ADALError.ARGUMENT_EXCEPTION, e);
+                            // It should return error code and finish the
+                            // activity, so that onActivityResult implementation
+                            // returns errors to callback.
+                            returnAuthenticationException(new AuthenticationException(ADALError.ARGUMENT_EXCEPTION, e.getMessage(), e));
                         } catch (AuthenticationException e) {
                             Logger.e(TAG, "It is failed to create device certificate response",
                                     e.getMessage(), ADALError.DEVICE_CERTIFICATE_RESPONSE_FAILED, e);

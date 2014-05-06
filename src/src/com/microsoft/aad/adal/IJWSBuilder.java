@@ -22,9 +22,22 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
 /**
- * simple jws message to use in responding certificate challange
+ * Interface to construct jws message for responding certificate challenge
  */
 public interface IJWSBuilder {
+
+    /**
+     * @param nonce A unique value issued by the server in its challenge. The
+     *            client is expected to return this value to the server in its
+     *            signed JWT response in order to perform device authentication.
+     *            The nonce is also persisted within the encrypted context
+     *            parameter.
+     * @param submitUrl The version number of the challenge-response based device authentication protocol. This is set to 1.0.
+     * @param privateKey    Private Key of the Device Certificate to sign the response
+     * @param pubKey        Public Key of the Device Certificate 
+     * @param thumbPrint    Hash of encoding of X509 cert
+     * @return
+     */
     public String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
             RSAPublicKey pubKey, String thumbPrint);
 }

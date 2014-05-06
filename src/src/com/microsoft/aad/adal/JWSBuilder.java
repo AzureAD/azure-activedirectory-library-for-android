@@ -150,8 +150,7 @@ class JWSBuilder implements IJWSBuilder {
             signature = sign((RSAPrivateKey)privateKey,
                     signingInput.getBytes(AuthenticationConstants.ENCODING_UTF8));
         } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
         }
         return signingInput + "." + signature;
     }
@@ -215,9 +214,7 @@ class JWSBuilder implements IJWSBuilder {
             throw new AuthenticationException(ADALError.SIGNATURE_EXCEPTION,
                     "RSA signature exception: " + e.getMessage(), e);
         } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
         }
-        return null;
     }
 }

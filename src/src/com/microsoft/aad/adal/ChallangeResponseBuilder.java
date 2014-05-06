@@ -113,20 +113,20 @@ class ChallangeResponseBuilder {
             constructor = certClazz.getDeclaredConstructor();
             deviceCertProxy = (IDeviceCertificate)constructor.newInstance(null);
         } catch (NoSuchMethodException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
+                    "WPJ Api constructor is not defined", e);
         } catch (InstantiationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
+                    "WPJ Api constructor is not defined", e);
         } catch (IllegalAccessException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
+                    "WPJ Api constructor is not defined", e);
         } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
+                    "WPJ Api constructor is not defined", e);
         } catch (InvocationTargetException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
+                    "WPJ Api constructor is not defined", e);
         }
         return deviceCertProxy;
     }

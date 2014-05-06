@@ -204,7 +204,8 @@ public enum ADALError {
 
     WEBVIEW_RETURNED_AUTHENTICATION_EXCEPTION("Webview returned Authentication Exception"),
     
-    WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION("Webview returned invalid or null Authentication Exception");
+    WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION("Webview returned invalid or null Authentication Exception"), 
+    DEVICE_CERTIFICATE_API_EXCEPTION("Device certificate API has exception");
 
     private String mDescription;
 
