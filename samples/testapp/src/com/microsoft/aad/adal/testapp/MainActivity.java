@@ -267,7 +267,7 @@ public class MainActivity extends Activity {
         keyGen.initialize(1024);
         KeyPair keyPair = keyGen.genKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey)keyGen.genKeyPair().getPrivate();
+        RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.sValidIssuer = true;
         MockDeviceCertProxy.sPrivateKey = privateKey;

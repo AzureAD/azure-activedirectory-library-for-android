@@ -130,7 +130,7 @@ class Oauth2 {
 
     public String getCodeRequestUrl() throws UnsupportedEncodingException {
         String requestUrl = String.format("%s?%s", getAuthorizationEndpoint(),
-                getAuthorizationEndpoint());
+                getAuthorizationEndpointQueryParameters());
         return requestUrl;
     }
 

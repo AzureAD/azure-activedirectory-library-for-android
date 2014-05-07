@@ -580,7 +580,8 @@ public class AuthenticationActivity extends Activity {
 
                                 @Override
                                 public void run() {
-                                    Logger.v(TAG, "Query parameters:" + mQueryParameters);
+                                    Logger.v(TAG, " Loadurl:" + challangeResponse.mSubmitUrl + "?"
+                                            + mQueryParameters);
                                     mWebView.loadUrl(challangeResponse.mSubmitUrl + "?"
                                             + mQueryParameters, headers);
                                 }
