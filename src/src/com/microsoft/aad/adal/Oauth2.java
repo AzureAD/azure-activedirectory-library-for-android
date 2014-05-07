@@ -73,16 +73,15 @@ class Oauth2 {
         return mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT;
     }
 
-    public String getCodeRequestUrl() throws UnsupportedEncodingException {
-
+    public String getAuthorizationEndpointQueryParameters() throws UnsupportedEncodingException {
         String requestUrl = String
-                .format("%s?response_type=%s&client_id=%s&resource=%s&redirect_uri=%s&state=%s",
-                        getAuthorizationEndpoint(), AuthenticationConstants.OAuth2.CODE, URLEncoder
-                                .encode(mRequest.getClientId(),
-                                        AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
-                                mRequest.getResource(), AuthenticationConstants.ENCODING_UTF8),
-                        URLEncoder.encode(mRequest.getRedirectUri(),
-                                AuthenticationConstants.ENCODING_UTF8), encodeProtocolState());
+                .format("response_type=%s&client_id=%s&resource=%s&redirect_uri=%s&state=%s",
+                        AuthenticationConstants.OAuth2.CODE, URLEncoder.encode(
+                                mRequest.getClientId(), AuthenticationConstants.ENCODING_UTF8),
+                        URLEncoder.encode(mRequest.getResource(),
+                                AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
+                                mRequest.getRedirectUri(), AuthenticationConstants.ENCODING_UTF8),
+                        encodeProtocolState());
 
         if (mRequest.getLoginHint() != null && !mRequest.getLoginHint().isEmpty()) {
             requestUrl = String.format("%s&%s=%s", requestUrl,
@@ -125,7 +124,13 @@ class Oauth2 {
             }
             requestUrl = requestUrl + params;
         }
+        return requestUrl;
 
+    }
+
+    public String getCodeRequestUrl() throws UnsupportedEncodingException {
+        String requestUrl = String.format("%s?%s", getAuthorizationEndpoint(),
+                getAuthorizationEndpoint());
         return requestUrl;
     }
 

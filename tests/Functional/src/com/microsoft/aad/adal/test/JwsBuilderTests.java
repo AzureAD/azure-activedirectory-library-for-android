@@ -97,7 +97,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         try {
             m.invoke(jwsBuilder, "nonce", null, null, null, null);
         } catch (Exception ex) {
-            assertTrue("Argument excetpion", ex.getCause().getMessage().contains("submitUrl"));
+            assertTrue("Argument excetpion", ex.getCause().getMessage().contains("audience"));
         }
 
         try {
@@ -172,7 +172,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         String bodyText = new String(Base64.decode(body, Base64.DEFAULT),
                 AuthenticationConstants.ENCODING_UTF8);
         assertTrue("Header has alg field", headerText.contains("alg\":\"RS256\""));
-        assertTrue("Header has type field", headerText.contains("typ\":\"jwt\""));
+        assertTrue("Header has type field", headerText.contains("typ\":\"JWT\""));
         assertTrue("Body has nonce field", bodyText.contains("nonce\":\"" + nonce + "\""));
         assertTrue("Body has submiturl field", bodyText.contains("aud\":\"" + submiturl + "\""));
         assertTrue("Body has iat field", bodyText.contains("iat\":"));

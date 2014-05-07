@@ -20,7 +20,11 @@ package com.microsoft.aad.adal.testapp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -60,6 +64,7 @@ import com.microsoft.aad.adal.AuthenticationCancelError;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
 import com.microsoft.aad.adal.ITokenCacheStore;
@@ -257,6 +262,20 @@ public class MainActivity extends Activity {
         });
     }
 
+    public void initDeviceCertificateMock() throws NoSuchAlgorithmException {
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        keyGen.initialize(1024);
+        KeyPair keyPair = keyGen.genKeyPair();
+        RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
+        RSAPrivateKey privateKey = (RSAPrivateKey)keyGen.genKeyPair().getPrivate();
+        MockDeviceCertProxy.reset();
+        MockDeviceCertProxy.sValidIssuer = true;
+        MockDeviceCertProxy.sPrivateKey = privateKey;
+        MockDeviceCertProxy.sPublicKey = publicKey;
+        MockDeviceCertProxy.sThumbPrint = "test";
+        AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -347,10 +366,10 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void setContextForScriptRun(final AuthenticationContext context){
+    public void setContextForScriptRun(final AuthenticationContext context) {
         this.mContext = context;
     }
-    
+
     private void removeCookies() {
         // Clear browser cookies
         CookieSyncManager.createInstance(MainActivity.this);

@@ -33,12 +33,21 @@ import com.google.gson.Gson;
  * JWS response builder for certificate challenge response
  */
 class JWSBuilder implements IJWSBuilder {
+    /**
+     * Algorithm is fixed to RSA PKCS v1.5
+     */
     private static final String JWS_HEADER_ALG = "RS256";
 
+    /**
+     * Algorithm name in this provider
+     */
     private static final String JWS_ALGORITHM = "SHA256withRSA";
 
-    private static final String TAG = null;
+    private static final String TAG = "JWSBuilder";
 
+    /**
+     * Payload for JWS
+     */
     class Claims {
         @com.google.gson.annotations.SerializedName("aud")
         protected String mAudience;
@@ -50,6 +59,9 @@ class JWSBuilder implements IJWSBuilder {
         protected String mNonce;
     }
 
+    /**
+     * Header that includes algorithm, type, thumbprint, keys, and keyid
+     */
     class JwsHeader {
         @com.google.gson.annotations.SerializedName("alg")
         protected String mAlgorithm;
@@ -67,6 +79,9 @@ class JWSBuilder implements IJWSBuilder {
         protected String mKeyId;
     }
 
+    /**
+     * RSA Key info according to the Internal protocol spec
+     */
     class RSAKey {
         @com.google.gson.annotations.SerializedName("kty")
         protected String mKeyType = "RSA";
@@ -87,7 +102,7 @@ class JWSBuilder implements IJWSBuilder {
     /**
      * 
      */
-    public String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
+    public String generateSignedJWT(String nonce, String audience, RSAPrivateKey privateKey,
             RSAPublicKey pubKey, String thumbPrint) {
         // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-25
         // In the JWS Compact Serialization, a JWS object is represented as the
@@ -101,8 +116,8 @@ class JWSBuilder implements IJWSBuilder {
         if (StringExtensions.IsNullOrBlank(nonce)) {
             throw new IllegalArgumentException("nonce");
         }
-        if (StringExtensions.IsNullOrBlank(submitUrl)) {
-            throw new IllegalArgumentException("submitUrl");
+        if (StringExtensions.IsNullOrBlank(audience)) {
+            throw new IllegalArgumentException("audience");
         }
         if (privateKey == null) {
             throw new IllegalArgumentException("privateKey");
@@ -117,12 +132,12 @@ class JWSBuilder implements IJWSBuilder {
         Gson gson = new Gson();
         Claims claims = new Claims();
         claims.mNonce = nonce;
-        claims.mAudience = submitUrl;
+        claims.mAudience = audience;
         claims.mIssueAt = (System.currentTimeMillis() / 1000L);
 
         JwsHeader header = new JwsHeader();
         header.mAlgorithm = JWS_HEADER_ALG;
-        header.mType = "jwt";
+        header.mType = "JWT"; // recommended UpperCase in JWT Spec
         header.mCertThumbprint = thumbPrint;
         String keyId = "1";
         header.mKeyId = keyId;
@@ -167,11 +182,8 @@ class JWSBuilder implements IJWSBuilder {
         // round bitlen
         bitlen = ((bitlen + 7) >> 3) << 3;
         final byte[] bigBytes = bigInt.toByteArray();
-
         if (((bigInt.bitLength() % 8) != 0) && (((bigInt.bitLength() / 8) + 1) == (bitlen / 8))) {
-
             return bigBytes;
-
         }
 
         // set up params for copying everything but sign bit
@@ -183,27 +195,23 @@ class JWSBuilder implements IJWSBuilder {
             startSrc = 1;
             len--;
         }
-
         final int startDst = bitlen / 8 - len; // to pad w/ nulls as per spec
         final byte[] resizedBytes = new byte[bitlen / 8];
         System.arraycopy(bigBytes, startSrc, resizedBytes, startDst, len);
         return resizedBytes;
     }
 
-    private static Signature getSigner() throws AuthenticationException {
-        Signature signer;
+    /**
+     * Signs the input with the private key
+     * 
+     * @param privateKey
+     * @param input
+     * @return
+     */
+    private static String sign(RSAPrivateKey privateKey, final byte[] input) {
+        Signature signer = null;
         try {
             signer = Signature.getInstance(JWS_ALGORITHM);
-        } catch (NoSuchAlgorithmException e) {
-            throw new AuthenticationException(ADALError.DEVICE_NO_SUCH_ALGORITHM,
-                    "Unsupported RSA algorithm: " + e.getMessage(), e);
-        }
-        return signer;
-    }
-
-    private static String sign(RSAPrivateKey privateKey, final byte[] input) {
-        Signature signer = getSigner();
-        try {
             signer.initSign(privateKey);
             signer.update(input);
             return StringExtensions.encodeBase64URLSafeString(signer.sign());
@@ -215,6 +223,9 @@ class JWSBuilder implements IJWSBuilder {
                     "RSA signature exception: " + e.getMessage(), e);
         } catch (UnsupportedEncodingException e) {
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
+        } catch (NoSuchAlgorithmException e) {
+            throw new AuthenticationException(ADALError.DEVICE_NO_SUCH_ALGORITHM,
+                    "Unsupported RSA algorithm: " + e.getMessage(), e);
         }
     }
 }

@@ -1,5 +1,5 @@
 
-package com.microsoft.aad.adal.test;
+package com.microsoft.aad.adal.testapp;
 
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;

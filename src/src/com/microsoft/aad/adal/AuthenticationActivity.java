@@ -107,8 +107,10 @@ public class AuthenticationActivity extends Activity {
     private AccountManager mAcctManager = null;
 
     private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
-    
+
     private IJWSBuilder mJWSBuilder = new JWSBuilder();
+
+    private String mQueryParameters;
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
@@ -198,13 +200,16 @@ public class AuthenticationActivity extends Activity {
         updateRequestForAccounts();
 
         try {
-            mStartUrl = new Oauth2(mAuthRequest, null).getCodeRequestUrl();
+            Oauth2 oauth = new Oauth2(mAuthRequest, null);
+            mStartUrl = oauth.getCodeRequestUrl();
+            mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, e.getMessage());
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            return;
         }
 
         // Create the broadcast receiver for cancel
@@ -550,7 +555,7 @@ public class AuthenticationActivity extends Activity {
     }
 
     class CustomWebViewClient extends WebViewClient {
-        
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Logger.d(TAG, "shouldOverrideUrlLoading:url=" + url);
@@ -566,21 +571,28 @@ public class AuthenticationActivity extends Activity {
                         try {
                             ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
                                     mJWSBuilder);
-                            ChallangeResponse challangeResponse = certHandler
+                            final ChallangeResponse challangeResponse = certHandler
                                     .getChallangeResponse(challangeUrl);
-                            HashMap<String, String> headers = new HashMap<String, String>();
+                            final HashMap<String, String> headers = new HashMap<String, String>();
                             headers.put("Authorization",
                                     challangeResponse.mAuthorizationHeaderValue);
-                            // TODO construct authorization url from given based
-                            // submission url
-                            mWebView.loadUrl(challangeResponse.mSubmitUrl, headers);
+                            mWebView.post(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    Logger.v(TAG, "Query parameters:" + mQueryParameters);
+                                    mWebView.loadUrl(challangeResponse.mSubmitUrl + "?"
+                                            + mQueryParameters, headers);
+                                }
+                            });
                         } catch (IllegalArgumentException e) {
-                            Logger.e(TAG, "Argument exception",
-                                    e.getMessage(), ADALError.ARGUMENT_EXCEPTION, e);
+                            Logger.e(TAG, "Argument exception", e.getMessage(),
+                                    ADALError.ARGUMENT_EXCEPTION, e);
                             // It should return error code and finish the
                             // activity, so that onActivityResult implementation
                             // returns errors to callback.
-                            returnAuthenticationException(new AuthenticationException(ADALError.ARGUMENT_EXCEPTION, e.getMessage(), e));
+                            returnAuthenticationException(new AuthenticationException(
+                                    ADALError.ARGUMENT_EXCEPTION, e.getMessage(), e));
                         } catch (AuthenticationException e) {
                             Logger.e(TAG, "It is failed to create device certificate response",
                                     e.getMessage(), ADALError.DEVICE_CERTIFICATE_RESPONSE_FAILED, e);
@@ -591,7 +603,7 @@ public class AuthenticationActivity extends Activity {
                         }
                     }
                 }).start();
-                
+
                 return true;
             } else if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
