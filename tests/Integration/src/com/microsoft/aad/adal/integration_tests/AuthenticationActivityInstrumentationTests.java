@@ -303,7 +303,7 @@ public class AuthenticationActivityInstrumentationTests extends
         // Activity runs at main thread. Test runs on different thread
         Log.v(TAG, "testAcquireToken_Prompt starts for authority:" + tenant.getAuthority());
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
-        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Never, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.CACHE_ONLY, "", false);
 
         // press clear all button to clear tokens and cookies
         clickResetTokens();
@@ -365,7 +365,7 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.d(TAG, "Get token after delay");
         Thread.sleep(SLEEP_NEXT_REQUEST);
         // Stores token based on requested userid
-        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Never, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.CACHE_ONLY, "", false);
         clickGetToken();
         AuthenticationResult result2 = activity.getResult();
         verifyTokenSame(result, result2);
@@ -406,7 +406,7 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("token is multiresource", result.getIsMultiResourceRefreshToken());
         // TODO: It records to cache based on request. Change that for updated
         // logic.
-        setAuthenticationRequest(tenant, tenant.getResource2(), "", PromptBehavior.Never, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource2(), "", PromptBehavior.CACHE_ONLY, "", false);
         Thread.sleep(SLEEP_NEXT_REQUEST);
         clickGetToken();
         AuthenticationResult result2 = activity.getResult();
@@ -424,7 +424,7 @@ public class AuthenticationActivityInstrumentationTests extends
 
         Log.d(TAG, "Ask token for resource2");
         assertTrue("token is multiresource", result.getIsMultiResourceRefreshToken());
-        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Never, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.CACHE_ONLY, "", false);
         for (int i = 0; i < 10; i++) {
             clickGetToken();
             AuthenticationResult result2 = activity.getResult();
@@ -490,7 +490,7 @@ public class AuthenticationActivityInstrumentationTests extends
                 mClient.setText("invalid");
 
                 // We dont want to try Webview to launch
-                mPrompt.setText(PromptBehavior.Never.name());
+                mPrompt.setText(PromptBehavior.CACHE_ONLY.name());
             }
         });
 
