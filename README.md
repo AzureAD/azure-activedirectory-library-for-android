@@ -142,6 +142,8 @@ You can also provide your cache implementation, if you want to customize it.
 ```Java
 mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCache);
 ```
+### PromptBehavior
+ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI. PromptBehavior.CacheOnly will only use cache and refresh token. It will fail if UI is needed.
 
 ### Logger
 ADAL provides simple callback logger. You can set your callback for logging.
