@@ -19,6 +19,7 @@
     <scm.branch>master</scm.branch>
     <maven.version>3.1.1</maven.version>
     <adal.version>0.7</adal.version>
+    <android.platform.maven.plugin>18</android.platform.maven.plugin>
     <android.version>[4.1.1.4,)</android.version>
     <android.support.version>[18,)</android.support.version>
   </properties>
@@ -55,9 +56,8 @@
           <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
           <assetsDirectory>${project.basedir}/assets</assetsDirectory>
           <resourceDirectory>${project.basedir}/res</resourceDirectory>
-          <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
           <sdk>
-            <platform>19</platform>
+            <platform>${android.platform.maven.plugin}</platform>
           </sdk>
           <deleteConflictingFiles>true</deleteConflictingFiles>
           <undeployBeforeDeploy>true</undeployBeforeDeploy>
