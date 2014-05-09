@@ -19,7 +19,7 @@
     <scm.branch>master</scm.branch>
     <maven.version>3.1.1</maven.version>
     <adal.version>0.7</adal.version>
-    <android.version>4.1.1.4</android.version>
+    <android.version>[4.1.1.4,)</android.version>
     <android.support.version>[18,)</android.support.version>
   </properties>
   <scm>

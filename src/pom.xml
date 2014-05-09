@@ -32,14 +32,11 @@
   <scm>
     <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git</url>
   </scm>
-  <properties>
-    <android.support.version>[18,)</android.support.version>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>android</groupId>
       <artifactId>android</artifactId>
-      <version>[4.4.0,)</version>
+      <version>${android.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
