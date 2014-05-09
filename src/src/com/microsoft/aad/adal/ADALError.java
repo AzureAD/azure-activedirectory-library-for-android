@@ -203,9 +203,13 @@ public enum ADALError {
     DEVICE_CERTIFICATE_RESPONSE_FAILED("It is failed to create device certificate response"),
 
     WEBVIEW_RETURNED_AUTHENTICATION_EXCEPTION("Webview returned Authentication Exception"),
-    
-    WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION("Webview returned invalid or null Authentication Exception"), 
-    DEVICE_CERTIFICATE_API_EXCEPTION("Device certificate API has exception");
+
+    WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION(
+            "Webview returned invalid or null Authentication Exception"),
+
+    DEVICE_CERTIFICATE_API_EXCEPTION("Device certificate API has exception"),
+
+    DEVICE_CERTIFICATE_REQUEST_INVALID("Device certificate request is valid");
 
     private String mDescription;
 

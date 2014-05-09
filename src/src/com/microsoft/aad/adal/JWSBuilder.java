@@ -84,19 +84,19 @@ class JWSBuilder implements IJWSBuilder {
      */
     class RSAKey {
         @com.google.gson.annotations.SerializedName("kty")
-        protected String mKeyType = "RSA";
+        protected String mType = "RSA";
 
         @com.google.gson.annotations.SerializedName("alg")
         protected String mAlgorithm = "RS256";
 
         @com.google.gson.annotations.SerializedName("n")
-        protected String mKeyModulous;
+        protected String mModulous;
 
         @com.google.gson.annotations.SerializedName("e")
-        protected String mKeyE;
+        protected String mExponent;
 
         @com.google.gson.annotations.SerializedName("kid")
-        protected String mKeyId;
+        protected String mId;
     }
 
     /**
@@ -144,10 +144,10 @@ class JWSBuilder implements IJWSBuilder {
         String signingInput = "", signature = "";
         try {
             RSAKey rsaKey = new RSAKey();
-            rsaKey.mKeyId = keyId;
-            rsaKey.mKeyE = StringExtensions.encodeBase64URLSafeString(toBytesUnsigned(pubKey
+            rsaKey.mId = keyId;
+            rsaKey.mExponent = StringExtensions.encodeBase64URLSafeString(toBytesUnsigned(pubKey
                     .getPublicExponent()));
-            rsaKey.mKeyModulous = StringExtensions.encodeBase64URLSafeString(toBytesUnsigned(pubKey
+            rsaKey.mModulous = StringExtensions.encodeBase64URLSafeString(toBytesUnsigned(pubKey
                     .getModulus()));
             header.mKeys = new RSAKey[] {
                 rsaKey

@@ -47,6 +47,8 @@ import java.util.Enumeration;
 
 import javax.security.auth.x500.X500Principal;
 
+import junit.framework.Assert;
+
 import android.content.Context;
 import android.util.Base64;
 import android.util.Log;
@@ -90,20 +92,23 @@ public class JwsBuilderTests extends AndroidTestHelper {
 
         try {
             m.invoke(jwsBuilder, null, "https://someurl", null, null, null);
+            Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument excetpion", ex.getCause().getMessage().contains("nonce"));
         }
 
         try {
             m.invoke(jwsBuilder, "nonce", null, null, null, null);
+            Assert.fail("No exception");
         } catch (Exception ex) {
-            assertTrue("Argument excetpion", ex.getCause().getMessage().contains("audience"));
+            assertTrue("Argument exception", ex.getCause().getMessage().contains("audience"));
         }
 
         try {
             m.invoke(jwsBuilder, "nonce", "url", null, null, null);
+            Assert.fail("No exception");
         } catch (Exception ex) {
-            assertTrue("Argument excetpion", ex.getCause().getMessage().contains("privateKey"));
+            assertTrue("Argument exception", ex.getCause().getMessage().contains("privateKey"));
         }
     }
 

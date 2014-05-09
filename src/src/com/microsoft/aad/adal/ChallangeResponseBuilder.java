@@ -146,19 +146,23 @@ class ChallangeResponseBuilder {
         ChallangeRequest challange = new ChallangeRequest();
         HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUri);
         if (!parameters.containsKey(RequestField.Nonce.name())) {
-            throw new IllegalArgumentException("Nonce");
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, "Nonce");
         }
         if (!parameters.containsKey(RequestField.CertAuthorities.name())) {
-            throw new IllegalArgumentException("CertAuthorities");
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    "CertAuthorities");
         }
         if (!parameters.containsKey(RequestField.Version.name())) {
-            throw new IllegalArgumentException("Version");
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    "Version");
         }
         if (!parameters.containsKey(RequestField.SubmitUrl.name())) {
-            throw new IllegalArgumentException("SubmitUrl");
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    "SubmitUrl");
         }
         if (!parameters.containsKey(RequestField.Context.name())) {
-            throw new IllegalArgumentException("Context");
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    "Context");
         }
         challange.mNonce = parameters.get(RequestField.Nonce.name());
         String authorities = parameters.get(RequestField.CertAuthorities.name());
