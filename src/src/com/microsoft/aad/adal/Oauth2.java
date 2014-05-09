@@ -534,7 +534,7 @@ class Oauth2 {
         if (correlationIdInHeader != null && !correlationIdInHeader.isEmpty()) {
             try {
                 UUID correlation = UUID.fromString(correlationIdInHeader);
-                if (correlation != mRequest.getCorrelationId()) {
+                if (!correlation.equals(mRequest.getCorrelationId())) {
                     Logger.w(TAG, "CorrelationId is not matching", "",
                             ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE);
                 }

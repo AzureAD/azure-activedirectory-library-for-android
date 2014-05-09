@@ -23,7 +23,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -31,6 +37,7 @@ import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 import com.microsoft.aad.adal.AuthenticationContext;
@@ -439,6 +446,35 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
         assertEquals("Same refresh token in parsed result", "refreshfasdfsdf435=",
                 result.getRefreshToken());
+    }
+    
+    @SmallTest
+    public void testprocessTokenResponse_Wrong_CorrelationId() throws IllegalArgumentException,
+            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException {
+        Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
+                "loginhint", null, null, UUID.randomUUID());
+        Object oauth = createOAuthInstance(request);
+        Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
+                Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
+        String json = "{\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
+        List<String> listOfHeaders = new ArrayList<String>();
+        listOfHeaders.add(UUID.randomUUID().toString());
+        HashMap<String, List<String>> headers = new HashMap<String, List<String>>();
+        headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, listOfHeaders);
+        HttpWebResponse mockResponse = new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), headers);
+        TestLogResponse logResponse = new TestLogResponse();
+        logResponse.listenForLogMessage("CorrelationId is not matching", null);
+
+        // send call with mocks
+        AuthenticationResult result = (AuthenticationResult)m.invoke(oauth, mockResponse);
+
+        // verify same token
+        assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
+        assertTrue("Log response has message",
+                logResponse.errorCode
+                        .equals(ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE));
     }
 
     @SmallTest
