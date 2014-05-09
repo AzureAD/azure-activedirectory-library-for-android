@@ -64,7 +64,6 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 
 import com.google.gson.Gson;
-import com.microsoft.aad.adal.R;
 
 /**
  * Activity to launch webview for authentication
@@ -144,7 +143,7 @@ public class AuthenticationActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_authentication);
+        setContentView(ResourceFinder.getResourseIdByName(this.getPackageName(), "layout", "activity_authentication"));
 
         // Get the message from the intent
         mAcctManager = AccountManager.get(getApplicationContext());
@@ -265,7 +264,7 @@ public class AuthenticationActivity extends Activity {
     }
 
     private void setupWebView() {
-        btnCancel = (Button)findViewById(R.id.btnCancel);
+        btnCancel = (Button)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(), "id", "btnCancel"));
         btnCancel.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -277,7 +276,7 @@ public class AuthenticationActivity extends Activity {
         // Spinner dialog to show some message while it is loading
         spinner = new ProgressDialog(this);
         spinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        spinner.setMessage(this.getText(R.string.app_loading));
+        spinner.setMessage(this.getText(ResourceFinder.getResourseIdByName(this.getPackageName(), "string", "app_loading")));
         spinner.setOnCancelListener(new OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
@@ -286,7 +285,7 @@ public class AuthenticationActivity extends Activity {
         });
 
         // Create the Web View to show the page
-        mWebView = (WebView)findViewById(R.id.webView1);
+        mWebView = (WebView)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(), "id", "webView1"));
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
