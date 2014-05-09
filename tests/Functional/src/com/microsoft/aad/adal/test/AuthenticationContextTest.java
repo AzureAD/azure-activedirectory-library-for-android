@@ -241,7 +241,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
         context.acquireToken(new MockActivity(), expectedResource, expectedClientId, "redirect",
-                expectedUser, PromptBehavior.Never, null, callback);
+                expectedUser, PromptBehavior.CACHE_ONLY, null, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that web request send correct headers
@@ -890,7 +890,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 "503");
 
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
-                PromptBehavior.Never, null, callback);
+                PromptBehavior.CACHE_ONLY, null, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result

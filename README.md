@@ -125,6 +125,19 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
   * Resource is required, Clientid is required. You can setup redirectUri as your packagename and it is not required to be provided for acquireToken call. PromptBehavior helps to ask for credentials to skip cache and cookie. Callback ill be called after authorization code is exchanged for a token. It will have an object of AuthenticationResult, which has accesstoken, date expired, and idtoken info. 
 11. You can always call **acquireToken** to handle caching, token refresh and credential prompt if required. Your callback implementation should handle the user cancellation for AuthenticationActivity. ADAL will return a cancellation error, if user cancels the credential entry.
 
+### SDK Usage Options
+There are two ways to include the SDK in your project: 1-) You can include and build the Android Library Project in your IDE or 2-) You can use Maven.
+Option-1 is explained above. Option-2: You can see example usage in wiki page https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Android-Studio-and-Maven
+
+You could resolve support mismatch issue by
+```
+mvn install -Dextras.compatibility.v4.groupid=com.android.support \
+            -Dextras.compatibility.v4.artifactid=support-v4
+
+mvn install -Dextras.compatibility.v13.groupid=com.android.support \
+            -Dextras.compatibility.v13.artifactid=support-v13
+```            
+
 ### Customization
 Library project resources can be overwritten by your app resources. This happens when app is building. It means that you can customize Authentication Activity layout the way you want. You need to make sure to keep id of two controls that ADAL uses(Webview and button).
 
@@ -142,6 +155,8 @@ You can also provide your cache implementation, if you want to customize it.
 ```Java
 mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCache);
 ```
+### PromptBehavior
+ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI. PromptBehavior.CacheOnly will only use cache and refresh token. It will fail if UI is needed.
 
 ### Logger
 ADAL provides simple callback logger. You can set your callback for logging.

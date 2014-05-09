@@ -401,7 +401,7 @@ public class AuthenticationContext {
         }
 
         // Not required if prompt behavior is never
-        if (activity == null && behavior != PromptBehavior.Never) {
+        if (activity == null && behavior != PromptBehavior.CACHE_ONLY) {
             throw new IllegalArgumentException("activity");
         }
 
@@ -925,7 +925,7 @@ public class AuthenticationContext {
             }
 
             // launch broker activity
-            if (request.getPrompt() != PromptBehavior.Never) {
+            if (request.getPrompt() != PromptBehavior.CACHE_ONLY) {
                 Logger.v(TAG, "Launch activity for Authenticator");
                 mAuthorizationCallback = callbackHandle.callback;
                 request.setRequestId(callbackHandle.callback.hashCode());
@@ -994,7 +994,7 @@ public class AuthenticationContext {
             refreshToken(callbackHandle, activity, request, refreshItem, true);
         } else {
             Logger.v(TAG, "Refresh token is not available" + getCorrelationLogInfo());
-            if (request.getPrompt() != PromptBehavior.Never) {
+            if (request.getPrompt() != PromptBehavior.CACHE_ONLY) {
                 // start activity if other options are not available
                 // delegate map is used to remember callback if another
                 // instance of authenticationContext is created for config
@@ -1443,7 +1443,7 @@ public class AuthenticationContext {
                 // It is not using cache and refresh is not expected to
                 // show
                 // authentication activity.
-                request.setPrompt(PromptBehavior.Never);
+                request.setPrompt(PromptBehavior.CACHE_ONLY);
                 final RefreshItem refreshItem = new RefreshItem("", refreshToken, false, null);
 
                 if (mValidateAuthority) {

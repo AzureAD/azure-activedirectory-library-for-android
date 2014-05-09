@@ -209,7 +209,9 @@ public enum ADALError {
 
     DEVICE_CERTIFICATE_API_EXCEPTION("Device certificate API has exception"),
 
-    DEVICE_CERTIFICATE_REQUEST_INVALID("Device certificate request is valid");
+    DEVICE_CERTIFICATE_REQUEST_INVALID("Device certificate request is valid"),
+
+    RESOURCE_NOT_FOUND("Resource is not found in your project. Please include resource files.");
 
     private String mDescription;
 

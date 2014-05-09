@@ -34,7 +34,7 @@ public enum PromptBehavior {
     Always,
 
     /**
-     * Don't show UI
+     * Don't show UI. Only use cache and refresh token.
      */
-    Never
+    CACHE_ONLY
 }
