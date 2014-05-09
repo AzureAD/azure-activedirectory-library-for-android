@@ -9,7 +9,7 @@
   <modules>
     <module>src</module>
     <module>samples/hello</module>
-    <module>samples/testapp</module>
+    <module>tests/testapp</module>
     <module>samples/webapi</module>
     <module>tests/Functional</module>
   </modules>
