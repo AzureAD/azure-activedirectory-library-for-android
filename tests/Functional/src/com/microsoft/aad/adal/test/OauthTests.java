@@ -24,12 +24,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -96,17 +92,6 @@ public class OauthTests extends AndroidTestCase {
         String decoded = (String)decodeMethod.invoke(oauth, encoded);
         assertTrue("State contains authority", decoded.contains("http://www.something.com"));
         assertTrue("State contains resource", decoded.contains(resource));
-    }
-
-    @SmallTest
-    public void testGetToken_() throws UnsupportedEncodingException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException {
-        String resource = "resource:" + UUID.randomUUID().toString();
-        Object request = createAuthenticationRequest("http://www.something.com", resource,
-                "client", "redirect", "loginhint@ggg.com", null, null, null);
-        Object oauth = createOAuthInstance(request);
-
     }
 
     @SmallTest
