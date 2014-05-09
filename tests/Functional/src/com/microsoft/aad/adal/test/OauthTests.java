@@ -432,7 +432,7 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("Same refresh token in parsed result", "refreshfasdfsdf435=",
                 result.getRefreshToken());
     }
-    
+
     @SmallTest
     public void testprocessTokenResponse_Wrong_CorrelationId() throws IllegalArgumentException,
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
@@ -460,6 +460,20 @@ public class OauthTests extends AndroidTestCase {
         assertTrue("Log response has message",
                 logResponse.errorCode
                         .equals(ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE));
+
+        List<String> invalidHeaders = new ArrayList<String>();
+        invalidHeaders.add("invalid-UUID");
+        headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, invalidHeaders);
+        mockResponse = new HttpWebResponse(200, json.getBytes(Charset.defaultCharset()), headers);
+        TestLogResponse logResponse2 = new TestLogResponse();
+        logResponse2.listenLogForMessageSegments(null, "Wrong format of the correlation ID:");
+
+        // send call with mocks
+        m.invoke(oauth, mockResponse);
+
+        // verify same token
+        assertTrue("Log response has message",
+                logResponse2.errorCode.equals(ADALError.CORRELATION_ID_FORMAT));
     }
 
     @SmallTest
@@ -523,10 +537,6 @@ public class OauthTests extends AndroidTestCase {
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
     }
 
-    public void testGetTokenEndpoint(){
-        
-    }
-    
     private Object getValidAuthenticationRequest() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
