@@ -43,8 +43,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>android.support</groupId>
-      <artifactId>compatibility-v4</artifactId>
+      <groupId>com.android.support</groupId>
+      <artifactId>support-v4</artifactId>
       <version>${android.support.version}</version>
     </dependency>
     <dependency>
@@ -99,8 +99,8 @@
                   <version>2.2.4</version>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>android.support</groupId>
-                  <artifactId>compatibility-v4</artifactId>
+                  <groupId>com.android.support</groupId>
+                  <artifactId>support-v4</artifactId>
                   <version>LATEST</version>
                 </artifactItem>
               </artifactItems>
