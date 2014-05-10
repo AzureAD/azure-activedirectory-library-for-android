@@ -33,7 +33,7 @@ import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationSettings;
 
-public class ADALErrorTests extends InstrumentationTestCase {
+public class ADALErrorTest extends InstrumentationTestCase {
 
     private static final String TAG = "ADALErrorTests";
 

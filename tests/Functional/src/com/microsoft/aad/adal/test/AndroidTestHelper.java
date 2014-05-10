@@ -18,12 +18,20 @@
 
 package com.microsoft.aad.adal.test;
 
+import java.security.MessageDigest;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.microsoft.aad.adal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationSettings;
+
 import junit.framework.Assert;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.test.InstrumentationTestCase;
+import android.util.Base64;
 import android.util.Log;
 
 public class AndroidTestHelper extends InstrumentationTestCase {
@@ -32,6 +40,36 @@ public class AndroidTestHelper extends InstrumentationTestCase {
 
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
+
+    private static final String TAG = "AndroidTestHelper";
+
+    protected byte[] testSignature = null;
+
+    protected String testTag = null;
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        getInstrumentation().getTargetContext().getCacheDir();
+        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
+                .getCacheDir().getPath());
+
+        // ADAL is set to this signature for now
+        PackageInfo info = getInstrumentation().getContext().getPackageManager()
+                .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
+        for (Signature signature : info.signatures) {
+            testSignature = signature.toByteArray();
+            MessageDigest md = MessageDigest.getInstance("SHA");
+            md.update(testSignature);
+            testTag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+            break;
+        }
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        AuthenticationSettings.INSTANCE
+                .setBrokerPackageName(AuthenticationConstants.Broker.PACKAGE_NAME);
+        // AuthenticationSettings.INSTANCE.setDeviceCertificateProxy();
+        Log.d(TAG, "testSignature is set");
+    }
 
     public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
             final Runnable testCode) {
@@ -83,8 +121,9 @@ public class AndroidTestHelper extends InstrumentationTestCase {
             assertFalse("Timeout " + getName(), true);
         }
     }
-    
-    public void testMultiThread(int activeThreads, final CountDownLatch signal, final Runnable runnable) {
+
+    public void testMultiThread(int activeThreads, final CountDownLatch signal,
+            final Runnable runnable) {
 
         Log.d(getName(), "thread:" + android.os.Process.myTid());
 
@@ -102,5 +141,5 @@ public class AndroidTestHelper extends InstrumentationTestCase {
             assertFalse("Timeout " + getName(), true);
         }
     }
-    
+
 }

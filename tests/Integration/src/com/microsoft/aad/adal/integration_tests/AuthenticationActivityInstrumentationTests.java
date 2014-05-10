@@ -20,6 +20,11 @@ package com.microsoft.aad.adal.integration_tests;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -191,12 +196,9 @@ public class AuthenticationActivityInstrumentationTests extends
             tenants.put(TenantType.ADFS30FEDERATED,
                     TenantInfo.parseTenant(TenantType.ADFS30FEDERATED, p));
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             Log.d(TAG, e.getMessage());
-            Assert.fail("Config is not loaded");
         }
-
         configLoad = true;
     }
 
@@ -229,7 +231,29 @@ public class AuthenticationActivityInstrumentationTests extends
         setAuthenticationRequest(tenant, tenant.getResource(), "loginhint", PromptBehavior.Auto,
                 null, false);
 
-        // press clear all button to clear tokens and cookies
+        verifyTokenFlow(textViewStatus, monitor);
+    }
+
+    @MediumTest
+    public void testDeviceChallange() throws Exception {
+        TenantInfo tenant = new TenantInfo(TenantType.AAD,
+                "https://clientcert.azurewebsites.net/WebRequest", "device-challange", "resource2",
+                "short-live-token", "https://clientcert.azurewebsites.net/", null, null, null, null, null);
+        Log.v(TAG, "testDeviceChallange starts for authority:" + tenant.getAuthority());
+        
+        // Activity runs at main thread. Test runs on different thread
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        // add monitor to check for the auth activity
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "admin@aaltests.onmicrosoft.com", PromptBehavior.Auto,
+                null, false);
+        setupDeviceCertificateMock();
+        verifyTokenFlow(textViewStatus, monitor);
+    }
+
+    private void verifyTokenFlow(final TextView textViewStatus, final ActivityMonitor monitor)
+            throws InterruptedException, NoSuchFieldException, IllegalAccessException {
         clickResetTokens();
         clickGetToken();
         waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
@@ -770,6 +794,20 @@ public class AuthenticationActivityInstrumentationTests extends
             Log.v(TAG, "Shutting down activity");
             activity.finish();
         }
+    }
+
+    private void setupDeviceCertificateMock() {
+        activity.getTestAppHandler().post(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    activity.initDeviceCertificateMock();
+                } catch (NoSuchAlgorithmException e) {
+                    Log.e(TAG, "initDeviceCertificateMock failed", e);
+                }
+            }
+        });
     }
 
     private void verifyTokenExists() {

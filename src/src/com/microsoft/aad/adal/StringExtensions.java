@@ -19,13 +19,19 @@
 package com.microsoft.aad.adal;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.StringTokenizer;
 
+import android.net.Uri;
 import android.util.Base64;
 
 final class StringExtensions {
@@ -52,7 +58,6 @@ final class StringExtensions {
 
     public static String createHash(String msg) throws NoSuchAlgorithmException,
             UnsupportedEncodingException {
-
         if (!StringExtensions.IsNullOrBlank(msg)) {
             MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
             final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
@@ -87,6 +92,13 @@ final class StringExtensions {
         return URLDecoder.decode(source, ENCODING_UTF8);
     }
 
+    static final String encodeBase64URLSafeString(final byte[] bytes)
+            throws UnsupportedEncodingException {
+        return new String(
+                Base64.encode(bytes, Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
+                AuthenticationConstants.ENCODING_UTF8);
+    }
+
     /**
      * create url from given endpoint. return null if format is not right.
      * 
@@ -103,5 +115,31 @@ final class StringExtensions {
         }
 
         return authority;
+    }
+
+    static final HashMap<String, String> getUrlParameters(String finalUrl) {
+        Uri response = Uri.parse(finalUrl);
+        String fragment = response.getFragment();
+        HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
+
+        if (parameters == null || parameters.isEmpty()) {
+            String queryParameters = response.getQuery();
+            parameters = HashMapExtensions.URLFormDecode(queryParameters);
+        }
+        return parameters;
+    }
+
+    static final List<String> getStringTokens(final String items, final String delimeter) {
+        StringTokenizer st = new StringTokenizer(items, delimeter);
+        List<String> itemList = new ArrayList<String>();
+        if (st.hasMoreTokens()) {
+            while (st.hasMoreTokens()) {
+                String name = st.nextToken();
+                if (!StringExtensions.IsNullOrBlank(name)) {
+                    itemList.add(name);
+                }
+            }
+        }
+        return itemList;
     }
 }
