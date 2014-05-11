@@ -31,6 +31,7 @@ import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -64,6 +65,7 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 
 import com.google.gson.Gson;
+import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 /**
  * Activity to launch webview for authentication
@@ -103,6 +105,10 @@ public class AuthenticationActivity extends Activity {
     private AccountManager mAcctManager = null;
 
     private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
+
+    private IJWSBuilder mJWSBuilder = new JWSBuilder();
+
+    private String mQueryParameters;
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
@@ -192,13 +198,16 @@ public class AuthenticationActivity extends Activity {
         updateRequestForAccounts();
 
         try {
-            mStartUrl = new Oauth2(mAuthRequest, null).getCodeRequestUrl();
+            Oauth2 oauth = new Oauth2(mAuthRequest, null);
+            mStartUrl = oauth.getCodeRequestUrl();
+            mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, e.getMessage());
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
             ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            return;
         }
 
         // Create the broadcast receiver for cancel
@@ -309,6 +318,11 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setBuiltInZoomControls(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
+        String userAgent = mWebView.getSettings().getUserAgentString();
+        Logger.v(TAG, "UserAgent:" + userAgent);
+        mWebView.getSettings().setUserAgentString(
+                userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
+        Logger.v(TAG, "UserAgent:" + userAgent);
     }
 
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
@@ -379,6 +393,19 @@ public class AuthenticationActivity extends Activity {
                     mAuthRequest);
         }
         this.setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+        this.finish();
+    }
+
+    private void returnAuthenticationException(final AuthenticationException e) {
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION, e);
+        if (mAuthRequest != null) {
+            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                    mAuthRequest);
+        }
+        this.setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
+                resultIntent);
         this.finish();
     }
 
@@ -525,12 +552,59 @@ public class AuthenticationActivity extends Activity {
                 }).create().show();
     }
 
-    private class CustomWebViewClient extends WebViewClient {
+    class CustomWebViewClient extends WebViewClient {
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Logger.d(TAG, "shouldOverrideUrlLoading:url=" + url);
             displaySpinner(true);
-            if (url.startsWith(mRedirectUrl)) {
+            if (url.startsWith(AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT)) {
+                Logger.v(TAG, "Webview detected request for client certificate");
+                view.stopLoading();
+                // avoid main thread locking
+                final String challangeUrl = url;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                                    mJWSBuilder);
+                            final ChallangeResponse challangeResponse = certHandler
+                                    .getChallangeResponse(challangeUrl);
+                            final HashMap<String, String> headers = new HashMap<String, String>();
+                            headers.put("Authorization",
+                                    challangeResponse.mAuthorizationHeaderValue);
+                            mWebView.post(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    Logger.v(TAG, " Loadurl:" + challangeResponse.mSubmitUrl + "?"
+                                            + mQueryParameters);
+                                    mWebView.loadUrl(challangeResponse.mSubmitUrl + "?"
+                                            + mQueryParameters, headers);
+                                }
+                            });
+                        } catch (IllegalArgumentException e) {
+                            Logger.e(TAG, "Argument exception", e.getMessage(),
+                                    ADALError.ARGUMENT_EXCEPTION, e);
+                            // It should return error code and finish the
+                            // activity, so that onActivityResult implementation
+                            // returns errors to callback.
+                            returnAuthenticationException(new AuthenticationException(
+                                    ADALError.ARGUMENT_EXCEPTION, e.getMessage(), e));
+                        } catch (AuthenticationException e) {
+                            Logger.e(TAG, "It is failed to create device certificate response",
+                                    e.getMessage(), ADALError.DEVICE_CERTIFICATE_RESPONSE_FAILED, e);
+                            // It should return error code and finish the
+                            // activity, so that onActivityResult implementation
+                            // returns errors to callback.
+                            returnAuthenticationException(e);
+                        }
+                    }
+                }).start();
+
+                return true;
+            } else if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
                 if (!insideBroker()) {
                     // It is pointing to redirect. Final url can be processed to
@@ -891,7 +965,7 @@ public class AuthenticationActivity extends Activity {
                 mAccountManager.setUserData(cacheAccount,
                         AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + callingUID,
                         keylist);
-                Logger.v(TAG, "keylist:"+keylist);
+                Logger.v(TAG, "keylist:" + keylist);
             }
         }
 

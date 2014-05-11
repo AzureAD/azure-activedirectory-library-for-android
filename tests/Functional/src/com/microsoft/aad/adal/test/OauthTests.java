@@ -23,7 +23,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -31,6 +33,7 @@ import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 import com.microsoft.aad.adal.AuthenticationContext;
@@ -89,17 +92,6 @@ public class OauthTests extends AndroidTestCase {
         String decoded = (String)decodeMethod.invoke(oauth, encoded);
         assertTrue("State contains authority", decoded.contains("http://www.something.com"));
         assertTrue("State contains resource", decoded.contains(resource));
-    }
-
-    @SmallTest
-    public void testGetToken_() throws UnsupportedEncodingException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException {
-        String resource = "resource:" + UUID.randomUUID().toString();
-        Object request = createAuthenticationRequest("http://www.something.com", resource,
-                "client", "redirect", "loginhint@ggg.com", null, null, null);
-        Object oauth = createOAuthInstance(request);
-
     }
 
     @SmallTest
@@ -442,6 +434,49 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
+    public void testprocessTokenResponse_Wrong_CorrelationId() throws IllegalArgumentException,
+            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException {
+        Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
+                "loginhint", null, null, UUID.randomUUID());
+        Object oauth = createOAuthInstance(request);
+        Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
+                Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
+        String json = "{\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
+        List<String> listOfHeaders = new ArrayList<String>();
+        listOfHeaders.add(UUID.randomUUID().toString());
+        HashMap<String, List<String>> headers = new HashMap<String, List<String>>();
+        headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, listOfHeaders);
+        HttpWebResponse mockResponse = new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), headers);
+        TestLogResponse logResponse = new TestLogResponse();
+        logResponse.listenForLogMessage("CorrelationId is not matching", null);
+
+        // send call with mocks
+        AuthenticationResult result = (AuthenticationResult)m.invoke(oauth, mockResponse);
+
+        // verify same token
+        assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
+        assertTrue("Log response has message",
+                logResponse.errorCode
+                        .equals(ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE));
+
+        List<String> invalidHeaders = new ArrayList<String>();
+        invalidHeaders.add("invalid-UUID");
+        headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, invalidHeaders);
+        mockResponse = new HttpWebResponse(200, json.getBytes(Charset.defaultCharset()), headers);
+        TestLogResponse logResponse2 = new TestLogResponse();
+        logResponse2.listenLogForMessageSegments(null, "Wrong format of the correlation ID:");
+
+        // send call with mocks
+        m.invoke(oauth, mockResponse);
+
+        // verify same token
+        assertTrue("Log response has message",
+                logResponse2.errorCode.equals(ADALError.CORRELATION_ID_FORMAT));
+    }
+
+    @SmallTest
     public void testprocessTokenResponseNegative() throws IllegalArgumentException,
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException {
@@ -502,10 +537,6 @@ public class OauthTests extends AndroidTestCase {
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
     }
 
-    public void testGetTokenEndpoint(){
-        
-    }
-    
     private Object getValidAuthenticationRequest() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {

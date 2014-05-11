@@ -30,14 +30,6 @@ public class LoggerTest extends AndroidTestHelper {
 
     private static final String TAG = "DiscoveryTests";
 
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
     public void testSetCallback() {
 
         final TestLogResponse response = new TestLogResponse();
