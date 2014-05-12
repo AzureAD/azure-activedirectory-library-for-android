@@ -27,7 +27,7 @@ before_install:
   - mvn clean install
   - cd -
   - cd $PWD/maven-android-sdk-deployer/extras/compatibility-v4
-  - mvn install
+  - mvn install -Dextras.compatibility.v4.groupid=com.android.support -Dextras.compatibility.v4.artifactid=support-v4
   - cd -
   # setup of appcompat library
   - cp -r ${ANDROID_HOME}/extras/android/support/v7/appcompat ..

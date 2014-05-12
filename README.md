@@ -28,7 +28,8 @@ Before you run the SDK Deployer, you should have installed ALL PACKAGES in the A
     cd maven-android-sdk-deployer\platforms\android-19
     mvn clean install
     cd ..\..\extras\compatibility-v4
-    mvn clean install
+    mvn clean install -Dextras.compatibility.v4.groupid=com.android.support \
+            -Dextras.compatibility.v4.artifactid=support-v4
 
 Now Maven will have android-19 and support-v4 as dependencies in local m2 repo.
 
@@ -128,15 +129,7 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
 ### SDK Usage Options
 There are two ways to include the SDK in your project: 1-) You can include and build the Android Library Project in your IDE or 2-) You can use Maven.
 Option-1 is explained above. Option-2: You can see example usage in wiki page https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Android-Studio-and-Maven
-
-You could resolve support mismatch issue by
-```
-mvn install -Dextras.compatibility.v4.groupid=com.android.support \
-            -Dextras.compatibility.v4.artifactid=support-v4
-
-mvn install -Dextras.compatibility.v13.groupid=com.android.support \
-            -Dextras.compatibility.v13.artifactid=support-v13
-```            
+           
 
 ### Customization
 Library project resources can be overwritten by your app resources. This happens when app is building. It means that you can customize Authentication Activity layout the way you want. You need to make sure to keep id of two controls that ADAL uses(Webview and button).
