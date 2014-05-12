@@ -12,10 +12,6 @@
   <artifactId>samplewebapi</artifactId>
   <packaging>apk</packaging>
   <name>Sample App for manual testing</name>
-  <properties>
-    <android.version>4.1.1.4</android.version>
-    <android.support.version>[18,)</android.support.version>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>com.google.android</groupId>
@@ -77,9 +73,9 @@
         <configuration>
           <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
           <assetsDirectory>${project.basedir}/assets</assetsDirectory>
-          <resourceDirectory>${project.basedir}/res</resourceDirectory>         
+          <resourceDirectory>${project.basedir}/res</resourceDirectory>
           <sdk>
-            <platform>19</platform>
+            <platform>${android.platform.maven.plugin}</platform>
           </sdk>
           <deleteConflictingFiles>true</deleteConflictingFiles>
           <undeployBeforeDeploy>true</undeployBeforeDeploy>
