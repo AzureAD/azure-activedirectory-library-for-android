@@ -89,38 +89,19 @@ class ChallangeResponseBuilder {
      */
     public ChallangeResponse getChallangeResponseFromUri(final String redirectUri) {
         ChallangeRequest request = getChallangeRequest(redirectUri);
-        ChallangeResponse response = getNoDeviceCertResponse(request);
-
-        // If not device cert exists, alias or privatekey will not exist on the
-        // device
-        @SuppressWarnings("unchecked")
-        Class<IDeviceCertificate> certClazz = (Class<IDeviceCertificate>)AuthenticationSettings.INSTANCE
-                .getDeviceCertificateProxy();
-        // TODO error handling here
-
-        IDeviceCertificate deviceCertProxy = getWPJAPIInstance(certClazz);
-        if (deviceCertProxy.isValidIssuer(request.mCertAuthorities)) {
-            RSAPrivateKey privateKey = deviceCertProxy.getRSAPrivateKey();
-            if (privateKey != null) {
-                response.mSubmitUrl = request.mSubmitUrl;
-                String jwt = mJWSBuilder.generateSignedJWT(request.mNonce, request.mSubmitUrl,
-                        privateKey, deviceCertProxy.getRSAPublicKey(),
-                        deviceCertProxy.getThumbPrint());
-                response.mAuthorizationHeaderValue = String.format(
-                        "CertAuth AuthToken=\"%s\",Context=\"%s\"", jwt, request.mContext);
-                Logger.v(TAG, "Challange response:" + response.mAuthorizationHeaderValue);
-            } else {
-                throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
-            }
-        }
-        return response;
+        return getDeviceCertResponse(request);  
     }
 
     public ChallangeResponse getChallangeResponseFromHeader(final String challangeHeaderValue)
             throws UnsupportedEncodingException {
         ChallangeRequest request = getChallangeRequestFromHeader(challangeHeaderValue);
-        ChallangeResponse response = getNoDeviceCertResponse(request);
+        return getDeviceCertResponse(request);     
+    }
 
+    private ChallangeResponse getDeviceCertResponse(ChallangeRequest request){
+        ChallangeResponse response = getNoDeviceCertResponse(request);
+        response.mSubmitUrl = request.mSubmitUrl;
+        
         // If not device cert exists, alias or privatekey will not exist on the
         // device
         @SuppressWarnings("unchecked")
@@ -145,9 +126,10 @@ class ChallangeResponseBuilder {
                 throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
             }
         }
+        
         return response;
     }
-
+    
     private IDeviceCertificate getWPJAPIInstance(Class<IDeviceCertificate> certClazz) {
         IDeviceCertificate deviceCertProxy = null;
         Constructor<?> constructor;
@@ -269,11 +251,7 @@ class ChallangeResponseBuilder {
         String authorities = parameters.get(RequestField.CertAuthorities.name());
         challange.mCertAuthorities = StringExtensions.getStringTokens(authorities,
                 AuthenticationConstants.Broker.CHALLANGE_REQUEST_CERT_AUTH_DELIMETER);
-
-        // Certificate authorities should not be empty
-        if (challange.mCertAuthorities == null || challange.mCertAuthorities.size() == 0) {
-            throw new IllegalArgumentException("CertAuthorities");
-        }
+        
         challange.mVersion = parameters.get(RequestField.Version.name());
         challange.mSubmitUrl = parameters.get(RequestField.SubmitUrl.name());
         challange.mContext = parameters.get(RequestField.Context.name());

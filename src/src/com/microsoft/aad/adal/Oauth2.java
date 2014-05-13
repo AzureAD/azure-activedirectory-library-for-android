@@ -477,9 +477,8 @@ class Oauth2 {
                     }
                 } else {
 
-                    // 401 response is expected for device certificate challenge
-                    throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                            "Challange header is not present");
+                    // AAD server returns 401 response for wrong request messages
+                    Logger.v(TAG, "401 http status code is returned");
                 }
             }
 

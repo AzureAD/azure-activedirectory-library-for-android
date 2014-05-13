@@ -481,30 +481,6 @@ public class OauthTests extends AndroidTestCase {
 
     @SuppressWarnings("unchecked")
     @SmallTest
-    public void testRefreshTokenWebResponse_DeviceChallenge_Header_Missing()
-            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, InvocationTargetException,
-            NoSuchAlgorithmException, MalformedURLException {
-        IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
-        HttpWebResponse responeChallange = new HttpWebResponse(401, null, null);
-        HashMap<String, List<String>> headers = getHeader("none", "");
-        when(
-                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
-                        any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange);
-
-        // send request
-        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
-                mockWebRequest, "testRefreshToken");
-
-        // Verify that callback can receive this error
-        assertNotNull("Callback has error", testResult.mException);
-        assertEquals("Check error", ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                ((AuthenticationException)testResult.mException.getCause()).getCode());
-    }
-
-    @SuppressWarnings("unchecked")
-    @SmallTest
     public void testRefreshTokenWebResponse_DeviceChallenge_Header_Empty()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException,
