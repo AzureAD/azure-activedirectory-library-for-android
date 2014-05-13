@@ -441,7 +441,7 @@ class Oauth2 {
         }
 
         HashMap<String, String> headers = getRequestHeaders();
-        
+
         try {
             mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
@@ -476,6 +476,8 @@ class Oauth2 {
                                 "Challange header is empty");
                     }
                 } else {
+
+                    // 401 response is expected for device certificate challenge
                     throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
                             "Challange header is not present");
                 }

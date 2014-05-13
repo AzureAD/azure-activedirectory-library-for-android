@@ -428,6 +428,7 @@ public class OauthTests extends AndroidTestCase {
                 testResult.mResult.getRefreshToken());
     }
 
+    @SuppressWarnings("unchecked")
     @SmallTest
     public void testRefreshTokenWebResponse_DeviceChallenge_Positive()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
@@ -437,7 +438,6 @@ public class OauthTests extends AndroidTestCase {
         KeyPair keyPair = getKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
-        String submitUrl = "http://fs.contoso.com/adfs/services/trust";
         String nonce = UUID.randomUUID().toString();
         String context = "CookieConABcdeded";
         String thumbPrint = "thumbprint23432432";
@@ -479,6 +479,7 @@ public class OauthTests extends AndroidTestCase {
                 testResult.mResult.getRefreshToken());
     }
 
+    @SuppressWarnings("unchecked")
     @SmallTest
     public void testRefreshTokenWebResponse_DeviceChallenge_Header_Missing()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
@@ -502,6 +503,7 @@ public class OauthTests extends AndroidTestCase {
                 ((AuthenticationException)testResult.mException.getCause()).getCode());
     }
 
+    @SuppressWarnings("unchecked")
     @SmallTest
     public void testRefreshTokenWebResponse_DeviceChallenge_Header_Empty()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
