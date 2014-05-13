@@ -50,6 +50,7 @@ import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import com.microsoft.aad.adal.AuthenticationSettings;
@@ -476,6 +477,53 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("Same access token", "accessTokenHere", testResult.mResult.getAccessToken());
         assertEquals("Same refresh token", "refreshWithDeviceChallange",
                 testResult.mResult.getRefreshToken());
+    }
+
+    @SmallTest
+    public void testRefreshTokenWebResponse_DeviceChallenge_Header_Missing()
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException, InvocationTargetException,
+            NoSuchAlgorithmException, MalformedURLException {
+        IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
+        HttpWebResponse responeChallange = new HttpWebResponse(401, null, null);
+        HashMap<String, List<String>> headers = getHeader("none", "");
+        when(
+                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        any(headers.getClass()), any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange);
+
+        // send request
+        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
+                mockWebRequest, "testRefreshToken");
+
+        // Verify that callback can receive this error
+        assertNotNull("Callback has error", testResult.mException);
+        assertEquals("Check error", ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                ((AuthenticationException)testResult.mException.getCause()).getCode());
+    }
+
+    @SmallTest
+    public void testRefreshTokenWebResponse_DeviceChallenge_Header_Empty()
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException, InvocationTargetException,
+            NoSuchAlgorithmException, MalformedURLException {
+        IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
+        HashMap<String, List<String>> headers = getHeader(
+                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER, " ");
+        HttpWebResponse responeChallange = new HttpWebResponse(401, null, headers);
+        when(
+                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        any(headers.getClass()), any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange);
+
+        // send request
+        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
+                mockWebRequest, "testRefreshToken");
+
+        // Verify that callback can receive this error
+        assertNotNull("Callback has error", testResult.mException);
+        assertEquals("Check error message", "Challange header is empty",
+                ((AuthenticationException)testResult.mException.getCause()).getMessage());
     }
 
     @SmallTest

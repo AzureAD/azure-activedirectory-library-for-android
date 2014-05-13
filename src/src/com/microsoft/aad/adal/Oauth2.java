@@ -441,6 +441,7 @@ class Oauth2 {
         }
 
         HashMap<String, String> headers = getRequestHeaders();
+        
         try {
             mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
