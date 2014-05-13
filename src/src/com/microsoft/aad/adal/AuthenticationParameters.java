@@ -163,10 +163,10 @@ public class AuthenticationParameters {
                 throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
             } else {
                 authenticateHeader = authenticateHeader.substring(BEARER.length());
-                ArrayList<String> queryPairs = splitWithQuotes(authenticateHeader, ',');
+                ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader, ',');
                 HashMap<String, String> headerItems = new HashMap<String, String>();
                 for (String queryPair : queryPairs) {
-                    ArrayList<String> pair = splitWithQuotes(queryPair, '=');
+                    ArrayList<String> pair = StringExtensions.splitWithQuotes(queryPair, '=');
 
                     if (pair.size() == 2 && !StringExtensions.IsNullOrBlank(pair.get(0))
                             && !StringExtensions.IsNullOrBlank(pair.get(1))) {
@@ -181,7 +181,7 @@ public class AuthenticationParameters {
                         }
 
                         key = key.trim();
-                        value = removeQuoteInHeaderValue(value.trim());
+                        value = StringExtensions.removeQuoteInHeaderValue(value.trim());
 
                         if (headerItems.containsKey(key)) {
                             Logger.w(TAG, String.format(
@@ -198,8 +198,8 @@ public class AuthenticationParameters {
 
                 String authority = headerItems.get(AUTHORITY_KEY);
                 if (!StringExtensions.IsNullOrBlank(authority)) {
-                    authParams = new AuthenticationParameters(removeQuoteInHeaderValue(authority),
-                            removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
+                    authParams = new AuthenticationParameters(StringExtensions.removeQuoteInHeaderValue(authority),
+                            StringExtensions.removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
                 } else {
                     // invalid format
                     throw new IllegalArgumentException(AUTH_HEADER_MISSING_AUTHORITY);
@@ -208,40 +208,6 @@ public class AuthenticationParameters {
         }
 
         return authParams;
-    }
-
-    static ArrayList<String> splitWithQuotes(String input, char delimiter) {
-        ArrayList<String> items = new ArrayList<String>();
-
-        int startIndex = 0;
-        boolean insideString = false;
-        String item;
-        for (int i = 0; i < input.length(); i++) {
-            if (input.charAt(i) == delimiter && !insideString) {
-                item = input.substring(startIndex, i);
-                if (!StringExtensions.IsNullOrBlank(item.trim())) {
-                    items.add(item);
-                }
-
-                startIndex = i + 1;
-            } else if (input.charAt(i) == '"') {
-                insideString = !insideString;
-            }
-        }
-
-        item = input.substring(startIndex);
-        if (!StringExtensions.IsNullOrBlank(item.trim())) {
-            items.add(item);
-        }
-
-        return items;
-    }
-
-    private static String removeQuoteInHeaderValue(String value) {
-        if (!StringExtensions.IsNullOrBlank(value)) {
-            return value.replace("\"", "");
-        }
-        return null;
     }
 
     private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) {

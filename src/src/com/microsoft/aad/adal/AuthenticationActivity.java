@@ -198,7 +198,7 @@ public class AuthenticationActivity extends Activity {
         updateRequestForAccounts();
 
         try {
-            Oauth2 oauth = new Oauth2(mAuthRequest, null);
+            Oauth2 oauth = new Oauth2(mAuthRequest);
             mStartUrl = oauth.getCodeRequestUrl();
             mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
         } catch (UnsupportedEncodingException e) {
@@ -570,9 +570,9 @@ public class AuthenticationActivity extends Activity {
                             ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
                                     mJWSBuilder);
                             final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponse(challangeUrl);
+                                    .getChallangeResponseFromUri(challangeUrl);
                             final HashMap<String, String> headers = new HashMap<String, String>();
-                            headers.put("Authorization",
+                            headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
                                     challangeResponse.mAuthorizationHeaderValue);
                             mWebView.post(new Runnable() {
 
@@ -776,7 +776,7 @@ public class AuthenticationActivity extends Activity {
 
         @Override
         protected TokenTaskResult doInBackground(String... urlItems) {
-            Oauth2 oauthRequest = new Oauth2(mRequest, mRequestHandler);
+            Oauth2 oauthRequest = new Oauth2(mRequest, mRequestHandler, mJWSBuilder);
             TokenTaskResult result = new TokenTaskResult();
             try {
                 result.taskResult = oauthRequest.getToken(urlItems[0]);

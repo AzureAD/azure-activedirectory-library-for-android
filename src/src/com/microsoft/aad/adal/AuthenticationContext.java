@@ -89,6 +89,11 @@ public class AuthenticationContext {
      * Web request handler interface to test behaviors
      */
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
+    
+    /**
+     * JWS message builder interface to test behaviors
+     */
+    private IJWSBuilder mJWSBuilder;
 
     /**
      * Connection service interface to test different behaviors
@@ -169,6 +174,7 @@ public class AuthenticationContext {
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = tokenCacheStore;
+        mJWSBuilder = new JWSBuilder();
     }
 
     /**
@@ -1237,7 +1243,7 @@ public class AuthenticationContext {
 
         AuthenticationResult result = null;
         try {
-            Oauth2 oauthRequest = new Oauth2(request, mWebRequest);
+            Oauth2 oauthRequest = new Oauth2(request, mWebRequest, mJWSBuilder);
             result = oauthRequest.refreshToken(refreshItem.mRefreshToken);
         } catch (Exception exc) {
             // remove item from cache
@@ -1270,18 +1276,20 @@ public class AuthenticationContext {
                     Logger.v(TAG, "UserInfo is updated:" + request.getLogInfo());
                     result.setUserInfo(refreshItem.mUserInfo);
                 }
+                
                 // it replaces multi resource refresh token as
                 // well with the new one since it is not stored
                 // with resource.
                 Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
                 setRefreshItemToCache(refreshItem, request, result);
+                
                 // return result obj which has error code and
                 // error description that is returned from
                 // server response
-
                 callbackHandle.onSuccess(result);
             }
         } else {
+            
             // User is not using cache and explicitly
             // calling with refresh token. User should received
             // error code and error description in
@@ -1297,8 +1305,8 @@ public class AuthenticationContext {
         // authenticationCallback, so handler is not needed here
         if (mDiscovery != null) {
             Logger.v(TAG, "Start validating authority:" + getCorrelationLogInfo());
+            
             // Set CorrelationId for Instance Discovery
-
             mDiscovery.setCorrelationId(getRequestCorrelationId());
             try {
                 boolean result = mDiscovery.isValidAuthority(authorityUrl);
@@ -1355,7 +1363,6 @@ public class AuthenticationContext {
      * @return true if activity is defined in the package.
      */
     final private boolean resolveIntent(Intent intent) {
-
         ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
         if (resolveInfo == null) {
             return false;

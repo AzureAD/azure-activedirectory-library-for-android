@@ -31,6 +31,8 @@ import java.security.interfaces.RSAPublicKey;
 
 import junit.framework.Assert;
 
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IJWSBuilder;
 
@@ -55,6 +57,24 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         Object response = m.invoke(handler, redirectURI);
 
         verifyChallangeResponse(response, null, context, submitUrl);
+    }
+
+    public void testGetChallangeResponse_NoDeviceCertProxy() throws ClassNotFoundException,
+            InstantiationException, IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
+        Object mockJwsBuilder = mock(IJWSBuilder.class);
+        Object handler = getInstance(mockJwsBuilder);
+        AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(null);
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponse", String.class);
+
+        try {
+            m.invoke(handler,
+                    "urn:http-auth:CertAuth?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Context=1");
+            Assert.fail("No exception");
+        } catch (Exception ex) {
+            assertEquals("API exception", ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
+                    ((AuthenticationException)ex).getCode());
+        }
     }
 
     public void testGetChallangeResponse_InvalidRedirect() throws ClassNotFoundException,

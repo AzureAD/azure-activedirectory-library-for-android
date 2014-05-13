@@ -248,6 +248,8 @@ public class AuthenticationConstants {
 
         public static final String CLIENT_TLS_NOT_SUPPORTED = " Client-TLS-not-supported";
 
+        public static final String CHALLANGE_REQUEST_HEADER = "WWW-Authenticate";
+        
         public static final String CHALLANGE_RESPONSE_HEADER = "Authorization";
 
         public static final String CHALLANGE_RESPONSE_TYPE = "CertAuth";

@@ -18,9 +18,11 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.interfaces.RSAPrivateKey;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -51,19 +53,27 @@ class ChallangeResponseBuilder {
     }
 
     enum RequestField {
-        Nonce, CertAuthorities, Version, SubmitUrl, Context
+        Nonce, CertAuthorities, Version, SubmitUrl, Context, Issuer
     }
 
     class ChallangeRequest {
-        String mNonce;
+        String mNonce = "";
 
-        String mContext;
+        String mContext = "";
 
+        /**
+         * Authorization endpoint will return accepted authorities
+         */
         List<String> mCertAuthorities;
 
-        String mVersion;
+        /**
+         * Token endpoint will return thumbprint
+         */
+        String mThumbprint = "";
 
-        String mSubmitUrl;
+        String mVersion = null;
+
+        String mSubmitUrl = "";
     }
 
     /**
@@ -77,7 +87,7 @@ class ChallangeResponseBuilder {
      * @return
      * @throws KeyChainException
      */
-    public ChallangeResponse getChallangeResponse(final String redirectUri) {
+    public ChallangeResponse getChallangeResponseFromUri(final String redirectUri) {
         ChallangeRequest request = getChallangeRequest(redirectUri);
         ChallangeResponse response = getNoDeviceCertResponse(request);
 
@@ -93,6 +103,38 @@ class ChallangeResponseBuilder {
             RSAPrivateKey privateKey = deviceCertProxy.getRSAPrivateKey();
             if (privateKey != null) {
                 response.mSubmitUrl = request.mSubmitUrl;
+                String jwt = mJWSBuilder.generateSignedJWT(request.mNonce, request.mSubmitUrl,
+                        privateKey, deviceCertProxy.getRSAPublicKey(),
+                        deviceCertProxy.getThumbPrint());
+                response.mAuthorizationHeaderValue = String.format(
+                        "CertAuth AuthToken=\"%s\",Context=\"%s\"", jwt, request.mContext);
+                Logger.v(TAG, "Challange response:" + response.mAuthorizationHeaderValue);
+            } else {
+                throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
+            }
+        }
+        return response;
+    }
+
+    public ChallangeResponse getChallangeResponseFromHeader(final String challangeHeaderValue)
+            throws UnsupportedEncodingException {
+        ChallangeRequest request = getChallangeRequestFromHeader(challangeHeaderValue);
+        ChallangeResponse response = getNoDeviceCertResponse(request);
+
+        // If not device cert exists, alias or privatekey will not exist on the
+        // device
+        @SuppressWarnings("unchecked")
+        Class<IDeviceCertificate> certClazz = (Class<IDeviceCertificate>)AuthenticationSettings.INSTANCE
+                .getDeviceCertificateProxy();
+        if (certClazz == null) {
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
+                    "WPJ Api related class is not set");
+        }
+
+        IDeviceCertificate deviceCertProxy = getWPJAPIInstance(certClazz);
+        if (deviceCertProxy.isValidIssuer(request.mCertAuthorities)) {
+            RSAPrivateKey privateKey = deviceCertProxy.getRSAPrivateKey();
+            if (privateKey != null) {
                 String jwt = mJWSBuilder.generateSignedJWT(request.mNonce, request.mSubmitUrl,
                         privateKey, deviceCertProxy.getRSAPublicKey(),
                         deviceCertProxy.getThumbPrint());
@@ -139,35 +181,96 @@ class ChallangeResponseBuilder {
         return response;
     }
 
+    private ChallangeRequest getChallangeRequestFromHeader(final String headerValue)
+            throws UnsupportedEncodingException {
+        if (StringExtensions.IsNullOrBlank(headerValue)) {
+            throw new IllegalArgumentException("headerValue");
+        }
+
+        // Header value should start with correct challenge type
+        if (!headerValue.startsWith(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)
+                || headerValue.length() < AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE
+                        .length() + 2
+                || !Character.isWhitespace(headerValue
+                        .charAt(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE.length()))) {
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    headerValue);
+        }
+
+        ChallangeRequest challange = new ChallangeRequest();
+        String authenticateHeader = headerValue
+                .substring(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE.length());
+        ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader, ',');
+        HashMap<String, String> headerItems = new HashMap<String, String>();
+
+        for (String queryPair : queryPairs) {
+            ArrayList<String> pair = StringExtensions.splitWithQuotes(queryPair, '=');
+            if (pair.size() == 2 && !StringExtensions.IsNullOrBlank(pair.get(0))
+                    && !StringExtensions.IsNullOrBlank(pair.get(1))) {
+                String key = pair.get(0);
+                String value = pair.get(1);
+                key = StringExtensions.URLFormDecode(key);
+                value = StringExtensions.URLFormDecode(value);
+                key = key.trim();
+                value = StringExtensions.removeQuoteInHeaderValue(value.trim());
+                headerItems.put(key, value);
+            } else {
+
+                // invalid format
+                throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                        authenticateHeader);
+            }
+        }
+
+        validateChallangeRequest(headerItems, false);
+        challange.mNonce = headerItems.get(RequestField.Nonce.name());
+        challange.mThumbprint = headerItems.get(RequestField.Issuer.name());
+        if (StringExtensions.IsNullOrBlank(challange.mThumbprint)) {
+            throw new IllegalArgumentException("Issuer");
+        }
+        challange.mVersion = headerItems.get(RequestField.Version.name());
+        challange.mContext = headerItems.get(RequestField.Context.name());
+        return challange;
+    }
+
+    private void validateChallangeRequest(HashMap<String, String> headerItems,
+            boolean redirectFormat) {
+        if (!headerItems.containsKey(RequestField.Nonce.name())) {
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, "Nonce");
+        }
+        if (!headerItems.containsKey(RequestField.Version.name())) {
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    "Version");
+        }
+        if (redirectFormat && !headerItems.containsKey(RequestField.SubmitUrl.name())) {
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    "SubmitUrl");
+        }
+        if (!headerItems.containsKey(RequestField.Context.name())) {
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    "Context");
+        }
+        if (redirectFormat && !headerItems.containsKey(RequestField.CertAuthorities.name())) {
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    "CertAuthorities");
+        }
+    }
+
     private ChallangeRequest getChallangeRequest(final String redirectUri) {
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
             throw new IllegalArgumentException("redirectUri");
         }
+
         ChallangeRequest challange = new ChallangeRequest();
         HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUri);
-        if (!parameters.containsKey(RequestField.Nonce.name())) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, "Nonce");
-        }
-        if (!parameters.containsKey(RequestField.CertAuthorities.name())) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                    "CertAuthorities");
-        }
-        if (!parameters.containsKey(RequestField.Version.name())) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                    "Version");
-        }
-        if (!parameters.containsKey(RequestField.SubmitUrl.name())) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                    "SubmitUrl");
-        }
-        if (!parameters.containsKey(RequestField.Context.name())) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                    "Context");
-        }
+        validateChallangeRequest(parameters, true);
+
         challange.mNonce = parameters.get(RequestField.Nonce.name());
         String authorities = parameters.get(RequestField.CertAuthorities.name());
         challange.mCertAuthorities = StringExtensions.getStringTokens(authorities,
                 AuthenticationConstants.Broker.CHALLANGE_REQUEST_CERT_AUTH_DELIMETER);
+
+        // Certificate authorities should not be empty
         if (challange.mCertAuthorities == null || challange.mCertAuthorities.size() == 0) {
             throw new IllegalArgumentException("CertAuthorities");
         }

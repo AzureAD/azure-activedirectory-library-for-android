@@ -142,4 +142,38 @@ final class StringExtensions {
         }
         return itemList;
     }
+    
+    static ArrayList<String> splitWithQuotes(String input, char delimiter) {
+        ArrayList<String> items = new ArrayList<String>();
+
+        int startIndex = 0;
+        boolean insideString = false;
+        String item;
+        for (int i = 0; i < input.length(); i++) {
+            if (input.charAt(i) == delimiter && !insideString) {
+                item = input.substring(startIndex, i);
+                if (!StringExtensions.IsNullOrBlank(item.trim())) {
+                    items.add(item);
+                }
+
+                startIndex = i + 1;
+            } else if (input.charAt(i) == '"') {
+                insideString = !insideString;
+            }
+        }
+
+        item = input.substring(startIndex);
+        if (!StringExtensions.IsNullOrBlank(item.trim())) {
+            items.add(item);
+        }
+
+        return items;
+    }
+
+    static String removeQuoteInHeaderValue(String value) {
+        if (!StringExtensions.IsNullOrBlank(value)) {
+            return value.replace("\"", "");
+        }
+        return null;
+    }
 }
