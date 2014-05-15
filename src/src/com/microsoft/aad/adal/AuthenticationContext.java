@@ -1373,7 +1373,13 @@ public class AuthenticationContext {
     final private Intent getAuthenticationActivityIntent(Activity activity,
             AuthenticationRequest request) {
         Intent intent = new Intent();
-        intent.setClass(activity, AuthenticationActivity.class);
+        if (AuthenticationSettings.INSTANCE.getActivityPackageName() != null) {
+            intent.setClassName(AuthenticationSettings.INSTANCE.getActivityPackageName(),
+                    AuthenticationActivity.class.getName());
+        } else {
+            intent.setClass(activity, AuthenticationActivity.class);
+        }
+
         intent.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE, request);
         return intent;
     }

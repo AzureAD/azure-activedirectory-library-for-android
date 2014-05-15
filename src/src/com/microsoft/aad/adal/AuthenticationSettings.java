@@ -36,6 +36,8 @@ public enum AuthenticationSettings {
     private String mBrokerSignature = AuthenticationConstants.Broker.SIGNATURE;
 
     private Class<?> mClazzDeviceCertProxy;
+    
+    private String mActivityPackageName;
 
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt
@@ -118,5 +120,13 @@ public enum AuthenticationSettings {
      */
     public Class<?> getDeviceCertificateProxy() {
         return mClazzDeviceCertProxy;
+    }
+
+    public String getActivityPackageName() {
+        return mActivityPackageName;
+    }
+
+    public void setActivityPackageName(String mActivityPackageName) {
+        this.mActivityPackageName = mActivityPackageName;
     }
 }
