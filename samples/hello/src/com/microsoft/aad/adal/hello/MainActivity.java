@@ -27,6 +27,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
@@ -88,6 +89,50 @@ public class MainActivity extends Activity {
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
 
+    public void onClickAcquireByRefreshToken(View v) {
+        Log.v(TAG, "onClickAcquireByRefreshToken is clicked");
+        if (mResult != null && mResult.getRefreshToken() != null
+                && !mResult.getRefreshToken().isEmpty()) {
+            mLoginProgressDialog.show();
+            mAuthContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), Constants.CLIENT_ID,
+                    Constants.RESOURCE_ID, new AuthenticationCallback<AuthenticationResult>() {
+
+                        @Override
+                        public void onError(Exception exc) {
+                            if (mLoginProgressDialog.isShowing()) {
+                                mLoginProgressDialog.dismiss();
+                            }
+
+                            Toast.makeText(getApplicationContext(),
+                                    TAG + "getToken Error:" + exc.getMessage(), Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+
+                        @Override
+                        public void onSuccess(AuthenticationResult result) {
+                            if (mLoginProgressDialog.isShowing()) {
+                                mLoginProgressDialog.dismiss();
+                            }
+
+                            mResult = result;
+                            Toast.makeText(getApplicationContext(), "Token is returned",
+                                    Toast.LENGTH_SHORT).show();
+
+                            if (mResult.getUserInfo() != null) {
+                                Toast.makeText(getApplicationContext(),
+                                        "User:" + mResult.getUserInfo().getUserId(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+        } else {
+            Toast.makeText(getApplicationContext(),
+                    TAG + "onClickAcquireByRefreshToken refresh token is not present",
+                    Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
     public void onClickToken(View v) {
         Log.v(TAG, "token button is clicked");
         mLoginProgressDialog.show();
@@ -111,11 +156,11 @@ public class MainActivity extends Activity {
                         if (mLoginProgressDialog.isShowing()) {
                             mLoginProgressDialog.dismiss();
                         }
-                        
+
                         mResult = result;
                         Toast.makeText(getApplicationContext(), "Token is returned",
                                 Toast.LENGTH_SHORT).show();
-                        
+
                         if (mResult.getUserInfo() != null) {
                             Toast.makeText(getApplicationContext(),
                                     "User:" + mResult.getUserInfo().getUserId(), Toast.LENGTH_SHORT)
