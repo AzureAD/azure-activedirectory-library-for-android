@@ -180,7 +180,16 @@ ADAL encrypts the tokens and store in SharedPreferences by default. You can look
 ### Oauth2 Bearer challange
 AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challange.
 
+### Proguard
+ADAL allows referencing jar files directly in your project. It resolves resources through reflection. Resource names need to be protected. You could specify following options to not obfuscate resource names:
+```
+-keepattributes InnerClasses
 
+-keep class **.R
+-keep class **.R$* {
+    <fields>;
+}
+```
 ## License
 
 Copyright (c) Microsoft Open Technologies, Inc.  All rights reserved. Licensed under the Apache License, Version 2.0 (the "License"); 
