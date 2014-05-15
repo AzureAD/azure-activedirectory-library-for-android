@@ -122,10 +122,18 @@ public enum AuthenticationSettings {
         return mClazzDeviceCertProxy;
     }
 
+    /**
+     * get package name to setup intent for AuthenticationActivity
+     * @return
+     */
     public String getActivityPackageName() {
         return mActivityPackageName;
     }
 
+    /**
+     * set package name to setup intent for AuthenticationActivity
+     * @param mActivityPackageName
+     */
     public void setActivityPackageName(String mActivityPackageName) {
         this.mActivityPackageName = mActivityPackageName;
     }

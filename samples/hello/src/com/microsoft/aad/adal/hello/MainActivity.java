@@ -70,7 +70,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AuthenticationSettings.INSTANCE.setActivityPackageName("com.microsoft.aadauthenticator");
         textView1 = (TextView)findViewById(R.id.textView1);
 
         mLoginProgressDialog = new ProgressDialog(this);
