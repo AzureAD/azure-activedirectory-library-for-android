@@ -148,12 +148,12 @@ class BrokerProxy implements IBrokerProxy {
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         Logger.v(TAG, "Account list length:" + accountList.length);
-        
+
         // Single WPJ user
-        if(accountList == null || accountList.length != 1){
+        if (accountList == null || accountList.length != 1) {
             throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS);
         }
-        
+
         Account targetAccount = accountList[0];
 
         if (targetAccount != null) {
@@ -220,14 +220,20 @@ class BrokerProxy implements IBrokerProxy {
             throw new AuthenticationException(adalErrorCode, msg);
         } else {
             String accountName = bundleResult.getString(AccountManager.KEY_ACCOUNT_NAME);
-            // record this account for calling app so that clear token can
-            // remove
-            // this account
-            saveAccount(accountName);
+            boolean initialRequest = bundleResult
+                    .getBoolean(AuthenticationConstants.Broker.ACCOUNT_INITIAL_REQUEST);
+            if (initialRequest) {
+                // Initial request from app to Authenticator needs to launch
+                // prompt
+                return AuthenticationResult.createResultForInitialRequest();
+            }
+
             UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
             AuthenticationResult result = new AuthenticationResult(
                     bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false, userinfo);
+
             return result;
+
         }
     }
 
@@ -267,29 +273,23 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.v(TAG, "removeAccounts:");
                 Account[] accountList = mAcctManager
                         .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-                SharedPreferences prefs = mContext.getSharedPreferences(
-                        KEY_SHARED_PREF_ACCOUNT_LIST, Activity.MODE_PRIVATE);
-                String delAccount = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
-                StringTokenizer st = new StringTokenizer(delAccount, KEY_ACCOUNT_LIST_DELIM);
-                while (st.hasMoreTokens()) {
-                    String name = st.nextToken();
-                    Logger.v(TAG, "remove tokens for:" + name);
-                    if (name != null && !name.isEmpty()) {
-                        Account targetAccount = getAccount(accountList, name);
-                        if (targetAccount != null) {
-                            Bundle brokerOptions = new Bundle();
-                            brokerOptions.putString(
-                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
-                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
+                if (accountList != null && accountList.length == 1) {
+                    // single user changes
+                    Account targetAccount = accountList[0];
+                    Logger.v(TAG, "remove tokens for:" + targetAccount.name);
+                    if (targetAccount != null) {
+                        Bundle brokerOptions = new Bundle();
+                        brokerOptions.putString(
+                                AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
+                                AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
 
-                            // only this API call sets calling UID. We are
-                            // setting
-                            // special value to indicate that tokens for this
-                            // calling UID will be cleaned from this account
-                            mAcctManager.getAuthToken(targetAccount,
-                                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions,
-                                    false, null /* set to null to avoid callback */, mHandler);
-                        }
+                        // only this API call sets calling UID. We are
+                        // setting
+                        // special value to indicate that tokens for this
+                        // calling UID will be cleaned from this account
+                        mAcctManager.getAuthToken(targetAccount,
+                                AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions,
+                                false, null /* set to null to avoid callback */, mHandler);
                     }
                 }
             }

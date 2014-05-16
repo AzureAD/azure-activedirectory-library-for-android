@@ -937,7 +937,10 @@ public class AuthenticationContext {
                 putWaitingRequest(callbackHandle.callback.hashCode(),
                         new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
                                 callbackHandle.callback));
-
+                if (result != null && result.IsInitialRequest()) {
+                    Logger.v(TAG, "Initial request to authenticator");
+                    request.setPrompt(PromptBehavior.Always);
+                }
                 // onActivityResult will receive the response
                 // Activity needs to launch to record calling app for this
                 // account

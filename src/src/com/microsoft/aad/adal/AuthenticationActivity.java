@@ -876,9 +876,10 @@ public class AuthenticationActivity extends Activity {
                 // Single user in authenticator is already created.
                 // This is only registering UID for the app
                 if (result.taskResult.getUserInfo() == null
-                        && StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
+                        || StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
                                 .getUserId())) {
                     // return userid in the userinfo
+                    Logger.v(TAG, "Set userinfo from account");
                     result.taskResult.setUserInfo(new UserInfo(name, name, "", "", true));
                     mRequest.setLoginHint(name);
                 }

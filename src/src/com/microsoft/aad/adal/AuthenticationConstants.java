@@ -171,6 +171,8 @@ public class AuthenticationConstants {
         public static final int BROKER_REQUEST_ID = 1177;
 
         public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.broker.request";
+        
+        
 
         /**
          * Account type string.
@@ -190,6 +192,8 @@ public class AuthenticationConstants {
 
         public static final String BROKER_FINAL_URL = "adal.final.url";
 
+        public static final String ACCOUNT_INITIAL_REQUEST = "account.initial.request";
+                
         public static final String ACCOUNT_CLIENTID_KEY = "account.clientid.key";
 
         public static final String ACCOUNT_CLIENT_SECRET_KEY = "account.client.secret.key";
