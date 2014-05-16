@@ -18,12 +18,49 @@
 
 package com.microsoft.aad.adal.test;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.NoSuchPaddingException;
+
+import android.app.Activity;
+import android.content.Intent;
 import android.test.AndroidTestCase;
+
+import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationSettings;
 
 /**
  * settings to use in ADAL
  */
 public class AuthenticationSettingsTests extends AndroidTestCase {
 
-    // Left it to merge with other changes
+    private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
+
+    public void testActivityPackageName() throws NoSuchAlgorithmException, NoSuchPaddingException,
+            SecurityException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        
+        // verify setter/getter
+        String packagename = "com.anotherapp";
+        AuthenticationSettings.INSTANCE.setActivityPackageName(packagename);
+        
+        assertEquals("same packagename", packagename,
+                AuthenticationSettings.INSTANCE.getActivityPackageName());
+
+        // verify intent
+        AuthenticationContext context = new AuthenticationContext(getContext(), VALID_AUTHORITY,
+                false);
+        Class clazzAuthRequest = Class.forName(
+                ReflectionUtils.TEST_PACKAGE_NAME + ".AuthenticationRequest");
+        Constructor<?> constructor = clazzAuthRequest.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        Object authRequest = constructor.newInstance();
+        Method m = ReflectionUtils.getTestMethod(context, "getAuthenticationActivityIntent", Activity.class, clazzAuthRequest);
+        
+        Intent intent = (Intent)m.invoke(context, null, authRequest);
+        
+        assertEquals("same packagename", packagename, intent.getComponent().getPackageName());        
+    }
 }

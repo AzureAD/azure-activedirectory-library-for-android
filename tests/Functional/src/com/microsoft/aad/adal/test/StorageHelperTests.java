@@ -277,7 +277,8 @@ public class StorageHelperTests extends AndroidTestCase {
             return;
         }
 
-        File keyFile = new File(getContext().getFilesDir(), "adalks");
+        File keyFile = new File(getContext().getDir(getContext().getPackageName(),
+                Context.MODE_PRIVATE), "adalks");
         if (keyFile.exists()) {
             keyFile.delete();
         }
