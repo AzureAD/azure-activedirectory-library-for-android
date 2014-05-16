@@ -175,7 +175,7 @@ public class AuthenticationConstants {
         /**
          * Account type string.
          */
-        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.aadbroker.adal";
+        public static final String BROKER_ACCOUNT_TYPE = "com.MSOpenTech.WorkplaceJoin";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 

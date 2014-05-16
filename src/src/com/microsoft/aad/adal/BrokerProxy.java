@@ -39,6 +39,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
+import android.media.audiofx.AcousticEchoCanceler;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -89,7 +90,15 @@ class BrokerProxy implements IBrokerProxy {
                 AuthenticationSettings.INSTANCE.getBrokerPackageName())
                 && verifyManifestPermissions()
                 && verifyBroker()
-                && verifyAuthenticator(mAcctManager);
+                && verifyAuthenticator(mAcctManager) && verifyAccount();
+    }
+
+    private boolean verifyAccount() {
+        Logger.v(TAG, "Verify account count");
+        // only call authenticator if there is an account
+        Account[] accountList = mAcctManager
+                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        return accountList != null && accountList.length > 0;
     }
 
     /**
@@ -139,7 +148,13 @@ class BrokerProxy implements IBrokerProxy {
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         Logger.v(TAG, "Account list length:" + accountList.length);
-        Account targetAccount = getAccount(accountList, getAccountLookupUsername(request));
+        
+        // Single WPJ user
+        if(accountList == null || accountList.length != 1){
+            throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS);
+        }
+        
+        Account targetAccount = accountList[0];
 
         if (targetAccount != null) {
             // add some dummy values to make a test call
@@ -249,6 +264,7 @@ class BrokerProxy implements IBrokerProxy {
             @Override
             public void run() {
                 // getAuthToken call will execute in async as well
+                Logger.v(TAG, "removeAccounts:");
                 Account[] accountList = mAcctManager
                         .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
                 SharedPreferences prefs = mContext.getSharedPreferences(
@@ -295,12 +311,10 @@ class BrokerProxy implements IBrokerProxy {
             // app's metadata if needed at BrokerActivity.
             Account[] accountList = mAcctManager
                     .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-            if (accountList != null && accountList.length == 0) {
-                Logger.v(TAG, "Activity may have old cookies");
-                // skip cookie usage for this activity since idtoken can return
-                // wrong value
-                request.setPrompt(PromptBehavior.Always);
-            }
+
+            // initial UI launch will always prompt to register app.
+            // This will change for multiple user case.
+            request.setPrompt(PromptBehavior.Always);
 
             Bundle addAccountOptions = getBrokerOptions(request);
             result = mAcctManager.addAccount(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
@@ -344,13 +358,21 @@ class BrokerProxy implements IBrokerProxy {
                 request.getRedirectUri());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY,
                 request.getClientId());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT,
-                request.getLoginHint());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME,
-                getAccountLookupUsername(request));
+
+        // allowing single user for now
+        brokerOptions
+                .putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, getCurrentUser());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME, getCurrentUser());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt()
                 .name());
         return brokerOptions;
+    }
+
+    private String getCurrentUser() {
+        // authenticator is not used if there is not any user
+        Account[] accountList = mAcctManager
+                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        return accountList[0].name;
     }
 
     private String getAccountLookupUsername(final AuthenticationRequest request) {

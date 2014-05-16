@@ -936,6 +936,7 @@ public class AuthenticationContext {
                                 callbackHandle.callback));
 
                 // onActivityResult will receive the response
+                // first time launch to record calling app for this account
                 Intent brokerIntent = mBrokerProxy.getIntentForBrokerActivity(request);
                 if (brokerIntent != null) {
                     try {
