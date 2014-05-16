@@ -149,7 +149,8 @@ public class AuthenticationActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(ResourceFinder.getResourseIdByName(this.getPackageName(), "layout", "activity_authentication"));
+        setContentView(ResourceFinder.getResourseIdByName(this.getPackageName(), "layout",
+                "activity_authentication"));
 
         // Get the message from the intent
         mAcctManager = AccountManager.get(getApplicationContext());
@@ -273,7 +274,8 @@ public class AuthenticationActivity extends Activity {
     }
 
     private void setupWebView() {
-        btnCancel = (Button)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(), "id", "btnCancel"));
+        btnCancel = (Button)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(),
+                "id", "btnCancel"));
         btnCancel.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -285,7 +287,8 @@ public class AuthenticationActivity extends Activity {
         // Spinner dialog to show some message while it is loading
         spinner = new ProgressDialog(this);
         spinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        spinner.setMessage(this.getText(ResourceFinder.getResourseIdByName(this.getPackageName(), "string", "app_loading")));
+        spinner.setMessage(this.getText(ResourceFinder.getResourseIdByName(this.getPackageName(),
+                "string", "app_loading")));
         spinner.setOnCancelListener(new OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
@@ -294,7 +297,8 @@ public class AuthenticationActivity extends Activity {
         });
 
         // Create the Web View to show the page
-        mWebView = (WebView)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(), "id", "webView1"));
+        mWebView = (WebView)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(),
+                "id", "webView1"));
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
@@ -328,6 +332,7 @@ public class AuthenticationActivity extends Activity {
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
         AuthenticationRequest authRequest = null;
         if (insideBroker()) {
+            Logger.v(TAG, "Get request for the call inside from broker");
             String authority = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
             String resource = callingIntent
@@ -428,6 +433,8 @@ public class AuthenticationActivity extends Activity {
     }
 
     private boolean insideBroker() {
+        Logger.v(TAG, "Packagename:" + getPackageName() + " Broker packagename:"
+                + AuthenticationSettings.INSTANCE.getBrokerPackageName());
         return getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
     }
 
@@ -854,36 +861,32 @@ public class AuthenticationActivity extends Activity {
             // Authenticator sets the account here and stores the tokens.
             try {
                 String name = mRequest.getBrokerAccountName();
-                if (result.taskResult.getUserInfo() != null
-                        && !StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
+                Account[] accountList = mAcctManager
+                        .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+
+                if (accountList == null || accountList.length != 1) {
+                    Logger.e(TAG, "Userid does not match from idtoken", "",
+                            ADALError.AUTH_FAILED_USER_MISMATCH);
+                    result.taskResult = null;
+                    result.taskException = new AuthenticationException(
+                            ADALError.BROKER_SINGLE_USER_EXPECTED);
+                    return;
+                }
+
+                // Single user in authenticator is already created.
+                // This is only registering UID for the app
+                if (result.taskResult.getUserInfo() == null
+                        && StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
                                 .getUserId())) {
-                    // record account under this idtoken so that next request
-                    // with this username should not prompt. Otherwise, it will
-                    // not use cache since cache is user based.
-                    name = result.taskResult.getUserInfo().getUserId();
-                    if (mRequest.getLoginHint() == null || mRequest.getLoginHint().isEmpty()) {
-                        // Update login hint to result so that correct cache key
-                        // is used for recording the result
-                        mRequest.setLoginHint(name);
-                    } else if (!mRequest.getLoginHint().equalsIgnoreCase(name)) {
-                        Logger.e(TAG, "Userid does not match from idtoken", "",
-                                ADALError.AUTH_FAILED_USER_MISMATCH);
-                        result.taskResult = null;
-                        result.taskException = new AuthenticationException(
-                                ADALError.AUTH_FAILED_USER_MISMATCH);
-                        return;
-                    }
+                    // return userid in the userinfo
+                    result.taskResult.setUserInfo(new UserInfo(name, name, "", "", true));
+                    mRequest.setLoginHint(name);
                 }
 
                 result.accountName = name;
                 Logger.v(TAG, "Setting account. Account name: " + name + " package:"
                         + mCallingPackage + " calling app UID:" + mAppCallingUID);
-                Account newaccount = new Account(name,
-                        AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-                Bundle userdata = new Bundle();
-                // First add account. Account may exists before from another
-                // app. Result will be added to userdata if account exists.
-                mAccountManager.addAccountExplicitly(newaccount, "nopass", userdata);
+                Account newaccount = accountList[0];
 
                 // Cache logic will be changed based on latest logic
                 // This is currently keeping accesstoken and MRRT separate

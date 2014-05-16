@@ -265,7 +265,7 @@ public class AuthenticationConstants {
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager
          */
-        public static final String PACKAGE_NAME = "com.microsoft.aadbroker";
+        public static final String PACKAGE_NAME = "com.MSOpenTech.AADAuthenticator";
 
         /**
          * Signature info for AD-Authenticator installing app to verify broker

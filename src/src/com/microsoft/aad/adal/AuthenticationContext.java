@@ -924,7 +924,10 @@ public class AuthenticationContext {
                 return;
             }
 
-            // launch broker activity
+            // Launch broker activity
+            // if cache and refresh request is not handled.
+            // Initial request to authenticator needs to launch activity to
+            // record calling uid for the account
             if (request.getPrompt() != PromptBehavior.CACHE_ONLY) {
                 Logger.v(TAG, "Launch activity for Authenticator");
                 mAuthorizationCallback = callbackHandle.callback;
@@ -936,7 +939,8 @@ public class AuthenticationContext {
                                 callbackHandle.callback));
 
                 // onActivityResult will receive the response
-                // first time launch to record calling app for this account
+                // Activity needs to launch to record calling app for this
+                // account
                 Intent brokerIntent = mBrokerProxy.getIntentForBrokerActivity(request);
                 if (brokerIntent != null) {
                     try {
