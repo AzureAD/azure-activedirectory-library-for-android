@@ -38,6 +38,8 @@ public enum AuthenticationSettings {
     private Class<?> mClazzDeviceCertProxy;
     
     private String mActivityPackageName;
+    
+    private boolean mClearSession = true;
 
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt
@@ -136,5 +138,21 @@ public enum AuthenticationSettings {
      */
     public void setActivityPackageName(String mActivityPackageName) {
         this.mActivityPackageName = mActivityPackageName;
+    }
+
+    /**
+     * get setting for clearing session cookie
+     * @return
+     */
+    public boolean getClearSession() {
+        return mClearSession;
+    }
+
+    /**
+     * clear session cookie before using webview
+     * @param clearSession
+     */
+    public void setClearSession(boolean clearSession) {
+        this.mClearSession = clearSession;
     }
 }

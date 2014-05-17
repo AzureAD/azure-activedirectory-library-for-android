@@ -59,6 +59,8 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -149,7 +151,10 @@ public class AuthenticationActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(ResourceFinder.getResourseIdByName(this.getPackageName(), "layout", "activity_authentication"));
+        setContentView(ResourceFinder.getResourseIdByName(this.getPackageName(), "layout",
+                "activity_authentication"));
+        CookieSyncManager.createInstance(getApplicationContext());
+        clearSessionCookie();
 
         // Get the message from the intent
         mAcctManager = AccountManager.get(getApplicationContext());
@@ -273,7 +278,8 @@ public class AuthenticationActivity extends Activity {
     }
 
     private void setupWebView() {
-        btnCancel = (Button)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(), "id", "btnCancel"));
+        btnCancel = (Button)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(),
+                "id", "btnCancel"));
         btnCancel.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -285,7 +291,8 @@ public class AuthenticationActivity extends Activity {
         // Spinner dialog to show some message while it is loading
         spinner = new ProgressDialog(this);
         spinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        spinner.setMessage(this.getText(ResourceFinder.getResourseIdByName(this.getPackageName(), "string", "app_loading")));
+        spinner.setMessage(this.getText(ResourceFinder.getResourseIdByName(this.getPackageName(),
+                "string", "app_loading")));
         spinner.setOnCancelListener(new OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
@@ -294,7 +301,8 @@ public class AuthenticationActivity extends Activity {
         });
 
         // Create the Web View to show the page
-        mWebView = (WebView)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(), "id", "webView1"));
+        mWebView = (WebView)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(),
+                "id", "webView1"));
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
@@ -425,6 +433,20 @@ public class AuthenticationActivity extends Activity {
             }
         }
         return loadUrl;
+    }
+
+    private void clearSessionCookie() {
+        // Webview by default does not clear session cookies
+        // App that is installing authenticator could use short session cookies
+        // based on options. Other cases force to clean it.
+        if (!(getCallingPackage().equalsIgnoreCase(
+                AuthenticationSettings.INSTANCE.getBrokerPackageName()) && !AuthenticationSettings.INSTANCE
+                .getClearSession())) {
+            Logger.v(TAG, "Clear session cookies");
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.removeSessionCookie();
+            CookieSyncManager.getInstance().sync();
+        }
     }
 
     private boolean insideBroker() {

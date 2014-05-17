@@ -4,6 +4,6 @@
     <string name="app_name">hello</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-    <string name="login_title">Login</string>
+    <string name="login_title">Hello Login</string>
 
 </resources>

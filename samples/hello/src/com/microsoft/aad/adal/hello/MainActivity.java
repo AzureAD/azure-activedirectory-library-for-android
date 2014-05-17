@@ -72,7 +72,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         textView1 = (TextView)findViewById(R.id.textView1);
-
+        
+        // to test session cookie behavior
+        AuthenticationSettings.INSTANCE.setClearSession(false);
         mLoginProgressDialog = new ProgressDialog(this);
         mLoginProgressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         mLoginProgressDialog.setMessage("Login in progress...");
