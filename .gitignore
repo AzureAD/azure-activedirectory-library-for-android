@@ -19,6 +19,9 @@ libs/
 target/
 Support/
 
+# exclude
+!libs/getLibs.*
+!libs/required-libs.txt
 # Local configuration file (sdk path, etc)
 local.properties
 integration_tests.properties
