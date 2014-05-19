@@ -491,31 +491,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         assertTrue("verify log message",
                 logResponse.message.startsWith("Webview onResume register broadcast"));
     }
-    
-    @SmallTest
-    @UiThreadTest
-    public void testClearSessionCookie() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException, NoSuchFieldException,
-            InterruptedException {
-        AuthenticationSettings.INSTANCE.setClearSession(true);
-        String url = "http://login.windows.net";
-        // Session cookie is without expiration
-        CookieManager.getInstance().setCookie(url, "cookie");
-        String cookie = CookieManager.getInstance().getCookie(url);
-        assertNotNull("It can set cookie", cookie);
-        final TestLogResponse logResponse = new TestLogResponse();
-        logResponse.listenForLogMessage(
-                "Clear session cookies", null);
-        startActivity(intentToStartActivity, null, null);
-        activity = getActivity();       
-              
-        // get field value to check
-        cookie = CookieManager.getInstance().getCookie(url);
-        assertNull("It can set cookie", cookie);
-        assertTrue("verify log message",
-                logResponse.message.startsWith("Clear session cookies"));
-    }
 
     @SmallTest
     @UiThreadTest
