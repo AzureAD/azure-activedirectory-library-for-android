@@ -436,12 +436,10 @@ public class AuthenticationActivity extends Activity {
     }
 
     private void clearSessionCookie() {
-        // Webview by default does not clear session cookies
+        // Webview by default does not clear session cookies even after app is closed(Bug in Webview).
         // App that is installing authenticator could use short session cookies
-        // based on options. Other cases force to clean it.
-        if (!(getCallingPackage().equalsIgnoreCase(
-                AuthenticationSettings.INSTANCE.getBrokerPackageName()) && !AuthenticationSettings.INSTANCE
-                .getClearSession())) {
+        // based on options.
+        if (AuthenticationSettings.INSTANCE.getClearSession()) {
             Logger.v(TAG, "Clear session cookies");
             CookieManager cookieManager = CookieManager.getInstance();
             cookieManager.removeSessionCookie();
