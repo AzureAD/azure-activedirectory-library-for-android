@@ -153,9 +153,7 @@ public class AuthenticationActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(ResourceFinder.getResourseIdByName(this.getPackageName(), "layout",
                 "activity_authentication"));
-        CookieSyncManager.createInstance(getApplicationContext());
-        clearSessionCookie();
-
+       
         // Get the message from the intent
         mAcctManager = AccountManager.get(getApplicationContext());
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
@@ -433,18 +431,6 @@ public class AuthenticationActivity extends Activity {
             }
         }
         return loadUrl;
-    }
-
-    private void clearSessionCookie() {
-        // Webview by default does not clear session cookies even after app is closed(Bug in Webview).
-        // App that is installing authenticator could use short session cookies
-        // based on options.
-        if (AuthenticationSettings.INSTANCE.getClearSession()) {
-            Logger.v(TAG, "Clear session cookies");
-            CookieManager cookieManager = CookieManager.getInstance();
-            cookieManager.removeSessionCookie();
-            CookieSyncManager.getInstance().sync();
-        }
     }
 
     private boolean insideBroker() {
