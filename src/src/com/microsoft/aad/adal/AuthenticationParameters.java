@@ -157,13 +157,12 @@ public class AuthenticationParameters {
             authenticateHeader = authenticateHeader.trim().toLowerCase(Locale.US);
 
             // bearer should be first one
-            if (!authenticateHeader.startsWith(BEARER)
-                    || authenticateHeader.length() < BEARER.length() + 2
-                    || !Character.isWhitespace(authenticateHeader.charAt(BEARER.length()))) {
+            if (!StringExtensions.hasPrefixInHeader(authenticateHeader, BEARER)) {
                 throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
             } else {
                 authenticateHeader = authenticateHeader.substring(BEARER.length());
-                ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader, ',');
+                ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader,
+                        ',');
                 HashMap<String, String> headerItems = new HashMap<String, String>();
                 for (String queryPair : queryPairs) {
                     ArrayList<String> pair = StringExtensions.splitWithQuotes(queryPair, '=');
@@ -198,7 +197,8 @@ public class AuthenticationParameters {
 
                 String authority = headerItems.get(AUTHORITY_KEY);
                 if (!StringExtensions.IsNullOrBlank(authority)) {
-                    authParams = new AuthenticationParameters(StringExtensions.removeQuoteInHeaderValue(authority),
+                    authParams = new AuthenticationParameters(
+                            StringExtensions.removeQuoteInHeaderValue(authority),
                             StringExtensions.removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
                 } else {
                     // invalid format

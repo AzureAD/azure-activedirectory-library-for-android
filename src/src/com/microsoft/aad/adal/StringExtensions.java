@@ -176,4 +176,17 @@ final class StringExtensions {
         }
         return null;
     }
+
+    /**
+     * Checks if header value has this prefix. Prefix + whitespace is
+     * acceptable.
+     * 
+     * @param value
+     * @param prefix
+     * @return
+     */
+    static boolean hasPrefixInHeader(final String value, final String prefix) {
+        return value.startsWith(prefix) && value.length() > prefix.length() + 2
+                && Character.isWhitespace(value.charAt(prefix.length()));
+    }
 }

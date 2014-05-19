@@ -459,17 +459,23 @@ class Oauth2 {
                             .get(AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER).get(0);
                     Logger.v(TAG, "Device certificate challange request:" + challangeHeader);
                     if (!StringExtensions.IsNullOrBlank(challangeHeader)) {
-                        ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
-                                mJWSBuilder);
-                        Logger.v(TAG, "Processing device challange");
-                        final ChallangeResponse challangeResponse = certHandler
-                                .getChallangeResponseFromHeader(challangeHeader);
-                        headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
-                                challangeResponse.mAuthorizationHeaderValue);
-                        Logger.v(TAG, "Sending request with challenge response");
-                        response = mWebRequestHandler.sendPost(authority, headers,
-                                requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
-                                "application/x-www-form-urlencoded");
+                        
+                        // Handle each specific challange header
+                        if (StringExtensions.hasPrefixInHeader(challangeHeader,
+                                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)) {
+                            Logger.v(TAG, "Challange is related to device certificate");
+                            ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                                    mJWSBuilder);
+                            Logger.v(TAG, "Processing device challange");
+                            final ChallangeResponse challangeResponse = certHandler
+                                    .getChallangeResponseFromHeader(challangeHeader);
+                            headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
+                                    challangeResponse.mAuthorizationHeaderValue);
+                            Logger.v(TAG, "Sending request with challenge response");
+                            response = mWebRequestHandler.sendPost(authority, headers,
+                                    requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                                    "application/x-www-form-urlencoded");
+                        }
                     } else {
                         throw new AuthenticationException(
                                 ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
@@ -477,8 +483,9 @@ class Oauth2 {
                     }
                 } else {
 
-                    // AAD server returns 401 response for wrong request messages
-                    Logger.v(TAG, "401 http status code is returned");
+                    // AAD server returns 401 response for wrong request
+                    // messages
+                    Logger.v(TAG, "401 http status code is returned without authorization header");
                 }
             }
 

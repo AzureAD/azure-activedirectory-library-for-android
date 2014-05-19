@@ -228,7 +228,7 @@ public class AuthenticationActivityInstrumentationTests extends
         // add monitor to check for the auth activity
         final ActivityMonitor monitor = getInstrumentation().addMonitor(
                 AuthenticationActivity.class.getName(), null, false);
-        setAuthenticationRequest(tenant, tenant.getResource(), "loginhint", PromptBehavior.Auto,
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Auto,
                 null, false);
 
         verifyTokenFlow(textViewStatus, monitor);
