@@ -150,10 +150,9 @@ public class AuthenticationActivity extends Activity {
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(ResourceFinder.getResourseIdByName(this.getPackageName(), "layout",
-                "activity_authentication"));
-       
+        super.onCreate(savedInstanceState);		
+        setContentView(this.getResources().getIdentifier("activity_authentication","layout",this.getPackageName()));
+
         // Get the message from the intent
         mAcctManager = AccountManager.get(getApplicationContext());
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
@@ -276,8 +275,7 @@ public class AuthenticationActivity extends Activity {
     }
 
     private void setupWebView() {
-        btnCancel = (Button)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(),
-                "id", "btnCancel"));
+        btnCancel = (Button)findViewById(this.getResources().getIdentifier("btnCancel","id",this.getPackageName()));
         btnCancel.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -289,8 +287,7 @@ public class AuthenticationActivity extends Activity {
         // Spinner dialog to show some message while it is loading
         spinner = new ProgressDialog(this);
         spinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        spinner.setMessage(this.getText(ResourceFinder.getResourseIdByName(this.getPackageName(),
-                "string", "app_loading")));
+        spinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading","string",this.getPackageName())));
         spinner.setOnCancelListener(new OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
@@ -299,8 +296,7 @@ public class AuthenticationActivity extends Activity {
         });
 
         // Create the Web View to show the page
-        mWebView = (WebView)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(),
-                "id", "webView1"));
+        mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1","id",this.getPackageName()));
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
