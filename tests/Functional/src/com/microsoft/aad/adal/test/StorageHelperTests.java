@@ -80,11 +80,11 @@ public class StorageHelperTests extends AndroidTestCase {
         Object storageHelper = getStorageHelper();
         Method mDecrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
         Method mEncrypt = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
-        assertThrows(mDecrypt, storageHelper, null, "input is empty or null");
-        assertThrows(mDecrypt, storageHelper, "", "input is empty or null");
+        assertThrows(mDecrypt, storageHelper, null, "Input is empty or null");
+        assertThrows(mDecrypt, storageHelper, "", "Input is empty or null");
 
-        assertThrows(mEncrypt, storageHelper, null, "input is empty or null");
-        assertThrows(mEncrypt, storageHelper, "", "input is empty or null");
+        assertThrows(mEncrypt, storageHelper, null, "Input is empty or null");
+        assertThrows(mEncrypt, storageHelper, "", "Input is empty or null");
     }
 
     public void testDecrypt_InvalidInput() throws NoSuchMethodException, ClassNotFoundException,
@@ -93,11 +93,12 @@ public class StorageHelperTests extends AndroidTestCase {
         Object storageHelper = getStorageHelper();
         Method mDecrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
         Method mEncrypt = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
-        assertThrows(mDecrypt, storageHelper, "E1bad64", "bad base-64");
+        assertThrows(mDecrypt, storageHelper, "E1bad64", "Encode version length is invalid");
+        assertThrows(mDecrypt, storageHelper, "cE1bad64", "bad base-64");
         assertThrowsType(
                 mDecrypt,
                 storageHelper,
-                "E1"
+                "cE1"
                         + new String(Base64.encode(
                                 "U001thatShouldFail1234567890123456789012345678901234567890"
                                         .getBytes("UTF-8"), Base64.NO_WRAP), "UTF-8"),
@@ -183,8 +184,8 @@ public class StorageHelperTests extends AndroidTestCase {
 
         String decrypted = (String)mDecrypt.invoke(storageHelper, encrypted);
         assertTrue("Same without Tampering", decrypted.equals(clearText));
-        String flagVersion = encrypted.substring(0, 2);
-        final byte[] bytes = Base64.decode(encrypted.substring(2), Base64.DEFAULT);
+        String flagVersion = encrypted.substring(0, 3);
+        final byte[] bytes = Base64.decode(encrypted.substring(3), Base64.DEFAULT);
         bytes[15]++;
         String modified = new String(Base64.encode(bytes, Base64.NO_WRAP), "UTF-8");
 
@@ -214,9 +215,9 @@ public class StorageHelperTests extends AndroidTestCase {
         ReflectionUtils.setFieldValue(storageHelper, "sMacKey", null);
         Method m = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
         String encrypted = (String)m.invoke(storageHelper, value);
-        String encodeVersion = encrypted.substring(0, 2);
+        String encodeVersion = encrypted.substring(1, 3);
         assertEquals("Encode version is same", "E1", encodeVersion);
-        final byte[] bytes = Base64.decode(encrypted.substring(2), Base64.DEFAULT);
+        final byte[] bytes = Base64.decode(encrypted.substring(3), Base64.DEFAULT);
 
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
@@ -239,7 +240,7 @@ public class StorageHelperTests extends AndroidTestCase {
         }
 
         String expectedDecrypted = "SomeValue1234";
-        String encryptedInAPI17 = "E1VTAwMb4ChefrTHHblCg0DYaK1UR456nW3q6+hqA9Cs2uB+bqcfsLzukiI+KOCdBGJV+JqhRJHBIDCOl68TYkLQAz65g=";
+        String encryptedInAPI17 = "cE1VTAwMb4ChefrTHHblCg0DYaK1UR456nW3q6+hqA9Cs2uB+bqcfsLzukiI+KOCdBGJV+JqhRJHBIDCOl68TYkLQAz65g=";
         Object storageHelper = getStorageHelper();
         Method decrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
         String decrypted = (String)decrypt.invoke(storageHelper, encryptedInAPI17);

@@ -290,12 +290,12 @@ public class StorageHelper {
         Logger.d(TAG, "Starting encryption");
 
         if (StringExtensions.IsNullOrBlank(clearText)) {
-            throw new IllegalArgumentException("input is empty or null");
+            throw new IllegalArgumentException("Input is empty or null");
         }
 
         // load key for encryption if not loaded
         loadSecretKeyForAPI();
-        Logger.v(TAG, "Encrypt version:"+sBlobVersion);
+        Logger.v(TAG, "Encrypt version:" + sBlobVersion);
         final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
@@ -335,26 +335,31 @@ public class StorageHelper {
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished encryption");
 
-        return ENCODE_VERSION + encryptedText;
+        return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
     }
 
-    public String decrypt(String value) throws NoSuchAlgorithmException,
-            InvalidKeySpecException, NoSuchPaddingException, KeyStoreException,
-            CertificateException, NoSuchProviderException, InvalidAlgorithmParameterException,
+    public String decrypt(String value) throws NoSuchAlgorithmException, InvalidKeySpecException,
+            NoSuchPaddingException, KeyStoreException, CertificateException,
+            NoSuchProviderException, InvalidAlgorithmParameterException,
             UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,
             IllegalBlockSizeException, BadPaddingException {
 
         Logger.d(TAG, "Starting decryption");
 
         if (StringExtensions.IsNullOrBlank(value)) {
-            throw new IllegalArgumentException("input is empty or null");
+            throw new IllegalArgumentException("Input is empty or null");
         }
 
-        if (!value.substring(0, ENCODE_VERSION_LENGTH).equals(ENCODE_VERSION)) {
+        int encodeVersionLength = value.charAt(0) - 'a';
+        if (encodeVersionLength <= 0) {
+            throw new IllegalArgumentException("Encode version length is invalid");
+        }
+        if (!value.substring(1, 1 + encodeVersionLength).equals(ENCODE_VERSION)) {
             throw new IllegalArgumentException("Encode version does not match");
         }
 
-        final byte[] bytes = Base64.decode(value.substring(ENCODE_VERSION_LENGTH), Base64.DEFAULT);
+        final byte[] bytes = Base64.decode(value.substring(1 + ENCODE_VERSION_LENGTH),
+                Base64.DEFAULT);
 
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
@@ -397,6 +402,10 @@ public class StorageHelper {
                 encryptedLength), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished decryption");
         return decrypted;
+    }
+
+    private char getEncodeVersionLengthPrefix() {
+        return (char)('a' + ENCODE_VERSION.length());
     }
 
     private void assertMac(byte[] digest, int start, int end, byte[] calculated)
