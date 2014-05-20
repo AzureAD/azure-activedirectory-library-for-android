@@ -33,13 +33,23 @@ Before you run the SDK Deployer, you should have installed ALL PACKAGES in the A
 
 Now Maven will have android-19 and support-v4 as dependencies in local m2 repo.
 
-#### Install This Repo
+#### Install This Repo with Maven
 
-You can clone and install from cmd line:
+You can clone and install from cmd line. This requires to setup Maven Android environment:
 
     git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
     cd azure-activedirectory-library-for-android
     mvn clean install
+
+
+#### Install This Repo without Maven
+
+You can clone and install dependencies:
+
+    git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
+    cd azure-activedirectory-library-for-android/src/libs
+    run getLibs.ps1 or getLibs.sh depending on your platform
+    You could add support-v4 through Eclipse.
 
 ## Usage
 
