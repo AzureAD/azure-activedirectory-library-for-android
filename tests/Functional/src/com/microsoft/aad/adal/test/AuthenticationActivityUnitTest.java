@@ -49,6 +49,7 @@ import android.test.ActivityUnitTestCase;
 import android.test.RenamingDelegatingContext;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;

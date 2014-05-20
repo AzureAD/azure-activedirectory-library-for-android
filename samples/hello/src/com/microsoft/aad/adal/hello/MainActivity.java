@@ -48,6 +48,7 @@ import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.hello.R;
 
 public class MainActivity extends Activity {
@@ -70,9 +71,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        CookieSyncManager.createInstance(getApplicationContext());
         textView1 = (TextView)findViewById(R.id.textView1);
-
+        
+        // to test session cookie behavior
         mLoginProgressDialog = new ProgressDialog(this);
         mLoginProgressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         mLoginProgressDialog.setMessage("Login in progress...");
@@ -170,6 +172,22 @@ public class MainActivity extends Activity {
                     }
 
                 });
+    }
+    
+    private void clearSessionCookie() {
+        // Webview by default does not clear session cookies even after app is
+        // closed(Bug in Webview).
+        // Example to clean session cookie
+        Logger.v(TAG, "Clear session cookies");
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.removeSessionCookie();
+        CookieSyncManager.getInstance().sync();
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        clearSessionCookie();
     }
 
     @Override

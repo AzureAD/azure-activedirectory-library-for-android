@@ -190,6 +190,17 @@ ADAL allows referencing jar files directly in your project. It resolves resource
     <fields>;
 }
 ```
+
+### Session cookies in Webview
+Android webview does not clear session cookies after app is closed. You can handle this with sample code below:
+```java
+CookieSyncManager.createInstance(getApplicationContext());
+CookieManager cookieManager = CookieManager.getInstance();
+cookieManager.removeSessionCookie();
+CookieSyncManager.getInstance().sync();
+```
+More about cookies: http://developer.android.com/reference/android/webkit/CookieSyncManager.html
+
 ## License
 
 Copyright (c) Microsoft Open Technologies, Inc.  All rights reserved. Licensed under the Apache License, Version 2.0 (the "License"); 

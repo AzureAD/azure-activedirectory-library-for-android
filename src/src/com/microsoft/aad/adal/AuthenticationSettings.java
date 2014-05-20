@@ -38,7 +38,7 @@ public enum AuthenticationSettings {
     private Class<?> mClazzDeviceCertProxy;
     
     private String mActivityPackageName;
-
+    
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt
      * 
