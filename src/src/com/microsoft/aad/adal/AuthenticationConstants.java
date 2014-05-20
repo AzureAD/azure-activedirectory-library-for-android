@@ -252,7 +252,7 @@ public class AuthenticationConstants {
         
         public static final String CHALLANGE_RESPONSE_HEADER = "Authorization";
 
-        public static final String CHALLANGE_RESPONSE_TYPE = "CertAuth";
+        public static final String CHALLANGE_RESPONSE_TYPE = "PKeyAuth";
 
         public static final String CHALLANGE_RESPONSE_TOKEN = "AuthToken";
 
@@ -275,7 +275,9 @@ public class AuthenticationConstants {
          */
         public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
 
-        public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:CertAuth";
+        public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
+
+        public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-client-TLS-not-supported";
 
     }
 

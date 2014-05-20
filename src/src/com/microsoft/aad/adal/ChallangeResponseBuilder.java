@@ -53,7 +53,7 @@ class ChallangeResponseBuilder {
     }
 
     enum RequestField {
-        Nonce, CertAuthorities, Version, SubmitUrl, Context, Issuer
+        Nonce, CertAuthorities, Version, SubmitUrl, Context, CertThumbprint
     }
 
     class ChallangeRequest {
@@ -92,9 +92,10 @@ class ChallangeResponseBuilder {
         return getDeviceCertResponse(request);
     }
 
-    public ChallangeResponse getChallangeResponseFromHeader(final String challangeHeaderValue)
-            throws UnsupportedEncodingException {
+    public ChallangeResponse getChallangeResponseFromHeader(final String challangeHeaderValue,
+            final String endpoint) throws UnsupportedEncodingException {
         ChallangeRequest request = getChallangeRequestFromHeader(challangeHeaderValue);
+        request.mSubmitUrl = endpoint;
         return getDeviceCertResponse(request);
     }
 
@@ -120,7 +121,9 @@ class ChallangeResponseBuilder {
                         privateKey, deviceCertProxy.getRSAPublicKey(),
                         deviceCertProxy.getThumbPrint());
                 response.mAuthorizationHeaderValue = String.format(
-                        "CertAuth AuthToken=\"%s\",Context=\"%s\"", jwt, request.mContext);
+                        "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
+                        AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, jwt,
+                        request.mContext, request.mVersion);
                 Logger.v(TAG, "Challange response:" + response.mAuthorizationHeaderValue);
             } else {
                 throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
@@ -203,9 +206,10 @@ class ChallangeResponseBuilder {
 
         validateChallangeRequest(headerItems, false);
         challange.mNonce = headerItems.get(RequestField.Nonce.name());
-        challange.mThumbprint = headerItems.get(RequestField.Issuer.name());
+        challange.mThumbprint = headerItems.get(RequestField.CertThumbprint.name());
         if (StringExtensions.IsNullOrBlank(challange.mThumbprint)) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, "Issuer is not present in the header");
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                    "CertThumbprint is not present in the header");
         }
         challange.mVersion = headerItems.get(RequestField.Version.name());
         challange.mContext = headerItems.get(RequestField.Context.name());

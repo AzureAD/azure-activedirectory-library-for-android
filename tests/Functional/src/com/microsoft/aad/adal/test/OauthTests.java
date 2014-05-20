@@ -451,8 +451,8 @@ public class OauthTests extends AndroidTestCase {
         when(
                 mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
                         eq(publicKey), eq(thumbPrint))).thenReturn("signedJwtHere");
-        String challangeHeaderValue = "CertAuth  Nonce=\"" + nonce
-                + "\",  Version=\"1.0\", Issuer=\"" + thumbPrint + "\",  Context=\"" + context
+        String challangeHeaderValue = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE+ " Nonce=\"" + nonce
+                + "\",  Version=\"1.0\", CertThumbprint=\"" + thumbPrint + "\",  Context=\"" + context
                 + "\"";
         String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallange\",\"scope\":\"*\"}";
         HashMap<String, List<String>> headers = getHeader(

@@ -59,6 +59,7 @@ import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 import com.microsoft.aad.adal.PromptBehavior;
@@ -228,8 +229,7 @@ public class AuthenticationActivityInstrumentationTests extends
         // add monitor to check for the auth activity
         final ActivityMonitor monitor = getInstrumentation().addMonitor(
                 AuthenticationActivity.class.getName(), null, false);
-        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Auto,
-                null, false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.Auto, null, false);
 
         verifyTokenFlow(textViewStatus, monitor);
     }
@@ -238,18 +238,39 @@ public class AuthenticationActivityInstrumentationTests extends
     public void testDeviceChallange() throws Exception {
         TenantInfo tenant = new TenantInfo(TenantType.AAD,
                 "https://clientcert.azurewebsites.net/WebRequest", "device-challange", "resource2",
-                "short-live-token", "https://clientcert.azurewebsites.net/", null, null, null, null, null);
+                "short-live-token", "https://clientcert.azurewebsites.net/", null, null, null,
+                null, null);
         Log.v(TAG, "testDeviceChallange starts for authority:" + tenant.getAuthority());
-        
+
         // Activity runs at main thread. Test runs on different thread
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
         // add monitor to check for the auth activity
         final ActivityMonitor monitor = getInstrumentation().addMonitor(
                 AuthenticationActivity.class.getName(), null, false);
-        setAuthenticationRequest(tenant, tenant.getResource(), "admin@aaltests.onmicrosoft.com", PromptBehavior.Auto,
-                null, false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "admin@aaltests.onmicrosoft.com",
+                PromptBehavior.Auto, null, false);
         setupDeviceCertificateMock();
         verifyTokenFlow(textViewStatus, monitor);
+    }
+
+    @MediumTest
+    public void testDeviceChallangeRefreshToken() throws Exception {
+        TenantInfo tenant = new TenantInfo(TenantType.AAD,
+                "https://clientcert.azurewebsites.net/WebRequest", "device-challange", "resource2",
+                "short-live-token", "https://clientcert.azurewebsites.net/", null, null, null,
+                null, null);
+        Log.v(TAG, "testDeviceChallange starts for authority:" + tenant.getAuthority());
+
+        // Activity runs at main thread. Test runs on different thread
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        
+        // add monitor to check for the auth activity
+        final ActivityMonitor monitor = getInstrumentation().addMonitor(
+                AuthenticationActivity.class.getName(), null, false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "admin@aaltests.onmicrosoft.com",
+                PromptBehavior.Auto, null, false);
+        setupDeviceCertificateMock();
+        acquireTokenByRefreshToken("DEVICE_CERT_CHALLANGE");
     }
 
     private void verifyTokenFlow(final TextView textViewStatus, final ActivityMonitor monitor)
@@ -327,7 +348,8 @@ public class AuthenticationActivityInstrumentationTests extends
         // Activity runs at main thread. Test runs on different thread
         Log.v(TAG, "testAcquireToken_Prompt starts for authority:" + tenant.getAuthority());
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
-        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.CACHE_ONLY, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.CACHE_ONLY, "",
+                false);
 
         // press clear all button to clear tokens and cookies
         clickResetTokens();
@@ -389,7 +411,8 @@ public class AuthenticationActivityInstrumentationTests extends
         Log.d(TAG, "Get token after delay");
         Thread.sleep(SLEEP_NEXT_REQUEST);
         // Stores token based on requested userid
-        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.CACHE_ONLY, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.CACHE_ONLY, "",
+                false);
         clickGetToken();
         AuthenticationResult result2 = activity.getResult();
         verifyTokenSame(result, result2);
@@ -430,7 +453,8 @@ public class AuthenticationActivityInstrumentationTests extends
         assertTrue("token is multiresource", result.getIsMultiResourceRefreshToken());
         // TODO: It records to cache based on request. Change that for updated
         // logic.
-        setAuthenticationRequest(tenant, tenant.getResource2(), "", PromptBehavior.CACHE_ONLY, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource2(), "", PromptBehavior.CACHE_ONLY, "",
+                false);
         Thread.sleep(SLEEP_NEXT_REQUEST);
         clickGetToken();
         AuthenticationResult result2 = activity.getResult();
@@ -448,7 +472,8 @@ public class AuthenticationActivityInstrumentationTests extends
 
         Log.d(TAG, "Ask token for resource2");
         assertTrue("token is multiresource", result.getIsMultiResourceRefreshToken());
-        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.CACHE_ONLY, "", false);
+        setAuthenticationRequest(tenant, tenant.getResource(), "", PromptBehavior.CACHE_ONLY, "",
+                false);
         for (int i = 0; i < 10; i++) {
             clickGetToken();
             AuthenticationResult result2 = activity.getResult();
@@ -808,6 +833,32 @@ public class AuthenticationActivityInstrumentationTests extends
                 }
             }
         });
+    }
+
+    private void acquireTokenByRefreshToken(final String refreshToken)
+            throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+            InterruptedException {
+        final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
+        Logger.v(TAG, "Send refresh token request");
+        activity.getTestAppHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                activity.acquireTokenByRefreshToken(refreshToken);
+            }
+        });
+
+        waitUntil(PAGE_LOAD_TIMEOUT, new ResponseVerifier() {
+            @Override
+            public boolean hasCondition() throws IllegalArgumentException, NoSuchFieldException,
+                    IllegalAccessException {
+                String tokenMsg = (String)textViewStatus.getText();
+                return tokenMsg.equals(MainActivity.PASSED);
+            }
+        });
+
+        String tokenMsg = (String)textViewStatus.getText();
+        Log.v(TAG, "textViewStatus Text:" + tokenMsg);
+        assertTrue("Token status", tokenMsg.contains(MainActivity.PASSED));
     }
 
     private void verifyTokenExists() {

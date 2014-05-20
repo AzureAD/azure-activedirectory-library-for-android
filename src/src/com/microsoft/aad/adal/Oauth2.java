@@ -340,7 +340,11 @@ class Oauth2 {
             return null;
         }
 
-        return postMessage(requestMessage);
+        HashMap<String, String> headers = getRequestHeaders();
+        
+        // Refresh token endpoint needs to send header field for device challenge
+        headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE, "true");
+        return postMessage(requestMessage, headers);
     }
 
     /**
@@ -429,18 +433,18 @@ class Oauth2 {
             return null;
         }
 
-        return postMessage(requestMessage);
+        HashMap<String, String> headers = getRequestHeaders();
+        return postMessage(requestMessage, headers);
     }
 
-    private AuthenticationResult postMessage(String requestMessage) throws Exception {
+    private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
+            throws Exception {
         URL authority = null;
         AuthenticationResult result = null;
         authority = StringExtensions.getUrl(getTokenEndpoint());
         if (authority == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
-
-        HashMap<String, String> headers = getRequestHeaders();
 
         try {
             mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
@@ -459,8 +463,8 @@ class Oauth2 {
                             .get(AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER).get(0);
                     Logger.v(TAG, "Device certificate challange request:" + challangeHeader);
                     if (!StringExtensions.IsNullOrBlank(challangeHeader)) {
-                        
-                        // Handle each specific challange header
+
+                        // Handle each specific challenge header
                         if (StringExtensions.hasPrefixInHeader(challangeHeader,
                                 AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)) {
                             Logger.v(TAG, "Challange is related to device certificate");
@@ -468,7 +472,7 @@ class Oauth2 {
                                     mJWSBuilder);
                             Logger.v(TAG, "Processing device challange");
                             final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponseFromHeader(challangeHeader);
+                                    .getChallangeResponseFromHeader(challangeHeader, authority.toString());
                             headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
                                     challangeResponse.mAuthorizationHeaderValue);
                             Logger.v(TAG, "Sending request with challenge response");

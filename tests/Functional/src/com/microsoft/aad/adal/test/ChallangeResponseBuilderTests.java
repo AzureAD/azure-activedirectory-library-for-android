@@ -33,6 +33,7 @@ import java.security.interfaces.RSAPublicKey;
 import junit.framework.Assert;
 
 import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IJWSBuilder;
@@ -40,6 +41,10 @@ import com.microsoft.aad.adal.IJWSBuilder;
 public class ChallangeResponseBuilderTests extends AndroidTestHelper {
 
     static final String TAG = "ClientCertHandlerTests";
+
+    private static final String CERT_REDIRECT = AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT;
+
+    private static final String CERT_AUTH_TYPE = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE;
 
     public void testGetChallangeResponseFromHeader_Positive() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
@@ -58,22 +63,22 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         MockDeviceCertProxy.sPrivateKey = privateKey;
         MockDeviceCertProxy.sPublicKey = publicKey;
         IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
-        when(mockJwsBuilder.generateSignedJWT(nonce, "", privateKey, publicKey, thumbPrint))
+        when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, thumbPrint))
                 .thenReturn("signedJwtHere");
         Object handler = getInstance(mockJwsBuilder);
         Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromHeader",
-                String.class);
-        String redirectURI = "CertAuth Nonce=\"" + nonce
-                + "\",Issuer=\"ABC\",Version=\"1.0\",Context=\"" + context + "\"";
+                String.class, String.class);
+        String redirectURI = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE + " Nonce=\""
+                + nonce + "\",CertThumbprint=\"ABC\",Version=\"1.0\",Context=\"" + context + "\"";
 
         // act
-        Object response = m.invoke(handler, redirectURI);
+        Object response = m.invoke(handler, redirectURI, submitUrl);
 
         // assert
         String authHeaderValue = (String)ReflectionUtils.getFieldValue(response,
                 "mAuthorizationHeaderValue");
-        assertTrue(authHeaderValue.contains(String.format(
-                "CertAuth AuthToken=\"%s\",Context=\"%s\"", "signedJwtHere", context)));
+        assertTrue(authHeaderValue.contains(String.format("%s AuthToken=\"%s\",Context=\"%s\"",
+                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, "signedJwtHere", context)));
     }
 
     public void testGetChallangeResponseFromHeader_Negative() throws ClassNotFoundException,
@@ -83,7 +88,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         Object handler = getInstance(null);
         Method m = ReflectionUtils.getTestMethod(handler, "getChallangeRequestFromHeader",
                 String.class);
-        String redirectURI = "CertAuth Nonce = a =b, Pair = c =invalidFormat";
+        String redirectURI = CERT_AUTH_TYPE + " Nonce = a =b, Pair = c =invalidFormat";
 
         // act
         try {
@@ -107,7 +112,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         String submitUrl = "http://fs.contoso.com/adfs/services/trust";
         String nonce = "123123-123213-123";
         String context = "ABcdeded";
-        String redirectURI = "urn:http-auth:CertAuth?Nonce=" + nonce
+        String redirectURI = CERT_REDIRECT + "?Nonce=" + nonce
                 + "&CertAuthorities=ABC&Version=1.0&SubmitUrl=" + submitUrl + "&Context=" + context;
 
         Object response = m.invoke(handler, redirectURI);
@@ -128,8 +133,8 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
                 String.class);
 
         try {
-            m.invoke(handler,
-                    "urn:http-auth:CertAuth?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Context=1");
+            m.invoke(handler, CERT_REDIRECT
+                    + "?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Context=1");
             Assert.fail("No exception");
         } catch (Exception ex) {
             assertEquals("API exception", ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
@@ -155,40 +160,40 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         }
 
         try {
-            m.invoke(handler,
-                    "urn:http-auth:CertAuth?Noncemissing=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Context=1");
+            m.invoke(handler, CERT_REDIRECT
+                    + "?Noncemissing=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Context=1");
             Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("Nonce"));
         }
 
         try {
-            m.invoke(handler,
-                    "urn:http-auth:CertAuth?Nonce=2&CertAuthoritiesMissing=ABC&Version=1.0&SubmitUrl=1&Context=1");
+            m.invoke(handler, CERT_REDIRECT
+                    + "?Nonce=2&CertAuthoritiesMissing=ABC&Version=1.0&SubmitUrl=1&Context=1");
             Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("CertAuthorities"));
         }
 
         try {
-            m.invoke(handler,
-                    "urn:http-auth:CertAuth?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrlMissing=1&Context=1");
+            m.invoke(handler, CERT_REDIRECT
+                    + "?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrlMissing=1&Context=1");
             Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("SubmitUrl"));
         }
 
         try {
-            m.invoke(handler,
-                    "urn:http-auth:CertAuth?Nonce=2&CertAuthorities=ABC&Versionmiss=1.0&SubmitUrl=1&Context=1");
+            m.invoke(handler, CERT_REDIRECT
+                    + "?Nonce=2&CertAuthorities=ABC&Versionmiss=1.0&SubmitUrl=1&Context=1");
             Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("Version"));
         }
 
         try {
-            m.invoke(handler,
-                    "urn:http-auth:CertAuth?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Contextmiss=1");
+            m.invoke(handler, CERT_REDIRECT
+                    + "?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Contextmiss=1");
             Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("Context"));
@@ -207,7 +212,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         String submitUrl = "http://fs.contoso.com/adfs/services/trust";
         String nonce = "123123-123213-123";
         String context = "ABcdeded";
-        String redirectURI = "urn:http-auth:CertAuth?Nonce=" + nonce
+        String redirectURI = CERT_REDIRECT + "?Nonce=" + nonce
                 + "&CertAuthorities=ABC&Version=1.0&SubmitUrl=" + submitUrl + "&Context=" + context;
 
         try {
@@ -240,7 +245,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         Object handler = getInstance(mockJwsBuilder);
         Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromUri",
                 String.class);
-        String redirectURI = "urn:http-auth:CertAuth?Nonce=" + nonce
+        String redirectURI = CERT_REDIRECT + "?Nonce=" + nonce
                 + "&CertAuthorities=ABC&Version=1.0&SubmitUrl=" + submitUrl + "&Context=" + context;
 
         Object response = m.invoke(handler, redirectURI);
@@ -263,8 +268,8 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         assertTrue("Contains url", submitUrl.contains(url));
 
         if (auth != null) {
-            assertTrue(authHeaderValue.contains(String.format(
-                    "CertAuth AuthToken=\"%s\",Context=\"%s\"", auth, context)));
+            assertTrue(authHeaderValue.contains(String.format("%s AuthToken=\"%s\",Context=\"%s\"",
+                    CERT_AUTH_TYPE, auth, context)));
         } else {
             assertTrue(authHeaderValue.contains(String.format("CertAuth Context=\"%s\"", context)));
         }
