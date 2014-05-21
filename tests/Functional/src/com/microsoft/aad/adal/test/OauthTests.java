@@ -18,12 +18,25 @@
 
 package com.microsoft.aad.adal.test;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -37,9 +50,12 @@ import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.HttpWebResponse;
+import com.microsoft.aad.adal.IJWSBuilder;
 import com.microsoft.aad.adal.IWebRequestHandler;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.UserInfo;
@@ -47,6 +63,8 @@ import com.microsoft.aad.adal.UserInfo;
 public class OauthTests extends AndroidTestCase {
 
     private static final String TEST_RETURNED_EXCEPTION = "test-returned-exception";
+
+    private static final String TEST_AUTHORITY = "https://login.windows.net/common";
 
     @SmallTest
     public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
@@ -410,6 +428,82 @@ public class OauthTests extends AndroidTestCase {
                 testResult.mResult.getRefreshToken());
     }
 
+    @SuppressWarnings("unchecked")
+    @SmallTest
+    public void testRefreshTokenWebResponse_DeviceChallenge_Positive()
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException, InvocationTargetException,
+            NoSuchAlgorithmException, MalformedURLException {
+        IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
+        KeyPair keyPair = getKeyPair();
+        RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
+        RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
+        String nonce = UUID.randomUUID().toString();
+        String context = "CookieConABcdeded";
+        String thumbPrint = "thumbprint23432432";
+        AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
+        MockDeviceCertProxy.reset();
+        MockDeviceCertProxy.sValidIssuer = true;
+        MockDeviceCertProxy.sThumbPrint = thumbPrint;
+        MockDeviceCertProxy.sPrivateKey = privateKey;
+        MockDeviceCertProxy.sPublicKey = publicKey;
+        IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
+        when(
+                mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
+                        eq(publicKey), eq(thumbPrint))).thenReturn("signedJwtHere");
+        String challangeHeaderValue = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE+ " Nonce=\"" + nonce
+                + "\",  Version=\"1.0\", CertThumbprint=\"" + thumbPrint + "\",  Context=\"" + context
+                + "\"";
+        String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallange\",\"scope\":\"*\"}";
+        HashMap<String, List<String>> headers = getHeader(
+                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER, challangeHeaderValue);
+        HttpWebResponse responeChallange = new HttpWebResponse(401, null, headers);
+        HttpWebResponse responseValid = new HttpWebResponse(200,
+                tokenPositiveResponse.getBytes(Charset.defaultCharset()), null);
+        // first call returns 401 and second call returns token
+        when(
+                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        any(headers.getClass()), any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange)
+                .thenReturn(responseValid);
+
+        // send request
+        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
+                mockWebRequest, mockJwsBuilder, "testRefreshToken");
+
+        // Verify that callback can receive this error
+        assertNull("callback doesnot have error", testResult.mException);
+        assertNotNull("Result is not null", testResult.mResult);
+        assertEquals("Same access token", "accessTokenHere", testResult.mResult.getAccessToken());
+        assertEquals("Same refresh token", "refreshWithDeviceChallange",
+                testResult.mResult.getRefreshToken());
+    }
+
+    @SuppressWarnings("unchecked")
+    @SmallTest
+    public void testRefreshTokenWebResponse_DeviceChallenge_Header_Empty()
+            throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalAccessException, InvocationTargetException,
+            NoSuchAlgorithmException, MalformedURLException {
+        IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
+        HashMap<String, List<String>> headers = getHeader(
+                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER, " ");
+        HttpWebResponse responeChallange = new HttpWebResponse(401, null, headers);
+        when(
+                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                        any(headers.getClass()), any(byte[].class),
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange);
+
+        // send request
+        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
+                mockWebRequest, "testRefreshToken");
+
+        // Verify that callback can receive this error
+        assertNotNull("Callback has error", testResult.mException);
+        assertEquals("Check error message", "Challange header is empty",
+                ((AuthenticationException)testResult.mException.getCause()).getMessage());
+    }
+
     @SmallTest
     public void testprocessTokenResponse() throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
@@ -540,7 +634,7 @@ public class OauthTests extends AndroidTestCase {
     private Object getValidAuthenticationRequest() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
-        return createAuthenticationRequest("http://www.something.com", "resource%20 ",
+        return createAuthenticationRequest(TEST_AUTHORITY, "resource%20 ",
                 "client 1234567890-+=;'", "redirect 1234567890-+=;'", "loginhint@ggg.com", null,
                 null, null);
     }
@@ -552,6 +646,24 @@ public class OauthTests extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         final MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final Object oauth = createOAuthInstance(request, webrequest);
+        final Method m = ReflectionUtils.getTestMethod(oauth, "refreshToken", String.class);
+        try {
+            callback.mResult = (AuthenticationResult)m.invoke(oauth, refreshToken);
+        } catch (Exception e) {
+            callback.mException = e;
+        }
+
+        // callback has set the result from the call
+        return callback;
+    }
+
+    private MockAuthenticationCallback refreshToken(Object request, Object webrequest,
+            IJWSBuilder jwsBuilder, final String refreshToken) throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+        final CountDownLatch signal = new CountDownLatch(1);
+        final MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        final Object oauth = createOAuthInstance(request, webrequest, jwsBuilder);
         final Method m = ReflectionUtils.getTestMethod(oauth, "refreshToken", String.class);
         try {
             callback.mResult = (AuthenticationResult)m.invoke(oauth, refreshToken);
@@ -595,7 +707,6 @@ public class OauthTests extends AndroidTestCase {
     private static Object createOAuthInstance(Object authenticationRequest, Object mockWebRequest)
             throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
-
         if (mockWebRequest == null) {
             return createOAuthInstance(authenticationRequest);
         }
@@ -607,5 +718,35 @@ public class OauthTests extends AndroidTestCase {
         constructor.setAccessible(true);
         Object o = constructor.newInstance(authenticationRequest, mockWebRequest);
         return o;
+    }
+
+    private static Object createOAuthInstance(Object authenticationRequest, Object mockWebRequest,
+            IJWSBuilder jwsBuilder) throws ClassNotFoundException, NoSuchMethodException,
+            IllegalArgumentException, InstantiationException, IllegalAccessException,
+            InvocationTargetException {
+        if (mockWebRequest == null) {
+            return createOAuthInstance(authenticationRequest);
+        }
+
+        Class<?> c = Class.forName("com.microsoft.aad.adal.Oauth2");
+
+        Constructor<?> constructor = c.getDeclaredConstructor(authenticationRequest.getClass(),
+                IWebRequestHandler.class, IJWSBuilder.class);
+        constructor.setAccessible(true);
+        Object o = constructor.newInstance(authenticationRequest, mockWebRequest, jwsBuilder);
+        return o;
+    }
+
+    private HashMap<String, List<String>> getHeader(String key, String value) {
+        HashMap<String, List<String>> dummy = new HashMap<String, List<String>>();
+        dummy.put(key, Arrays.asList(value));
+        return dummy;
+    }
+
+    private KeyPair getKeyPair() throws NoSuchAlgorithmException {
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        keyGen.initialize(1024);
+        KeyPair keyPair = keyGen.genKeyPair();
+        return keyPair;
     }
 }

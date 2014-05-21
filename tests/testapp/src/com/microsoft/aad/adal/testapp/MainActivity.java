@@ -305,6 +305,20 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void acquireTokenByRefreshToken(String refreshToken) {
+        textViewStatus.setText(GETTING_TOKEN);
+        if (mContext == null) {
+            initContext();
+        }
+        
+        String clientId = mClientId.getText().toString();
+        if (clientId == null || clientId.isEmpty()) {
+            clientId = CLIENT_ID;
+        }
+        mContext.setRequestCorrelationId(mRequestCorrelationId);
+        mContext.acquireTokenByRefreshToken(refreshToken, clientId, new AdalCallback());
+    }
+    
     private void getTokenByRefreshToken() {
         Logger.v(TAG, "get Token with refresh token");
         textViewStatus.setText(GETTING_TOKEN);
