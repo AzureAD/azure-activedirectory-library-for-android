@@ -21,12 +21,12 @@
     </dependency>
     <dependency>
       <groupId>com.android.support</groupId>
-      <artifactId>support-v4</artifactId>
+      <artifactId>${android.support.name}</artifactId>
       <version>${android.support.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
+      <artifactId>${gson.name}</artifactId>
       <version>2.2.4</version>
     </dependency>
     <dependency>
@@ -38,6 +38,24 @@
   </dependencies>
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>libs</directory>
+              <includes>
+                <include>**/*.jar</include>
+              </includes>
+              <excludes>
+                <exclude>**/gson.jar</exclude>
+                <exclude>**/support-v4.jar</exclude>
+              </excludes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -51,12 +69,12 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>com.google.code.gson</groupId>
-                  <artifactId>gson</artifactId>
+                  <artifactId>${gson.name}</artifactId>
                   <version>2.2.4</version>
                 </artifactItem>
                 <artifactItem>
                   <groupId>com.android.support</groupId>
-                  <artifactId>support-v4</artifactId>
+                  <artifactId>${android.support.name}</artifactId>
                   <version>LATEST</version>
                 </artifactItem>
               </artifactItems>

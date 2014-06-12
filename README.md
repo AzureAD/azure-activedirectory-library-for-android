@@ -180,7 +180,7 @@ If you want to build with Maven, you can use the pom.xml at top level
   * go to root folder
   * mvn clean install
   * cd samples\hello
-  * mvn install android:deploy android:install
+  * mvn android:deploy android:run
   * You should see app launching
   * Enter test user credentials to try
 
