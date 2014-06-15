@@ -253,15 +253,25 @@ public class AuthenticationActivity extends Activity {
         }
         mRestartWebview = false;
         final String postUrl = mStartUrl;
-        mWebView.post(new Runnable() {
-            @Override
-            public void run() {
-                mWebView.loadUrl("about:blank");// load blank first
-                mWebView.loadUrl(postUrl);
-            }
-        });
+        mWebView.loadUrl(postUrl, getHeaders());
+//        mWebView.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                
+//                mWebView.loadUrl("about:blank", getHeaders());// load blank first                
+//                mWebView.loadUrl(postUrl, getHeaders());
+//            }
+//        });
     }
 
+    private HashMap<String,String> getHeaders(){
+        final HashMap<String, String> headers = new HashMap<String, String>();
+        headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE,
+                "true");
+        headers.put("custom1",
+                "hereis");
+        return headers;
+    }
     private void updateRequestForAccounts() {
         if (insideBroker()) {
             Account[] accountList = mAcctManager
@@ -500,8 +510,8 @@ public class AuthenticationActivity extends Activity {
             mWebView.post(new Runnable() {
                 @Override
                 public void run() {
-                    mWebView.loadUrl("about:blank");// load blank first
-                    mWebView.loadUrl(postUrl);
+                    mWebView.loadUrl("about:blank", getHeaders());// load blank first
+                    mWebView.loadUrl(postUrl, getHeaders());
                 }
             });
         }

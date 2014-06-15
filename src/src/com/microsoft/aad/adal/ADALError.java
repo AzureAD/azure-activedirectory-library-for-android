@@ -211,7 +211,7 @@ public enum ADALError {
 
     DEVICE_CERTIFICATE_REQUEST_INVALID("Device certificate request is valid"),
 
-    RESOURCE_NOT_FOUND("Resource is not found in your project. Please include resource files.");
+    RESOURCE_NOT_FOUND("Resource is not found in your project. Please include resource files."), CERTIFICATE_ENCODING_ERROR("Certificate encoding is not generated");
 
     private String mDescription;
 

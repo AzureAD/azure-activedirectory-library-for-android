@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
@@ -57,13 +58,15 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         String nonce = "123123-123213-123";
         String context = "ABcdeded";
         String thumbPrint = "thumbprint23432432";
+        X509Certificate mockCert = mock(X509Certificate.class);
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.sValidIssuer = true;
         MockDeviceCertProxy.sThumbPrint = thumbPrint;
         MockDeviceCertProxy.sPrivateKey = privateKey;
         MockDeviceCertProxy.sPublicKey = publicKey;
+        MockDeviceCertProxy.sCertificate = mockCert;
         IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
-        when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, thumbPrint))
+        when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, mockCert))
                 .thenReturn("signedJwtHere");
         Object handler = getInstance(mockJwsBuilder);
         Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromHeader",
@@ -233,14 +236,14 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         String submitUrl = "http://fs.contoso.com/adfs/services/trust";
         String nonce = "123123-123213-123";
         String context = "ABcdeded";
-        String thumbPrint = "thumbprint23432432";
+        X509Certificate mockCert = mock(X509Certificate.class);
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.sValidIssuer = true;
-        MockDeviceCertProxy.sThumbPrint = thumbPrint;
         MockDeviceCertProxy.sPrivateKey = privateKey;
         MockDeviceCertProxy.sPublicKey = publicKey;
+        MockDeviceCertProxy.sCertificate = mockCert;
         IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
-        when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, thumbPrint))
+        when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, mockCert))
                 .thenReturn("signedJwtHere");
         Object handler = getInstance(mockJwsBuilder);
         Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromUri",

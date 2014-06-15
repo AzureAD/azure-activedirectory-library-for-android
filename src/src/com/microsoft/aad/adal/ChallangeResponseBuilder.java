@@ -25,6 +25,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import android.security.KeyChainException;
 
@@ -119,7 +120,7 @@ class ChallangeResponseBuilder {
             if (privateKey != null) {
                 String jwt = mJWSBuilder.generateSignedJWT(request.mNonce, request.mSubmitUrl,
                         privateKey, deviceCertProxy.getRSAPublicKey(),
-                        deviceCertProxy.getThumbPrint());
+                        deviceCertProxy.getCertificate());
                 response.mAuthorizationHeaderValue = String.format(
                         "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
                         AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, jwt,
@@ -247,12 +248,13 @@ class ChallangeResponseBuilder {
         ChallangeRequest challange = new ChallangeRequest();
         HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUri);
         validateChallangeRequest(parameters, true);
-
         challange.mNonce = parameters.get(RequestField.Nonce.name());
+        if(StringExtensions.IsNullOrBlank(challange.mNonce)){
+            challange.mNonce = parameters.get(RequestField.Nonce.name().toLowerCase(Locale.US));
+        }
         String authorities = parameters.get(RequestField.CertAuthorities.name());
         challange.mCertAuthorities = StringExtensions.getStringTokens(authorities,
                 AuthenticationConstants.Broker.CHALLANGE_REQUEST_CERT_AUTH_DELIMETER);
-
         challange.mVersion = parameters.get(RequestField.Version.name());
         challange.mSubmitUrl = parameters.get(RequestField.SubmitUrl.name());
         challange.mContext = parameters.get(RequestField.Context.name());
