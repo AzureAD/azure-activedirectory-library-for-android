@@ -171,11 +171,13 @@ public class AuthenticationConstants {
         public static final int BROKER_REQUEST_ID = 1177;
 
         public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.broker.request";
+        
+        
 
         /**
          * Account type string.
          */
-        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.aadbroker.adal";
+        public static final String BROKER_ACCOUNT_TYPE = "com.MSOpenTech.WorkplaceJoin";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 
@@ -190,6 +192,8 @@ public class AuthenticationConstants {
 
         public static final String BROKER_FINAL_URL = "adal.final.url";
 
+        public static final String ACCOUNT_INITIAL_REQUEST = "account.initial.request";
+                
         public static final String ACCOUNT_CLIENTID_KEY = "account.clientid.key";
 
         public static final String ACCOUNT_CLIENT_SECRET_KEY = "account.client.secret.key";
@@ -267,7 +271,7 @@ public class AuthenticationConstants {
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager
          */
-        public static final String PACKAGE_NAME = "com.microsoft.aadbroker";
+        public static final String PACKAGE_NAME = "com.MSOpenTech.AADAuthenticator";
 
         /**
          * Signature info for AD-Authenticator installing app to verify broker

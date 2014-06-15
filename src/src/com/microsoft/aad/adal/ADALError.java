@@ -196,6 +196,8 @@ public enum ADALError {
 
     BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist"),
 
+    BROKER_SINGLE_USER_EXPECTED("Single user is expected"),
+    
     KEY_CHAIN_PRIVATE_KEY_EXCEPTION("Key Chain private key exception"),
 
     SIGNATURE_EXCEPTION("Signature exception"),
@@ -210,9 +212,11 @@ public enum ADALError {
     DEVICE_CERTIFICATE_API_EXCEPTION("Device certificate API has exception"),
 
     DEVICE_CERTIFICATE_REQUEST_INVALID("Device certificate request is valid"),
-
-    RESOURCE_NOT_FOUND("Resource is not found in your project. Please include resource files."), CERTIFICATE_ENCODING_ERROR("Certificate encoding is not generated");
-
+ 
+    RESOURCE_NOT_FOUND("Resource is not found in your project. Please include resource files."), 
+    
+    CERTIFICATE_ENCODING_ERROR("Certificate encoding is not generated");
+ 
     private String mDescription;
 
     private ADALError(String message) {

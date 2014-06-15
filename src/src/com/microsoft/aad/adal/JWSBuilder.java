@@ -115,7 +115,7 @@ class JWSBuilder implements IJWSBuilder {
         header.mType = "JWT"; // recommended UpperCase in JWT Spec
         String signingInput = "", signature = "";
         try {
-            
+
             // Server side expects x5c in the header to verify the signer and
             // lookup the certificate from device registration
             // Each string in the array is a base64
@@ -124,8 +124,9 @@ class JWSBuilder implements IJWSBuilder {
             // containing the public key corresponding to the key used
             // to digitally sign the JWS MUST be the first certificate
             // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-27
-            header.mCert = new String(Base64.encode(cert.getEncoded(), Base64.DEFAULT),
+            header.mCert = new String(Base64.encode(cert.getEncoded(), Base64.NO_WRAP),
                     AuthenticationConstants.ENCODING_UTF8);
+
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
             Logger.v(TAG, "Client certificate challange response JWS Header:" + headerJsonString);

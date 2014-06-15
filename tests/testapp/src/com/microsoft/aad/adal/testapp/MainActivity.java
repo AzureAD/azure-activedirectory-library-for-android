@@ -18,21 +18,32 @@
 
 package com.microsoft.aad.adal.testapp;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.UUID;
 
 import javax.crypto.NoSuchPaddingException;
+import javax.security.auth.x500.X500Principal;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -43,10 +54,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -93,6 +106,14 @@ public class MainActivity extends Activity {
     public final static String PASSED = "TEST_PASSED";
 
     public final static String TOKEN_USED = "TOKEN_USED";
+
+    public static final String TEST_CERT_ALIAS = "My Key Chain";
+
+    public static final String PKCS12_PASS = "changeit";
+
+    public final String PKCS12_FILENAME = "keychain.p12";
+
+    public final String JWS_ALGORITHM = "SHA256withRSA";
 
     /**
      * result from recent request
@@ -262,18 +283,28 @@ public class MainActivity extends Activity {
         });
     }
 
-    public void initDeviceCertificateMock() throws NoSuchAlgorithmException {
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-        keyGen.initialize(1024);
-        KeyPair keyPair = keyGen.genKeyPair();
-        RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
-        MockDeviceCertProxy.reset();
+    public void initDeviceCertificateMock() throws NoSuchAlgorithmException,
+            UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
+        KeyStore keystore = loadTestCertificate();
+        Key key = keystore.getKey(TEST_CERT_ALIAS, PKCS12_PASS.toCharArray());
+        RSAPrivateKey privateKey = (RSAPrivateKey)key;
+        Certificate cert = keystore.getCertificate(TEST_CERT_ALIAS);
+        RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
         MockDeviceCertProxy.sValidIssuer = true;
         MockDeviceCertProxy.sPrivateKey = privateKey;
         MockDeviceCertProxy.sPublicKey = publicKey;
         MockDeviceCertProxy.sThumbPrint = "test";
+        MockDeviceCertProxy.sCertificate = (X509Certificate)cert;
         AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
+    }
+
+    private KeyStore loadTestCertificate() throws IOException, CertificateException,
+            UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+        KeyStore caKs = KeyStore.getInstance("PKCS12");
+        BufferedInputStream stream = new BufferedInputStream(MainActivity.this.getAssets().open(
+                PKCS12_FILENAME));
+        caKs.load(stream, PKCS12_PASS.toCharArray());
+        return caKs;
     }
 
     @Override
@@ -310,7 +341,7 @@ public class MainActivity extends Activity {
         if (mContext == null) {
             initContext();
         }
-        
+
         String clientId = mClientId.getText().toString();
         if (clientId == null || clientId.isEmpty()) {
             clientId = CLIENT_ID;
@@ -318,7 +349,7 @@ public class MainActivity extends Activity {
         mContext.setRequestCorrelationId(mRequestCorrelationId);
         mContext.acquireTokenByRefreshToken(refreshToken, clientId, new AdalCallback());
     }
-    
+
     private void getTokenByRefreshToken() {
         Logger.v(TAG, "get Token with refresh token");
         textViewStatus.setText(GETTING_TOKEN);
