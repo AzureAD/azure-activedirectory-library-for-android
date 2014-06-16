@@ -147,17 +147,14 @@ class BrokerProxy implements IBrokerProxy {
         // if there is not any user added to account, it returns empty
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        Logger.v(TAG, "Account list length:" + accountList.length);
-
+        
         // Single WPJ user
         if (accountList == null || accountList.length != 1) {
             throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS);
         }
-
         Account targetAccount = accountList[0];
 
         if (targetAccount != null) {
-            // add some dummy values to make a test call
             Bundle brokerOptions = getBrokerOptions(request);
 
             // blocking call to get token from cache or refresh request in
@@ -306,12 +303,8 @@ class BrokerProxy implements IBrokerProxy {
         AccountManagerFuture<Bundle> result = null;
         try {
             // Callback is not passed since it is making a blocking call to get
-            // intent.
-            // Activity needs to be launched from calling app to get the calling
-            // app's metadata if needed at BrokerActivity.
-            Account[] accountList = mAcctManager
-                    .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-
+            // intent. Activity needs to be launched from calling app
+            // to get the calling app's metadata if needed at BrokerActivity.
             // initial UI launch will always prompt to register app.
             // This will change for multiple user case.
             request.setPrompt(PromptBehavior.Always);
