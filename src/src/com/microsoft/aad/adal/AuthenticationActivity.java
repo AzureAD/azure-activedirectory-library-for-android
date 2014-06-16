@@ -214,7 +214,7 @@ public class AuthenticationActivity extends Activity {
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
                 new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
-        if (insideBroker()) {
+        if (IsInsideBroker()) {
             // This activity is started from calling app and running in
             // Authenticator's process
             mCallingPackage = getCallingPackage();
@@ -255,15 +255,6 @@ public class AuthenticationActivity extends Activity {
                 mWebView.loadUrl(postUrl);
             }
         });
-    }
-
-    private HashMap<String,String> getHeaders(){
-        final HashMap<String, String> headers = new HashMap<String, String>();
-        headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE,
-                "true");
-        headers.put("custom1",
-                "hereis");
-        return headers;
     }
 
     private void setupWebView() {
@@ -324,7 +315,7 @@ public class AuthenticationActivity extends Activity {
 
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
         AuthenticationRequest authRequest = null;
-        if (insideBroker()) {
+        if (IsInsideBroker()) {
             Logger.v(TAG, "Get request for the call inside from broker");
             String authority = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
@@ -425,7 +416,7 @@ public class AuthenticationActivity extends Activity {
         return loadUrl;
     }
 
-    private boolean insideBroker() {
+    private boolean IsInsideBroker() {
         Logger.v(TAG, "Packagename:" + getPackageName() + " Broker packagename:"
                 + AuthenticationSettings.INSTANCE.getBrokerPackageName());
         return getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
@@ -494,8 +485,8 @@ public class AuthenticationActivity extends Activity {
             mWebView.post(new Runnable() {
                 @Override
                 public void run() {
-                    mWebView.loadUrl("about:blank", getHeaders());// load blank first
-                    mWebView.loadUrl(postUrl, getHeaders());
+                    mWebView.loadUrl("about:blank");// load blank first
+                    mWebView.loadUrl(postUrl);
                 }
             });
         }
@@ -606,7 +597,7 @@ public class AuthenticationActivity extends Activity {
                 return true;
             } else if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
-                if (!insideBroker()) {
+                if (!IsInsideBroker()) {
                     // It is pointing to redirect. Final url can be processed to
                     // get the code or error.
                     Intent resultIntent = new Intent();
@@ -718,7 +709,7 @@ public class AuthenticationActivity extends Activity {
     @Override
     public void finish() {
         // Added here to make Authenticator work with one common code base
-        if (insideBroker() && mAccountAuthenticatorResponse != null) {
+        if (IsInsideBroker() && mAccountAuthenticatorResponse != null) {
             // send the result bundle back if set, otherwise send an error.
             if (mAuthenticatorResultBundle != null) {
                 mAccountAuthenticatorResponse.onResult(mAuthenticatorResultBundle);

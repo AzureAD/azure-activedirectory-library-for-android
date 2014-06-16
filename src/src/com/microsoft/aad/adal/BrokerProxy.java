@@ -21,7 +21,6 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.StringTokenizer;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -39,7 +38,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
-import android.media.audiofx.AcousticEchoCanceler;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -361,7 +359,11 @@ class BrokerProxy implements IBrokerProxy {
         // authenticator is not used if there is not any user
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        return accountList[0].name;
+        if (accountList != null && accountList.length > 0) {
+            return accountList[0].name;
+        }
+
+        return null;
     }
 
     private boolean verifyBroker() {
