@@ -59,8 +59,6 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -103,8 +101,6 @@ public class AuthenticationActivity extends Activity {
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
 
     private Bundle mAuthenticatorResultBundle = null;
-
-    private AccountManager mAcctManager = null;
 
     private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
 
@@ -155,7 +151,6 @@ public class AuthenticationActivity extends Activity {
                 "activity_authentication"));
 
         // Get the message from the intent
-        mAcctManager = AccountManager.get(getApplicationContext());
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
             Log.d(TAG, "Request item is null, so it returns to caller");
