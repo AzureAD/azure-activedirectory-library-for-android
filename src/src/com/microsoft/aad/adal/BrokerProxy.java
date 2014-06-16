@@ -147,7 +147,7 @@ class BrokerProxy implements IBrokerProxy {
         // if there is not any user added to account, it returns empty
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        
+
         // Single WPJ user
         if (accountList == null || accountList.length != 1) {
             throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS);
@@ -216,7 +216,6 @@ class BrokerProxy implements IBrokerProxy {
             }
             throw new AuthenticationException(adalErrorCode, msg);
         } else {
-            String accountName = bundleResult.getString(AccountManager.KEY_ACCOUNT_NAME);
             boolean initialRequest = bundleResult
                     .getBoolean(AuthenticationConstants.Broker.ACCOUNT_INITIAL_REQUEST);
             if (initialRequest) {
@@ -230,7 +229,6 @@ class BrokerProxy implements IBrokerProxy {
                     bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false, userinfo);
 
             return result;
-
         }
     }
 
@@ -320,8 +318,6 @@ class BrokerProxy implements IBrokerProxy {
             // token is not available
             intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
         } catch (OperationCanceledException e) {
-            // TODO verify that authenticator exceptions are recorded in the
-            // calling app
             Logger.e(TAG, "Authenticator cancels the request", "", ADALError.AUTH_FAILED_CANCELLED,
                     e);
         } catch (AuthenticatorException e) {
@@ -368,20 +364,6 @@ class BrokerProxy implements IBrokerProxy {
         return accountList[0].name;
     }
 
-    private String getAccountLookupUsername(final AuthenticationRequest request) {
-        if (!StringExtensions.IsNullOrBlank(request.getLoginHint())) {
-            // TODO ADAL uses loginhint to cache tokens for user. Cache changes
-            // will affect this.
-            return request.getLoginHint();
-        }
-
-        // If idtoken is not present, userid is unknown. Authenticator will
-        // group the tokens based on account, so it needs to pass clientid to
-        // group unknown users. Different apps signed by same certificates may
-        // use same clientid, but they will have differnt packagenames.
-        return AuthenticationConstants.Broker.ACCOUNT_DEFAULT_NAME;
-    }
-
     private boolean verifyBroker() {
         try {
             PackageInfo info = mContext.getPackageManager().getPackageInfo(
@@ -390,9 +372,8 @@ class BrokerProxy implements IBrokerProxy {
 
             if (info != null && info.signatures != null) {
                 // Broker App can be signed with multiple certificates. It will
-                // look
-                // all of them
-                // until it finds the correct one for ADAL broker.
+                // look all of them until it finds the correct one for ADAL
+                // broker.
                 for (Signature signature : info.signatures) {
                     MessageDigest md = MessageDigest.getInstance("SHA");
                     md.update(signature.toByteArray());
@@ -433,17 +414,5 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return false;
-    }
-
-    private Account getAccount(Account[] accounts, String username) {
-        if (accounts != null && username != null) {
-            for (Account account : accounts) {
-                if (account.name.equalsIgnoreCase(username)) {
-                    return account;
-                }
-            }
-        }
-
-        return null;
     }
 }

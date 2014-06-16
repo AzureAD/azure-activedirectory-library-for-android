@@ -109,7 +109,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = "wrong";
         Signature signature = new Signature(testSignature);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true,
+                null);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -128,7 +129,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = "invalid";
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
         Signature signature = new Signature(testSignature);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true,
+                null);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -147,7 +149,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
         Signature signature = new Signature("74657374696e67");
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true,
+                null);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -248,7 +251,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
                 authRequest.getClass());
-        
+
         try {
             m.invoke(brokerProxy, authRequest);
         } catch (Exception ex) {
@@ -417,7 +420,6 @@ public class BrokerProxyTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             OperationCanceledException, AuthenticatorException, IOException, NoSuchFieldException {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
-
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
                 "resource", "client", "redirect", acctName.toLowerCase(Locale.US),
@@ -443,7 +445,6 @@ public class BrokerProxyTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             OperationCanceledException, AuthenticatorException, IOException, NoSuchFieldException {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
-
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
                 "resource", "client", "redirect", acctName.toLowerCase(Locale.US),
@@ -469,7 +470,6 @@ public class BrokerProxyTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             OperationCanceledException, AuthenticatorException, IOException, NoSuchFieldException {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
-
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest",
                 "resource", "client", "redirect", acctName.toLowerCase(Locale.US),
@@ -552,6 +552,8 @@ public class BrokerProxyTests extends AndroidTestCase {
                         any(Bundle.class), (Activity)eq(null),
                         (AccountManagerCallback<Bundle>)eq(null), any(Handler.class))).thenReturn(
                 mockFuture);
+        when(mockAcctManager.getAccountsByType(anyString())).thenReturn(
+                getAccountList("test", AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE));
         Context mockContext = mock(Context.class);
         when(mockContext.getMainLooper()).thenReturn(null);
         ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
@@ -584,7 +586,8 @@ public class BrokerProxyTests extends AndroidTestCase {
             final String contextPackageName, boolean permissionStatus) throws NameNotFoundException {
         Context mockContext = mock(Context.class);
         // insert packagemanager mocks
-        PackageManager mockPackageManager = getPackageManager(signature, brokerPackageName, permissionStatus);
+        PackageManager mockPackageManager = getPackageManager(signature, brokerPackageName,
+                permissionStatus);
         when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
         when(mockContext.getPackageName()).thenReturn(contextPackageName);
         return mockContext;
