@@ -24,8 +24,12 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+
+import android.util.Base64;
 
 import com.google.gson.Gson;
 
@@ -69,41 +73,15 @@ class JWSBuilder implements IJWSBuilder {
         @com.google.gson.annotations.SerializedName("typ")
         protected String mType;
 
-        @com.google.gson.annotations.SerializedName("x5t")
-        protected String mCertThumbprint;
-
-        @com.google.gson.annotations.SerializedName("keys")
-        protected RSAKey[] mKeys;
-
-        @com.google.gson.annotations.SerializedName("kid")
-        protected String mKeyId;
-    }
-
-    /**
-     * RSA Key info according to the Internal protocol spec
-     */
-    class RSAKey {
-        @com.google.gson.annotations.SerializedName("kty")
-        protected String mType = "RSA";
-
-        @com.google.gson.annotations.SerializedName("alg")
-        protected String mAlgorithm = "RS256";
-
-        @com.google.gson.annotations.SerializedName("n")
-        protected String mModulous;
-
-        @com.google.gson.annotations.SerializedName("e")
-        protected String mExponent;
-
-        @com.google.gson.annotations.SerializedName("kid")
-        protected String mId;
+        @com.google.gson.annotations.SerializedName("x5c")
+        protected String mCert;
     }
 
     /**
      * 
      */
     public String generateSignedJWT(String nonce, String audience, RSAPrivateKey privateKey,
-            RSAPublicKey pubKey, String thumbPrint) {
+            RSAPublicKey pubKey, X509Certificate cert) {
         // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-25
         // In the JWS Compact Serialization, a JWS object is represented as the
         // combination of these three string values,
@@ -125,9 +103,6 @@ class JWSBuilder implements IJWSBuilder {
         if (pubKey == null) {
             throw new IllegalArgumentException("pubKey");
         }
-        if (StringExtensions.IsNullOrBlank(thumbPrint)) {
-            throw new IllegalArgumentException("thumbPrint");
-        }
 
         Gson gson = new Gson();
         Claims claims = new Claims();
@@ -138,20 +113,19 @@ class JWSBuilder implements IJWSBuilder {
         JwsHeader header = new JwsHeader();
         header.mAlgorithm = JWS_HEADER_ALG;
         header.mType = "JWT"; // recommended UpperCase in JWT Spec
-        header.mCertThumbprint = thumbPrint;
-        String keyId = "1";
-        header.mKeyId = keyId;
         String signingInput = "", signature = "";
         try {
-            RSAKey rsaKey = new RSAKey();
-            rsaKey.mId = keyId;
-            rsaKey.mExponent = StringExtensions.encodeBase64URLSafeString(toBytesUnsigned(pubKey
-                    .getPublicExponent()));
-            rsaKey.mModulous = StringExtensions.encodeBase64URLSafeString(toBytesUnsigned(pubKey
-                    .getModulus()));
-            header.mKeys = new RSAKey[] {
-                rsaKey
-            };
+
+            // Server side expects x5c in the header to verify the signer and
+            // lookup the certificate from device registration
+            // Each string in the array is a base64
+            // encoded ([RFC4648] Section 4 -- not base64url encoded) DER
+            // [ITU.X690.1994] PKIX certificate value. The certificate
+            // containing the public key corresponding to the key used
+            // to digitally sign the JWS MUST be the first certificate
+            // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-27
+            header.mCert = new String(Base64.encode(cert.getEncoded(), Base64.NO_WRAP),
+                    AuthenticationConstants.ENCODING_UTF8);
 
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
@@ -166,6 +140,8 @@ class JWSBuilder implements IJWSBuilder {
                     signingInput.getBytes(AuthenticationConstants.ENCODING_UTF8));
         } catch (UnsupportedEncodingException e) {
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
+        } catch (CertificateEncodingException e) {
+            throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR);
         }
         return signingInput + "." + signature;
     }

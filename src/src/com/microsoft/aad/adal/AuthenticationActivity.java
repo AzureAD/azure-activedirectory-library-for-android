@@ -59,8 +59,6 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -103,8 +101,6 @@ public class AuthenticationActivity extends Activity {
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
 
     private Bundle mAuthenticatorResultBundle = null;
-
-    private AccountManager mAcctManager = null;
 
     private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
 
@@ -153,9 +149,8 @@ public class AuthenticationActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(ResourceFinder.getResourseIdByName(this.getPackageName(), "layout",
                 "activity_authentication"));
-       
+
         // Get the message from the intent
-        mAcctManager = AccountManager.get(getApplicationContext());
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
             Log.d(TAG, "Request item is null, so it returns to caller");
@@ -198,7 +193,6 @@ public class AuthenticationActivity extends Activity {
         setupWebView();
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
-        updateRequestForAccounts();
 
         try {
             Oauth2 oauth = new Oauth2(mAuthRequest);
@@ -220,7 +214,7 @@ public class AuthenticationActivity extends Activity {
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
                 new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
-        if (insideBroker()) {
+        if (IsInsideBroker()) {
             // This activity is started from calling app and running in
             // Authenticator's process
             mCallingPackage = getCallingPackage();
@@ -257,23 +251,11 @@ public class AuthenticationActivity extends Activity {
         mWebView.post(new Runnable() {
             @Override
             public void run() {
-                mWebView.loadUrl("about:blank");// load blank first
+                
+                mWebView.loadUrl("about:blank");// load blank first                
                 mWebView.loadUrl(postUrl);
             }
         });
-    }
-
-    private void updateRequestForAccounts() {
-        if (insideBroker()) {
-            Account[] accountList = mAcctManager
-                    .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-            if (accountList != null && accountList.length == 0) {
-                Logger.v(TAG, "Activity may have cookies from previous accounts");
-                // skip cookie usage for this activity since idtoken can return
-                // wrong value
-                mAuthRequest.setPrompt(PromptBehavior.Always);
-            }
-        }
     }
 
     private void setupWebView() {
@@ -326,15 +308,16 @@ public class AuthenticationActivity extends Activity {
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
         String userAgent = mWebView.getSettings().getUserAgentString();
-        Logger.v(TAG, "UserAgent:" + userAgent);
         mWebView.getSettings().setUserAgentString(
                 userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
+        userAgent = mWebView.getSettings().getUserAgentString();
         Logger.v(TAG, "UserAgent:" + userAgent);
     }
 
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
         AuthenticationRequest authRequest = null;
-        if (insideBroker()) {
+        if (IsInsideBroker()) {
+            Logger.v(TAG, "Get request for the call inside from broker");
             String authority = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
             String resource = callingIntent
@@ -451,7 +434,9 @@ public class AuthenticationActivity extends Activity {
         return loadUrl;
     }
 
-    private boolean insideBroker() {
+    private boolean IsInsideBroker() {
+        Logger.v(TAG, "Packagename:" + getPackageName() + " Broker packagename:"
+                + AuthenticationSettings.INSTANCE.getBrokerPackageName());
         return getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
     }
 
@@ -630,7 +615,7 @@ public class AuthenticationActivity extends Activity {
                 return true;
             } else if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
-                if (!insideBroker()) {
+                if (!IsInsideBroker()) {
                     // It is pointing to redirect. Final url can be processed to
                     // get the code or error.
                     Intent resultIntent = new Intent();
@@ -742,7 +727,7 @@ public class AuthenticationActivity extends Activity {
     @Override
     public void finish() {
         // Added here to make Authenticator work with one common code base
-        if (insideBroker() && mAccountAuthenticatorResponse != null) {
+        if (IsInsideBroker() && mAccountAuthenticatorResponse != null) {
             // send the result bundle back if set, otherwise send an error.
             if (mAuthenticatorResultBundle != null) {
                 mAccountAuthenticatorResponse.onResult(mAuthenticatorResultBundle);
@@ -878,36 +863,31 @@ public class AuthenticationActivity extends Activity {
             // Authenticator sets the account here and stores the tokens.
             try {
                 String name = mRequest.getBrokerAccountName();
-                if (result.taskResult.getUserInfo() != null
-                        && !StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
+                Account[] accountList = mAccountManager
+                        .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+
+                if (accountList == null || accountList.length != 1) {                    
+                    result.taskResult = null;
+                    result.taskException = new AuthenticationException(
+                            ADALError.BROKER_SINGLE_USER_EXPECTED);
+                    return;
+                }
+
+                // Single user in authenticator is already created.
+                // This is only registering UID for the app
+                if (result.taskResult.getUserInfo() == null
+                        || StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
                                 .getUserId())) {
-                    // record account under this idtoken so that next request
-                    // with this username should not prompt. Otherwise, it will
-                    // not use cache since cache is user based.
-                    name = result.taskResult.getUserInfo().getUserId();
-                    if (mRequest.getLoginHint() == null || mRequest.getLoginHint().isEmpty()) {
-                        // Update login hint to result so that correct cache key
-                        // is used for recording the result
-                        mRequest.setLoginHint(name);
-                    } else if (!mRequest.getLoginHint().equalsIgnoreCase(name)) {
-                        Logger.e(TAG, "Userid does not match from idtoken", "",
-                                ADALError.AUTH_FAILED_USER_MISMATCH);
-                        result.taskResult = null;
-                        result.taskException = new AuthenticationException(
-                                ADALError.AUTH_FAILED_USER_MISMATCH);
-                        return;
-                    }
+                    // return userid in the userinfo
+                    Logger.v(TAG, "Set userinfo from account");
+                    result.taskResult.setUserInfo(new UserInfo(name, name, "", "", true));
+                    mRequest.setLoginHint(name);
                 }
 
                 result.accountName = name;
                 Logger.v(TAG, "Setting account. Account name: " + name + " package:"
                         + mCallingPackage + " calling app UID:" + mAppCallingUID);
-                Account newaccount = new Account(name,
-                        AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-                Bundle userdata = new Bundle();
-                // First add account. Account may exists before from another
-                // app. Result will be added to userdata if account exists.
-                mAccountManager.addAccountExplicitly(newaccount, "nopass", userdata);
+                Account newaccount = accountList[0];
 
                 // Cache logic will be changed based on latest logic
                 // This is currently keeping accesstoken and MRRT separate
