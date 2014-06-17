@@ -123,7 +123,7 @@ final class StringExtensions {
         HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
 
         if (parameters == null || parameters.isEmpty()) {
-            String queryParameters = response.getQuery();
+            String queryParameters = response.getEncodedQuery();
             parameters = HashMapExtensions.URLFormDecode(queryParameters);
         }
         return parameters;

@@ -219,7 +219,8 @@ class ChallangeResponseBuilder {
 
     private void validateChallangeRequest(HashMap<String, String> headerItems,
             boolean redirectFormat) {
-        if (!headerItems.containsKey(RequestField.Nonce.name())) {
+        if (!(headerItems.containsKey(RequestField.Nonce.name()) || headerItems
+                .containsKey(RequestField.Nonce.name().toLowerCase(Locale.US)))) {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, "Nonce");
         }
         if (!headerItems.containsKey(RequestField.Version.name())) {
@@ -249,7 +250,7 @@ class ChallangeResponseBuilder {
         HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUri);
         validateChallangeRequest(parameters, true);
         challange.mNonce = parameters.get(RequestField.Nonce.name());
-        if(StringExtensions.IsNullOrBlank(challange.mNonce)){
+        if (StringExtensions.IsNullOrBlank(challange.mNonce)) {
             challange.mNonce = parameters.get(RequestField.Nonce.name().toLowerCase(Locale.US));
         }
         String authorities = parameters.get(RequestField.CertAuthorities.name());
