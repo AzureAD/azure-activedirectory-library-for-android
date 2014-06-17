@@ -103,7 +103,7 @@ class PackageHelper {
                 Signature signature = info.signatures[0];
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
-                return Base64.encodeToString(md.digest(), Base64.DEFAULT);
+                return Base64.encodeToString(md.digest(), Base64.NO_WRAP);
                 // Server side needs to register all other tags. ADAL will
                 // send one of them.
             }

@@ -243,7 +243,8 @@ public class AuthenticationActivity extends Activity {
             mCallingPackage = getCallingPackage();
             mCallingUID = info.getUIDForPackage(mCallingPackage);
             String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
-            mStartUrl = getBrokerUrl(mStartUrl, mCallingPackage, signatureDigest);
+            mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
+            mRedirectUrl = getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             Logger.v(TAG,
                     "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
                             + " calling package:" + mCallingPackage + " signatureDigest:"
@@ -415,7 +416,24 @@ public class AuthenticationActivity extends Activity {
         this.finish();
     }
 
-    private String getBrokerUrl(String loadUrl, String packageName, String signatureDigest) {
+    private String getBrokerRedirectUrl(String packageName, String signatureDigest) {
+        if (!StringExtensions.IsNullOrBlank(packageName)
+                && !StringExtensions.IsNullOrBlank(signatureDigest)) {
+            try {
+                return String.format("%s:%s%2C%s", AuthenticationConstants.Broker.REDIRECT_PREFIX,
+                        URLEncoder.encode(packageName, AuthenticationConstants.ENCODING_UTF8),
+                        URLEncoder.encode(signatureDigest, AuthenticationConstants.ENCODING_UTF8));
+            } catch (UnsupportedEncodingException e) {
+                // This encoding issue will happen at the beginning of API call,
+                // if it is not supported on this device. ADAL uses one encoding
+                // type.
+                Log.e(TAG, "Encoding", e);
+            }
+        }
+        return "";
+    }
+    
+    private String getBrokerStartUrl(String loadUrl, String packageName, String signatureDigest) {
         if (!StringExtensions.IsNullOrBlank(packageName)
                 && !StringExtensions.IsNullOrBlank(signatureDigest)) {
             try {
