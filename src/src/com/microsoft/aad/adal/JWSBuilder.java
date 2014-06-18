@@ -21,6 +21,7 @@ package com.microsoft.aad.adal;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -75,6 +76,12 @@ class JWSBuilder implements IJWSBuilder {
 
         @com.google.gson.annotations.SerializedName("x5c")
         protected String mCert;
+
+        /**
+         * redundant
+         */
+        @com.google.gson.annotations.SerializedName("x5t")
+        protected String mCertThumbprint;
     }
 
     /**
@@ -113,6 +120,7 @@ class JWSBuilder implements IJWSBuilder {
         JwsHeader header = new JwsHeader();
         header.mAlgorithm = JWS_HEADER_ALG;
         header.mType = "JWT"; // recommended UpperCase in JWT Spec
+
         String signingInput = "", signature = "";
         try {
 
@@ -126,7 +134,9 @@ class JWSBuilder implements IJWSBuilder {
             // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-27
             header.mCert = new String(Base64.encode(cert.getEncoded(), Base64.NO_WRAP),
                     AuthenticationConstants.ENCODING_UTF8);
-
+            
+            // redundant but current ADFS code base is looking for
+            header.mCertThumbprint = getThumbPrintFromCert(cert);
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
             Logger.v(TAG, "Client certificate challange response JWS Header:" + headerJsonString);
@@ -142,39 +152,31 @@ class JWSBuilder implements IJWSBuilder {
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
         } catch (CertificateEncodingException e) {
             throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR);
+        } catch (NoSuchAlgorithmException e) {
+            throw new AuthenticationException(ADALError.DEVICE_NO_SUCH_ALGORITHM);
         }
         return signingInput + "." + signature;
     }
 
-    /**
-     * Returns a byte array representation of the specified big integer without
-     * the sign bit.
-     */
-    public static byte[] toBytesUnsigned(final BigInteger bigInt) {
+    public static String getThumbPrintFromCert(X509Certificate cert)
+            throws NoSuchAlgorithmException, CertificateEncodingException {
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        byte[] der = cert.getEncoded();
+        md.update(der);
+        byte[] digest = md.digest();
+        return hexify(digest);
+    }
 
-        // Copied from Apache Commons Codec 1.8 with LCA approval
-        int bitlen = bigInt.bitLength();
-
-        // round bitlen
-        bitlen = ((bitlen + 7) >> 3) << 3;
-        final byte[] bigBytes = bigInt.toByteArray();
-        if (((bigInt.bitLength() % 8) != 0) && (((bigInt.bitLength() / 8) + 1) == (bitlen / 8))) {
-            return bigBytes;
+    private static String hexify(byte bytes[]) {
+        char[] hexDigits = {
+                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+        };
+        StringBuffer buf = new StringBuffer(bytes.length * 2);
+        for (int i = 0; i < bytes.length; ++i) {
+            buf.append(hexDigits[(bytes[i] & 0xf0) >> 4]);
+            buf.append(hexDigits[bytes[i] & 0x0f]);
         }
-
-        // set up params for copying everything but sign bit
-        int startSrc = 0;
-        int len = bigBytes.length;
-
-        // if bigInt is exactly byte-aligned, just skip signbit in copy
-        if ((bigInt.bitLength() % 8) == 0) {
-            startSrc = 1;
-            len--;
-        }
-        final int startDst = bitlen / 8 - len; // to pad w/ nulls as per spec
-        final byte[] resizedBytes = new byte[bitlen / 8];
-        System.arraycopy(bigBytes, startSrc, resizedBytes, startDst, len);
-        return resizedBytes;
+        return buf.toString();
     }
 
     /**
