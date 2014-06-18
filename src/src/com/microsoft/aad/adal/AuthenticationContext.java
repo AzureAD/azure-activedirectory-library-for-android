@@ -945,7 +945,7 @@ public class AuthenticationContext {
                                 callbackHandle.callback));
                 if (result != null && result.IsInitialRequest()) {
                     Logger.v(TAG, "Initial request to authenticator");
-                    request.setPrompt(PromptBehavior.Always);
+                    // Record the initial request but not force a prompt
                 }
                 // onActivityResult will receive the response
                 // Activity needs to launch to record calling app for this
