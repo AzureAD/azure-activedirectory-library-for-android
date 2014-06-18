@@ -72,6 +72,8 @@ public class AuthenticationResult implements Serializable {
     private String mTenantId;
 
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
+    
+    private boolean mInitialRequest;
 
     AuthenticationResult() {
         mCode = null;
@@ -127,6 +129,12 @@ public class AuthenticationResult implements Serializable {
         return new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
                 cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
                 cacheItem.getUserInfo());
+    }
+
+    static AuthenticationResult createResultForInitialRequest() {
+        AuthenticationResult result = new AuthenticationResult();
+        result.mInitialRequest = true;
+        return result;
     }
 
     /**
@@ -230,5 +238,13 @@ public class AuthenticationResult implements Serializable {
     private static Calendar getCurrentTime() {
         Calendar timeNow = Calendar.getInstance();
         return timeNow;
+    }
+    
+    /**
+     * package private 
+     * @return
+     */
+    boolean IsInitialRequest(){
+        return mInitialRequest;
     }
 }

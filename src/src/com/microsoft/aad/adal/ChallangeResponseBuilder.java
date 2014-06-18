@@ -25,12 +25,18 @@ import java.security.interfaces.RSAPrivateKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import android.security.KeyChainException;
 
 class ChallangeResponseBuilder {
 
     private static final String TAG = "ChallangeResponseBuilder";
+
+    /**
+     * temp version fix until server side resolves the issue
+     */
+    private static final String TEMP_VERSION = "1.0";
 
     private IJWSBuilder mJWSBuilder;
 
@@ -119,11 +125,11 @@ class ChallangeResponseBuilder {
             if (privateKey != null) {
                 String jwt = mJWSBuilder.generateSignedJWT(request.mNonce, request.mSubmitUrl,
                         privateKey, deviceCertProxy.getRSAPublicKey(),
-                        deviceCertProxy.getThumbPrint());
+                        deviceCertProxy.getCertificate());
                 response.mAuthorizationHeaderValue = String.format(
                         "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
                         AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, jwt,
-                        request.mContext, request.mVersion);
+                        request.mContext, TEMP_VERSION);
                 Logger.v(TAG, "Challange response:" + response.mAuthorizationHeaderValue);
             } else {
                 throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
@@ -218,7 +224,8 @@ class ChallangeResponseBuilder {
 
     private void validateChallangeRequest(HashMap<String, String> headerItems,
             boolean redirectFormat) {
-        if (!headerItems.containsKey(RequestField.Nonce.name())) {
+        if (!(headerItems.containsKey(RequestField.Nonce.name()) || headerItems
+                .containsKey(RequestField.Nonce.name().toLowerCase(Locale.US)))) {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, "Nonce");
         }
         if (!headerItems.containsKey(RequestField.Version.name())) {
@@ -247,12 +254,13 @@ class ChallangeResponseBuilder {
         ChallangeRequest challange = new ChallangeRequest();
         HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUri);
         validateChallangeRequest(parameters, true);
-
         challange.mNonce = parameters.get(RequestField.Nonce.name());
+        if (StringExtensions.IsNullOrBlank(challange.mNonce)) {
+            challange.mNonce = parameters.get(RequestField.Nonce.name().toLowerCase(Locale.US));
+        }
         String authorities = parameters.get(RequestField.CertAuthorities.name());
         challange.mCertAuthorities = StringExtensions.getStringTokens(authorities,
                 AuthenticationConstants.Broker.CHALLANGE_REQUEST_CERT_AUTH_DELIMETER);
-
         challange.mVersion = parameters.get(RequestField.Version.name());
         challange.mSubmitUrl = parameters.get(RequestField.SubmitUrl.name());
         challange.mContext = parameters.get(RequestField.Context.name());

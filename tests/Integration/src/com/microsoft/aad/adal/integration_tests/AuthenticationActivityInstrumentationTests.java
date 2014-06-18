@@ -22,7 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -829,6 +832,14 @@ public class AuthenticationActivityInstrumentationTests extends
                 try {
                     activity.initDeviceCertificateMock();
                 } catch (NoSuchAlgorithmException e) {
+                    Log.e(TAG, "initDeviceCertificateMock failed", e);
+                } catch (UnrecoverableKeyException e) {
+                    Log.e(TAG, "initDeviceCertificateMock failed", e);
+                } catch (CertificateException e) {
+                    Log.e(TAG, "initDeviceCertificateMock failed", e);
+                } catch (KeyStoreException e) {
+                    Log.e(TAG, "initDeviceCertificateMock failed", e);
+                } catch (IOException e) {
                     Log.e(TAG, "initDeviceCertificateMock failed", e);
                 }
             }

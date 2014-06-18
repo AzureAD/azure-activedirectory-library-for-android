@@ -33,6 +33,7 @@ import java.nio.charset.Charset;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -440,7 +441,8 @@ public class OauthTests extends AndroidTestCase {
         RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
         String nonce = UUID.randomUUID().toString();
         String context = "CookieConABcdeded";
-        String thumbPrint = "thumbprint23432432";
+        X509Certificate mockCert = mock(X509Certificate.class);
+        String thumbPrint = "thumbPrinttest";
         AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.sValidIssuer = true;
@@ -450,7 +452,7 @@ public class OauthTests extends AndroidTestCase {
         IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
         when(
                 mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
-                        eq(publicKey), eq(thumbPrint))).thenReturn("signedJwtHere");
+                        eq(publicKey), eq(mockCert))).thenReturn("signedJwtHere");
         String challangeHeaderValue = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE+ " Nonce=\"" + nonce
                 + "\",  Version=\"1.0\", CertThumbprint=\"" + thumbPrint + "\",  Context=\"" + context
                 + "\"";
