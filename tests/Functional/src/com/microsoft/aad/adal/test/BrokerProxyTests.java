@@ -91,7 +91,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             testSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(testSignature);
-            testTag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+            testTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
             break;
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);

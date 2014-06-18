@@ -379,7 +379,7 @@ class BrokerProxy implements IBrokerProxy {
                 for (Signature signature : info.signatures) {
                     MessageDigest md = MessageDigest.getInstance("SHA");
                     md.update(signature.toByteArray());
-                    String tag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+                    String tag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
                     if (tag.equals(mBrokerTag)) {
                         return true;
                     }

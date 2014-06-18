@@ -171,8 +171,6 @@ public class AuthenticationConstants {
         public static final int BROKER_REQUEST_ID = 1177;
 
         public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.broker.request";
-        
-        
 
         /**
          * Account type string.
@@ -271,7 +269,7 @@ public class AuthenticationConstants {
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager
          */
-        public static final String PACKAGE_NAME = "com.MSOpenTech.AADAuthenticator";
+        public static final String PACKAGE_NAME = "com.microsoft.adaccounts";
 
         /**
          * Signature info for AD-Authenticator installing app to verify broker
@@ -284,6 +282,8 @@ public class AuthenticationConstants {
         public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-client-TLS-not-supported";
 
         public static final String REDIRECT_PREFIX = "msauth";
+
+        public static final Object REDIRECT_DELIMETER_ENCODED = "%2C";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";
