@@ -91,7 +91,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             testSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(testSignature);
-            testTag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+            testTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
             break;
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
@@ -170,6 +170,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         Account[] accts = getAccountList("valid", authenticatorType);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
                 signature, true, accts);

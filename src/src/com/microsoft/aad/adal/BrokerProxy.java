@@ -301,10 +301,6 @@ class BrokerProxy implements IBrokerProxy {
             // Callback is not passed since it is making a blocking call to get
             // intent. Activity needs to be launched from calling app
             // to get the calling app's metadata if needed at BrokerActivity.
-            // initial UI launch will always prompt to register app.
-            // This will change for multiple user case.
-            request.setPrompt(PromptBehavior.Always);
-
             Bundle addAccountOptions = getBrokerOptions(request);
             result = mAcctManager.addAccount(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                     AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null,
@@ -379,7 +375,7 @@ class BrokerProxy implements IBrokerProxy {
                 for (Signature signature : info.signatures) {
                     MessageDigest md = MessageDigest.getInstance("SHA");
                     md.update(signature.toByteArray());
-                    String tag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+                    String tag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
                     if (tag.equals(mBrokerTag)) {
                         return true;
                     }

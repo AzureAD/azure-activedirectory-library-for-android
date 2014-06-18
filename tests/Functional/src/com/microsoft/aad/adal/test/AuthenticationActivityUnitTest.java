@@ -115,23 +115,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
         return o;
     }
-
-    @SmallTest
-    @UiThreadTest
-    public void testUserAgent() throws NoSuchFieldException, IllegalArgumentException,
-            IllegalAccessException {
-        AuthenticationSettings.INSTANCE.setBrokerPackageName(getInstrumentation().getContext()
-                .getPackageName());
-        startActivity(intentToStartActivity, null, null);
-        activity = getActivity();
-
-        // Webview
-        WebView webview = (WebView)activity.findViewById(R.id.webView1);
-        assertNotNull(webview);
-        String ua = webview.getSettings().getUserAgentString();
-        assertTrue(ua.contains(AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED));
-    }
-
+     
     @SmallTest
     @UiThreadTest
     public void testLayout() throws NoSuchFieldException, IllegalArgumentException,
