@@ -33,6 +33,11 @@ class ChallangeResponseBuilder {
 
     private static final String TAG = "ChallangeResponseBuilder";
 
+    /**
+     * temp version fix until server side resolves the issue
+     */
+    private static final String TEMP_VERSION = "1.0";
+
     private IJWSBuilder mJWSBuilder;
 
     ChallangeResponseBuilder(IJWSBuilder jwsBuilder) {
@@ -124,7 +129,7 @@ class ChallangeResponseBuilder {
                 response.mAuthorizationHeaderValue = String.format(
                         "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
                         AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, jwt,
-                        request.mContext, request.mVersion);
+                        request.mContext, TEMP_VERSION);
                 Logger.v(TAG, "Challange response:" + response.mAuthorizationHeaderValue);
             } else {
                 throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
