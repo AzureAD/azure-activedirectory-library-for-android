@@ -228,6 +228,11 @@ public class AuthenticationActivity extends Activity {
                 ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
                 return;
             }
+            String userAgent = mWebView.getSettings().getUserAgentString();
+            mWebView.getSettings().setUserAgentString(
+                    userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
+            userAgent = mWebView.getSettings().getUserAgentString();
+            Logger.v(TAG, "UserAgent:" + userAgent);
             mAccountAuthenticatorResponse = getIntent().getParcelableExtra(
                     AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
             if (mAccountAuthenticatorResponse != null) {
@@ -307,11 +312,6 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setBuiltInZoomControls(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
-        String userAgent = mWebView.getSettings().getUserAgentString();
-        mWebView.getSettings().setUserAgentString(
-                userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
-        userAgent = mWebView.getSettings().getUserAgentString();
-        Logger.v(TAG, "UserAgent:" + userAgent);
     }
 
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
@@ -422,7 +422,7 @@ public class AuthenticationActivity extends Activity {
                 + AuthenticationSettings.INSTANCE.getBrokerPackageName());
         return getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
     }
-
+    
     /**
      * activity sets result to go back to the caller
      * 
@@ -570,10 +570,16 @@ public class AuthenticationActivity extends Activity {
 
                                 @Override
                                 public void run() {
-                                    Logger.v(TAG, " Loadurl:" + challangeResponse.mSubmitUrl + "?"
-                                            + mQueryParameters);
-                                    mWebView.loadUrl(challangeResponse.mSubmitUrl + "?"
-                                            + mQueryParameters, headers);
+                                    String loadUrl = challangeResponse.mSubmitUrl;
+                                    HashMap<String, String> parameters = StringExtensions
+                                            .getUrlParameters(challangeResponse.mSubmitUrl);
+                                    Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
+                                    if (!parameters
+                                            .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
+                                        loadUrl = loadUrl + "?" + mQueryParameters;
+                                    }
+                                    Logger.v(TAG, "Loadurl:" + loadUrl);
+                                    mWebView.loadUrl(loadUrl, headers);
                                 }
                             });
                         } catch (IllegalArgumentException e) {
