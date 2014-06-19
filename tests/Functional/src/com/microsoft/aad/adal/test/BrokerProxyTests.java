@@ -360,8 +360,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         expected.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
                 "familyName");
         expected.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER, "idp");
-        expected.putBoolean(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                true);
+        expected.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
+                acctName);
         AccountManagerFuture<Bundle> mockFuture = mock(AccountManagerFuture.class);
         when(mockFuture.getResult()).thenReturn(expected);
         when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accts);
@@ -389,8 +389,8 @@ public class BrokerProxyTests extends AndroidTestCase {
                 .getFamilyName());
         assertEquals("idp in userinfo is expected", "idp", result.getUserInfo()
                 .getIdentityProvider());
-        assertEquals("displayable in userinfo is expected", true, result.getUserInfo()
-                .getIsUserIdDisplayable());
+        assertEquals("displayable in userinfo is expected", acctName, result.getUserInfo()
+                .getDisplayableId());
     }
 
     private void setMockProxyForErrorCheck(Object brokerProxy, String acctName, int errCode,
