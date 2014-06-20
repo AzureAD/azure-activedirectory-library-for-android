@@ -23,6 +23,9 @@ import java.io.Serializable;
 import android.content.Intent;
 import android.os.Bundle;
 
+/**
+ * Contains information of a single user.
+ */
 public class UserInfo implements Serializable {
 
     /**

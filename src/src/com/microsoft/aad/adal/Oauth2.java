@@ -132,6 +132,11 @@ class Oauth2 {
                     AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
                             AuthenticationConstants.AAD.QUERY_PROMPT_VALUE,
                             AuthenticationConstants.ENCODING_UTF8));
+        } else if (mRequest.getPrompt() == PromptBehavior.REFRESH_SESSION) {
+            requestUrl = String.format("%s&%s=%s", requestUrl,
+                    AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
+                            AuthenticationConstants.AAD.QUERY_PROMPT_REFRESH_SESSION_VALUE,
+                            AuthenticationConstants.ENCODING_UTF8));
         }
 
         if (!StringExtensions.IsNullOrBlank(mRequest.getExtraQueryParamsAuthentication())) {
@@ -341,8 +346,9 @@ class Oauth2 {
         }
 
         HashMap<String, String> headers = getRequestHeaders();
-        
-        // Refresh token endpoint needs to send header field for device challenge
+
+        // Refresh token endpoint needs to send header field for device
+        // challenge
         headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE, "true");
         return postMessage(requestMessage, headers);
     }
@@ -472,7 +478,8 @@ class Oauth2 {
                                     mJWSBuilder);
                             Logger.v(TAG, "Processing device challange");
                             final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponseFromHeader(challangeHeader, authority.toString());
+                                    .getChallangeResponseFromHeader(challangeHeader,
+                                            authority.toString());
                             headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
                                     challangeResponse.mAuthorizationHeaderValue);
                             Logger.v(TAG, "Sending request with challenge response");

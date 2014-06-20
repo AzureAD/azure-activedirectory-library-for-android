@@ -235,13 +235,12 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final TestLogResponse response = new TestLogResponse();
-        response.listenLogForMessageSegments(signal, "Refresh token did not return accesstoken.",
-                "correlationId:" + requestCorrelationId.toString());
+        response.listenLogForMessageSegments(signal, "Refresh token is not available",
+                "CorrelationId:" + requestCorrelationId.toString());
 
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
-        context.acquireToken(new MockActivity(), expectedResource, expectedClientId, "redirect",
-                expectedUser, PromptBehavior.CACHE_ONLY, null, callback);
+        context.acquireTokenSilent(expectedResource, expectedClientId, expectedUser, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that web request send correct headers
@@ -303,16 +302,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
                     public void run() {
                         context.acquireToken(testActivity, "resource", "clientId", "redirectUri",
                                 "userid", null);
-                    }
-                });
-
-        AssertUtils.assertThrowsException(IllegalArgumentException.class, "activity",
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-                        context.acquireToken(null, "resource", "clientId", "redirectUri", "userid",
-                                testEmptyCallback);
                     }
                 });
 
@@ -893,8 +882,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         response2.listenLogForMessageSegments(null, "Refresh token did not return accesstoken",
                 "503");
 
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
-                PromptBehavior.CACHE_ONLY, null, callback);
+        context.acquireTokenSilent("resource", "clientid", "userid", callback);
+
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result

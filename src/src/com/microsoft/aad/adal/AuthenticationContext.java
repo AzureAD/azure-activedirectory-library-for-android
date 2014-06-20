@@ -25,8 +25,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -89,7 +92,7 @@ public class AuthenticationContext {
      * Web request handler interface to test behaviors
      */
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
-    
+
     /**
      * JWS message builder interface to test behaviors
      */
@@ -406,11 +409,6 @@ public class AuthenticationContext {
             throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
         }
 
-        // Not required if prompt behavior is never
-        if (activity == null && behavior != PromptBehavior.CACHE_ONLY) {
-            throw new IllegalArgumentException("activity");
-        }
-
         if (StringExtensions.IsNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
@@ -428,6 +426,62 @@ public class AuthenticationContext {
         }
 
         return redirectUri;
+    }
+
+    /**
+     * This is sync function. It will first look at the cache and automatically
+     * checks for the token expiration. Additionally, if no suitable access
+     * token is found in the cache, but refresh token is available, the function
+     * will use the refresh token automatically. This method will not show UI
+     * for the user. If prompt is needed, the method will return an exception
+     * 
+     * @param resource
+     * @param clientId
+     * @param userId
+     * @param callback
+     * @return A {@link Future} object representing the
+     *         {@link AuthenticationResult} of the call. It contains Access
+     *         Token,the Access Token's expiration time, Refresh token, and
+     *         {@link UserInfo}.
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
+    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId,
+            String userId) throws InterruptedException, ExecutionException {
+        Future<AuthenticationResult> futureResult = acquireTokenSilent(resource, clientId, userId,
+                null);
+        return futureResult.get();
+    }
+
+    /**
+     * The function will first look at the cache and automatically checks for
+     * the token expiration. Additionally, if no suitable access token is found
+     * in the cache, but refresh token is available, the function will use the
+     * refresh token automatically. This method will not show UI for the user.
+     * If prompt is needed, the method will return an exception
+     * 
+     * @param resource
+     * @param clientId
+     * @param userId
+     * @param callback
+     * @return A {@link Future} object representing the
+     *         {@link AuthenticationResult} of the call. It contains Access
+     *         Token,the Access Token's expiration time, Refresh token, and
+     *         {@link UserInfo}.
+     */
+    public Future<AuthenticationResult> acquireTokenSilent(String resource, String clientId,
+            String userId, AuthenticationCallback<AuthenticationResult> callback) {
+        if (StringExtensions.IsNullOrBlank(resource)) {
+            throw new IllegalArgumentException("resource");
+        }
+        if (StringExtensions.IsNullOrBlank(clientId)) {
+            throw new IllegalArgumentException("clientId");
+        }
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, userId, getRequestCorrelationId());
+        request.setSilent(true);
+        return acquireTokenLocal(null, request, callback);
     }
 
     /**
@@ -798,59 +852,48 @@ public class AuthenticationContext {
         }
 
         public void onError(final Exception e) {
-            mRefHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onError(e);
-                    return;
-                }
-            });
+            if (mRefHandler != null && callback != null) {
+                mRefHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError(e);
+                        return;
+                    }
+                });
+            }
         }
 
         public void onSuccess(final AuthenticationResult result) {
-            mRefHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onSuccess(result);
-                    return;
-                }
-            });
+            if (mRefHandler != null && callback != null) {
+                mRefHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onSuccess(result);
+                        return;
+                    }
+                });
+            }
         }
     }
 
-    private void acquireTokenLocal(final Activity activity, final AuthenticationRequest request,
+    private Future<AuthenticationResult> acquireTokenLocal(final Activity activity,
+            final AuthenticationRequest request,
             final AuthenticationCallback<AuthenticationResult> externalCall) {
         getHandler();
-
         final CallbackHandler callbackHandle = new CallbackHandler(mHandler, externalCall);
 
         // Executes all the calls inside the Runnable to return immediately to
         // user. All UI
         // related actions will be performed using Handler.
         Logger.v(TAG, "Sending async task from thread:" + android.os.Process.myTid());
-        if (!insideBroker()) {
-            sThreadExecutor.submit(new Runnable() {
+        return sThreadExecutor.submit(new Callable<AuthenticationResult>() {
 
-                @Override
-                public void run() {
-                    Logger.v(TAG, "Running task in thread:" + android.os.Process.myTid());
-                    acquireTokenLocalCall(callbackHandle, activity, request);
-                }
-            });
-        } else {
-            // Broker is operating inside the AccountManager in a different
-            // process.
-            // It needs sync call to make sure incoming requests are handled at
-            // Authenticator and returned without callback to simplify the flow
-            Logger.v(TAG,
-                    "Running for broker without executor service:" + android.os.Process.myTid());
-            acquireTokenLocalCall(callbackHandle, activity, request);
-        }
-    }
-
-    private boolean insideBroker() {
-        return mContext.getPackageName().equals(
-                AuthenticationSettings.INSTANCE.getBrokerPackageName());
+            @Override
+            public AuthenticationResult call() {
+                Logger.v(TAG, "Running task in thread:" + android.os.Process.myTid());
+                return acquireTokenLocalCall(callbackHandle, activity, request);
+            }
+        });
     }
 
     /**
@@ -860,15 +903,19 @@ public class AuthenticationContext {
      * @param request
      * @param prompt
      * @param callback
+     * @return
      */
-    private void acquireTokenLocalCall(final CallbackHandler callbackHandle,
+    private AuthenticationResult acquireTokenLocalCall(final CallbackHandler callbackHandle,
             final Activity activity, final AuthenticationRequest request) {
-
         URL authorityUrl = StringExtensions.getUrl(mAuthority);
         if (authorityUrl == null) {
-            callbackHandle.onError(new AuthenticationException(
-                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
-            return;
+            if (callbackHandle.callback != null) {
+                callbackHandle.onError(new AuthenticationException(
+                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
+                return null;
+            } else {
+                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
+            }
         }
 
         if (mValidateAuthority && !mAuthorityValidated) {
@@ -885,56 +932,76 @@ public class AuthenticationContext {
                 } else {
                     Logger.v(TAG, "Call external callback since instance is invalid"
                             + authorityUrlInCallback.toString() + getCorrelationLogInfo());
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                    return;
+                    if (callbackHandle.callback != null) {
+                        callbackHandle.onError(new AuthenticationException(
+                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
+                        return null;
+                    } else {
+                        throw new AuthenticationException(
+                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+                    }
                 }
             } catch (Exception exc) {
                 Logger.e(TAG, "Authority validation has an error." + getCorrelationLogInfo(), "",
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, exc);
-                callbackHandle.onError(new AuthenticationException(
-                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                return;
+                if (callbackHandle.callback != null) {
+                    callbackHandle.onError(new AuthenticationException(
+                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
+                    return null;
+                } else {
+                    throw new AuthenticationException(
+                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+                }
             }
         }
 
         // Validated the authority or skipped the validation
-        acquireTokenAfterValidation(callbackHandle, activity, request);
+        return acquireTokenAfterValidation(callbackHandle, activity, request);
     }
 
-    private void acquireTokenAfterValidation(CallbackHandler callbackHandle,
+    private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
             final Activity activity, final AuthenticationRequest request) {
         Logger.v(TAG, "Token request started" + getCorrelationLogInfo());
 
         // BROKER flow intercepts here
+        // cache and refresh call happens through the authenticator service
         if (mBrokerProxy.canSwitchToBroker()) {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
-            // cache and refresh call happens through the authenticator service
             AuthenticationResult result = null;
-            // Dont send background request if prompt flag is always
+
+            // Don't send background request, if prompt flag is always
             if (request.getPrompt() != PromptBehavior.Always) {
                 try {
                     result = mBrokerProxy.getAuthTokenInBackground(request);
                 } catch (AuthenticationException ex) {
                     // pass back to caller for known exceptions such as failure
                     // to encrypt
-                    callbackHandle.onError(ex);
-                    return;
+                    if (callbackHandle.callback != null) {
+                        callbackHandle.onError(ex);
+                        return null;
+                    } else {
+                        throw ex;
+                    }
                 }
             }
 
             if (result != null && result.getAccessToken() != null
                     && !result.getAccessToken().isEmpty()) {
                 Logger.v(TAG, "Token is returned from background call " + getCorrelationLogInfo());
-                callbackHandle.onSuccess(result);
-                return;
+                if (callbackHandle.callback != null) {
+                    callbackHandle.onSuccess(result);
+                }
+                return result;
             }
 
             // Launch broker activity
             // if cache and refresh request is not handled.
             // Initial request to authenticator needs to launch activity to
-            // record calling uid for the account
-            if (request.getPrompt() != PromptBehavior.CACHE_ONLY) {
+            // record calling uid for the account. This happens for Prompt auto
+            // or always behavior.
+            if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
+                
+                // only happens with callback since silent call does not show UI
                 Logger.v(TAG, "Launch activity for Authenticator");
                 mAuthorizationCallback = callbackHandle.callback;
                 request.setRequestId(callbackHandle.callback.hashCode());
@@ -975,28 +1042,42 @@ public class AuthenticationContext {
                 Logger.e(TAG, "Prompt is not allowed and failed to get token:"
                         + callbackHandle.callback.hashCode() + getCorrelationLogInfo(), "",
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-                callbackHandle.onError(new AuthenticationException(
-                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
+                if (callbackHandle.callback != null) {
+                    callbackHandle.onError(new AuthenticationException(
+                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
+                } else {
+                    throw new AuthenticationException(
+                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+                }
             }
+
+            // It will start activity if callback is provided. Return null here.
+            return null;
         } else {
-            localFlow(callbackHandle, activity, request);
+            return localFlow(callbackHandle, activity, request);
         }
     }
 
-    private void localFlow(CallbackHandler callbackHandle, final Activity activity,
+    private AuthenticationResult localFlow(CallbackHandler callbackHandle, final Activity activity,
             final AuthenticationRequest request) {
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
         if (cachedItem != null && isUserMisMatch(request.getLoginHint(), cachedItem)) {
-            callbackHandle
-                    .onError(new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH));
-            return;
+            if (callbackHandle.callback != null) {
+                callbackHandle.onError(new AuthenticationException(
+                        ADALError.AUTH_FAILED_USER_MISMATCH));
+                return null;
+            } else {
+                throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH);
+            }
         }
 
         if (request.getPrompt() != PromptBehavior.Always && isValidCache(cachedItem)) {
             Logger.v(TAG, "Token is returned from cache" + getCorrelationLogInfo());
-            callbackHandle.onSuccess(cachedItem);
-            return;
+            if (callbackHandle.callback != null) {
+                callbackHandle.onSuccess(cachedItem);
+            }
+            return cachedItem;
         }
 
         Logger.v(TAG, "Checking refresh tokens" + getCorrelationLogInfo());
@@ -1005,10 +1086,10 @@ public class AuthenticationContext {
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token"
                     + getCorrelationLogInfo());
-            refreshToken(callbackHandle, activity, request, refreshItem, true);
+            return refreshToken(callbackHandle, activity, request, refreshItem, true);
         } else {
             Logger.v(TAG, "Refresh token is not available" + getCorrelationLogInfo());
-            if (request.getPrompt() != PromptBehavior.CACHE_ONLY) {
+            if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
                 // start activity if other options are not available
                 // delegate map is used to remember callback if another
                 // instance of authenticationContext is created for config
@@ -1036,6 +1117,8 @@ public class AuthenticationContext {
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
             }
         }
+
+        return null;
     }
 
     protected boolean isRefreshable(AuthenticationResult cachedItem) {
@@ -1229,10 +1312,11 @@ public class AuthenticationContext {
      * @param useCache refresh request can be explicit without cache usage.
      *            Error message should return without trying prompt.
      * @param externalCallback
+     * @return
      */
-    private void refreshToken(final CallbackHandler callbackHandle, final Activity activity,
-            final AuthenticationRequest request, final RefreshItem refreshItem,
-            final boolean useCache) {
+    private AuthenticationResult refreshToken(final CallbackHandler callbackHandle,
+            final Activity activity, final AuthenticationRequest request,
+            final RefreshItem refreshItem, final boolean useCache) {
 
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
                 + getTokenHash(refreshItem.mRefreshToken));
@@ -1244,9 +1328,13 @@ public class AuthenticationContext {
         if (!mConnectionService.isConnectionAvailable()) {
             Logger.w(TAG, "Connection is not available to refresh token", request.getLogInfo(),
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            callbackHandle.onError(new AuthenticationException(
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE));
-            return;
+            if (callbackHandle.callback != null) {
+                callbackHandle.onError(new AuthenticationException(
+                        ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE));
+                return null;
+            } else {
+                throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+            }
         }
 
         AuthenticationResult result = null;
@@ -1265,8 +1353,12 @@ public class AuthenticationContext {
                 removeItemFromCache(refreshItem);
             }
 
-            callbackHandle.onError(exc);
-            return;
+            if (callbackHandle.callback != null) {
+                callbackHandle.onError(exc);
+                return null;
+            }
+            throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN,
+                    ExceptionExtensions.getExceptionMessage(exc), exc);
         }
 
         if (useCache) {
@@ -1277,33 +1369,39 @@ public class AuthenticationContext {
                 // remove item from cache to avoid same usage of
                 // refresh token in next acquireToken call
                 removeItemFromCache(refreshItem);
-                acquireTokenLocalCall(callbackHandle, activity, request);
+                return acquireTokenLocalCall(callbackHandle, activity, request);
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
                 if (refreshItem.mUserInfo != null) {
                     Logger.v(TAG, "UserInfo is updated:" + request.getLogInfo());
                     result.setUserInfo(refreshItem.mUserInfo);
                 }
-                
+
                 // it replaces multi resource refresh token as
                 // well with the new one since it is not stored
                 // with resource.
                 Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
                 setRefreshItemToCache(refreshItem, request, result);
-                
+
                 // return result obj which has error code and
                 // error description that is returned from
                 // server response
-                callbackHandle.onSuccess(result);
+                if (callbackHandle.callback != null) {
+                    callbackHandle.onSuccess(result);
+                }
+                return result;
             }
         } else {
-            
+
             // User is not using cache and explicitly
             // calling with refresh token. User should received
             // error code and error description in
             // Authentication result for Oauth errors
             Logger.v(TAG, "Cache is not used for Request:" + request.getLogInfo());
-            callbackHandle.onSuccess(result);
+            if (callbackHandle.callback != null) {
+                callbackHandle.onSuccess(result);
+            }
+            return result;
         }
     }
 
@@ -1313,7 +1411,7 @@ public class AuthenticationContext {
         // authenticationCallback, so handler is not needed here
         if (mDiscovery != null) {
             Logger.v(TAG, "Start validating authority:" + getCorrelationLogInfo());
-            
+
             // Set CorrelationId for Instance Discovery
             mDiscovery.setCorrelationId(getRequestCorrelationId());
             try {
@@ -1464,7 +1562,7 @@ public class AuthenticationContext {
                 // It is not using cache and refresh is not expected to
                 // show
                 // authentication activity.
-                request.setPrompt(PromptBehavior.CACHE_ONLY);
+                request.setSilent(true);
                 final RefreshItem refreshItem = new RefreshItem("", refreshToken, false, null);
 
                 if (mValidateAuthority) {
