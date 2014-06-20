@@ -248,7 +248,7 @@ public class AuthenticationConstants {
 
         public static final String CALLER_CACHEKEY_PREFIX = "|";
 
-        public static final String CLIENT_TLS_NOT_SUPPORTED = " Client-TLS-not-supported";
+        public static final String CLIENT_TLS_NOT_SUPPORTED = " PKeyAuth/1.0";
 
         public static final String CHALLANGE_REQUEST_HEADER = "WWW-Authenticate";
         
@@ -279,7 +279,9 @@ public class AuthenticationConstants {
 
         public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
 
-        public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-client-TLS-not-supported";
+        public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
+        
+        public static final String CHALLANGE_TLS_INCAPABLE_VERSION = "1.0";
 
         public static final String REDIRECT_PREFIX = "msauth";
 
