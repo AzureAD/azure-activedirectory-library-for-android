@@ -190,17 +190,6 @@ ADAL encrypts the tokens and store in SharedPreferences by default. You can look
 ### Oauth2 Bearer challange
 AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challange.
 
-### Proguard
-ADAL allows referencing jar files directly in your project. It resolves resources through reflection. Resource names need to be protected. You could specify following options to not obfuscate resource names:
-```
--keepattributes InnerClasses
-
--keep class **.R
--keep class **.R$* {
-    <fields>;
-}
-```
-
 ### Session cookies in Webview
 Android webview does not clear session cookies after app is closed. You can handle this with sample code below:
 ```java
@@ -210,6 +199,8 @@ cookieManager.removeSessionCookie();
 CookieSyncManager.getInstance().sync();
 ```
 More about cookies: http://developer.android.com/reference/android/webkit/CookieSyncManager.html
+
+=======
 
 ## License
 

@@ -170,6 +170,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         Account[] accts = getAccountList("valid", authenticatorType);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
                 signature, true, accts);
