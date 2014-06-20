@@ -311,6 +311,11 @@ class BrokerProxy implements IBrokerProxy {
             // Authenticator should throw OperationCanceledException if
             // token is not available
             intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
+
+            // Add flag to this intent to signal that request is for broker
+            // logic
+            intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
+                    AuthenticationConstants.Broker.BROKER_REQUEST);
         } catch (OperationCanceledException e) {
             Logger.e(TAG, "Authenticator cancels the request", "", ADALError.AUTH_FAILED_CANCELLED,
                     e);
