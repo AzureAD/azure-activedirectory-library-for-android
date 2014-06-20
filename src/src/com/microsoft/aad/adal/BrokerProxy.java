@@ -314,8 +314,10 @@ class BrokerProxy implements IBrokerProxy {
 
             // Add flag to this intent to signal that request is for broker
             // logic
-            intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
-                    AuthenticationConstants.Broker.BROKER_REQUEST);
+            if (intent != null) {
+                intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
+                        AuthenticationConstants.Broker.BROKER_REQUEST);
+            }
         } catch (OperationCanceledException e) {
             Logger.e(TAG, "Authenticator cancels the request", "", ADALError.AUTH_FAILED_CANCELLED,
                     e);

@@ -522,7 +522,11 @@ public class BrokerProxyTests extends AndroidTestCase {
                 UUID.randomUUID());
         AccountManager mockAcctManager = mock(AccountManager.class);
         Bundle expected = new Bundle();
-        expected.putParcelable(AccountManager.KEY_INTENT, new Intent());
+        Intent expectedIntent = new Intent();
+        expectedIntent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
+                AuthenticationConstants.Broker.BROKER_REQUEST);
+        expected.putParcelable(AccountManager.KEY_INTENT, expectedIntent);
+
         prepareAddAccount(brokerProxy, mockAcctManager, expected);
 
         // action
@@ -532,6 +536,8 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // assert
         assertNotNull("intent is not null", intent);
+        assertEquals("intent is not null", AuthenticationConstants.Broker.BROKER_REQUEST,
+                intent.getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
     }
 
     private void updateContextToSaveAccount(Context mockContext, String initialList,
