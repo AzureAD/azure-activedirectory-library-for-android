@@ -18,6 +18,8 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -32,6 +34,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 
 /**
  * Gets information about calling activity
@@ -103,7 +106,7 @@ class PackageHelper {
                 Signature signature = info.signatures[0];
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
-                return Base64.encodeToString(md.digest(), Base64.DEFAULT);
+                return Base64.encodeToString(md.digest(), Base64.NO_WRAP);
                 // Server side needs to register all other tags. ADAL will
                 // send one of them.
             }
@@ -135,5 +138,23 @@ class PackageHelper {
                     ADALError.PACKAGE_NAME_NOT_FOUND, e);
         }
         return callingUID;
+    }
+
+    public static String getBrokerRedirectUrl(final String packageName, final String signatureDigest) {
+        if (!StringExtensions.IsNullOrBlank(packageName)
+                && !StringExtensions.IsNullOrBlank(signatureDigest)) {
+            try {
+                return String.format("%s:%s%s%s", AuthenticationConstants.Broker.REDIRECT_PREFIX,
+                        URLEncoder.encode(packageName, AuthenticationConstants.ENCODING_UTF8),
+                        AuthenticationConstants.Broker.REDIRECT_DELIMETER_ENCODED,
+                        URLEncoder.encode(signatureDigest, AuthenticationConstants.ENCODING_UTF8));
+            } catch (UnsupportedEncodingException e) {
+                // This encoding issue will happen at the beginning of API call,
+                // if it is not supported on this device. ADAL uses one encoding
+                // type.
+                Log.e(TAG, "Encoding", e);
+            }
+        }
+        return "";
     }
 }

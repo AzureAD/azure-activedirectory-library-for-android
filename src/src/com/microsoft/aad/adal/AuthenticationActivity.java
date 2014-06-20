@@ -241,7 +241,8 @@ public class AuthenticationActivity extends Activity {
             mCallingPackage = getCallingPackage();
             mCallingUID = info.getUIDForPackage(mCallingPackage);
             String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
-            mStartUrl = getBrokerUrl(mStartUrl, mCallingPackage, signatureDigest);
+            mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
+            mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             Logger.v(TAG,
                     "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
                             + " calling package:" + mCallingPackage + " signatureDigest:"
@@ -394,7 +395,7 @@ public class AuthenticationActivity extends Activity {
         this.finish();
     }
 
-    private String getBrokerUrl(String loadUrl, String packageName, String signatureDigest) {
+    private String getBrokerStartUrl(String loadUrl, String packageName, String signatureDigest) {
         if (!StringExtensions.IsNullOrBlank(packageName)
                 && !StringExtensions.IsNullOrBlank(signatureDigest)) {
             try {
