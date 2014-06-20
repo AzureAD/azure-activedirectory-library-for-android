@@ -62,7 +62,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         ITokenCacheStore store = getTokenCacheStore();
         store.removeAll();
         // set items for user1
-        UserInfo user = new UserInfo("userid1", "givenName", "familyName", "identity", true);
+        UserInfo user = new UserInfo("userid1", "givenName", "familyName", "identity", "userid1");
         testItem = new TokenCacheItem();
         testItem.setAccessToken("token");
         testItem.setAuthority("authority");
@@ -81,7 +81,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         store.setItem(CacheKey.createCacheKey(testItem), testItem);
         store.setItem(CacheKey.createCacheKey(testItem2), testItem2);
 
-        UserInfo user2 = new UserInfo("userid2", "givenName", "familyName", "identity", true);
+        UserInfo user2 = new UserInfo("userid2", "givenName", "familyName", "identity", "userid2");
         testItemUser2 = new TokenCacheItem();
         // same authority, client, resource but different token for this user
         testItem2.setAccessToken("user2token2");

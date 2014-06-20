@@ -235,12 +235,18 @@ class Oauth2 {
             }
 
             UserInfo userinfo = null;
+            String tenantId = null;
+            String rawIdToken = null;
             if (response.containsKey(AuthenticationConstants.OAuth2.ID_TOKEN)) {
                 // IDtoken is related to Azure AD and returned with token
                 // response. ADFS does not return that.
-                String idToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
-                if (!StringExtensions.IsNullOrBlank(idToken)) {
-                    userinfo = parseIdToken(idToken);
+                rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
+                if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
+                    IdToken tokenParsed = parseIdToken(rawIdToken);
+                    if (tokenParsed != null) {
+                        tenantId = tokenParsed.mTenantId;
+                        userinfo = new UserInfo(tokenParsed);
+                    }
                 } else {
                     Logger.v(TAG, "IdToken is not provided");
                 }
@@ -250,7 +256,8 @@ class Oauth2 {
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
                     isMultiResourcetoken, userinfo);
-
+            result.setTenantId(tenantId);
+            result.setIdToken(rawIdToken);
         }
 
         return result;
@@ -262,8 +269,7 @@ class Oauth2 {
      * @param idtoken
      * @return UserInfo
      */
-    private static UserInfo parseIdToken(String idtoken) {
-        UserInfo userinfo = null;
+    private static IdToken parseIdToken(String idtoken) {
         try {
             // Message segments: Header.Body.Signature
             int firstDot = idtoken.indexOf(".");
@@ -297,19 +303,24 @@ class Oauth2 {
                             .get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
                     idtokenInfo.mIdentityProvider = responseItems
                             .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
-
-                    userinfo = new UserInfo(idtokenInfo);
-                    Logger.v(
-                            TAG,
-                            "IdToken is extracted from token response for userid:"
-                                    + userinfo.getUserId());
+                    idtokenInfo.mObjectId = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
+                    String expiration = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
+                    if (!StringExtensions.IsNullOrBlank(expiration)) {
+                        idtokenInfo.mPasswordExpiration = Long.parseLong(expiration);
+                    }
+                    idtokenInfo.mPasswordChangeUrl = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
+                    Logger.v(TAG, "IdToken is extracted from token response");
+                    return idtokenInfo;
                 }
             }
         } catch (Exception ex) {
             Logger.e(TAG, "Error in parsing user id token", null,
                     ADALError.IDTOKEN_PARSING_FAILURE, ex);
         }
-        return userinfo;
+        return null;
     }
 
     private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr)
@@ -341,8 +352,9 @@ class Oauth2 {
         }
 
         HashMap<String, String> headers = getRequestHeaders();
-        
-        // Refresh token endpoint needs to send header field for device challenge
+
+        // Refresh token endpoint needs to send header field for device
+        // challenge
         headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE, "true");
         return postMessage(requestMessage, headers);
     }
@@ -353,8 +365,7 @@ class Oauth2 {
      * 
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
-     * @param authenticationCallback
-     * @return
+     * @return Token in the AuthenticationResult
      * @throws Exception
      */
     public AuthenticationResult getToken(String authorizationUrl) throws Exception {
@@ -413,9 +424,8 @@ class Oauth2 {
     /**
      * get code and exchange for token
      * 
-     * @param request
      * @param code
-     * @param authenticationCallback
+     * @return Token in the AuthenticationResult
      * @throws Exception
      */
     public AuthenticationResult getTokenForCode(String code) throws Exception {
@@ -472,7 +482,8 @@ class Oauth2 {
                                     mJWSBuilder);
                             Logger.v(TAG, "Processing device challange");
                             final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponseFromHeader(challangeHeader, authority.toString());
+                                    .getChallangeResponseFromHeader(challangeHeader,
+                                            authority.toString());
                             headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
                                     challangeResponse.mAuthorizationHeaderValue);
                             Logger.v(TAG, "Sending request with challenge response");

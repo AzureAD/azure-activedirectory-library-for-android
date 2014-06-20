@@ -293,8 +293,10 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN));
         assertEquals("Name is same in the result", "admin@aaltests.onmicrosoft.com",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME));
-        assertEquals("UserId is same in the result", "admin@aaltests.onmicrosoft.com",
+        assertEquals("UserId is same in the result", "4f859989-a2ff-411e-9048-c322247ac62c",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID));
+        assertEquals("UserId is same in the result", "admin@aaltests.onmicrosoft.com",
+                data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
         assertNotNull(data
                 .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME));
         assertNotNull(data

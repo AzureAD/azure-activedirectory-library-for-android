@@ -865,7 +865,7 @@ public class AuthenticationActivity extends Activity {
                                 .getUserId())) {
                     // return userid in the userinfo
                     Logger.v(TAG, "Set userinfo from account");
-                    result.taskResult.setUserInfo(new UserInfo(name, name, "", "", true));
+                    result.taskResult.setUserInfo(new UserInfo(name, name, "", "", name));
                     mRequest.setLoginHint(name);
                 }
 
@@ -982,7 +982,7 @@ public class AuthenticationActivity extends Activity {
                             result.taskResult.getUserInfo().getIdentityProvider());
                     intent.putExtra(
                             AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                            result.taskResult.getUserInfo().getIsUserIdDisplayable());
+                            result.taskResult.getUserInfo().getDisplayableId());
                 }
                 returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
             } else {
