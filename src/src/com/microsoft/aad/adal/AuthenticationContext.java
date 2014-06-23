@@ -633,7 +633,7 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                    if (isUserMisMatch(authenticationRequest.getLoginHint(), result)) {
+                                    if (isUserMisMatch(authenticationRequest.getUserId(), result)) {
                                         throw new AuthenticationException(
                                                 ADALError.AUTH_FAILED_USER_MISMATCH);
                                     }
@@ -919,13 +919,9 @@ public class AuthenticationContext {
             final Activity activity, final AuthenticationRequest request) {
         URL authorityUrl = StringExtensions.getUrl(mAuthority);
         if (authorityUrl == null) {
-            if (callbackHandle.callback != null) {
-                callbackHandle.onError(new AuthenticationException(
-                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
-                return null;
-            } else {
-                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
-            }
+            callbackHandle.onError(new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
+            return null;
         }
 
         if (mValidateAuthority && !mAuthorityValidated) {
@@ -942,26 +938,16 @@ public class AuthenticationContext {
                 } else {
                     Logger.v(TAG, "Call external callback since instance is invalid"
                             + authorityUrlInCallback.toString() + getCorrelationLogInfo());
-                    if (callbackHandle.callback != null) {
-                        callbackHandle.onError(new AuthenticationException(
-                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                        return null;
-                    } else {
-                        throw new AuthenticationException(
-                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
-                    }
+                    callbackHandle.onError(new AuthenticationException(
+                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
+                    return null;
                 }
             } catch (Exception exc) {
                 Logger.e(TAG, "Authority validation has an error." + getCorrelationLogInfo(), "",
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, exc);
-                if (callbackHandle.callback != null) {
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                    return null;
-                } else {
-                    throw new AuthenticationException(
-                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
-                }
+                callbackHandle.onError(new AuthenticationException(
+                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
+                return null;
             }
         }
 
@@ -1056,15 +1042,10 @@ public class AuthenticationContext {
 
                 // User does not want to launch activity
                 String msg = "Prompt is not allowed and failed to get token:"
-                        + callbackHandle.callback.hashCode() + getCorrelationLogInfo();
+                        + getCorrelationLogInfo();
                 Logger.e(TAG, msg, "", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-                if (callbackHandle.callback != null) {
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, msg));
-                } else {
-                    throw new AuthenticationException(
-                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-                }
+                callbackHandle.onError(new AuthenticationException(
+                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, msg));
             }
 
             // It will start activity if callback is provided. Return null here.
@@ -1078,7 +1059,7 @@ public class AuthenticationContext {
             final AuthenticationRequest request) {
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
-        if (cachedItem != null && isUserMisMatch(request.getLoginHint(), cachedItem)) {
+        if (cachedItem != null && isUserMisMatch(request.getUserId(), cachedItem)) {
             if (callbackHandle.callback != null) {
                 callbackHandle.onError(new AuthenticationException(
                         ADALError.AUTH_FAILED_USER_MISMATCH));
@@ -1127,7 +1108,7 @@ public class AuthenticationContext {
 
                 // User does not want to launch activity
                 Logger.e(TAG, "Prompt is not allowed and failed to get token:"
-                        + callbackHandle.callback.hashCode() + getCorrelationLogInfo(), "",
+                        + getCorrelationLogInfo(), "",
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
                 callbackHandle.onError(new AuthenticationException(
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
@@ -1572,7 +1553,7 @@ public class AuthenticationContext {
 
                 final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
                         resource, clientId, getRequestCorrelationId());
-                
+
                 // It is not using cache and refresh is not expected to
                 // show authentication activity.
                 request.setSilent(true);

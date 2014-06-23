@@ -119,7 +119,7 @@ public class CacheKey implements Serializable {
         }
 
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
-                item.getLoginHint());
+                item.getUserId());
     }
 
     /**
@@ -135,7 +135,7 @@ public class CacheKey implements Serializable {
         }
 
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
-                item.getLoginHint());
+                item.getUserId());
     }
 
     public String getAuthority() {

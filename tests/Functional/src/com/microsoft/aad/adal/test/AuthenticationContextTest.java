@@ -31,6 +31,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.NoSuchPaddingException;
@@ -421,7 +422,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         PromptBehavior prompt = (PromptBehavior)ReflectionUtils.getFieldValue(request, "mPrompt");
         assertEquals("Prompt param is same", PromptBehavior.Always, prompt);
-        
+
         // 2 - Send refresh prompt
         final CountDownLatch signal2 = new CountDownLatch(1);
         MockAuthenticationCallback callback2 = new MockAuthenticationCallback(signal2);
@@ -433,8 +434,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         // Get intent from activity to verify extraparams are send
         intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
-        request = intent
-                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+        request = intent.getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
 
         prompt = (PromptBehavior)ReflectionUtils.getFieldValue(request, "mPrompt");
         assertEquals("Prompt param is same", PromptBehavior.REFRESH_SESSION, prompt);
@@ -824,6 +824,17 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertTrue(
                 "Activity was not attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW != testActivity.mStartActivityRequestCode);
+
+        // Sync test
+        try {
+            context.acquireTokenSilentSync("resource", "clientid", "userid");
+            Assert.fail("Validation should throw");
+        } catch (ExecutionException e) {
+            AuthenticationException exc = (AuthenticationException)e.getCause();
+            assertEquals("NOT_VALID_URL", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
+                    exc.getCode());
+        }
+
         clearCache(context);
     }
 
@@ -949,15 +960,86 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 .defaultCharset()), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
 
-        // call acquire token which will try refresh token based on cache
+        // Call acquire token which will try refresh token based on cache
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        // check response in callback
-        assertNull("Error is null", callback.mException);
-        assertEquals("Token is same", "TokenFortestRefreshTokenPositive",
-                callback.mResult.getAccessToken());
+        // Check response in callback
+        verifyRefreshTokenResponse(mockCache, callback.mException, callback.mResult);
+        clearCache(context);
+    }
+
+    public void testAcquireTokenSilentSync_Positive() throws NoSuchAlgorithmException,
+            NoSuchPaddingException, NoSuchFieldException, IllegalAccessException,
+            InterruptedException, ExecutionException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken();
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        String json = "{\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
+        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+
+        // Call refresh token in silent API method
+        AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
+                "userid");
+        verifyRefreshTokenResponse(mockCache, null, result);
+
+        clearCache(context);
+    }
+
+    public void testAcquireTokenSilentSync_Negative() throws NoSuchAlgorithmException,
+            NoSuchPaddingException, NoSuchFieldException, IllegalAccessException,
+            InterruptedException, ExecutionException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken();
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        webrequest.setReturnResponse(new HttpWebResponse(503, null, null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+
+        // Call refresh token in silent API method
+        try {
+            context.acquireTokenSilentSync(null, "clientid", "userid");
+            Assert.fail("Expected argument exception");
+        } catch (IllegalArgumentException e) {
+            assertTrue("Resource is missin", e.getMessage().contains("resource"));
+        }
+
+        try {
+            context.acquireTokenSilentSync("resource", null, "userid");
+            Assert.fail("Expected argument exception");
+        } catch (IllegalArgumentException e) {
+            assertTrue("Resource is missin", e.getMessage().contains("clientId"));
+        }
+
+        try {
+            context.acquireTokenSilentSync("resource", "clientid", "userid");
+        } catch (ExecutionException e) {
+            AuthenticationException authException = (AuthenticationException)e.getCause();
+            assertEquals("Token is not exchanged",
+                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
+        }
+
+        clearCache(context);
+    }
+
+    private void verifyRefreshTokenResponse(ITokenCacheStore mockCache, Exception resultException,
+            AuthenticationResult result) {
+        assertNull("Error is null", resultException);
+        assertEquals("Token is same", "TokenFortestRefreshTokenPositive", result.getAccessToken());
         assertNotNull("Cache is NOT empty for this userid for regular token",
                 mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
                         false, "userid")));
@@ -966,9 +1048,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertNotNull("Cache is NOT empty for this userid for regular token",
                 mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
                         false, "userid")));
-        assertTrue("Refresh token has userinfo", callback.mResult.getUserInfo().getUserId()
-                .equalsIgnoreCase("userid"));
-        clearCache(context);
+        assertTrue("Refresh token has userinfo",
+                result.getUserInfo().getUserId().equalsIgnoreCase("userid"));
     }
 
     /**
@@ -1117,8 +1198,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         // assert
         assertTrue("Returns cancel error",
                 callback.callbackException instanceof AuthenticationException);
-        assertTrue(
-                "Cancel error has message",
+        assertTrue("Cancel error has message",
                 callback.callbackException.getMessage().contains("User cancelled the flow"));
     }
 
