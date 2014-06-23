@@ -672,7 +672,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 .contains(exptedResource));
         assertNotNull("Result has user info from idtoken", callback.mResult.getUserInfo());
         assertEquals("Result has user info from idtoken", "admin@aaltests.onmicrosoft.com",
-                callback.mResult.getUserInfo().getUserId());
+                callback.mResult.getUserInfo().getDisplayableId());
     }
 
     private MockWebRequestHandler setMockWebRequest(final AuthenticationContext context, String id)
@@ -1112,7 +1112,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         refreshItem.setRefreshToken("refreshToken");
         refreshItem.setExpiresOn(timeAhead.getTime());
         refreshItem.setIsMultiResourceRefreshToken(false);
-        UserInfo userinfo = new UserInfo("user2", "test", "test", "idp", true);
+        UserInfo userinfo = new UserInfo("user2", "test", "test", "idp", "user2");
         refreshItem.setUserInfo(userinfo);
         String key = CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, "user1");
         mockCache.setItem(key, refreshItem);
@@ -1362,7 +1362,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         String tokenId = "id" + UUID.randomUUID().toString().replace("-", "");
         String tokenInfo = "accessToken" + tokenId;
         String resource = "Resource" + UUID.randomUUID();
-        String userid = "admin@aaltests.onmicrosoft.com";
+        String userid = "4f859989-a2ff-411e-9048-c322247ac62c";
         ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
         addItemToCache(mockCache, tokenToTest, "refreshTokenNormal", VALID_AUTHORITY, resource,
@@ -1542,7 +1542,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(expiredTime.getTime());
         refreshItem.setUserInfo(new UserInfo("userId", "givenName", "familyName",
-                "identityProvider", true));
+                "identityProvider", "userId"));
         cache.setItem(
                 CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, "userId"),
                 refreshItem);

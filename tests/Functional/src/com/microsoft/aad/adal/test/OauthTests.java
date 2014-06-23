@@ -59,7 +59,6 @@ import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.IJWSBuilder;
 import com.microsoft.aad.adal.IWebRequestHandler;
 import com.microsoft.aad.adal.PromptBehavior;
-import com.microsoft.aad.adal.UserInfo;
 
 public class OauthTests extends AndroidTestCase {
 
@@ -67,18 +66,27 @@ public class OauthTests extends AndroidTestCase {
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
 
+    private static final String sIdTokenClaims = "{\"aud\":\"c3c7f5e5-7153-44d4-90e6-329686d48d76\",\"iss\":\"https://sts.windows.net/6fd1f5cd-a94c-4335-889b-6c598e6d8048/\",\"iat\":1387224169,\"nbf\":1387224170,\"exp\":1387227769,\"pwd_exp\":1387227772,\"pwd_url\":\"pwdUrl\",\"ver\":\"1.0\",\"tid\":\"6fd1f5cd-a94c-4335-889b-6c598e6d8048\",\"oid\":\"53c6acf2-2742-4538-918d-e78257ec8516\",\"upn\":\"test@test.onmicrosoft.com\",\"unique_name\":\"testUnique@test.onmicrosoft.com\",\"sub\":\"0DxnAlLi12IvGL\",\"family_name\":\"familyName\",\"given_name\":\"givenName\",\"altsecid\":\"altsecid\",\"idp\":\"idpProvider\",\"email\":\"emailField\"}";
+
+    private static final String sIdTokenHeader = "{\"typ\":\"JWT\",\"alg\":\"none\"}";
+
     @SmallTest
     public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException {
-        String idToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
-        UserInfo actual = parseIdToken(idToken);
-        assertEquals("IdToken tenantid", "30baa666-8df8-48e7-97e6-77cfd0995963",
-                actual.getTenantId());
-        assertEquals("IdToken userid", "admin@aaltests.onmicrosoft.com", actual.getUserId());
-        assertEquals("IdToken userid", "admin@aaltests.onmicrosoft.com", actual.getUserId());
-        assertEquals("IdToken familyname", "Sepehri", actual.getFamilyName());
-        assertEquals("IdToken name", "Afshin", actual.getGivenName());
+            InvocationTargetException, NoSuchFieldException, UnsupportedEncodingException {
+        Object actual = parseIdToken(getIdToken(sIdTokenHeader, sIdTokenClaims));
+        assertEquals("0DxnAlLi12IvGL", ReflectionUtils.getFieldValue(actual, "mSubject"));
+        assertEquals("6fd1f5cd-a94c-4335-889b-6c598e6d8048",
+                ReflectionUtils.getFieldValue(actual, "mTenantId"));
+        assertEquals("test@test.onmicrosoft.com", ReflectionUtils.getFieldValue(actual, "mUpn"));
+        assertEquals("givenName", ReflectionUtils.getFieldValue(actual, "mGivenName"));
+        assertEquals("familyName", ReflectionUtils.getFieldValue(actual, "mFamilyName"));
+        assertEquals("emailField", ReflectionUtils.getFieldValue(actual, "mEmail"));
+        assertEquals("idpProvider", ReflectionUtils.getFieldValue(actual, "mIdentityProvider"));
+        assertEquals("53c6acf2-2742-4538-918d-e78257ec8516",
+                ReflectionUtils.getFieldValue(actual, "mObjectId"));
+        assertTrue(1387227772 == (Long)ReflectionUtils.getFieldValue(actual, "mPasswordExpiration"));
+        assertEquals("pwdUrl", ReflectionUtils.getFieldValue(actual, "mPasswordChangeUrl"));
     }
 
     @SmallTest
@@ -118,7 +126,7 @@ public class OauthTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
         String idToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2.";
-        UserInfo actual = parseIdToken(idToken);
+        Object actual = parseIdToken(idToken);
         assertNull("IdToken is null", actual);
     }
 
@@ -127,7 +135,7 @@ public class OauthTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
         String idToken = "..";
-        UserInfo actual = parseIdToken(idToken);
+        Object actual = parseIdToken(idToken);
         assertNull("IdToken is null", actual);
 
         idToken = "sdf.sdf.";
@@ -148,14 +156,14 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
-    private UserInfo parseIdToken(String idToken) throws IllegalArgumentException,
+    private Object parseIdToken(String idToken) throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
         Object request = createAuthenticationRequest("http://www.something.com", "resource",
                 "client", "redirect", "loginhint@ggg.com", null, null, null);
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "parseIdToken", String.class);
-        return (UserInfo)m.invoke(oauth, idToken);
+        return (Object)m.invoke(oauth, idToken);
     }
 
     @SmallTest
@@ -453,9 +461,9 @@ public class OauthTests extends AndroidTestCase {
         when(
                 mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
                         eq(publicKey), eq(mockCert))).thenReturn("signedJwtHere");
-        String challangeHeaderValue = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE+ " Nonce=\"" + nonce
-                + "\",  Version=\"1.0\", CertThumbprint=\"" + thumbPrint + "\",  Context=\"" + context
-                + "\"";
+        String challangeHeaderValue = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE
+                + " Nonce=\"" + nonce + "\",  Version=\"1.0\", CertThumbprint=\"" + thumbPrint
+                + "\",  Context=\"" + context + "\"";
         String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallange\",\"scope\":\"*\"}";
         HashMap<String, List<String>> headers = getHeader(
                 AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER, challangeHeaderValue);
@@ -509,14 +517,17 @@ public class OauthTests extends AndroidTestCase {
     @SmallTest
     public void testprocessTokenResponse() throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
-            InstantiationException {
+            InstantiationException, UnsupportedEncodingException {
 
         Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
                 "loginhint", null, null, null);
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
                 Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
-        String json = "{\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
+        String idToken = getIdToken(sIdTokenHeader, sIdTokenClaims);
+        String json = "{\"id_token\":\""
+                + idToken
+                + "\",\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
         HttpWebResponse mockResponse = new HttpWebResponse(200, json.getBytes(Charset
                 .defaultCharset()), null);
 
@@ -527,6 +538,7 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
         assertEquals("Same refresh token in parsed result", "refreshfasdfsdf435=",
                 result.getRefreshToken());
+        assertEquals("Same rawIdToken", idToken, result.getIdToken());
     }
 
     @SmallTest
@@ -750,5 +762,16 @@ public class OauthTests extends AndroidTestCase {
         keyGen.initialize(1024);
         KeyPair keyPair = keyGen.genKeyPair();
         return keyPair;
+    }
+
+    private String getIdToken(String header, String claims) throws UnsupportedEncodingException {
+        return String.format(
+                "%s.%s.",
+                new String(Base64.encode(header.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                        Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
+                        AuthenticationConstants.ENCODING_UTF8),
+                new String(Base64.encode(claims.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                        Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
+                        AuthenticationConstants.ENCODING_UTF8));
     }
 }

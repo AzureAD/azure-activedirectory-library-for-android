@@ -71,8 +71,10 @@ public class AuthenticationResult implements Serializable {
 
     private String mTenantId;
 
+    private String mIdToken;
+
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
-    
+
     private boolean mInitialRequest;
 
     AuthenticationResult() {
@@ -183,7 +185,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * UserInfo returned from IdToken 
+     * UserInfo returned from IdToken
      */
     public UserInfo getUserInfo() {
         return mUserInfo;
@@ -239,12 +241,30 @@ public class AuthenticationResult implements Serializable {
         Calendar timeNow = Calendar.getInstance();
         return timeNow;
     }
-    
+
     /**
-     * package private 
+     * package private
+     * 
      * @return
      */
-    boolean IsInitialRequest(){
+    boolean IsInitialRequest() {
         return mInitialRequest;
+    }
+
+    /**
+     * Get raw idtoken
+     * 
+     * @return
+     */
+    public String getIdToken() {
+        return mIdToken;
+    }
+
+    void setIdToken(String mIdToken) {
+        this.mIdToken = mIdToken;
+    }
+
+    void setTenantId(String tenantid) {
+        mTenantId = tenantid;
     }
 }
