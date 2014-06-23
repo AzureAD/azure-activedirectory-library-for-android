@@ -106,7 +106,7 @@ class AuthenticationRequest implements Serializable {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
-        mLoginHint = null;
+        mLoginHint = userid;
         mUserId = userid;
         mCorrelationId = correlationId;
     }

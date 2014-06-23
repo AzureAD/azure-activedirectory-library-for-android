@@ -236,7 +236,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final TestLogResponse response = new TestLogResponse();
         response.listenLogForMessageSegments(signal, "Refresh token is not available",
-                "CorrelationId:" + requestCorrelationId.toString());
+                "CorrelationId: " + requestCorrelationId.toString());
 
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
@@ -246,7 +246,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         // Verify that web request send correct headers
         Log.v(TAG, "Response msg:" + response.message);
         assertTrue("Server response has same correlationId",
-                response.additionalMessage.contains(requestCorrelationId.toString()));
+                response.message.contains(requestCorrelationId.toString()));
     }
 
     /**
@@ -871,7 +871,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 VALID_AUTHORITY, false, mockCache);
         setConnectionAvailable(context, true);
         final CountDownLatch signal = new CountDownLatch(1);
-        final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         webrequest.setReturnResponse(new HttpWebResponse(503, null, null));
@@ -1100,11 +1099,10 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // assert
         assertTrue("Returns cancel error",
-                callback.callbackException instanceof AuthenticationCancelError);
+                callback.callbackException instanceof AuthenticationException);
         assertTrue(
                 "Cancel error has message",
-                callback.callbackException.getMessage().contains(
-                        ADALError.AUTH_FAILED_CANCELLED.getDescription()));
+                callback.callbackException.getMessage().contains("User cancelled the flow"));
     }
 
     private Intent setWaitingRequestToContext(final AuthenticationContext authContext,
@@ -1407,24 +1405,28 @@ public class AuthenticationContextTest extends AndroidTestCase {
             boolean validate, ITokenCacheStore mockCache) {
         AuthenticationContext context = new AuthenticationContext(mockContext, authority, validate,
                 mockCache);
+        Class<?> c;
         try {
-            Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy",
-                    mockContext);
+            c = Class.forName("com.microsoft.aad.adal.BrokerProxy");
+            Constructor<?> constructorParams = c.getDeclaredConstructor(Context.class);
+            constructorParams.setAccessible(true);
+            Object brokerProxy = constructorParams.newInstance(mockContext);
             ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", "invalid");
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            ReflectionUtils.setFieldValue(context, "mBrokerProxy", brokerProxy);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            Assert.fail("getAuthenticationContext:" + e.getMessage());
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            Assert.fail("getAuthenticationContext:" + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            Assert.fail("getAuthenticationContext:" + e.getMessage());
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            Assert.fail("getAuthenticationContext:" + e.getMessage());
+        } catch (IllegalAccessException e) {
+            Assert.fail("getAuthenticationContext:" + e.getMessage());
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            Assert.fail("getAuthenticationContext:" + e.getMessage());
+        } catch (NoSuchFieldException e) {
+            Assert.fail("getAuthenticationContext:" + e.getMessage());
         }
 
         return context;

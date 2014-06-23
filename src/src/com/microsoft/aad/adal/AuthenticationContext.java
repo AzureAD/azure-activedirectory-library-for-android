@@ -438,7 +438,6 @@ public class AuthenticationContext {
      * @param resource
      * @param clientId
      * @param userId
-     * @param callback
      * @return A {@link Future} object representing the
      *         {@link AuthenticationResult} of the call. It contains Access
      *         Token,the Access Token's expiration time, Refresh token, and
@@ -571,8 +570,9 @@ public class AuthenticationContext {
                     // User cancelled the flow
                     Logger.v(TAG, "User cancelled the flow RequestId:" + requestId
                             + correlationInfo);
-                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
-                            ADALError.AUTH_FAILED_CANCELLED));
+                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
+                            ADALError.AUTH_FAILED_CANCELLED, "User cancelled the flow RequestId:"
+                                    + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
@@ -603,11 +603,12 @@ public class AuthenticationContext {
                     final String endingUrl = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_FINAL_URL);
                     if (endingUrl.isEmpty()) {
-                        Logger.v(TAG, "Webview did not reach the redirectUrl. "
-                                + authenticationRequest.getLogInfo());
-                        waitingRequestOnError(waitingRequest, requestId,
-                                new IllegalArgumentException(
-                                        "Webview did not reach the redirectUrl"));
+                        AuthenticationException e = new AuthenticationException(
+                                ADALError.WEBVIEW_RETURNED_EMPTY_REDIRECT_URL,
+                                "Webview did not reach the redirectUrl. "
+                                        + authenticationRequest.getLogInfo());
+                        Logger.e(TAG, e.getMessage(), "", e.getCode());
+                        waitingRequestOnError(waitingRequest, requestId, e);
                     } else {
                         // Browser has the url and it will exchange auth code
                         // for token
@@ -637,15 +638,21 @@ public class AuthenticationContext {
                                                 ADALError.AUTH_FAILED_USER_MISMATCH);
                                     }
                                 } catch (Exception exc) {
-                                    Logger.e(TAG, "Error in processing code to get token. "
-                                            + authenticationRequest.getLogInfo(),
+                                    String msg = "Error in processing code to get token. "
+                                            + authenticationRequest.getLogInfo();
+                                    Logger.e(TAG, msg,
                                             ExceptionExtensions.getExceptionMessage(exc),
                                             ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
                                             exc);
 
                                     // Call error at UI thread
-                                    waitingRequestOnError(callbackHandle, waitingRequest,
-                                            requestId, exc);
+                                    waitingRequestOnError(
+                                            callbackHandle,
+                                            waitingRequest,
+                                            requestId,
+                                            new AuthenticationException(
+                                                    ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+                                                    msg, exc));
                                     return;
                                 }
 
@@ -710,7 +717,7 @@ public class AuthenticationContext {
     }
 
     private void waitingRequestOnError(final AuthenticationRequestState waitingRequest,
-            int requestId, Exception exc) {
+            int requestId, AuthenticationException exc) {
 
         if (waitingRequest != null && waitingRequest.mDelagete != null) {
             Logger.v(TAG, "Sending error to callback"
@@ -721,7 +728,8 @@ public class AuthenticationContext {
     }
 
     private void waitingRequestOnError(CallbackHandler handler,
-            final AuthenticationRequestState waitingRequest, int requestId, Exception exc) {
+            final AuthenticationRequestState waitingRequest, int requestId,
+            final AuthenticationException exc) {
 
         if (waitingRequest != null && waitingRequest.mDelagete != null) {
             Logger.v(TAG, "Sending error to callback"
@@ -851,7 +859,7 @@ public class AuthenticationContext {
             callback = callbackExt;
         }
 
-        public void onError(final Exception e) {
+        public void onError(final AuthenticationException e) {
             if (mRefHandler != null && callback != null) {
                 mRefHandler.post(new Runnable() {
                     @Override
@@ -860,6 +868,8 @@ public class AuthenticationContext {
                         return;
                     }
                 });
+            } else {
+                throw e;
             }
         }
 
@@ -1000,8 +1010,8 @@ public class AuthenticationContext {
             // record calling uid for the account. This happens for Prompt auto
             // or always behavior.
             if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
-                
-                // only happens with callback since silent call does not show UI
+
+                // Only happens with callback since silent call does not show UI
                 Logger.v(TAG, "Launch activity for Authenticator");
                 mAuthorizationCallback = callbackHandle.callback;
                 request.setRequestId(callbackHandle.callback.hashCode());
@@ -1014,6 +1024,7 @@ public class AuthenticationContext {
                     Logger.v(TAG, "Initial request to authenticator");
                     // Record the initial request but not force a prompt
                 }
+
                 // onActivityResult will receive the response
                 // Activity needs to launch to record calling app for this
                 // account
@@ -1037,14 +1048,14 @@ public class AuthenticationContext {
                             ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
                 }
             } else {
-                // it can come here if user set to never for the prompt and
-                // refresh token failed.
-                Logger.e(TAG, "Prompt is not allowed and failed to get token:"
-                        + callbackHandle.callback.hashCode() + getCorrelationLogInfo(), "",
-                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+
+                // User does not want to launch activity
+                String msg = "Prompt is not allowed and failed to get token:"
+                        + callbackHandle.callback.hashCode() + getCorrelationLogInfo();
+                Logger.e(TAG, msg, "", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
                 if (callbackHandle.callback != null) {
                     callbackHandle.onError(new AuthenticationException(
-                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
+                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, msg));
                 } else {
                     throw new AuthenticationException(
                             ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -1108,8 +1119,8 @@ public class AuthenticationContext {
                             ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
                 }
             } else {
-                // it can come here if user set to never for the prompt and
-                // refresh token failed.
+
+                // User does not want to launch activity
                 Logger.e(TAG, "Prompt is not allowed and failed to get token:"
                         + callbackHandle.callback.hashCode() + getCorrelationLogInfo(), "",
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -1326,15 +1337,13 @@ public class AuthenticationContext {
         // state to not remove refresh token if user turned Airplane mode or
         // similar.
         if (!mConnectionService.isConnectionAvailable()) {
+            AuthenticationException exc = new AuthenticationException(
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                    "Connection is not available to refresh token");
             Logger.w(TAG, "Connection is not available to refresh token", request.getLogInfo(),
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            if (callbackHandle.callback != null) {
-                callbackHandle.onError(new AuthenticationException(
-                        ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE));
-                return null;
-            } else {
-                throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            }
+            callbackHandle.onError(exc);
+            return null;
         }
 
         AuthenticationResult result = null;
@@ -1353,12 +1362,11 @@ public class AuthenticationContext {
                 removeItemFromCache(refreshItem);
             }
 
-            if (callbackHandle.callback != null) {
-                callbackHandle.onError(exc);
-                return null;
-            }
-            throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN,
-                    ExceptionExtensions.getExceptionMessage(exc), exc);
+            AuthenticationException authException = new AuthenticationException(
+                    ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
+                    exc);
+            callbackHandle.onError(authException);
+            return null;
         }
 
         if (useCache) {
@@ -1585,7 +1593,9 @@ public class AuthenticationContext {
                         Logger.e(TAG, "Authority validation is failed" + getCorrelationLogInfo(),
                                 ExceptionExtensions.getExceptionMessage(exc),
                                 ADALError.SERVER_INVALID_REQUEST, exc);
-                        callbackHandle.onError(exc);
+                        callbackHandle.onError(new AuthenticationException(
+                                ADALError.SERVER_INVALID_REQUEST, "Authority validation is failed"
+                                        + getCorrelationLogInfo()));
                         return;
                     }
                 }

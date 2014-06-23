@@ -72,6 +72,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationCancelError;
 import com.microsoft.aad.adal.AuthenticationContext;
@@ -119,6 +120,8 @@ public class MainActivity extends Activity {
      * result from recent request
      */
     private AuthenticationResult mResult;
+    
+    private Exception mLastException;
 
     private String mActiveUser, mExtraQueryParam;
 
@@ -149,6 +152,10 @@ public class MainActivity extends Activity {
         return handler;
     }
 
+    public AuthenticationContext getAuthenticationContext(){
+        return mContext;
+    }
+    
     class AdalCallback implements AuthenticationCallback<AuthenticationResult> {
 
         UUID mId;
@@ -159,19 +166,17 @@ public class MainActivity extends Activity {
 
         @Override
         public void onError(Exception exc) {
-            Log.d(TAG, "Callback returned error");
-            if (exc instanceof AuthenticationCancelError) {
-                textViewStatus.setText("Cancelled");
-                Log.d(TAG, "Cancelled");
-            } else {
-                if (exc instanceof AuthenticationException) {
-                    AuthenticationException authException = (AuthenticationException)exc;
-                    textViewStatus
-                            .setText("Authentication error:" + authException.getCode().name());
+            Log.e(TAG, "Callback returned error", exc);
+            mLastException = exc;
+            if (exc instanceof AuthenticationException) {
+                AuthenticationException authException = (AuthenticationException)exc;
+                textViewStatus.setText("Authentication error:" + authException.getCode().name());
+                if (authException.getCode() == ADALError.AUTH_FAILED_CANCELLED) {
+                    textViewStatus.setText("Cancelled");
+                    Log.d(TAG, "Cancelled");
                 }
-
-                Log.d(TAG, "Authentication error:" + exc.getMessage());
             }
+            Log.d(TAG, "Authentication error:" + exc.getMessage());
         }
 
         @Override
@@ -403,6 +408,31 @@ public class MainActivity extends Activity {
                 mExtraQueryParam, new AdalCallback());
     }
 
+    public void getTokenSilent() {
+        Logger.v(TAG, "get Token Silent");
+        textViewStatus.setText(GETTING_TOKEN);
+        if (mContext == null) {
+            initContext();
+        }
+
+        String resource = mResource.getText().toString();
+        if (resource == null || resource.isEmpty()) {
+            resource = RESOURCE_ID;
+        }
+
+        String clientId = mClientId.getText().toString();
+        if (clientId == null || clientId.isEmpty()) {
+            clientId = CLIENT_ID;
+        }
+
+        // Optional field, so acquireToken accepts null fields
+        String userid = mUserid.getText().toString();
+
+        mResult = null;
+        mContext.setRequestCorrelationId(mRequestCorrelationId);
+        mContext.acquireTokenSilent(resource, clientId, userid, new AdalCallback());
+    }
+    
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -537,6 +567,10 @@ public class MainActivity extends Activity {
 
     public void setExtraQueryParam(String extraQueryParam) {
         mExtraQueryParam = extraQueryParam;
+    }
+
+    public Exception getLastException() {
+        return mLastException;
     }
 
     /**
