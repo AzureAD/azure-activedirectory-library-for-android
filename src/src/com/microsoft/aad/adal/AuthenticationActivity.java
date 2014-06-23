@@ -893,7 +893,7 @@ public class AuthenticationActivity extends Activity {
                 TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
                 String json = gson.toJson(item);
                 String encrypted = cryptoHelper.encrypt(json);
-                String key = CacheKey.createCacheKey(mRequest);
+                String key = CacheKey.createCacheKey(mRequest, mRequest.getUserId());
                 saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
                         encrypted);
@@ -903,7 +903,8 @@ public class AuthenticationActivity extends Activity {
                     TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
                     json = gson.toJson(itemMRRT);
                     encrypted = cryptoHelper.encrypt(json);
-                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest);
+                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest,
+                            mRequest.getUserId());
                     saveCacheKey(key, newaccount, mAppCallingUID);
                     mAccountManager.setUserData(newaccount,
                             getBrokerAppCacheKey(cryptoHelper, key), encrypted);

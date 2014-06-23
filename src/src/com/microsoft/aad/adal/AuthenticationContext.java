@@ -1140,7 +1140,8 @@ public class AuthenticationContext {
     private AuthenticationResult getItemFromCache(final AuthenticationRequest request) {
         if (mTokenCacheStore != null) {
             // get token if resourceid matches to cache key.
-            TokenCacheItem item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request));
+            TokenCacheItem item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
+                    request.getUserId()));
             if (item != null) {
                 Logger.v(TAG,
                         "getItemFromCache accessTokenId:" + getTokenHash(item.getAccessToken())
@@ -1198,13 +1199,13 @@ public class AuthenticationContext {
             // target refreshToken for this resource first. CacheKey will
             // include the resourceId in the cachekey
             Logger.v(TAG, "Looking for regular refresh token" + getCorrelationLogInfo());
-            String keyUsed = CacheKey.createCacheKey(request);
+            String keyUsed = CacheKey.createCacheKey(request, request.getUserId());
             TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 // if not present, check multiResource item in cache. Cache key
                 // will not include resourceId in the cache key string.
                 Logger.v(TAG, "Looking for Multi Resource Refresh token" + getCorrelationLogInfo());
-                keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request);
+                keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request, request.getUserId());
                 item = mTokenCacheStore.getItem(keyUsed);
                 multiResource = true;
             }
@@ -1225,20 +1226,35 @@ public class AuthenticationContext {
     private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result)
             throws AuthenticationException {
         if (mTokenCacheStore != null) {
-            // Store token
+
+            // User can ask for token without login hint. Next call from same
+            // method should use token from cache.
             Logger.v(TAG, "Setting item to cache" + getCorrelationLogInfo());
+
             // Calculate token hashcode
             logReturnedToken(request, result);
-            mTokenCacheStore.setItem(CacheKey.createCacheKey(request), new TokenCacheItem(request,
-                    result, false));
+            setItemToCacheForUser(request, result, request.getUserId());
 
-            // Store broad refresh token if available
-            if (result.getIsMultiResourceRefreshToken()) {
-                Logger.v(TAG, "Setting Multi Resource Refresh token to cache"
+            // Update userid from userinfo
+            if (StringExtensions.IsNullOrBlank(request.getUserId()) && result.getUserInfo() != null
+                    && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
+                Logger.v(TAG, "Updating userId:" + result.getUserInfo().getUserId()
                         + getCorrelationLogInfo());
-                mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request),
-                        new TokenCacheItem(request, result, true));
+                setItemToCacheForUser(request, result, result.getUserInfo().getUserId());
             }
+        }
+    }
+
+    private void setItemToCacheForUser(final AuthenticationRequest request,
+            AuthenticationResult result, String userId) {
+        mTokenCacheStore.setItem(CacheKey.createCacheKey(request, userId), new TokenCacheItem(
+                request, result, false));
+
+        // Store broad refresh token if available
+        if (result.getIsMultiResourceRefreshToken()) {
+            Logger.v(TAG, "Setting Multi Resource Refresh token to cache" + getCorrelationLogInfo());
+            mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request, userId),
+                    new TokenCacheItem(request, result, true));
         }
     }
 
@@ -1259,7 +1275,7 @@ public class AuthenticationContext {
         }
     }
 
-    private void setRefreshItemToCache(final RefreshItem refreshItem,
+    private void setItemToCacheFromRefresh(final RefreshItem refreshItem,
             final AuthenticationRequest request, AuthenticationResult result)
             throws AuthenticationException {
         if (mTokenCacheStore != null) {
@@ -1268,23 +1284,12 @@ public class AuthenticationContext {
             Logger.v(TAG, "Setting refresh item to cache for key:" + refreshItem.mKey
                     + getCorrelationLogInfo());
             logReturnedToken(request, result);
+            
+            // Update for cache key
             mTokenCacheStore.setItem(refreshItem.mKey, new TokenCacheItem(request, result,
                     refreshItem.mMultiResource));
 
-            if (refreshItem.mMultiResource) {
-                // update normal token result as well to avoid refreshing again
-                // for next request
-                mTokenCacheStore.setItem(CacheKey.createCacheKey(request), new TokenCacheItem(
-                        request, result, false));
-            } else {
-                // update MRRT token as well if result is MRRT
-                if (result.getIsMultiResourceRefreshToken()) {
-                    Logger.v(TAG, "Setting Multi Resource Refresh token to cache"
-                            + getCorrelationLogInfo());
-                    mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request),
-                            new TokenCacheItem(request, result, true));
-                }
-            }
+            setItemToCache(request, result);             
         }
     }
 
@@ -1375,7 +1380,7 @@ public class AuthenticationContext {
                 // well with the new one since it is not stored
                 // with resource.
                 Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
-                setRefreshItemToCache(refreshItem, request, result);
+                setItemToCacheFromRefresh(refreshItem, request, result);
 
                 // return result obj which has error code and
                 // error description that is returned from

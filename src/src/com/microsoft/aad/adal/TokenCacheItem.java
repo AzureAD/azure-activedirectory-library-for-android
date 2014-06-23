@@ -57,7 +57,7 @@ public class TokenCacheItem implements Serializable {
 
     }
 
-    public TokenCacheItem(AuthenticationRequest request, AuthenticationResult result,
+    public TokenCacheItem(final AuthenticationRequest request, final AuthenticationResult result,
             boolean storeMultiResourceRefreshToken) {
         if (request != null) {
             mAuthority = request.getAuthority();

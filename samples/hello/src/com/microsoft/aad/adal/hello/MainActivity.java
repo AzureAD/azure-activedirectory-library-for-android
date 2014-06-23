@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         CookieSyncManager.createInstance(getApplicationContext());
         textView1 = (TextView)findViewById(R.id.textView1);
-        
+
         // Clear previous sessions
         clearSessionCookie();
 
@@ -157,12 +157,16 @@ public class MainActivity extends Activity {
                 }
 
                 mResult = result;
+                Log.v(TAG, "Token info:" + result.getAccessToken());
                 Toast.makeText(getApplicationContext(), "Token is returned", Toast.LENGTH_SHORT)
                         .show();
 
                 if (mResult.getUserInfo() != null) {
+                    Log.v(TAG, "User info userid:" + result.getUserInfo().getUserId()
+                            + " displayableId:" + result.getUserInfo().getDisplayableId());
                     Toast.makeText(getApplicationContext(),
-                            "User:" + mResult.getUserInfo().getUserId(), Toast.LENGTH_SHORT).show();
+                            "User:" + mResult.getUserInfo().getDisplayableId(), Toast.LENGTH_SHORT)
+                            .show();
                 }
             }
 
@@ -174,6 +178,13 @@ public class MainActivity extends Activity {
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
                 Constants.REDIRECT_URL, getUserId(), PromptBehavior.REFRESH_SESSION, "",
+                getCallback());
+    }
+
+    public void onClickAcquireTokenSilent(View v) {
+        Log.v(TAG, "onClickAcquireTokenSilent is clicked");
+        mLoginProgressDialog.show();
+        mAuthContext.acquireTokenSilent(Constants.RESOURCE_ID, Constants.CLIENT_ID, getUserId(),
                 getCallback());
     }
 
