@@ -43,8 +43,6 @@ public class Constants {
     // URI for the resource. You need to setup this resource at AAD
     static final String RESOURCE_ID = "https://omercantest.onmicrosoft.com/AllHandsTry";
 
-    static String USER_HINT = "";
-
     // Endpoint we are targeting for the deployed WebAPI service
     static final String SERVICE_URL = "https://android.azurewebsites.net/api/values";
 

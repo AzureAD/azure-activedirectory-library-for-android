@@ -27,7 +27,6 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
@@ -47,9 +46,8 @@ import android.widget.Toast;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.Logger;
-import com.microsoft.aad.adal.hello.R;
+import com.microsoft.aad.adal.PromptBehavior;
 
 public class MainActivity extends Activity {
 
@@ -74,6 +72,9 @@ public class MainActivity extends Activity {
         CookieSyncManager.createInstance(getApplicationContext());
         textView1 = (TextView)findViewById(R.id.textView1);
         
+        // Clear previous sessions
+        clearSessionCookie();
+
         // to test session cookie behavior
         mLoginProgressDialog = new ProgressDialog(this);
         mLoginProgressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -136,44 +137,53 @@ public class MainActivity extends Activity {
 
     }
 
+    private AuthenticationCallback<AuthenticationResult> getCallback() {
+        return new AuthenticationCallback<AuthenticationResult>() {
+
+            @Override
+            public void onError(Exception exc) {
+                if (mLoginProgressDialog.isShowing()) {
+                    mLoginProgressDialog.dismiss();
+                }
+
+                Toast.makeText(getApplicationContext(), TAG + "getToken Error:" + exc.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                if (mLoginProgressDialog.isShowing()) {
+                    mLoginProgressDialog.dismiss();
+                }
+
+                mResult = result;
+                Toast.makeText(getApplicationContext(), "Token is returned", Toast.LENGTH_SHORT)
+                        .show();
+
+                if (mResult.getUserInfo() != null) {
+                    Toast.makeText(getApplicationContext(),
+                            "User:" + mResult.getUserInfo().getUserId(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+        };
+    }
+
+    public void onClickAcquireTokenForceRefresh(View v) {
+        Log.v(TAG, "onClickAcquireTokenForceRefresh");
+        mLoginProgressDialog.show();
+        mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
+                Constants.REDIRECT_URL, getUserId(), PromptBehavior.REFRESH_SESSION, "",
+                getCallback());
+    }
+
     public void onClickToken(View v) {
         Log.v(TAG, "token button is clicked");
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, Constants.USER_HINT,
-                new AuthenticationCallback<AuthenticationResult>() {
-
-                    @Override
-                    public void onError(Exception exc) {
-                        if (mLoginProgressDialog.isShowing()) {
-                            mLoginProgressDialog.dismiss();
-                        }
-
-                        Toast.makeText(getApplicationContext(),
-                                TAG + "getToken Error:" + exc.getMessage(), Toast.LENGTH_SHORT)
-                                .show();
-                    }
-
-                    @Override
-                    public void onSuccess(AuthenticationResult result) {
-                        if (mLoginProgressDialog.isShowing()) {
-                            mLoginProgressDialog.dismiss();
-                        }
-
-                        mResult = result;
-                        Toast.makeText(getApplicationContext(), "Token is returned",
-                                Toast.LENGTH_SHORT).show();
-
-                        if (mResult.getUserInfo() != null) {
-                            Toast.makeText(getApplicationContext(),
-                                    "User:" + mResult.getUserInfo().getUserId(), Toast.LENGTH_SHORT)
-                                    .show();
-                        }
-                    }
-
-                });
+                Constants.REDIRECT_URL, getUserId(), getCallback());
     }
-    
+
     private void clearSessionCookie() {
         // Webview by default does not clear session cookies even after app is
         // closed(Bug in Webview).
@@ -182,12 +192,6 @@ public class MainActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.removeSessionCookie();
         CookieSyncManager.getInstance().sync();
-    }
-    
-    @Override
-    protected void onPause() {
-        super.onPause();
-        clearSessionCookie();
     }
 
     @Override
@@ -237,6 +241,15 @@ public class MainActivity extends Activity {
 
     private void displayMessage(String msg) {
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+    }
+
+    private String getUserId() {
+        if (mResult != null && mResult.getUserInfo() != null
+                && mResult.getUserInfo().getUserId() != null) {
+            return mResult.getUserInfo().getUserId();
+        }
+
+        return null;
     }
 
     /**
@@ -299,5 +312,4 @@ public class MainActivity extends Activity {
             }
         }
     }
-
 }

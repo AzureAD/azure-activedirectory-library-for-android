@@ -146,8 +146,9 @@ public class AuthenticationActivity extends Activity {
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);		
-        setContentView(this.getResources().getIdentifier("activity_authentication","layout",this.getPackageName()));
+        super.onCreate(savedInstanceState);
+        setContentView(this.getResources().getIdentifier("activity_authentication", "layout",
+                this.getPackageName()));
 
         // Get the message from the intent
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
@@ -187,7 +188,7 @@ public class AuthenticationActivity extends Activity {
         }
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
-        Log.d(TAG, "OnCreate redirect" + mRedirectUrl);
+        Log.d(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
 
         setupWebView();
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
@@ -252,18 +253,21 @@ public class AuthenticationActivity extends Activity {
         }
         mRestartWebview = false;
         final String postUrl = mStartUrl;
+        Logger.v(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage
+                + " loginHint:" + mAuthRequest.getLoginHint());
         mWebView.post(new Runnable() {
             @Override
             public void run() {
-                
-                mWebView.loadUrl("about:blank");// load blank first                
+
+                mWebView.loadUrl("about:blank");// load blank first
                 mWebView.loadUrl(postUrl);
             }
         });
     }
 
     private void setupWebView() {
-        btnCancel = (Button)findViewById(this.getResources().getIdentifier("btnCancel","id",this.getPackageName()));
+        btnCancel = (Button)findViewById(this.getResources().getIdentifier("btnCancel", "id",
+                this.getPackageName()));
         btnCancel.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -275,7 +279,8 @@ public class AuthenticationActivity extends Activity {
         // Spinner dialog to show some message while it is loading
         spinner = new ProgressDialog(this);
         spinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        spinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading","string",this.getPackageName())));
+        spinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
+                this.getPackageName())));
         spinner.setOnCancelListener(new OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
@@ -284,7 +289,8 @@ public class AuthenticationActivity extends Activity {
         });
 
         // Create the Web View to show the page
-        mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1","id",this.getPackageName()));
+        mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
+                this.getPackageName()));
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
@@ -418,7 +424,7 @@ public class AuthenticationActivity extends Activity {
                 + AuthenticationSettings.INSTANCE.getBrokerPackageName());
         return getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
     }
-    
+
     /**
      * activity sets result to go back to the caller
      * 
@@ -851,7 +857,7 @@ public class AuthenticationActivity extends Activity {
                 Account[] accountList = mAccountManager
                         .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
-                if (accountList == null || accountList.length != 1) {                    
+                if (accountList == null || accountList.length != 1) {
                     result.taskResult = null;
                     result.taskException = new AuthenticationException(
                             ADALError.BROKER_SINGLE_USER_EXPECTED);
