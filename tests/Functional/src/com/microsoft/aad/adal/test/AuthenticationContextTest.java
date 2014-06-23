@@ -81,7 +81,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
      */
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
-    protected final static int CONTEXT_REQUEST_TIME_OUT = 20000;
+    protected final static int CONTEXT_REQUEST_TIME_OUT = 200000;
 
     private final static String TEST_AUTHORITY = "http://login.windows.net/common";
 
@@ -413,7 +413,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 "testExtraParamsredirectUri", PromptBehavior.Always, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        // get intent from activity to verify extraparams are send
+        // Get intent from activity to verify extraparams are send
         Intent intent = testActivity.mStartActivityIntent;
         assertNotNull(intent);
         Serializable request = intent
@@ -421,6 +421,23 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         PromptBehavior prompt = (PromptBehavior)ReflectionUtils.getFieldValue(request, "mPrompt");
         assertEquals("Prompt param is same", PromptBehavior.Always, prompt);
+        
+        // 2 - Send refresh prompt
+        final CountDownLatch signal2 = new CountDownLatch(1);
+        MockAuthenticationCallback callback2 = new MockAuthenticationCallback(signal2);
+        testActivity.mSignal = signal2;
+        context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
+                "testExtraParamsredirectUri", PromptBehavior.REFRESH_SESSION, callback2);
+        signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // Get intent from activity to verify extraparams are send
+        intent = testActivity.mStartActivityIntent;
+        assertNotNull(intent);
+        request = intent
+                .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
+
+        prompt = (PromptBehavior)ReflectionUtils.getFieldValue(request, "mPrompt");
+        assertEquals("Prompt param is same", PromptBehavior.REFRESH_SESSION, prompt);
     }
 
     @SmallTest
@@ -1282,7 +1299,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        // -----------Acquire token call will return from cache
+        // Acquire token call will return from cache
         context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", userid, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -1290,10 +1307,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("Same token in response as in cache", tokenToTest,
                 callback.mResult.getAccessToken());
 
-        // -----------Acquire token call will not return from cache for broad
+        // Acquire token call will not return from cache for broad
         // Token-cached item does not have access token since it was broad
-        // refresh
-        // token
+        // refresh token
         signal = new CountDownLatch(1);
         callback = new MockAuthenticationCallback(signal);
         context.acquireToken(testActivity, "dummyResource2", "ClienTid", "redirectUri", userid,

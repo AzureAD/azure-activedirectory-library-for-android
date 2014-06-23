@@ -969,6 +969,10 @@ public class AuthenticationContext {
         return acquireTokenAfterValidation(callbackHandle, activity, request);
     }
 
+    private boolean promptUser(PromptBehavior prompt) {
+        return prompt == PromptBehavior.Always || prompt == PromptBehavior.REFRESH_SESSION;
+    }
+
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
             final Activity activity, final AuthenticationRequest request) {
         Logger.v(TAG, "Token request started" + getCorrelationLogInfo());
@@ -979,8 +983,9 @@ public class AuthenticationContext {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             AuthenticationResult result = null;
 
-            // Don't send background request, if prompt flag is always
-            if (request.getPrompt() != PromptBehavior.Always) {
+            // Don't send background request, if prompt flag is always or
+            // refresh_session
+            if (!promptUser(request.getPrompt())) {
                 try {
                     result = mBrokerProxy.getAuthTokenInBackground(request);
                 } catch (AuthenticationException ex) {
@@ -1083,7 +1088,7 @@ public class AuthenticationContext {
             }
         }
 
-        if (request.getPrompt() != PromptBehavior.Always && isValidCache(cachedItem)) {
+        if (!promptUser(request.getPrompt()) && isValidCache(cachedItem)) {
             Logger.v(TAG, "Token is returned from cache" + getCorrelationLogInfo());
             if (callbackHandle.callback != null) {
                 callbackHandle.onSuccess(cachedItem);
@@ -1093,7 +1098,7 @@ public class AuthenticationContext {
 
         Logger.v(TAG, "Checking refresh tokens" + getCorrelationLogInfo());
         RefreshItem refreshItem = getRefreshToken(request);
-        if (request.getPrompt() != PromptBehavior.Always && refreshItem != null
+        if (!promptUser(request.getPrompt()) && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token"
                     + getCorrelationLogInfo());
@@ -1567,9 +1572,9 @@ public class AuthenticationContext {
 
                 final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
                         resource, clientId, getRequestCorrelationId());
+                
                 // It is not using cache and refresh is not expected to
-                // show
-                // authentication activity.
+                // show authentication activity.
                 request.setSilent(true);
                 final RefreshItem refreshItem = new RefreshItem("", refreshToken, false, null);
 

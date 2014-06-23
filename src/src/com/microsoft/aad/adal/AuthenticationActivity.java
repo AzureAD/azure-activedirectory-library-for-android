@@ -330,7 +330,7 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
             String prompt = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
-            PromptBehavior promptBehavior = PromptBehavior.Always;
+            PromptBehavior promptBehavior = PromptBehavior.Auto;
             if (!StringExtensions.IsNullOrBlank(prompt)) {
                 promptBehavior = PromptBehavior.valueOf(prompt);
             }
