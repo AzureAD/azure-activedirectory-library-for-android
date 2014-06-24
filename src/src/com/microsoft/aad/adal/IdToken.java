@@ -33,6 +33,12 @@ class IdToken {
 
     String mIdentityProvider;
     
+    String mObjectId;
+    
+    long mPasswordExpiration;
+    
+    String mPasswordChangeUrl;
+        
     public IdToken(){
         
     }

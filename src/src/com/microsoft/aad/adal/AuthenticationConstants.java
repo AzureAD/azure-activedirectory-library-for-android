@@ -127,6 +127,12 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_EMAIL = "email";
 
         static final String ID_TOKEN_IDENTITY_PROVIDER = "idp";
+
+        static final String ID_TOKEN_OBJECT_ID = "oid";
+        
+        static final String ID_TOKEN_PASSWORD_EXPIRATION = "pwd_exp";
+        
+        static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
     }
 
     public static final class AAD {
