@@ -442,14 +442,40 @@ public class AuthenticationContext {
      *         {@link AuthenticationResult} of the call. It contains Access
      *         Token,the Access Token's expiration time, Refresh token, and
      *         {@link UserInfo}.
+     * @throws Throwable
      * @throws InterruptedException
      * @throws ExecutionException
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId,
-            String userId) throws InterruptedException, ExecutionException {
+            String userId) {
         Future<AuthenticationResult> futureResult = acquireTokenSilent(resource, clientId, userId,
                 null);
-        return futureResult.get();
+        try {
+            return futureResult.get();
+        } catch (InterruptedException e) {
+            convertExceptionForSync(e);
+        } catch (ExecutionException e) {
+            convertExceptionForSync(e);
+        }
+
+        return null;
+    }
+
+    private void convertExceptionForSync(Exception e) {
+        // change to unchecked exception
+        if (e.getCause() != null) {
+
+            if (e.getCause() instanceof AuthenticationException) {
+                throw (AuthenticationException)e.getCause();
+            } else if (e.getCause() instanceof IllegalArgumentException) {
+                throw (IllegalArgumentException)e.getCause();
+            } else {
+                throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getCause()
+                        .getMessage(), e.getCause());
+            }
+        }
+
+        throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getMessage(), e);
     }
 
     /**
@@ -1284,12 +1310,12 @@ public class AuthenticationContext {
             Logger.v(TAG, "Setting refresh item to cache for key:" + refreshItem.mKey
                     + getCorrelationLogInfo());
             logReturnedToken(request, result);
-            
+
             // Update for cache key
             mTokenCacheStore.setItem(refreshItem.mKey, new TokenCacheItem(request, result,
                     refreshItem.mMultiResource));
 
-            setItemToCache(request, result);             
+            setItemToCache(request, result);
         }
     }
 

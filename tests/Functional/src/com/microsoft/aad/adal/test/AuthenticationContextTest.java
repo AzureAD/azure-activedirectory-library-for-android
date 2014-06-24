@@ -829,8 +829,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         try {
             context.acquireTokenSilentSync("resource", "clientid", "userid");
             Assert.fail("Validation should throw");
-        } catch (ExecutionException e) {
-            AuthenticationException exc = (AuthenticationException)e.getCause();
+        } catch (AuthenticationException exc) {
             assertEquals("NOT_VALID_URL", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
                     exc.getCode());
         }
@@ -1027,10 +1026,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         try {
             context.acquireTokenSilentSync("resource", "clientid", "userid");
-        } catch (ExecutionException e) {
-            AuthenticationException authException = (AuthenticationException)e.getCause();
+        } catch (AuthenticationException e) {
             assertEquals("Token is not exchanged",
-                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
+                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
         }
 
         clearCache(context);

@@ -217,7 +217,9 @@ public enum ADALError {
 
     RESOURCE_NOT_FOUND("Resource is not found in your project. Please include resource files."),
 
-    CERTIFICATE_ENCODING_ERROR("Certificate encoding is not generated");
+    CERTIFICATE_ENCODING_ERROR("Certificate encoding is not generated"), 
+    
+    ERROR_SILENT_REQUEST("Error in silent token request");
 
     private String mDescription;
 
