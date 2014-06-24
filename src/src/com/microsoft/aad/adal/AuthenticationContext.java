@@ -89,7 +89,7 @@ public class AuthenticationContext {
      * Web request handler interface to test behaviors
      */
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
-    
+
     /**
      * JWS message builder interface to test behaviors
      */
@@ -243,14 +243,14 @@ public class AuthenticationContext {
         return mValidateAuthority;
     }
 
-    public String getBrokerUser(){
-    	if(mBrokerProxy != null){
-    		return mBrokerProxy.getCurrentUser();
-    	}
-    	
-		return null;
+    public String getBrokerUser() {
+        if (mBrokerProxy != null) {
+            return mBrokerProxy.getCurrentUser();
+        }
+
+        return null;
     }
-    
+
     /**
      * acquire Token will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
@@ -1292,20 +1292,20 @@ public class AuthenticationContext {
                     Logger.v(TAG, "UserInfo is updated:" + request.getLogInfo());
                     result.setUserInfo(refreshItem.mUserInfo);
                 }
-                
+
                 // it replaces multi resource refresh token as
                 // well with the new one since it is not stored
                 // with resource.
                 Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
                 setRefreshItemToCache(refreshItem, request, result);
-                
+
                 // return result obj which has error code and
                 // error description that is returned from
                 // server response
                 callbackHandle.onSuccess(result);
             }
         } else {
-            
+
             // User is not using cache and explicitly
             // calling with refresh token. User should received
             // error code and error description in
@@ -1321,7 +1321,7 @@ public class AuthenticationContext {
         // authenticationCallback, so handler is not needed here
         if (mDiscovery != null) {
             Logger.v(TAG, "Start validating authority:" + getCorrelationLogInfo());
-            
+
             // Set CorrelationId for Instance Discovery
             mDiscovery.setCorrelationId(getRequestCorrelationId());
             try {

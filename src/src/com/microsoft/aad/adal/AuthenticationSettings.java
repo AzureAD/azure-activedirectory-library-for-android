@@ -36,11 +36,11 @@ public enum AuthenticationSettings {
     private String mBrokerSignature = AuthenticationConstants.Broker.SIGNATURE;
 
     private Class<?> mClazzDeviceCertProxy;
-    
+
     private String mActivityPackageName;
-    
+
     private boolean mSkipBroker = false;
-    
+
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt
      * 
@@ -126,6 +126,7 @@ public enum AuthenticationSettings {
 
     /**
      * get package name to setup intent for AuthenticationActivity
+     * 
      * @return
      */
     public String getActivityPackageName() {
@@ -134,25 +135,28 @@ public enum AuthenticationSettings {
 
     /**
      * set package name to setup intent for AuthenticationActivity
+     * 
      * @param mActivityPackageName
      */
     public void setActivityPackageName(String mActivityPackageName) {
         this.mActivityPackageName = mActivityPackageName;
     }
-    
+
     /**
      * Skip broker usage
+     * 
      * @return
      */
-    public boolean getSkipBroker(){
-    	return mSkipBroker;
+    public boolean getSkipBroker() {
+        return mSkipBroker;
     }
-    
+
     /**
      * Sets flag to skip broker
-     * @param skip  True to not use broker
+     * 
+     * @param skip True to not use broker
      */
-    public void setSkipBroker(boolean skip){
-    	mSkipBroker = skip;
+    public void setSkipBroker(boolean skip) {
+        mSkipBroker = skip;
     }
 }
