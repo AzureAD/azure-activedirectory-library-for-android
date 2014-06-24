@@ -84,10 +84,10 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public boolean canSwitchToBroker() {
-        return !mContext.getPackageName().equalsIgnoreCase(
-                AuthenticationSettings.INSTANCE.getBrokerPackageName())
-                && verifyManifestPermissions()
-                && verifyBroker()
+        return !AuthenticationSettings.INSTANCE.getSkipBroker()
+                && !mContext.getPackageName().equalsIgnoreCase(
+                        AuthenticationSettings.INSTANCE.getBrokerPackageName())
+                && verifyManifestPermissions() && verifyBroker()
                 && verifyAuthenticator(mAcctManager) && verifyAccount();
     }
 
@@ -165,7 +165,9 @@ class BrokerProxy implements IBrokerProxy {
                 //
                 result = mAcctManager.getAuthToken(targetAccount,
                         AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions, false,
-                        null /* set to null to avoid callback */, mHandler);
+                        null /*
+                              * set to null to avoid callback
+                              */, mHandler);
 
                 // Making blocking request here
                 Logger.v(TAG, "Received result from Authenticator");
@@ -282,7 +284,9 @@ class BrokerProxy implements IBrokerProxy {
                         // calling UID will be cleaned from this account
                         mAcctManager.getAuthToken(targetAccount,
                                 AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions,
-                                false, null /* set to null to avoid callback */, mHandler);
+                                false, null /*
+                                             * set to null to avoid callback
+                                             */, mHandler);
                     }
                 }
             }
@@ -311,6 +315,13 @@ class BrokerProxy implements IBrokerProxy {
             // Authenticator should throw OperationCanceledException if
             // token is not available
             intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
+            
+            // Add flag to this intent to signal that request is for broker
+            // logic
+            if (intent != null) {
+                intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
+                        AuthenticationConstants.Broker.BROKER_REQUEST);
+            }
         } catch (OperationCanceledException e) {
             Logger.e(TAG, "Authenticator cancels the request", "", ADALError.AUTH_FAILED_CANCELLED,
                     e);
@@ -351,7 +362,12 @@ class BrokerProxy implements IBrokerProxy {
         return brokerOptions;
     }
 
-    private String getCurrentUser() {
+    /**
+     * Gets current broker user(Single User model)
+     * 
+     * @return
+     */
+    public String getCurrentUser() {
         // authenticator is not used if there is not any user
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);

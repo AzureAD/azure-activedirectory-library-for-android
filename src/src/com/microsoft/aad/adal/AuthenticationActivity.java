@@ -159,7 +159,7 @@ public class AuthenticationActivity extends Activity {
                     AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
                     "Intent does not have request details");
-            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
             return;
         }
 
@@ -189,7 +189,6 @@ public class AuthenticationActivity extends Activity {
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
         Log.d(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
-
         setupWebView();
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
@@ -203,7 +202,7 @@ public class AuthenticationActivity extends Activity {
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
-            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
             return;
         }
 
@@ -214,9 +213,10 @@ public class AuthenticationActivity extends Activity {
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
                 new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
-        if (IsInsideBroker()) {
+        if (isBrokerRequest(getIntent())) {
             // This activity is started from calling app and running in
             // Authenticator's process
+            Logger.v(TAG, "It is a broker request");
             mCallingPackage = getCallingPackage();
             if (mCallingPackage == null) {
                 Log.d(TAG, "startActivityForResult is not used to call this activity");
@@ -225,7 +225,7 @@ public class AuthenticationActivity extends Activity {
                         AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
                 resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
                         "startActivityForResult is not used to call this activity");
-                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+                returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
                 return;
             }
             String userAgent = mWebView.getSettings().getUserAgentString();
@@ -318,16 +318,15 @@ public class AuthenticationActivity extends Activity {
 
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
         AuthenticationRequest authRequest = null;
-        if (IsInsideBroker()) {
-            Logger.v(TAG, "Get request for the call inside from broker");
+        if (isBrokerRequest(callingIntent)) {
+            Logger.v(TAG, "It is a broker request. Get request info from bundle extras.");
             String authority = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
             String resource = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
             String redirect = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
-            String loginhint = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT);
+            String loginhint = ""; /* Empty login hint for single account */
             String accountName = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
             String clientidKey = callingIntent
@@ -419,10 +418,16 @@ public class AuthenticationActivity extends Activity {
         return loadUrl;
     }
 
-    private boolean IsInsideBroker() {
+    private boolean isBrokerRequest(Intent callingIntent) {
         Logger.v(TAG, "Packagename:" + getPackageName() + " Broker packagename:"
-                + AuthenticationSettings.INSTANCE.getBrokerPackageName());
-        return getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
+                + AuthenticationSettings.INSTANCE.getBrokerPackageName() + " Calling packagename:"
+                + getCallingPackage());
+
+        // Intent should have a flag and activity is hosted inside broker
+        return callingIntent != null
+                && !StringExtensions.IsNullOrBlank(callingIntent
+                        .getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST))
+                && getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
     }
 
     /**
@@ -431,7 +436,7 @@ public class AuthenticationActivity extends Activity {
      * @param resultCode
      * @param data
      */
-    private void ReturnToCaller(int resultCode, Intent data) {
+    private void returnToCaller(int resultCode, Intent data) {
         Logger.d(TAG, "Return To Caller:" + resultCode);
         displaySpinner(false);
 
@@ -540,7 +545,7 @@ public class AuthenticationActivity extends Activity {
 
                     public void onClick(DialogInterface arg0, int arg1) {
                         Intent resultIntent = new Intent();
-                        ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                        returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
                                 resultIntent);
                     }
                 }).create().show();
@@ -606,18 +611,20 @@ public class AuthenticationActivity extends Activity {
                 return true;
             } else if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
-                if (!IsInsideBroker()) {
+                if (!isBrokerRequest(getIntent())) {
                     // It is pointing to redirect. Final url can be processed to
                     // get the code or error.
+                    Logger.v(TAG, "It is not a broker request");
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
                     resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                             mAuthRequest);
-                    ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
+                    returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
                             resultIntent);
                     view.stopLoading();
                     return true;
                 } else {
+                    Logger.v(TAG, "It is a broker request");
                     displaySpinnerWithMessage(AuthenticationActivity.this.getResources().getString(
                             R.string.broker_processing));
                     view.stopLoading();
@@ -647,7 +654,7 @@ public class AuthenticationActivity extends Activity {
                     description);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
-            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
 
         @Override
@@ -664,7 +671,7 @@ public class AuthenticationActivity extends Activity {
                     error.toString());
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
-            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
 
         @Override
@@ -718,8 +725,9 @@ public class AuthenticationActivity extends Activity {
     @Override
     public void finish() {
         // Added here to make Authenticator work with one common code base
-        if (IsInsideBroker() && mAccountAuthenticatorResponse != null) {
+        if (isBrokerRequest(getIntent()) && mAccountAuthenticatorResponse != null) {
             // send the result bundle back if set, otherwise send an error.
+            Logger.v(TAG, "It is a broker request");
             if (mAuthenticatorResultBundle != null) {
                 mAccountAuthenticatorResponse.onResult(mAuthenticatorResultBundle);
             } else {
@@ -869,7 +877,7 @@ public class AuthenticationActivity extends Activity {
                 if (result.taskResult.getUserInfo() == null
                         || StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
                                 .getUserId())) {
-                    // return userid in the userinfo
+                    // return userid in the userinfo and use only account name for all fields
                     Logger.v(TAG, "Set userinfo from account");
                     result.taskResult.setUserInfo(new UserInfo(name, name, "", "", name));
                     mRequest.setLoginHint(name);

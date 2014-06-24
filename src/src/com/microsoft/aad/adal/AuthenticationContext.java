@@ -247,6 +247,18 @@ public class AuthenticationContext {
     }
 
     /**
+     * Gets username for current broker user
+     * @return Username
+     */
+    public String getBrokerUser() {
+        if (mBrokerProxy != null) {
+            return mBrokerProxy.getCurrentUser();
+        }
+
+        return null;
+    }
+
+    /**
      * acquire Token will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, it will remove
@@ -442,9 +454,6 @@ public class AuthenticationContext {
      *         {@link AuthenticationResult} of the call. It contains Access
      *         Token,the Access Token's expiration time, Refresh token, and
      *         {@link UserInfo}.
-     * @throws Throwable
-     * @throws InterruptedException
-     * @throws ExecutionException
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId,
             String userId) {
