@@ -39,6 +39,8 @@ public enum AuthenticationSettings {
     
     private String mActivityPackageName;
     
+    private boolean mSkipBroker = false;
+    
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt
      * 
@@ -136,5 +138,21 @@ public enum AuthenticationSettings {
      */
     public void setActivityPackageName(String mActivityPackageName) {
         this.mActivityPackageName = mActivityPackageName;
+    }
+    
+    /**
+     * Skip broker usage
+     * @return
+     */
+    public boolean getSkipBroker(){
+    	return mSkipBroker;
+    }
+    
+    /**
+     * Sets flag to skip broker
+     * @param skip  True to not use broker
+     */
+    public void setSkipBroker(boolean skip){
+    	mSkipBroker = skip;
     }
 }

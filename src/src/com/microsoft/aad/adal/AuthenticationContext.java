@@ -243,6 +243,14 @@ public class AuthenticationContext {
         return mValidateAuthority;
     }
 
+    public String getBrokerUser(){
+    	if(mBrokerProxy != null){
+    		return mBrokerProxy.getCurrentUser();
+    	}
+    	
+		return null;
+    }
+    
     /**
      * acquire Token will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
