@@ -162,11 +162,11 @@ mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCac
 ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI.
 
 ### Silent token request from cache and refresh
-This method does not use UI pop up. It will return token from cache if available. If token is expired, it will try to refresh it. If refresh token is expired or failed, it will return AuthenticationException.
+This method does not use UI pop up and not require activity. It will return token from cache if available. If token is expired, it will try to refresh it. If refresh token is expired or failed, it will return AuthenticationException.
 ```Java
 Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clientid, userId, callback );
 ```
-You can also make sync call with this method. It will return in sync if you don't provide callback or use acquireTokenSilentSync.
+You can also make sync call with this method. You can set null to callback or use acquireTokenSilentSync.
 
 ### Logger
 ADAL provides simple callback logger. You can set your callback for logging.
