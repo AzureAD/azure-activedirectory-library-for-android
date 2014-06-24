@@ -181,7 +181,7 @@ public class AuthenticationConstants {
         /**
          * Account type string.
          */
-        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.adaccounts";
+        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.workaccount";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 
@@ -275,7 +275,7 @@ public class AuthenticationConstants {
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager
          */
-        public static final String PACKAGE_NAME = "com.microsoft.adaccounts";
+        public static final String PACKAGE_NAME = "com.microsoft.workaccount";
 
         /**
          * Signature info for AD-Authenticator installing app to verify broker
