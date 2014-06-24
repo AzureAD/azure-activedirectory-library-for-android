@@ -919,7 +919,8 @@ public class AuthenticationContext {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             // cache and refresh call happens through the authenticator service
             AuthenticationResult result = null;
-            // Dont send background request if prompt flag is always
+            // Don't send background request if prompt flag is always
+            // Initial access to authenticator needs to launch prompt to verify redirectUri through AuthZ endpoint
             if (request.getPrompt() != PromptBehavior.Always) {
                 try {
                     result = mBrokerProxy.getAuthTokenInBackground(request);

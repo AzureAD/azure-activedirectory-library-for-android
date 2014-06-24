@@ -325,8 +325,7 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
             String redirect = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
-            String loginhint = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT);
+            String loginhint = ""; /* Empty login hint for single account */
             String accountName = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
             String clientidKey = callingIntent
@@ -877,7 +876,7 @@ public class AuthenticationActivity extends Activity {
                 if (result.taskResult.getUserInfo() == null
                         || StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
                                 .getUserId())) {
-                    // return userid in the userinfo
+                    // return userid in the userinfo and use only account name for all fields
                     Logger.v(TAG, "Set userinfo from account");
                     result.taskResult.setUserInfo(new UserInfo(name, name, "", "", name));
                     mRequest.setLoginHint(name);

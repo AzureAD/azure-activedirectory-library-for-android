@@ -315,7 +315,7 @@ class BrokerProxy implements IBrokerProxy {
             // Authenticator should throw OperationCanceledException if
             // token is not available
             intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
-
+            
             // Add flag to this intent to signal that request is for broker
             // logic
             if (intent != null) {
