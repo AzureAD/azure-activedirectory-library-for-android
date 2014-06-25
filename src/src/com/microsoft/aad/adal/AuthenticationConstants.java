@@ -160,6 +160,8 @@ public class AuthenticationConstants {
         public static final String QUERY_PROMPT = "prompt";
 
         public static final String QUERY_PROMPT_VALUE = "login";
+        
+        public static final String QUERY_PROMPT_REFRESH_SESSION_VALUE = "refresh_session";
 
         public final static String ADAL_ID_PLATFORM = "x-client-SKU";
 
@@ -181,7 +183,7 @@ public class AuthenticationConstants {
         /**
          * Account type string.
          */
-        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.adaccounts";
+        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.workaccount";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 
@@ -254,7 +256,7 @@ public class AuthenticationConstants {
 
         public static final String CALLER_CACHEKEY_PREFIX = "|";
 
-        public static final String CLIENT_TLS_NOT_SUPPORTED = " Client-TLS-not-supported";
+        public static final String CLIENT_TLS_NOT_SUPPORTED = " PKeyAuth/1.0";
 
         public static final String CHALLANGE_REQUEST_HEADER = "WWW-Authenticate";
         
@@ -275,7 +277,7 @@ public class AuthenticationConstants {
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager
          */
-        public static final String PACKAGE_NAME = "com.microsoft.adaccounts";
+        public static final String PACKAGE_NAME = "com.microsoft.workaccount";
 
         /**
          * Signature info for AD-Authenticator installing app to verify broker
@@ -285,7 +287,9 @@ public class AuthenticationConstants {
 
         public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
 
-        public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-client-TLS-not-supported";
+        public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
+        
+        public static final String CHALLANGE_TLS_INCAPABLE_VERSION = "1.0";
 
         public static final String REDIRECT_PREFIX = "msauth";
 

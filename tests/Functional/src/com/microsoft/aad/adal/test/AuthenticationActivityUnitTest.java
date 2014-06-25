@@ -154,7 +154,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         startActivity(intentToStartActivity, null, null);
         activity = getActivity();
 
-        Method returnToCaller = ReflectionUtils.getTestMethod(activity, "ReturnToCaller",
+        Method returnToCaller = ReflectionUtils.getTestMethod(activity, "returnToCaller",
                 int.class, Intent.class);
 
         // call null intent

@@ -171,6 +171,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        AuthenticationSettings.INSTANCE.setSkipBroker(false);
         Account[] accts = getAccountList("valid", authenticatorType);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
                 signature, true, accts);
@@ -181,6 +182,50 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // assert
         assertTrue("verify should return true", result);
+    }
+
+    public void testCanSwitchToBrokerValid_Skip() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException,
+            NameNotFoundException {
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        Account[] accts = getAccountList("valid", authenticatorType);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
+                signature, true, accts);
+        AuthenticationSettings.INSTANCE.setSkipBroker(true);
+
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
+        boolean result = (Boolean)m.invoke(brokerProxy);
+
+        // assert
+        assertFalse("This should skip broker", result);
+    }
+
+    public void testGetCurrentUser() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, NoSuchFieldException, NameNotFoundException {
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        Account[] accts = getAccountList("currentUserName", authenticatorType);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
+                signature, true, accts);
+
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "getCurrentUser");
+        String result = (String)m.invoke(brokerProxy);
+
+        // assert
+        assertEquals("Username is not equal", "currentUserName", result);
     }
 
     public void testCanSwitchToBroker_MissingBrokerPermission() throws IllegalArgumentException,
@@ -522,7 +567,11 @@ public class BrokerProxyTests extends AndroidTestCase {
                 UUID.randomUUID());
         AccountManager mockAcctManager = mock(AccountManager.class);
         Bundle expected = new Bundle();
-        expected.putParcelable(AccountManager.KEY_INTENT, new Intent());
+        Intent expectedIntent = new Intent();
+        expectedIntent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
+                AuthenticationConstants.Broker.BROKER_REQUEST);
+        expected.putParcelable(AccountManager.KEY_INTENT, expectedIntent);
+
         prepareAddAccount(brokerProxy, mockAcctManager, expected);
 
         // action
@@ -532,6 +581,8 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // assert
         assertNotNull("intent is not null", intent);
+        assertEquals("intent is not null", AuthenticationConstants.Broker.BROKER_REQUEST,
+                intent.getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
     }
 
     private void updateContextToSaveAccount(Context mockContext, String initialList,

@@ -132,6 +132,11 @@ class Oauth2 {
                     AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
                             AuthenticationConstants.AAD.QUERY_PROMPT_VALUE,
                             AuthenticationConstants.ENCODING_UTF8));
+        } else if (mRequest.getPrompt() == PromptBehavior.REFRESH_SESSION) {
+            requestUrl = String.format("%s&%s=%s", requestUrl,
+                    AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
+                            AuthenticationConstants.AAD.QUERY_PROMPT_REFRESH_SESSION_VALUE,
+                            AuthenticationConstants.ENCODING_UTF8));
         }
 
         if (!StringExtensions.IsNullOrBlank(mRequest.getExtraQueryParamsAuthentication())) {
@@ -355,7 +360,8 @@ class Oauth2 {
 
         // Refresh token endpoint needs to send header field for device
         // challenge
-        headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE, "true");
+        headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE,
+                AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE_VERSION);
         return postMessage(requestMessage, headers);
     }
 

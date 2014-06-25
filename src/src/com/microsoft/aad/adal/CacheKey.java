@@ -107,19 +107,13 @@ public class CacheKey implements Serializable {
                 item.getIsMultiResourceRefreshToken(), userid);
     }
 
-    /**
-     * get cache key for query.
-     * 
-     * @param item
-     * @return
-     */
-    public static String createCacheKey(AuthenticationRequest item) {
+    public static String createCacheKey(AuthenticationRequest item, String cacheUserId) {
         if (item == null) {
             throw new IllegalArgumentException("AuthenticationRequest");
         }
 
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
-                item.getLoginHint());
+                cacheUserId);
     }
 
     /**
@@ -129,13 +123,13 @@ public class CacheKey implements Serializable {
      * @param item
      * @return
      */
-    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item) {
+    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item, String cacheUserId) {
         if (item == null) {
             throw new IllegalArgumentException("AuthenticationRequest");
         }
 
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
-                item.getLoginHint());
+                cacheUserId);
     }
 
     public String getAuthority() {
