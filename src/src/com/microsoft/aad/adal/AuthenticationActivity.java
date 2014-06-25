@@ -188,8 +188,7 @@ public class AuthenticationActivity extends Activity {
         }
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
-        Log.d(TAG, "OnCreate redirect:" + mRedirectUrl);
-
+        Log.d(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
         setupWebView();
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
@@ -254,6 +253,8 @@ public class AuthenticationActivity extends Activity {
         }
         mRestartWebview = false;
         final String postUrl = mStartUrl;
+        Logger.v(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage
+                + " loginHint:" + mAuthRequest.getLoginHint());
         mWebView.post(new Runnable() {
             @Override
             public void run() {
@@ -334,7 +335,7 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
             String prompt = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
-            PromptBehavior promptBehavior = PromptBehavior.Always;
+            PromptBehavior promptBehavior = PromptBehavior.Auto;
             if (!StringExtensions.IsNullOrBlank(prompt)) {
                 promptBehavior = PromptBehavior.valueOf(prompt);
             }
@@ -900,7 +901,7 @@ public class AuthenticationActivity extends Activity {
                 TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
                 String json = gson.toJson(item);
                 String encrypted = cryptoHelper.encrypt(json);
-                String key = CacheKey.createCacheKey(mRequest);
+                String key = CacheKey.createCacheKey(mRequest, mRequest.getUserId());
                 saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
                         encrypted);
@@ -910,7 +911,8 @@ public class AuthenticationActivity extends Activity {
                     TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
                     json = gson.toJson(itemMRRT);
                     encrypted = cryptoHelper.encrypt(json);
-                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest);
+                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest,
+                            mRequest.getUserId());
                     saveCacheKey(key, newaccount, mAppCallingUID);
                     mAccountManager.setUserData(newaccount,
                             getBrokerAppCacheKey(cryptoHelper, key), encrypted);

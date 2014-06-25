@@ -160,6 +160,8 @@ public class AuthenticationConstants {
         public static final String QUERY_PROMPT = "prompt";
 
         public static final String QUERY_PROMPT_VALUE = "login";
+        
+        public static final String QUERY_PROMPT_REFRESH_SESSION_VALUE = "refresh_session";
 
         public final static String ADAL_ID_PLATFORM = "x-client-SKU";
 

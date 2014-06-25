@@ -132,6 +132,11 @@ class Oauth2 {
                     AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
                             AuthenticationConstants.AAD.QUERY_PROMPT_VALUE,
                             AuthenticationConstants.ENCODING_UTF8));
+        } else if (mRequest.getPrompt() == PromptBehavior.REFRESH_SESSION) {
+            requestUrl = String.format("%s&%s=%s", requestUrl,
+                    AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
+                            AuthenticationConstants.AAD.QUERY_PROMPT_REFRESH_SESSION_VALUE,
+                            AuthenticationConstants.ENCODING_UTF8));
         }
 
         if (!StringExtensions.IsNullOrBlank(mRequest.getExtraQueryParamsAuthentication())) {

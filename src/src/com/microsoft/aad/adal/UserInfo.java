@@ -26,6 +26,9 @@ import java.util.GregorianCalendar;
 import android.net.Uri;
 import android.os.Bundle;
 
+/**
+ * Contains information of a single user.
+ */
 public class UserInfo implements Serializable {
 
     /**
@@ -43,9 +46,9 @@ public class UserInfo implements Serializable {
 
     private String mIdentityProvider;
 
-    private Uri mPasswordChangeUrl;
+    private transient Uri mPasswordChangeUrl;
 
-    private Date mPasswordExpiresOn;
+    private transient Date mPasswordExpiresOn;
 
     public UserInfo() {
 
@@ -107,6 +110,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets unique userid
+     * 
      * @return
      */
     public String getUserId() {
@@ -119,6 +123,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets given name
+     * 
      * @return
      */
     public String getGivenName() {
@@ -131,6 +136,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets family name
+     * 
      * @return
      */
     public String getFamilyName() {
@@ -143,6 +149,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets Identity provider
+     * 
      * @return
      */
     public String getIdentityProvider() {
@@ -155,6 +162,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets displayable user name
+     * 
      * @return
      */
     public String getDisplayableId() {
@@ -167,6 +175,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets password change url
+     * 
      * @return
      */
     public Uri getPasswordChangeUrl() {
@@ -179,6 +188,7 @@ public class UserInfo implements Serializable {
 
     /**
      * Gets password expires on
+     * 
      * @return
      */
     public Date getPasswordExpiresOn() {
