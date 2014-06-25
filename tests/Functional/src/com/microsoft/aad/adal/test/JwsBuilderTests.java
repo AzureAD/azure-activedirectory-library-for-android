@@ -181,6 +181,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
                 AuthenticationConstants.ENCODING_UTF8);
         assertTrue("Header has alg field", headerText.contains("alg\":\"RS256\""));
         assertTrue("Header has type field", headerText.contains("typ\":\"JWT\""));
+        assertTrue("Header has type field", headerText.contains("x5c\""));
         assertTrue("Body has nonce field", bodyText.contains("nonce\":\"" + nonce + "\""));
         assertTrue("Body has submiturl field", bodyText.contains("aud\":\"" + submiturl + "\""));
         assertTrue("Body has iat field", bodyText.contains("iat\":"));

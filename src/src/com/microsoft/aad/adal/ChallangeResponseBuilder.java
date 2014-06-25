@@ -27,16 +27,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import android.security.KeyChainException;
-
 class ChallangeResponseBuilder {
 
     private static final String TAG = "ChallangeResponseBuilder";
-
-    /**
-     * temp version fix until server side resolves the issue
-     */
-    private static final String TEMP_VERSION = "1.0";
 
     private IJWSBuilder mJWSBuilder;
 
@@ -90,8 +83,7 @@ class ChallangeResponseBuilder {
      *            &CertAuthorities=<distinguished names of CAs>&Version=1.0
      *            &SubmitUrl=<URL to submit response>&Context=<server state that
      *            client must convey back>
-     * @return
-     * @throws KeyChainException
+     * @return Return Device challange response
      */
     public ChallangeResponse getChallangeResponseFromUri(final String redirectUri) {
         ChallangeRequest request = getChallangeRequest(redirectUri);
@@ -127,9 +119,9 @@ class ChallangeResponseBuilder {
                         privateKey, deviceCertProxy.getRSAPublicKey(),
                         deviceCertProxy.getCertificate());
                 response.mAuthorizationHeaderValue = String.format(
-                        "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
+                        "%s AuthToken=\"%s\",Context=\"%s\"",
                         AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, jwt,
-                        request.mContext, TEMP_VERSION);
+                        request.mContext);
                 Logger.v(TAG, "Challange response:" + response.mAuthorizationHeaderValue);
             } else {
                 throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
@@ -144,7 +136,7 @@ class ChallangeResponseBuilder {
         Constructor<?> constructor;
         try {
             constructor = certClazz.getDeclaredConstructor();
-            deviceCertProxy = (IDeviceCertificate)constructor.newInstance(null);
+            deviceCertProxy = (IDeviceCertificate)constructor.newInstance((Object[])null);
         } catch (NoSuchMethodException e) {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
                     "WPJ Api constructor is not defined", e);

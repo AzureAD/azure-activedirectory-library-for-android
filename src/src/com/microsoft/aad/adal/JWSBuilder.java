@@ -73,7 +73,7 @@ class JWSBuilder implements IJWSBuilder {
         protected String mType;
 
         @com.google.gson.annotations.SerializedName("x5c")
-        protected String mCert;
+        protected String[] mCert;
     }
 
     /**
@@ -124,7 +124,8 @@ class JWSBuilder implements IJWSBuilder {
             // containing the public key corresponding to the key used
             // to digitally sign the JWS MUST be the first certificate
             // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-27
-            header.mCert = new String(Base64.encode(cert.getEncoded(), Base64.NO_WRAP),
+            header.mCert = new String[1];
+            header.mCert[0] = new String(Base64.encode(cert.getEncoded(), Base64.NO_WRAP),
                     AuthenticationConstants.ENCODING_UTF8);
             
             // redundant but current ADFS code base is looking for
