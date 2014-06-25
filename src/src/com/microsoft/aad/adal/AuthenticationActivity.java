@@ -73,6 +73,8 @@ import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 @SuppressLint("SetJavaScriptEnabled")
 public class AuthenticationActivity extends Activity {
 
+    private static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
+
     private final String TAG = "AuthenticationActivity";
 
     private Button btnCancel;
@@ -268,13 +270,17 @@ public class AuthenticationActivity extends Activity {
     private void setupWebView() {
         btnCancel = (Button)findViewById(this.getResources().getIdentifier("btnCancel", "id",
                 this.getPackageName()));
-        btnCancel.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                confirmCancelRequest();
-            }
-        });
+        if (btnCancel != null) {
+            // Developer can overwrite the layout and remove the button
+            btnCancel.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    confirmCancelRequest();
+                }
+            });
+        }
 
         // Spinner dialog to show some message while it is loading
         spinner = new ProgressDialog(this);
@@ -511,12 +517,8 @@ public class AuthenticationActivity extends Activity {
     @Override
     public void onBackPressed() {
         Logger.d(TAG, "Back button is pressed");
-
-        // Ask user if they rally want to cancel the flow, if navigation is not
-        // possible
-        // User may navigated to another page and does not need confirmation to
-        // go back to previous page.
-        if (!mWebView.canGoBack()) {
+        if (!mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
+            // counting blank page as well
             confirmCancelRequest();
         } else {
             // Don't use default back pressed action, since user can go back in
@@ -535,20 +537,28 @@ public class AuthenticationActivity extends Activity {
     private void confirmCancelRequest() {
         new AlertDialog.Builder(AuthenticationActivity.this)
                 .setTitle(
-                        AuthenticationActivity.this
-                                .getString(R.string.title_confirmation_activity_authentication))
+                        this.getText(this.getResources().getIdentifier(
+                                "title_confirmation_activity_authentication", "string",
+                                this.getPackageName())))
                 .setMessage(
-                        AuthenticationActivity.this
-                                .getString(R.string.confirmation_activity_authentication))
-                .setNegativeButton(android.R.string.no, null)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        this.getText(this.getResources().getIdentifier(
+                                "confirmation_activity_authentication", "string",
+                                this.getPackageName())))
+                .setNegativeButton(
+                        this.getResources().getIdentifier("confirmation_no", "string",
+                                this.getPackageName()), null)
+                .setPositiveButton(
+                        this.getResources().getIdentifier("confirmation_yes", "string",
+                                this.getPackageName()), new DialogInterface.OnClickListener() {
 
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        Intent resultIntent = new Intent();
-                        returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
-                                resultIntent);
-                    }
-                }).create().show();
+                            public void onClick(DialogInterface arg0, int arg1) {
+                                Intent resultIntent = new Intent();
+                                returnToCaller(
+                                        AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                                        resultIntent);
+                            }
+                        }).create().show();
+
     }
 
     class CustomWebViewClient extends WebViewClient {
@@ -877,7 +887,8 @@ public class AuthenticationActivity extends Activity {
                 if (result.taskResult.getUserInfo() == null
                         || StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
                                 .getUserId())) {
-                    // return userid in the userinfo and use only account name for all fields
+                    // return userid in the userinfo and use only account name
+                    // for all fields
                     Logger.v(TAG, "Set userinfo from account");
                     result.taskResult.setUserInfo(new UserInfo(name, name, "", "", name));
                     mRequest.setLoginHint(name);

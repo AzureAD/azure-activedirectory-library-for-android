@@ -192,7 +192,7 @@ public class MainActivity extends Activity {
         Log.v(TAG, "token button is clicked");
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserId(), getCallback());
+                Constants.REDIRECT_URL, getUserLoginHint(), getCallback());
     }
 
     private void clearSessionCookie() {
@@ -258,6 +258,15 @@ public class MainActivity extends Activity {
         if (mResult != null && mResult.getUserInfo() != null
                 && mResult.getUserInfo().getUserId() != null) {
             return mResult.getUserInfo().getUserId();
+        }
+
+        return null;
+    }
+
+    private String getUserLoginHint() {
+        if (mResult != null && mResult.getUserInfo() != null
+                && mResult.getUserInfo().getDisplayableId() != null) {
+            return mResult.getUserInfo().getDisplayableId();
         }
 
         return null;
