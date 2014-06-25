@@ -269,17 +269,17 @@ public class AuthenticationContext {
      * @param clientId required client identifier
      * @param redirectUri Optional. It will use package name info if not
      *            provided.
-     * @param userId Optional.
+     * @param login_hint Optional login hint
      * @param callback required
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String userId, AuthenticationCallback<AuthenticationResult> callback) {
+            String redirectUri, String login_hint, AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri,
                 PromptBehavior.Auto, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, userId, PromptBehavior.Auto, null, getRequestCorrelationId());
+                clientId, redirectUri, login_hint, PromptBehavior.Auto, null, getRequestCorrelationId());
 
         acquireTokenLocal(activity, request, callback);
     }
@@ -295,7 +295,7 @@ public class AuthenticationContext {
      * @param clientId
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param userId Optional. This parameter will be used to pre-populate the
+     * @param loginHint Optional. This parameter will be used to pre-populate the
      *            username field in the authentication form. Please note that
      *            the end user can still edit the username field and
      *            authenticate as a different user. This parameter can be null.
@@ -305,14 +305,14 @@ public class AuthenticationContext {
      * @param callback
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String userId, String extraQueryParameters,
+            String redirectUri, String loginHint, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri,
                 PromptBehavior.Auto, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, userId, PromptBehavior.Auto, extraQueryParameters,
+                clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
                 getRequestCorrelationId());
 
         acquireTokenLocal(activity, request, callback);
@@ -394,21 +394,21 @@ public class AuthenticationContext {
      * @param clientId
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param userId Optional. It is used for cache and as a loginhint at
+     * @param loginHint Optional. It is used for cache and as a loginhint at
      *            authentication.
      * @param prompt Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
      * @param callback
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String userId, PromptBehavior prompt, String extraQueryParameters,
+            String redirectUri, String loginHint, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, prompt,
                 callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, userId, prompt, extraQueryParameters,
+                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
                 getRequestCorrelationId());
 
         acquireTokenLocal(activity, request, callback);
@@ -496,7 +496,8 @@ public class AuthenticationContext {
      * 
      * @param resource
      * @param clientId
-     * @param userId
+     * @param userId UserId obtained from {@link UserInfo} inside
+     *            {@link AuthenticationResult}
      * @param callback
      * @return A {@link Future} object representing the
      *         {@link AuthenticationResult} of the call. It contains Access
@@ -668,10 +669,7 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                    if (isUserMisMatch(authenticationRequest.getUserId(), result)) {
-                                        throw new AuthenticationException(
-                                                ADALError.AUTH_FAILED_USER_MISMATCH);
-                                    }
+                                    
                                 } catch (Exception exc) {
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo();
@@ -722,10 +720,16 @@ public class AuthenticationContext {
         }
     }
 
-    private static boolean isUserMisMatch(final String userId, final AuthenticationResult result) {
-        return (!StringExtensions.IsNullOrBlank(userId) && result.getUserInfo() != null
-                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId()) && !userId
-                    .equalsIgnoreCase(result.getUserInfo().getUserId()));
+    private static boolean isUserMisMatch(final AuthenticationRequest request,
+            final AuthenticationResult result) {
+        if (result.getUserInfo() != null
+                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())
+                && !StringExtensions.IsNullOrBlank(request.getUserId())) {
+            // Verify if IdToken is present and userid is specified
+            return !request.getUserId().equalsIgnoreCase(result.getUserInfo().getUserId());
+        }
+
+        return false;
     }
 
     /**
@@ -1094,7 +1098,7 @@ public class AuthenticationContext {
             final AuthenticationRequest request) {
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
-        if (cachedItem != null && isUserMisMatch(request.getUserId(), cachedItem)) {
+        if (cachedItem != null && isUserMisMatch(request, cachedItem)) {
             if (callbackHandle.callback != null) {
                 callbackHandle.onError(new AuthenticationException(
                         ADALError.AUTH_FAILED_USER_MISMATCH));
@@ -1177,6 +1181,11 @@ public class AuthenticationContext {
             // get token if resourceid matches to cache key.
             TokenCacheItem item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
                     request.getUserId()));
+            if (item == null) {
+                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
+                        request.getLoginHint()));
+            }
+            
             if (item != null) {
                 Logger.v(TAG,
                         "getItemFromCache accessTokenId:" + getTokenHash(item.getAccessToken())
@@ -1234,13 +1243,18 @@ public class AuthenticationContext {
             // target refreshToken for this resource first. CacheKey will
             // include the resourceId in the cachekey
             Logger.v(TAG, "Looking for regular refresh token" + getCorrelationLogInfo());
-            String keyUsed = CacheKey.createCacheKey(request, request.getUserId());
+            String userId = request.getUserId();
+            if(StringExtensions.IsNullOrBlank(userId)){
+                // acquireTokenSilent expects  userid field from UserInfo
+                userId = request.getLoginHint();
+            }
+            String keyUsed = CacheKey.createCacheKey(request, userId);
             TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 // if not present, check multiResource item in cache. Cache key
                 // will not include resourceId in the cache key string.
                 Logger.v(TAG, "Looking for Multi Resource Refresh token" + getCorrelationLogInfo());
-                keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request, request.getUserId());
+                keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request, userId);
                 item = mTokenCacheStore.getItem(keyUsed);
                 multiResource = true;
             }
@@ -1265,13 +1279,17 @@ public class AuthenticationContext {
             // User can ask for token without login hint. Next call from same
             // method should use token from cache.
             Logger.v(TAG, "Setting item to cache" + getCorrelationLogInfo());
-
+            String userKey = request.getUserId();
+            if(StringExtensions.IsNullOrBlank(userKey)){
+                userKey = request.getLoginHint();
+            }
+            
             // Calculate token hashcode
             logReturnedToken(request, result);
-            setItemToCacheForUser(request, result, request.getUserId());
+            setItemToCacheForUser(request, result, userKey);
 
-            // Update userid from userinfo
-            if (StringExtensions.IsNullOrBlank(request.getUserId()) && result.getUserInfo() != null
+            // Update userKey from userinfo as well if present
+            if (StringExtensions.IsNullOrBlank(userKey) && result.getUserInfo() != null
                     && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
                 Logger.v(TAG, "Updating userId:" + result.getUserInfo().getUserId()
                         + getCorrelationLogInfo());

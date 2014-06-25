@@ -63,7 +63,6 @@ class AuthenticationRequest implements Serializable {
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
-        mUserId = loginhint;
         mPrompt = prompt;
         mExtraQueryParamsAuthentication = extraQueryParams;
         mCorrelationId = correlationId;
@@ -76,7 +75,6 @@ class AuthenticationRequest implements Serializable {
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
-        mUserId = loginhint;
         mCorrelationId = requestCorrelationId;
     }
 
@@ -87,7 +85,6 @@ class AuthenticationRequest implements Serializable {
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
-        mUserId = loginhint;
     }
 
     public AuthenticationRequest(String authority, String resource, String clientid) {
@@ -109,7 +106,6 @@ class AuthenticationRequest implements Serializable {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
-        mLoginHint = userid;
         mUserId = userid;
         mCorrelationId = correlationId;
     }

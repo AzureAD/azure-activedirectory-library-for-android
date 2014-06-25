@@ -1125,7 +1125,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         // Acquire token call will return from cache
-        context.acquireToken(testActivity, resource, clientId, "redirectUri", "user1", callback);
+        context.acquireTokenSilent(resource, clientId, "user1", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
