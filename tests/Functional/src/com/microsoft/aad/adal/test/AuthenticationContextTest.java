@@ -21,11 +21,14 @@ package com.microsoft.aad.adal.test;
 import static org.mockito.Mockito.mock;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -45,13 +48,16 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -86,6 +92,12 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     private final static String TEST_AUTHORITY = "http://login.windows.net/common";
 
+    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
+
+    private byte[] testSignature;
+
+    private String testTag;
+
     private static final String TAG = "AuthenticationContextTest";
 
     protected void setUp() throws Exception {
@@ -102,7 +114,21 @@ public class AuthenticationContextTest extends AndroidTestCase {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
-        AuthenticationSettings.INSTANCE.setBrokerSignature("skipBrokerForTest");
+        AuthenticationSettings.INSTANCE.setSkipBroker(true);
+        // ADAL is set to this signature for now
+        PackageInfo info = mContext.getPackageManager().getPackageInfo(TEST_PACKAGE_NAME,
+                PackageManager.GET_SIGNATURES);
+
+        // Broker App can be signed with multiple certificates. It will look
+        // all of them
+        // until it finds the correct one for ADAL broker.
+        for (Signature signature : info.signatures) {
+            testSignature = signature.toByteArray();
+            MessageDigest md = MessageDigest.getInstance("SHA");
+            md.update(testSignature);
+            testTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
+            break;
+        }
     }
 
     protected void tearDown() throws Exception {
@@ -1493,6 +1519,21 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertTrue("Attemps to launch", testActivity.mStartActivityRequestCode != -1);
 
         clearCache(context);
+    }
+
+    @SmallTest
+    public void testBrokerRedirectUri() throws UnsupportedEncodingException {
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+                VALID_AUTHORITY, false, cache);
+        
+        // act
+        String actual = authContext.getRedirectUriForBroker();
+
+        // assert
+        assertTrue("should have packagename", actual.contains(TEST_PACKAGE_NAME));
+        assertTrue("should have signature url encoded",
+                actual.contains(URLEncoder.encode(testTag, AuthenticationConstants.ENCODING_UTF8)));
     }
 
     private AuthenticationContext getAuthenticationContext(Context mockContext, String authority,
