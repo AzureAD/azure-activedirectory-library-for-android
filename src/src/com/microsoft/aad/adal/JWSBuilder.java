@@ -19,9 +19,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -75,13 +73,7 @@ class JWSBuilder implements IJWSBuilder {
         protected String mType;
 
         @com.google.gson.annotations.SerializedName("x5c")
-        protected String mCert;
-
-        /**
-         * redundant
-         */
-        @com.google.gson.annotations.SerializedName("x5t")
-        protected String mCertThumbprint;
+        protected String[] mCert;
     }
 
     /**
@@ -132,11 +124,11 @@ class JWSBuilder implements IJWSBuilder {
             // containing the public key corresponding to the key used
             // to digitally sign the JWS MUST be the first certificate
             // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-27
-            header.mCert = new String(Base64.encode(cert.getEncoded(), Base64.NO_WRAP),
+            header.mCert = new String[1];
+            header.mCert[0] = new String(Base64.encode(cert.getEncoded(), Base64.NO_WRAP),
                     AuthenticationConstants.ENCODING_UTF8);
             
             // redundant but current ADFS code base is looking for
-            header.mCertThumbprint = getThumbPrintFromCert(cert);
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
             Logger.v(TAG, "Client certificate challange response JWS Header:" + headerJsonString);
@@ -152,31 +144,8 @@ class JWSBuilder implements IJWSBuilder {
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
         } catch (CertificateEncodingException e) {
             throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR);
-        } catch (NoSuchAlgorithmException e) {
-            throw new AuthenticationException(ADALError.DEVICE_NO_SUCH_ALGORITHM);
-        }
+        }  
         return signingInput + "." + signature;
-    }
-
-    public static String getThumbPrintFromCert(X509Certificate cert)
-            throws NoSuchAlgorithmException, CertificateEncodingException {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        byte[] der = cert.getEncoded();
-        md.update(der);
-        byte[] digest = md.digest();
-        return hexify(digest);
-    }
-
-    private static String hexify(byte bytes[]) {
-        char[] hexDigits = {
-                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-        };
-        StringBuffer buf = new StringBuffer(bytes.length * 2);
-        for (int i = 0; i < bytes.length; ++i) {
-            buf.append(hexDigits[(bytes[i] & 0xf0) >> 4]);
-            buf.append(hexDigits[bytes[i] & 0x0f]);
-        }
-        return buf.toString();
     }
 
     /**
