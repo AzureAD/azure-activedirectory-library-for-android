@@ -248,6 +248,7 @@ public class AuthenticationContext {
 
     /**
      * Gets username for current broker user
+     * 
      * @return Username
      */
     public String getBrokerUser() {
@@ -273,13 +274,15 @@ public class AuthenticationContext {
      * @param callback required
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String login_hint, AuthenticationCallback<AuthenticationResult> callback) {
+            String redirectUri, String login_hint,
+            AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri,
                 PromptBehavior.Auto, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, login_hint, PromptBehavior.Auto, null, getRequestCorrelationId());
+                clientId, redirectUri, login_hint, PromptBehavior.Auto, null,
+                getRequestCorrelationId());
 
         acquireTokenLocal(activity, request, callback);
     }
@@ -295,9 +298,9 @@ public class AuthenticationContext {
      * @param clientId
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param loginHint Optional. This parameter will be used to pre-populate the
-     *            username field in the authentication form. Please note that
-     *            the end user can still edit the username field and
+     * @param loginHint Optional. This parameter will be used to pre-populate
+     *            the username field in the authentication form. Please note
+     *            that the end user can still edit the username field and
      *            authenticate as a different user. This parameter can be null.
      * @param extraQueryParameters Optional. This parameter will be appended as
      *            is to the query string in the HTTP authentication request to
@@ -401,8 +404,8 @@ public class AuthenticationContext {
      * @param callback
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String loginHint, PromptBehavior prompt, String extraQueryParameters,
-            AuthenticationCallback<AuthenticationResult> callback) {
+            String redirectUri, String loginHint, PromptBehavior prompt,
+            String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, prompt,
                 callback);
@@ -597,7 +600,7 @@ public class AuthenticationContext {
                     Date expire = new Date(expireTime);
                     UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
-                            expire, false, userinfo);
+                            expire, false, userinfo, "", "");
                     if (brokerResult != null && brokerResult.getAccessToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                         return;
@@ -606,9 +609,8 @@ public class AuthenticationContext {
                     // User cancelled the flow
                     Logger.v(TAG, "User cancelled the flow RequestId:" + requestId
                             + correlationInfo);
-                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
-                            ADALError.AUTH_FAILED_CANCELLED, "User cancelled the flow RequestId:"
-                                    + requestId + correlationInfo));
+                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
+                            "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
@@ -669,7 +671,7 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                    
+
                                 } catch (Exception exc) {
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo();
@@ -867,7 +869,8 @@ public class AuthenticationContext {
             // clear callback if broadcast message was successful
             Logger.v(TAG, "Cancel broadcast message was successful." + currentCorrelationInfo);
             request.mCancelled = true;
-            request.mDelagete.onError(new AuthenticationCancelError());
+            request.mDelagete.onError(new AuthenticationCancelError(
+                    "Cancel broadcast message was successful."));
         } else {
             // Activity is not launched yet or receiver is not registered
             Logger.w(TAG, "Cancel broadcast message was not successful." + currentCorrelationInfo,
@@ -1185,16 +1188,12 @@ public class AuthenticationContext {
                 item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
                         request.getLoginHint()));
             }
-            
+
             if (item != null) {
                 Logger.v(TAG,
                         "getItemFromCache accessTokenId:" + getTokenHash(item.getAccessToken())
                                 + " refreshTokenId:" + getTokenHash(item.getRefreshToken()));
-
-                AuthenticationResult result = new AuthenticationResult(item.getAccessToken(),
-                        item.getRefreshToken(), item.getExpiresOn(),
-                        item.getIsMultiResourceRefreshToken(), item.getUserInfo());
-                return result;
+                return AuthenticationResult.createResult(item);
             }
         }
         return null;
@@ -1244,8 +1243,8 @@ public class AuthenticationContext {
             // include the resourceId in the cachekey
             Logger.v(TAG, "Looking for regular refresh token" + getCorrelationLogInfo());
             String userId = request.getUserId();
-            if(StringExtensions.IsNullOrBlank(userId)){
-                // acquireTokenSilent expects  userid field from UserInfo
+            if (StringExtensions.IsNullOrBlank(userId)) {
+                // acquireTokenSilent expects userid field from UserInfo
                 userId = request.getLoginHint();
             }
             String keyUsed = CacheKey.createCacheKey(request, userId);
@@ -1280,10 +1279,10 @@ public class AuthenticationContext {
             // method should use token from cache.
             Logger.v(TAG, "Setting item to cache" + getCorrelationLogInfo());
             String userKey = request.getUserId();
-            if(StringExtensions.IsNullOrBlank(userKey)){
+            if (StringExtensions.IsNullOrBlank(userKey)) {
                 userKey = request.getLoginHint();
             }
-            
+
             // Calculate token hashcode
             logReturnedToken(request, result);
             setItemToCacheForUser(request, result, userKey);

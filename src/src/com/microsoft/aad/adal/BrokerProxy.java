@@ -224,10 +224,10 @@ class BrokerProxy implements IBrokerProxy {
                 return AuthenticationResult.createResultForInitialRequest();
             }
 
+            // IDtoken is not present in the current broker user model
             UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
             AuthenticationResult result = new AuthenticationResult(
-                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false, userinfo);
-
+                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false, userinfo, "", "");
             return result;
         }
     }
