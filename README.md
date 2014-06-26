@@ -28,7 +28,7 @@ Before you run the SDK Deployer, you should have installed ALL PACKAGES in the A
     cd maven-android-sdk-deployer\platforms\android-19
     mvn clean install
     cd ..\..\extras\compatibility-v4
-    mvn clean install
+    mvn clean install -Dextras.compatibility.v4.groupid=com.android.support -Dextras.compatibility.v4.artifactid=support-v4
 
 Now Maven will have android-19 and support-v4 as dependencies in local m2 repo.
 
@@ -165,7 +165,7 @@ If you want to build with Maven, you can use the pom.xml at top level
   * go to root folder
   * mvn clean install
   * cd samples\hello
-  * mvn install android:deploy android:install
+  * mvn android:deploy android:run
   * You should see app launching
   * Enter test user credentials to try
 

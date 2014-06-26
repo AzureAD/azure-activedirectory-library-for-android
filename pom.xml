@@ -19,8 +19,11 @@
     <scm.branch>master</scm.branch>
     <maven.version>3.1.1</maven.version>
     <adal.version>0.7</adal.version>
-    <android.version>4.1.1.4</android.version>
+    <android.platform.maven.plugin>18</android.platform.maven.plugin>
+    <android.version>[4.1.1.4,)</android.version>
     <android.support.version>[18,)</android.support.version>
+    <android.support.name>support-v4</android.support.name>
+    <gson.name>gson</gson.name>   
   </properties>
   <scm>
     <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/${scm.branch}</url>
@@ -35,13 +38,13 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>android.support</groupId>
-      <artifactId>compatibility-v4</artifactId>
+      <groupId>com.android.support</groupId>
+      <artifactId>${android.support.name}</artifactId>
       <version>${android.support.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
+      <artifactId>${gson.name}</artifactId>
       <version>2.2.4</version>
     </dependency>
   </dependencies>
