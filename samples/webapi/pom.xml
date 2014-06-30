@@ -74,7 +74,7 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>com.android.support</groupId>
-                  <artifactId>compatibility-v4</artifactId>
+      		  <artifactId>${android.support.name}</artifactId>
                   <version>LATEST</version>
                 </artifactItem>
               </artifactItems>
