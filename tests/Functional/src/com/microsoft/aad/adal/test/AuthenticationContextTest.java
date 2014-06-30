@@ -953,7 +953,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        String json = "{\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
+        String json = "{\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
         webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
                 .defaultCharset()), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
@@ -965,6 +965,21 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Check response in callback
         verifyRefreshTokenResponse(mockCache, callback.mException, callback.mResult);
+
+        // Do silent token request and return idtoken in the result
+        String idToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
+        json = "{\"id_token\":\""
+                + idToken
+                + "\",\"access_token\":\"TokenReturnsWithIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\"}";
+        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
+                "userid");
+        assertEquals("Access Token", "TokenReturnsWithIdToken", result.getAccessToken());
+        assertEquals("Refresh Token", "refreshABC", result.getRefreshToken());
+        assertEquals("IdToken", idToken, result.getIdToken());
+
         clearCache(context);
     }
 
