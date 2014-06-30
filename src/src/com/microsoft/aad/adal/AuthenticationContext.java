@@ -1226,12 +1226,15 @@ public class AuthenticationContext {
 
         UserInfo mUserInfo;
 
+        String mRawIdToken;
+
         public RefreshItem(String keyInCache, String refreshTokenValue, boolean multiResource,
-                UserInfo userInfo) {
-            this.mKey = keyInCache;
-            this.mRefreshToken = refreshTokenValue;
-            this.mMultiResource = multiResource;
-            this.mUserInfo = userInfo;
+                UserInfo userInfo, String rawIdToken) {
+            mKey = keyInCache;
+            mRefreshToken = refreshTokenValue;
+            mMultiResource = multiResource;
+            mUserInfo = userInfo;
+            mRawIdToken = rawIdToken;
         }
     }
 
@@ -1264,7 +1267,7 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed + getCorrelationLogInfo());
                 refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource,
-                        item.getUserInfo());
+                        item.getUserInfo(), item.getRawIdToken());
             }
         }
 
@@ -1423,9 +1426,10 @@ public class AuthenticationContext {
                 return acquireTokenLocalCall(callbackHandle, activity, request);
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
-                if (refreshItem.mUserInfo != null) {
-                    Logger.v(TAG, "UserInfo is updated:" + request.getLogInfo());
+                if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
+                    Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());
                     result.setUserInfo(refreshItem.mUserInfo);
+                    result.setIdToken(refreshItem.mRawIdToken);
                 }
 
                 // it replaces multi resource refresh token as
@@ -1614,7 +1618,7 @@ public class AuthenticationContext {
                 // It is not using cache and refresh is not expected to
                 // show authentication activity.
                 request.setSilent(true);
-                final RefreshItem refreshItem = new RefreshItem("", refreshToken, false, null);
+                final RefreshItem refreshItem = new RefreshItem("", refreshToken, false, null, "");
 
                 if (mValidateAuthority) {
                     Logger.v(TAG, "Validating authority" + getCorrelationLogInfo());

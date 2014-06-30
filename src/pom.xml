@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.microsoft.aad</groupId>
-    <artifactId>adal-aggregator</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
+  <modelVersion>4.0.0</modelVersion> 
   <groupId>com.microsoft.aad</groupId>
   <artifactId>adal</artifactId>
   <version>${adal.version}</version>
   <packaging>aar</packaging>
   <name>adal</name>
+  <properties>
+    <scm.branch>master</scm.branch>
+    <maven.version>3.1.1</maven.version>
+    <adal.version>0.7.2</adal.version>
+    <android.platform.maven.plugin>18</android.platform.maven.plugin>
+    <android.version>[4.1.1.4,)</android.version>
+    <android.support.version>[18,)</android.support.version>
+    <android.support.name>support-v4</android.support.name>
+    <gson.name>gson</gson.name>    
+  </properties>
   <description>
     Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.
   </description>
