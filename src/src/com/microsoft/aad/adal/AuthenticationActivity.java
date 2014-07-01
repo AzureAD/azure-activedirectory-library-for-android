@@ -43,13 +43,11 @@ import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -74,7 +72,7 @@ import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 @SuppressLint("SetJavaScriptEnabled")
 public class AuthenticationActivity extends Activity {
 
-    private static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
+    static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
 
     private final String TAG = "AuthenticationActivity";
 
@@ -302,7 +300,6 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setBuiltInZoomControls(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
-        displaySpinner(true);
     }
 
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
@@ -489,14 +486,14 @@ public class AuthenticationActivity extends Activity {
         }
         mRestartWebview = false;
     }
-    
+
     @Override
     protected void onRestart() {
         Logger.d(TAG, "AuthenticationActivity onRestart");
         super.onRestart();
         mRestartWebview = true;
     }
-    
+
     @Override
     public void onBackPressed() {
         Logger.d(TAG, "Back button is pressed");
@@ -660,6 +657,12 @@ public class AuthenticationActivity extends Activity {
             if (!url.startsWith(BLANK_PAGE)) {
                 displaySpinner(false);
             }
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            super.onPageStarted(view, url, favicon);
+            displaySpinner(true);
         }
     }
 
