@@ -39,7 +39,7 @@ import android.os.Build;
 import android.util.Base64;
 
 /**
- * base oauth class
+ * Base Oauth class
  */
 class Oauth2 {
 
@@ -260,9 +260,7 @@ class Oauth2 {
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
-                    isMultiResourcetoken, userinfo);
-            result.setTenantId(tenantId);
-            result.setIdToken(rawIdToken);
+                    isMultiResourcetoken, userinfo, tenantId, rawIdToken);
         }
 
         return result;

@@ -89,7 +89,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
-            UserInfo userInfo) {
+            UserInfo userInfo, String tenantId, String idToken) {
         mCode = null;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
@@ -97,6 +97,8 @@ public class AuthenticationResult implements Serializable {
         mIsMultiResourceRefreshToken = isBroad;
         mStatus = AuthenticationStatus.Succeeded;
         mUserInfo = userInfo;
+        mTenantId = tenantId;
+        mIdToken = idToken;
     }
 
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad) {
@@ -130,7 +132,7 @@ public class AuthenticationResult implements Serializable {
 
         return new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
                 cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
-                cacheItem.getUserInfo());
+                cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken());
     }
 
     static AuthenticationResult createResultForInitialRequest() {
