@@ -18,7 +18,6 @@
 
 package com.microsoft.aad.adal;
 
-
 /**
  * Cancellation error *
  */
@@ -29,14 +28,15 @@ public class AuthenticationCancelError extends AuthenticationException {
      * Constructs a new AuthenticationCancelError.
      */
     public AuthenticationCancelError() {
+        super();
     }
 
     /**
-     * Constructs a new AuthenticationCancelError.
+     * Constructs a new AuthenticationCancelError with message.
      * 
-     * @param cancelCode Error code to indicate the reason
+     * @param msg
      */
-    public AuthenticationCancelError(ADALError cancelCode) {
-        mCode = cancelCode;
+    public AuthenticationCancelError(String msg) {
+        super(ADALError.AUTH_FAILED_CANCELLED, msg);
     }
 }

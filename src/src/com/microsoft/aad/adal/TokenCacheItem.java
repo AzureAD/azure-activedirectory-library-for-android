@@ -44,6 +44,8 @@ public class TokenCacheItem implements Serializable {
 
     private String mRefreshtoken;
 
+    private String mRawIdToken;
+
     /**
      * this time is GMT
      */
@@ -53,11 +55,14 @@ public class TokenCacheItem implements Serializable {
 
     private String mTenantId;
 
+    /**
+     * Construct default cache item 
+     */
     public TokenCacheItem() {
 
     }
 
-    public TokenCacheItem(final AuthenticationRequest request, final AuthenticationResult result,
+    TokenCacheItem(final AuthenticationRequest request, final AuthenticationResult result,
             boolean storeMultiResourceRefreshToken) {
         if (request != null) {
             mAuthority = request.getAuthority();
@@ -75,9 +80,10 @@ public class TokenCacheItem implements Serializable {
             mIsMultiResourceRefreshToken = storeMultiResourceRefreshToken;
             mTenantId = result.getTenantId();
             mUserInfo = result.getUserInfo();
+            mRawIdToken = result.getIdToken();
             if (!storeMultiResourceRefreshToken) {
                 // Cache item will not store accesstoken for Multi
-                // Resource Refresh Token               
+                // Resource Refresh Token
                 mAccessToken = result.getAccessToken();
             }
         }
@@ -153,5 +159,13 @@ public class TokenCacheItem implements Serializable {
 
     public void setTenantId(String mTenantId) {
         this.mTenantId = mTenantId;
+    }
+
+    public String getRawIdToken() {
+        return mRawIdToken;
+    }
+
+    public void setRawIdToken(String rawIdToken) {
+        this.mRawIdToken = rawIdToken;
     }
 }
