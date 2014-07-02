@@ -31,10 +31,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -43,12 +49,17 @@ import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.test.ActivityUnitTestCase;
 import android.test.RenamingDelegatingContext;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Base64;
+import android.util.Log;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -87,6 +98,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        getInstrumentation().getTargetContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
                 .getCacheDir().getPath());
         Context mockContext = new ActivityMockContext(getInstrumentation().getTargetContext());
@@ -115,7 +127,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
         return o;
     }
-     
+
     @SmallTest
     @UiThreadTest
     public void testLayout() throws NoSuchFieldException, IllegalArgumentException,
@@ -123,13 +135,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
         startActivity(intentToStartActivity, null, null);
         activity = getActivity();
-
-        // Cancel button
-        buttonId = com.microsoft.aad.adal.R.id.btnCancel;
-        assertNotNull(activity.findViewById(buttonId));
-        Button view = (Button)activity.findViewById(buttonId);
-        String text = activity.getResources().getString(R.string.button_cancel);
-        assertEquals("Incorrect label of the button", text, view.getText());
 
         // Webview
         WebView webview = (WebView)activity.findViewById(R.id.webView1);
@@ -295,7 +300,9 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME));
         assertEquals("UserId is same in the result", "4f859989-a2ff-411e-9048-c322247ac62c",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID));
-        assertEquals("UserId is same in the result", "admin@aaltests.onmicrosoft.com",
+        assertEquals(
+                "UserId is same in the result",
+                "admin@aaltests.onmicrosoft.com",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
         assertNotNull(data
                 .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME));
@@ -367,7 +374,8 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         Method executePostResult = ReflectionUtils.getTestMethod(tokenTask, "onPostExecute",
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
-        when(mockAct.getUserData(any(Account.class),
+        when(
+                mockAct.getUserData(any(Account.class),
                         eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + 333)))
                 .thenReturn("test");
         Account userAccount = new Account(username,
@@ -444,6 +452,24 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         // get field value to check
         assertTrue("verify log message",
                 logResponse.message.startsWith("Webview onResume register broadcast"));
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testOnBackPressed() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, NoSuchFieldException, InterruptedException {
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        
+        activity.onBackPressed();
+
+        assertTrue(isFinishCalled());
+
+        // verify result code that includes requestid
+        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL);
+        assertEquals(TEST_REQUEST_ID,
+                data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
 
     @SmallTest

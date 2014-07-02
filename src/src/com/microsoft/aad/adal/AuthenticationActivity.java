@@ -43,13 +43,11 @@ import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -59,10 +57,11 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
@@ -73,11 +72,9 @@ import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 @SuppressLint("SetJavaScriptEnabled")
 public class AuthenticationActivity extends Activity {
 
-    private static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
+    static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
 
     private final String TAG = "AuthenticationActivity";
-
-    private Button btnCancel;
 
     private boolean mRestartWebview = false;
 
@@ -151,6 +148,10 @@ public class AuthenticationActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(this.getResources().getIdentifier("activity_authentication", "layout",
                 this.getPackageName()));
+        CookieSyncManager.createInstance(getApplicationContext());
+        CookieSyncManager.getInstance().sync();
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
 
         // Get the message from the intent
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
@@ -268,31 +269,10 @@ public class AuthenticationActivity extends Activity {
     }
 
     private void setupWebView() {
-        btnCancel = (Button)findViewById(this.getResources().getIdentifier("btnCancel", "id",
-                this.getPackageName()));
-
-        if (btnCancel != null) {
-            // Developer can overwrite the layout and remove the button
-            btnCancel.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View v) {
-                    confirmCancelRequest();
-                }
-            });
-        }
 
         // Spinner dialog to show some message while it is loading
         spinner = new ProgressDialog(this);
         spinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        spinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
-                this.getPackageName())));
-        spinner.setOnCancelListener(new OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialogInterface) {
-                confirmCancelRequest();
-            }
-        });
 
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
@@ -519,7 +499,7 @@ public class AuthenticationActivity extends Activity {
         Logger.d(TAG, "Back button is pressed");
         if (!mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
             // counting blank page as well
-            confirmCancelRequest();
+            cancelRequest();
         } else {
             // Don't use default back pressed action, since user can go back in
             // webview
@@ -534,34 +514,15 @@ public class AuthenticationActivity extends Activity {
         return true;
     }
 
-    private void confirmCancelRequest() {
-        new AlertDialog.Builder(AuthenticationActivity.this)
-                .setTitle(
-                        this.getText(this.getResources().getIdentifier(
-                                "title_confirmation_activity_authentication", "string",
-                                this.getPackageName())))
-                .setMessage(
-                        this.getText(this.getResources().getIdentifier(
-                                "confirmation_activity_authentication", "string",
-                                this.getPackageName())))
-                .setNegativeButton(
-                        this.getResources().getIdentifier("confirmation_no", "string",
-                                this.getPackageName()), null)
-                .setPositiveButton(
-                        this.getResources().getIdentifier("confirmation_yes", "string",
-                                this.getPackageName()), new DialogInterface.OnClickListener() {
-
-                            public void onClick(DialogInterface arg0, int arg1) {
-                                Intent resultIntent = new Intent();
-                                returnToCaller(
-                                        AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
-                                        resultIntent);
-                            }
-                        }).create().show();
-
+    private void cancelRequest() {
+        Logger.v(TAG, "Sending intent to cancel authentication activity");
+        Intent resultIntent = new Intent();
+        returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
 
     class CustomWebViewClient extends WebViewClient {
+
+        private static final String BLANK_PAGE = "about:blank";
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -688,11 +649,20 @@ public class AuthenticationActivity extends Activity {
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
             Logger.v(TAG, "Page finished:" + url);
-            displaySpinner(false);
+
             /*
              * Once web view is fully loaded,set to visible
              */
             mWebView.setVisibility(View.VISIBLE);
+            if (!url.startsWith(BLANK_PAGE)) {
+                displaySpinner(false);
+            }
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            super.onPageStarted(view, url, favicon);
+            displaySpinner(true);
         }
     }
 

@@ -81,12 +81,6 @@ public class MainActivity extends Activity {
 
         // Clear previous sessions
         clearSessionCookie();
-
-        // to test session cookie behavior
-        mLoginProgressDialog = new ProgressDialog(this);
-        mLoginProgressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mLoginProgressDialog.setMessage("Login in progress...");
-
         try {
             // Provide key info for Encryption
             Utils.setupKeyForSample();
@@ -96,8 +90,28 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Encryption failed", Toast.LENGTH_SHORT).show();
         }
-         
+
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // To test session cookie behavior
+        mLoginProgressDialog = new ProgressDialog(this);
+        mLoginProgressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mLoginProgressDialog.setMessage("Login in progress...");
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mLoginProgressDialog != null) {
+            // to test session cookie behavior
+            mLoginProgressDialog.dismiss();
+            mLoginProgressDialog = null;
+        }
     }
 
     public void onClickAcquireByRefreshToken(View v) {
@@ -149,7 +163,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onError(Exception exc) {
-                if (mLoginProgressDialog.isShowing()) {
+                if (mLoginProgressDialog != null && mLoginProgressDialog.isShowing()) {
                     mLoginProgressDialog.dismiss();
                 }
 
@@ -159,7 +173,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onSuccess(AuthenticationResult result) {
-                if (mLoginProgressDialog.isShowing()) {
+                if (mLoginProgressDialog != null && mLoginProgressDialog.isShowing()) {
                     mLoginProgressDialog.dismiss();
                 }
 
