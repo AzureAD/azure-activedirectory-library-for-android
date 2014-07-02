@@ -117,8 +117,6 @@ public class StorageHelper {
      */
     private static final String ENCODE_VERSION = "E1";
 
-    private static final int ENCODE_VERSION_LENGTH = 2;
-
     private static final Object lockObject = new Object();
 
     private static String sBlobVersion;
@@ -352,13 +350,17 @@ public class StorageHelper {
 
         int encodeVersionLength = value.charAt(0) - 'a';
         if (encodeVersionLength <= 0) {
-            throw new IllegalArgumentException("Encode version length is invalid");
+            throw new IllegalArgumentException(String.format(
+                    "Encode version length: '%s' is not valid, it must be greater of equal to 0",
+                    encodeVersionLength));
         }
         if (!value.substring(1, 1 + encodeVersionLength).equals(ENCODE_VERSION)) {
-            throw new IllegalArgumentException("Encode version does not match");
+            throw new IllegalArgumentException(String.format(
+                    "Encode version received was: '%s', Encode version supported is: '%s'", value,
+                    ENCODE_VERSION));
         }
 
-        final byte[] bytes = Base64.decode(value.substring(1 + ENCODE_VERSION_LENGTH),
+        final byte[] bytes = Base64.decode(value.substring(1 + encodeVersionLength),
                 Base64.DEFAULT);
 
         // get key version used for this data. If user upgraded to different

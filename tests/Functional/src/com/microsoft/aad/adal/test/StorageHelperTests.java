@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright ï¿½ Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -93,7 +93,7 @@ public class StorageHelperTests extends AndroidTestCase {
         Object storageHelper = getStorageHelper();
         Method mDecrypt = ReflectionUtils.getTestMethod(storageHelper, "decrypt", String.class);
         Method mEncrypt = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
-        assertThrows(mDecrypt, storageHelper, "E1bad64", "Encode version length is invalid");
+        assertThrows(mDecrypt, storageHelper, "E1bad64", "is not valid, it must be greater of equal to 0");
         assertThrows(mDecrypt, storageHelper, "cE1bad64", "bad base-64");
         assertThrowsType(
                 mDecrypt,
