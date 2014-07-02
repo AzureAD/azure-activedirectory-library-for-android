@@ -21,10 +21,12 @@ package com.microsoft.aad.adal.test;
 import java.security.MessageDigest;
 import java.util.Locale;
 
+import android.annotation.TargetApi;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.test.InstrumentationTestCase;
 import android.util.Base64;
 import android.util.Log;
@@ -64,6 +66,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
         Log.d(TAG, "testSignature is set");
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public void testResourceOverwrite() {
         ADALError err = ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED;
         String msg = err.getDescription();

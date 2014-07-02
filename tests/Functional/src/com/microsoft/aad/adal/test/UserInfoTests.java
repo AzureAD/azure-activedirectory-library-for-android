@@ -97,8 +97,9 @@ public class UserInfoTests extends TestCase {
             IllegalAccessException, InvocationTargetException, NoSuchFieldException {
         Object obj = setIdTokenFields("objectid", "upnid", "email", "subj");
         Calendar calendar = new GregorianCalendar();
-        long seconds = calendar.getTimeInMillis() / 1000;
-        Date timenow = new Date(seconds * 1000);
+        int seconds = 1000;
+        calendar.add(Calendar.SECOND, seconds);
+        Date passwordExpiresOn = calendar.getTime();
         ReflectionUtils.setFieldValue(obj, "mPasswordExpiration", seconds);
         ReflectionUtils.setFieldValue(obj, "mPasswordChangeUrl",
                 "https://github.com/MSOpenTech/azure-activedirectory-library");
@@ -109,7 +110,7 @@ public class UserInfoTests extends TestCase {
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
-        assertEquals("check expireson", timenow, info.getPasswordExpiresOn());
+        assertEquals("check expireson", passwordExpiresOn, info.getPasswordExpiresOn());
         assertEquals("check uri", "https://github.com/MSOpenTech/azure-activedirectory-library",
                 info.getPasswordChangeUrl().toString());
     }

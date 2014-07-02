@@ -22,6 +22,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,10 +32,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.security.interfaces.RSAPrivateKey;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -49,7 +54,6 @@ import android.test.ActivityUnitTestCase;
 import android.test.RenamingDelegatingContext;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
-import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -60,7 +64,6 @@ import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.IJWSBuilder;
 import com.microsoft.aad.adal.R;
 
 /**
@@ -96,6 +99,15 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         Object authorizationRequest = getTestRequest();
         intentToStartActivity.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE,
                 (Serializable)authorizationRequest);
+        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
+            // use same key for tests
+            SecretKeyFactory keyFactory = SecretKeyFactory
+                    .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+            SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
+                    "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+            SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
+            AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
+        }
     }
 
     private Object getTestRequest() throws ClassNotFoundException, NoSuchMethodException,
@@ -115,7 +127,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
         return o;
     }
-     
+
     @SmallTest
     @UiThreadTest
     public void testLayout() throws NoSuchFieldException, IllegalArgumentException,
@@ -295,7 +307,9 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME));
         assertEquals("UserId is same in the result", "4f859989-a2ff-411e-9048-c322247ac62c",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID));
-        assertEquals("UserId is same in the result", "admin@aaltests.onmicrosoft.com",
+        assertEquals(
+                "UserId is same in the result",
+                "admin@aaltests.onmicrosoft.com",
                 data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
         assertNotNull(data
                 .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME));
@@ -367,7 +381,8 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         Method executePostResult = ReflectionUtils.getTestMethod(tokenTask, "onPostExecute",
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
-        when(mockAct.getUserData(any(Account.class),
+        when(
+                mockAct.getUserData(any(Account.class),
                         eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + 333)))
                 .thenReturn("test");
         Account userAccount = new Account(username,
@@ -389,8 +404,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
         // Verification from returned intent data
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE);
-        verify(mockAct).setUserData(any(Account.class),
-                eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + 333), anyString());
+        verify(mockAct, times(3)).setUserData(any(Account.class), anyString(), anyString());
     }
 
     private MockWebRequestHandler setMockWebResponse() throws NoSuchFieldException,
