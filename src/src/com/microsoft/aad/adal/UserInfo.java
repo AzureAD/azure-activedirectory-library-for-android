@@ -84,9 +84,11 @@ public class UserInfo implements Serializable {
         mFamilyName = token.mFamilyName;
         mIdentityProvider = token.mIdentityProvider;
         if (token.mPasswordExpiration > 0) {
-            // Compute expiration as UTC based epoch time.
-            // it returns in seconds. Date accetps miliseconds.
-            mPasswordExpiresOn = new Date(token.mPasswordExpiration * 1000);
+            // pwd_exp returns seconds to expiration time
+            // it returns in seconds. Date accepts milliseconds.
+            Calendar expires = new GregorianCalendar();
+            expires.add(Calendar.SECOND, (int)token.mPasswordExpiration);
+            mPasswordExpiresOn = expires.getTime();
         }
 
         mPasswordChangeUrl = null;

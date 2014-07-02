@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
+import android.annotation.SuppressLint;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
@@ -60,21 +61,19 @@ import com.microsoft.aad.adal.IJWSBuilder;
 import com.microsoft.aad.adal.IWebRequestHandler;
 import com.microsoft.aad.adal.PromptBehavior;
 
+@SuppressLint("TrulyRandom")
 public class OauthTests extends AndroidTestCase {
 
     private static final String TEST_RETURNED_EXCEPTION = "test-returned-exception";
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
 
-    private static final String sIdTokenClaims = "{\"aud\":\"c3c7f5e5-7153-44d4-90e6-329686d48d76\",\"iss\":\"https://sts.windows.net/6fd1f5cd-a94c-4335-889b-6c598e6d8048/\",\"iat\":1387224169,\"nbf\":1387224170,\"exp\":1387227769,\"pwd_exp\":1387227772,\"pwd_url\":\"pwdUrl\",\"ver\":\"1.0\",\"tid\":\"6fd1f5cd-a94c-4335-889b-6c598e6d8048\",\"oid\":\"53c6acf2-2742-4538-918d-e78257ec8516\",\"upn\":\"test@test.onmicrosoft.com\",\"unique_name\":\"testUnique@test.onmicrosoft.com\",\"sub\":\"0DxnAlLi12IvGL\",\"family_name\":\"familyName\",\"given_name\":\"givenName\",\"altsecid\":\"altsecid\",\"idp\":\"idpProvider\",\"email\":\"emailField\"}";
-
-    private static final String sIdTokenHeader = "{\"typ\":\"JWT\",\"alg\":\"none\"}";
-
     @SmallTest
     public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, NoSuchFieldException, UnsupportedEncodingException {
-        Object actual = parseIdToken(getIdToken(sIdTokenHeader, sIdTokenClaims));
+        IdToken idtoken = new IdToken();
+        Object actual = parseIdToken(idtoken.getIdToken());
         assertEquals("0DxnAlLi12IvGL", ReflectionUtils.getFieldValue(actual, "mSubject"));
         assertEquals("6fd1f5cd-a94c-4335-889b-6c598e6d8048",
                 ReflectionUtils.getFieldValue(actual, "mTenantId"));
@@ -524,7 +523,8 @@ public class OauthTests extends AndroidTestCase {
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
                 Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
-        String idToken = getIdToken(sIdTokenHeader, sIdTokenClaims);
+        IdToken defaultIdToken = new IdToken();
+        String idToken = defaultIdToken.getIdToken();
         String json = "{\"id_token\":\""
                 + idToken
                 + "\",\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
@@ -764,14 +764,4 @@ public class OauthTests extends AndroidTestCase {
         return keyPair;
     }
 
-    private String getIdToken(String header, String claims) throws UnsupportedEncodingException {
-        return String.format(
-                "%s.%s.",
-                new String(Base64.encode(header.getBytes(AuthenticationConstants.ENCODING_UTF8),
-                        Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
-                        AuthenticationConstants.ENCODING_UTF8),
-                new String(Base64.encode(claims.getBytes(AuthenticationConstants.ENCODING_UTF8),
-                        Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
-                        AuthenticationConstants.ENCODING_UTF8));
-    }
 }
