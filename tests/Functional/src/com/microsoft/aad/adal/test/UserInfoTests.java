@@ -98,19 +98,20 @@ public class UserInfoTests extends TestCase {
         Object obj = setIdTokenFields("objectid", "upnid", "email", "subj");
         Calendar calendar = new GregorianCalendar();
         int seconds = 1000;
-        calendar.add(Calendar.SECOND, seconds);
-        Date passwordExpiresOn = calendar.getTime();
         ReflectionUtils.setFieldValue(obj, "mPasswordExpiration", seconds);
         ReflectionUtils.setFieldValue(obj, "mPasswordChangeUrl",
                 "https://github.com/MSOpenTech/azure-activedirectory-library");
         UserInfo info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
+        calendar.add(Calendar.SECOND, seconds);
+        Date passwordExpiresOn = calendar.getTime();
         assertEquals("same userid", "objectid", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
-        assertEquals("check expireson", passwordExpiresOn, info.getPasswordExpiresOn());
+        assertEquals("check expireson", passwordExpiresOn.getTime() / 1000, info
+                .getPasswordExpiresOn().getTime() / 1000);
         assertEquals("check uri", "https://github.com/MSOpenTech/azure-activedirectory-library",
                 info.getPasswordChangeUrl().toString());
     }
