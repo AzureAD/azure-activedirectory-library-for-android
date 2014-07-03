@@ -22,6 +22,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,8 +32,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.security.MessageDigest;
-import java.security.interfaces.RSAPrivateKey;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -49,21 +48,14 @@ import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.test.ActivityUnitTestCase;
 import android.test.RenamingDelegatingContext;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Base64;
-import android.util.Log;
-import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
@@ -71,7 +63,6 @@ import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.IJWSBuilder;
 import com.microsoft.aad.adal.R;
 
 /**
@@ -84,8 +75,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
     private static final long CONTEXT_REQUEST_TIME_OUT = 20000;
 
     private static final long DEVICE_RESPONSE_WAIT = 500;
-
-    private int buttonId;
 
     private Intent intentToStartActivity;
 
@@ -108,6 +97,15 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         Object authorizationRequest = getTestRequest();
         intentToStartActivity.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE,
                 (Serializable)authorizationRequest);
+        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
+            // use same key for tests
+            SecretKeyFactory keyFactory = SecretKeyFactory
+                    .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+            SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
+                    "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+            SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
+            AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
+        }
     }
 
     private Object getTestRequest() throws ClassNotFoundException, NoSuchMethodException,
@@ -397,8 +395,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
         // Verification from returned intent data
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE);
-        verify(mockAct).setUserData(any(Account.class),
-                eq(AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + 333), anyString());
+        verify(mockAct, times(3)).setUserData(any(Account.class), anyString(), anyString());
     }
 
     private MockWebRequestHandler setMockWebResponse() throws NoSuchFieldException,

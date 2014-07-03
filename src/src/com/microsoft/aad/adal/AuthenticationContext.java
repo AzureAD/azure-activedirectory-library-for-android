@@ -1314,7 +1314,7 @@ public class AuthenticationContext {
             setItemToCacheForUser(request, result, userKey);
 
             // Update userKey from userinfo as well if present
-            if (StringExtensions.IsNullOrBlank(userKey) && result.getUserInfo() != null
+            if (result.getUserInfo() != null
                     && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
                 Logger.v(TAG, "Updating userId:" + result.getUserInfo().getUserId()
                         + getCorrelationLogInfo());
