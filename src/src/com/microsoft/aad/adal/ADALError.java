@@ -219,7 +219,9 @@ public enum ADALError {
 
     CERTIFICATE_ENCODING_ERROR("Certificate encoding is not generated"), 
     
-    ERROR_SILENT_REQUEST("Error in silent token request");
+    ERROR_SILENT_REQUEST("Error in silent token request"), 
+    
+    DEVELOPER_REDIRECTURI_INVALID("The redirectUri for broker is invalid.");
 
     private String mDescription;
 

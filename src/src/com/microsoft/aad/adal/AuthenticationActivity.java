@@ -608,6 +608,14 @@ public class AuthenticationActivity extends Activity {
                 }
             }
 
+            if (isBrokerRequest(getIntent())
+                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) {
+                returnError(ADALError.DEVELOPER_REDIRECTURI_INVALID,
+                        "It is a broker request and redirectUri is wrong. Please check your packagename and signature.");
+                view.stopLoading();
+                return true;
+            }
+
             return false;
         }
 
