@@ -625,7 +625,7 @@ public class AuthenticationContext {
                         return;
                     }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL) {
-                    // User cancelled the flow
+                    // User cancelled the flow by clicking back button or activating another activity
                     Logger.v(TAG, "User cancelled the flow RequestId:" + requestId
                             + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
@@ -784,7 +784,9 @@ public class AuthenticationContext {
                     + getCorrelationInfoFromWaitingRequest(waitingRequest));
             waitingRequest.mDelagete.onError(exc);
         }
-        removeWaitingRequest(requestId);
+        if (exc != null && exc.getCode() != ADALError.AUTH_FAILED_CANCELLED) {
+            removeWaitingRequest(requestId);
+        }
     }
 
     private void waitingRequestOnError(CallbackHandler handler,
@@ -796,7 +798,9 @@ public class AuthenticationContext {
                     + getCorrelationInfoFromWaitingRequest(waitingRequest));
             handler.onError(exc);
         }
-        removeWaitingRequest(requestId);
+        if (exc != null && exc.getCode() != ADALError.AUTH_FAILED_CANCELLED) {
+            removeWaitingRequest(requestId);
+        }
     }
 
     private void removeWaitingRequest(int requestId) {

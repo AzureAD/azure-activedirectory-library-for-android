@@ -56,7 +56,6 @@ import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
@@ -77,8 +76,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
     private static final long DEVICE_RESPONSE_WAIT = 500;
 
-    private int buttonId;
-
     private Intent intentToStartActivity;
 
     private AuthenticationActivity activity;
@@ -90,6 +87,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        getInstrumentation().getTargetContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
                 .getCacheDir().getPath());
         Context mockContext = new ActivityMockContext(getInstrumentation().getTargetContext());
@@ -135,13 +133,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
         startActivity(intentToStartActivity, null, null);
         activity = getActivity();
-
-        // Cancel button
-        buttonId = com.microsoft.aad.adal.R.id.btnCancel;
-        assertNotNull(activity.findViewById(buttonId));
-        Button view = (Button)activity.findViewById(buttonId);
-        String text = activity.getResources().getString(R.string.button_cancel);
-        assertEquals("Incorrect label of the button", text, view.getText());
 
         // Webview
         WebView webview = (WebView)activity.findViewById(R.id.webView1);
@@ -458,6 +449,24 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         // get field value to check
         assertTrue("verify log message",
                 logResponse.message.startsWith("Webview onResume register broadcast"));
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testOnBackPressed() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, NoSuchFieldException, InterruptedException {
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        
+        activity.onBackPressed();
+
+        assertTrue(isFinishCalled());
+
+        // verify result code that includes requestid
+        Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL);
+        assertEquals(TEST_REQUEST_ID,
+                data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
 
     @SmallTest
