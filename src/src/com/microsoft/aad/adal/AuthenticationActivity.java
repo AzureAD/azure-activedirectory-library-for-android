@@ -312,7 +312,8 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
             String redirect = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
-            String loginhint = ""; /* Empty login hint for single account */
+            String loginhint = callingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT);
             String accountName = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
             String clientidKey = callingIntent
@@ -608,6 +609,15 @@ public class AuthenticationActivity extends Activity {
                 }
             }
 
+            if (isBrokerRequest(getIntent())
+                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) {
+                returnError(ADALError.DEVELOPER_REDIRECTURI_INVALID, String.format(
+                        "The RedirectUri is not as expected. Received %s and expected %s", url,
+                        mRedirectUrl));
+                view.stopLoading();
+                return true;
+            }
+
             return false;
         }
 
@@ -882,7 +892,9 @@ public class AuthenticationActivity extends Activity {
                 TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
                 String json = gson.toJson(item);
                 String encrypted = cryptoHelper.encrypt(json);
-                String key = CacheKey.createCacheKey(mRequest, mRequest.getUserId());
+
+                // Single user and cache is stored per account
+                String key = CacheKey.createCacheKey(mRequest, null);
                 saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
                         encrypted);
@@ -892,8 +904,7 @@ public class AuthenticationActivity extends Activity {
                     TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
                     json = gson.toJson(itemMRRT);
                     encrypted = cryptoHelper.encrypt(json);
-                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest,
-                            mRequest.getUserId());
+                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest, null);
                     saveCacheKey(key, newaccount, mAppCallingUID);
                     mAccountManager.setUserData(newaccount,
                             getBrokerAppCacheKey(cryptoHelper, key), encrypted);

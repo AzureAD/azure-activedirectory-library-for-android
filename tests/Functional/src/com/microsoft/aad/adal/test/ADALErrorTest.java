@@ -84,9 +84,6 @@ public class ADALErrorTest extends InstrumentationTestCase {
         String localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
         
         assertFalse("Error decription is different in resource", msg.equalsIgnoreCase(localizedMsg));
-        assertTrue("in locale specified",
-                localizedMsg.contains("DEVELOPER BEHÖRDE nicht validiert werden kann"));
-        
         Locale localefr = new Locale("fr");
         Locale.setDefault(localefr);
         config.setLocale(localefr);
