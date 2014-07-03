@@ -71,7 +71,11 @@ public class AuthenticationResult implements Serializable {
 
     private String mTenantId;
 
+    private String mIdToken;
+
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
+
+    private boolean mInitialRequest;
 
     AuthenticationResult() {
         mCode = null;
@@ -85,7 +89,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
-            UserInfo userInfo) {
+            UserInfo userInfo, String tenantId, String idToken) {
         mCode = null;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
@@ -93,6 +97,8 @@ public class AuthenticationResult implements Serializable {
         mIsMultiResourceRefreshToken = isBroad;
         mStatus = AuthenticationStatus.Succeeded;
         mUserInfo = userInfo;
+        mTenantId = tenantId;
+        mIdToken = idToken;
     }
 
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad) {
@@ -126,7 +132,13 @@ public class AuthenticationResult implements Serializable {
 
         return new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
                 cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
-                cacheItem.getUserInfo());
+                cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken());
+    }
+
+    static AuthenticationResult createResultForInitialRequest() {
+        AuthenticationResult result = new AuthenticationResult();
+        result.mInitialRequest = true;
+        return result;
     }
 
     /**
@@ -175,7 +187,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * UserInfo returned from IdToken 
+     * UserInfo returned from IdToken
      */
     public UserInfo getUserInfo() {
         return mUserInfo;
@@ -230,5 +242,31 @@ public class AuthenticationResult implements Serializable {
     private static Calendar getCurrentTime() {
         Calendar timeNow = Calendar.getInstance();
         return timeNow;
+    }
+
+    /**
+     * package private
+     * 
+     * @return
+     */
+    boolean IsInitialRequest() {
+        return mInitialRequest;
+    }
+
+    /**
+     * Get raw idtoken
+     * 
+     * @return
+     */
+    public String getIdToken() {
+        return mIdToken;
+    }
+
+    void setIdToken(String mIdToken) {
+        this.mIdToken = mIdToken;
+    }
+
+    void setTenantId(String tenantid) {
+        mTenantId = tenantid;
     }
 }

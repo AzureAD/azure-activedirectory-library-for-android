@@ -19,6 +19,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Calendar;
@@ -31,12 +32,14 @@ import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
+
 import android.net.Uri;
 import android.os.Build;
 import android.util.Base64;
 
 /**
- * base oauth class
+ * Base Oauth class
  */
 class Oauth2 {
 
@@ -46,6 +49,11 @@ class Oauth2 {
      * for mocking webrequests
      */
     private IWebRequestHandler mWebRequestHandler;
+
+    /**
+     * for mocking jws message
+     */
+    private IJWSBuilder mJWSBuilder = new JWSBuilder();
 
     private final static String TAG = "Oauth";
 
@@ -58,11 +66,20 @@ class Oauth2 {
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
         mWebRequestHandler = null;
+        mJWSBuilder = null;
     }
 
     public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
+        mJWSBuilder = null;
+    }
+
+    public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
+            IJWSBuilder jwsMessageBuilder) {
+        mRequest = request;
+        mWebRequestHandler = webRequestHandler;
+        mJWSBuilder = jwsMessageBuilder;
     }
 
     public String getAuthorizationEndpoint() {
@@ -114,6 +131,11 @@ class Oauth2 {
             requestUrl = String.format("%s&%s=%s", requestUrl,
                     AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
                             AuthenticationConstants.AAD.QUERY_PROMPT_VALUE,
+                            AuthenticationConstants.ENCODING_UTF8));
+        } else if (mRequest.getPrompt() == PromptBehavior.REFRESH_SESSION) {
+            requestUrl = String.format("%s&%s=%s", requestUrl,
+                    AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
+                            AuthenticationConstants.AAD.QUERY_PROMPT_REFRESH_SESSION_VALUE,
                             AuthenticationConstants.ENCODING_UTF8));
         }
 
@@ -218,12 +240,18 @@ class Oauth2 {
             }
 
             UserInfo userinfo = null;
+            String tenantId = null;
+            String rawIdToken = null;
             if (response.containsKey(AuthenticationConstants.OAuth2.ID_TOKEN)) {
                 // IDtoken is related to Azure AD and returned with token
                 // response. ADFS does not return that.
-                String idToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
-                if (!StringExtensions.IsNullOrBlank(idToken)) {
-                    userinfo = parseIdToken(idToken);
+                rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
+                if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
+                    IdToken tokenParsed = parseIdToken(rawIdToken);
+                    if (tokenParsed != null) {
+                        tenantId = tokenParsed.mTenantId;
+                        userinfo = new UserInfo(tokenParsed);
+                    }
                 } else {
                     Logger.v(TAG, "IdToken is not provided");
                 }
@@ -232,8 +260,7 @@ class Oauth2 {
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
-                    isMultiResourcetoken, userinfo);
-
+                    isMultiResourcetoken, userinfo, tenantId, rawIdToken);
         }
 
         return result;
@@ -245,8 +272,7 @@ class Oauth2 {
      * @param idtoken
      * @return UserInfo
      */
-    private static UserInfo parseIdToken(String idtoken) {
-        UserInfo userinfo = null;
+    private static IdToken parseIdToken(String idtoken) {
         try {
             // Message segments: Header.Body.Signature
             int firstDot = idtoken.indexOf(".");
@@ -280,19 +306,24 @@ class Oauth2 {
                             .get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
                     idtokenInfo.mIdentityProvider = responseItems
                             .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
-
-                    userinfo = new UserInfo(idtokenInfo);
-                    Logger.v(
-                            TAG,
-                            "IdToken is extracted from token response for userid:"
-                                    + userinfo.getUserId());
+                    idtokenInfo.mObjectId = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
+                    String expiration = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
+                    if (!StringExtensions.IsNullOrBlank(expiration)) {
+                        idtokenInfo.mPasswordExpiration = Long.parseLong(expiration);
+                    }
+                    idtokenInfo.mPasswordChangeUrl = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
+                    Logger.v(TAG, "IdToken is extracted from token response");
+                    return idtokenInfo;
                 }
             }
         } catch (Exception ex) {
             Logger.e(TAG, "Error in parsing user id token", null,
                     ADALError.IDTOKEN_PARSING_FAILURE, ex);
         }
-        return userinfo;
+        return null;
     }
 
     private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr)
@@ -309,7 +340,6 @@ class Oauth2 {
     }
 
     public AuthenticationResult refreshToken(String refreshToken) throws Exception {
-
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
@@ -324,7 +354,13 @@ class Oauth2 {
             return null;
         }
 
-        return postMessage(requestMessage);
+        HashMap<String, String> headers = getRequestHeaders();
+
+        // Refresh token endpoint needs to send header field for device
+        // challenge
+        headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE,
+                AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE_VERSION);
+        return postMessage(requestMessage, headers);
     }
 
     /**
@@ -333,8 +369,7 @@ class Oauth2 {
      * 
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
-     * @param authenticationCallback
-     * @return
+     * @return Token in the AuthenticationResult
      * @throws Exception
      */
     public AuthenticationResult getToken(String authorizationUrl) throws Exception {
@@ -393,9 +428,8 @@ class Oauth2 {
     /**
      * get code and exchange for token
      * 
-     * @param request
      * @param code
-     * @param authenticationCallback
+     * @return Token in the AuthenticationResult
      * @throws Exception
      */
     public AuthenticationResult getTokenForCode(String code) throws Exception {
@@ -413,10 +447,12 @@ class Oauth2 {
             return null;
         }
 
-        return postMessage(requestMessage);
+        HashMap<String, String> headers = getRequestHeaders();
+        return postMessage(requestMessage, headers);
     }
 
-    private AuthenticationResult postMessage(String requestMessage) throws Exception {
+    private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
+            throws Exception {
         URL authority = null;
         AuthenticationResult result = null;
         authority = StringExtensions.getUrl(getTokenEndpoint());
@@ -424,19 +460,64 @@ class Oauth2 {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
-        HashMap<String, String> headers = getRequestHeaders();
         try {
             mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
-
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
 
+            if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                if (response.getResponseHeaders() != null
+                        && response.getResponseHeaders().containsKey(
+                                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER)) {
+
+                    // Device certificate challenge will send challenge request
+                    // in 401 header.
+                    String challangeHeader = response.getResponseHeaders()
+                            .get(AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER).get(0);
+                    Logger.v(TAG, "Device certificate challange request:" + challangeHeader);
+                    if (!StringExtensions.IsNullOrBlank(challangeHeader)) {
+
+                        // Handle each specific challenge header
+                        if (StringExtensions.hasPrefixInHeader(challangeHeader,
+                                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)) {
+                            Logger.v(TAG, "Challange is related to device certificate");
+                            ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                                    mJWSBuilder);
+                            Logger.v(TAG, "Processing device challange");
+                            final ChallangeResponse challangeResponse = certHandler
+                                    .getChallangeResponseFromHeader(challangeHeader,
+                                            authority.toString());
+                            headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
+                                    challangeResponse.mAuthorizationHeaderValue);
+                            Logger.v(TAG, "Sending request with challenge response");
+                            response = mWebRequestHandler.sendPost(authority, headers,
+                                    requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                                    "application/x-www-form-urlencoded");
+                        }
+                    } else {
+                        throw new AuthenticationException(
+                                ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
+                                "Challange header is empty");
+                    }
+                } else {
+
+                    // AAD server returns 401 response for wrong request
+                    // messages
+                    Logger.v(TAG, "401 http status code is returned without authorization header");
+                }
+            }
+
             if (response.getResponseException() == null) {
+
                 // Protocol related errors will read the error stream and report
                 // the error and error description
                 Logger.v(TAG, "Token request does not have exception");
                 result = processTokenResponse(response);
+            } else {
+
+                // 400 Status code will throw here
+                throw response.getResponseException();
             }
         } catch (IllegalArgumentException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);

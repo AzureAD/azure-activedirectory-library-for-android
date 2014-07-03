@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -21,9 +21,11 @@ package com.microsoft.aad.adal.test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 
 import javax.crypto.SecretKey;
@@ -40,6 +42,7 @@ import android.content.pm.Signature;
 import android.test.AndroidTestCase;
 import android.util.Base64;
 
+import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.Logger;
 
@@ -77,7 +80,7 @@ public class PackageHelperTests extends AndroidTestCase {
             testSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
             md.update(testSignature);
-            testTag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+            testTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
             break;
         }
     }
@@ -128,6 +131,23 @@ public class PackageHelperTests extends AndroidTestCase {
 
         // assert
         assertEquals("should return 0", 0, actual);
+    }
+
+    public void testRedirectUrl() throws NameNotFoundException, IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, UnsupportedEncodingException {
+        Context mockContext = getMockContext(new Signature(testSignature), TEST_PACKAGE_NAME, 0);
+        Object packageHelper = getInstance(mockContext);
+        Method m = ReflectionUtils.getTestMethod(packageHelper, "getBrokerRedirectUrl",
+                String.class, String.class);
+
+        // act
+        String actual = (String)m.invoke(packageHelper, TEST_PACKAGE_NAME, testTag);
+
+        // assert
+        assertTrue("should have packagename", actual.contains(TEST_PACKAGE_NAME));
+        assertTrue("should have signature url encoded",
+                actual.contains(URLEncoder.encode(testTag, AuthenticationConstants.ENCODING_UTF8)));
     }
 
     private static Object getInstance(Context mockContext) throws IllegalArgumentException,

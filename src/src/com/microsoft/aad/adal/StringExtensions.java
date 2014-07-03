@@ -123,7 +123,7 @@ final class StringExtensions {
         HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
 
         if (parameters == null || parameters.isEmpty()) {
-            String queryParameters = response.getQuery();
+            String queryParameters = response.getEncodedQuery();
             parameters = HashMapExtensions.URLFormDecode(queryParameters);
         }
         return parameters;
@@ -141,5 +141,52 @@ final class StringExtensions {
             }
         }
         return itemList;
+    }
+    
+    static ArrayList<String> splitWithQuotes(String input, char delimiter) {
+        ArrayList<String> items = new ArrayList<String>();
+
+        int startIndex = 0;
+        boolean insideString = false;
+        String item;
+        for (int i = 0; i < input.length(); i++) {
+            if (input.charAt(i) == delimiter && !insideString) {
+                item = input.substring(startIndex, i);
+                if (!StringExtensions.IsNullOrBlank(item.trim())) {
+                    items.add(item);
+                }
+
+                startIndex = i + 1;
+            } else if (input.charAt(i) == '"') {
+                insideString = !insideString;
+            }
+        }
+
+        item = input.substring(startIndex);
+        if (!StringExtensions.IsNullOrBlank(item.trim())) {
+            items.add(item);
+        }
+
+        return items;
+    }
+
+    static String removeQuoteInHeaderValue(String value) {
+        if (!StringExtensions.IsNullOrBlank(value)) {
+            return value.replace("\"", "");
+        }
+        return null;
+    }
+
+    /**
+     * Checks if header value has this prefix. Prefix + whitespace is
+     * acceptable.
+     * 
+     * @param value
+     * @param prefix
+     * @return
+     */
+    static boolean hasPrefixInHeader(final String value, final String prefix) {
+        return value.startsWith(prefix) && value.length() > prefix.length() + 2
+                && Character.isWhitespace(value.charAt(prefix.length()));
     }
 }

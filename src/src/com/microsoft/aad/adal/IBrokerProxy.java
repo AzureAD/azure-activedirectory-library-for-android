@@ -21,31 +21,39 @@ package com.microsoft.aad.adal;
 import android.content.Intent;
 
 interface IBrokerProxy {
-    /**
-     * Checks if broker package correct and authenticator valid
-     * 
-     * @return True package is available and authenticator is installed at
-     *         Account manager
-     */
-    boolean canSwitchToBroker();
+	/**
+	 * Checks if broker package correct and authenticator valid
+	 * 
+	 * @return True package is available and authenticator is installed at
+	 *         Account manager
+	 */
+	boolean canSwitchToBroker();
 
-    void removeAccounts();
-    
-    void saveAccount(String accountName);
+	void removeAccounts();
 
-    /**
-     * gets token using authenticator service
-     * 
-     * @param request
-     * @return AuthenticationResult
-     */
-    AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request);
+	void saveAccount(String accountName);
 
-    /**
-     * only gets intent to start from calling app's activity
-     * 
-     * @param request
-     * @return Intent
-     */
-    Intent getIntentForBrokerActivity(final AuthenticationRequest request);
+	/**
+	 * Gets current broker user(Single User model)
+	 * 
+	 * @return
+	 */
+	public String getCurrentUser();
+
+	/**
+	 * gets token using authenticator service
+	 * 
+	 * @param request
+	 * @return AuthenticationResult
+	 */
+	AuthenticationResult getAuthTokenInBackground(
+			final AuthenticationRequest request);
+
+	/**
+	 * only gets intent to start from calling app's activity
+	 * 
+	 * @param request
+	 * @return Intent
+	 */
+	Intent getIntentForBrokerActivity(final AuthenticationRequest request);
 }

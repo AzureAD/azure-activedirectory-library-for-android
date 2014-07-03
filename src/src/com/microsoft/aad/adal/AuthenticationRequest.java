@@ -40,6 +40,8 @@ class AuthenticationRequest implements Serializable {
 
     private String mLoginHint = null;
 
+    private String mUserId = null;
+
     private String mBrokerAccountName = null;
 
     private UUID mCorrelationId;
@@ -47,6 +49,8 @@ class AuthenticationRequest implements Serializable {
     private String mExtraQueryParamsAuthentication;
 
     private PromptBehavior mPrompt;
+
+    private boolean mSilent = false;
 
     public AuthenticationRequest() {
 
@@ -89,12 +93,21 @@ class AuthenticationRequest implements Serializable {
         mClientId = clientid;
     }
 
-    public AuthenticationRequest(String authority, String resource, String clientid,
-            String redirectUri) {
+    /**
+     * Cache usage and refresh token requests
+     * 
+     * @param authority
+     * @param resource
+     * @param clientid
+     * @param userid
+     */
+    public AuthenticationRequest(String authority, String resource, String clientid, String userid,
+            UUID correlationId) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
-        mRedirectUri = redirectUri;
+        mUserId = userid;
+        mCorrelationId = correlationId;
     }
 
     public AuthenticationRequest(String authority, String resource, String clientId,
@@ -175,6 +188,22 @@ class AuthenticationRequest implements Serializable {
     }
 
     void setLoginHint(String name) {
-        mLoginHint = name;        
+        mLoginHint = name;
+    }
+
+    public String getUserId() {
+        return mUserId;
+    }
+
+    public void setUserId(String mUserId) {
+        this.mUserId = mUserId;
+    }
+
+    public boolean isSilent() {
+        return mSilent;
+    }
+
+    public void setSilent(boolean mSilent) {
+        this.mSilent = mSilent;
     }
 }

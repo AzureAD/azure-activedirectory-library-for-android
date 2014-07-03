@@ -127,6 +127,12 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_EMAIL = "email";
 
         static final String ID_TOKEN_IDENTITY_PROVIDER = "idp";
+
+        static final String ID_TOKEN_OBJECT_ID = "oid";
+        
+        static final String ID_TOKEN_PASSWORD_EXPIRATION = "pwd_exp";
+        
+        static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
     }
 
     public static final class AAD {
@@ -154,6 +160,8 @@ public class AuthenticationConstants {
         public static final String QUERY_PROMPT = "prompt";
 
         public static final String QUERY_PROMPT_VALUE = "login";
+        
+        public static final String QUERY_PROMPT_REFRESH_SESSION_VALUE = "refresh_session";
 
         public final static String ADAL_ID_PLATFORM = "x-client-SKU";
 
@@ -175,7 +183,7 @@ public class AuthenticationConstants {
         /**
          * Account type string.
          */
-        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.aadbroker.adal";
+        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.workaccount";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 
@@ -190,6 +198,8 @@ public class AuthenticationConstants {
 
         public static final String BROKER_FINAL_URL = "adal.final.url";
 
+        public static final String ACCOUNT_INITIAL_REQUEST = "account.initial.request";
+                
         public static final String ACCOUNT_CLIENTID_KEY = "account.clientid.key";
 
         public static final String ACCOUNT_CLIENT_SECRET_KEY = "account.client.secret.key";
@@ -246,11 +256,13 @@ public class AuthenticationConstants {
 
         public static final String CALLER_CACHEKEY_PREFIX = "|";
 
-        public static final String CLIENT_TLS_NOT_SUPPORTED = " Client-TLS-not-supported";
+        public static final String CLIENT_TLS_NOT_SUPPORTED = " PKeyAuth/1.0";
 
+        public static final String CHALLANGE_REQUEST_HEADER = "WWW-Authenticate";
+        
         public static final String CHALLANGE_RESPONSE_HEADER = "Authorization";
 
-        public static final String CHALLANGE_RESPONSE_TYPE = "CertAuth";
+        public static final String CHALLANGE_RESPONSE_TYPE = "PKeyAuth";
 
         public static final String CHALLANGE_RESPONSE_TOKEN = "AuthToken";
 
@@ -265,7 +277,7 @@ public class AuthenticationConstants {
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager
          */
-        public static final String PACKAGE_NAME = "com.microsoft.aadbroker";
+        public static final String PACKAGE_NAME = "com.microsoft.workaccount";
 
         /**
          * Signature info for AD-Authenticator installing app to verify broker
@@ -273,8 +285,15 @@ public class AuthenticationConstants {
          */
         public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
 
-        public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:CertAuth";
+        public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
 
+        public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
+        
+        public static final String CHALLANGE_TLS_INCAPABLE_VERSION = "1.0";
+
+        public static final String REDIRECT_PREFIX = "msauth";
+
+        public static final Object REDIRECT_DELIMETER_ENCODED = "%2C";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";

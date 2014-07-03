@@ -43,13 +43,11 @@ import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -64,7 +62,6 @@ import android.webkit.CookieSyncManager;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
@@ -75,9 +72,9 @@ import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 @SuppressLint("SetJavaScriptEnabled")
 public class AuthenticationActivity extends Activity {
 
-    private final String TAG = "AuthenticationActivity";
+    static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
 
-    private Button btnCancel;
+    private final String TAG = "AuthenticationActivity";
 
     private boolean mRestartWebview = false;
 
@@ -103,8 +100,6 @@ public class AuthenticationActivity extends Activity {
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
 
     private Bundle mAuthenticatorResultBundle = null;
-
-    private AccountManager mAcctManager = null;
 
     private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
 
@@ -151,11 +146,14 @@ public class AuthenticationActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(ResourceFinder.getResourseIdByName(this.getPackageName(), "layout",
-                "activity_authentication"));
-       
+        setContentView(this.getResources().getIdentifier("activity_authentication", "layout",
+                this.getPackageName()));
+        CookieSyncManager.createInstance(getApplicationContext());
+        CookieSyncManager.getInstance().sync();
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
+
         // Get the message from the intent
-        mAcctManager = AccountManager.get(getApplicationContext());
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
             Log.d(TAG, "Request item is null, so it returns to caller");
@@ -164,7 +162,7 @@ public class AuthenticationActivity extends Activity {
                     AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
                     "Intent does not have request details");
-            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
             return;
         }
 
@@ -193,15 +191,13 @@ public class AuthenticationActivity extends Activity {
         }
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
-        Log.d(TAG, "OnCreate redirect" + mRedirectUrl);
-
+        Log.d(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
         setupWebView();
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
-        updateRequestForAccounts();
 
         try {
-            Oauth2 oauth = new Oauth2(mAuthRequest, null);
+            Oauth2 oauth = new Oauth2(mAuthRequest);
             mStartUrl = oauth.getCodeRequestUrl();
             mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
         } catch (UnsupportedEncodingException e) {
@@ -209,7 +205,7 @@ public class AuthenticationActivity extends Activity {
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
-            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
             return;
         }
 
@@ -220,9 +216,10 @@ public class AuthenticationActivity extends Activity {
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
                 new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
-        if (insideBroker()) {
+        if (isBrokerRequest(getIntent())) {
             // This activity is started from calling app and running in
             // Authenticator's process
+            Logger.v(TAG, "It is a broker request");
             mCallingPackage = getCallingPackage();
             if (mCallingPackage == null) {
                 Log.d(TAG, "startActivityForResult is not used to call this activity");
@@ -231,9 +228,14 @@ public class AuthenticationActivity extends Activity {
                         AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
                 resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
                         "startActivityForResult is not used to call this activity");
-                ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+                returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
                 return;
             }
+            String userAgent = mWebView.getSettings().getUserAgentString();
+            mWebView.getSettings().setUserAgentString(
+                    userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
+            userAgent = mWebView.getSettings().getUserAgentString();
+            Logger.v(TAG, "UserAgent:" + userAgent);
             mAccountAuthenticatorResponse = getIntent().getParcelableExtra(
                     AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
             if (mAccountAuthenticatorResponse != null) {
@@ -243,7 +245,8 @@ public class AuthenticationActivity extends Activity {
             mCallingPackage = getCallingPackage();
             mCallingUID = info.getUIDForPackage(mCallingPackage);
             String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
-            mStartUrl = getBrokerUrl(mStartUrl, mCallingPackage, signatureDigest);
+            mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
+            mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             Logger.v(TAG,
                     "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
                             + " calling package:" + mCallingPackage + " signatureDigest:"
@@ -253,54 +256,27 @@ public class AuthenticationActivity extends Activity {
         }
         mRestartWebview = false;
         final String postUrl = mStartUrl;
+        Logger.v(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage
+                + " loginHint:" + mAuthRequest.getLoginHint());
         mWebView.post(new Runnable() {
             @Override
             public void run() {
+
                 mWebView.loadUrl("about:blank");// load blank first
                 mWebView.loadUrl(postUrl);
             }
         });
     }
 
-    private void updateRequestForAccounts() {
-        if (insideBroker()) {
-            Account[] accountList = mAcctManager
-                    .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-            if (accountList != null && accountList.length == 0) {
-                Logger.v(TAG, "Activity may have cookies from previous accounts");
-                // skip cookie usage for this activity since idtoken can return
-                // wrong value
-                mAuthRequest.setPrompt(PromptBehavior.Always);
-            }
-        }
-    }
-
     private void setupWebView() {
-        btnCancel = (Button)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(),
-                "id", "btnCancel"));
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                confirmCancelRequest();
-            }
-        });
 
         // Spinner dialog to show some message while it is loading
         spinner = new ProgressDialog(this);
         spinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        spinner.setMessage(this.getText(ResourceFinder.getResourseIdByName(this.getPackageName(),
-                "string", "app_loading")));
-        spinner.setOnCancelListener(new OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialogInterface) {
-                confirmCancelRequest();
-            }
-        });
 
         // Create the Web View to show the page
-        mWebView = (WebView)findViewById(ResourceFinder.getResourseIdByName(this.getPackageName(),
-                "id", "webView1"));
+        mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
+                this.getPackageName()));
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
@@ -324,24 +300,19 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setBuiltInZoomControls(true);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
-        String userAgent = mWebView.getSettings().getUserAgentString();
-        Logger.v(TAG, "UserAgent:" + userAgent);
-        mWebView.getSettings().setUserAgentString(
-                userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
-        Logger.v(TAG, "UserAgent:" + userAgent);
     }
 
     private AuthenticationRequest getAuthenticationRequestFromIntent(Intent callingIntent) {
         AuthenticationRequest authRequest = null;
-        if (insideBroker()) {
+        if (isBrokerRequest(callingIntent)) {
+            Logger.v(TAG, "It is a broker request. Get request info from bundle extras.");
             String authority = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
             String resource = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
             String redirect = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
-            String loginhint = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT);
+            String loginhint = ""; /* Empty login hint for single account */
             String accountName = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
             String clientidKey = callingIntent
@@ -350,7 +321,7 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
             String prompt = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
-            PromptBehavior promptBehavior = PromptBehavior.Always;
+            PromptBehavior promptBehavior = PromptBehavior.Auto;
             if (!StringExtensions.IsNullOrBlank(prompt)) {
                 promptBehavior = PromptBehavior.valueOf(prompt);
             }
@@ -415,7 +386,7 @@ public class AuthenticationActivity extends Activity {
         this.finish();
     }
 
-    private String getBrokerUrl(String loadUrl, String packageName, String signatureDigest) {
+    private String getBrokerStartUrl(String loadUrl, String packageName, String signatureDigest) {
         if (!StringExtensions.IsNullOrBlank(packageName)
                 && !StringExtensions.IsNullOrBlank(signatureDigest)) {
             try {
@@ -433,8 +404,16 @@ public class AuthenticationActivity extends Activity {
         return loadUrl;
     }
 
-    private boolean insideBroker() {
-        return getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
+    private boolean isBrokerRequest(Intent callingIntent) {
+        Logger.v(TAG, "Packagename:" + getPackageName() + " Broker packagename:"
+                + AuthenticationSettings.INSTANCE.getBrokerPackageName() + " Calling packagename:"
+                + getCallingPackage());
+
+        // Intent should have a flag and activity is hosted inside broker
+        return callingIntent != null
+                && !StringExtensions.IsNullOrBlank(callingIntent
+                        .getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST))
+                && getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
     }
 
     /**
@@ -443,7 +422,7 @@ public class AuthenticationActivity extends Activity {
      * @param resultCode
      * @param data
      */
-    private void ReturnToCaller(int resultCode, Intent data) {
+    private void returnToCaller(int resultCode, Intent data) {
         Logger.d(TAG, "Return To Caller:" + resultCode);
         displaySpinner(false);
 
@@ -518,13 +497,9 @@ public class AuthenticationActivity extends Activity {
     @Override
     public void onBackPressed() {
         Logger.d(TAG, "Back button is pressed");
-
-        // Ask user if they rally want to cancel the flow, if navigation is not
-        // possible
-        // User may navigated to another page and does not need confirmation to
-        // go back to previous page.
-        if (!mWebView.canGoBack()) {
-            confirmCancelRequest();
+        if (!mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
+            // counting blank page as well
+            cancelRequest();
         } else {
             // Don't use default back pressed action, since user can go back in
             // webview
@@ -539,26 +514,15 @@ public class AuthenticationActivity extends Activity {
         return true;
     }
 
-    private void confirmCancelRequest() {
-        new AlertDialog.Builder(AuthenticationActivity.this)
-                .setTitle(
-                        AuthenticationActivity.this
-                                .getString(R.string.title_confirmation_activity_authentication))
-                .setMessage(
-                        AuthenticationActivity.this
-                                .getString(R.string.confirmation_activity_authentication))
-                .setNegativeButton(android.R.string.no, null)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        Intent resultIntent = new Intent();
-                        ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
-                                resultIntent);
-                    }
-                }).create().show();
+    private void cancelRequest() {
+        Logger.v(TAG, "Sending intent to cancel authentication activity");
+        Intent resultIntent = new Intent();
+        returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
 
     class CustomWebViewClient extends WebViewClient {
+
+        private static final String BLANK_PAGE = "about:blank";
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -576,18 +540,24 @@ public class AuthenticationActivity extends Activity {
                             ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
                                     mJWSBuilder);
                             final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponse(challangeUrl);
+                                    .getChallangeResponseFromUri(challangeUrl);
                             final HashMap<String, String> headers = new HashMap<String, String>();
-                            headers.put("Authorization",
+                            headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
                                     challangeResponse.mAuthorizationHeaderValue);
                             mWebView.post(new Runnable() {
 
                                 @Override
                                 public void run() {
-                                    Logger.v(TAG, " Loadurl:" + challangeResponse.mSubmitUrl + "?"
-                                            + mQueryParameters);
-                                    mWebView.loadUrl(challangeResponse.mSubmitUrl + "?"
-                                            + mQueryParameters, headers);
+                                    String loadUrl = challangeResponse.mSubmitUrl;
+                                    HashMap<String, String> parameters = StringExtensions
+                                            .getUrlParameters(challangeResponse.mSubmitUrl);
+                                    Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
+                                    if (!parameters
+                                            .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
+                                        loadUrl = loadUrl + "?" + mQueryParameters;
+                                    }
+                                    Logger.v(TAG, "Loadurl:" + loadUrl);
+                                    mWebView.loadUrl(loadUrl, headers);
                                 }
                             });
                         } catch (IllegalArgumentException e) {
@@ -612,18 +582,20 @@ public class AuthenticationActivity extends Activity {
                 return true;
             } else if (url.startsWith(mRedirectUrl)) {
                 Logger.v(TAG, "Webview reached redirecturl");
-                if (!insideBroker()) {
+                if (!isBrokerRequest(getIntent())) {
                     // It is pointing to redirect. Final url can be processed to
                     // get the code or error.
+                    Logger.v(TAG, "It is not a broker request");
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
                     resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                             mAuthRequest);
-                    ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
+                    returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
                             resultIntent);
                     view.stopLoading();
                     return true;
                 } else {
+                    Logger.v(TAG, "It is a broker request");
                     displaySpinnerWithMessage(AuthenticationActivity.this.getResources().getString(
                             R.string.broker_processing));
                     view.stopLoading();
@@ -653,7 +625,7 @@ public class AuthenticationActivity extends Activity {
                     description);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
-            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
 
         @Override
@@ -670,18 +642,27 @@ public class AuthenticationActivity extends Activity {
                     error.toString());
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
-            ReturnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
             Logger.v(TAG, "Page finished:" + url);
-            displaySpinner(false);
+
             /*
              * Once web view is fully loaded,set to visible
              */
             mWebView.setVisibility(View.VISIBLE);
+            if (!url.startsWith(BLANK_PAGE)) {
+                displaySpinner(false);
+            }
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            super.onPageStarted(view, url, favicon);
+            displaySpinner(true);
         }
     }
 
@@ -724,8 +705,9 @@ public class AuthenticationActivity extends Activity {
     @Override
     public void finish() {
         // Added here to make Authenticator work with one common code base
-        if (insideBroker() && mAccountAuthenticatorResponse != null) {
+        if (isBrokerRequest(getIntent()) && mAccountAuthenticatorResponse != null) {
             // send the result bundle back if set, otherwise send an error.
+            Logger.v(TAG, "It is a broker request");
             if (mAuthenticatorResultBundle != null) {
                 mAccountAuthenticatorResponse.onResult(mAuthenticatorResultBundle);
             } else {
@@ -782,7 +764,7 @@ public class AuthenticationActivity extends Activity {
 
         @Override
         protected TokenTaskResult doInBackground(String... urlItems) {
-            Oauth2 oauthRequest = new Oauth2(mRequest, mRequestHandler);
+            Oauth2 oauthRequest = new Oauth2(mRequest, mRequestHandler, mJWSBuilder);
             TokenTaskResult result = new TokenTaskResult();
             try {
                 result.taskResult = oauthRequest.getToken(urlItems[0]);
@@ -860,36 +842,32 @@ public class AuthenticationActivity extends Activity {
             // Authenticator sets the account here and stores the tokens.
             try {
                 String name = mRequest.getBrokerAccountName();
-                if (result.taskResult.getUserInfo() != null
-                        && !StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
+                Account[] accountList = mAccountManager
+                        .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+
+                if (accountList == null || accountList.length != 1) {
+                    result.taskResult = null;
+                    result.taskException = new AuthenticationException(
+                            ADALError.BROKER_SINGLE_USER_EXPECTED);
+                    return;
+                }
+
+                // Single user in authenticator is already created.
+                // This is only registering UID for the app
+                if (result.taskResult.getUserInfo() == null
+                        || StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
                                 .getUserId())) {
-                    // record account under this idtoken so that next request
-                    // with this username should not prompt. Otherwise, it will
-                    // not use cache since cache is user based.
-                    name = result.taskResult.getUserInfo().getUserId();
-                    if (mRequest.getLoginHint() == null || mRequest.getLoginHint().isEmpty()) {
-                        // Update login hint to result so that correct cache key
-                        // is used for recording the result
-                        mRequest.setLoginHint(name);
-                    } else if (!mRequest.getLoginHint().equalsIgnoreCase(name)) {
-                        Logger.e(TAG, "Userid does not match from idtoken", "",
-                                ADALError.AUTH_FAILED_USER_MISMATCH);
-                        result.taskResult = null;
-                        result.taskException = new AuthenticationException(
-                                ADALError.AUTH_FAILED_USER_MISMATCH);
-                        return;
-                    }
+                    // return userid in the userinfo and use only account name
+                    // for all fields
+                    Logger.v(TAG, "Set userinfo from account");
+                    result.taskResult.setUserInfo(new UserInfo(name, name, "", "", name));
+                    mRequest.setLoginHint(name);
                 }
 
                 result.accountName = name;
                 Logger.v(TAG, "Setting account. Account name: " + name + " package:"
                         + mCallingPackage + " calling app UID:" + mAppCallingUID);
-                Account newaccount = new Account(name,
-                        AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-                Bundle userdata = new Bundle();
-                // First add account. Account may exists before from another
-                // app. Result will be added to userdata if account exists.
-                mAccountManager.addAccountExplicitly(newaccount, "nopass", userdata);
+                Account newaccount = accountList[0];
 
                 // Cache logic will be changed based on latest logic
                 // This is currently keeping accesstoken and MRRT separate
@@ -904,7 +882,7 @@ public class AuthenticationActivity extends Activity {
                 TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
                 String json = gson.toJson(item);
                 String encrypted = cryptoHelper.encrypt(json);
-                String key = CacheKey.createCacheKey(mRequest);
+                String key = CacheKey.createCacheKey(mRequest, mRequest.getUserId());
                 saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
                         encrypted);
@@ -914,7 +892,8 @@ public class AuthenticationActivity extends Activity {
                     TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
                     json = gson.toJson(itemMRRT);
                     encrypted = cryptoHelper.encrypt(json);
-                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest);
+                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest,
+                            mRequest.getUserId());
                     saveCacheKey(key, newaccount, mAppCallingUID);
                     mAccountManager.setUserData(newaccount,
                             getBrokerAppCacheKey(cryptoHelper, key), encrypted);
@@ -999,7 +978,7 @@ public class AuthenticationActivity extends Activity {
                             result.taskResult.getUserInfo().getIdentityProvider());
                     intent.putExtra(
                             AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                            result.taskResult.getUserInfo().getIsUserIdDisplayable());
+                            result.taskResult.getUserInfo().getDisplayableId());
                 }
                 returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
             } else {

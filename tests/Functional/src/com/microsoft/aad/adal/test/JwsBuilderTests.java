@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -79,8 +79,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         Certificate cert = keystore.getCertificate(TEST_CERT_ALIAS);
         RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
 
-        testSignedJWT(true, "nonce", "https://someurl", privKey, publicKey,
-                getThumbPrintFromCert((X509Certificate)cert));
+        testSignedJWT(true, "nonce", "https://someurl", privKey, publicKey, (X509Certificate)cert);
     }
 
     public void testGenerateSignedJWT_negative() throws IllegalArgumentException,
@@ -88,7 +87,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
             IllegalAccessException, InvocationTargetException {
         Object jwsBuilder = getInstance();
         Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
-                String.class, RSAPrivateKey.class, RSAPublicKey.class, String.class);
+                String.class, RSAPrivateKey.class, RSAPublicKey.class, X509Certificate.class);
 
         try {
             m.invoke(jwsBuilder, null, "https://someurl", null, null, null);
@@ -116,7 +115,6 @@ public class JwsBuilderTests extends AndroidTestHelper {
      * send invalid public and private key
      * 
      * @throws SignatureException
-     * @throws UnsupportedEncodingException
      * @throws NoSuchAlgorithmException
      * @throws NoSuchMethodException
      * @throws InvocationTargetException
@@ -125,11 +123,16 @@ public class JwsBuilderTests extends AndroidTestHelper {
      * @throws InstantiationException
      * @throws ClassNotFoundException
      * @throws InvalidKeyException
+     * @throws IOException
+     * @throws CertificateException
+     * @throws KeyStoreException
+     * @throws UnrecoverableKeyException
      */
     public void testGenerateSignedJWT_KeyPair() throws InvalidKeyException, ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchAlgorithmException,
-            UnsupportedEncodingException, SignatureException {
+            SignatureException, UnrecoverableKeyException, KeyStoreException, CertificateException,
+            IOException {
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(1024);
         KeyPair keyPair = keyGen.genKeyPair();
@@ -137,19 +140,19 @@ public class JwsBuilderTests extends AndroidTestHelper {
         RSAPrivateKey privateKey = (RSAPrivateKey)keyGen.genKeyPair().getPrivate();
 
         testSignedJWT(false, "invalid key pairs", "https://someurl", privateKey, publicKey,
-                "thumprint12323");
+                (X509Certificate)loadTestCertificate().getCertificateChain("My Key Chain")[0]);
     }
 
     private void testSignedJWT(boolean validSignature, String nonce, String url,
-            RSAPrivateKey privKey, RSAPublicKey publicKey, String thumbPrint)
+            RSAPrivateKey privKey, RSAPublicKey publicKey, X509Certificate cert)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
             InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException,
             SignatureException {
         Object jwsBuilder = getInstance();
         Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
-                String.class, RSAPrivateKey.class, RSAPublicKey.class, String.class);
-        String jws = (String)m.invoke(jwsBuilder, nonce, url, privKey, publicKey, thumbPrint);
+                String.class, RSAPrivateKey.class, RSAPublicKey.class, X509Certificate.class);
+        String jws = (String)m.invoke(jwsBuilder, nonce, url, privKey, publicKey, cert);
         Logger.v(TAG, "Generated JWS:" + jws);
         verify(validSignature, jws, publicKey, nonce, url);
     }
@@ -178,6 +181,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
                 AuthenticationConstants.ENCODING_UTF8);
         assertTrue("Header has alg field", headerText.contains("alg\":\"RS256\""));
         assertTrue("Header has type field", headerText.contains("typ\":\"JWT\""));
+        assertTrue("Header has type field", headerText.contains("x5c\""));
         assertTrue("Body has nonce field", bodyText.contains("nonce\":\"" + nonce + "\""));
         assertTrue("Body has submiturl field", bodyText.contains("aud\":\"" + submiturl + "\""));
         assertTrue("Body has iat field", bodyText.contains("iat\":"));
@@ -198,13 +202,15 @@ public class JwsBuilderTests extends AndroidTestHelper {
             Log.v(TAG, "--- Entry Alias: \"" + alias + "\" ---");
             if (caKs.isKeyEntry(alias)) {
                 Log.v(TAG, "Key Entry:");
-                PrivateKey key = (PrivateKey)caKs.getKey(alias, PKCS12_PASS.toCharArray());
-
                 Certificate[] certs = caKs.getCertificateChain(alias);
                 Log.v(TAG, "Cert Chain: (length " + certs.length + ")");
                 for (int i = 0; i < certs.length; i++) {
                     X509Certificate cert = (X509Certificate)certs[i];
                     X500Principal subject = cert.getSubjectX500Principal();
+                    Log.v(TAG,
+                            "Encoded:"
+                                    + new String(Base64.encode(cert.getEncoded(), Base64.DEFAULT),
+                                            "utf-8"));
                     Log.v(TAG, "Subject:" + subject.toString());
                 }
 

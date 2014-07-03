@@ -18,7 +18,18 @@ You can also get it from maven repo.
 * You may use any IDE that supports Maven. Eclipse ADT will work fine after you complete prereq step.
 
 
-#### Setup Maven Android SDK Deployer
+#### Install This Repo without Maven
+
+You can clone and install dependencies to build ADAL:
+
+    git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
+    cd azure-activedirectory-library-for-android/src/libs
+    run getLibs.ps1 or getLibs.sh depending on your platform
+    You could add support-v4 through Eclipse.
+
+
+#### Install This Repo with Maven
+##### Setup Maven Android SDK Deployer
 
 Some of the Android libraries are not at the maven repo, so you need to have the [Android Maven SDK Deployer](https://github.com/mosabua/maven-android-sdk-deployer) installed and configured. You can read at the Android Maven SDK Deployer GitHub in depth install guide.
 
@@ -33,7 +44,7 @@ Before you run the SDK Deployer, you should have installed ALL PACKAGES in the A
 
 Now Maven will have android-19 and support-v4 as dependencies in local m2 repo.
 
-#### Install This Repo with Maven
+##### Install ADAL with mvn cmd
 
 You can clone and install from cmd line. This requires to setup Maven Android environment:
 
@@ -42,16 +53,7 @@ You can clone and install from cmd line. This requires to setup Maven Android en
     mvn clean install
 
 
-#### Install This Repo without Maven
-
-You can clone and install dependencies:
-
-    git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
-    cd azure-activedirectory-library-for-android/src/libs
-    run getLibs.ps1 or getLibs.sh depending on your platform
-    You could add support-v4 through Eclipse.
-
-## Usage
+## Usage as Android Library
 
 1. Follow Prerequisites
 2. Add reference to your project as Android library. Please check here: http://developer.android.com/tools/projects/projects-eclipse.html
@@ -159,7 +161,14 @@ You can also provide your cache implementation, if you want to customize it.
 mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCache);
 ```
 ### PromptBehavior
-ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI. PromptBehavior.CacheOnly will only use cache and refresh token. It will fail if UI is needed.
+ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI.
+
+### Silent token request from cache and refresh
+This method does not use UI pop up and not require activity. It will return token from cache if available. If token is expired, it will try to refresh it. If refresh token is expired or failed, it will return AuthenticationException.
+```Java
+Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clientid, userId, callback );
+```
+You can also make sync call with this method. You can set null to callback or use acquireTokenSilentSync.
 
 ### Logger
 ADAL provides simple callback logger. You can set your callback for logging.
@@ -180,26 +189,15 @@ If you want to build with Maven, you can use the pom.xml at top level
   * go to root folder
   * mvn clean install
   * cd samples\hello
-  * mvn install android:deploy android:install
+  * mvn android:deploy android:run
   * You should see app launching
   * Enter test user credentials to try
 
 ### Encryption
-ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details.
+ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details. Android introduced AndroidKeyStore for 4.3(API18) secure storage of private keys. ADAL uses that for API18 and above. If you want to use ADAL for lower SDK versions, you need to provide secret key at AuthenticationSettings.INSTANCE.setSecretKey
 
 ### Oauth2 Bearer challange
 AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challange.
-
-### Proguard
-ADAL allows referencing jar files directly in your project. It resolves resources through reflection. Resource names need to be protected. You could specify following options to not obfuscate resource names:
-```
--keepattributes InnerClasses
-
--keep class **.R
--keep class **.R$* {
-    <fields>;
-}
-```
 
 ### Session cookies in Webview
 Android webview does not clear session cookies after app is closed. You can handle this with sample code below:
@@ -210,6 +208,8 @@ cookieManager.removeSessionCookie();
 CookieSyncManager.getInstance().sync();
 ```
 More about cookies: http://developer.android.com/reference/android/webkit/CookieSyncManager.html
+
+=======
 
 ## License
 

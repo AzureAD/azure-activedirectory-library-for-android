@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -18,11 +18,17 @@
 
 package com.microsoft.aad.adal.testapp;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -59,8 +65,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationCallback;
-import com.microsoft.aad.adal.AuthenticationCancelError;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
@@ -94,10 +100,20 @@ public class MainActivity extends Activity {
 
     public final static String TOKEN_USED = "TOKEN_USED";
 
+    public static final String TEST_CERT_ALIAS = "My Key Chain";
+
+    public static final String PKCS12_PASS = "changeit";
+
+    public final String PKCS12_FILENAME = "keychain.p12";
+
+    public final String JWS_ALGORITHM = "SHA256withRSA";
+
     /**
      * result from recent request
      */
     private AuthenticationResult mResult;
+    
+    private Exception mLastException;
 
     private String mActiveUser, mExtraQueryParam;
 
@@ -128,6 +144,10 @@ public class MainActivity extends Activity {
         return handler;
     }
 
+    public AuthenticationContext getAuthenticationContext(){
+        return mContext;
+    }
+    
     class AdalCallback implements AuthenticationCallback<AuthenticationResult> {
 
         UUID mId;
@@ -138,19 +158,17 @@ public class MainActivity extends Activity {
 
         @Override
         public void onError(Exception exc) {
-            Log.d(TAG, "Callback returned error");
-            if (exc instanceof AuthenticationCancelError) {
-                textViewStatus.setText("Cancelled");
-                Log.d(TAG, "Cancelled");
-            } else {
-                if (exc instanceof AuthenticationException) {
-                    AuthenticationException authException = (AuthenticationException)exc;
-                    textViewStatus
-                            .setText("Authentication error:" + authException.getCode().name());
+            Log.e(TAG, "Callback returned error", exc);
+            mLastException = exc;
+            if (exc instanceof AuthenticationException) {
+                AuthenticationException authException = (AuthenticationException)exc;
+                textViewStatus.setText("Authentication error:" + authException.getCode().name());
+                if (authException.getCode() == ADALError.AUTH_FAILED_CANCELLED) {
+                    textViewStatus.setText("Cancelled");
+                    Log.d(TAG, "Cancelled");
                 }
-
-                Log.d(TAG, "Authentication error:" + exc.getMessage());
             }
+            Log.d(TAG, "Authentication error:" + exc.getMessage());
         }
 
         @Override
@@ -262,18 +280,28 @@ public class MainActivity extends Activity {
         });
     }
 
-    public void initDeviceCertificateMock() throws NoSuchAlgorithmException {
-        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-        keyGen.initialize(1024);
-        KeyPair keyPair = keyGen.genKeyPair();
-        RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
-        MockDeviceCertProxy.reset();
+    public void initDeviceCertificateMock() throws NoSuchAlgorithmException,
+            UnrecoverableKeyException, CertificateException, KeyStoreException, IOException {
+        KeyStore keystore = loadTestCertificate();
+        Key key = keystore.getKey(TEST_CERT_ALIAS, PKCS12_PASS.toCharArray());
+        RSAPrivateKey privateKey = (RSAPrivateKey)key;
+        Certificate cert = keystore.getCertificate(TEST_CERT_ALIAS);
+        RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
         MockDeviceCertProxy.sValidIssuer = true;
         MockDeviceCertProxy.sPrivateKey = privateKey;
         MockDeviceCertProxy.sPublicKey = publicKey;
         MockDeviceCertProxy.sThumbPrint = "test";
+        MockDeviceCertProxy.sCertificate = (X509Certificate)cert;
         AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
+    }
+
+    private KeyStore loadTestCertificate() throws IOException, CertificateException,
+            UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+        KeyStore caKs = KeyStore.getInstance("PKCS12");
+        BufferedInputStream stream = new BufferedInputStream(MainActivity.this.getAssets().open(
+                PKCS12_FILENAME));
+        caKs.load(stream, PKCS12_PASS.toCharArray());
+        return caKs;
     }
 
     @Override
@@ -303,6 +331,20 @@ public class MainActivity extends Activity {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+
+    public void acquireTokenByRefreshToken(String refreshToken) {
+        textViewStatus.setText(GETTING_TOKEN);
+        if (mContext == null) {
+            initContext();
+        }
+
+        String clientId = mClientId.getText().toString();
+        if (clientId == null || clientId.isEmpty()) {
+            clientId = CLIENT_ID;
+        }
+        mContext.setRequestCorrelationId(mRequestCorrelationId);
+        mContext.acquireTokenByRefreshToken(refreshToken, clientId, new AdalCallback());
     }
 
     private void getTokenByRefreshToken() {
@@ -358,6 +400,31 @@ public class MainActivity extends Activity {
                 mExtraQueryParam, new AdalCallback());
     }
 
+    public void getTokenSilent() {
+        Logger.v(TAG, "get Token Silent");
+        textViewStatus.setText(GETTING_TOKEN);
+        if (mContext == null) {
+            initContext();
+        }
+
+        String resource = mResource.getText().toString();
+        if (resource == null || resource.isEmpty()) {
+            resource = RESOURCE_ID;
+        }
+
+        String clientId = mClientId.getText().toString();
+        if (clientId == null || clientId.isEmpty()) {
+            clientId = CLIENT_ID;
+        }
+
+        // Optional field, so acquireToken accepts null fields
+        String userid = mUserid.getText().toString();
+
+        mResult = null;
+        mContext.setRequestCorrelationId(mRequestCorrelationId);
+        mContext.acquireTokenSilent(resource, clientId, userid, new AdalCallback());
+    }
+    
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -492,6 +559,10 @@ public class MainActivity extends Activity {
 
     public void setExtraQueryParam(String extraQueryParam) {
         mExtraQueryParam = extraQueryParam;
+    }
+
+    public Exception getLastException() {
+        return mLastException;
     }
 
     /**

@@ -196,6 +196,8 @@ public enum ADALError {
 
     BROKER_ACCOUNT_DOES_NOT_EXIST("Broker account does not exist"),
 
+    BROKER_SINGLE_USER_EXPECTED("Single user is expected"),
+
     KEY_CHAIN_PRIVATE_KEY_EXCEPTION("Key Chain private key exception"),
 
     SIGNATURE_EXCEPTION("Signature exception"),
@@ -207,11 +209,17 @@ public enum ADALError {
     WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION(
             "Webview returned invalid or null Authentication Exception"),
 
+    WEBVIEW_RETURNED_EMPTY_REDIRECT_URL("Webview returned empty redirect url"),
+
     DEVICE_CERTIFICATE_API_EXCEPTION("Device certificate API has exception"),
 
     DEVICE_CERTIFICATE_REQUEST_INVALID("Device certificate request is valid"),
 
-    RESOURCE_NOT_FOUND("Resource is not found in your project. Please include resource files.");
+    RESOURCE_NOT_FOUND("Resource is not found in your project. Please include resource files."),
+
+    CERTIFICATE_ENCODING_ERROR("Certificate encoding is not generated"), 
+    
+    ERROR_SILENT_REQUEST("Error in silent token request");
 
     private String mDescription;
 

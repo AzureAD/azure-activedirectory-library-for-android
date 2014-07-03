@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -20,6 +20,8 @@ package com.microsoft.aad.adal.hello;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -27,14 +29,18 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.Signature;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -47,9 +53,8 @@ import android.widget.Toast;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.Logger;
-import com.microsoft.aad.adal.hello.R;
+import com.microsoft.aad.adal.PromptBehavior;
 
 public class MainActivity extends Activity {
 
@@ -73,12 +78,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         CookieSyncManager.createInstance(getApplicationContext());
         textView1 = (TextView)findViewById(R.id.textView1);
-        
-        // to test session cookie behavior
-        mLoginProgressDialog = new ProgressDialog(this);
-        mLoginProgressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mLoginProgressDialog.setMessage("Login in progress...");
 
+        // Clear previous sessions
+        clearSessionCookie();
         try {
             // Provide key info for Encryption
             Utils.setupKeyForSample();
@@ -90,6 +92,26 @@ public class MainActivity extends Activity {
         }
 
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // To test session cookie behavior
+        mLoginProgressDialog = new ProgressDialog(this);
+        mLoginProgressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mLoginProgressDialog.setMessage("Login in progress...");
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mLoginProgressDialog != null) {
+            // to test session cookie behavior
+            mLoginProgressDialog.dismiss();
+            mLoginProgressDialog = null;
+        }
     }
 
     public void onClickAcquireByRefreshToken(View v) {
@@ -136,44 +158,64 @@ public class MainActivity extends Activity {
 
     }
 
+    private AuthenticationCallback<AuthenticationResult> getCallback() {
+        return new AuthenticationCallback<AuthenticationResult>() {
+
+            @Override
+            public void onError(Exception exc) {
+                if (mLoginProgressDialog != null && mLoginProgressDialog.isShowing()) {
+                    mLoginProgressDialog.dismiss();
+                }
+
+                Toast.makeText(getApplicationContext(), TAG + "getToken Error:" + exc.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                if (mLoginProgressDialog != null && mLoginProgressDialog.isShowing()) {
+                    mLoginProgressDialog.dismiss();
+                }
+
+                mResult = result;
+                Log.v(TAG, "Token info:" + result.getAccessToken());
+                Toast.makeText(getApplicationContext(), "Token is returned", Toast.LENGTH_SHORT)
+                        .show();
+
+                if (mResult.getUserInfo() != null) {
+                    Log.v(TAG, "User info userid:" + result.getUserInfo().getUserId()
+                            + " displayableId:" + result.getUserInfo().getDisplayableId());
+                    Toast.makeText(getApplicationContext(),
+                            "User:" + mResult.getUserInfo().getDisplayableId(), Toast.LENGTH_SHORT)
+                            .show();
+                }
+            }
+
+        };
+    }
+
+    public void onClickAcquireTokenForceRefresh(View v) {
+        Log.v(TAG, "onClickAcquireTokenForceRefresh");
+        mLoginProgressDialog.show();
+        mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
+                Constants.REDIRECT_URL, getUserId(), PromptBehavior.REFRESH_SESSION, "",
+                getCallback());
+    }
+
+    public void onClickAcquireTokenSilent(View v) {
+        Log.v(TAG, "onClickAcquireTokenSilent is clicked");
+        mLoginProgressDialog.show();
+        mAuthContext.acquireTokenSilent(Constants.RESOURCE_ID, Constants.CLIENT_ID, getUserId(),
+                getCallback());
+    }
+
     public void onClickToken(View v) {
         Log.v(TAG, "token button is clicked");
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, Constants.USER_HINT,
-                new AuthenticationCallback<AuthenticationResult>() {
-
-                    @Override
-                    public void onError(Exception exc) {
-                        if (mLoginProgressDialog.isShowing()) {
-                            mLoginProgressDialog.dismiss();
-                        }
-
-                        Toast.makeText(getApplicationContext(),
-                                TAG + "getToken Error:" + exc.getMessage(), Toast.LENGTH_SHORT)
-                                .show();
-                    }
-
-                    @Override
-                    public void onSuccess(AuthenticationResult result) {
-                        if (mLoginProgressDialog.isShowing()) {
-                            mLoginProgressDialog.dismiss();
-                        }
-
-                        mResult = result;
-                        Toast.makeText(getApplicationContext(), "Token is returned",
-                                Toast.LENGTH_SHORT).show();
-
-                        if (mResult.getUserInfo() != null) {
-                            Toast.makeText(getApplicationContext(),
-                                    "User:" + mResult.getUserInfo().getUserId(), Toast.LENGTH_SHORT)
-                                    .show();
-                        }
-                    }
-
-                });
+                Constants.REDIRECT_URL, getUserLoginHint(), getCallback());
     }
-    
+
     private void clearSessionCookie() {
         // Webview by default does not clear session cookies even after app is
         // closed(Bug in Webview).
@@ -182,12 +224,6 @@ public class MainActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.removeSessionCookie();
         CookieSyncManager.getInstance().sync();
-    }
-    
-    @Override
-    protected void onPause() {
-        super.onPause();
-        clearSessionCookie();
     }
 
     @Override
@@ -237,6 +273,24 @@ public class MainActivity extends Activity {
 
     private void displayMessage(String msg) {
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+    }
+
+    private String getUserId() {
+        if (mResult != null && mResult.getUserInfo() != null
+                && mResult.getUserInfo().getUserId() != null) {
+            return mResult.getUserInfo().getUserId();
+        }
+
+        return null;
+    }
+
+    private String getUserLoginHint() {
+        if (mResult != null && mResult.getUserInfo() != null
+                && mResult.getUserInfo().getDisplayableId() != null) {
+            return mResult.getUserInfo().getDisplayableId();
+        }
+
+        return null;
     }
 
     /**
@@ -299,5 +353,4 @@ public class MainActivity extends Activity {
             }
         }
     }
-
 }

@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
@@ -35,9 +36,9 @@ public interface IJWSBuilder {
      * @param submitUrl The version number of the challenge-response based device authentication protocol. This is set to 1.0.
      * @param privateKey    Private Key of the Device Certificate to sign the response
      * @param pubKey        Public Key of the Device Certificate 
-     * @param thumbPrint    Hash of encoding of X509 cert
-     * @return
+     * @param x509Certificate    X509 certificate
+     * @return Signed JWT
      */
     public String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
-            RSAPublicKey pubKey, String thumbPrint);
+            RSAPublicKey pubKey, X509Certificate x509Certificate);
 }
