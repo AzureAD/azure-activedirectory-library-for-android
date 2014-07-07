@@ -62,7 +62,7 @@ import android.util.Base64;
 
 /**
  * Shared preferences store clear text. This class helps to encrypt/decrypt text
- * to store. API SDK >= 18 has more security with AndroidKeyStore
+ * to store. API SDK >= 18 has more security with AndroidKeyStore.
  */
 public class StorageHelper {
 
@@ -149,12 +149,13 @@ public class StorageHelper {
             return;
 
         synchronized (lockObject) {
-            if (Build.VERSION.SDK_INT >= 18) {
+            if (Build.VERSION.SDK_INT >= 18 && AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
                 try {
                     // androidKeyStore can store app specific self signed cert.
                     // Asymmetric cryptography is used to protect the session
-                    // key
-                    // used for Encryption and HMac
+                    // key for Encryption and HMac.
+                    // If user specifies secret key, it will use the provided
+                    // key.
                     sKey = getSecretKeyFromAndroidKeyStore();
                     sMacKey = getMacKey(sKey);
                     sBlobVersion = VERSION_ANDROID_KEY_STORE;
@@ -165,6 +166,7 @@ public class StorageHelper {
                 }
             }
 
+            Logger.v(TAG, "Encryption will use secret key from Settings");
             sKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
             sMacKey = getMacKey(sKey);
             sBlobVersion = VERSION_USER_DEFINED;
@@ -360,8 +362,8 @@ public class StorageHelper {
                     ENCODE_VERSION));
         }
 
-        final byte[] bytes = Base64.decode(value.substring(1 + encodeVersionLength),
-                Base64.DEFAULT);
+        final byte[] bytes = Base64
+                .decode(value.substring(1 + encodeVersionLength), Base64.DEFAULT);
 
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
