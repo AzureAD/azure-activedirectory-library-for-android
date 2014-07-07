@@ -223,7 +223,7 @@ public class StorageHelperTests extends AndroidTestCase {
         // API level, data needs to be updated
         String keyVersionCheck = new String(bytes, 0, 4, "UTF-8");
         Log.v(TAG, "Key version check:" + keyVersionCheck);
-        if (Build.VERSION.SDK_INT < 18) {
+        if (Build.VERSION.SDK_INT < 18 || AuthenticationSettings.INSTANCE.getSecretKeyData() != null) {
             assertEquals("It should use user defined", "U001", keyVersionCheck);
         } else {
             assertEquals("It should use user defined", "A001", keyVersionCheck);

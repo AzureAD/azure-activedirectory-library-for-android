@@ -51,7 +51,8 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * set raw bytes to derive secretKey to use in encrypt/decrypt
+     * set raw bytes to derive secretKey to use in encrypt/decrypt. KeySpec
+     * algorithm is AES.
      * 
      * @param rawKey
      */
