@@ -75,8 +75,9 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                     }
                 });
 
+        // empty value inside the authorization_uri will throw exception
         assertThrowsException(IllegalArgumentException.class,
-                AuthenticationParameters.AUTH_HEADER_MISSING_AUTHORITY.toLowerCase(), new Runnable() {
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT.toLowerCase(), new Runnable() {
 
                     @Override
                     public void run() {

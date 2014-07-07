@@ -21,13 +21,13 @@ package com.microsoft.aad.adal;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.os.Handler;
@@ -55,6 +55,10 @@ public class AuthenticationParameters {
     public final static String RESOURCE_KEY = "resource_id";
 
     private final static String TAG = "AuthenticationParameters";
+
+    private static final String REGEX = "^Bearer\\s+([^,\\s=\"]+?)=\"([^\"]*?)\"\\s*(?:,\\s*([^,\\s=\"]+?)=\"([^\"]*?)\"\\s*)*$";
+
+    private static final String REGEX_VALUES = "\\s*([^,\\s=\"]+?)=\"([^\"]*?)\"";
 
     private String mAuthority;
 
@@ -153,24 +157,27 @@ public class AuthenticationParameters {
         if (StringExtensions.IsNullOrBlank(authenticateHeader)) {
             throw new IllegalArgumentException(AUTH_HEADER_MISSING);
         } else {
+            Pattern p = Pattern.compile(REGEX);
+            Matcher m = p.matcher(authenticateHeader);
 
-            authenticateHeader = authenticateHeader.trim().toLowerCase(Locale.US);
+            // If the header is in the right format, REGEX_VALUES will extract individual
+            // name-value pairs. This regex is not as exclusive, so it relies on
+            // the previous check to guarantee correctness:
+            if (m.matches()) {
 
-            // bearer should be first one
-            if (!StringExtensions.hasPrefixInHeader(authenticateHeader, BEARER)) {
-                throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
-            } else {
-                authenticateHeader = authenticateHeader.substring(BEARER.length());
-                ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader,
-                        ',');
+                // Get matching value pairs inside the header value
+                Pattern valuePattern = Pattern.compile(REGEX_VALUES);
+                String headerSubFields = authenticateHeader.substring(BEARER.length());
+                Logger.v(TAG, "Values in here:" + headerSubFields);
+                Matcher values = valuePattern.matcher(headerSubFields);
                 HashMap<String, String> headerItems = new HashMap<String, String>();
-                for (String queryPair : queryPairs) {
-                    ArrayList<String> pair = StringExtensions.splitWithQuotes(queryPair, '=');
+                while (values.find()) {
 
-                    if (pair.size() == 2 && !StringExtensions.IsNullOrBlank(pair.get(0))
-                            && !StringExtensions.IsNullOrBlank(pair.get(1))) {
-                        String key = pair.get(0);
-                        String value = pair.get(1);
+                    // values.group(0) is matching string
+                    if (!StringExtensions.IsNullOrBlank(values.group(1))
+                            && !StringExtensions.IsNullOrBlank(values.group(2))) {
+                        String key = values.group(1);
+                        String value = values.group(2);
 
                         try {
                             key = StringExtensions.URLFormDecode(key);
@@ -204,6 +211,8 @@ public class AuthenticationParameters {
                     // invalid format
                     throw new IllegalArgumentException(AUTH_HEADER_MISSING_AUTHORITY);
                 }
+            } else {
+                throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
             }
         }
 
