@@ -87,7 +87,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
      */
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
-    protected final static int CONTEXT_REQUEST_TIME_OUT = 200000;
+    protected final static int CONTEXT_REQUEST_TIME_OUT = 20000;
 
     protected final static int ACTIVITY_TIME_OUT = 1000;
 
