@@ -76,7 +76,7 @@ public class AuthenticationActivity extends Activity {
 
     private final String TAG = "AuthenticationActivity";
 
-    private boolean mRestartWebview = false;
+    private boolean mRegisterReceiver = false;
 
     private WebView mWebView;
 
@@ -254,7 +254,7 @@ public class AuthenticationActivity extends Activity {
                             + " accountName:" + mAuthRequest.getBrokerAccountName() + " loginHint:"
                             + mAuthRequest.getLoginHint());
         }
-        mRestartWebview = false;
+        mRegisterReceiver = false;
         final String postUrl = mStartUrl;
         Logger.v(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage
                 + " loginHint:" + mAuthRequest.getLoginHint());
@@ -454,7 +454,7 @@ public class AuthenticationActivity extends Activity {
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
         }
-        mRestartWebview = true;
+        mRegisterReceiver = true;
         // restart webview when it comes back from onresume
     }
 
@@ -462,37 +462,25 @@ public class AuthenticationActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        // It can come here from onCreate,onRestart or onPause. It
-        // will post the url again since webview could not start at the middle
-        // of redirect url.
-        // If it reaches the final url, it will set result back to caller.
-        if (mRestartWebview) {
-            Logger.v(TAG, "Webview onResume will post start url again:" + mStartUrl);
-            final String postUrl = mStartUrl;
-
+        // It can come here from onCreate, onRestart or onPause.
+        // Don't load url again since it will send another 2FA request
+        if (mRegisterReceiver) {
+            Logger.v(TAG, "Webview onResume will register receiver:" + mStartUrl);
             if (mReceiver != null) {
                 Logger.v(TAG, "Webview onResume register broadcast receiver for requestId"
                         + mReceiver.mWaitingRequestId);
                 LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
                         new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
             }
-
-            mWebView.post(new Runnable() {
-                @Override
-                public void run() {
-                    mWebView.loadUrl("about:blank");// load blank first
-                    mWebView.loadUrl(postUrl);
-                }
-            });
         }
-        mRestartWebview = false;
+        mRegisterReceiver = false;
     }
 
     @Override
     protected void onRestart() {
         Logger.d(TAG, "AuthenticationActivity onRestart");
         super.onRestart();
-        mRestartWebview = true;
+        mRegisterReceiver = true;
     }
 
     @Override

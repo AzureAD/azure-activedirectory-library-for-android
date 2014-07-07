@@ -179,6 +179,7 @@ public class MainActivity extends Activity {
 
                 mResult = result;
                 Log.v(TAG, "Token info:" + result.getAccessToken());
+                Log.v(TAG, "IDToken info:" + result.getIdToken());
                 Toast.makeText(getApplicationContext(), "Token is returned", Toast.LENGTH_SHORT)
                         .show();
 
@@ -198,7 +199,7 @@ public class MainActivity extends Activity {
         Log.v(TAG, "onClickAcquireTokenForceRefresh");
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserId(), PromptBehavior.REFRESH_SESSION, "",
+                Constants.REDIRECT_URL, getUserLoginHint(), PromptBehavior.REFRESH_SESSION, "",
                 getCallback());
     }
 

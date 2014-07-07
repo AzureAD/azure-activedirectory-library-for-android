@@ -413,25 +413,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
     @SmallTest
     @UiThreadTest
-    public void testOnPauseSetsRestartWebview() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException, NoSuchFieldException {
-
-        startActivity(intentToStartActivity, null, null);
-        activity = getActivity();
-
-        Method onPause = ReflectionUtils.getTestMethod(activity, "onPause");
-
-        onPause.invoke(activity);
-
-        // get field value to check
-        boolean restartWebView = (Boolean)ReflectionUtils
-                .getFieldValue(activity, "mRestartWebview");
-        assertTrue("Restart flag is set", restartWebView);
-    }
-
-    @SmallTest
-    @UiThreadTest
     public void testOnResumeRestartWebview() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchFieldException,
@@ -442,7 +423,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         logResponse.listenForLogMessage(
                 "Webview onResume register broadcast receiver for requestId" + TEST_REQUEST_ID,
                 null);
-        ReflectionUtils.setFieldValue(activity, "mRestartWebview", true);
+        ReflectionUtils.setFieldValue(activity, "mRegisterReceiver", true);
         Method methodOnResume = ReflectionUtils.getTestMethod(activity, "onResume");
         methodOnResume.invoke(activity);
 
@@ -478,13 +459,13 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         startActivity(intentToStartActivity, null, null);
         activity = getActivity();
 
-        ReflectionUtils.setFieldValue(activity, "mRestartWebview", false);
+        ReflectionUtils.setFieldValue(activity, "mRegisterReceiver", false);
         Method methodOnResume = ReflectionUtils.getTestMethod(activity, "onRestart");
 
         methodOnResume.invoke(activity);
 
         // get field value to check
-        boolean fieldVal = (Boolean)ReflectionUtils.getFieldValue(activity, "mRestartWebview");
+        boolean fieldVal = (Boolean)ReflectionUtils.getFieldValue(activity, "mRegisterReceiver");
         assertTrue("RestartWebview set to true", fieldVal);
     }
 
