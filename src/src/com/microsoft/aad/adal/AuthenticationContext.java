@@ -1308,28 +1308,27 @@ public class AuthenticationContext {
             // Calculate token hashcode
             logReturnedToken(request, result);
 
+            // acquireTokenSilent uses userid to request items
+            String userKey = request.getUserId();
+
             if (afterPrompt) {
                 // User can change the username and enter a different one at
-                // prompt
-                // Save token for username from idtoken
+                // prompt. Use idtoken if present instead of loginhint after
+                // prompt.
                 if (result.getUserInfo() != null
                         && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
                     Logger.v(TAG, "Updating cache for username:"
                             + result.getUserInfo().getDisplayableId() + getCorrelationLogInfo());
-                    setItemToCacheForUser(request, result, result.getUserInfo().getDisplayableId());
+                    userKey = result.getUserInfo().getDisplayableId();
                 }
-            } else {
-
-                // acquireTokenSilent uses userid to request items
-                String userKey = request.getUserId();
-                if (StringExtensions.IsNullOrBlank(userKey)) {
-                    userKey = request.getLoginHint();
-                }
-
-                setItemToCacheForUser(request, result, userKey);
+            } else if (StringExtensions.IsNullOrBlank(userKey)) {
+                userKey = request.getLoginHint();
             }
 
-            // Update userKey from userinfo as well if present
+            // It will store in the cache for empty idtokens as well
+            setItemToCacheForUser(request, result, userKey);
+
+            // Set item with userid if idtoken is present.
             if (result.getUserInfo() != null
                     && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
                 Logger.v(TAG, "Updating userId:" + result.getUserInfo().getUserId()
