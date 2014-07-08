@@ -625,7 +625,8 @@ public class AuthenticationContext {
                         return;
                     }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL) {
-                    // User cancelled the flow by clicking back button or activating another activity
+                    // User cancelled the flow by clicking back button or
+                    // activating another activity
                     Logger.v(TAG, "User cancelled the flow RequestId:" + requestId
                             + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
@@ -690,7 +691,6 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-
                                 } catch (Exception exc) {
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo();
@@ -718,7 +718,7 @@ public class AuthenticationContext {
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
 
-                                        setItemToCache(authenticationRequest, result);
+                                        setItemToCache(authenticationRequest, result, true);
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
                                             Logger.v(TAG, "Sending result to callback. "
@@ -1297,23 +1297,38 @@ public class AuthenticationContext {
         return refreshItem;
     }
 
-    private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result)
-            throws AuthenticationException {
+    private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
+            boolean afterPrompt) throws AuthenticationException {
         if (mTokenCacheStore != null) {
 
             // User can ask for token without login hint. Next call from same
             // method should use token from cache.
             Logger.v(TAG, "Setting item to cache" + getCorrelationLogInfo());
-            String userKey = request.getUserId();
-            if (StringExtensions.IsNullOrBlank(userKey)) {
-                userKey = request.getLoginHint();
-            }
 
             // Calculate token hashcode
             logReturnedToken(request, result);
+
+            // acquireTokenSilent uses userid to request items
+            String userKey = request.getUserId();
+
+            if (afterPrompt) {
+                // User can change the username and enter a different one at
+                // prompt. Use idtoken if present instead of loginhint after
+                // prompt.
+                if (result.getUserInfo() != null
+                        && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
+                    Logger.v(TAG, "Updating cache for username:"
+                            + result.getUserInfo().getDisplayableId() + getCorrelationLogInfo());
+                    userKey = result.getUserInfo().getDisplayableId();
+                }
+            } else if (StringExtensions.IsNullOrBlank(userKey)) {
+                userKey = request.getLoginHint();
+            }
+
+            // It will store in the cache for empty idtokens as well
             setItemToCacheForUser(request, result, userKey);
 
-            // Update userKey from userinfo as well if present
+            // Set item with userid if idtoken is present.
             if (result.getUserInfo() != null
                     && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
                 Logger.v(TAG, "Updating userId:" + result.getUserInfo().getUserId()
@@ -1367,7 +1382,7 @@ public class AuthenticationContext {
             mTokenCacheStore.setItem(refreshItem.mKey, new TokenCacheItem(request, result,
                     refreshItem.mMultiResource));
 
-            setItemToCache(request, result);
+            setItemToCache(request, result, false);
         }
     }
 

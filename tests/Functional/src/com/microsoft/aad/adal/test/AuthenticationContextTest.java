@@ -1039,29 +1039,12 @@ public class AuthenticationContextTest extends AndroidTestCase {
         webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
                 .defaultCharset()), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        Intent intent = getResponseIntent(callback, "resource", "clientid", "redirectUri",
+                idtoken.upn);
 
-        // Call acquire token
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", idtoken.upn,
-                callback);
-        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-
-        // Activity will start
-        assertEquals("Activity was attempted to start.",
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
-                testActivity.mStartActivityRequestCode);
-
-        // Provide mock result for activity that returns code and proper state
-        Intent intent = new Intent();
-        intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
-        Object authRequest = createAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid",
-                "redirectUri", idtoken.upn);
-        intent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                (Serializable)authRequest);
-        intent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, VALID_AUTHORITY
-                + "/oauth2/authorize?code=123&state=" + getState(VALID_AUTHORITY, "resource"));
-        context.onActivityResult(testActivity.mStartActivityRequestCode,
-                AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, intent);
-        signalCallback.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        // Get token from onActivityResult after Activity returns
+        tokenWithAuthenticationActivity(context, testActivity, signal, signalCallback, intent,
+                "resource", "clientid", "redirectUri", idtoken.upn, callback);
 
         // Token will return to callback with idToken
         verifyTokenResult(idtoken, callback.mResult);
@@ -1082,6 +1065,128 @@ public class AuthenticationContextTest extends AndroidTestCase {
         clearCache(context);
     }
 
+    @SmallTest
+    public void testScenario_LoginHint_IdToken_Different() throws InterruptedException,
+            IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
+            UnsupportedEncodingException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false);
+        context.getCache().removeAll();
+        setConnectionAvailable(context, true);
+        final CountDownLatch signal = new CountDownLatch(1);
+        final CountDownLatch signalCallback = new CountDownLatch(1);
+        final MockActivity testActivity = new MockActivity(signal);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        IdToken idtoken = new IdToken();
+        idtoken.upn = "admin@user.com";
+        idtoken.oid = "admin123";
+        String loginHint = "user1@user.com";
+        String json = "{\"id_token\":\""
+                + idtoken.getIdToken()
+                + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
+        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        Intent intent = getResponseIntent(callback, "resource", "clientid", "redirectUri",
+                loginHint);
+
+        // Get token from onActivityResult after Activity returns
+        tokenWithAuthenticationActivity(context, testActivity, signal, signalCallback, intent,
+                "resource", "clientid", "redirectUri", loginHint, callback);
+
+        // Token will return to callback with idToken
+        verifyTokenResult(idtoken, callback.mResult);
+
+        // Same call with correct upn will return from cache
+        final CountDownLatch signalCallback2 = new CountDownLatch(1);
+        callback.mSignal = signalCallback2;
+        context.acquireToken(null, "resource", "clientid", "redirectUri", idtoken.upn, callback);
+        signalCallback2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        verifyTokenResult(idtoken, callback.mResult);
+
+        // Call with userId should return from cache as well
+        AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
+                idtoken.oid);
+        verifyTokenResult(idtoken, result);
+
+        clearCache(context);
+    }
+
+    @SmallTest
+    public void testScenario_Empty_IdToken() throws InterruptedException, IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, InvocationTargetException,
+            NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final AuthenticationContext context = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false);
+        context.getCache().removeAll();
+        setConnectionAvailable(context, true);
+        final CountDownLatch signal = new CountDownLatch(1);
+        final CountDownLatch signalCallback = new CountDownLatch(1);
+        final MockActivity testActivity = new MockActivity(signal);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        String json = "{\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
+        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        Intent intent = getResponseIntent(callback, "resource", "clientid", "redirectUri", null);
+
+        // Get token from onActivityResult after Activity returns
+        tokenWithAuthenticationActivity(context, testActivity, signal, signalCallback, intent,
+                "resource", "clientid", "redirectUri", null, callback);
+
+        // Token will return to callback with idToken
+        verifyTokenResult(null, callback.mResult);
+
+        // Call with userId should return from cache as well
+        AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid", null);
+        verifyTokenResult(null, result);
+
+        clearCache(context);
+    }
+
+    private Intent getResponseIntent(MockAuthenticationCallback callback, String resource,
+            String clientid, String redirect, String loginHint) throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException {
+        // Provide mock result for activity that returns code and proper state
+        Intent intent = new Intent();
+        intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
+        Object authRequest = createAuthenticationRequest(VALID_AUTHORITY, resource, clientid,
+                redirect, loginHint);
+        intent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                (Serializable)authRequest);
+        intent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, VALID_AUTHORITY
+                + "/oauth2/authorize?code=123&state=" + getState(VALID_AUTHORITY, resource));
+        return intent;
+    }
+
+    private void tokenWithAuthenticationActivity(final AuthenticationContext context,
+            final MockActivity testActivity, CountDownLatch signal,
+            CountDownLatch signalOnActivityResult, Intent responseIntent, String resource,
+            String clientid, String redirect, String loginHint, MockAuthenticationCallback callback)
+            throws InterruptedException {
+
+        // Call acquire token
+        context.acquireToken(testActivity, resource, clientid, redirect, loginHint, callback);
+        signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // Activity will start
+        assertEquals("Activity was attempted to start.",
+                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                testActivity.mStartActivityRequestCode);
+
+        context.onActivityResult(testActivity.mStartActivityRequestCode,
+                AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, responseIntent);
+        signalOnActivityResult.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+    }
+
     private String getState(String authority, String resource) {
         String state = String.format("a=%s&r=%s", authority, resource);
         return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
@@ -1090,8 +1195,11 @@ public class AuthenticationContextTest extends AndroidTestCase {
     private void verifyTokenResult(IdToken idtoken, AuthenticationResult result) {
         assertEquals("Check access token", "TokenUserIdTest", result.getAccessToken());
         assertEquals("Check refresh token", "refresh112", result.getRefreshToken());
-        assertEquals("Result has userid", idtoken.oid, result.getUserInfo().getUserId());
-        assertEquals("Result has username", idtoken.upn, result.getUserInfo().getDisplayableId());
+        if (idtoken != null) {
+            assertEquals("Result has userid", idtoken.oid, result.getUserInfo().getUserId());
+            assertEquals("Result has username", idtoken.upn, result.getUserInfo()
+                    .getDisplayableId());
+        }
     }
 
     public void testAcquireTokenSilentSync_Positive() throws NoSuchAlgorithmException,
