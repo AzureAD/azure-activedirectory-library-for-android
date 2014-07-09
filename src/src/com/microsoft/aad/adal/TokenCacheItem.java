@@ -23,12 +23,12 @@ import java.util.Date;
 
 /**
  * Extended result to store more info Queries will be performed over this item
- * not the key
+ * not the key.
  */
 public class TokenCacheItem implements Serializable {
 
     /**
-     * Serial version
+     * Serial version.
      */
     private static final long serialVersionUID = 1L;
 
@@ -47,7 +47,7 @@ public class TokenCacheItem implements Serializable {
     private String mRawIdToken;
 
     /**
-     * this time is GMT
+     * This time is GMT.
      */
     private Date mExpiresOn;
 
@@ -56,7 +56,7 @@ public class TokenCacheItem implements Serializable {
     private String mTenantId;
 
     /**
-     * Construct default cache item 
+     * Construct default cache item.
      */
     public TokenCacheItem() {
 
@@ -149,16 +149,16 @@ public class TokenCacheItem implements Serializable {
         return mIsMultiResourceRefreshToken;
     }
 
-    public void setIsMultiResourceRefreshToken(boolean mIsMultiResourceRefreshToken) {
-        this.mIsMultiResourceRefreshToken = mIsMultiResourceRefreshToken;
+    public void setIsMultiResourceRefreshToken(boolean isMultiResourceRefreshToken) {
+        this.mIsMultiResourceRefreshToken = isMultiResourceRefreshToken;
     }
 
     public String getTenantId() {
         return mTenantId;
     }
 
-    public void setTenantId(String mTenantId) {
-        this.mTenantId = mTenantId;
+    public void setTenantId(String tenantId) {
+        this.mTenantId = tenantId;
     }
 
     public String getRawIdToken() {

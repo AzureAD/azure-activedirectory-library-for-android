@@ -38,17 +38,17 @@ class HttpWebRequest {
 
     private static final String TAG = "HttpWebRequest";
 
-    final static String REQUEST_METHOD_POST = "POST";
+    static final String REQUEST_METHOD_POST = "POST";
 
-    final static String REQUEST_METHOD_GET = "GET";
+    static final String REQUEST_METHOD_GET = "GET";
 
-    final static String REQUEST_METHOD_PUT = "PUT";
+    static final String REQUEST_METHOD_PUT = "PUT";
 
-    final static String REQUEST_METHOD_DELETE = "DELETE";
+    static final String REQUEST_METHOD_DELETE = "DELETE";
 
-    final static int CONNECT_TIME_OUT = 30000;
+    static final int CONNECT_TIME_OUT = 30000;
 
-    private final static int READ_TIME_OUT = 30000;
+    private static final int READ_TIME_OUT = 30000;
 
     private static int sDebugSimulateDelay = 0;
 
@@ -90,7 +90,7 @@ class HttpWebRequest {
     }
 
     /**
-     * setupConnection before sending the request
+     * setupConnection before sending the request.
      */
     private void setupConnection() {
         Logger.d(TAG, "HttpWebRequest setupConnection thread:" + android.os.Process.myTid());
@@ -110,7 +110,7 @@ class HttpWebRequest {
     }
 
     /**
-     * send the request
+     * send the request.
      * 
      * @param contentType
      */
@@ -118,7 +118,7 @@ class HttpWebRequest {
 
         Logger.d(TAG, "HttpWebRequest send thread:" + android.os.Process.myTid());
         setupConnection();
-        HttpWebResponse _response = new HttpWebResponse();
+        HttpWebResponse response = new HttpWebResponse();
 
         if (mConnection != null) {
             try {
@@ -155,7 +155,7 @@ class HttpWebRequest {
 
                 // GET request should read status after getInputStream to make
                 // this work for different SDKs
-                getStatusCode(_response);
+                getStatusCode(response);
 
                 if (responseStream != null) {
 
@@ -179,8 +179,8 @@ class HttpWebRequest {
                 }
 
                 Logger.d(TAG, "Response is received");
-                _response.setBody(responseBody);
-                _response.setResponseHeaders(mConnection.getHeaderFields());
+                response.setBody(responseBody);
+                response.setResponseHeaders(mConnection.getHeaderFields());
             } catch (Exception e) {
                 Logger.e(TAG, "Exception:" + e.getMessage(), " Method:" + mRequestMethod,
                         ADALError.SERVER_ERROR, e);
@@ -191,11 +191,11 @@ class HttpWebRequest {
             }
         }
 
-        _response.setResponseException(mException);
-        return _response;
+        response.setResponseException(mException);
+        return response;
     }
 
-    private void getStatusCode(HttpWebResponse _response) throws IOException {
+    private void getStatusCode(HttpWebResponse response) throws IOException {
         int statusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         try {
@@ -225,7 +225,7 @@ class HttpWebRequest {
                 throw ex;
             }
         }
-        _response.setStatusCode(statusCode);
+        response.setStatusCode(statusCode);
         Logger.v(TAG, "Status code:" + statusCode);
     }
 
@@ -287,29 +287,29 @@ class HttpWebRequest {
     }
 
     /**
-     * The requests target URL
+     * The requests target URL.
      */
     URL getURL() {
         return mUrl;
     }
 
     /**
-     * The request headers
+     * The request headers.
      */
     public HashMap<String, String> getRequestHeaders() {
         return mRequestHeaders;
     }
 
-    void setRequestMethod(String mRequestMethod) {
-        this.mRequestMethod = mRequestMethod;
+    void setRequestMethod(String requestMethod) {
+        this.mRequestMethod = requestMethod;
     }
 
     String getRequestContentType() {
         return mRequestContentType;
     }
 
-    void setRequestContentType(String mRequestContentType) {
-        this.mRequestContentType = mRequestContentType;
+    void setRequestContentType(String requestContentType) {
+        this.mRequestContentType = requestContentType;
     }
 
     void setRequestContent(byte[] data) {

@@ -21,16 +21,24 @@ package com.microsoft.aad.adal;
 import java.net.URL;
 import java.util.UUID;
 
+/**
+ * Discovery interface that validates authority.
+ */
 public interface IDiscovery {
 
     /**
-     * query authorizationEndpoint from well known instances to validate the instance.
-     * It does not validate tenant info. Common name can be used instead of tenant name for authority url to get token.
+     * Query authorizationEndpoint from well known instances to validate the
+     * instance. It does not validate tenant info. Common name can be used
+     * instead of tenant name for authority url to get token.
      * 
-     * @param authorizationEndpoint
-     * @param callback result will be post here
+     * @param authorizationEndpoint URL for authorization endpoint
+     * @return true if authority is valid
      */
     boolean isValidAuthority(URL authorizationEndpoint);
 
+    /**
+     * Sets correlationId.
+     * @param requestCorrelationId {@link UUID}
+     */
     void setCorrelationId(UUID requestCorrelationId);
 }

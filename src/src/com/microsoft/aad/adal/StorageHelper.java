@@ -91,16 +91,18 @@ public class StorageHelper {
 
     private static final int KEY_SIZE = 256;
 
-    /** IV Key length for AES-128 */
+    /**
+     * IV Key length for AES-128.
+     */
     public static final int DATA_KEY_LENGTH = 16;
 
     /**
-     * 256 bits output for signing message
+     * 256 bits output for signing message.
      */
     public static final int MAC_LENGTH = 32;
 
     /**
-     * it is needed for AndroidKeyStore
+     * it is needed for AndroidKeyStore.
      */
     private KeyPair mKeyPair;
 
@@ -113,17 +115,14 @@ public class StorageHelper {
     private static final int KEY_VERSION_BLOB_LENGTH = 4;
 
     /**
-     * To keep track of encoding version and related flags
+     * To keep track of encoding version and related flags.
      */
     private static final String ENCODE_VERSION = "E1";
 
-    private static final Object lockObject = new Object();
+    private static final Object LOCK_OBJ = new Object();
 
     private static String sBlobVersion;
 
-    /**
-     * Load only once
-     */
     private static SecretKey sKey = null, sMacKey = null;
 
     private static SecretKey sSecretKeyFromAndroidKeyStore = null;
@@ -148,8 +147,9 @@ public class StorageHelper {
         if (sKey != null && sMacKey != null)
             return;
 
-        synchronized (lockObject) {
-            if (Build.VERSION.SDK_INT >= 18 && AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
+        synchronized (LOCK_OBJ) {
+            if (Build.VERSION.SDK_INT >= 18
+                    && AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
                 try {
                     // androidKeyStore can store app specific self signed cert.
                     // Asymmetric cryptography is used to protect the session

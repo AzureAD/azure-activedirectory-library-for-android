@@ -45,7 +45,7 @@ import android.os.Looper;
 import android.util.Base64;
 
 /**
- * Handles interactions to authenticator inside the Account Manager
+ * Handles interactions to authenticator inside the Account Manager.
  */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 class BrokerProxy implements IBrokerProxy {
@@ -100,7 +100,7 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     /**
-     * App needs to give permission to AccountManager to use broker
+     * App needs to give permission to AccountManager to use broker.
      */
     private boolean verifyManifestPermissions() {
         PackageManager pm = mContext.getPackageManager();
@@ -239,8 +239,9 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public void saveAccount(String accountName) {
-        if (accountName == null || accountName.isEmpty())
+        if (accountName == null || accountName.isEmpty()) {
             return;
+        }
 
         SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST,
                 Activity.MODE_PRIVATE);
@@ -256,7 +257,7 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     /**
-     * Removes account from AccountManager that ADAL accessed from this context
+     * Removes account from AccountManager that ADAL accessed from this context.
      */
     @Override
     public void removeAccounts() {
@@ -363,9 +364,9 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     /**
-     * Gets current broker user(Single User model)
+     * Gets current broker user(Single User model).
      * 
-     * @return
+     * @return Current account name at {@link AccountManager}
      */
     public String getCurrentUser() {
         // authenticator is not used if there is not any user

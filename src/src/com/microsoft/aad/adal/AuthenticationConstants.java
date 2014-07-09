@@ -28,7 +28,7 @@ public class AuthenticationConstants {
         public static final String RESPONSE_ERROR_CODE = "com.microsoft.aad.adal:BrowserErrorCode";
 
         public static final String RESPONSE_ERROR_MESSAGE = "com.microsoft.aad.adal:BrowserErrorMessage";
-        
+
         public static final String RESPONSE_AUTHENTICATION_EXCEPTION = "com.microsoft.aad.adal:AuthenticationException";
 
         public static final String RESPONSE_FINAL_URL = "com.microsoft.aad.adal:BrowserFinalUrl";
@@ -44,22 +44,22 @@ public class AuthenticationConstants {
 
     public static final class UIResponse {
         /**
-         * User cancelled
+         * User cancelled.
          */
         public static final int BROWSER_CODE_CANCEL = 2001;
 
         /**
-         * Browser error
+         * Browser error.
          */
         public static final int BROWSER_CODE_ERROR = 2002;
 
         /**
-         * Flow complete
+         * Flow complete.
          */
         public static final int BROWSER_CODE_COMPLETE = 2003;
 
         /**
-         * Broker returns full response
+         * Broker returns full response.
          */
         public static final int TOKEN_BROKER_RESPONSE = 2004;
 
@@ -79,7 +79,7 @@ public class AuthenticationConstants {
     }
 
     public static final class OAuth2 {
-        /** Core OAuth2 strings */
+        /** Core OAuth2 strings. */
         public static final String ACCESS_TOKEN = "access_token";
 
         public static final String AUTHORIZATION_CODE = "authorization_code";
@@ -129,18 +129,18 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_IDENTITY_PROVIDER = "idp";
 
         static final String ID_TOKEN_OBJECT_ID = "oid";
-        
+
         static final String ID_TOKEN_PASSWORD_EXPIRATION = "pwd_exp";
-        
+
         static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
     }
 
     public static final class AAD {
 
-        /** AAD OAuth2 extension strings */
+        /** AAD OAuth2 extension strings. */
         public static final String RESOURCE = "resource";
 
-        /** AAD OAuth2 Challenge strings */
+        /** AAD OAuth2 Challenge strings. */
         public static final String BEARER = "Bearer";
 
         public static final String AUTHORIZATION = "authorization";
@@ -160,7 +160,7 @@ public class AuthenticationConstants {
         public static final String QUERY_PROMPT = "prompt";
 
         public static final String QUERY_PROMPT_VALUE = "login";
-        
+
         public static final String QUERY_PROMPT_REFRESH_SESSION_VALUE = "refresh_session";
 
         public final static String ADAL_ID_PLATFORM = "x-client-SKU";
@@ -199,7 +199,7 @@ public class AuthenticationConstants {
         public static final String BROKER_FINAL_URL = "adal.final.url";
 
         public static final String ACCOUNT_INITIAL_REQUEST = "account.initial.request";
-                
+
         public static final String ACCOUNT_CLIENTID_KEY = "account.clientid.key";
 
         public static final String ACCOUNT_CLIENT_SECRET_KEY = "account.client.secret.key";
@@ -259,7 +259,7 @@ public class AuthenticationConstants {
         public static final String CLIENT_TLS_NOT_SUPPORTED = " PKeyAuth/1.0";
 
         public static final String CHALLANGE_REQUEST_HEADER = "WWW-Authenticate";
-        
+
         public static final String CHALLANGE_RESPONSE_HEADER = "Authorization";
 
         public static final String CHALLANGE_RESPONSE_TYPE = "PKeyAuth";
@@ -269,26 +269,26 @@ public class AuthenticationConstants {
         public static final String CHALLANGE_RESPONSE_CONTEXT = "Context";
 
         /**
-         * Certificate authorities are passed with delimiter
+         * Certificate authorities are passed with delimiter.
          */
         public static final String CHALLANGE_REQUEST_CERT_AUTH_DELIMETER = ",";
 
         /**
          * Apk packagename that will install AD-Authenticator. It is used to
-         * query if this app installed or not from package manager
+         * query if this app installed or not from package manager.
          */
         public static final String PACKAGE_NAME = "com.microsoft.workaccount";
 
         /**
          * Signature info for AD-Authenticator installing app to verify broker
-         * component
+         * component.
          */
         public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
 
         public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
 
         public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
-        
+
         public static final String CHALLANGE_TLS_INCAPABLE_VERSION = "1.0";
 
         public static final String REDIRECT_PREFIX = "msauth";

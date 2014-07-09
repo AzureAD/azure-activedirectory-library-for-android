@@ -19,7 +19,7 @@
 package com.microsoft.aad.adal;
 
 /**
- * Cancellation error *
+ * Cancellation error.
  */
 public class AuthenticationCancelError extends AuthenticationException {
     static final long serialVersionUID = 1;
@@ -34,7 +34,7 @@ public class AuthenticationCancelError extends AuthenticationException {
     /**
      * Constructs a new AuthenticationCancelError with message.
      * 
-     * @param msg
+     * @param msg Message for cancel request
      */
     public AuthenticationCancelError(String msg) {
         super(ADALError.AUTH_FAILED_CANCELLED, msg);

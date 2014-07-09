@@ -16,20 +16,11 @@
 // See the Apache License, Version 2.0 for the specific language
 // governing permissions and limitations under the License.
 
-package com.microsoft.aad.adal;
-
-import java.net.URL;
-import java.util.HashMap;
-import java.util.UUID;
-
 /**
- * Webrequest interface to send web requests.
+ * Provides the classes necessary to create a client for azure active directory to get tokens.
+ *  
+ *
+ * @since 1.0
+ * @see java.awt
  */
-public interface IWebRequestHandler {
-    HttpWebResponse sendGet(URL url, HashMap<String, String> headers);
-
-    HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
-            String contentType);
-
-    public void setRequestCorrelationId(UUID mRequestCorrelationId);
-}
+package com.microsoft.aad.adal;

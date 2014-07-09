@@ -61,12 +61,12 @@ class ChallangeResponseBuilder {
         String mContext = "";
 
         /**
-         * Authorization endpoint will return accepted authorities
+         * Authorization endpoint will return accepted authorities.
          */
         List<String> mCertAuthorities;
 
         /**
-         * Token endpoint will return thumbprint
+         * Token endpoint will return thumbprint.
          */
         String mThumbprint = "";
 

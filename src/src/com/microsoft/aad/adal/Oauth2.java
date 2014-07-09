@@ -39,20 +39,14 @@ import android.os.Build;
 import android.util.Base64;
 
 /**
- * Base Oauth class
+ * Base Oauth class.
  */
 class Oauth2 {
 
     private AuthenticationRequest mRequest;
 
-    /**
-     * for mocking webrequests
-     */
     private IWebRequestHandler mWebRequestHandler;
 
-    /**
-     * for mocking jws message
-     */
     private IJWSBuilder mJWSBuilder = new JWSBuilder();
 
     private final static String TAG = "Oauth";
@@ -267,7 +261,7 @@ class Oauth2 {
     }
 
     /**
-     * parse user id token string
+     * parse user id token string.
      * 
      * @param idtoken
      * @return UserInfo
@@ -426,7 +420,7 @@ class Oauth2 {
     }
 
     /**
-     * get code and exchange for token
+     * get code and exchange for token.
      * 
      * @param code
      * @return Token in the AuthenticationResult

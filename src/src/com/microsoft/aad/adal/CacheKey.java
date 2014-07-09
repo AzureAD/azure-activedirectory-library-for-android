@@ -22,12 +22,12 @@ import java.io.Serializable;
 import java.util.Locale;
 
 /**
- * CacheKey will be the object for key
+ * CacheKey will be the object for key.
  */
-public class CacheKey implements Serializable {
+public final class CacheKey implements Serializable {
 
     /**
-     * serial version id
+     * Serial version id.
      */
     private static final long serialVersionUID = 8067972995583126404L;
 
@@ -53,6 +53,14 @@ public class CacheKey implements Serializable {
                 (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId);
     }
 
+    /**
+     * @param authority URL of the authenticating authority
+     * @param resource resource identifier
+     * @param clientId client identifier
+     * @param isMultiResourceRefreshToken true/false for refresh token type
+     * @param userId userid provided from {@link UserInfo}
+     * @return CacheKey to use in saving token
+     */
     public static String createCacheKey(String authority, String resource, String clientId,
             boolean isMultiResourceRefreshToken, String userId) {
 
@@ -92,6 +100,10 @@ public class CacheKey implements Serializable {
         return key.toString();
     }
 
+    /**
+     * @param item Token item in the cache
+     * @return CacheKey to save token
+     */
     public static String createCacheKey(TokenCacheItem item) {
         if (item == null) {
             throw new IllegalArgumentException("TokenCacheItem");
@@ -107,6 +119,11 @@ public class CacheKey implements Serializable {
                 item.getIsMultiResourceRefreshToken(), userid);
     }
 
+    /**
+     * @param item AuthenticationRequest item
+     * @param cacheUserId UserId in the cache
+     * @return CacheKey to save token
+     */
     public static String createCacheKey(AuthenticationRequest item, String cacheUserId) {
         if (item == null) {
             throw new IllegalArgumentException("AuthenticationRequest");
@@ -120,10 +137,12 @@ public class CacheKey implements Serializable {
      * Store multi resource refresh tokens with different key. Key will not
      * include resource and set flag to y.
      * 
-     * @param item
-     * @return
+     * @param item AuthenticationRequest item
+     * @param cacheUserId UserId in the cache
+     * @return CacheKey to save token
      */
-    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item, String cacheUserId) {
+    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item,
+            String cacheUserId) {
         if (item == null) {
             throw new IllegalArgumentException("AuthenticationRequest");
         }
@@ -132,22 +151,47 @@ public class CacheKey implements Serializable {
                 cacheUserId);
     }
 
+    /**
+     * Gets Authority.
+     * 
+     * @return Authority
+     */
     public String getAuthority() {
         return mAuthority;
     }
 
+    /**
+     * Gets Resource.
+     * 
+     * @return Resource
+     */
     public String getResource() {
         return mResource;
     }
 
+    /**
+     * Gets ClientId.
+     * 
+     * @return ClientId
+     */
     public String getClientId() {
         return mClientId;
     }
 
+    /**
+     * Gets UserId.
+     * 
+     * @return UserId
+     */
     public String getUserId() {
         return mUserId;
     }
 
+    /**
+     * Gets status for multi resource refresh token.
+     * 
+     * @return status for multi resource refresh token
+     */
     public boolean getIsMultipleResourceRefreshToken() {
         return mIsMultipleResourceRefreshToken;
     }

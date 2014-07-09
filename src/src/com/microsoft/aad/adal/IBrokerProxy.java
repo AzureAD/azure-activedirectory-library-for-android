@@ -22,7 +22,7 @@ import android.content.Intent;
 
 interface IBrokerProxy {
 	/**
-	 * Checks if broker package correct and authenticator valid
+	 * Checks if broker package correct and authenticator valid.
 	 * 
 	 * @return True package is available and authenticator is installed at
 	 *         Account manager
@@ -34,14 +34,14 @@ interface IBrokerProxy {
 	void saveAccount(String accountName);
 
 	/**
-	 * Gets current broker user(Single User model)
+	 * Gets current broker user(Single User model).
 	 * 
-	 * @return
+	 * @return Current user from AccountManager
 	 */
 	public String getCurrentUser();
 
 	/**
-	 * gets token using authenticator service
+	 * gets token using authenticator service.
 	 * 
 	 * @param request
 	 * @return AuthenticationResult
@@ -50,7 +50,7 @@ interface IBrokerProxy {
 			final AuthenticationRequest request);
 
 	/**
-	 * only gets intent to start from calling app's activity
+	 * only gets intent to start from calling app's activity.
 	 * 
 	 * @param request
 	 * @return Intent

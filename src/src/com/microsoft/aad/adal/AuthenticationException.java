@@ -21,6 +21,7 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 
 /**
+ * ADAL exception.
  */
 public class AuthenticationException extends RuntimeException {
     static final long serialVersionUID = 1;
@@ -28,17 +29,21 @@ public class AuthenticationException extends RuntimeException {
     protected ADALError mCode;
 
     /**
-     * Constructs a new AuthenticationError.
+     * Constructs a new AuthenticationException.
      */
     public AuthenticationException() {
     }
 
+    /**
+     * Constructs a new AuthenticationException with error code.
+     * 
+     * @param code {@link ADALError}
+     */
     public AuthenticationException(ADALError code) {
         mCode = code;
     }
 
     /**
-     * @param appcontext Application context
      * @param code Resource file related error code. Message will be derived
      *            from resource with using app context
      * @param details Details related to the error such as query string, request
@@ -49,11 +54,23 @@ public class AuthenticationException extends RuntimeException {
         mCode = code;
     }
 
+    /**
+     * @param code Resource file related error code. Message will be derived
+     *            from resource with using app context
+     * @param details Details related to the error such as query string, request
+     *            info
+     * @param throwable {@link Throwable}
+     */
     public AuthenticationException(ADALError code, String details, Throwable throwable) {
         super(details, throwable);
         mCode = code;
     }
 
+    /**
+     * Gets {@link ADALError} code.
+     * 
+     * @return {@link ADALError} code
+     */
     public ADALError getCode() {
         return mCode;
     }
@@ -63,6 +80,12 @@ public class AuthenticationException extends RuntimeException {
         return getLocalizedMessage(null);
     }
 
+    /**
+     * Gets localized {@link ADALError} code if provided by context.
+     * 
+     * @param context {@link Context}
+     * @return Error message
+     */
     public String getLocalizedMessage(Context context) {
         if (!StringExtensions.IsNullOrBlank(super.getMessage())) {
             return super.getMessage();

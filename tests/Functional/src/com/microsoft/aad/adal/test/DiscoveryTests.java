@@ -60,7 +60,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         @SuppressWarnings("unchecked")
         Set<String> validHosts = (Set<String>)ReflectionUtils.getFieldValue(discovery,
-                "mValidHosts");
+                "sValidHosts");
         assertTrue("host is in the list", validHosts.contains("login.somewhere.com"));
     }
 
@@ -219,7 +219,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         // it should be in the list
         Set<String> validHosts = (Set<String>)ReflectionUtils.getFieldValue(discovery,
-                "mValidHosts");
+                "sValidHosts");
         assertTrue("added new host in the list", validHosts.size() == 4);
         assertTrue("has new host in the list to skip query",
                 validHosts.contains("login.windows-ppe.net"));

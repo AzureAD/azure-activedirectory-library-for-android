@@ -42,9 +42,9 @@ import com.google.gson.Gson;
  */
 public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuery {
 
-    private final static long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-    private final static String SHARED_PREFERENCE_NAME = "com.microsoft.aad.adal.cache";
+    private static final String SHARED_PREFERENCE_NAME = "com.microsoft.aad.adal.cache";
 
     private static final String TAG = "DefaultTokenCacheStore";
 
@@ -52,14 +52,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private Context mContext;
 
-    private Gson gson = new Gson();
+    private Gson mGson = new Gson();
 
     private static StorageHelper sHelper;
 
     private static Object sLock = new Object();
 
     /**
-     * @param context
+     * @param context {@link Context}
      * @throws NoSuchAlgorithmException
      * @throws NoSuchPaddingException
      */
@@ -120,7 +120,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             String json = mPrefs.getString(key, "");
             String decrypted = decrypt(json);
             if (decrypted != null) {
-                return gson.fromJson(decrypted, TokenCacheItem.class);
+                return mGson.fromJson(decrypted, TokenCacheItem.class);
             }
         }
 
@@ -157,7 +157,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             throw new IllegalArgumentException("item");
         }
 
-        String json = gson.toJson(item);
+        String json = mGson.toJson(item);
         String encrypted = encrypt(json);
         if (encrypted != null) {
             Editor prefsEditor = mPrefs.edit();
@@ -183,7 +183,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     // Extra helper methods can be implemented here for queries
 
     /**
-     * User can query over iterator values
+     * User can query over iterator values.
      */
     @Override
     public Iterator<TokenCacheItem> getAll() {
@@ -201,7 +201,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             String json = values.next();
             String decrypted = decrypt(json);
             if (decrypted != null) {
-                TokenCacheItem cacheItem = gson.fromJson(decrypted, TokenCacheItem.class);
+                TokenCacheItem cacheItem = mGson.fromJson(decrypted, TokenCacheItem.class);
                 tokens.add(cacheItem);
             }
         }
@@ -210,7 +210,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     /**
-     * unique users with tokens
+     * Unique users with tokens.
      * 
      * @return unique users
      */
@@ -230,10 +230,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     /**
-     * tokens for resource
+     * Tokens for resource.
      * 
-     * @param resource
-     * @return
+     * @param resource Resource identifier
+     * @return list of {@link TokenCacheItem}
      */
     @Override
     public ArrayList<TokenCacheItem> getTokensForResource(String resource) {
@@ -251,10 +251,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     /**
-     * get tokens for user
+     * Get tokens for user.
      * 
-     * @param userid
-     * @return
+     * @param userid Userid
+     * @return list of {@link TokenCacheItem}
      */
     @Override
     public ArrayList<TokenCacheItem> getTokensForUser(String userid) {
@@ -273,9 +273,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     /**
-     * clear tokens for user without additional retry
+     * Clear tokens for user without additional retry.
      * 
-     * @param userid
+     * @param userid UserId
      */
     @Override
     public void clearTokensForUser(String userid) {
@@ -290,9 +290,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     /**
-     * get tokens about to expire
+     * Get tokens about to expire.
      * 
-     * @return
+     * @return list of {@link TokenCacheItem}
      */
     @Override
     public ArrayList<TokenCacheItem> getTokensAboutToExpire() {
@@ -329,7 +329,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return false;
     }
 
-    private final static int TOKEN_VALIDITY_WINDOW = 10;
+    private static final int TOKEN_VALIDITY_WINDOW = 10;
 
     private static Calendar getTokenValidityTime() {
         Calendar timeAhead = Calendar.getInstance();

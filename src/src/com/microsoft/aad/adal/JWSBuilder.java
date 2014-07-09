@@ -33,23 +33,25 @@ import android.util.Base64;
 import com.google.gson.Gson;
 
 /**
- * JWS response builder for certificate challenge response
+ * JWS response builder for certificate challenge response.
  */
 class JWSBuilder implements IJWSBuilder {
+    private static final long SECONDS_MS = 1000L;
+
     /**
-     * Algorithm is fixed to RSA PKCS v1.5
+     * Algorithm is fixed to RSA PKCS v1.5.
      */
     private static final String JWS_HEADER_ALG = "RS256";
 
     /**
-     * Algorithm name in this provider
+     * Algorithm name in this provider.
      */
     private static final String JWS_ALGORITHM = "SHA256withRSA";
 
     private static final String TAG = "JWSBuilder";
 
     /**
-     * Payload for JWS
+     * Payload for JWS.
      */
     class Claims {
         @com.google.gson.annotations.SerializedName("aud")
@@ -63,7 +65,7 @@ class JWSBuilder implements IJWSBuilder {
     }
 
     /**
-     * Header that includes algorithm, type, thumbprint, keys, and keyid
+     * Header that includes algorithm, type, thumbprint, keys, and keyid.
      */
     class JwsHeader {
         @com.google.gson.annotations.SerializedName("alg")
@@ -107,7 +109,7 @@ class JWSBuilder implements IJWSBuilder {
         Claims claims = new Claims();
         claims.mNonce = nonce;
         claims.mAudience = audience;
-        claims.mIssueAt = (System.currentTimeMillis() / 1000L);
+        claims.mIssueAt = (System.currentTimeMillis() / SECONDS_MS);
 
         JwsHeader header = new JwsHeader();
         header.mAlgorithm = JWS_HEADER_ALG;
@@ -127,7 +129,7 @@ class JWSBuilder implements IJWSBuilder {
             header.mCert = new String[1];
             header.mCert[0] = new String(Base64.encode(cert.getEncoded(), Base64.NO_WRAP),
                     AuthenticationConstants.ENCODING_UTF8);
-            
+
             // redundant but current ADFS code base is looking for
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
@@ -144,12 +146,12 @@ class JWSBuilder implements IJWSBuilder {
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
         } catch (CertificateEncodingException e) {
             throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR);
-        }  
+        }
         return signingInput + "." + signature;
     }
 
     /**
-     * Signs the input with the private key
+     * Signs the input with the private key.
      * 
      * @param privateKey
      * @param input

@@ -142,7 +142,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         assertTrue(webview.getSettings().getJavaScriptEnabled());
 
         // Spinner
-        Field f = AuthenticationActivity.class.getDeclaredField("spinner");
+        Field f = AuthenticationActivity.class.getDeclaredField("mSpinner");
         f.setAccessible(true);
         ProgressDialog spinner = (ProgressDialog)f.get(getActivity());
         assertNotNull(spinner);
@@ -201,7 +201,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 + "?Nonce=nonce1234&CertAuthorities=ABC&Version=1.0&SubmitUrl=submiturl&Context=serverContext";
         WebViewClient client = getCustomWebViewClient();
         WebView mockview = new WebView(getActivity().getApplicationContext());
-        ReflectionUtils.setFieldValue(activity, "spinner", null);
+        ReflectionUtils.setFieldValue(activity, "mSpinner", null);
 
         // Act
         client.shouldOverrideUrlLoading(mockview, url);

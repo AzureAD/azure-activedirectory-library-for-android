@@ -19,7 +19,7 @@
 package com.microsoft.aad.adal;
 
 /**
- * Prompt Behaviors that sets the behavior for authentication activity launch 
+ * Prompt Behaviors that sets the behavior for authentication activity launch.
  */
 public enum PromptBehavior {
     /**

@@ -33,7 +33,7 @@ final class HashMapExtensions {
     private static final String TAG = "HashMapExtensions";
 
     /**
-     * decode url string into a key value pairs with default query delimiter
+     * decode url string into a key value pairs with default query delimiter.
      * 
      * @param query
      * @return key value pairs
@@ -84,7 +84,7 @@ final class HashMapExtensions {
     
     
     /**
-     * get key value pairs from response
+     * get key value pairs from response.
      * @param webResponse
      * @return
      * @throws JSONException

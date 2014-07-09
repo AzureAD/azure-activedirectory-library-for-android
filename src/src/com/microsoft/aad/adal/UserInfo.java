@@ -112,7 +112,7 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Gets unique userid
+     * Gets unique userid.
      * 
      * @return
      */
@@ -125,7 +125,7 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Gets given name
+     * Gets given name.
      * 
      * @return
      */
@@ -138,7 +138,7 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Gets family name
+     * Gets family name.
      * 
      * @return
      */
@@ -151,7 +151,7 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Gets Identity provider
+     * Gets Identity provider.
      * 
      * @return
      */
@@ -164,7 +164,7 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Gets displayable user name
+     * Gets displayable user name.
      * 
      * @return
      */
@@ -177,7 +177,7 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Gets password change url
+     * Gets password change url.
      * 
      * @return
      */
@@ -190,7 +190,7 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Gets password expires on
+     * Gets password expires on.
      * 
      * @return
      */

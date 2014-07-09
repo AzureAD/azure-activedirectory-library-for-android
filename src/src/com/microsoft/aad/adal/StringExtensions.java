@@ -43,7 +43,7 @@ final class StringExtensions {
     private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
     /**
-     * checks if string is null or empty
+     * checks if string is null or empty.
      * 
      * @param param
      * @return
@@ -80,7 +80,7 @@ final class StringExtensions {
     }
 
     /**
-     * replace + to space and decode
+     * replace + to space and decode.
      * 
      * @param source
      * @return

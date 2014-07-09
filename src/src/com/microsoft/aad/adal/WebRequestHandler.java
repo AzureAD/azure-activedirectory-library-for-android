@@ -33,14 +33,23 @@ import com.microsoft.aad.adal.AuthenticationConstants.AAD;
  */
 public class WebRequestHandler implements IWebRequestHandler {
 
-    private final static String TAG = "WebRequestHandler";
+    private static final String TAG = "WebRequestHandler";
 
-    public final static String HEADER_ACCEPT = "Accept";
+    /**
+     * Header for accept.
+     */
+    public static final String HEADER_ACCEPT = "Accept";
 
-    public final static String HEADER_ACCEPT_JSON = "application/json";
+    /**
+     * Header for json type.
+     */
+    public static final String HEADER_ACCEPT_JSON = "application/json";
 
     private UUID mRequestCorrelationId = null;
 
+    /**
+     * Creates http request.
+     */
     public WebRequestHandler() {
 
     }
@@ -94,7 +103,12 @@ public class WebRequestHandler implements IWebRequestHandler {
         return headers;
     }
 
-    public void setRequestCorrelationId(UUID mRequestCorrelationId) {
-        this.mRequestCorrelationId = mRequestCorrelationId;
+    /**
+     * Sets correlationId.
+     * 
+     * @param requestCorrelationId {@link UUID}
+     */
+    public void setRequestCorrelationId(UUID requestCorrelationId) {
+        this.mRequestCorrelationId = requestCorrelationId;
     }
 }

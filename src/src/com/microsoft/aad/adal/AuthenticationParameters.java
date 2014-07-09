@@ -34,27 +34,51 @@ import android.os.Handler;
 
 /**
  * Matching to ADAL.NET It provides helper methods to get the
- * authorization_endpoint from resource address
+ * authorization_endpoint from resource address.
  */
 public class AuthenticationParameters {
 
-    public final static String AUTH_HEADER_MISSING_AUTHORITY = "WWW-Authenticate header is missing authorization_uri.";
+    /**
+     * WWW-Authenticate header is missing authorization_uri.
+     */
+    public static final String AUTH_HEADER_MISSING_AUTHORITY = "WWW-Authenticate header is missing authorization_uri.";
 
-    public final static String AUTH_HEADER_INVALID_FORMAT = "Invalid authentication header format";
+    /**
+     * Invalid authentication header format.
+     */
+    public static final String AUTH_HEADER_INVALID_FORMAT = "Invalid authentication header format";
 
-    public final static String AUTH_HEADER_MISSING = "WWW-Authenticate header was expected in the response";
+    /**
+     * WWW-Authenticate header was expected in the response.
+     */
+    public static final String AUTH_HEADER_MISSING = "WWW-Authenticate header was expected in the response";
 
-    public final static String AUTH_HEADER_WRONG_STATUS = "Unauthorized http response (status code 401) was expected";
+    /**
+     * Unauthorized http response (status code 401) was expected.
+     */
+    public static final String AUTH_HEADER_WRONG_STATUS = "Unauthorized http response (status code 401) was expected";
 
-    public final static String AUTHENTICATE_HEADER = "WWW-Authenticate";
+    /**
+     * Constant Authenticate header: WWW-Authenticate.
+     */
+    public static final String AUTHENTICATE_HEADER = "WWW-Authenticate";
 
-    public final static String BEARER = "bearer";
+    /**
+     * Constant Bearer.
+     */
+    public static final String BEARER = "bearer";
 
-    public final static String AUTHORITY_KEY = "authorization_uri";
+    /**
+     * Constant Authority key.
+     */
+    public static final String AUTHORITY_KEY = "authorization_uri";
 
-    public final static String RESOURCE_KEY = "resource_id";
+    /**
+     * Constant Resource key.
+     */
+    public static final String RESOURCE_KEY = "resource_id";
 
-    private final static String TAG = "AuthenticationParameters";
+    private static final String TAG = "AuthenticationParameters";
 
     private static final String REGEX = "^Bearer\\s+([^,\\s=\"]+?)=\"([^\"]*?)\"\\s*(?:,\\s*([^,\\s=\"]+?)=\"([^\"]*?)\"\\s*)*$";
 
@@ -65,29 +89,36 @@ public class AuthenticationParameters {
     private String mResource;
 
     /**
-     * Web request handler interface to test behaviors
+     * Web request handler interface to test behaviors.
      */
     private static IWebRequestHandler sWebRequest = new WebRequestHandler();
 
     /**
-     * Singled threaded Executor for async work
+     * Singled threaded Executor for async work.
      */
     private static ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * get authority
+     * get authority from the header.
+     * 
+     * @return Authority extracted from the header.
      */
     public String getAuthority() {
         return mAuthority;
     }
 
     /**
-     * get resource
+     * get resource from the header.
+     * 
+     * @return resource from the header.
      */
     public String getResource() {
         return mResource;
     }
 
+    /**
+     * Creates AuthenticationParameters.
+     */
     public AuthenticationParameters() {
     }
 
@@ -96,12 +127,24 @@ public class AuthenticationParameters {
         mResource = resource;
     }
 
+    /**
+     * Callback to use for async request.
+     */
     public interface AuthenticationParamCallback {
-        public void onCompleted(Exception exception, AuthenticationParameters param);
+
+        /**
+         * @param exception {@link Exception}
+         * @param param {@link AuthenticationParameters}
+         */
+        void onCompleted(Exception exception, AuthenticationParameters param);
     }
 
     /**
-     * ADAL will make the call to get authority and resource info
+     * ADAL will make the call to get authority and resource info.
+     * 
+     * @param context {@link Context}
+     * @param resourceUrl Url for resource to query for 401 response.
+     * @param callback  {@link AuthenticationParamCallback}
      */
     public static void createFromResourceUrl(Context context, final URL resourceUrl,
             final AuthenticationParamCallback callback) {
@@ -148,7 +191,9 @@ public class AuthenticationParameters {
 
     /**
      * ADAL will parse the header response to get the authority and the resource
-     * info
+     * info.
+     * @param authenticateHeader Header to check authority and resource.
+     * @return {@link AuthenticationParameters}
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
             String authenticateHeader) {
@@ -160,7 +205,8 @@ public class AuthenticationParameters {
             Pattern p = Pattern.compile(REGEX);
             Matcher m = p.matcher(authenticateHeader);
 
-            // If the header is in the right format, REGEX_VALUES will extract individual
+            // If the header is in the right format, REGEX_VALUES will extract
+            // individual
             // name-value pairs. This regex is not as exclusive, so it relies on
             // the previous check to guarantee correctness:
             if (m.matches()) {

@@ -37,7 +37,7 @@ import android.util.Base64;
 import android.util.Log;
 
 /**
- * Gets information about calling activity
+ * Gets information about calling activity.
  */
 class PackageHelper {
     private static final String TAG = "CallerInfo";
@@ -47,7 +47,7 @@ class PackageHelper {
     AccountManager mAcctManager;
 
     /**
-     * Creates helper to check caller info
+     * Creates helper to check caller info.
      * 
      * @param ctx
      */
@@ -57,7 +57,7 @@ class PackageHelper {
     }
 
     /**
-     * Gets metadata information from AndroidManifest file
+     * Gets metadata information from AndroidManifest file.
      * 
      * @param packageName
      * @param component
@@ -93,7 +93,7 @@ class PackageHelper {
     }
 
     /**
-     * Reads first signature in the list for given package name
+     * Reads first signature in the list for given package name.
      * 
      * @param packagename
      * @return signature for package
@@ -121,7 +121,7 @@ class PackageHelper {
     }
 
     /**
-     * Gets package UID
+     * Gets package UID.
      * 
      * @param packagename
      * @return UID
@@ -140,6 +140,12 @@ class PackageHelper {
         return callingUID;
     }
 
+    /**
+     * Gets redirect uri for broker.
+     * @param packageName   application package name
+     * @param signatureDigest   application signature 
+     * @return broker redirect url
+     */
     public static String getBrokerRedirectUrl(final String packageName, final String signatureDigest) {
         if (!StringExtensions.IsNullOrBlank(packageName)
                 && !StringExtensions.IsNullOrBlank(signatureDigest)) {

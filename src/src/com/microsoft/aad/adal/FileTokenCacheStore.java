@@ -34,7 +34,7 @@ import android.content.Context;
 public class FileTokenCacheStore implements ITokenCacheStore {
 
     /**
-     * default serial#
+     * Default serial version.
      */
     private static final long serialVersionUID = -8252291336171327870L;
 
@@ -51,10 +51,10 @@ public class FileTokenCacheStore implements ITokenCacheStore {
     private final Object mCacheLock = new Object();
 
     /**
-     * it tracks data in memory until it writes that to a file with write
+     * It tracks data in memory until it writes that to a file with write
      * operation.
      * 
-     * @param context
+     * @param context {@link Context}
      * @param fileName filename should be unique to this instance since read
      *            operations don't read from file directly. write operations
      *            write to a file.

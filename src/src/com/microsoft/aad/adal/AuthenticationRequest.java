@@ -22,11 +22,11 @@ import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * Represent request and keeps authorization code and similar info
+ * Represent request and keeps authorization code and similar info.
  */
 class AuthenticationRequest implements Serializable {
 
-    private final static long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private int mRequestId = 0;
 
@@ -94,12 +94,13 @@ class AuthenticationRequest implements Serializable {
     }
 
     /**
-     * Cache usage and refresh token requests
+     * Cache usage and refresh token requests.
      * 
      * @param authority
      * @param resource
      * @param clientid
      * @param userid
+     * @param correlationId 
      */
     public AuthenticationRequest(String authority, String resource, String clientid, String userid,
             UUID correlationId) {
@@ -183,8 +184,8 @@ class AuthenticationRequest implements Serializable {
         return mBrokerAccountName;
     }
 
-    public void setBrokerAccountName(String mBrokerAccountName) {
-        this.mBrokerAccountName = mBrokerAccountName;
+    public void setBrokerAccountName(String brokerAccountName) {
+        this.mBrokerAccountName = brokerAccountName;
     }
 
     void setLoginHint(String name) {
@@ -195,15 +196,15 @@ class AuthenticationRequest implements Serializable {
         return mUserId;
     }
 
-    public void setUserId(String mUserId) {
-        this.mUserId = mUserId;
+    public void setUserId(String userId) {
+        this.mUserId = userId;
     }
 
     public boolean isSilent() {
         return mSilent;
     }
 
-    public void setSilent(boolean mSilent) {
-        this.mSilent = mSilent;
+    public void setSilent(boolean silent) {
+        this.mSilent = silent;
     }
 }

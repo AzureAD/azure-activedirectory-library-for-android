@@ -40,6 +40,9 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     private transient Object mCacheLock = new Object();
 
+    /**
+     * Creates MemoryTokenCacheStore.
+     */
     public MemoryTokenCacheStore() {
     }
 

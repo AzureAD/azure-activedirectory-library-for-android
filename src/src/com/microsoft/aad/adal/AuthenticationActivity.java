@@ -67,14 +67,16 @@ import com.google.gson.Gson;
 import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 /**
- * Activity to launch webview for authentication
+ * Authentication Activity to launch {@link WebView} for authentication.
  */
-@SuppressLint("SetJavaScriptEnabled")
+@SuppressLint({
+        "SetJavaScriptEnabled", "ClickableViewAccessibility"
+})
 public class AuthenticationActivity extends Activity {
 
     static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
 
-    private final String TAG = "AuthenticationActivity";
+    private static final String TAG = "AuthenticationActivity";
 
     private boolean mRegisterReceiver = false;
 
@@ -82,7 +84,7 @@ public class AuthenticationActivity extends Activity {
 
     private String mStartUrl;
 
-    private ProgressDialog spinner;
+    private ProgressDialog mSpinner;
 
     private String mRedirectUrl;
 
@@ -261,8 +263,8 @@ public class AuthenticationActivity extends Activity {
         mWebView.post(new Runnable() {
             @Override
             public void run() {
-
-                mWebView.loadUrl("about:blank");// load blank first
+                // load blank first
+                mWebView.loadUrl("about:blank");
                 mWebView.loadUrl(postUrl);
             }
         });
@@ -271,8 +273,8 @@ public class AuthenticationActivity extends Activity {
     private void setupWebView() {
 
         // Spinner dialog to show some message while it is loading
-        spinner = new ProgressDialog(this);
-        spinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mSpinner = new ProgressDialog(this);
+        mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
@@ -355,7 +357,7 @@ public class AuthenticationActivity extends Activity {
     }
 
     /**
-     * Return error to caller and finish this activity
+     * Return error to caller and finish this activity.
      */
     private void returnError(ADALError errorCode, String argument) {
         // Set result back to account manager call
@@ -418,7 +420,7 @@ public class AuthenticationActivity extends Activity {
     }
 
     /**
-     * activity sets result to go back to the caller
+     * Activity sets result to go back to the caller.
      * 
      * @param resultCode
      * @param data
@@ -670,22 +672,22 @@ public class AuthenticationActivity extends Activity {
      * @param show
      */
     private void displaySpinner(boolean show) {
-        if (!AuthenticationActivity.this.isFinishing() && spinner != null) {
-            if (show && !spinner.isShowing()) {
-                spinner.show();
+        if (!AuthenticationActivity.this.isFinishing() && mSpinner != null) {
+            if (show && !mSpinner.isShowing()) {
+                mSpinner.show();
             }
 
-            if (!show && spinner.isShowing()) {
-                spinner.dismiss();
+            if (!show && mSpinner.isShowing()) {
+                mSpinner.dismiss();
             }
         }
     }
 
     private void displaySpinnerWithMessage(String msg) {
-        if (!AuthenticationActivity.this.isFinishing() && spinner != null) {
-            spinner.show();
-            spinner.setTitle("Processing ");
-            spinner.setMessage(msg);
+        if (!AuthenticationActivity.this.isFinishing() && mSpinner != null) {
+            mSpinner.show();
+            mSpinner.setTitle("Processing ");
+            mSpinner.setMessage(msg);
         }
     }
 
