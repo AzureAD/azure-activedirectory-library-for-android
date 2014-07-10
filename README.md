@@ -3,10 +3,82 @@
 
 The ADAL SDK for Android  gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers. This SDK gives your application the full functionality of Windows Azure AD, including industry standard protocol support for OAuth2, Web API integration, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
 
-## Latest Preview Release
+## Release
 
-We have released a Preview of the ADAL for Android! [You can grab the release here] (https://github.com/MSOpenTech/azure-activedirectory-library-for-android/releases/tag/v0.6-alpha)
+We have released a GA of the ADAL for Android! [You can grab the release here] (https://github.com/MSOpenTech/azure-activedirectory-library-for-android/releases)
 You can also get it from maven repo.
+
+## Features
+* Oauth2 protocol
+* IdToken
+* Multi resource refresh token
+* Cache
+* Encryption
+* Broker support(Future)
+* 401 Authenticatio challange response in AuthenticationParameters
+
+## Getting Started
+This is an Android library with resources, so you have multiple options to use in your project. You could get source code and import project into Eclipse to link to your app. You can use *aar* package format in AndroidStudio if you want to reference binaries.
+
+##Download
+###Option 1: Source Zip
+
+To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/archive/master.zip).
+
+###Option 2: Source via Git
+
+To get the source code of the SDK via git just type:
+
+    git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
+    cd ./azure-activedirectory-library-for-android/src
+
+###Option 3: Binaries via Gradle
+
+You can get the binaries from Maven central repo. AAR package can be included as follows in your project at AndroidStudio:
+
+```gradle 
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
+    maven {
+        url "YourLocalMavenRepoPath\\.m2\\repository"
+    }
+}
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile ('com.microsoft.aad:adal:1.0.0')
+}
+```
+
+###Option 4: aar via Maven
+
+If you are using m2e plugin in Eclipse, you can specify the dependency in your pom.xml file:
+
+```xml
+<dependency>
+    <groupId>com.microsoft.aad</groupId>
+    <artifactId>adal</artifactId>
+    <version>1.0.0</version>
+    <type>aar</type>
+</dependency>
+```
+####Maven Sample project to run on a device
+If you want to build with Maven, you can use the pom.xml at top level
+  * Follow the steps at [Prerequests section to setup your maven for android](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
+  * Setup emulator with SDK 18
+  * go to root folder
+  * mvn clean install
+  * cd samples\hello
+  * mvn android:deploy android:run
+  * You should see app launching
+  * Enter test user credentials to try
+
+Jar packages will be also submitted beside aar package.
+
+###Option 5: jar package inside libs folder
+You can get the jar file from maven repo and drop into *libs* folder in  your project. You need to copy required resources to your project as well since jar packages don't include them.
 
 ### Prerequisites
 
@@ -16,42 +88,6 @@ You can also get it from maven repo.
 * AVD image running (API level 14) or higher.
 * Android SDK with *ALL* packages installed
 * You may use any IDE that supports Maven. Eclipse ADT will work fine after you complete prereq step.
-
-
-#### Install This Repo without Maven
-
-You can clone and install dependencies to build ADAL:
-
-    git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
-    cd azure-activedirectory-library-for-android/src/libs
-    run getLibs.ps1 or getLibs.sh depending on your platform
-    You could add support-v4 through Eclipse.
-
-
-#### Install This Repo with Maven
-##### Setup Maven Android SDK Deployer
-
-Some of the Android libraries are not at the maven repo, so you need to have the [Android Maven SDK Deployer](https://github.com/mosabua/maven-android-sdk-deployer) installed and configured. You can read at the Android Maven SDK Deployer GitHub in depth install guide.
-
-Before you run the SDK Deployer, you should have installed ALL PACKAGES in the Android SDK.  Once that has finished, you may run the following.
-
-    git clone https://github.com/mosabua/maven-android-sdk-deployer.git
-    cd maven-android-sdk-deployer\platforms\android-19
-    mvn clean install
-    cd ..\..\extras\compatibility-v4
-    mvn clean install -Dextras.compatibility.v4.groupid=com.android.support \
-            -Dextras.compatibility.v4.artifactid=support-v4
-
-Now Maven will have android-19 and support-v4 as dependencies in local m2 repo.
-
-##### Install ADAL with mvn cmd
-
-You can clone and install from cmd line. This requires to setup Maven Android environment:
-
-    git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
-    cd azure-activedirectory-library-for-android
-    mvn clean install
-
 
 ## Usage as Android Library
 
@@ -132,19 +168,22 @@ private AuthenticationCallback<AuthenticationResult> callback = new Authenticati
 ```
 10. Ask for a token:
 ```Java
- mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, PromptBehavior.Auto, "",
+ mContext.acquireToken(MainActivity.this, resource, clientId, redirect, user_loginhint, PromptBehavior.Auto, "",
                 callback);
 ```
   * Resource is required, Clientid is required. You can setup redirectUri as your packagename and it is not required to be provided for acquireToken call. PromptBehavior helps to ask for credentials to skip cache and cookie. Callback ill be called after authorization code is exchanged for a token. It will have an object of AuthenticationResult, which has accesstoken, date expired, and idtoken info. 
-11. You can always call **acquireToken** to handle caching, token refresh and credential prompt if required. Your callback implementation should handle the user cancellation for AuthenticationActivity. ADAL will return a cancellation error, if user cancels the credential entry.
+11. You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well.
+Token 
+```Java
+ mContext.acquireTokenSilent(resource, clientid, userId, callback );
+```
 
-### SDK Usage Options
-There are two ways to include the SDK in your project: 1-) You can include and build the Android Library Project in your IDE or 2-) You can use Maven.
-Option-1 is explained above. Option-2: You can see example usage in wiki page https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Android-Studio-and-Maven
-           
+## Development
+You can clone the repo and start contributing. if you want to setup maven enviroment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
+       
 
-### Customization
-Library project resources can be overwritten by your app resources. This happens when app is building. It means that you can customize Authentication Activity layout the way you want. You need to make sure to keep id of two controls that ADAL uses(Webview and button).
+## Customization
+Library project resources can be overwritten by your app resources. This happens when app is building. It means that you can customize Authentication Activity layout the way you want. You need to make sure to keep id of controls that ADAL uses(Webview).
 
 ### Authority Url and ADFS
 ADFS is not recognized as production STS, so you need to turn of instance discovery and pass false at AuthenticationContext constructor.
@@ -160,6 +199,7 @@ You can also provide your cache implementation, if you want to customize it.
 ```Java
 mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCache);
 ```
+
 ### PromptBehavior
 ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI.
 
@@ -182,16 +222,7 @@ Logger.getInstance().setExternalLogger(new ILogger() {
 // you can manage min log level as well
 Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
 ```
-### Maven Sample project to run on a device
-If you want to build with Maven, you can use the pom.xml at top level
-  * Follow the steps at Prerequests section to setup your maven for android
-  * Setup emulator with SDK 18
-  * go to root folder
-  * mvn clean install
-  * cd samples\hello
-  * mvn android:deploy android:run
-  * You should see app launching
-  * Enter test user credentials to try
+
 
 ### Encryption
 ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details. Android introduced AndroidKeyStore for 4.3(API18) secure storage of private keys. ADAL uses that for API18 and above. If you want to use ADAL for lower SDK versions, you need to provide secret key at AuthenticationSettings.INSTANCE.setSecretKey
