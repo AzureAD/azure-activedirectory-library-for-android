@@ -1,24 +1,24 @@
 ﻿#Windows Azure Active Directory Authentication Library (ADAL) for Android
 ===========
 
-The ADAL SDK for Android  gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers. This SDK gives your application the full functionality of Windows Azure AD, including industry standard protocol support for OAuth2, Web API integration, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
+The ADAL SDK for Android gives you the ability to add Windows Azure Active Directory authentication and authorization to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers. This SDK gives your application the full functionality of Windows Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
 
-## Release
+## Latest Release
 
-We have released a GA of the ADAL for Android! [You can grab the release here] (https://github.com/MSOpenTech/azure-activedirectory-library-for-android/releases)
-You can also get it from maven repo.
+Thanks to all your great feedback over the preview period, we have released 1.0 (GA) of the ADAL for Android! 
 
 ## Features
-* Oauth2 protocol
-* IdToken
-* Multi resource refresh token
-* Cache
-* Encryption
-* Broker support(Future)
-* 401 Authenticatio challange response in AuthenticationParameters
+* Industry standard Oauth2 protocol support.
+* IdToken exposure for full access to the token contents.
+* Multi resource refresh token allows for apps registered together to access different APIs without prompting the user.
+* Cache with Encryption for easily accessing existing tokens and session state with assurance it wasn't tampered with.
+* Support for the Microsoft Azure AD Authenticator plug-in for Android, which will be released soon!
 
 ## Getting Started
-This is an Android library with resources, so you have multiple options to use in your project. You could get source code and import project into Eclipse to link to your app. You can use *aar* package format in AndroidStudio if you want to reference binaries.
+We've made it easy for you to have multiple options to use this library in your Android project:
+
+* You can use the source code to import this library into Eclipse and link to your application. 
+* If using Android Studio, you can use *aar* package format and reference the binaries.
 
 ##Download
 ###Option 1: Source Zip
@@ -181,12 +181,13 @@ You can call **acquireTokenSilent** to handle caching, and token refresh. It pro
      mContext.acquireTokenSilent(resource, clientid, userId, callback );
     ```
 
-## Development
-You can clone the repo and start contributing. if you want to setup maven enviroment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
+## Contributing
+All code is licensed under the Apache 2.0 license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. if you want to setup a maven enviroment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
        
+## Important Information
 
-## Customization
-Library project resources can be overwritten by your app resources. This happens when app is building. It means that you can customize Authentication Activity layout the way you want. You need to make sure to keep id of controls that ADAL uses(Webview).
+### Customization
+Library project resources can be overwritten by your application resources. This happens when your app is building. For this reason, you can customize Authentication Activity layout the way you want. You need to make sure to keep the id of the controls that ADAL uses(Webview).
 
 ### Authority Url and ADFS
 ADFS is not recognized as production STS, so you need to turn of instance discovery and pass false at AuthenticationContext constructor.
