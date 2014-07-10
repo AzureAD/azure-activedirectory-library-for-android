@@ -94,24 +94,25 @@ You can get the jar file from maven repo and drop into *libs* folder in  your pr
 1. Follow Prerequisites
 2. Add reference to your project as Android library. Please check here: http://developer.android.com/tools/projects/projects-eclipse.html
 3. Add project dependency for debugging in your project settings
-4. Update your proejct's AndroidManifest.xml file to include:
-```Java
-  <uses-permission android:name="android.permission.INTERNET" />
-  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-  <application
-        android:allowBackup="true"
-        android:debuggable="true"
-        android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
-        
-        <activity
-            android:name="com.microsoft.adal.AuthenticationActivity"
-            android:label="@string/title_login_hello_app" >
-        </activity>
-  ....
-  <application/>
-```
+4. Update your project's AndroidManifest.xml file to include:
+    ```Java
+      <uses-permission android:name="android.permission.INTERNET" />
+      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+      <application
+            android:allowBackup="true"
+            android:debuggable="true"
+            android:icon="@drawable/ic_launcher"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme" >
+            
+            <activity
+                android:name="com.microsoft.adal.AuthenticationActivity"
+                android:label="@string/title_login_hello_app" >
+            </activity>
+      ....
+      <application/>
+    ```
+
 5. Register your WEBAPI service app at Azure Active Directory(AAD),https://manage.windowsazure.com 
   * You need APP ID URI parameter to get token
 6. Register your client native app at AAD
@@ -119,64 +120,66 @@ You can get the jar file from maven repo and drop into *libs* folder in  your pr
   * Select webapis in the list and give permission to previously registered(Step5) WebAPI 
 7. Create an instance of AuthenticationContext at your main Activity. You can look at sample projects that is used for testing.
  
-```Java
-  // Authority is in the form of https://login.windows.net/yourtenant.onmicrosoft.com
-  mContext = new AuthenticationContext(MainActivity.this, authority, true); // This will use SharedPreferences as default cache
-```
+    ```Java
+      // Authority is in the form of https://login.windows.net/yourtenant.onmicrosoft.com
+      mContext = new AuthenticationContext(MainActivity.this, authority, true); // This will use SharedPreferences as            default cache
+    ```
   mContext is a field in your activity
 8. Copy this code block to handle the end of AuthenticationActivity after user enters credentials and receives authorization code:
-```Java
- @Override
- protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-     super.onActivityResult(requestCode, resultCode, data);
-     if (mContext != null) {
-         mContext.onActivityResult(requestCode, resultCode, data);
+    ```Java
+     @Override
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+         super.onActivityResult(requestCode, resultCode, data);
+         if (mContext != null) {
+             mContext.onActivityResult(requestCode, resultCode, data);
+         }
      }
- }
-```
+    ```
 9. To ask for a token, you need to define a callback:
-```Java
-private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
-
-        @Override
-        public void onError(Exception exc) {
-            if (exc instanceof AuthenticationException) {
-                textViewStatus.setText("Cancelled");
-                Log.d(TAG, "Cancelled");
-            } else {
-                textViewStatus.setText("Authentication error:" + exc.getMessage());
-                Log.d(TAG, "Authentication error:" + exc.getMessage());
+    ```Java
+    private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
+    
+            @Override
+            public void onError(Exception exc) {
+                if (exc instanceof AuthenticationException) {
+                    textViewStatus.setText("Cancelled");
+                    Log.d(TAG, "Cancelled");
+                } else {
+                    textViewStatus.setText("Authentication error:" + exc.getMessage());
+                    Log.d(TAG, "Authentication error:" + exc.getMessage());
+                }
             }
-        }
-
-        @Override
-        public void onSuccess(AuthenticationResult result) {
-            mResult = result;
-
-            if (result == null || result.getAccessToken() == null
-                    || result.getAccessToken().isEmpty()) {
-                textViewStatus.setText("Token is empty");
-                Log.d(TAG, "Token is empty");
-            } else {
-                // request is successful
-                Log.d(TAG, "Status:" + result.getStatus() + " Expired:"
-                        + result.getExpiresOn().toString());
-                textViewStatus.setText(PASSED);
+    
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                mResult = result;
+    
+                if (result == null || result.getAccessToken() == null
+                        || result.getAccessToken().isEmpty()) {
+                    textViewStatus.setText("Token is empty");
+                    Log.d(TAG, "Token is empty");
+                } else {
+                    // request is successful
+                    Log.d(TAG, "Status:" + result.getStatus() + " Expired:"
+                            + result.getExpiresOn().toString());
+                    textViewStatus.setText(PASSED);
+                }
             }
-        }
-    };
-```
+        };
+    ```
 10. Ask for a token:
-```Java
- mContext.acquireToken(MainActivity.this, resource, clientId, redirect, user_loginhint, PromptBehavior.Auto, "",
-                callback);
-```
+    ```Java
+     mContext.acquireToken(MainActivity.this, resource, clientId, redirect, user_loginhint, PromptBehavior.Auto, "",
+                    callback);
+    ```
   * Resource is required, Clientid is required. You can setup redirectUri as your packagename and it is not required to be provided for acquireToken call. PromptBehavior helps to ask for credentials to skip cache and cookie. Callback ill be called after authorization code is exchanged for a token. It will have an object of AuthenticationResult, which has accesstoken, date expired, and idtoken info. 
-11. You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well.
-Token 
-```Java
- mContext.acquireTokenSilent(resource, clientid, userId, callback );
-```
+
+11. **acquireTokenSilent**
+You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well.
+ 
+    ```Java
+     mContext.acquireTokenSilent(resource, clientid, userId, callback );
+    ```
 
 ## Development
 You can clone the repo and start contributing. if you want to setup maven enviroment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
