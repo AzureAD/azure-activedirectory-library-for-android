@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -19,10 +19,16 @@
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
-import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
+/**
+ * Contains information of a single user.
+ */
 public class UserInfo implements Serializable {
 
     /**
@@ -30,7 +36,9 @@ public class UserInfo implements Serializable {
      */
     private static final long serialVersionUID = 8790127561636702672L;
 
-    private String mUserId;
+    private String mUniqueId;
+
+    private String mDisplayableId;
 
     private String mGivenName;
 
@@ -38,44 +46,59 @@ public class UserInfo implements Serializable {
 
     private String mIdentityProvider;
 
-    private boolean mIsUserIdDisplayable;
+    private transient Uri mPasswordChangeUrl;
 
-    private String mTenantId;
+    private transient Date mPasswordExpiresOn;
 
     public UserInfo() {
 
     }
 
     public UserInfo(String userid, String givenName, String familyName, String identityProvider,
-            boolean isDisplayable) {
-        mUserId = userid;
+            String displayableId) {
+        mUniqueId = userid;
         mGivenName = givenName;
         mFamilyName = familyName;
         mIdentityProvider = identityProvider;
-        mIsUserIdDisplayable = isDisplayable;
+        mDisplayableId = displayableId;
     }
 
     public UserInfo(IdToken token) {
-        mIsUserIdDisplayable = false;
-        if (token != null) {
-            mTenantId = token.mTenantId;
-            if (!StringExtensions.IsNullOrBlank(token.mUpn)) {
-                mUserId = token.mUpn;
-                mIsUserIdDisplayable = true;
-            } else if (!StringExtensions.IsNullOrBlank(token.mEmail)) {
-                mUserId = token.mEmail;
-                mIsUserIdDisplayable = true;
-            } else if (!StringExtensions.IsNullOrBlank(token.mSubject)) {
-                mUserId = token.mSubject;
-            }
 
-            mGivenName = token.mGivenName;
-            mFamilyName = token.mFamilyName;
-            mIdentityProvider = token.mIdentityProvider;
+        mUniqueId = null;
+        mDisplayableId = null;
+
+        if (!StringExtensions.IsNullOrBlank(token.mObjectId)) {
+            mUniqueId = token.mObjectId;
+        } else if (!StringExtensions.IsNullOrBlank(token.mSubject)) {
+            mUniqueId = token.mSubject;
+        }
+
+        if (!StringExtensions.IsNullOrBlank(token.mUpn)) {
+            mDisplayableId = token.mUpn;
+        } else if (!StringExtensions.IsNullOrBlank(token.mEmail)) {
+            mDisplayableId = token.mEmail;
+        }
+
+        mGivenName = token.mGivenName;
+        mFamilyName = token.mFamilyName;
+        mIdentityProvider = token.mIdentityProvider;
+        if (token.mPasswordExpiration > 0) {
+            // pwd_exp returns seconds to expiration time
+            // it returns in seconds. Date accepts milliseconds.
+            Calendar expires = new GregorianCalendar();
+            expires.add(Calendar.SECOND, (int)token.mPasswordExpiration);
+            mPasswordExpiresOn = expires.getTime();
+        }
+
+        mPasswordChangeUrl = null;
+        if (!StringExtensions.IsNullOrBlank(token.mPasswordChangeUrl)) {
+            mPasswordChangeUrl = Uri.parse(token.mPasswordChangeUrl);
         }
     }
 
     static UserInfo getUserInfoFromBrokerResult(final Bundle bundle) {
+        // Broker has one user and related to ADFS WPJ user. It does not return idtoken
         String userid = bundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
         String givenName = bundle
                 .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME);
@@ -83,32 +106,99 @@ public class UserInfo implements Serializable {
                 .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME);
         String identityProvider = bundle
                 .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER);
-        Boolean displayable = bundle.getBoolean(
-                AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE, false);
-        return new UserInfo(userid, givenName, familyName, identityProvider, displayable);
+        String displayableId = bundle
+                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE);
+        return new UserInfo(userid, givenName, familyName, identityProvider, displayableId);
     }
 
+    /**
+     * Gets unique userid.
+     * 
+     * @return
+     */
     public String getUserId() {
-        return mUserId;
+        return mUniqueId;
     }
 
-    public boolean getIsUserIdDisplayable() {
-        return mIsUserIdDisplayable;
+    void setUserId(String userid) {
+        mUniqueId = userid;
     }
 
+    /**
+     * Gets given name.
+     * 
+     * @return
+     */
     public String getGivenName() {
         return mGivenName;
     }
 
+    void setGivenName(String name) {
+        mGivenName = name;
+    }
+
+    /**
+     * Gets family name.
+     * 
+     * @return
+     */
     public String getFamilyName() {
         return mFamilyName;
     }
 
+    void setFamilyName(String familyName) {
+        mFamilyName = familyName;
+    }
+
+    /**
+     * Gets Identity provider.
+     * 
+     * @return
+     */
     public String getIdentityProvider() {
         return mIdentityProvider;
     }
 
-    public String getTenantId() {
-        return mTenantId;
+    void setIdentityProvider(String provider) {
+        mIdentityProvider = provider;
+    }
+
+    /**
+     * Gets displayable user name.
+     * 
+     * @return
+     */
+    public String getDisplayableId() {
+        return mDisplayableId;
+    }
+
+    void setDisplayableId(String displayId) {
+        mDisplayableId = displayId;
+    }
+
+    /**
+     * Gets password change url.
+     * 
+     * @return
+     */
+    public Uri getPasswordChangeUrl() {
+        return mPasswordChangeUrl;
+    }
+
+    void setPasswordChangeUrl(Uri passwordChangeUrl) {
+        this.mPasswordChangeUrl = passwordChangeUrl;
+    }
+
+    /**
+     * Gets password expires on.
+     * 
+     * @return
+     */
+    public Date getPasswordExpiresOn() {
+        return mPasswordExpiresOn;
+    }
+
+    void setPasswordExpiresOn(Date passwordExpiresOn) {
+        this.mPasswordExpiresOn = passwordExpiresOn;
     }
 }

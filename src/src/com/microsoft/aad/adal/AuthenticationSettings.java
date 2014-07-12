@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -19,15 +19,15 @@
 package com.microsoft.aad.adal;
 
 /**
- * Settings to be used in AuthenticationContext
+ * Settings to be used in AuthenticationContext.
  */
 public enum AuthenticationSettings {
     /**
-     * Singleton setting instance
+     * Singleton setting instance.
      */
     INSTANCE;
 
-    private final static int SECRET_RAW_KEY_LENGTH = 32;
+    private static final int SECRET_RAW_KEY_LENGTH = 32;
 
     private byte[] mSecretKeyData = null;
 
@@ -35,8 +35,14 @@ public enum AuthenticationSettings {
 
     private String mBrokerSignature = AuthenticationConstants.Broker.SIGNATURE;
 
+    private Class<?> mClazzDeviceCertProxy;
+
+    private String mActivityPackageName;
+
+    private boolean mSkipBroker = false;
+
     /**
-     * Get bytes to derive secretKey to use in encrypt/decrypt
+     * Get bytes to derive secretKey to use in encrypt/decrypt.
      * 
      * @return byte[] secret data
      */
@@ -45,9 +51,10 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * set raw bytes to derive secretKey to use in encrypt/decrypt
+     * set raw bytes to derive secretKey to use in encrypt/decrypt. KeySpec
+     * algorithm is AES.
      * 
-     * @param rawKey
+     * @param rawKey App related key to use in encrypt/decrypt
      */
     public void setSecretKey(byte[] rawKey) {
         if (rawKey == null || rawKey.length != SECRET_RAW_KEY_LENGTH) {
@@ -58,7 +65,7 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * Gets packagename for broker app that installed authenticator
+     * Gets packagename for broker app that installed authenticator.
      * 
      * @return packagename
      */
@@ -67,16 +74,16 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * Sets packagename for broker app that installed authenticator
+     * Sets package name for broker app that installed authenticator.
      * 
-     * @param packageName
+     * @param packageName package name related to broker
      */
     public void setBrokerPackageName(String packageName) {
         mBrokerPackageName = packageName;
     }
 
     /**
-     * Gets broker signature for broker app that installed authenticator
+     * Gets broker signature for broker app that installed authenticator.
      * 
      * @return signature
      */
@@ -85,11 +92,72 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * Sets broker app info for ADAL to use
+     * Sets broker app info for ADAL to use.
      * 
-     * @param mBrokerSignature
+     * @param brokerSignature Signature for broker
      */
-    public void setBrokerSignature(String mBrokerSignature) {
-        this.mBrokerSignature = mBrokerSignature;
+    public void setBrokerSignature(String brokerSignature) {
+        this.mBrokerSignature = brokerSignature;
+    }
+
+    /**
+     * set class for work place join related API. This is only used from
+     * Authenticator side.
+     * 
+     * @param <T>
+     * @param clazz
+     */
+    public void setDeviceCertificateProxyClass(Class clazz) {
+        if (IDeviceCertificate.class.isAssignableFrom(clazz)) {
+            mClazzDeviceCertProxy = clazz;
+        } else {
+            throw new IllegalArgumentException("clazz");
+        }
+    }
+
+    /**
+     * get class for work place join related API. This is only used from
+     * Authenticator side.
+     * 
+     * @return
+     */
+    public Class<?> getDeviceCertificateProxy() {
+        return mClazzDeviceCertProxy;
+    }
+
+    /**
+     * get package name to setup intent for AuthenticationActivity.
+     * 
+     * @return Package name for activity
+     */
+    public String getActivityPackageName() {
+        return mActivityPackageName;
+    }
+
+    /**
+     * set package name to setup intent for AuthenticationActivity.
+     * 
+     * @param activityPackageName   activity to use from different package
+     */
+    public void setActivityPackageName(String activityPackageName) {
+        this.mActivityPackageName = activityPackageName;
+    }
+
+    /**
+     * Skip broker usage.
+     * 
+     * @return true if broker is not used.
+     */
+    public boolean getSkipBroker() {
+        return mSkipBroker;
+    }
+
+    /**
+     * Sets flag to skip broker.
+     * 
+     * @param skip True to not use broker
+     */
+    public void setSkipBroker(boolean skip) {
+        mSkipBroker = skip;
     }
 }

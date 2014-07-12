@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -18,6 +18,8 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -32,9 +34,10 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 
 /**
- * Gets information about calling activity
+ * Gets information about calling activity.
  */
 class PackageHelper {
     private static final String TAG = "CallerInfo";
@@ -44,7 +47,7 @@ class PackageHelper {
     AccountManager mAcctManager;
 
     /**
-     * Creates helper to check caller info
+     * Creates helper to check caller info.
      * 
      * @param ctx
      */
@@ -54,7 +57,7 @@ class PackageHelper {
     }
 
     /**
-     * Gets metadata information from AndroidManifest file
+     * Gets metadata information from AndroidManifest file.
      * 
      * @param packageName
      * @param component
@@ -90,7 +93,7 @@ class PackageHelper {
     }
 
     /**
-     * Reads first signature in the list for given package name
+     * Reads first signature in the list for given package name.
      * 
      * @param packagename
      * @return signature for package
@@ -103,7 +106,7 @@ class PackageHelper {
                 Signature signature = info.signatures[0];
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
-                return Base64.encodeToString(md.digest(), Base64.DEFAULT);
+                return Base64.encodeToString(md.digest(), Base64.NO_WRAP);
                 // Server side needs to register all other tags. ADAL will
                 // send one of them.
             }
@@ -118,7 +121,7 @@ class PackageHelper {
     }
 
     /**
-     * Gets package UID
+     * Gets package UID.
      * 
      * @param packagename
      * @return UID
@@ -135,5 +138,29 @@ class PackageHelper {
                     ADALError.PACKAGE_NAME_NOT_FOUND, e);
         }
         return callingUID;
+    }
+
+    /**
+     * Gets redirect uri for broker.
+     * @param packageName   application package name
+     * @param signatureDigest   application signature 
+     * @return broker redirect url
+     */
+    public static String getBrokerRedirectUrl(final String packageName, final String signatureDigest) {
+        if (!StringExtensions.IsNullOrBlank(packageName)
+                && !StringExtensions.IsNullOrBlank(signatureDigest)) {
+            try {
+                return String.format("%s:%s%s%s", AuthenticationConstants.Broker.REDIRECT_PREFIX,
+                        URLEncoder.encode(packageName, AuthenticationConstants.ENCODING_UTF8),
+                        AuthenticationConstants.Broker.REDIRECT_DELIMETER_ENCODED,
+                        URLEncoder.encode(signatureDigest, AuthenticationConstants.ENCODING_UTF8));
+            } catch (UnsupportedEncodingException e) {
+                // This encoding issue will happen at the beginning of API call,
+                // if it is not supported on this device. ADAL uses one encoding
+                // type.
+                Log.e(TAG, "Encoding", e);
+            }
+        }
+        return "";
     }
 }

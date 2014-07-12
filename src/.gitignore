@@ -42,6 +42,7 @@ tmp/**/*
 *~.nib
 local.properties
 .classpath
+.checkstyle
 .settings/
 .loadpath
 

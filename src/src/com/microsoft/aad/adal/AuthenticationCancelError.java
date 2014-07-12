@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -18,9 +18,8 @@
 
 package com.microsoft.aad.adal;
 
-
 /**
- * Cancellation error *
+ * Cancellation error.
  */
 public class AuthenticationCancelError extends AuthenticationException {
     static final long serialVersionUID = 1;
@@ -29,14 +28,15 @@ public class AuthenticationCancelError extends AuthenticationException {
      * Constructs a new AuthenticationCancelError.
      */
     public AuthenticationCancelError() {
+        super();
     }
 
     /**
-     * Constructs a new AuthenticationCancelError.
+     * Constructs a new AuthenticationCancelError with message.
      * 
-     * @param cancelCode Error code to indicate the reason
+     * @param msg Message for cancel request
      */
-    public AuthenticationCancelError(ADALError cancelCode) {
-        mCode = cancelCode;
+    public AuthenticationCancelError(String msg) {
+        super(ADALError.AUTH_FAILED_CANCELLED, msg);
     }
 }

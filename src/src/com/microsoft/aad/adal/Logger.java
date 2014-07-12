@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -29,10 +29,28 @@ public class Logger {
 
     private LogLevel mLogLevel;
 
-    private final static String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
+    private static final String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
 
+    /**
+     * Log level.
+     */
     public enum LogLevel {
-        Error(0), Warn(1), Info(2), Verbose(3),
+        /**
+         * Error.
+         */
+        Error(0),
+        /**
+         * Warning.
+         */
+        Warn(1),
+        /**
+         * Info.
+         */
+        Info(2),
+        /**
+         * Verbose.
+         */
+        Verbose(3),
         /**
          * Debug level only.
          */
@@ -47,7 +65,7 @@ public class Logger {
     };
 
     /**
-     * one callback logger
+     * one callback logger.
      */
     private ILogger mExternalLogger = null;
 
@@ -56,6 +74,9 @@ public class Logger {
 
     private static Logger sInstance = new Logger();
 
+    /**
+     * @return logger
+     */
     public static Logger getInstance() {
         return sInstance;
     }
@@ -78,7 +99,7 @@ public class Logger {
     }
 
     /**
-     * set custom logger
+     * set custom logger.
      * 
      * @param externalLogger
      */
@@ -189,7 +210,8 @@ public class Logger {
         }
     }
 
-    private static String getLogMessage(String message, String additionalMessage, ADALError errorCode) {
+    private static String getLogMessage(String message, String additionalMessage,
+            ADALError errorCode) {
         StringBuilder msg = new StringBuilder();
         if (errorCode != null) {
             msg.append(getCodeName(errorCode)).append(":");

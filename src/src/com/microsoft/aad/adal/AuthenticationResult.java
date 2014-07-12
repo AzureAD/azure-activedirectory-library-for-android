@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -24,29 +24,29 @@ import java.util.Date;
 
 /**
  * Result class to keep code, token and other info Serializable properties Mark
- * temp properties as Transient if you dont want to keep them in serialization
+ * temp properties as Transient if you dont want to keep them in serialization.
  */
 public class AuthenticationResult implements Serializable {
 
     /**
-     * Serial version number for serialization
+     * Serial version number for serialization.
      */
     private static final long serialVersionUID = 2243372613182536368L;
 
     /**
-     * Status for authentication
+     * Status for authentication.
      */
     public enum AuthenticationStatus {
         /**
-         * User cancelled login activity
+         * User cancelled login activity.
          */
         Cancelled,
         /**
-         * request has errors
+         * request has errors.
          */
         Failed,
         /**
-         * token is acquired
+         * token is acquired.
          */
         Succeeded,
     }
@@ -71,7 +71,11 @@ public class AuthenticationResult implements Serializable {
 
     private String mTenantId;
 
+    private String mIdToken;
+
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
+
+    private boolean mInitialRequest;
 
     AuthenticationResult() {
         mCode = null;
@@ -85,7 +89,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
-            UserInfo userInfo) {
+            UserInfo userInfo, String tenantId, String idToken) {
         mCode = null;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
@@ -93,6 +97,8 @@ public class AuthenticationResult implements Serializable {
         mIsMultiResourceRefreshToken = isBroad;
         mStatus = AuthenticationStatus.Succeeded;
         mUserInfo = userInfo;
+        mTenantId = tenantId;
+        mIdToken = idToken;
     }
 
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad) {
@@ -111,7 +117,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * Creates result from {@link TokenCacheItem}
+     * Creates result from {@link TokenCacheItem}.
      * 
      * @param cacheItem
      * @return AuthenticationResult
@@ -126,11 +132,17 @@ public class AuthenticationResult implements Serializable {
 
         return new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
                 cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
-                cacheItem.getUserInfo());
+                cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken());
+    }
+
+    static AuthenticationResult createResultForInitialRequest() {
+        AuthenticationResult result = new AuthenticationResult();
+        result.mInitialRequest = true;
+        return result;
     }
 
     /**
-     * Uses access token to create header for web requests
+     * Uses access token to create header for web requests.
      * 
      * @return AuthorizationHeader
      */
@@ -139,28 +151,36 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * Access token to send to the service in Authorization Header
+     * Access token to send to the service in Authorization Header.
+     * 
+     * @return Access token
      */
     public String getAccessToken() {
         return mAccessToken;
     }
 
     /**
-     * Refresh token to get new tokens
+     * Refresh token to get new tokens.
+     * 
+     * @return Refresh token
      */
     public String getRefreshToken() {
         return mRefreshToken;
     }
 
     /**
-     * Token type
+     * Token type.
+     * 
+     * @return access token type
      */
     public String getAccessTokenType() {
         return mTokenType;
     }
 
     /**
-     * Epoch time for expiresOn
+     * Epoch time for expiresOn.
+     * 
+     * @return expiresOn {@link Date}
      */
     public Date getExpiresOn() {
         return mExpiresOn;
@@ -168,21 +188,25 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Multi-resource refresh tokens can be used to request token for another
-     * resource
+     * resource.
+     * 
+     * @return multi resource refresh token status
      */
     public boolean getIsMultiResourceRefreshToken() {
         return mIsMultiResourceRefreshToken;
     }
 
     /**
-     * UserInfo returned from IdToken 
+     * UserInfo returned from IdToken.
+     * 
+     * @return {@link UserInfo}
      */
     public UserInfo getUserInfo() {
         return mUserInfo;
     }
 
     /**
-     * Set userinfo after refresh from previous idtoken
+     * Set userinfo after refresh from previous idtoken.
      * 
      * @param userinfo
      */
@@ -190,10 +214,20 @@ public class AuthenticationResult implements Serializable {
         mUserInfo = userinfo;
     }
 
+    /**
+     * Gets tenantId.
+     * 
+     * @return TenantId
+     */
     public String getTenantId() {
         return mTenantId;
     }
 
+    /**
+     * Gets status.
+     * 
+     * @return {@link AuthenticationStatus}
+     */
     public AuthenticationStatus getStatus() {
         return mStatus;
     }
@@ -206,23 +240,40 @@ public class AuthenticationResult implements Serializable {
         mCode = code;
     }
 
+    /**
+     * Gets error code.
+     * @return Error code
+     */
     public String getErrorCode() {
         return mErrorCode;
     }
 
+    /**
+     * Gets error description.
+     * @return error description
+     */
     public String getErrorDescription() {
         return mErrorDescription;
     }
 
+    /**
+     * Gets error log info.
+     * @return log info
+     */
     public String getErrorLogInfo() {
         return " ErrorCode:" + getErrorCode() + " ErrorDescription:" + getErrorDescription();
     }
 
+    /**
+     * Checks expiration time.
+     * @return true if expired
+     */
     public boolean isExpired() {
         Date validity = getCurrentTime().getTime();
 
-        if (mExpiresOn != null && mExpiresOn.before(validity))
+        if (mExpiresOn != null && mExpiresOn.before(validity)) {
             return true;
+        }
 
         return false;
     }
@@ -230,5 +281,26 @@ public class AuthenticationResult implements Serializable {
     private static Calendar getCurrentTime() {
         Calendar timeNow = Calendar.getInstance();
         return timeNow;
+    }
+
+    boolean isInitialRequest() {
+        return mInitialRequest;
+    }
+
+    /**
+     * Get raw idtoken.
+     * 
+     * @return IdToken
+     */
+    public String getIdToken() {
+        return mIdToken;
+    }
+
+    void setIdToken(String idToken) {
+        this.mIdToken = idToken;
+    }
+
+    void setTenantId(String tenantid) {
+        mTenantId = tenantid;
     }
 }

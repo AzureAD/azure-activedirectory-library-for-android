@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -62,7 +62,7 @@ import android.util.Base64;
 
 /**
  * Shared preferences store clear text. This class helps to encrypt/decrypt text
- * to store. API SDK >= 18 has more security with AndroidKeyStore
+ * to store. API SDK >= 18 has more security with AndroidKeyStore.
  */
 public class StorageHelper {
 
@@ -91,16 +91,18 @@ public class StorageHelper {
 
     private static final int KEY_SIZE = 256;
 
-    /** IV Key length for AES-128 */
+    /**
+     * IV Key length for AES-128.
+     */
     public static final int DATA_KEY_LENGTH = 16;
 
     /**
-     * 256 bits output for signing message
+     * 256 bits output for signing message.
      */
     public static final int MAC_LENGTH = 32;
 
     /**
-     * it is needed for AndroidKeyStore
+     * it is needed for AndroidKeyStore.
      */
     private KeyPair mKeyPair;
 
@@ -113,19 +115,14 @@ public class StorageHelper {
     private static final int KEY_VERSION_BLOB_LENGTH = 4;
 
     /**
-     * To keep track of encoding version and related flags
+     * To keep track of encoding version and related flags.
      */
     private static final String ENCODE_VERSION = "E1";
 
-    private static final int ENCODE_VERSION_LENGTH = 2;
-
-    private static final Object lockObject = new Object();
+    private static final Object LOCK_OBJ = new Object();
 
     private static String sBlobVersion;
 
-    /**
-     * Load only once
-     */
     private static SecretKey sKey = null, sMacKey = null;
 
     private static SecretKey sSecretKeyFromAndroidKeyStore = null;
@@ -150,13 +147,15 @@ public class StorageHelper {
         if (sKey != null && sMacKey != null)
             return;
 
-        synchronized (lockObject) {
-            if (Build.VERSION.SDK_INT >= 18) {
+        synchronized (LOCK_OBJ) {
+            if (Build.VERSION.SDK_INT >= 18
+                    && AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
                 try {
                     // androidKeyStore can store app specific self signed cert.
                     // Asymmetric cryptography is used to protect the session
-                    // key
-                    // used for Encryption and HMac
+                    // key for Encryption and HMac.
+                    // If user specifies secret key, it will use the provided
+                    // key.
                     sKey = getSecretKeyFromAndroidKeyStore();
                     sMacKey = getMacKey(sKey);
                     sBlobVersion = VERSION_ANDROID_KEY_STORE;
@@ -167,6 +166,7 @@ public class StorageHelper {
                 }
             }
 
+            Logger.v(TAG, "Encryption will use secret key from Settings");
             sKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
             sMacKey = getMacKey(sKey);
             sBlobVersion = VERSION_USER_DEFINED;
@@ -290,12 +290,12 @@ public class StorageHelper {
         Logger.d(TAG, "Starting encryption");
 
         if (StringExtensions.IsNullOrBlank(clearText)) {
-            throw new IllegalArgumentException("input is empty or null");
+            throw new IllegalArgumentException("Input is empty or null");
         }
 
         // load key for encryption if not loaded
         loadSecretKeyForAPI();
-        Logger.v(TAG, "Encrypt version:"+sBlobVersion);
+        Logger.v(TAG, "Encrypt version:" + sBlobVersion);
         final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
@@ -335,26 +335,35 @@ public class StorageHelper {
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished encryption");
 
-        return ENCODE_VERSION + encryptedText;
+        return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
     }
 
-    public String decrypt(String value) throws NoSuchAlgorithmException,
-            InvalidKeySpecException, NoSuchPaddingException, KeyStoreException,
-            CertificateException, NoSuchProviderException, InvalidAlgorithmParameterException,
+    public String decrypt(String value) throws NoSuchAlgorithmException, InvalidKeySpecException,
+            NoSuchPaddingException, KeyStoreException, CertificateException,
+            NoSuchProviderException, InvalidAlgorithmParameterException,
             UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,
             IllegalBlockSizeException, BadPaddingException {
 
         Logger.d(TAG, "Starting decryption");
 
         if (StringExtensions.IsNullOrBlank(value)) {
-            throw new IllegalArgumentException("input is empty or null");
+            throw new IllegalArgumentException("Input is empty or null");
         }
 
-        if (!value.substring(0, ENCODE_VERSION_LENGTH).equals(ENCODE_VERSION)) {
-            throw new IllegalArgumentException("Encode version does not match");
+        int encodeVersionLength = value.charAt(0) - 'a';
+        if (encodeVersionLength <= 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Encode version length: '%s' is not valid, it must be greater of equal to 0",
+                    encodeVersionLength));
+        }
+        if (!value.substring(1, 1 + encodeVersionLength).equals(ENCODE_VERSION)) {
+            throw new IllegalArgumentException(String.format(
+                    "Encode version received was: '%s', Encode version supported is: '%s'", value,
+                    ENCODE_VERSION));
         }
 
-        final byte[] bytes = Base64.decode(value.substring(ENCODE_VERSION_LENGTH), Base64.DEFAULT);
+        final byte[] bytes = Base64
+                .decode(value.substring(1 + encodeVersionLength), Base64.DEFAULT);
 
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
@@ -397,6 +406,10 @@ public class StorageHelper {
                 encryptedLength), AuthenticationConstants.ENCODING_UTF8);
         Logger.d(TAG, "Finished decryption");
         return decrypted;
+    }
+
+    private char getEncodeVersionLengthPrefix() {
+        return (char)('a' + ENCODE_VERSION.length());
     }
 
     private void assertMac(byte[] digest, int start, int end, byte[] calculated)

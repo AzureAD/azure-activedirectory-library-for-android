@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -40,6 +40,9 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     private transient Object mCacheLock = new Object();
 
+    /**
+     * Creates MemoryTokenCacheStore.
+     */
     public MemoryTokenCacheStore() {
     }
 

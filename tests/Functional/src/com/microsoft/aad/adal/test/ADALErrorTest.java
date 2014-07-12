@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -21,10 +21,12 @@ package com.microsoft.aad.adal.test;
 import java.security.MessageDigest;
 import java.util.Locale;
 
+import android.annotation.TargetApi;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.test.InstrumentationTestCase;
 import android.util.Base64;
 import android.util.Log;
@@ -33,7 +35,7 @@ import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationSettings;
 
-public class ADALErrorTests extends InstrumentationTestCase {
+public class ADALErrorTest extends InstrumentationTestCase {
 
     private static final String TAG = "ADALErrorTests";
 
@@ -50,7 +52,7 @@ public class ADALErrorTests extends InstrumentationTestCase {
 
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
-                .getPackageInfo("com.microsoft.adal.testapp", PackageManager.GET_SIGNATURES);
+                .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
         for (Signature signature : info.signatures) {
             testSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
@@ -64,6 +66,7 @@ public class ADALErrorTests extends InstrumentationTestCase {
         Log.d(TAG, "testSignature is set");
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public void testResourceOverwrite() {
         ADALError err = ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED;
         String msg = err.getDescription();
@@ -81,9 +84,7 @@ public class ADALErrorTests extends InstrumentationTestCase {
         String localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
         
         assertFalse("Error decription is different in resource", msg.equalsIgnoreCase(localizedMsg));
-        assertTrue("in locale specified",
-                localizedMsg.contains("DEVELOPER BEHÖRDE nicht validiert werden kann"));
-        
+
         Locale localefr = new Locale("fr");
         Locale.setDefault(localefr);
         config.setLocale(localefr);

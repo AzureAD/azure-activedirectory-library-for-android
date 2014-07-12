@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -21,22 +21,23 @@ package com.microsoft.aad.adal;
 /**
  * Callback to use with token request. User implements this callback to use
  * result in their context.
- * @param <T> 
+ * 
+ * @param <T>
  */
 public interface AuthenticationCallback<T> {
 
     /**
      * This will have the token info.
      * 
-     * @param result
+     * @param result returns <T>
      */
-    public void onSuccess(T result);
+    void onSuccess(T result);
 
     /**
      * Sends error information. This can be user related error or server error.
      * Cancellation error is AuthenticationCancelError.
      * 
-     * @param exc
+     * @param exc   return {@link Exception}
      */
-    public void onError(Exception exc);
+    void onError(Exception exc);
 }

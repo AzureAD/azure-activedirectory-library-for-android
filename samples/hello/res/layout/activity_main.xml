@@ -51,4 +51,34 @@
         android:onClick="onClickClearCookies"
         android:text="Clear Cookies" />
 
+    <Button
+        android:id="@+id/buttonAcquireByRefreshToken"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/buttonClearCookies"
+        android:layout_alignRight="@+id/buttonClearCookies"
+        android:layout_below="@+id/buttonClearCookies"
+        android:onClick="onClickAcquireByRefreshToken"
+        android:text="Token By Refresh Token" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/buttonAcquireByRefreshToken"
+        android:layout_alignRight="@+id/buttonAcquireByRefreshToken"
+        android:layout_below="@+id/buttonAcquireByRefreshToken"
+        android:onClick="onClickAcquireTokenForceRefresh"
+        android:text="Refresh Session" />
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button3"
+        android:layout_alignRight="@+id/button3"
+        android:layout_below="@+id/button3"
+        android:onClick="onClickAcquireTokenSilent"
+        android:text="Get Token Silent" />
+
 </RelativeLayout>

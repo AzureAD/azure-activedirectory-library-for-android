@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -18,20 +18,21 @@
 
 package com.microsoft.aad.adal;
 
+import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 
 /**
- * web response to keep status, response body, headers and related exceptions
+ * Web response to keep status, response body, headers and related exceptions.
  */
 public class HttpWebResponse {
     private int mStatusCode;
     private byte[] mResponseBody;
     private Map<String, List<String>> mResponseHeaders;
-    private Exception responseException = null;
+    private Exception mResponseException = null;
 
     public HttpWebResponse() {
-        mStatusCode = 200;
+        mStatusCode = HttpURLConnection.HTTP_OK;
         mResponseBody = null;
     }
 
@@ -43,11 +44,11 @@ public class HttpWebResponse {
     }
 
     public Exception getResponseException() {
-        return responseException;
+        return mResponseException;
     }
 
     public void setResponseException(Exception responseException) {
-        this.responseException = responseException;
+        this.mResponseException = responseException;
     }
 
     HttpWebResponse(int statusCode) {

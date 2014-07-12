@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 /**
- * Webrequest interface to send web requests
+ * Webrequest interface to send web requests.
  */
 public interface IWebRequestHandler {
     HttpWebResponse sendGet(URL url, HashMap<String, String> headers);

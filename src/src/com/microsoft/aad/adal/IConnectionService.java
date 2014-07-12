@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -19,8 +19,14 @@
 package com.microsoft.aad.adal;
 
 /**
- * exposed interface for testing
+ * exposed interface for testing.
  */
-public interface IConnectionService{
+public interface IConnectionService {
+
+    /**
+     * Gets status for connection status.
+     * 
+     * @return connection status
+     */
     boolean isConnectionAvailable();
 }

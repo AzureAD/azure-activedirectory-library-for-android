@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -29,14 +29,6 @@ import com.microsoft.aad.adal.Logger.LogLevel;
 public class LoggerTest extends AndroidTestHelper {
 
     private static final String TAG = "DiscoveryTests";
-
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
 
     public void testSetCallback() {
 

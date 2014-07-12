@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -21,69 +21,104 @@ package com.microsoft.aad.adal;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.os.Handler;
 
 /**
  * Matching to ADAL.NET It provides helper methods to get the
- * authorization_endpoint from resource address
+ * authorization_endpoint from resource address.
  */
 public class AuthenticationParameters {
 
-    public final static String AUTH_HEADER_MISSING_AUTHORITY = "WWW-Authenticate header is missing authorization_uri.";
+    /**
+     * WWW-Authenticate header is missing authorization_uri.
+     */
+    public static final String AUTH_HEADER_MISSING_AUTHORITY = "WWW-Authenticate header is missing authorization_uri.";
 
-    public final static String AUTH_HEADER_INVALID_FORMAT = "Invalid authentication header format";
+    /**
+     * Invalid authentication header format.
+     */
+    public static final String AUTH_HEADER_INVALID_FORMAT = "Invalid authentication header format";
 
-    public final static String AUTH_HEADER_MISSING = "WWW-Authenticate header was expected in the response";
+    /**
+     * WWW-Authenticate header was expected in the response.
+     */
+    public static final String AUTH_HEADER_MISSING = "WWW-Authenticate header was expected in the response";
 
-    public final static String AUTH_HEADER_WRONG_STATUS = "Unauthorized http response (status code 401) was expected";
+    /**
+     * Unauthorized http response (status code 401) was expected.
+     */
+    public static final String AUTH_HEADER_WRONG_STATUS = "Unauthorized http response (status code 401) was expected";
 
-    public final static String AUTHENTICATE_HEADER = "WWW-Authenticate";
+    /**
+     * Constant Authenticate header: WWW-Authenticate.
+     */
+    public static final String AUTHENTICATE_HEADER = "WWW-Authenticate";
 
-    public final static String BEARER = "bearer";
+    /**
+     * Constant Bearer.
+     */
+    public static final String BEARER = "bearer";
 
-    public final static String AUTHORITY_KEY = "authorization_uri";
+    /**
+     * Constant Authority key.
+     */
+    public static final String AUTHORITY_KEY = "authorization_uri";
 
-    public final static String RESOURCE_KEY = "resource_id";
+    /**
+     * Constant Resource key.
+     */
+    public static final String RESOURCE_KEY = "resource_id";
 
-    private final static String TAG = "AuthenticationParameters";
+    private static final String TAG = "AuthenticationParameters";
+
+    private static final String REGEX = "^Bearer\\s+([^,\\s=\"]+?)=\"([^\"]*?)\"\\s*(?:,\\s*([^,\\s=\"]+?)=\"([^\"]*?)\"\\s*)*$";
+
+    private static final String REGEX_VALUES = "\\s*([^,\\s=\"]+?)=\"([^\"]*?)\"";
 
     private String mAuthority;
 
     private String mResource;
 
     /**
-     * Web request handler interface to test behaviors
+     * Web request handler interface to test behaviors.
      */
     private static IWebRequestHandler sWebRequest = new WebRequestHandler();
 
     /**
-     * Singled threaded Executor for async work
+     * Singled threaded Executor for async work.
      */
     private static ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * get authority
+     * get authority from the header.
+     * 
+     * @return Authority extracted from the header.
      */
     public String getAuthority() {
         return mAuthority;
     }
 
     /**
-     * get resource
+     * get resource from the header.
+     * 
+     * @return resource from the header.
      */
     public String getResource() {
         return mResource;
     }
 
+    /**
+     * Creates AuthenticationParameters.
+     */
     public AuthenticationParameters() {
     }
 
@@ -92,12 +127,24 @@ public class AuthenticationParameters {
         mResource = resource;
     }
 
+    /**
+     * Callback to use for async request.
+     */
     public interface AuthenticationParamCallback {
-        public void onCompleted(Exception exception, AuthenticationParameters param);
+
+        /**
+         * @param exception {@link Exception}
+         * @param param {@link AuthenticationParameters}
+         */
+        void onCompleted(Exception exception, AuthenticationParameters param);
     }
 
     /**
-     * ADAL will make the call to get authority and resource info
+     * ADAL will make the call to get authority and resource info.
+     * 
+     * @param context {@link Context}
+     * @param resourceUrl Url for resource to query for 401 response.
+     * @param callback  {@link AuthenticationParamCallback}
      */
     public static void createFromResourceUrl(Context context, final URL resourceUrl,
             final AuthenticationParamCallback callback) {
@@ -144,7 +191,9 @@ public class AuthenticationParameters {
 
     /**
      * ADAL will parse the header response to get the authority and the resource
-     * info
+     * info.
+     * @param authenticateHeader Header to check authority and resource.
+     * @return {@link AuthenticationParameters}
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
             String authenticateHeader) {
@@ -153,25 +202,28 @@ public class AuthenticationParameters {
         if (StringExtensions.IsNullOrBlank(authenticateHeader)) {
             throw new IllegalArgumentException(AUTH_HEADER_MISSING);
         } else {
+            Pattern p = Pattern.compile(REGEX);
+            Matcher m = p.matcher(authenticateHeader);
 
-            authenticateHeader = authenticateHeader.trim().toLowerCase(Locale.US);
+            // If the header is in the right format, REGEX_VALUES will extract
+            // individual
+            // name-value pairs. This regex is not as exclusive, so it relies on
+            // the previous check to guarantee correctness:
+            if (m.matches()) {
 
-            // bearer should be first one
-            if (!authenticateHeader.startsWith(BEARER)
-                    || authenticateHeader.length() < BEARER.length() + 2
-                    || !Character.isWhitespace(authenticateHeader.charAt(BEARER.length()))) {
-                throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
-            } else {
-                authenticateHeader = authenticateHeader.substring(BEARER.length());
-                ArrayList<String> queryPairs = splitWithQuotes(authenticateHeader, ',');
+                // Get matching value pairs inside the header value
+                Pattern valuePattern = Pattern.compile(REGEX_VALUES);
+                String headerSubFields = authenticateHeader.substring(BEARER.length());
+                Logger.v(TAG, "Values in here:" + headerSubFields);
+                Matcher values = valuePattern.matcher(headerSubFields);
                 HashMap<String, String> headerItems = new HashMap<String, String>();
-                for (String queryPair : queryPairs) {
-                    ArrayList<String> pair = splitWithQuotes(queryPair, '=');
+                while (values.find()) {
 
-                    if (pair.size() == 2 && !StringExtensions.IsNullOrBlank(pair.get(0))
-                            && !StringExtensions.IsNullOrBlank(pair.get(1))) {
-                        String key = pair.get(0);
-                        String value = pair.get(1);
+                    // values.group(0) is matching string
+                    if (!StringExtensions.IsNullOrBlank(values.group(1))
+                            && !StringExtensions.IsNullOrBlank(values.group(2))) {
+                        String key = values.group(1);
+                        String value = values.group(2);
 
                         try {
                             key = StringExtensions.URLFormDecode(key);
@@ -181,7 +233,7 @@ public class AuthenticationParameters {
                         }
 
                         key = key.trim();
-                        value = removeQuoteInHeaderValue(value.trim());
+                        value = StringExtensions.removeQuoteInHeaderValue(value.trim());
 
                         if (headerItems.containsKey(key)) {
                             Logger.w(TAG, String.format(
@@ -198,50 +250,19 @@ public class AuthenticationParameters {
 
                 String authority = headerItems.get(AUTHORITY_KEY);
                 if (!StringExtensions.IsNullOrBlank(authority)) {
-                    authParams = new AuthenticationParameters(removeQuoteInHeaderValue(authority),
-                            removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
+                    authParams = new AuthenticationParameters(
+                            StringExtensions.removeQuoteInHeaderValue(authority),
+                            StringExtensions.removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
                 } else {
                     // invalid format
                     throw new IllegalArgumentException(AUTH_HEADER_MISSING_AUTHORITY);
                 }
+            } else {
+                throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
             }
         }
 
         return authParams;
-    }
-
-    static ArrayList<String> splitWithQuotes(String input, char delimiter) {
-        ArrayList<String> items = new ArrayList<String>();
-
-        int startIndex = 0;
-        boolean insideString = false;
-        String item;
-        for (int i = 0; i < input.length(); i++) {
-            if (input.charAt(i) == delimiter && !insideString) {
-                item = input.substring(startIndex, i);
-                if (!StringExtensions.IsNullOrBlank(item.trim())) {
-                    items.add(item);
-                }
-
-                startIndex = i + 1;
-            } else if (input.charAt(i) == '"') {
-                insideString = !insideString;
-            }
-        }
-
-        item = input.substring(startIndex);
-        if (!StringExtensions.IsNullOrBlank(item.trim())) {
-            items.add(item);
-        }
-
-        return items;
-    }
-
-    private static String removeQuoteInHeaderValue(String value) {
-        if (!StringExtensions.IsNullOrBlank(value)) {
-            return value.replace("\"", "");
-        }
-        return null;
     }
 
     private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) {

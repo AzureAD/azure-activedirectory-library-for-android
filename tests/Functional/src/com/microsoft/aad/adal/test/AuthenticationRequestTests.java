@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -65,17 +65,6 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         assertEquals("client is same", "client3", actual);
 
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".AuthenticationRequest", "authority21", "resource22", "client23", "redirect24");
-        actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
-        assertEquals("authority is same", "authority21", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getResource");
-        assertEquals("resource is same", "resource22", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getClientId");
-        assertEquals("client is same", "client23", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getRedirectUri");
-        assertEquals("client is same", "redirect24", actual);
-
-        o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".AuthenticationRequest", "authority31", "resource32", "client33", "redirect34",
                 "loginhint35");
 
@@ -110,7 +99,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".AuthenticationRequest", "authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Never, "extraQueryPAram56", correlationId);
+                "loginhint55", PromptBehavior.Always, "extraQueryPAram56", correlationId);
 
         actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
         assertEquals("authority is same", "authority51", actual);
@@ -125,7 +114,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         actual = ReflectionUtils.getterValue(String.class, o, "getExtraQueryParamsAuthentication");
         assertEquals("ExtraQueryParams is same", "extraQueryPAram56", actual);
         PromptBehavior actualPrompt = ReflectionUtils.getterValue(PromptBehavior.class, o, "getPrompt");
-        assertEquals("PromptBehavior is same", PromptBehavior.Never, actualPrompt);
+        assertEquals("PromptBehavior is same", PromptBehavior.Always, actualPrompt);
         actualId = ReflectionUtils.getterValue(UUID.class, o, "getCorrelationId");
         assertEquals("correlationId is same", correlationId, actualId);
     }

@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -22,7 +22,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
- * A helper for getting logging info out of an Exception
+ * A helper for getting logging info out of an Exception.
  */
 final class ExceptionExtensions {
     static String getExceptionMessage(Exception ex) {

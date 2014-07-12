@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -76,7 +76,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         testItem.setAuthority("authority");
         testItem.setClientId("clientid");
         testItem.setResource("resource");
-        UserInfo user = new UserInfo("userid", "givenName", "familyName", "identity", true);
+        UserInfo user = new UserInfo("userid", "givenName", "familyName", "identity", "userid");
         testItem.setUserInfo(user);
         testItem2 = new TokenCacheItem();
         testItem2.setAccessToken("token2");

@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -21,16 +21,40 @@ package com.microsoft.aad.adal;
 import java.io.Serializable;
 
 /**
- * Minimal interface needed by ADAL for cache
+ * Minimal interface needed by ADAL for cache.
  */
 public interface ITokenCacheStore extends Serializable {
-    public TokenCacheItem getItem(String key);// Needed by the library
-    
-    public boolean contains(String key);// Needed by the library
 
-    public void setItem(String key, TokenCacheItem item);// Needed by the library
+    /**
+     * Get cache item.
+     * 
+     * @param key {@link CacheKey}
+     * @return Token cache item
+     */
+    TokenCacheItem getItem(String key);
 
-    public void removeItem(String key);// Needed by the library
+    /**
+     * Checks if cache key exists.
+     * @param key {@link CacheKey}
+     * @return true if it exists
+     */
+    boolean contains(String key);
 
-    public void removeAll();
+    /**
+     * Sets item.
+     * @param key {@link CacheKey}
+     * @param item Cache item
+     */
+    void setItem(String key, TokenCacheItem item);
+
+    /**
+     * Removes item with key.
+     * @param key {@link CacheKey}
+     */
+    void removeItem(String key);
+
+    /**
+     * Removes all items from cache.
+     */
+    void removeAll();
 }

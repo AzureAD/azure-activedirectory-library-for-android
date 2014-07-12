@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -29,6 +29,8 @@ public class AuthenticationConstants {
 
         public static final String RESPONSE_ERROR_MESSAGE = "com.microsoft.aad.adal:BrowserErrorMessage";
 
+        public static final String RESPONSE_AUTHENTICATION_EXCEPTION = "com.microsoft.aad.adal:AuthenticationException";
+
         public static final String RESPONSE_FINAL_URL = "com.microsoft.aad.adal:BrowserFinalUrl";
 
         public static final String RESPONSE = "com.microsoft.aad.adal:BrokerResponse";
@@ -41,14 +43,31 @@ public class AuthenticationConstants {
     }
 
     public static final class UIResponse {
+        /**
+         * User cancelled.
+         */
         public static final int BROWSER_CODE_CANCEL = 2001;
 
+        /**
+         * Browser error.
+         */
         public static final int BROWSER_CODE_ERROR = 2002;
 
+        /**
+         * Flow complete.
+         */
         public static final int BROWSER_CODE_COMPLETE = 2003;
 
-        // Broker returns full response
+        /**
+         * Broker returns full response.
+         */
         public static final int TOKEN_BROKER_RESPONSE = 2004;
+
+        /**
+         * Webview throws Authentication exception. It needs to be send to
+         * callback.
+         */
+        public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = 2005;
     }
 
     public static final class UIRequest {
@@ -60,7 +79,7 @@ public class AuthenticationConstants {
     }
 
     public static final class OAuth2 {
-        /** Core OAuth2 strings */
+        /** Core OAuth2 strings. */
         public static final String ACCESS_TOKEN = "access_token";
 
         public static final String AUTHORIZATION_CODE = "authorization_code";
@@ -108,14 +127,20 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_EMAIL = "email";
 
         static final String ID_TOKEN_IDENTITY_PROVIDER = "idp";
+
+        static final String ID_TOKEN_OBJECT_ID = "oid";
+
+        static final String ID_TOKEN_PASSWORD_EXPIRATION = "pwd_exp";
+
+        static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
     }
 
     public static final class AAD {
 
-        /** AAD OAuth2 extension strings */
+        /** AAD OAuth2 extension strings. */
         public static final String RESOURCE = "resource";
 
-        /** AAD OAuth2 Challenge strings */
+        /** AAD OAuth2 Challenge strings. */
         public static final String BEARER = "Bearer";
 
         public static final String AUTHORIZATION = "authorization";
@@ -135,6 +160,8 @@ public class AuthenticationConstants {
         public static final String QUERY_PROMPT = "prompt";
 
         public static final String QUERY_PROMPT_VALUE = "login";
+
+        public static final String QUERY_PROMPT_REFRESH_SESSION_VALUE = "refresh_session";
 
         public final static String ADAL_ID_PLATFORM = "x-client-SKU";
 
@@ -156,20 +183,22 @@ public class AuthenticationConstants {
         /**
          * Account type string.
          */
-        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.aadbroker.adal";
+        public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.workaccount";
 
         public static final String ACCOUNT_INITIAL_NAME = "aad";
 
         public static final String BACKGROUND_REQUEST_MESSAGE = "background.request";
 
         public static final String ACCOUNT_DEFAULT_NAME = "Default";
-        
+
         /**
          * Authtoken type string.
          */
         public static final String AUTHTOKEN_TYPE = "adal.authtoken.type";
 
         public static final String BROKER_FINAL_URL = "adal.final.url";
+
+        public static final String ACCOUNT_INITIAL_REQUEST = "account.initial.request";
 
         public static final String ACCOUNT_CLIENTID_KEY = "account.clientid.key";
 
@@ -196,49 +225,75 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_EXPIREDATE = "account.expiredate";
 
         public static final String ACCOUNT_RESULT = "account.result";
-        
+
         public static final String ACCOUNT_REMOVE_TOKENS = "account.remove.tokens";
-        
+
         public static final String ACCOUNT_REMOVE_TOKENS_VALUE = "account.remove.tokens.value";
 
         public static final String MULTI_RESOURCE_TOKEN = "account.multi.resource.token";
 
         public static final String ACCOUNT_NAME = "account.name";
-        
+
         public static final String ACCOUNT_USERINFO_USERID = "account.userinfo.userid";
-        
+
         public static final String ACCOUNT_USERINFO_GIVEN_NAME = "account.userinfo.given.name";
-        
+
         public static final String ACCOUNT_USERINFO_FAMILY_NAME = "account.userinfo.family.name";
-        
+
         public static final String ACCOUNT_USERINFO_IDENTITY_PROVIDER = "account.userinfo.identity.provider";
-        
+
         public static final String ACCOUNT_USERINFO_USERID_DISPLAYABLE = "account.userinfo.userid.displayable";
-        
+
         public static final String ACCOUNT_USERINFO_TENANTID = "account.userinfo.tenantid";
 
         public static final String ACCOUNT_UID_CACHES = "account.uid.caches";
-        
+
         public static final String USERDATA_PREFIX = "userdata.prefix";
 
         public static final String USERDATA_UID_KEY = "calling.uid.key";
-        
+
         public static final String USERDATA_CALLER_CACHEKEYS = "userdata.caller.cachekeys";
-        
+
         public static final String CALLER_CACHEKEY_PREFIX = "|";
+
+        public static final String CLIENT_TLS_NOT_SUPPORTED = " PKeyAuth/1.0";
+
+        public static final String CHALLANGE_REQUEST_HEADER = "WWW-Authenticate";
+
+        public static final String CHALLANGE_RESPONSE_HEADER = "Authorization";
+
+        public static final String CHALLANGE_RESPONSE_TYPE = "PKeyAuth";
+
+        public static final String CHALLANGE_RESPONSE_TOKEN = "AuthToken";
+
+        public static final String CHALLANGE_RESPONSE_CONTEXT = "Context";
+
+        /**
+         * Certificate authorities are passed with delimiter.
+         */
+        public static final String CHALLANGE_REQUEST_CERT_AUTH_DELIMETER = ",";
 
         /**
          * Apk packagename that will install AD-Authenticator. It is used to
-         * query if this app installed or not from package manager
+         * query if this app installed or not from package manager.
          */
-        public static final String PACKAGE_NAME = "com.microsoft.aadbroker";
+        public static final String PACKAGE_NAME = "com.microsoft.workaccount";
 
         /**
          * Signature info for AD-Authenticator installing app to verify broker
-         * component
+         * component.
          */
         public static final String SIGNATURE = "HcArzSmaOsvXP3gYIEMHHVrmozI=\n";
 
+        public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
+
+        public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
+
+        public static final String CHALLANGE_TLS_INCAPABLE_VERSION = "1.0";
+
+        public static final String REDIRECT_PREFIX = "msauth";
+
+        public static final Object REDIRECT_DELIMETER_ENCODED = "%2C";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";

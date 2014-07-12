@@ -1,46 +1,26 @@
-language: java
+language: android
 jdk: oraclejdk7
+android:
+  components:
+    - build-tools-19.0.2
 env:
     matrix:
-      - ANDROID_SDKS=android-19 ANDROID_TARGET=android-19
+      - ANDROID_SDKS=android-18 ANDROID_TARGET=android-18
 
 before_install:
-
-  # Download the latest android sdk and unzip
-  - sudo apt-get update -qq
-  - if [ `uname -m` = x86_64 ]; then sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch > /dev/null; fi
-  - wget http://dl.google.com/android/android-sdk_r22.3-linux.tgz
-  - tar -zxf android-sdk_r22.3-linux.tgz
-  - export ANDROID_HOME=$PWD/android-sdk-linux
-  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools
-
-  # Install required components.
-  - echo y | android update sdk --filter $ANDROID_SDKS,platform-tools,extra-android-support,extra-google-google_play_services --no-ui --force --all
-  - echo y | android update sdk --filter platform-tools,build-tools-19.0.0 --no-ui -a
-  - echo y | android update sdk --filter sysimg-19 --no-ui -a
-  - echo y | android update sdk --filter extra-android-support --no-ui -a
-  - echo y | android update sdk --filter extra-google-google_play_services --no-ui -a
-
   # setup maven android sdk deployer
   - git clone git://github.com/mosabua/maven-android-sdk-deployer.git
-  - cd $PWD/maven-android-sdk-deployer/platforms/android-19
+  - cd $PWD/maven-android-sdk-deployer/platforms/android-18
   - mvn clean install
   - cd -
   - cd $PWD/maven-android-sdk-deployer/extras/compatibility-v4
-  - mvn install
+  - mvn install -Dextras.compatibility.v4.groupid=com.android.support -Dextras.compatibility.v4.artifactid=support-v4
   - cd -
-  # setup of appcompat library
-  - cp -r ${ANDROID_HOME}/extras/android/support/v7/appcompat ..
-  - android update lib-project -p ../appcompat --target android-19
-
-  # setup of google play services library
-  - cp -r ${ANDROID_HOME}/extras/google/google_play_services/libproject/google-play-services_lib ..
-  - android update lib-project -p ../google-play-services_lib --target android-19
 
   # setup main and testproject
-  - android update lib-project -p src --target android-19
-  - android update project -p samples/testapp --target android-19
-  - android update test-project -p samples/testapp -m tests
+  - android update lib-project -p src --target android-18
+  - android update project -p tests/testapp --target android-18
+  - android update test-project -p tests/testapp -m tests
 
 before_script:
   # setup display to run interactive tests http://www.xfree86.org/4.0.1/Xvfb.1.html
@@ -50,7 +30,7 @@ before_script:
   - sleep 5 # wait xvfb to start
   - xdpyinfo -display :99 >/dev/null 2>&1 && echo "In use" || echo "Free"
   # create and start emulator
-  - echo no | android create avd --force -n test -t android-19 --abi armeabi-v7a
+  - echo no | android create avd --force -n test -t android-18 --abi armeabi-v7a
   - emulator -avd test -no-skin -no-audio &   
   # wait for emulator to start
   - chmod +x wait_for_emulator.sh

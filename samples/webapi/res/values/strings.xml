@@ -11,6 +11,6 @@
     <string name="title_activity_log_out">Tiny TODO LogOut</string>
     <string name="title_activity_feed">FeedActivity</string>
     <string name="title_activity_settings">ADAL settings for testing</string>
-    <string name="title_login_hello_app">Login</string>
+    <string name="title_login_hello_app">WebAPI Login</string>
 
 </resources>

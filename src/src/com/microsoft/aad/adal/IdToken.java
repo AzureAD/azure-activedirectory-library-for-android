@@ -1,4 +1,4 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright Â© Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -33,6 +33,12 @@ class IdToken {
 
     String mIdentityProvider;
     
+    String mObjectId;
+    
+    long mPasswordExpiration;
+    
+    String mPasswordChangeUrl;
+        
     public IdToken(){
         
     }

@@ -9,13 +9,15 @@
 # Java class files
 *.class
 
+# Jar files
+*.jar
+
 # Mac files
 .DS_Store
 
 # generated files
 bin/
 gen/
-libs/
 target/
 Support/
 
