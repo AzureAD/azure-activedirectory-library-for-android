@@ -1,11 +1,7 @@
-#Microsoft Azure Active Directory Authentication Library (ADAL) for Android
+#Windows Azure Active Directory Authentication Library (ADAL) for Android
 ===========
 
-The ADAL SDK for Android gives you the ability to add support for Work Accounts to your application with just a few lines of additional code. This SDK gives your application the full functionality of Microsoft Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
-
-**What is a Work Account?**
-
-A Work Account is an identity you use to get work done no matter if at your business or on a college campus. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
+The ADAL SDK for Android gives you the ability to add Windows Azure Active Directory authentication and authorization to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers. This SDK gives your application the full functionality of Windows Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
 
 ## ADAL for Android 1.0 Released!
 
@@ -23,29 +19,13 @@ Thanks to all your great feedback over the preview period, we have released 1.0 
 
 All code is licensed under the Apache 2.0 license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. if you want to setup a maven enviroment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
 
-## Quick Start
-
-To build with Maven, you can use the pom.xml at top level
-
-  * Clone this repo in to a directory of your choice
-  * Follow the steps at [Prerequests section to setup your maven for android](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
-  * Setup emulator with SDK 19
-  * Go to the root folder where you cloned this repo
-  * Run the command: mvn clean install
-  * Change the directory to the Quick Start sample: cd samples\hello
-  * Run the command: mvn android:deploy android:run
-  * You should see app launching
-  * Enter test user credentials to try!
-
-Jar packages will be also submitted beside the aar package.
-
-##Download
-
+## Getting Started
 We've made it easy for you to have multiple options to use this library in your Android project:
 
 * You can use the source code to import this library into Eclipse and link to your application. 
 * If using Android Studio, you can use *aar* package format and reference the binaries.
 
+##Download
 ###Option 1: Source Zip
 
 To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/archive/master.zip).
@@ -59,7 +39,7 @@ To get the source code of the SDK via git just type:
 
 ###Option 3: Binaries via Gradle
 
-You can get the binaries from Maven central repo. AAR package can be included as follows in your project in AndroidStudio:
+You can get the binaries from Maven central repo. AAR package can be included as follows in your project at AndroidStudio:
 
 ```gradle 
 repositories {
@@ -89,6 +69,19 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
     <type>aar</type>
 </dependency>
 ```
+
+To build with Maven, you can use the pom.xml at top level
+
+  * Follow the steps at [Prerequests section to setup your maven for android](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
+  * Setup emulator with SDK 18
+  * go to root folder
+  * mvn clean install
+  * cd samples\hello
+  * mvn android:deploy android:run
+  * You should see app launching
+  * Enter test user credentials to try
+
+Jar packages will be also submitted beside the aar package.
 
 ###Option 5: jar package inside libs folder
 You can get the jar file from maven the repo and drop into the *libs* folder in your project. You need to copy the required resources to your project as well since the jar packages don't include them.
@@ -130,22 +123,19 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
       <application/>
     ```
 
-5. Register your WEBAPI service app in Azure Active Directory (AAD). If you're not sure what a tenant is or how you would get one, read [What is a Microsoft Azure AD tenant](http://technet.microsoft.com/library/jj573650.aspx)? or [Sign up for Microsoft Azure as an organization](http://www.windowsazure.com/en-us/manage/services/identity/organizational-account/). These docs should get you started on your way to using Windows Azure AD.
-6. 
+5. Register your WEBAPI service app at Azure Active Directory(AAD), https://manage.windowsazure.com 
   * NOTE: You need to write down the APP ID URI for the next steps
  
 6. Register your client native app at AAD
 
-Select webapis in the list and give permission to previously registered WebAPI. If you need help with this step, see: [Register the REST API Service Windows Azure Active Directory](https://github.com/AzureADSamples/WebAPI-Nodejs/wiki/Setup-Windows-Azure-AD)
+Select webapis in the list and give permission to previously registered(Step5) WebAPI 
 
   * NOTE: You will need to write down the clientId and redirectUri parameters for the next steps.
  
 
 7. Create an instance of AuthenticationContext at your main Activity. 
 
-The details of this call are beyond the scope of this README, but you can get a good start by looking at the [Android Native Client Sample](https://github.com/AzureADSamples/NativeClient-Android). 
-
-Below is an example:
+The details of this call are beyond the scope of this README, but you can get a good start by looking at the sample projects. Below is an example:
  
     ```Java
       // Authority is in the form of https://login.windows.net/yourtenant.onmicrosoft.com
