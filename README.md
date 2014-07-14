@@ -131,28 +131,17 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
     ```
 
 5. Register your WEBAPI service app in Azure Active Directory (AAD). If you're not sure what a tenant is or how you would get one, read [What is a Microsoft Azure AD tenant](http://technet.microsoft.com/library/jj573650.aspx)? or [Sign up for Microsoft Azure as an organization](http://www.windowsazure.com/en-us/manage/services/identity/organizational-account/). These docs should get you started on your way to using Windows Azure AD.
-6. 
   * NOTE: You need to write down the APP ID URI for the next steps
- 
-6. Register your client native app at AAD
-
-Select webapis in the list and give permission to previously registered WebAPI. If you need help with this step, see: [Register the REST API Service Windows Azure Active Directory](https://github.com/AzureADSamples/WebAPI-Nodejs/wiki/Setup-Windows-Azure-AD)
-
+6. Register your client native app at AAD. Select webapis in the list and give permission to previously registered WebAPI. If you need help with this step, see: [Register the REST API Service Windows Azure Active Directory](https://github.com/AzureADSamples/WebAPI-Nodejs/wiki/Setup-Windows-Azure-AD)
   * NOTE: You will need to write down the clientId and redirectUri parameters for the next steps.
- 
-
-7. Create an instance of AuthenticationContext at your main Activity. 
-
-The details of this call are beyond the scope of this README, but you can get a good start by looking at the [Android Native Client Sample](https://github.com/AzureADSamples/NativeClient-Android). 
-
-Below is an example:
+7. Create an instance of AuthenticationContext at your main Activity. The details of this call are beyond the scope of this README, but you can get a good start by looking at the [Android Native Client Sample](https://github.com/AzureADSamples/NativeClient-Android). Below is an example:
  
     ```Java
-      // Authority is in the form of https://login.windows.net/yourtenant.onmicrosoft.com
-      mContext = new AuthenticationContext(MainActivity.this, authority, true); // This will use SharedPreferences as            default cache
+    // Authority is in the form of https://login.windows.net/yourtenant.onmicrosoft.com
+    mContext = new AuthenticationContext(MainActivity.this, authority, true); // This will use SharedPreferences as            default cache
     ```
   * NOTE: mContext is a field in your activity
-  
+ 
 8. Copy this code block to handle the end of AuthenticationActivity after user enters credentials and receives authorization code:
 
     ```Java
@@ -205,7 +194,7 @@ Below is an example:
                     callback);
     ```
     
-    Explination of the parameters:
+Explination of the parameters:
     
   * Resource is required and is the resource you are trying to access.
   * Clientid is required and comes from the AzureAD Portal.
@@ -256,9 +245,10 @@ ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop u
 
 This method does not use UI pop up and not require an activity. It will return token from cache if available. If token is expired, it will try to refresh it. If refresh token is expired or failed, it will return AuthenticationException.
 
-```Java
-Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clientid, userId, callback );
-```
+    ```Java
+    Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clientid, userId, callback );
+    ```
+    
 You can also make sync call with this method. You can set null to callback or use acquireTokenSilentSync.
 
 ### Logger
