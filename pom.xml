@@ -10,7 +10,6 @@
     <module>src</module>
     <module>samples/hello</module>
     <module>tests/testapp</module>
-    <module>samples/webapi</module>
     <module>tests/Functional</module>
   </modules>
   <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android</url>
