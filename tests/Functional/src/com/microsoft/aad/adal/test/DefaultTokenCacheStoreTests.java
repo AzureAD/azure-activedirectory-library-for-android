@@ -63,6 +63,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
     @Override
     protected void tearDown() throws Exception {
+        AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
         store.removeAll();
         super.tearDown();
@@ -88,14 +89,15 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
                 packageContext.getSharedPreferences("com.microsoft.aad.adal.cache",
                         Activity.MODE_PRIVATE)).thenReturn(prefs);
         Class<?> c = DefaultTokenCacheStore.class;
-        Field helper = c.getDeclaredField("sHelper");
-        helper.setAccessible(true);
-        helper.set(null, mockSecure);
+        Field encryptHelper = c.getDeclaredField("sHelper");
+        encryptHelper.setAccessible(true);
+        encryptHelper.set(null, mockSecure);
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(mockContext);
         TokenCacheItem item = cache.getItem("testkey");
 
         // Verify returned item
         assertEquals("Same item as mock", "clientId23", item.getClientId());
+        encryptHelper.set(null, null);
     }
 
     public void testGetAll() throws NoSuchAlgorithmException, NoSuchPaddingException {
