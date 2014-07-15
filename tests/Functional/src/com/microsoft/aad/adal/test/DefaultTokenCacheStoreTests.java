@@ -18,17 +18,39 @@
 
 package com.microsoft.aad.adal.test;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.security.DigestException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager.NameNotFoundException;
+
+import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
 import com.microsoft.aad.adal.ITokenCacheStore;
+import com.microsoft.aad.adal.StorageHelper;
 import com.microsoft.aad.adal.TokenCacheItem;
 
 public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
@@ -41,10 +63,39 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
     @Override
     protected void tearDown() throws Exception {
-        
         DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
         store.removeAll();
         super.tearDown();
+    }
+
+    public void testSharedCache() throws NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, InvalidKeySpecException, KeyStoreException, CertificateException,
+            NoSuchProviderException, InvalidAlgorithmParameterException,
+            UnrecoverableEntryException, DigestException, IllegalBlockSizeException,
+            BadPaddingException, IOException, NameNotFoundException, NoSuchFieldException,
+            IllegalArgumentException, IllegalAccessException {
+        AuthenticationSettings.INSTANCE.setSharedPrefPackageName("mockpackage");
+        StorageHelper mockSecure = mock(StorageHelper.class);
+        Context mockContext = mock(Context.class);
+        Context packageContext = mock(Context.class);
+        SharedPreferences prefs = mock(SharedPreferences.class);
+        when(prefs.contains("testkey")).thenReturn(true);
+        when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
+        when(mockSecure.decrypt("test_encrypted")).thenReturn("{\"mClientId\":\"clientId23\"}");
+        when(mockContext.createPackageContext("mockpackage", Context.MODE_PRIVATE)).thenReturn(
+                packageContext);
+        when(
+                packageContext.getSharedPreferences("com.microsoft.aad.adal.cache",
+                        Activity.MODE_PRIVATE)).thenReturn(prefs);
+        Class<?> c = DefaultTokenCacheStore.class;
+        Field helper = c.getDeclaredField("sHelper");
+        helper.setAccessible(true);
+        helper.set(null, mockSecure);
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(mockContext);
+        TokenCacheItem item = cache.getItem("testkey");
+
+        // Verify returned item
+        assertEquals("Same item as mock", "clientId23", item.getClientId());
     }
 
     public void testGetAll() throws NoSuchAlgorithmException, NoSuchPaddingException {
@@ -122,5 +173,5 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     protected ITokenCacheStore getTokenCacheStore() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
         return new DefaultTokenCacheStore(this.getInstrumentation().getTargetContext());
-    }    
+    }
 }
