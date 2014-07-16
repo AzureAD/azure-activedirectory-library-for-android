@@ -39,6 +39,8 @@ public enum AuthenticationSettings {
 
     private String mActivityPackageName;
 
+    private String mSharedPrefPackageName;
+
     private boolean mSkipBroker = false;
 
     /**
@@ -137,7 +139,7 @@ public enum AuthenticationSettings {
     /**
      * set package name to setup intent for AuthenticationActivity.
      * 
-     * @param activityPackageName   activity to use from different package
+     * @param activityPackageName activity to use from different package
      */
     public void setActivityPackageName(String activityPackageName) {
         this.mActivityPackageName = activityPackageName;
@@ -159,5 +161,23 @@ public enum AuthenticationSettings {
      */
     public void setSkipBroker(boolean skip) {
         mSkipBroker = skip;
+    }
+
+    /**
+     * Sets package name to use {@link DefaultTokenCacheStore} with sharedUserId
+     * apps.
+     * 
+     * @param packageNameForSharedFile Package name of other app
+     */
+    public void setSharedPrefPackageName(String packageNameForSharedFile) {
+        this.mSharedPrefPackageName = packageNameForSharedFile;
+    }
+
+    /**
+     * Gets package name provided for shared preferences. 
+     * @return package name provided for shared preferences
+     */
+    public String getSharedPrefPackageName() {
+        return mSharedPrefPackageName;
     }
 }
