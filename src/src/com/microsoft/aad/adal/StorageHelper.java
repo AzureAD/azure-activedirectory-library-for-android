@@ -244,32 +244,6 @@ public class StorageHelper {
     }
 
     /**
-     * load key pair from AndroidKeyStore. If not present, it will create one
-     * for this app.
-     * 
-     * @throws NoSuchAlgorithmException
-     * @throws NoSuchPaddingException
-     * @throws KeyStoreException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws NoSuchProviderException
-     * @throws InvalidAlgorithmParameterException
-     * @throws UnrecoverableEntryException
-     */
-    private void loadKeyPair() throws NoSuchAlgorithmException, NoSuchPaddingException,
-            KeyStoreException, CertificateException, IOException, NoSuchProviderException,
-            InvalidAlgorithmParameterException, UnrecoverableEntryException {
-        // AndroidKeyStore is used for API >=18
-        if (Build.VERSION.SDK_INT >= 18) {
-            // Key pair only needed for API>=18
-
-            if (mKeyPair == null) {
-                mKeyPair = getKeyPairFromAndroidKeyStore();
-            }
-        }
-    }
-
-    /**
      * encrypt text with current key based on API level
      * 
      * @param clearText
@@ -465,7 +439,11 @@ public class StorageHelper {
         File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
                 ADALKS);
 
-        loadKeyPair();
+        if (mKeyPair == null) {
+            mKeyPair = getKeyPairFromAndroidKeyStore();
+            Logger.v(TAG, "Retrived keypair from androidKeyStore");
+        }
+
         Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
         // If keyfile does not exist, it needs to generate one
         if (!keyFile.exists()) {
@@ -480,14 +458,35 @@ public class StorageHelper {
 
         // Read from file again
         Logger.v(TAG, "Reading SecretKey");
-        final byte[] encryptedKey = readKeyData(keyFile);
-        sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
-        Logger.v(TAG, "Finished reading SecretKey");
+        try {
+            final byte[] encryptedKey = readKeyData(keyFile);
+            sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
+            Logger.v(TAG, "Finished reading SecretKey");
+        } catch (Exception ex) {
+            // Reset KeyPair info so that new request will generate correct KeyPairs.
+            // All tokens with previous SecretKey are not possible to decrypt.
+            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED);
+            mKeyPair = null;
+            sSecretKeyFromAndroidKeyStore = null;
+            deleteKeyFile();
+            resetKeyPairFromAndroidKeyStore();
+            Logger.v(TAG, "Removed previous key pair info.");
+        }
         return sSecretKeyFromAndroidKeyStore;
     }
 
+    private void deleteKeyFile() {
+        // Store secret key in a file after wrapping
+        File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
+                ADALKS);
+        if (keyFile.exists()) {
+            Logger.v(TAG, "Delete KeyFile");
+            keyFile.delete();
+        }
+    }
+
     /**
-     * Get key pair
+     * Get key pair from AndroidKeyStore.
      * 
      * @return
      * @throws KeyStoreException
@@ -504,7 +503,6 @@ public class StorageHelper {
             InvalidAlgorithmParameterException, UnrecoverableEntryException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
-
         if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
             Logger.v(TAG, "Key entry is not available");
             Calendar start = Calendar.getInstance();
@@ -534,6 +532,14 @@ public class StorageHelper {
         final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
                 KEY_STORE_CERT_ALIAS, null);
         return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
+    }
+
+    @TargetApi(18)
+    private synchronized void resetKeyPairFromAndroidKeyStore() throws KeyStoreException,
+            NoSuchAlgorithmException, CertificateException, IOException {
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        keyStore.deleteEntry(KEY_STORE_CERT_ALIAS);
     }
 
     @TargetApi(18)

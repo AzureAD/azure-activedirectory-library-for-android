@@ -2,7 +2,7 @@ language: android
 jdk: oraclejdk7
 android:
   components:
-    - build-tools-19.0.2
+    - build-tools-19.1.0
 env:
     matrix:
       - ANDROID_SDKS=android-18 ANDROID_TARGET=android-18

@@ -39,6 +39,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
@@ -83,7 +84,10 @@ public class MainActivity extends Activity {
         clearSessionCookie();
         try {
             // Provide key info for Encryption
-            Utils.setupKeyForSample();
+            if (Build.VERSION.SDK_INT < 18) {
+                Utils.setupKeyForSample();
+            }
+
             // init authentication Context
             mAuthContext = new AuthenticationContext(MainActivity.this, Constants.AUTHORITY_URL,
                     false);
@@ -291,7 +295,7 @@ public class MainActivity extends Activity {
             return mResult.getUserInfo().getDisplayableId();
         }
 
-        return null;
+        return Constants.LOGIN_HINT;
     }
 
     /**
