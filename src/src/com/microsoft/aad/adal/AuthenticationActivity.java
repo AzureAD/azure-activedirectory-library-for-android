@@ -265,7 +265,7 @@ public class AuthenticationActivity extends Activity {
             mWebView.post(new Runnable() {
                 @Override
                 public void run() {
-                    // load blank first
+                    // load blank first to avoid error for not loading webview
                     mWebView.loadUrl("about:blank");
                     mWebView.loadUrl(postUrl);
                 }
