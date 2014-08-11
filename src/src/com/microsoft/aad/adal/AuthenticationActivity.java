@@ -260,14 +260,35 @@ public class AuthenticationActivity extends Activity {
         final String postUrl = mStartUrl;
         Logger.v(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage
                 + " loginHint:" + mAuthRequest.getLoginHint());
-        mWebView.post(new Runnable() {
-            @Override
-            public void run() {
-                // load blank first
-                mWebView.loadUrl("about:blank");
-                mWebView.loadUrl(postUrl);
-            }
-        });
+
+        if (savedInstanceState == null) {
+            mWebView.post(new Runnable() {
+                @Override
+                public void run() {
+                    // load blank first to avoid error for not loading webview
+                    mWebView.loadUrl("about:blank");
+                    mWebView.loadUrl(postUrl);
+                }
+            });
+        } else {
+            Logger.d(TAG, "Reuse webview");
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Save the state of the WebView
+        mWebView.saveState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restore the state of the WebView
+        mWebView.restoreState(savedInstanceState);
     }
 
     private void setupWebView() {
