@@ -248,9 +248,7 @@ public class AuthenticationActivity extends Activity {
             mCallingUID = info.getUIDForPackage(mCallingPackage);
             String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
             mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
-            // mRedirectUrl =
-            // PackageHelper.getBrokerRedirectUrl(mCallingPackage,
-            // signatureDigest);
+            mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             Logger.v(TAG,
                     "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
                             + " calling package:" + mCallingPackage + " signatureDigest:"
@@ -272,7 +270,7 @@ public class AuthenticationActivity extends Activity {
                     mWebView.loadUrl(postUrl);
                 }
             });
-        }else{
+        } else {
             Logger.d(TAG, "Reuse webview");
         }
     }
