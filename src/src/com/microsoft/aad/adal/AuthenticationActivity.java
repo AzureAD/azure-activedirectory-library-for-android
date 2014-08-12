@@ -275,7 +275,9 @@ public class AuthenticationActivity extends Activity {
         // Spinner dialog to show some message while it is loading
         mSpinner = new ProgressDialog(this);
         mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
+        mSpinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
+                this.getPackageName())));
+        
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
@@ -587,8 +589,9 @@ public class AuthenticationActivity extends Activity {
                     return true;
                 } else {
                     Logger.v(TAG, "It is a broker request");
-                    displaySpinnerWithMessage(AuthenticationActivity.this.getResources().getString(
-                            R.string.broker_processing));
+                    displaySpinnerWithMessage(AuthenticationActivity.this.getText(AuthenticationActivity.this.getResources().getIdentifier("broker_processing", "string",
+                            getPackageName())));
+                    
                     view.stopLoading();
 
                     // do async task and show spinner while exchanging code for
@@ -683,11 +686,10 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
-    private void displaySpinnerWithMessage(String msg) {
+    private void displaySpinnerWithMessage(CharSequence charSequence) {
         if (!AuthenticationActivity.this.isFinishing() && mSpinner != null) {
             mSpinner.show();
-            mSpinner.setTitle("Processing ");
-            mSpinner.setMessage(msg);
+            mSpinner.setMessage(charSequence);
         }
     }
 
