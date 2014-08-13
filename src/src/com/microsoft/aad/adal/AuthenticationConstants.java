@@ -294,6 +294,8 @@ public class AuthenticationConstants {
         public static final String REDIRECT_PREFIX = "msauth";
 
         public static final Object REDIRECT_DELIMETER_ENCODED = "%2C";
+        
+        public static final String BROWSER_EXT_PREFIX = "browser://";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";
