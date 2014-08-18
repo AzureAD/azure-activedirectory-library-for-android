@@ -19,6 +19,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -31,6 +32,8 @@ public class TokenCacheItem implements Serializable {
      * Serial version.
      */
     private static final long serialVersionUID = 1L;
+
+    private static final String TAG = "TokenCacheItem";
 
     private UserInfo mUserInfo;
 
@@ -167,5 +170,25 @@ public class TokenCacheItem implements Serializable {
 
     public void setRawIdToken(String rawIdToken) {
         this.mRawIdToken = rawIdToken;
+    }
+
+    /**
+     * Checks expiration time.
+     * 
+     * @return true if expired
+     */
+    public static boolean isTokenExpired(Date expiresOn) {
+        Calendar calendarWithBuffer = Calendar.getInstance();
+        calendarWithBuffer.add(Calendar.SECOND,
+                AuthenticationSettings.INSTANCE.getExpirationBuffer());
+        Date validity = calendarWithBuffer.getTime();
+        Logger.d(TAG, "expiresOn:" + expiresOn + " timeWithBuffer:" + calendarWithBuffer.getTime()
+                + " Buffer:" + AuthenticationSettings.INSTANCE.getExpirationBuffer());
+
+        if (expiresOn != null && expiresOn.before(validity)) {
+            return true;
+        }
+
+        return false;
     }
 }
