@@ -33,6 +33,8 @@ public class AuthenticationResult implements Serializable {
      */
     private static final long serialVersionUID = 2243372613182536368L;
 
+    private static final String TAG = "AuthenticationResult";
+
     /**
      * Status for authentication.
      */
@@ -242,6 +244,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error code.
+     * 
      * @return Error code
      */
     public String getErrorCode() {
@@ -250,6 +253,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error description.
+     * 
      * @return error description
      */
     public String getErrorDescription() {
@@ -258,6 +262,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error log info.
+     * 
      * @return log info
      */
     public String getErrorLogInfo() {
@@ -266,21 +271,11 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Checks expiration time.
+     * 
      * @return true if expired
      */
     public boolean isExpired() {
-        Date validity = getCurrentTime().getTime();
-
-        if (mExpiresOn != null && mExpiresOn.before(validity)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private static Calendar getCurrentTime() {
-        Calendar timeNow = Calendar.getInstance();
-        return timeNow;
+        return TokenCacheItem.isTokenExpired(getExpiresOn());
     }
 
     boolean isInitialRequest() {
