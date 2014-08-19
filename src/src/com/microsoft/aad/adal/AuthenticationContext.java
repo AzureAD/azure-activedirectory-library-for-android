@@ -1324,7 +1324,7 @@ public class AuthenticationContext {
                         && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
                     Logger.v(TAG, "Updating cache for username:"
                             + result.getUserInfo().getDisplayableId() + getCorrelationLogInfo());
-                    userKey = result.getUserInfo().getDisplayableId();
+                    setItemToCacheForUser(request, result, result.getUserInfo().getDisplayableId());
                 }
             } else if (StringExtensions.IsNullOrBlank(userKey)) {
                 userKey = request.getLoginHint();

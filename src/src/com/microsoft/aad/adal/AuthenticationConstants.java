@@ -271,7 +271,7 @@ public class AuthenticationConstants {
         /**
          * Certificate authorities are passed with delimiter.
          */
-        public static final String CHALLANGE_REQUEST_CERT_AUTH_DELIMETER = ",";
+        public static final String CHALLANGE_REQUEST_CERT_AUTH_DELIMETER = ";";
 
         /**
          * Apk packagename that will install AD-Authenticator. It is used to
