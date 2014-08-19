@@ -42,6 +42,11 @@ public enum AuthenticationSettings {
     private String mSharedPrefPackageName;
 
     private boolean mSkipBroker = false;
+    
+    /**
+     * Expiration buffer in seconds.
+     */
+    private int mExpirationBuffer = 300;
 
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt.
@@ -179,5 +184,26 @@ public enum AuthenticationSettings {
      */
     public String getSharedPrefPackageName() {
         return mSharedPrefPackageName;
+    }
+
+    /**
+     * Gets expiration buffer.
+     * 
+     * @return
+     */
+    public int getExpirationBuffer() {
+        return mExpirationBuffer;
+    }
+
+    /**
+     * When checking access token expiration, it will check if the time to
+     * expiration is less than this value(in seconds). Example: Set to 300 to
+     * give 5min buffer. Token with Expiry time of 12:04 will say expired when
+     * actual time is 12:00 with 5min buffer.
+     * 
+     * @param expirationBuffer
+     */
+    public void setExpirationBuffer(int expirationBuffer) {
+        this.mExpirationBuffer = expirationBuffer;
     }
 }
