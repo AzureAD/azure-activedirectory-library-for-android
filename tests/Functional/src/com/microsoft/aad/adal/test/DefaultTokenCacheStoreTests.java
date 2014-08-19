@@ -46,14 +46,18 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 
+import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
 import com.microsoft.aad.adal.ITokenCacheStore;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.StorageHelper;
 import com.microsoft.aad.adal.TokenCacheItem;
 
 public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
+
+    private static final String TAG = "DefaultTokenCacheStoreTests";
 
     @Override
     protected void setUp() throws Exception {
@@ -171,6 +175,31 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 0, tokens.size());
     }
 
+    public void testExpireBuffer() throws NoSuchAlgorithmException, NoSuchPaddingException {
+        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+
+        ArrayList<TokenCacheItem> tokens = store.getTokensForUser("userid1");
+        Calendar expireTime = Calendar.getInstance();
+        Logger.d(TAG, "Time now: " + expireTime.getTime());
+        expireTime.add(Calendar.SECOND, 240);
+        Logger.d(TAG, "Time modified: " + expireTime.getTime());
+
+        // Sets token to expire if less than this buffer
+        AuthenticationSettings.INSTANCE.setExpirationBuffer(300);
+        for (TokenCacheItem item : tokens) {
+            item.setExpiresOn(expireTime.getTime());
+            assertTrue("Should say expired", TokenCacheItem.isTokenExpired(item.getExpiresOn()));
+        }
+
+        // Set expire time ahead of buffer 240 +100 secs more than 300secs buffer
+        expireTime.add(Calendar.SECOND, 100);
+        for (TokenCacheItem item : tokens) {
+            item.setExpiresOn(expireTime.getTime());
+            assertFalse("Should not say expired since time is more than buffer",
+                    TokenCacheItem.isTokenExpired(item.getExpiresOn()));
+        }
+    }
+    
     @Override
     protected ITokenCacheStore getTokenCacheStore() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
