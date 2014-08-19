@@ -21,6 +21,7 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.security.DigestException;
 import java.security.InvalidAlgorithmParameterException;
@@ -48,6 +49,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -298,7 +300,7 @@ public class AuthenticationActivity extends Activity {
         mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
         mSpinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
                 this.getPackageName())));
-        
+
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
@@ -610,9 +612,10 @@ public class AuthenticationActivity extends Activity {
                     return true;
                 } else {
                     Logger.v(TAG, "It is a broker request");
-                    displaySpinnerWithMessage(AuthenticationActivity.this.getText(AuthenticationActivity.this.getResources().getIdentifier("broker_processing", "string",
-                            getPackageName())));
-                    
+                    displaySpinnerWithMessage(AuthenticationActivity.this
+                            .getText(AuthenticationActivity.this.getResources().getIdentifier(
+                                    "broker_processing", "string", getPackageName())));
+
                     view.stopLoading();
 
                     // do async task and show spinner while exchanging code for
@@ -621,6 +624,11 @@ public class AuthenticationActivity extends Activity {
                             .execute(url);
                     return true;
                 }
+            } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
+                Logger.v(TAG, "It is an external website request");
+                openLinkInBrowser(url);
+                view.stopLoading();
+                return true;
             }
 
             if (isBrokerRequest(getIntent())
@@ -688,10 +696,17 @@ public class AuthenticationActivity extends Activity {
             super.onPageStarted(view, url, favicon);
             displaySpinner(true);
         }
+
+        private void openLinkInBrowser(String url) {
+            String link = url
+                    .replace(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
+            startActivity(intent);
+        }
     }
 
     /**
-     * handle spinner display
+     * handle spinner display.
      * 
      * @param show
      */
