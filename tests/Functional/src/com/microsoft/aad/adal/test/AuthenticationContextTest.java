@@ -1020,6 +1020,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
             UnsupportedEncodingException {
+        scenario_UserId_LoginHint("test@user.com", "test@user.com", "test@user.com");
+    }
+
+    private void scenario_UserId_LoginHint(String idTokenUpn, String responseIntentHint,
+            String acquireTokenHint) throws InterruptedException, IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, InvocationTargetException,
+            NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
@@ -1031,7 +1039,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         IdToken idtoken = new IdToken();
-        idtoken.upn = "test@user.com";
+        idtoken.upn = idTokenUpn;
         idtoken.oid = "userid123";
         String json = "{\"id_token\":\""
                 + idtoken.getIdToken()
@@ -1040,11 +1048,11 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 .defaultCharset()), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         Intent intent = getResponseIntent(callback, "resource", "clientid", "redirectUri",
-                idtoken.upn);
+                responseIntentHint);
 
         // Get token from onActivityResult after Activity returns
         tokenWithAuthenticationActivity(context, testActivity, signal, signalCallback, intent,
-                "resource", "clientid", "redirectUri", idtoken.upn, callback);
+                "resource", "clientid", "redirectUri", acquireTokenHint, callback);
 
         // Token will return to callback with idToken
         verifyTokenResult(idtoken, callback.mResult);
@@ -1052,7 +1060,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         // Same call should get token from cache
         final CountDownLatch signalCallback2 = new CountDownLatch(1);
         callback.mSignal = signalCallback2;
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", idtoken.upn,
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", acquireTokenHint,
                 callback);
         signalCallback2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         verifyTokenResult(idtoken, callback.mResult);
@@ -1063,6 +1071,15 @@ public class AuthenticationContextTest extends AndroidTestCase {
         verifyTokenResult(idtoken, result);
 
         clearCache(context);
+    }
+
+    @SmallTest
+    public void testScenario_NullUser_IdToken() throws InterruptedException,
+            IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
+            UnsupportedEncodingException {
+        scenario_UserId_LoginHint("test@user.com", "", "");
     }
 
     @SmallTest
