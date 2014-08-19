@@ -46,7 +46,7 @@ public enum AuthenticationSettings {
     /**
      * Expiration buffer in seconds.
      */
-    private int mExpirationBuffer = 600;
+    private int mExpirationBuffer = 300;
 
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt.
