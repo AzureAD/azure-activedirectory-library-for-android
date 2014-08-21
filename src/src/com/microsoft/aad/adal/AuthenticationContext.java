@@ -1038,7 +1038,7 @@ public class AuthenticationContext {
         if (mBrokerProxy.canSwitchToBroker()) {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             AuthenticationResult result = null;
-
+            request.setVersion(getVersionName());
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())) {

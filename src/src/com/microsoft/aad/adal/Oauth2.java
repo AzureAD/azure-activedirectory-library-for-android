@@ -511,6 +511,14 @@ class Oauth2 {
             } else {
 
                 // 400 Status code will throw here
+            	String errMessage = null;
+                byte[] message = response.getBody();
+                if (message != null) {
+                    errMessage = new String(message);
+                } else {
+                    errMessage = "Status code:" + String.valueOf(response.getStatusCode());
+                }
+                Logger.v(TAG, "Server error message:" + errMessage);
                 throw response.getResponseException();
             }
         } catch (IllegalArgumentException e) {
