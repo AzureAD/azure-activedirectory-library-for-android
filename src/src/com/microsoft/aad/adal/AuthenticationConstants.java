@@ -246,6 +246,8 @@ public class AuthenticationConstants {
 
         public static final String ACCOUNT_USERINFO_TENANTID = "account.userinfo.tenantid";
 
+        public static final String ADAL_VERSION_KEY = "adal.version.key";
+        
         public static final String ACCOUNT_UID_CACHES = "account.uid.caches";
 
         public static final String USERDATA_PREFIX = "userdata.prefix";

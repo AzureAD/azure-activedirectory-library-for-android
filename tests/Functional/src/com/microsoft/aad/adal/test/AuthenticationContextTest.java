@@ -267,8 +267,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final TestLogResponse response = new TestLogResponse();
-        response.listenLogForMessageSegments(signal, "Refresh token is not available",
-                "CorrelationId: " + requestCorrelationId.toString());
+        response.listenLogForMessageSegments(signal, "Authentication failed",
+                "correlation_id:\"\"" + requestCorrelationId.toString());
 
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);

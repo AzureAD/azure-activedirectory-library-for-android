@@ -151,6 +151,7 @@ class HttpWebRequest {
                     // If it does not get the error stream, it will return
                     // exception in the httpresponse
                     responseStream = mConnection.getErrorStream();
+                    mException = ex;
                 }
 
                 // GET request should read status after getInputStream to make
