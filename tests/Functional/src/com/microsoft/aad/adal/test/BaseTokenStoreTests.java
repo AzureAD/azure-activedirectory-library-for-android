@@ -25,6 +25,7 @@ import javax.crypto.NoSuchPaddingException;
 
 import android.content.Context;
 
+import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.TokenCacheItem;
@@ -48,11 +49,12 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
     protected void setUp() throws Exception {
         super.setUp();
         ctx = this.getInstrumentation().getContext();
+        AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
     }
 
     @Override
     protected void tearDown() throws Exception {
-
+        AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
         ITokenCacheStore store = getTokenCacheStore();
         store.removeAll();
         super.tearDown();

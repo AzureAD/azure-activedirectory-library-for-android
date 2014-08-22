@@ -81,4 +81,17 @@
         android:onClick="onClickAcquireTokenSilent"
         android:text="Get Token Silent" />
 
+    <EditText
+        android:id="@+id/editTextUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button4"
+        android:layout_alignRight="@+id/button4"
+        android:layout_below="@+id/button4"
+        android:ems="10"
+        android:hint="@string/login_hint" >
+
+        <requestFocus />
+    </EditText>
+
 </RelativeLayout>

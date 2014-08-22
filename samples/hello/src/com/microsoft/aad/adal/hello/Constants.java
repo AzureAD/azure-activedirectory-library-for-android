@@ -53,4 +53,6 @@ public class Constants {
     public static final String KEY_NAME_ASK_BROKER_INSTALL = "test.settings.ask.broker";
 
     public static final String KEY_NAME_CHECK_BROKER = "test.settings.check.broker";
+
+    public static final String LOGIN_HINT = "faruk@omercantest.onmicrosoft.com";
 }

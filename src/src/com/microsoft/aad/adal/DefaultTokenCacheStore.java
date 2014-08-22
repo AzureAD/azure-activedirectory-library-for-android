@@ -32,6 +32,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager.NameNotFoundException;
 
 import com.google.gson.Gson;
 
@@ -67,6 +68,23 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             NoSuchPaddingException {
         mContext = context;
         if (context != null) {
+
+            if (!StringExtensions.IsNullOrBlank(AuthenticationSettings.INSTANCE
+                    .getSharedPrefPackageName())) {
+                try {
+                    // Context is created from specified packagename in order to
+                    // use same file. Reading private data is only allowed if apps specify same
+                    // sharedUserId. Android OS will assign same UID, if they
+                    // are signed with same certificates.
+                    mContext = context.createPackageContext(
+                            AuthenticationSettings.INSTANCE.getSharedPrefPackageName(),
+                            Context.MODE_PRIVATE);
+                } catch (NameNotFoundException e) {
+                    throw new IllegalArgumentException("Package name:"
+                            + AuthenticationSettings.INSTANCE.getSharedPrefPackageName()
+                            + " is not found");
+                }
+            }
             mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
         } else {
             throw new IllegalArgumentException("Context is null");
@@ -75,7 +93,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         synchronized (sLock) {
             if (sHelper == null) {
                 Logger.v(TAG, "Started to initialize storage helper");
-                sHelper = new StorageHelper(context);
+                sHelper = new StorageHelper(mContext);
                 Logger.v(TAG, "Finished to initialize storage helper");
             }
         }

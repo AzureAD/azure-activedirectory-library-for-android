@@ -1038,7 +1038,7 @@ public class AuthenticationContext {
         if (mBrokerProxy.canSwitchToBroker()) {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             AuthenticationResult result = null;
-
+            request.setVersion(getVersionName());
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())) {
@@ -1324,7 +1324,7 @@ public class AuthenticationContext {
                         && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
                     Logger.v(TAG, "Updating cache for username:"
                             + result.getUserInfo().getDisplayableId() + getCorrelationLogInfo());
-                    userKey = result.getUserInfo().getDisplayableId();
+                    setItemToCacheForUser(request, result, result.getUserInfo().getDisplayableId());
                 }
             } else if (StringExtensions.IsNullOrBlank(userKey)) {
                 userKey = request.getLoginHint();
@@ -1762,6 +1762,6 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.0.0";
+        return "1.0.1";
     }
 }

@@ -353,6 +353,9 @@ class BrokerProxy implements IBrokerProxy {
                 request.getRedirectUri());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY,
                 request.getClientId());
+        brokerOptions.putString(AuthenticationConstants.Broker.ADAL_VERSION_KEY,
+                request.getVersion());
+        
 
         // allowing single user for now
         brokerOptions

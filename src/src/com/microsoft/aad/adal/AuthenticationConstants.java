@@ -246,6 +246,8 @@ public class AuthenticationConstants {
 
         public static final String ACCOUNT_USERINFO_TENANTID = "account.userinfo.tenantid";
 
+        public static final String ADAL_VERSION_KEY = "adal.version.key";
+        
         public static final String ACCOUNT_UID_CACHES = "account.uid.caches";
 
         public static final String USERDATA_PREFIX = "userdata.prefix";
@@ -271,7 +273,7 @@ public class AuthenticationConstants {
         /**
          * Certificate authorities are passed with delimiter.
          */
-        public static final String CHALLANGE_REQUEST_CERT_AUTH_DELIMETER = ",";
+        public static final String CHALLANGE_REQUEST_CERT_AUTH_DELIMETER = ";";
 
         /**
          * Apk packagename that will install AD-Authenticator. It is used to
@@ -294,6 +296,8 @@ public class AuthenticationConstants {
         public static final String REDIRECT_PREFIX = "msauth";
 
         public static final Object REDIRECT_DELIMETER_ENCODED = "%2C";
+        
+        public static final String BROWSER_EXT_PREFIX = "browser://";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";

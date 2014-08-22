@@ -21,6 +21,7 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.security.DigestException;
 import java.security.InvalidAlgorithmParameterException;
@@ -48,6 +49,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -260,14 +262,35 @@ public class AuthenticationActivity extends Activity {
         final String postUrl = mStartUrl;
         Logger.v(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage
                 + " loginHint:" + mAuthRequest.getLoginHint());
-        mWebView.post(new Runnable() {
-            @Override
-            public void run() {
-                // load blank first
-                mWebView.loadUrl("about:blank");
-                mWebView.loadUrl(postUrl);
-            }
-        });
+
+        if (savedInstanceState == null) {
+            mWebView.post(new Runnable() {
+                @Override
+                public void run() {
+                    // load blank first to avoid error for not loading webview
+                    mWebView.loadUrl("about:blank");
+                    mWebView.loadUrl(postUrl);
+                }
+            });
+        } else {
+            Logger.d(TAG, "Reuse webview");
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Save the state of the WebView
+        mWebView.saveState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restore the state of the WebView
+        mWebView.restoreState(savedInstanceState);
     }
 
     private void setupWebView() {
@@ -275,6 +298,8 @@ public class AuthenticationActivity extends Activity {
         // Spinner dialog to show some message while it is loading
         mSpinner = new ProgressDialog(this);
         mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mSpinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
+                this.getPackageName())));
 
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
@@ -587,8 +612,10 @@ public class AuthenticationActivity extends Activity {
                     return true;
                 } else {
                     Logger.v(TAG, "It is a broker request");
-                    displaySpinnerWithMessage(AuthenticationActivity.this.getResources().getString(
-                            R.string.broker_processing));
+                    displaySpinnerWithMessage(AuthenticationActivity.this
+                            .getText(AuthenticationActivity.this.getResources().getIdentifier(
+                                    "broker_processing", "string", getPackageName())));
+
                     view.stopLoading();
 
                     // do async task and show spinner while exchanging code for
@@ -597,6 +624,11 @@ public class AuthenticationActivity extends Activity {
                             .execute(url);
                     return true;
                 }
+            } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
+                Logger.v(TAG, "It is an external website request");
+                openLinkInBrowser(url);
+                view.stopLoading();
+                return true;
             }
 
             if (isBrokerRequest(getIntent())
@@ -664,10 +696,17 @@ public class AuthenticationActivity extends Activity {
             super.onPageStarted(view, url, favicon);
             displaySpinner(true);
         }
+
+        private void openLinkInBrowser(String url) {
+            String link = url
+                    .replace(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
+            startActivity(intent);
+        }
     }
 
     /**
-     * handle spinner display
+     * handle spinner display.
      * 
      * @param show
      */
@@ -683,11 +722,10 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
-    private void displaySpinnerWithMessage(String msg) {
+    private void displaySpinnerWithMessage(CharSequence charSequence) {
         if (!AuthenticationActivity.this.isFinishing() && mSpinner != null) {
             mSpinner.show();
-            mSpinner.setTitle("Processing ");
-            mSpinner.setMessage(msg);
+            mSpinner.setMessage(charSequence);
         }
     }
 
