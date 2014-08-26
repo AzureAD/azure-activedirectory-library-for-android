@@ -91,7 +91,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     protected final static int ACTIVITY_TIME_OUT = 1000;
 
-    private final static String TEST_AUTHORITY = "https://login.windows.net/common";
+    private final static String TEST_AUTHORITY = "https://login.windows.net/ComMon";
 
     private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
 
@@ -1210,7 +1210,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         verifyTokenResult(idtoken, result);
 
         final AuthenticationContext contextUpdatedAuthority = new AuthenticationContext(mockContext,
-        		TEST_AUTHORITY.replace("common", idtoken.tid), false);
+        		TEST_AUTHORITY.replaceFirst("(?i)common", idtoken.tid), false);
         AuthenticationResult result2 = contextUpdatedAuthority.acquireTokenSilentSync("resource", "clientid",
                 idtoken.oid);
         verifyTokenResult(idtoken, result2);
