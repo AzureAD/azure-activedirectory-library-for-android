@@ -244,12 +244,12 @@ public class AuthenticationContext {
         return mAuthority;
     }
 
-    public void updateAuthority(AuthenticationRequest request, final String tenantId) {
+    private void updateAuthority(AuthenticationRequest request, final String tenantId) {
         if (!StringExtensions.IsNullOrBlank(tenantId)
                 && mAuthority.toLowerCase(Locale.US).endsWith("/common")) {
             Logger.v(TAG, String.format("Update common authority:%s with tenantId to:%s",
                     mAuthority, tenantId));
-            mAuthority = mAuthority.replaceFirst("(?i)/common", "/" + tenantId);
+            mAuthority = mAuthority.replaceFirst("(?i)/common\\z", "/" + tenantId);
             Logger.v(TAG, "Updated authority:" + mAuthority);
             request.setAuthority(mAuthority);
         }

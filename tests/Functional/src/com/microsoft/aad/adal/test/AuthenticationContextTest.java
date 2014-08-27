@@ -91,7 +91,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     protected final static int ACTIVITY_TIME_OUT = 1000;
 
-    private final static String TEST_AUTHORITY = "https://login.windows.net/ComMon";
+    private final static String TEST_AUTHORITY = "https://login.windows.net/ComMon/";
 
     private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
 
@@ -267,8 +267,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final TestLogResponse response = new TestLogResponse();
-        response.listenLogForMessageSegments(signal, "Authentication failed",
-                "correlation_id:\"\"" + requestCorrelationId.toString());
+        response.listenLogForMessageSegments(signal, "Authentication failed", "correlation_id:\"\""
+                + requestCorrelationId.toString());
 
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
@@ -1167,7 +1167,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         clearCache(context);
     }
-    
+
     @SmallTest
     public void testScenario_AuthorityChange() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
@@ -1175,8 +1175,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
             InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
             UnsupportedEncodingException {
         FileMockContext mockContext = new FileMockContext(getContext());
-        final AuthenticationContext context = new AuthenticationContext(mockContext,
-        		TEST_AUTHORITY, false);
+        String authority = "https://common.windows.net/ComMon/";
+        final AuthenticationContext context = new AuthenticationContext(mockContext, authority,
+                false);
         context.getCache().removeAll();
         setConnectionAvailable(context, true);
         final CountDownLatch signal = new CountDownLatch(1);
@@ -1195,7 +1196,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 .defaultCharset()), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         Intent intent = getResponseIntent(callback, "resource", "clientid", "redirectUri",
-        		idtoken.upn);
+                idtoken.upn);
 
         // Get token from onActivityResult after Activity returns
         tokenWithAuthenticationActivity(context, testActivity, signal, signalCallback, intent,
@@ -1203,18 +1204,18 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Token will return to callback with idToken
         verifyTokenResult(idtoken, callback.mResult);
-     
+
         // Call with userId should return from cache as well
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
                 idtoken.oid);
         verifyTokenResult(idtoken, result);
 
-        final AuthenticationContext contextUpdatedAuthority = new AuthenticationContext(mockContext,
-        		TEST_AUTHORITY.replaceFirst("(?i)common", idtoken.tid), false);
-        AuthenticationResult result2 = contextUpdatedAuthority.acquireTokenSilentSync("resource", "clientid",
-                idtoken.oid);
+        final AuthenticationContext contextUpdatedAuthority = new AuthenticationContext(
+                mockContext, authority.replaceFirst("(?i)/common/\\z", "/" + idtoken.tid), false);
+        AuthenticationResult result2 = contextUpdatedAuthority.acquireTokenSilentSync("resource",
+                "clientid", idtoken.oid);
         verifyTokenResult(idtoken, result2);
-        
+
         clearCache(context);
     }
 
