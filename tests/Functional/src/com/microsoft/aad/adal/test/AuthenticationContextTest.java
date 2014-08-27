@@ -1168,57 +1168,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
         clearCache(context);
     }
 
-    @SmallTest
-    public void testScenario_AuthorityChange() throws InterruptedException,
-            IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
-            UnsupportedEncodingException {
-        FileMockContext mockContext = new FileMockContext(getContext());
-        String authority = "https://common.windows.net/ComMon/";
-        final AuthenticationContext context = new AuthenticationContext(mockContext, authority,
-                false);
-        context.getCache().removeAll();
-        setConnectionAvailable(context, true);
-        final CountDownLatch signal = new CountDownLatch(1);
-        final CountDownLatch signalCallback = new CountDownLatch(1);
-        final MockActivity testActivity = new MockActivity(signal);
-        MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
-        MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        IdToken idtoken = new IdToken();
-        idtoken.tid = "123-232-23";
-        idtoken.upn = "admin@user.com";
-        idtoken.oid = "admin123";
-        String json = "{\"id_token\":\""
-                + idtoken.getIdToken()
-                + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
-        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
-                .defaultCharset()), null));
-        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
-        Intent intent = getResponseIntent(callback, "resource", "clientid", "redirectUri",
-                idtoken.upn);
-
-        // Get token from onActivityResult after Activity returns
-        tokenWithAuthenticationActivity(context, testActivity, signal, signalCallback, intent,
-                "resource", "clientid", "redirectUri", idtoken.upn, callback);
-
-        // Token will return to callback with idToken
-        verifyTokenResult(idtoken, callback.mResult);
-
-        // Call with userId should return from cache as well
-        AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
-                idtoken.oid);
-        verifyTokenResult(idtoken, result);
-
-        final AuthenticationContext contextUpdatedAuthority = new AuthenticationContext(
-                mockContext, authority.replaceFirst("(?i)/common/\\z", "/" + idtoken.tid), false);
-        AuthenticationResult result2 = contextUpdatedAuthority.acquireTokenSilentSync("resource",
-                "clientid", idtoken.oid);
-        verifyTokenResult(idtoken, result2);
-
-        clearCache(context);
-    }
-
     private Intent getResponseIntent(MockAuthenticationCallback callback, String resource,
             String clientid, String redirect, String loginHint) throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,

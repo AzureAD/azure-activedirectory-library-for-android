@@ -244,17 +244,6 @@ public class AuthenticationContext {
         return mAuthority;
     }
 
-    private void updateAuthority(AuthenticationRequest request, final String tenantId) {
-        if (!StringExtensions.IsNullOrBlank(tenantId)
-                && mAuthority.toLowerCase(Locale.US).endsWith("/common")) {
-            Logger.v(TAG, String.format("Update common authority:%s with tenantId to:%s",
-                    mAuthority, tenantId));
-            mAuthority = mAuthority.replaceFirst("(?i)/common\\z", "/" + tenantId);
-            Logger.v(TAG, "Updated authority:" + mAuthority);
-            request.setAuthority(mAuthority);
-        }
-    }
-
     /**
      * @return True when authority is valid
      */
@@ -737,7 +726,6 @@ public class AuthenticationContext {
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
-                                        updateAuthority(authenticationRequest, result.getTenantId());
                                         setItemToCache(authenticationRequest, result, true);
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
@@ -1393,8 +1381,6 @@ public class AuthenticationContext {
             Logger.v(TAG, "Setting refresh item to cache for key:" + refreshItem.mKey
                     + getCorrelationLogInfo());
             logReturnedToken(request, result);
-            updateAuthority(request, result.getTenantId());
-            request.setAuthority(getAuthority());
 
             // Update for cache key
             mTokenCacheStore.setItem(refreshItem.mKey, new TokenCacheItem(request, result,
