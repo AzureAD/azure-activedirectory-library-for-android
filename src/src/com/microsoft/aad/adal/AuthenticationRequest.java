@@ -52,6 +52,8 @@ class AuthenticationRequest implements Serializable {
 
     private boolean mSilent = false;
 
+    private String mVersion = null;
+    
     public AuthenticationRequest() {
 
     }
@@ -207,4 +209,12 @@ class AuthenticationRequest implements Serializable {
     public void setSilent(boolean silent) {
         this.mSilent = silent;
     }
+
+	public String getVersion() {
+		return mVersion;
+	}
+
+	public void setVersion(String version) {
+		this.mVersion = version;
+	}
 }

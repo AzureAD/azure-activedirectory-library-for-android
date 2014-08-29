@@ -6,7 +6,7 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="button_cancel">Cancel</string>
-    <string name="app_loading">Loading...</string>
+    <string name="app_loading"></string>
     <string name="title_activity_token">TokenActivity</string>
     <string name="title_activity_authentication">Authentication </string>
     <string name="title_confirmation_activity_authentication">Confirm</string>

@@ -39,7 +39,14 @@ public enum AuthenticationSettings {
 
     private String mActivityPackageName;
 
+    private String mSharedPrefPackageName;
+
     private boolean mSkipBroker = false;
+    
+    /**
+     * Expiration buffer in seconds.
+     */
+    private int mExpirationBuffer = 300;
 
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt.
@@ -137,7 +144,7 @@ public enum AuthenticationSettings {
     /**
      * set package name to setup intent for AuthenticationActivity.
      * 
-     * @param activityPackageName   activity to use from different package
+     * @param activityPackageName activity to use from different package
      */
     public void setActivityPackageName(String activityPackageName) {
         this.mActivityPackageName = activityPackageName;
@@ -159,5 +166,44 @@ public enum AuthenticationSettings {
      */
     public void setSkipBroker(boolean skip) {
         mSkipBroker = skip;
+    }
+
+    /**
+     * Sets package name to use {@link DefaultTokenCacheStore} with sharedUserId
+     * apps.
+     * 
+     * @param packageNameForSharedFile Package name of other app
+     */
+    public void setSharedPrefPackageName(String packageNameForSharedFile) {
+        this.mSharedPrefPackageName = packageNameForSharedFile;
+    }
+
+    /**
+     * Gets package name provided for shared preferences. 
+     * @return package name provided for shared preferences
+     */
+    public String getSharedPrefPackageName() {
+        return mSharedPrefPackageName;
+    }
+
+    /**
+     * Gets expiration buffer.
+     * 
+     * @return
+     */
+    public int getExpirationBuffer() {
+        return mExpirationBuffer;
+    }
+
+    /**
+     * When checking access token expiration, it will check if the time to
+     * expiration is less than this value(in seconds). Example: Set to 300 to
+     * give 5min buffer. Token with Expiry time of 12:04 will say expired when
+     * actual time is 12:00 with 5min buffer.
+     * 
+     * @param expirationBuffer
+     */
+    public void setExpirationBuffer(int expirationBuffer) {
+        this.mExpirationBuffer = expirationBuffer;
     }
 }

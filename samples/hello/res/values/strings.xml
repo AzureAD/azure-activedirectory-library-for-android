@@ -18,5 +18,6 @@
     <string name="broker_authentication_request_is_invalid">Authetication request is invalid</string>
     <string name="broker_processing">Broker is processing</string>
     <string name="login_title">Hello Login</string>
+    <string name="login_hint">someone@contoso.com</string>
 
 </resources>
