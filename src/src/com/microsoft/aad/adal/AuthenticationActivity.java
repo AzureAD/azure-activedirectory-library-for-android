@@ -21,7 +21,6 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.security.DigestException;
 import java.security.InvalidAlgorithmParameterException;
@@ -53,7 +52,9 @@ import android.net.Uri;
 import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -76,7 +77,9 @@ import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 })
 public class AuthenticationActivity extends Activity {
 
-    static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
+    private static final int TIMEOUT_TO_SHOW_SPINNER_MS = 1200;
+    
+    private static final int BACK_PRESSED_CANCEL_DIALOG_STEPS = -2;
 
     private static final String TAG = "AuthenticationActivity";
 
@@ -85,8 +88,6 @@ public class AuthenticationActivity extends Activity {
     private WebView mWebView;
 
     private String mStartUrl;
-
-    private ProgressDialog mSpinner;
 
     private String mRedirectUrl;
 
@@ -110,6 +111,11 @@ public class AuthenticationActivity extends Activity {
     private IJWSBuilder mJWSBuilder = new JWSBuilder();
 
     private String mQueryParameters;
+    
+    private final Handler mSpinnerHandler = new Handler();
+    private Runnable mSpinnerRunnable;
+    private CharSequence mSpinnerLastMessage;
+    private ProgressDialog mSpinner;
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
@@ -295,12 +301,6 @@ public class AuthenticationActivity extends Activity {
 
     private void setupWebView() {
 
-        // Spinner dialog to show some message while it is loading
-        mSpinner = new ProgressDialog(this);
-        mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mSpinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
-                this.getPackageName())));
-
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
@@ -452,7 +452,7 @@ public class AuthenticationActivity extends Activity {
      */
     private void returnToCaller(int resultCode, Intent data) {
         Logger.d(TAG, "Return To Caller:" + resultCode);
-        displaySpinner(false);
+        displaySpinner(null);
 
         if (data == null) {
             data = new Intent();
@@ -543,7 +543,7 @@ public class AuthenticationActivity extends Activity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Logger.d(TAG, "shouldOverrideUrlLoading:url=" + url);
-            displaySpinner(true);
+            displaySpinner(null);
             if (url.startsWith(AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT)) {
                 Logger.v(TAG, "Webview detected request for client certificate");
                 view.stopLoading();
@@ -612,9 +612,10 @@ public class AuthenticationActivity extends Activity {
                     return true;
                 } else {
                     Logger.v(TAG, "It is a broker request");
-                    displaySpinnerWithMessage(AuthenticationActivity.this
-                            .getText(AuthenticationActivity.this.getResources().getIdentifier(
-                                    "broker_processing", "string", getPackageName())));
+                    displaySpinner(AuthenticationActivity.this.getText(AuthenticationActivity.this.getResources().getIdentifier(
+                            "broker_processing",
+                            "string",
+                            getPackageName())));
 
                     view.stopLoading();
 
@@ -647,7 +648,7 @@ public class AuthenticationActivity extends Activity {
         public void onReceivedError(WebView view, int errorCode, String description,
                 String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
-            displaySpinner(false);
+            hideSpinner();
             Logger.e(TAG, "Webview received an error. Errorcode:" + errorCode + " " + description,
                     "", ADALError.ERROR_WEBVIEW);
             Intent resultIntent = new Intent();
@@ -664,7 +665,7 @@ public class AuthenticationActivity extends Activity {
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
             // Developer does not have option to control this for now
             super.onReceivedSslError(view, handler, error);
-            displaySpinner(false);
+            hideSpinner();
             handler.cancel();
             Logger.e(TAG, "Received ssl error", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
             Intent resultIntent = new Intent();
@@ -687,14 +688,14 @@ public class AuthenticationActivity extends Activity {
              */
             mWebView.setVisibility(View.VISIBLE);
             if (!url.startsWith(BLANK_PAGE)) {
-                displaySpinner(false);
+                hideSpinner();
             }
         }
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
-            displaySpinner(true);
+            displaySpinner(null);
         }
 
         private void openLinkInBrowser(String url) {
@@ -706,27 +707,62 @@ public class AuthenticationActivity extends Activity {
     }
 
     /**
-     * handle spinner display.
-     * 
-     * @param show
+     * Display spinner (e.g.: loading...) to the user or only a spinner wheel if
+     * no message is supplied
+     *
+     * @param message
+     *            the message
      */
-    private void displaySpinner(boolean show) {
-        if (!AuthenticationActivity.this.isFinishing() && mSpinner != null) {
-            if (show && !mSpinner.isShowing()) {
-                mSpinner.show();
+    private void displaySpinner(final CharSequence message) {
+        if (!AuthenticationActivity.this.isFinishing()) {
+            int showSpinnerInMs = TIMEOUT_TO_SHOW_SPINNER_MS;
+            if (mSpinnerRunnable != null) {
+                if (TextUtils.isEmpty(mSpinnerLastMessage) && TextUtils.isEmpty(message)) {
+                    showSpinnerInMs = Integer.MIN_VALUE;
+                } else {
+                    // Immediately show the progressDialog
+                    showSpinnerInMs = 0;
+                    hideSpinner();
+                }
             }
+            mSpinnerLastMessage = message;
 
-            if (!show && mSpinner.isShowing()) {
-                mSpinner.dismiss();
+            if (showSpinnerInMs >= 0) {
+                mSpinnerRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!AuthenticationActivity.this.isFinishing() && mWebView.getVisibility() == View.VISIBLE
+                                && mSpinner == null) {
+                            // show a progessDialog with message
+                            if (!TextUtils.isEmpty(message)) {
+                                mSpinner = ProgressDialog.show(AuthenticationActivity.this, null, message, true);
+                            }
+                            // show a progessDialog without message
+                            else {
+                                mSpinner = new ProgressDialog(AuthenticationActivity.this, R.style.progress_bar_style);
+                                mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                mSpinner.show();
+                                mSpinner.setContentView(R.layout.progess_dialog_without_text);
+                            }
+                        }
+                    }
+                };
+                mSpinnerHandler.postDelayed(mSpinnerRunnable, showSpinnerInMs);
             }
         }
     }
 
-    private void displaySpinnerWithMessage(CharSequence charSequence) {
-        if (!AuthenticationActivity.this.isFinishing() && mSpinner != null) {
-            mSpinner.show();
-            mSpinner.setMessage(charSequence);
+    /**
+     * Hide progessDialog (e.g.: loading...) from the user
+     */
+    private void hideSpinner() {
+        mSpinnerHandler.removeCallbacks(mSpinnerRunnable);
+        mSpinnerRunnable = null;
+        if (mSpinner != null) {
+            mSpinner.dismiss();
+            mSpinner = null;
         }
+        mSpinnerLastMessage = null;
     }
 
     private void returnResult(int resultcode, Intent intent) {
@@ -996,7 +1032,7 @@ public class AuthenticationActivity extends Activity {
         @Override
         protected void onPostExecute(TokenTaskResult result) {
             Logger.v(TAG, "Token task returns the result");
-            displaySpinner(false);
+            displaySpinner(null);
             Intent intent = new Intent();
             if (result.taskResult != null) {
                 intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
