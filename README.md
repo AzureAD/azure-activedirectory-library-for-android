@@ -1,4 +1,4 @@
-#Microsoft Azure Active Directory Authentication Library (ADAL) for Android
+﻿#Microsoft Azure Active Directory Authentication Library (ADAL) for Android
 ===========
 
 The ADAL SDK for Android gives you the ability to add support for Work Accounts to your application with just a few lines of additional code. This SDK gives your application the full functionality of Microsoft Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
@@ -123,7 +123,7 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
             android:theme="@style/AppTheme" >
             
             <activity
-                android:name="com.microsoft.adal.AuthenticationActivity"
+                android:name="com.microsoft.aad.adal.AuthenticationActivity"
                 android:label="@string/title_login_hello_app" >
             </activity>
       ....

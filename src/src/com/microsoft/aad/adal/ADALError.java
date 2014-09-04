@@ -78,7 +78,8 @@ public enum ADALError {
     /**
      * Activity is not resolved.
      */
-    DEVELOPER_ACTIVITY_IS_NOT_RESOLVED("Activity is not resolved"),
+    DEVELOPER_ACTIVITY_IS_NOT_RESOLVED(
+            "Activity is not resolved. Verify the activity name in your manifest file"),
 
     /**
      * android.permission.INTERNET is not added to AndroidManifest file.
