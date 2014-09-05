@@ -295,12 +295,6 @@ public class AuthenticationActivity extends Activity {
 
     private void setupWebView() {
 
-        // Spinner dialog to show some message while it is loading
-        mSpinner = new ProgressDialog(this);
-        mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mSpinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
-                this.getPackageName())));
-
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
@@ -482,13 +476,17 @@ public class AuthenticationActivity extends Activity {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
         }
         mRegisterReceiver = true;
-        // restart webview when it comes back from onresume
+
+        if (mSpinner != null) {
+            Logger.d(TAG, "Spinner at onPause will dismiss");
+            mSpinner.dismiss();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
+        Logger.d(TAG, "onResume");
         // It can come here from onCreate, onRestart or onPause.
         // Don't load url again since it will send another 2FA request
         if (mRegisterReceiver) {
@@ -501,8 +499,14 @@ public class AuthenticationActivity extends Activity {
             }
         }
         mRegisterReceiver = false;
-    }
 
+        // Spinner dialog to show some message while it is loading
+        mSpinner = new ProgressDialog(this);
+        mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mSpinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
+                this.getPackageName())));
+    }
+    
     @Override
     protected void onRestart() {
         Logger.d(TAG, "AuthenticationActivity onRestart");
@@ -711,7 +715,9 @@ public class AuthenticationActivity extends Activity {
      * @param show
      */
     private void displaySpinner(boolean show) {
-        if (!AuthenticationActivity.this.isFinishing() && mSpinner != null) {
+        if (!AuthenticationActivity.this.isFinishing()
+                && !AuthenticationActivity.this.isChangingConfigurations() && mSpinner != null) {
+            Logger.d(TAG, "displaySpinner:" + show + " showing:" + mSpinner.isShowing());
             if (show && !mSpinner.isShowing()) {
                 mSpinner.show();
             }
