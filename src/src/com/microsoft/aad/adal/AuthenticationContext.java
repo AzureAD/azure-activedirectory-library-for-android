@@ -1438,6 +1438,10 @@ public class AuthenticationContext {
         try {
             Oauth2 oauthRequest = new Oauth2(request, mWebRequest, mJWSBuilder);
             result = oauthRequest.refreshToken(refreshItem.mRefreshToken);
+            if (StringExtensions.IsNullOrBlank(result.getRefreshToken())) {
+                Logger.v(TAG, "Refresh token is not returned or empty");
+                result.setRefreshToken(refreshItem.mRefreshToken);
+            }
         } catch (Exception exc) {
             // remove item from cache
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
