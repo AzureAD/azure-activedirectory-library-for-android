@@ -23,7 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -726,7 +726,6 @@ public class AuthenticationContext {
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
-
                                         setItemToCache(authenticationRequest, result, true);
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
@@ -1439,6 +1438,10 @@ public class AuthenticationContext {
         try {
             Oauth2 oauthRequest = new Oauth2(request, mWebRequest, mJWSBuilder);
             result = oauthRequest.refreshToken(refreshItem.mRefreshToken);
+            if (StringExtensions.IsNullOrBlank(result.getRefreshToken())) {
+                Logger.v(TAG, "Refresh token is not returned or empty");
+                result.setRefreshToken(refreshItem.mRefreshToken);
+            }
         } catch (Exception exc) {
             // remove item from cache
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
@@ -1762,6 +1765,6 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.0.1";
+        return "1.0.2";
     }
 }

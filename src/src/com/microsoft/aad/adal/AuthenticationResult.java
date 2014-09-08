@@ -298,4 +298,8 @@ public class AuthenticationResult implements Serializable {
     void setTenantId(String tenantid) {
         mTenantId = tenantid;
     }
+    
+    void setRefreshToken(String refreshToken){
+        mRefreshToken = refreshToken;
+    }
 }
