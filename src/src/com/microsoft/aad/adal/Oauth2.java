@@ -213,7 +213,8 @@ class Oauth2 {
                             + "CorrelationId:" + correlationId);
 
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.ERROR),
-                    response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION));
+                    response.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION),
+                    response.get(AuthenticationConstants.OAuth2.ERROR_CODES));
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
@@ -454,8 +455,11 @@ class Oauth2 {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
-        try {
-            mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
+    	ClientMetrics clientMetrics = new ClientMetrics();
+
+    	try {
+        	mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
+            clientMetrics.beginClientMetricsRecord(headers);        	
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
@@ -508,7 +512,10 @@ class Oauth2 {
                 // the error and error description
                 Logger.v(TAG, "Token request does not have exception");
                 result = processTokenResponse(response);
+                clientMetrics.setLastError(null);
             } else {
+                result = processTokenResponse(response);
+                clientMetrics.setLastError(result.getErrorCodes());
 
                 // 400 Status code will throw here
             	String errMessage = null;
@@ -522,14 +529,19 @@ class Oauth2 {
                 throw response.getResponseException();
             }
         } catch (IllegalArgumentException e) {
+            clientMetrics.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
             throw e;
         } catch (UnsupportedEncodingException e) {
+            clientMetrics.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             throw e;
         } catch (Exception e) {
+            clientMetrics.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
+        } finally {
+            clientMetrics.endClientMetricsRecord(ClientMetricsEndpointType.TOKEN, mRequest.getCorrelationId());        
         }
 
         return result;
@@ -591,7 +603,7 @@ class Oauth2 {
                 // catch the
                 // generic Exception
                 Logger.e(TAG, ex.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
-                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage());
+                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
             }
         } else {
             String errMessage = null;
@@ -603,7 +615,7 @@ class Oauth2 {
             }
             Logger.v(TAG, "Server error message:" + errMessage);
             result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    errMessage);
+                    errMessage, null);
         }
 
         // Set correlationId in the result

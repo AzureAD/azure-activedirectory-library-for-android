@@ -94,6 +94,8 @@ public class AuthenticationConstants {
 
         public static final String ERROR_DESCRIPTION = "error_description";
 
+        public static final String ERROR_CODES = "error_codes";
+
         public static final String EXPIRES_IN = "expires_in";
 
         public static final String GRANT_TYPE = "grant_type";

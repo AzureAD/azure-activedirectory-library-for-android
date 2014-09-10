@@ -146,7 +146,7 @@ final class Discovery implements IDiscovery {
         // It will query prod instance to verify the authority
         // construct query string for this instance
         URL queryUrl;
-        boolean result = false;
+        boolean result = false;       
         try {
             queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE,
                     getAuthorizationCommonEndpoint(authorizationEndpointUrl));
@@ -182,10 +182,18 @@ final class Discovery implements IDiscovery {
             headers.put(AuthenticationConstants.AAD.RETURN_CLIENT_REQUEST_ID, "true");
         }
 
+    	ClientMetrics clientMetrics = new ClientMetrics();
+               
         HttpWebResponse webResponse = null;
         try {
+            clientMetrics.beginClientMetricsRecord(headers);        	           
             webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
-
+            if (webResponse.getResponseException() == null) {
+                clientMetrics.setLastError(null);
+            } else {
+            	// TODO: Extract error from response
+                clientMetrics.setLastError(null);
+            }
             // parse discovery response to find tenant info
             return parseResponse(webResponse);
         } catch (IllegalArgumentException exc) {
@@ -196,6 +204,9 @@ final class Discovery implements IDiscovery {
             Logger.e(TAG, "Json parsing error", "",
                     ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, e);
             throw e;
+        }
+        finally {
+            clientMetrics.endClientMetricsRecord(ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);                
         }
     }
 
