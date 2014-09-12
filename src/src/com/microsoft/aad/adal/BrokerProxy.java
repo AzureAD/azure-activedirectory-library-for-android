@@ -19,6 +19,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.IOException;
+import java.lang.annotation.Target;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -65,6 +66,8 @@ class BrokerProxy implements IBrokerProxy {
     private static final String KEY_SHARED_PREF_ACCOUNT_LIST = "com.microsoft.aad.adal.account.list";
 
     private static final String KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL = "AppAccountsForTokenRemoval";
+
+    private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
 
     public BrokerProxy() {
         mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
@@ -207,13 +210,14 @@ class BrokerProxy implements IBrokerProxy {
                 case AccountManager.ERROR_CODE_BAD_ARGUMENTS:
                     adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS;
                     break;
-                case AccountManager.ERROR_CODE_BAD_AUTHENTICATION:
+                case ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION:
                     adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_AUTHENTICATION;
                     break;
                 case AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION:
                     adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
                     break;
             }
+            
             throw new AuthenticationException(adalErrorCode, msg);
         } else {
             boolean initialRequest = bundleResult
@@ -231,7 +235,7 @@ class BrokerProxy implements IBrokerProxy {
             return result;
         }
     }
-
+    
     /**
      * Tracks accounts that user of the ADAL accessed from AccountManager. It
      * uses this list, when app calls remove accounts. It limits the account

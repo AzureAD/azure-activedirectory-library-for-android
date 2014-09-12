@@ -294,6 +294,11 @@ public enum ADALError {
      * Failed to use AndroidKeyStore.
      */
     ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"),
+    
+    /**
+     * Failed to use AndroidKeyStore.
+     */
+    ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED("Failed to use KeyPairGeneratorSpec"),
 
     /**
      * Authority validation is not supported for ADFS authority. Authority
