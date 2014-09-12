@@ -539,7 +539,7 @@ public class StorageHelper {
     private Object getKeyPairGeneratorSpec(X500Principal subj, Date start, Date end) {
         Class<?> clazz;
         try {
-            clazz = Class.forName("android.security.KeyPairGeneratorSpec.Builder");
+            clazz = Class.forName("android.security.KeyPairGeneratorSpec$Builder");
 
             Constructor<?> constructor = clazz.getDeclaredConstructor(Context.class);
             constructor.setAccessible(true);
