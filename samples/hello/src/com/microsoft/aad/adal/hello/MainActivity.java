@@ -117,6 +117,11 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void onClickFragmentTest(View v){
+        Intent intent = new Intent(getApplicationContext(), FragmentHolderActivity.class);
+        this.startActivity(intent);
+    }
+    
     public void onClickAcquireByRefreshToken(View v) {
         Log.v(TAG, "onClickAcquireByRefreshToken is clicked");
         if (mResult != null && mResult.getRefreshToken() != null
