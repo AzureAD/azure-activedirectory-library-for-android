@@ -434,8 +434,7 @@ public class AuthenticationActivity extends Activity {
         // Intent should have a flag and activity is hosted inside broker
         return callingIntent != null
                 && !StringExtensions.IsNullOrBlank(callingIntent
-                        .getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST))
-                && getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
+                        .getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
     }
 
     /**

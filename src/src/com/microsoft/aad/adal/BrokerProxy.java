@@ -87,10 +87,7 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public boolean canSwitchToBroker() {
-        return !AuthenticationSettings.INSTANCE.getSkipBroker()
-                && !mContext.getPackageName().equalsIgnoreCase(
-                        AuthenticationSettings.INSTANCE.getBrokerPackageName())
-                && verifyManifestPermissions() && verifyBroker()
+        return !AuthenticationSettings.INSTANCE.getSkipBroker() && verifyManifestPermissions()
                 && verifyAuthenticator(mAcctManager) && verifyAccount();
     }
 
@@ -217,7 +214,7 @@ class BrokerProxy implements IBrokerProxy {
                     adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
                     break;
             }
-            
+
             throw new AuthenticationException(adalErrorCode, msg);
         } else {
             boolean initialRequest = bundleResult
@@ -231,11 +228,12 @@ class BrokerProxy implements IBrokerProxy {
             // IDtoken is not present in the current broker user model
             UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
             AuthenticationResult result = new AuthenticationResult(
-                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false, userinfo, "", "");
+                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false,
+                    userinfo, "", "");
             return result;
         }
     }
-    
+
     /**
      * Tracks accounts that user of the ADAL accessed from AccountManager. It
      * uses this list, when app calls remove accounts. It limits the account
@@ -320,7 +318,7 @@ class BrokerProxy implements IBrokerProxy {
             // Authenticator should throw OperationCanceledException if
             // token is not available
             intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
-            
+
             // Add flag to this intent to signal that request is for broker
             // logic
             if (intent != null) {
@@ -359,7 +357,6 @@ class BrokerProxy implements IBrokerProxy {
                 request.getClientId());
         brokerOptions.putString(AuthenticationConstants.Broker.ADAL_VERSION_KEY,
                 request.getVersion());
-        
 
         // allowing single user for now
         brokerOptions
@@ -386,10 +383,9 @@ class BrokerProxy implements IBrokerProxy {
         return null;
     }
 
-    private boolean verifyBroker() {
+    private boolean verifySignature(final String brokerPackageName) {
         try {
-            PackageInfo info = mContext.getPackageManager().getPackageInfo(
-                    AuthenticationSettings.INSTANCE.getBrokerPackageName(),
+            PackageInfo info = mContext.getPackageManager().getPackageInfo(brokerPackageName,
                     PackageManager.GET_SIGNATURES);
 
             if (info != null && info.signatures != null) {
@@ -427,10 +423,8 @@ class BrokerProxy implements IBrokerProxy {
         // queue up and will be active after first one is uninstalled.
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
-            if (authenticator.packageName.equals(AuthenticationSettings.INSTANCE
-                    .getBrokerPackageName())
-                    && authenticator.type
-                            .equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
+            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
+                    && verifySignature(authenticator.packageName)) {
                 return true;
             }
         }
