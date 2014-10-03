@@ -1,0 +1,6 @@
+Version 1.0.3
+--------------
+Release Date: 10-3-2014
+* Dismiss spinner to resolve some UI issues
+* Use broker signature and authenticator type for checks. Get broker package from authenticator.
+
