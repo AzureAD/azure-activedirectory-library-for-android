@@ -139,13 +139,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         assertNotNull(webview);
 
         // Javascript enabled
-        assertTrue(webview.getSettings().getJavaScriptEnabled());
-
-        // Spinner
-        Field f = AuthenticationActivity.class.getDeclaredField("mSpinner");
-        f.setAccessible(true);
-        ProgressDialog spinner = (ProgressDialog)f.get(getActivity());
-        assertNotNull(spinner);
+        assertTrue(webview.getSettings().getJavaScriptEnabled());       
     }
 
     @SmallTest
