@@ -205,7 +205,7 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
                     callback);
     ```
     
-Explination of the parameters:
+Explanation of the parameters:
     
   * Resource is required and is the resource you are trying to access.
   * Clientid is required and comes from the AzureAD Portal.
@@ -217,11 +217,18 @@ Explination of the parameters:
 
 Optional:  **acquireTokenSilent**
 
-You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well.
+You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well. It accepts userid as paremeter.
  
-    ```Java
+    ```java
      mContext.acquireTokenSilent(resource, clientid, userId, callback );
     ```
+11. Broker:
+  Microsoft Intune's Company portal app will provide the broker component. Adal will use the broker account, if there is one user account is created at this authenticator and Developer choose not to skip it. Developer can skip the broker user with:
+
+    ```java
+    AuthenticationSettings.Instance.setSkipBroker(true);
+    ```
+ Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth:<UrlEncoded packagename>%2C<Urlencoded signature>. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
 
 Using this walkthrough, you should have what you need to successfully integrate with Azure Active Directory. For more examples of this working, viist the AzureADSamples/ repository on GitHub.
        
@@ -230,6 +237,10 @@ Using this walkthrough, you should have what you need to successfully integrate 
 ### Customization
 
 Library project resources can be overwritten by your application resources. This happens when your app is building. For this reason, you can customize Authentication Activity layout the way you want. You need to make sure to keep the id of the controls that ADAL uses(Webview).
+
+### Broker
+
+Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challange for one of the apps. 
 
 ### Authority Url and ADFS
 
