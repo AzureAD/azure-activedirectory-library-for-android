@@ -19,5 +19,6 @@
     <string name="broker_processing">Broker is processing</string>
     <string name="login_title">Hello Login</string>
     <string name="login_hint">someone@contoso.com</string>
+    <string name="title_activity_fragment_holder">FragmentHolderActivity</string>
 
 </resources>

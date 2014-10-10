@@ -34,10 +34,9 @@
 
     <Button
         android:id="@+id/button1"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView1"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="19dp"
         android:onClick="onClickToken"
         android:text="Get Token" />
@@ -81,17 +80,36 @@
         android:onClick="onClickAcquireTokenSilent"
         android:text="Get Token Silent" />
 
-    <EditText
-        android:id="@+id/editTextUsername"
+    <Button
+        android:id="@+id/button5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/button4"
         android:layout_alignRight="@+id/button4"
         android:layout_below="@+id/button4"
+        android:onClick="onClickFragmentTest"
+        android:text="Fragment Test" />
+
+    <EditText
+        android:id="@+id/editTextUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button5"
+        android:layout_below="@+id/button5"
         android:ems="10"
         android:hint="@string/login_hint" >
 
         <requestFocus />
     </EditText>
+
+    <Button
+        android:id="@+id/buttonWebview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/button1"
+        android:layout_marginLeft="15dp"
+        android:layout_toRightOf="@+id/button1"
+        android:onClick="onClickDialog"        
+        android:text="Webview" />
 
 </RelativeLayout>
