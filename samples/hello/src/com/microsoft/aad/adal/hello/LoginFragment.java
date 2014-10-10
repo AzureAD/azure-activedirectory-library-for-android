@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationContext.IWindowComponent;
+import com.microsoft.aad.adal.IWindowComponent;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.PromptBehavior;
 
@@ -82,8 +82,8 @@ public class LoginFragment extends Fragment {
             CookieSyncManager.getInstance().sync();
             mAuthContext.getCache().removeAll();
         } else {
-            // login
-            mAuthContext.acquireTokenFragment(wrapFragment(LoginFragment.this), Constants.RESOURCE_ID, Constants.CLIENT_ID,
+            // login            
+            mAuthContext.acquireToken(wrapFragment(LoginFragment.this), Constants.RESOURCE_ID, Constants.CLIENT_ID,
                     Constants.REDIRECT_URL, "", PromptBehavior.Auto, "", getCallback());
         }
     }

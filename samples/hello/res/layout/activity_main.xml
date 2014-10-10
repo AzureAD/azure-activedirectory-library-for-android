@@ -34,10 +34,9 @@
 
     <Button
         android:id="@+id/button1"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView1"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="19dp"
         android:onClick="onClickToken"
         android:text="Get Token" />
@@ -102,5 +101,15 @@
 
         <requestFocus />
     </EditText>
+
+    <Button
+        android:id="@+id/buttonWebview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/button1"
+        android:layout_marginLeft="15dp"
+        android:layout_toRightOf="@+id/button1"
+        android:onClick="onClickDialog"        
+        android:text="Webview" />
 
 </RelativeLayout>

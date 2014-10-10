@@ -442,17 +442,6 @@ public class AuthenticationContext {
         acquireTokenLocal(wrapActivity(activity), request, callback);
     }
     
-    public interface IWindowComponent{
-        /**
-         * ADAL will send request in the intent data and request Code.
-         * When your fragment, activity or dialog finishes after reaching to redirect,
-         * it should call onActivityResult to complete the call.
-         * @param intent
-         * @param requestCode
-         */
-        void startActivityForResult(Intent intent, int requestCode);
-    }
-    
     /**
      * acquire Token will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
@@ -473,7 +462,7 @@ public class AuthenticationContext {
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      */
-    public void acquireTokenFragment(IWindowComponent fragment, String resource, String clientId,
+    public void acquireToken(IWindowComponent fragment, String resource, String clientId,
             String redirectUri, String loginHint, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 

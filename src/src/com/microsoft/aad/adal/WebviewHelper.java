@@ -3,14 +3,13 @@ package com.microsoft.aad.adal;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.util.UUID;
 
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
 
 /**
- *
+ * Wrapper class to handle internals for request intent and response for custom
+ * webview usage.
  */
 public class WebviewHelper {
 
@@ -20,11 +19,20 @@ public class WebviewHelper {
 
     private AuthenticationRequest mRequest;
 
+    /**
+     * Construct with incoming requestIntent that you receive at
+     * startActivityForResult.
+     * 
+     * @param requestIntent Intent that has request information.
+     */
     public WebviewHelper(Intent requestIntent) {
         mRequestIntent = requestIntent;
         mRequest = getAuthenticationRequestFromIntent(mRequestIntent);
     }
 
+    /**
+     * Check request intent fields.
+     */
     public void validateRequestIntent() {
 
         if (mRequest == null) {
@@ -49,15 +57,32 @@ public class WebviewHelper {
         }
     }
 
+    /**
+     * Gets startUrl to use as url to start webview.
+     * 
+     * @return Url
+     * @throws UnsupportedEncodingException
+     */
     public String getStartUrl() throws UnsupportedEncodingException {
         Oauth2 oauth = new Oauth2(mRequest);
         return oauth.getCodeRequestUrl();
     }
 
+    /**
+     * Gets redirect url to tell the webview to stop before navigating.
+     * 
+     * @return Url
+     */
     public String getRedirectUrl() {
         return mRequest.getRedirectUri();
     }
 
+    /**
+     * Creates result intent to pass into onActivityResult method.
+     * 
+     * @param finalUrl
+     * @return Intent
+     */
     public Intent getResultIntent(final String finalUrl) {
         if (mRequestIntent != null) {
             AuthenticationRequest authRequest = getAuthenticationRequestFromIntent(mRequestIntent);
