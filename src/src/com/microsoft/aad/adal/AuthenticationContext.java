@@ -173,7 +173,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("authority");
         }
         mBrokerProxy = new BrokerProxy(appContext);
-        if (!defaultCache && mBrokerProxy.canSwitchToBroker()) {
+        if (!defaultCache && !mBrokerProxy.canUseLocalCache()) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
         }
         mContext = appContext;
@@ -192,7 +192,7 @@ public class AuthenticationContext {
      * @return ITokenCacheStore Current cache used
      */
     public ITokenCacheStore getCache() {
-        if (mBrokerProxy.canSwitchToBroker()) {
+        if (mBrokerProxy.canUseLocalCache()) {
             // return cache implementation related to broker so that app can
             // clear tokens for related accounts
             return new ITokenCacheStore() {
