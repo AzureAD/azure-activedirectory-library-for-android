@@ -62,7 +62,6 @@ import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.IWindowComponent;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
-import com.microsoft.aad.adal.WebviewHelper;
 
 public class MainActivity extends Activity {
 
@@ -77,8 +76,6 @@ public class MainActivity extends Activity {
     private ProgressDialog mLoginProgressDialog;
 
     private AuthenticationResult mResult;
-    
-    private CustomWebView mWebViewDialog;
     
     private Handler mHandler;
 
@@ -112,10 +109,6 @@ public class MainActivity extends Activity {
         mEditText.setText("");
 
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
-        
-        // example for custom webview
-        mHandler = new Handler(Looper.getMainLooper());
-        mWebViewDialog = new CustomWebView(mHandler);
     }
 
     @Override
@@ -245,111 +238,6 @@ public class MainActivity extends Activity {
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
                 Constants.REDIRECT_URL, getUserLoginHint(), getCallback());
-    }
-
-    
-    
-    public void onClickDialog(View v) {
-        Log.v(TAG, "token button is clicked");
-        mLoginProgressDialog.show();
-        mAuthContext.acquireToken(mWebViewDialog, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserLoginHint(), PromptBehavior.Auto, "", getCallback());
-    }
-
-    class CustomWebView implements IWindowComponent {
-        Dialog mDialog;
-        Activity mActivity;
-        Handler mHandlerInView;
-        public CustomWebView(Handler handler){
-            mHandlerInView  = handler;
-            mActivity = MainActivity.this;
-        }
-        
-        @SuppressLint("SetJavaScriptEnabled")
-        @Override
-        public void startActivityForResult(final Intent intent, final int requestCode) {
-            mHandlerInView.post(new Runnable() {
-                
-                @Override
-                public void run() {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
-                    LayoutInflater inflater = MainActivity.this.getLayoutInflater();
-                    View webviewInDialog = inflater.inflate(R.layout.custom_webview, null);
-                    builder.setTitle("custom webview layout");
-                    
-                    final WebView webview = (WebView)webviewInDialog.findViewById(R.id.webView1);
-                    webview.getSettings().setJavaScriptEnabled(true);
-                    webview.requestFocus(View.FOCUS_DOWN);
-
-                    // Set focus to the view for touch event
-                    webview.setOnTouchListener(new View.OnTouchListener() {
-                        @Override
-                        public boolean onTouch(View view, MotionEvent event) {
-                            int action = event.getAction();
-                            if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP) {
-                                if (!view.hasFocus()) {
-                                    view.requestFocus();
-                                }
-                            }
-                            return false;
-                        }
-                    });
-
-                    webview.getSettings().setLoadWithOverviewMode(true);
-                    webview.getSettings().setDomStorageEnabled(true);
-                    webview.getSettings().setUseWideViewPort(true);
-                    webview.getSettings().setBuiltInZoomControls(true);
-
-                    final WebviewHelper helper = new WebviewHelper(intent);
-
-                    try {
-                        final String startUrl = helper.getStartUrl();
-
-                        final String stopRedirect = helper.getRedirectUrl();
-                        webview.setWebViewClient(new CustomWebViewClient(helper, stopRedirect, requestCode));
-                        webview.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                webview.loadUrl(startUrl);
-                            }
-                        });
-
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    
-                    builder.setMessage("Example usage").setView(webviewInDialog).setCancelable(true);
-                    mDialog = builder.create();
-                    mDialog.show();                    
-                }
-            });            
-        }
-
-        class CustomWebViewClient extends WebViewClient {
-            private String mRedirect;
-
-            private WebviewHelper mWebviewHelper;
-
-            private int mRequestCode;
-
-            CustomWebViewClient(WebviewHelper helper, String redirect, int requestCode) {
-                mWebviewHelper = helper;
-                mRedirect = redirect;
-                mRequestCode = requestCode;
-            }
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.startsWith(mRedirect)) {
-                    Intent resultIntent = mWebviewHelper.getResultIntent(url);
-                    mAuthContext.onActivityResult(mRequestCode,
-                            AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
-                    view.stopLoading();
-                    return true;
-                }
-                return false;
-            }
-        }
     }
 
     private void clearSessionCookie() {

@@ -11,7 +11,7 @@ import android.text.TextUtils;
  * Wrapper class to handle internals for request intent and response for custom
  * webview usage.
  */
-public class WebviewHelper {
+class WebviewHelper {
 
     private static final String TAG = "WebviewHelper";
 
