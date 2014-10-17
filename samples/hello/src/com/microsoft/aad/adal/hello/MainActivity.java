@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
     private ProgressDialog mLoginProgressDialog;
 
     private AuthenticationResult mResult;
-    
+
     private Handler mHandler;
 
     TextView textView1;
@@ -134,6 +134,12 @@ public class MainActivity extends Activity {
     public void onClickFragmentTest(View v) {
         Intent intent = new Intent(getApplicationContext(), FragmentHolderActivity.class);
         this.startActivity(intent);
+    }
+
+    public void onClickDialogTest(View v) {
+        Log.v(TAG, "dialog button is clicked");
+        mAuthContext.acquireToken(Constants.RESOURCE_ID, Constants.CLIENT_ID,
+                Constants.REDIRECT_URL, getUserLoginHint(), PromptBehavior.Auto, "", getCallback());
     }
 
     public void onClickAcquireByRefreshToken(View v) {

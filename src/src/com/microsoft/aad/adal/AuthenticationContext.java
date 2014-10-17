@@ -300,14 +300,14 @@ public class AuthenticationContext {
             String redirectUri, String loginHint,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri,
-                PromptBehavior.Auto, callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
+                callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
                 getRequestCorrelationId());
 
-        acquireTokenLocal(wrapActivity(activity), request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
     /**
@@ -335,14 +335,14 @@ public class AuthenticationContext {
             String redirectUri, String loginHint, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri,
-                PromptBehavior.Auto, callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
+                callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
                 getRequestCorrelationId());
 
-        acquireTokenLocal(wrapActivity(activity), request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
     /**
@@ -367,13 +367,12 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt,
-                callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, null, getRequestCorrelationId());
 
-        acquireTokenLocal(wrapActivity(activity), request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
     /**
@@ -398,14 +397,13 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt,
-                callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, extraQueryParameters,
                 getRequestCorrelationId());
 
-        acquireTokenLocal(wrapActivity(activity), request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
     /**
@@ -432,25 +430,23 @@ public class AuthenticationContext {
             String redirectUri, String loginHint, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt,
-                callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
                 getRequestCorrelationId());
 
-        acquireTokenLocal(wrapActivity(activity), request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
-    
+
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
-     * to return existing result if not expired. It tries to use refresh token
-     * if available. If it fails to get token with refresh token, behavior will
+     * It will start interactive flow if needed. It checks the cache to return
+     * existing result if not expired. It tries to use refresh token if
+     * available. If it fails to get token with refresh token, behavior will
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
-     * token from cache and fall back on the UI if activitycontext is not null.
-     * Default is AUTO.
+     * token from cache and fall back on the UI. Default is AUTO.
      * 
-     * @param fragment Calling fragment that is attached to a view. android.app.Fragment or android.support.v4.app.Fragment
+     * @param fragment It accepts both type of fragments.
      * @param resource required resource identifier.
      * @param clientId required client identifier.
      * @param redirectUri Optional. It will use packagename and provided suffix
@@ -466,29 +462,60 @@ public class AuthenticationContext {
             String redirectUri, String loginHint, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt,
-                callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
                 getRequestCorrelationId());
 
-        acquireTokenLocal(fragment, request, callback);
+        acquireTokenLocal(fragment, false, request, callback);
     }
 
-    private IWindowComponent wrapActivity(final Activity activity){
+    /**
+     * This uses new dialog based prompt. It will start interactive flow if
+     * needed. It checks the cache to return existing result if not expired. It
+     * tries to use refresh token if available. If it fails to get token with
+     * refresh token, behavior will depend on options. If promptbehavior is
+     * AUTO, it will remove this refresh token from cache and fall back on the
+     * UI. Default is AUTO.
+     * 
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param redirectUri Optional. It will use packagename and provided suffix
+     *            for this.
+     * @param loginHint Optional. It is used for cache and as a loginhint at
+     *            authentication.
+     * @param prompt Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
+     * @param callback required {@link AuthenticationCallback} object for async
+     *            call.
+     */
+    public void acquireToken(String resource, String clientId, String redirectUri,
+            String loginHint, PromptBehavior prompt, String extraQueryParameters,
+            AuthenticationCallback<AuthenticationResult> callback) {
+
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                getRequestCorrelationId());
+
+        acquireTokenLocal(null, true, request, callback);
+    }
+
+    private IWindowComponent wrapActivity(final Activity activity) {
         return new IWindowComponent() {
             Activity refActivity = activity;
+
             @Override
             public void startActivityForResult(Intent intent, int requestCode) {
                 refActivity.startActivityForResult(intent, requestCode);
             }
         };
     }
-    
-    private String checkInputParameters(String resource, String clientId,
-            String redirectUri, PromptBehavior behavior,
-            AuthenticationCallback<AuthenticationResult> callback) {
+
+    private String checkInputParameters(String resource, String clientId, String redirectUri,
+            PromptBehavior behavior, AuthenticationCallback<AuthenticationResult> callback) {
         if (mContext == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
         }
@@ -590,7 +617,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, userId, getRequestCorrelationId());
         request.setSilent(true);
-        return acquireTokenLocal(null, request, callback);
+        return acquireTokenLocal(null, false, request, callback);
     }
 
     /**
@@ -999,7 +1026,7 @@ public class AuthenticationContext {
     }
 
     private Future<AuthenticationResult> acquireTokenLocal(final IWindowComponent activity,
-            final AuthenticationRequest request,
+            boolean useDialog, final AuthenticationRequest request,
             final AuthenticationCallback<AuthenticationResult> externalCall) {
         getHandler();
         final CallbackHandler callbackHandle = new CallbackHandler(mHandler, externalCall);
@@ -1167,8 +1194,8 @@ public class AuthenticationContext {
         }
     }
 
-    private AuthenticationResult localFlow(CallbackHandler callbackHandle, final IWindowComponent activity,
-            final AuthenticationRequest request) {
+    private AuthenticationResult localFlow(CallbackHandler callbackHandle,
+            final IWindowComponent activity, final AuthenticationRequest request) {
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
         if (cachedItem != null && isUserMisMatch(request, cachedItem)) {
