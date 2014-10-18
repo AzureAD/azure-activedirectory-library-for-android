@@ -33,6 +33,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -599,7 +600,7 @@ public class AuthenticationActivity extends Activity {
                 }).start();
 
                 return true;
-            } else if (url.startsWith(mRedirectUrl)) {
+            } else if (url.toLowerCase(Locale.US).startsWith(mRedirectUrl.toLowerCase(Locale.US))) {
                 Logger.v(TAG, "Webview reached redirecturl");
                 if (!isBrokerRequest(getIntent())) {
                     // It is pointing to redirect. Final url can be processed to
