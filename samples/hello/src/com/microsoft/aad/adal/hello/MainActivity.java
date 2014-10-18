@@ -136,7 +136,7 @@ public class MainActivity extends Activity {
         this.startActivity(intent);
     }
 
-    public void onClickDialogTest(View v) {
+    public void onClickDialog(View v) {
         Log.v(TAG, "dialog button is clicked");
         mAuthContext.acquireToken(Constants.RESOURCE_ID, Constants.CLIENT_ID,
                 Constants.REDIRECT_URL, getUserLoginHint(), PromptBehavior.Auto, "", getCallback());

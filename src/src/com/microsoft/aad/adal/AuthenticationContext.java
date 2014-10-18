@@ -1026,7 +1026,7 @@ public class AuthenticationContext {
     }
 
     private Future<AuthenticationResult> acquireTokenLocal(final IWindowComponent activity,
-            boolean useDialog, final AuthenticationRequest request,
+            final boolean useDialog, final AuthenticationRequest request,
             final AuthenticationCallback<AuthenticationResult> externalCall) {
         getHandler();
         final CallbackHandler callbackHandle = new CallbackHandler(mHandler, externalCall);
@@ -1040,7 +1040,7 @@ public class AuthenticationContext {
             @Override
             public AuthenticationResult call() {
                 Logger.v(TAG, "Running task in thread:" + android.os.Process.myTid());
-                return acquireTokenLocalCall(callbackHandle, activity, request);
+                return acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
             }
         });
     }
@@ -1055,7 +1055,7 @@ public class AuthenticationContext {
      * @return
      */
     private AuthenticationResult acquireTokenLocalCall(final CallbackHandler callbackHandle,
-            final IWindowComponent activity, final AuthenticationRequest request) {
+            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request) {
         URL authorityUrl = StringExtensions.getUrl(mAuthority);
         if (authorityUrl == null) {
             callbackHandle.onError(new AuthenticationException(
@@ -1091,7 +1091,7 @@ public class AuthenticationContext {
         }
 
         // Validated the authority or skipped the validation
-        return acquireTokenAfterValidation(callbackHandle, activity, request);
+        return acquireTokenAfterValidation(callbackHandle, activity, useDialog, request);
     }
 
     private boolean promptUser(PromptBehavior prompt) {
@@ -1099,7 +1099,7 @@ public class AuthenticationContext {
     }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
-            final IWindowComponent activity, final AuthenticationRequest request) {
+            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request) {
         Logger.v(TAG, "Token request started" + getCorrelationLogInfo());
 
         // BROKER flow intercepts here
@@ -1190,12 +1190,12 @@ public class AuthenticationContext {
             // It will start activity if callback is provided. Return null here.
             return null;
         } else {
-            return localFlow(callbackHandle, activity, request);
+            return localFlow(callbackHandle, activity, useDialog, request);
         }
     }
 
     private AuthenticationResult localFlow(CallbackHandler callbackHandle,
-            final IWindowComponent activity, final AuthenticationRequest request) {
+            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request) {
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
         if (cachedItem != null && isUserMisMatch(request, cachedItem)) {
@@ -1222,10 +1222,10 @@ public class AuthenticationContext {
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token"
                     + getCorrelationLogInfo());
-            return refreshToken(callbackHandle, activity, request, refreshItem, true);
+            return refreshToken(callbackHandle, activity, useDialog, request, refreshItem, true);
         } else {
             Logger.v(TAG, "Refresh token is not available" + getCorrelationLogInfo());
-            if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
+            if (!request.isSilent() && callbackHandle.callback != null && (activity != null || useDialog)) {
                 // start activity if other options are not available
                 // delegate map is used to remember callback if another
                 // instance of authenticationContext is created for config
@@ -1238,10 +1238,15 @@ public class AuthenticationContext {
                         new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
                                 callbackHandle.callback));
 
-                // onActivityResult will receive the response
-                if (!startAuthenticationActivity(activity, request)) {
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
+                if (useDialog) {
+                    AuthenticationDialog dialog = new AuthenticationDialog(mHandler, mContext, this, request);
+                    dialog.show();
+                } else {
+                    // onActivityResult will receive the response
+                    if (!startAuthenticationActivity(activity, request)) {
+                        callbackHandle.onError(new AuthenticationException(
+                                ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
+                    }
                 }
             } else {
 
@@ -1484,7 +1489,7 @@ public class AuthenticationContext {
      * @return
      */
     private AuthenticationResult refreshToken(final CallbackHandler callbackHandle,
-            final IWindowComponent activity, final AuthenticationRequest request,
+            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request,
             final RefreshItem refreshItem, final boolean useCache) {
 
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
@@ -1539,7 +1544,7 @@ public class AuthenticationContext {
                 // remove item from cache to avoid same usage of
                 // refresh token in next acquireToken call
                 removeItemFromCache(refreshItem);
-                return acquireTokenLocalCall(callbackHandle, activity, request);
+                return acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
                 if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
@@ -1767,7 +1772,7 @@ public class AuthenticationContext {
 
                 // Follow refresh logic now. Authority is valid or
                 // skipped validation
-                refreshToken(callbackHandle, null, request, refreshItem, false);
+                refreshToken(callbackHandle, null, false, request, refreshItem, false);
             }
         });
     }

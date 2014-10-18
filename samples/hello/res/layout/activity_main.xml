@@ -110,6 +110,6 @@
         android:layout_marginLeft="15dp"
         android:layout_toRightOf="@+id/button1"
         android:onClick="onClickDialog"        
-        android:text="Webview" />
+        android:text="Dialog" />
 
 </RelativeLayout>

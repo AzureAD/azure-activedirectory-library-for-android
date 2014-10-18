@@ -16,10 +16,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
-
-import com.microsoft.aad.adal.AuthenticationActivity.CustomWebViewClient;
 
 class AuthenticationDialog {
     protected static final String TAG = "AuthenticationDialog";
@@ -102,7 +99,18 @@ class AuthenticationDialog {
                     @Override
                     public void onCancel(DialogInterface dialog) {
                         Intent resultIntent = new Intent();
+                        resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
                         mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW, AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+                        if (mHandlerInView != null) {
+                            mHandlerInView.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(mDialog != null && mDialog.isShowing()){
+                                        mDialog.dismiss();
+                                    }
+                                }
+                            });
+                        }
                     }
                 });
                 mDialog = builder.create();
@@ -149,8 +157,10 @@ class AuthenticationDialog {
                 resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
                 resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                         mRequest);
+                resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
                 sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
                 view.stopLoading();
+                mDialog.dismiss();
                 return true;
             } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
                 Logger.v(TAG, "It is an external website request");
