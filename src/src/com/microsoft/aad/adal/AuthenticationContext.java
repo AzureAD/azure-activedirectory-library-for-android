@@ -192,7 +192,7 @@ public class AuthenticationContext {
      * @return ITokenCacheStore Current cache used
      */
     public ITokenCacheStore getCache() {
-        if (mBrokerProxy.canUseLocalCache()) {
+        if (mBrokerProxy.canSwitchToBroker()) {
             // return cache implementation related to broker so that app can
             // clear tokens for related accounts
             return new ITokenCacheStore() {

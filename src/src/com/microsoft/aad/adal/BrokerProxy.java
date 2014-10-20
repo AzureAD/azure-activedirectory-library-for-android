@@ -87,7 +87,9 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public boolean canSwitchToBroker() {
+        String packageName = mContext.getPackageName();
         return !AuthenticationSettings.INSTANCE.getSkipBroker() && verifyManifestPermissions()
+                && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
                 && verifyAuthenticator(mAcctManager) && verifyAccount();
     }
 
