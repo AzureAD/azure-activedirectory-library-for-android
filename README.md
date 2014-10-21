@@ -18,10 +18,24 @@ Thanks to all your great feedback over the preview period, we have released 1.0 
 * Cache with Encryption for easily accessing existing tokens and session state with assurance it wasn't tampered with.
 * Support for the Microsoft Azure AD Authenticator plug-in for Android, which will be released soon!
 
+## Samples and Documentation
+
+[We provide a full suite of sample applications and documentation on GitHub](https://github.com/AzureADSamples) to help you get started with learning the Azure Identity system. This includes tutorials for native clients such as Windows, Windows Phone, iOS, OSX, Android, and Linux. We also provide full walkthroughs for authentication flows such as OAuth2, OpenID Connect, Graph API, and other awesome features. 
+
+Visit your Azure Identity samples for Android is here: [https://github.com/AzureADSamples/NativeClient-Android](https://github.com/AzureADSamples/NativeClient-Android)
+
+## Community Help and Support
+
+We leverage [Stack Overflow](http://stackoverflow.com/) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browser existing issues to see if someone has had your question before. 
+
+We recommend you use the "adal" tag so we can see it! Here is the latest Q&A on Stack Overflow for ADAL: [http://stackoverflow.com/questions/tagged/adal](http://stackoverflow.com/questions/tagged/adal)
 
 ## Contributing
 
 All code is licensed under the Apache 2.0 license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. if you want to setup a maven enviroment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
+
+## Versions
+Please check the releases for updates.
 
 ## Quick Start
 
@@ -48,13 +62,13 @@ We've made it easy for you to have multiple options to use this library in your 
 
 ###Option 1: Source Zip
 
-To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/archive/master.zip).
+To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/archive/v1.0.0.tar.gz).
 
 ###Option 2: Source via Git
 
 To get the source code of the SDK via git just type:
 
-    git clone https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git
+    git clone git@github.com:AzureAD/azure-activedirectory-library-for-android.git
     cd ./azure-activedirectory-library-for-android/src
 
 ###Option 3: Binaries via Gradle
@@ -194,7 +208,7 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
                     callback);
     ```
     
-Explination of the parameters:
+Explanation of the parameters:
     
   * Resource is required and is the resource you are trying to access.
   * Clientid is required and comes from the AzureAD Portal.
@@ -206,12 +220,20 @@ Explination of the parameters:
 
 Optional:  **acquireTokenSilent**
 
-You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well.
+You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well. It accepts userid as paremeter.
  
-    ```Java
+    ```java
      mContext.acquireTokenSilent(resource, clientid, userId, callback );
     ```
+11. Broker:
+  Microsoft Intune's Company portal app will provide the broker component. Adal will use the broker account, if there is one user account is created at this authenticator and Developer choose not to skip it. Developer can skip the broker user with:
 
+    ```java
+    AuthenticationSettings.Instance.setSkipBroker(true);
+    ```
+ Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth:<UrlEncoded packagename>%2C<Urlencoded signature>. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
+ 
+ 
 Using this walkthrough, you should have what you need to successfully integrate with Azure Active Directory. For more examples of this working, viist the AzureADSamples/ repository on GitHub.
        
 ## Important Information
@@ -219,6 +241,9 @@ Using this walkthrough, you should have what you need to successfully integrate 
 ### Customization
 
 Library project resources can be overwritten by your application resources. This happens when your app is building. For this reason, you can customize Authentication Activity layout the way you want. You need to make sure to keep the id of the controls that ADAL uses(Webview).
+
+### Broker
+Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challange for one of the apps. 
 
 ### Authority Url and ADFS
 
