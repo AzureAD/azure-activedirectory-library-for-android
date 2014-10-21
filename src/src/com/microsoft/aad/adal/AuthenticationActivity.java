@@ -527,13 +527,6 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.login, menu);
-        return true;
-    }
-
     private void cancelRequest() {
         Logger.v(TAG, "Sending intent to cancel authentication activity");
         Intent resultIntent = new Intent();
