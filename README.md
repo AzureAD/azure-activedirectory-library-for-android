@@ -308,6 +308,17 @@ CookieSyncManager.getInstance().sync();
 ```
 More about cookies: http://developer.android.com/reference/android/webkit/CookieSyncManager.html
 
+### Resource Overrides
+
+The ADAL library includes English strings for the following two resources.
+
+Your application should overwrite them if localized strings are desired. 
+
+```Java
+<string name="app_loading">Loading...</string>
+<string name="broker_processing">Broker is processing</string>
+```
+
 =======
 
 ## License

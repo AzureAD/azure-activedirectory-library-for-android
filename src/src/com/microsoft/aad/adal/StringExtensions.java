@@ -19,7 +19,6 @@
 package com.microsoft.aad.adal;
 
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
