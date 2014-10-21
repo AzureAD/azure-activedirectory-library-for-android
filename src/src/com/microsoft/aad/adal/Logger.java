@@ -107,8 +107,12 @@ public class Logger {
         this.mExternalLogger = customLogger;
     }
 
-    private String addVersion(String message) {
-        return message + " version:" + AuthenticationContext.getVersionName();
+    private static String addVersion(String message) {
+        if(message != null){
+            return message + " ver:" + AuthenticationContext.getVersionName();
+        }
+        
+        return " ver:" + AuthenticationContext.getVersionName();
     }
 
     public void debug(String tag, String message) {
@@ -237,13 +241,13 @@ public class Logger {
             msg.append(getCodeName(errorCode)).append(":");
         }
         if (message != null) {
+            message = addVersion(message);
             msg.append(message);
         }
         if (additionalMessage != null) {
             msg.append(" ").append(additionalMessage);
         }
 
-        msg.append(" Version:" + AuthenticationContext.getVersionName());
         return msg.toString();
     }
 
