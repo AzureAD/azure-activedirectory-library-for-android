@@ -87,10 +87,29 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public boolean canSwitchToBroker() {
+        String packageName = mContext.getPackageName();
         return !AuthenticationSettings.INSTANCE.getSkipBroker() && verifyManifestPermissions()
+                && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
                 && verifyAuthenticator(mAcctManager) && verifyAccount();
     }
 
+    @Override
+    public boolean canUseLocalCache(){
+        boolean brokerSwitch = canSwitchToBroker();
+        if(!brokerSwitch){
+            Logger.v(TAG, "It does not use broker");
+            return true;
+        }
+        
+        String packageName = mContext.getPackageName();
+        if(verifySignature(packageName)){
+            Logger.v(TAG, "Broker installer can use local cache");
+            return true;
+        }
+        
+        return false;
+    }
+    
     private boolean verifyAccount() {
         Logger.v(TAG, "Verify account count");
         // only call authenticator if there is an account

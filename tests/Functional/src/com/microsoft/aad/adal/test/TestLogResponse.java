@@ -21,6 +21,7 @@ package com.microsoft.aad.adal.test;
 import java.util.concurrent.CountDownLatch;
 
 import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
@@ -52,7 +53,7 @@ public class TestLogResponse {
             public void Log(String tag, String message, String additionalMessage, LogLevel level,
                     ADALError errorCode) {
 
-                if (message.equals(msg)) {
+                if (message.equals(msg + " ver:" + AuthenticationContext.getVersionName())) {
                     response.tag = tag;
                     response.message = message;
                     response.additionalMessage = additionalMessage;

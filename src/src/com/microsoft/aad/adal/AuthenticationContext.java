@@ -173,7 +173,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("authority");
         }
         mBrokerProxy = new BrokerProxy(appContext);
-        if (!defaultCache && mBrokerProxy.canSwitchToBroker()) {
+        if (!defaultCache && !mBrokerProxy.canUseLocalCache()) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
         }
         mContext = appContext;
@@ -1765,6 +1765,6 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.0.3";
+        return "1.0.4";
     }
 }
