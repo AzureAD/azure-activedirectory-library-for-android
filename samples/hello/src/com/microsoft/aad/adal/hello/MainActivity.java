@@ -20,6 +20,7 @@ package com.microsoft.aad.adal.hello;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -35,6 +36,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -96,7 +98,7 @@ public class MainActivity extends Activity {
         
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
-
+   
     @Override
     protected void onResume() {
         super.onResume();
@@ -218,7 +220,7 @@ public class MainActivity extends Activity {
         Log.v(TAG, "token button is clicked");
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserLoginHint(), getCallback());
+                Constants.REDIRECT_URL, getUserLoginHint(), "nux=1", getCallback());
     }
 
     private void clearSessionCookie() {
