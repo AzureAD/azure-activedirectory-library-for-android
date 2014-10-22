@@ -412,7 +412,7 @@ public class OauthTests extends AndroidTestCase {
 
         // Verify that result returns null from this error
         assertNull("Result is null", testResult.mResult);
-        assertEquals("Exception has same error message", TEST_RETURNED_EXCEPTION, response.message);
+        assertTrue("Exception has same error message", response.message.startsWith(TEST_RETURNED_EXCEPTION));
     }
 
     @SmallTest
