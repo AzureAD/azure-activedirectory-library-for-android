@@ -33,6 +33,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -526,13 +527,6 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.login, menu);
-        return true;
-    }
-
     private void cancelRequest() {
         Logger.v(TAG, "Sending intent to cancel authentication activity");
         Intent resultIntent = new Intent();
@@ -599,7 +593,7 @@ public class AuthenticationActivity extends Activity {
                 }).start();
 
                 return true;
-            } else if (url.startsWith(mRedirectUrl)) {
+            } else if (url.toLowerCase(Locale.US).startsWith(mRedirectUrl.toLowerCase(Locale.US))) {
                 Logger.v(TAG, "Webview reached redirecturl");
                 if (!isBrokerRequest(getIntent())) {
                     // It is pointing to redirect. Final url can be processed to
