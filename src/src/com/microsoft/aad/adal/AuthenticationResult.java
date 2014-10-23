@@ -32,8 +32,6 @@ public class AuthenticationResult implements Serializable {
      */
     private static final long serialVersionUID = 2243372613182536368L;
 
-    //private static final String TAG = "AuthenticationResult";
-
     /**
      * Status for authentication.
      */
