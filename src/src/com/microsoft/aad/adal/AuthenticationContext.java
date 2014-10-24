@@ -472,12 +472,13 @@ public class AuthenticationContext {
     }
 
     /**
-     * This uses new dialog based prompt. It will start interactive flow if
-     * needed. It checks the cache to return existing result if not expired. It
-     * tries to use refresh token if available. If it fails to get token with
-     * refresh token, behavior will depend on options. If promptbehavior is
-     * AUTO, it will remove this refresh token from cache and fall back on the
-     * UI. Default is AUTO.
+     * This uses new dialog based prompt. It will create a handler to run the
+     * dialog related code. It will start interactive flow if needed. It checks
+     * the cache to return existing result if not expired. It tries to use
+     * refresh token if available. If it fails to get token with refresh token,
+     * behavior will depend on options. If promptbehavior is AUTO, it will
+     * remove this refresh token from cache and fall back on the UI. Default is
+     * AUTO.
      * 
      * @param resource required resource identifier.
      * @param clientId required client identifier.

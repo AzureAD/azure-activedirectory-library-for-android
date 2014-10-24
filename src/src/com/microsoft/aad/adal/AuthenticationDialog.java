@@ -4,6 +4,7 @@ package com.microsoft.aad.adal;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -11,13 +12,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
+@SuppressLint({
+        "InflateParams", "SetJavaScriptEnabled", "ClickableViewAccessibility"
+})
 class AuthenticationDialog {
     protected static final String TAG = "AuthenticationDialog";
 
@@ -39,6 +42,10 @@ class AuthenticationDialog {
         mRequest = request;
     }
 
+    /**
+     * Create dialog using the context. Inflate the layout with inflater
+     * service. This will run with the handler.
+     */
     public void show() {
 
         mHandlerInView.post(new Runnable() {
@@ -48,10 +55,32 @@ class AuthenticationDialog {
                 LayoutInflater inflater = (LayoutInflater)mContext
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                
+
                 // using static layout
                 View webviewInDialog = inflater.inflate(R.layout.dialog_authentication, null);
-                final WebView webview = (WebView)webviewInDialog.findViewById(R.id.webView1);
+                final WebView webview = (WebView)webviewInDialog.findViewById(R.id.com_microsoft_aad_adal_webView1);
+                if (webview == null) {
+                    Logger.e(
+                            TAG,
+                            "Expected resource name for webview is com_microsoft_aad_adal_webView1. It is not in your layout file",
+                            "", ADALError.DEVELOPER_DIALOG_LAYOUT_INVALID);
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
+                            mRequest.getRequestId());
+                    mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                            AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+                    if (mHandlerInView != null) {
+                        mHandlerInView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mDialog != null && mDialog.isShowing()) {
+                                    mDialog.dismiss();
+                                }
+                            }
+                        });
+                    }
+                    return;
+                }
                 webview.getSettings().setJavaScriptEnabled(true);
                 webview.requestFocus(View.FOCUS_DOWN);
 
@@ -90,7 +119,7 @@ class AuthenticationDialog {
                     });
 
                 } catch (UnsupportedEncodingException e) {
-                    Log.d(TAG, e.getMessage());
+                    Logger.e(TAG, "Encoding error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
                 }
 
                 builder.setView(webviewInDialog).setCancelable(true);
@@ -99,13 +128,17 @@ class AuthenticationDialog {
                     @Override
                     public void onCancel(DialogInterface dialog) {
                         Intent resultIntent = new Intent();
-                        resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
-                        mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW, AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+                        resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
+                                mRequest.getRequestId());
+                        mAuthContext.onActivityResult(
+                                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                                AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                                resultIntent);
                         if (mHandlerInView != null) {
                             mHandlerInView.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if(mDialog != null && mDialog.isShowing()){
+                                    if (mDialog != null && mDialog.isShowing()) {
                                         mDialog.dismiss();
                                     }
                                 }
@@ -134,7 +167,7 @@ class AuthenticationDialog {
                     public void run() {
                         if (mDialog != null && mDialog.isShowing()) {
                             ProgressBar progressBar = (ProgressBar)mDialog
-                                    .findViewById(R.id.progressBar1);
+                                    .findViewById(R.id.com_microsoft_aad_adal_progressBar);
                             if (progressBar != null) {
                                 int showFlag = status ? View.VISIBLE : View.INVISIBLE;
                                 progressBar.setVisibility(showFlag);
@@ -157,7 +190,8 @@ class AuthenticationDialog {
                 resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
                 resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                         mRequest);
-                resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
+                resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
+                        mRequest.getRequestId());
                 sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
                 view.stopLoading();
                 mDialog.dismiss();

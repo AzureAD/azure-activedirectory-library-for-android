@@ -3,16 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <ProgressBar
-        android:id="@+id/progressBar1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxHeight="44dip"
-        android:minHeight="44dip"
-        android:paddingLeft="10dip" />
+ 
 
     <WebView
-        android:id="@+id/webView1"
+        android:id="@+id/com_microsoft_aad_adal_webView1"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:paddingBottom="0dp"
@@ -21,16 +15,24 @@
         android:paddingTop="0dp" />
 
     <EditText
-        android:id="@+id/editDummyText"
+        android:id="@+id/com_microsoft_aad_adal_editDummyText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/webView1"
-        android:layout_alignLeft="@+id/webView1"
+        android:layout_alignBottom="@+id/com_microsoft_aad_adal_webView1"
+        android:layout_alignLeft="@+id/com_microsoft_aad_adal_webView1"
         android:layout_marginBottom="124dp"
         android:layout_marginLeft="86dp"
         android:ems="10"
         android:inputType="textEmailAddress"
         android:visibility="gone" >
     </EditText>
+
+    <ProgressBar
+        android:id="@+id/com_microsoft_aad_adal_progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" />
 
 </RelativeLayout>
