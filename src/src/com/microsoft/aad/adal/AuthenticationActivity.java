@@ -21,7 +21,6 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.security.DigestException;
 import java.security.InvalidAlgorithmParameterException;
