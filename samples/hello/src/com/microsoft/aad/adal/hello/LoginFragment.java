@@ -1,7 +1,6 @@
 
 package com.microsoft.aad.adal.hello;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,8 +17,8 @@ import android.widget.Toast;
 
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.IWindowComponent;
 import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.IWindowComponent;
 import com.microsoft.aad.adal.PromptBehavior;
 
 public class LoginFragment extends Fragment {
@@ -69,8 +68,8 @@ public class LoginFragment extends Fragment {
         if (mResult != null && mResult.getUserInfo() != null
                 && mResult.getUserInfo().getDisplayableId() != null) {
             textView.setText(mResult.getUserInfo().getDisplayableId());
-            button.setText("LogOut");
         }
+
         return view;
     }
 
@@ -82,28 +81,30 @@ public class LoginFragment extends Fragment {
             CookieSyncManager.getInstance().sync();
             mAuthContext.getCache().removeAll();
         } else {
-            // login            
-            mAuthContext.acquireToken(wrapFragment(LoginFragment.this), Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                    Constants.REDIRECT_URL, "", PromptBehavior.Auto, "", getCallback());
+            // login
+            mAuthContext.acquireToken(wrapFragment(LoginFragment.this), Constants.RESOURCE_ID,
+                    Constants.CLIENT_ID, Constants.REDIRECT_URL, "", PromptBehavior.Auto, "",
+                    getCallback());
         }
     }
 
-    private IWindowComponent wrapFragment(final Fragment fragment){
+    private IWindowComponent wrapFragment(final Fragment fragment) {
         return new IWindowComponent() {
             Fragment refFragment = fragment;
+
             @Override
             public void startActivityForResult(Intent intent, int requestCode) {
                 refFragment.startActivityForResult(intent, requestCode);
             }
         };
     }
-    
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         mAuthContext.onActivityResult(requestCode, resultCode, data);
     }
-    
+
     private void showInfo(String msg) {
         Log.d(TAG, msg);
     }

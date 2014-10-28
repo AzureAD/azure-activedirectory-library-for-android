@@ -17,5 +17,13 @@
     <string name="login_title">Hello Login</string>
     <string name="login_hint">someone@contoso.com</string>
     <string name="title_activity_fragment_holder">FragmentHolderActivity</string>
+    <string name="sample_clear_tokens">Clear Tokens</string>
+    <string name="sample_use_token">Use Token</string>
+    <string name="sample_get_token">Get Token</string>
+    <string name="sample_clear_cookies">Clear Cookies</string>
+    <string name="sample_token_by_refresh_token">Acquire By Refresh Token</string>
+    <string name="sample_refresh_session">Refresh Session</string>
+    <string name="sample_token_silent">Get Token Silent</string>
+    <string name="sample_fragment_test">Fragment Test</string>
 
 </resources>

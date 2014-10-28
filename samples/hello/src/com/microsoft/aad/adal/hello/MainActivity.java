@@ -20,7 +20,6 @@ package com.microsoft.aad.adal.hello;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -30,36 +29,26 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.microsoft.aad.adal.AuthenticationCallback;
-import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.IWindowComponent;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 
@@ -70,6 +59,11 @@ public class MainActivity extends Activity {
     final static String AUTHORIZATION_HEADER = "Authorization";
 
     final static String AUTHORIZATION_HEADER_BEARER = "Bearer ";
+
+    /**
+     * Extra query parameter nux=1 uses new login page
+     */
+    final static String EXTRA_QUERY_PARAM = "nux=1";
 
     private AuthenticationContext mAuthContext;
 
@@ -139,7 +133,8 @@ public class MainActivity extends Activity {
     public void onClickDialog(View v) {
         Log.v(TAG, "dialog button is clicked");
         mAuthContext.acquireToken(Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserLoginHint(), PromptBehavior.Auto, "", getCallback());
+                Constants.REDIRECT_URL, getUserLoginHint(), PromptBehavior.Auto, EXTRA_QUERY_PARAM,
+                getCallback());
     }
 
     public void onClickAcquireByRefreshToken(View v) {
