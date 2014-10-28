@@ -22,6 +22,9 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Result class to keep code, token and other info Serializable properties Mark
  * temp properties as Transient if you dont want to keep them in serialization.
@@ -66,6 +69,8 @@ public class AuthenticationResult implements Serializable {
     private String mErrorCode;
 
     private String mErrorDescription;
+
+    private String mErrorCodes;
 
     private boolean mIsMultiResourceRefreshToken;
 
@@ -112,9 +117,10 @@ public class AuthenticationResult implements Serializable {
         mStatus = AuthenticationStatus.Succeeded;
     }
 
-    AuthenticationResult(String errorCode, String errDescription) {
+    AuthenticationResult(String errorCode, String errDescription, String errorCodes) {
         mErrorCode = errorCode;
         mErrorDescription = errDescription;
+        mErrorCodes = errorCodes;
         mStatus = AuthenticationStatus.Failed;
     }
 
@@ -276,6 +282,10 @@ public class AuthenticationResult implements Serializable {
      */
     public boolean isExpired() {
         return TokenCacheItem.isTokenExpired(getExpiresOn());
+    }
+
+    String[] getErrorCodes() {
+    	return (mErrorCodes != null) ? mErrorCodes.replaceAll("[\\[\\]]", "").split("([^,]),") : null;
     }
 
     boolean isInitialRequest() {
