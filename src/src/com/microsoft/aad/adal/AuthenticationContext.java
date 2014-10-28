@@ -300,14 +300,14 @@ public class AuthenticationContext {
             String redirectUri, String loginHint,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri,
-                PromptBehavior.Auto, callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
+                callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
                 getRequestCorrelationId());
 
-        acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
     /**
@@ -335,14 +335,14 @@ public class AuthenticationContext {
             String redirectUri, String loginHint, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri,
-                PromptBehavior.Auto, callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
+                callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
                 getRequestCorrelationId());
 
-        acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
     /**
@@ -367,13 +367,12 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, prompt,
-                callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, null, getRequestCorrelationId());
 
-        acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
     /**
@@ -398,14 +397,13 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, prompt,
-                callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, extraQueryParameters,
                 getRequestCorrelationId());
 
-        acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
     /**
@@ -432,19 +430,93 @@ public class AuthenticationContext {
             String redirectUri, String loginHint, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(activity, resource, clientId, redirectUri, prompt,
-                callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
                 getRequestCorrelationId());
 
-        acquireTokenLocal(activity, request, callback);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
-    private String checkInputParameters(Activity activity, String resource, String clientId,
-            String redirectUri, PromptBehavior behavior,
+    /**
+     * It will start interactive flow if needed. It checks the cache to return
+     * existing result if not expired. It tries to use refresh token if
+     * available. If it fails to get token with refresh token, behavior will
+     * depend on options. If promptbehavior is AUTO, it will remove this refresh
+     * token from cache and fall back on the UI. Default is AUTO.
+     * 
+     * @param fragment It accepts both type of fragments.
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param redirectUri Optional. It will use packagename and provided suffix
+     *            for this.
+     * @param loginHint Optional. It is used for cache and as a loginhint at
+     *            authentication.
+     * @param prompt Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
+     * @param callback required {@link AuthenticationCallback} object for async
+     *            call.
+     */
+    public void acquireToken(IWindowComponent fragment, String resource, String clientId,
+            String redirectUri, String loginHint, PromptBehavior prompt,
+            String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
+
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                getRequestCorrelationId());
+
+        acquireTokenLocal(fragment, false, request, callback);
+    }
+
+    /**
+     * This uses new dialog based prompt. It will create a handler to run the
+     * dialog related code. It will start interactive flow if needed. It checks
+     * the cache to return existing result if not expired. It tries to use
+     * refresh token if available. If it fails to get token with refresh token,
+     * behavior will depend on options. If promptbehavior is AUTO, it will
+     * remove this refresh token from cache and fall back on the UI. Default is
+     * AUTO.
+     * 
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param redirectUri Optional. It will use packagename and provided suffix
+     *            for this.
+     * @param loginHint Optional. It is used for cache and as a loginhint at
+     *            authentication.
+     * @param prompt Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
+     * @param callback required {@link AuthenticationCallback} object for async
+     *            call.
+     */
+    public void acquireToken(String resource, String clientId, String redirectUri,
+            String loginHint, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
+
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                getRequestCorrelationId());
+
+        acquireTokenLocal(null, true, request, callback);
+    }
+
+    private IWindowComponent wrapActivity(final Activity activity) {
+        return new IWindowComponent() {
+            Activity refActivity = activity;
+
+            @Override
+            public void startActivityForResult(Intent intent, int requestCode) {
+                refActivity.startActivityForResult(intent, requestCode);
+            }
+        };
+    }
+
+    private String checkInputParameters(String resource, String clientId, String redirectUri,
+            PromptBehavior behavior, AuthenticationCallback<AuthenticationResult> callback) {
         if (mContext == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
         }
@@ -546,7 +618,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, userId, getRequestCorrelationId());
         request.setSilent(true);
-        return acquireTokenLocal(null, request, callback);
+        return acquireTokenLocal(null, false, request, callback);
     }
 
     /**
@@ -954,8 +1026,8 @@ public class AuthenticationContext {
         }
     }
 
-    private Future<AuthenticationResult> acquireTokenLocal(final Activity activity,
-            final AuthenticationRequest request,
+    private Future<AuthenticationResult> acquireTokenLocal(final IWindowComponent activity,
+            final boolean useDialog, final AuthenticationRequest request,
             final AuthenticationCallback<AuthenticationResult> externalCall) {
         getHandler();
         final CallbackHandler callbackHandle = new CallbackHandler(mHandler, externalCall);
@@ -969,7 +1041,7 @@ public class AuthenticationContext {
             @Override
             public AuthenticationResult call() {
                 Logger.v(TAG, "Running task in thread:" + android.os.Process.myTid());
-                return acquireTokenLocalCall(callbackHandle, activity, request);
+                return acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
             }
         });
     }
@@ -984,7 +1056,7 @@ public class AuthenticationContext {
      * @return
      */
     private AuthenticationResult acquireTokenLocalCall(final CallbackHandler callbackHandle,
-            final Activity activity, final AuthenticationRequest request) {
+            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request) {
         URL authorityUrl = StringExtensions.getUrl(mAuthority);
         if (authorityUrl == null) {
             callbackHandle.onError(new AuthenticationException(
@@ -1020,7 +1092,7 @@ public class AuthenticationContext {
         }
 
         // Validated the authority or skipped the validation
-        return acquireTokenAfterValidation(callbackHandle, activity, request);
+        return acquireTokenAfterValidation(callbackHandle, activity, useDialog, request);
     }
 
     private boolean promptUser(PromptBehavior prompt) {
@@ -1028,7 +1100,7 @@ public class AuthenticationContext {
     }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
-            final Activity activity, final AuthenticationRequest request) {
+            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request) {
         Logger.v(TAG, "Token request started" + getCorrelationLogInfo());
 
         // BROKER flow intercepts here
@@ -1119,12 +1191,12 @@ public class AuthenticationContext {
             // It will start activity if callback is provided. Return null here.
             return null;
         } else {
-            return localFlow(callbackHandle, activity, request);
+            return localFlow(callbackHandle, activity, useDialog, request);
         }
     }
 
-    private AuthenticationResult localFlow(CallbackHandler callbackHandle, final Activity activity,
-            final AuthenticationRequest request) {
+    private AuthenticationResult localFlow(CallbackHandler callbackHandle,
+            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request) {
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
         if (cachedItem != null && isUserMisMatch(request, cachedItem)) {
@@ -1151,10 +1223,10 @@ public class AuthenticationContext {
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token"
                     + getCorrelationLogInfo());
-            return refreshToken(callbackHandle, activity, request, refreshItem, true);
+            return refreshToken(callbackHandle, activity, useDialog, request, refreshItem, true);
         } else {
             Logger.v(TAG, "Refresh token is not available" + getCorrelationLogInfo());
-            if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
+            if (!request.isSilent() && callbackHandle.callback != null && (activity != null || useDialog)) {
                 // start activity if other options are not available
                 // delegate map is used to remember callback if another
                 // instance of authenticationContext is created for config
@@ -1167,10 +1239,15 @@ public class AuthenticationContext {
                         new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
                                 callbackHandle.callback));
 
-                // onActivityResult will receive the response
-                if (!startAuthenticationActivity(activity, request)) {
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
+                if (useDialog) {
+                    AuthenticationDialog dialog = new AuthenticationDialog(mHandler, mContext, this, request);
+                    dialog.show();
+                } else {
+                    // onActivityResult will receive the response
+                    if (!startAuthenticationActivity(activity, request)) {
+                        callbackHandle.onError(new AuthenticationException(
+                                ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
+                    }
                 }
             } else {
 
@@ -1413,7 +1490,7 @@ public class AuthenticationContext {
      * @return
      */
     private AuthenticationResult refreshToken(final CallbackHandler callbackHandle,
-            final Activity activity, final AuthenticationRequest request,
+            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request,
             final RefreshItem refreshItem, final boolean useCache) {
 
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
@@ -1468,7 +1545,7 @@ public class AuthenticationContext {
                 // remove item from cache to avoid same usage of
                 // refresh token in next acquireToken call
                 removeItemFromCache(refreshItem);
-                return acquireTokenLocalCall(callbackHandle, activity, request);
+                return acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
                 if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
@@ -1538,7 +1615,7 @@ public class AuthenticationContext {
      * @return false: if intent is not resolved or error in starting. true: if
      *         intent is sent to start the activity.
      */
-    private boolean startAuthenticationActivity(final Activity activity,
+    private boolean startAuthenticationActivity(final IWindowComponent activity,
             AuthenticationRequest request) {
         Intent intent = getAuthenticationActivityIntent(activity, request);
 
@@ -1583,14 +1660,16 @@ public class AuthenticationContext {
      * @param request
      * @return intent for authentication activity
      */
-    private final Intent getAuthenticationActivityIntent(Activity activity,
+    private final Intent getAuthenticationActivityIntent(IWindowComponent activity,
             AuthenticationRequest request) {
         Intent intent = new Intent();
         if (AuthenticationSettings.INSTANCE.getActivityPackageName() != null) {
+            // This will use the activity from another given package.
             intent.setClassName(AuthenticationSettings.INSTANCE.getActivityPackageName(),
                     AuthenticationActivity.class.getName());
         } else {
-            intent.setClass(activity, AuthenticationActivity.class);
+            // This will lookup the authentication activity within this context
+            intent.setClass(mContext, AuthenticationActivity.class);
         }
 
         intent.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE, request);
@@ -1694,7 +1773,7 @@ public class AuthenticationContext {
 
                 // Follow refresh logic now. Authority is valid or
                 // skipped validation
-                refreshToken(callbackHandle, null, request, refreshItem, false);
+                refreshToken(callbackHandle, null, false, request, refreshItem, false);
             }
         });
     }
