@@ -39,14 +39,21 @@ public enum AuthenticationSettings {
 
     private String mActivityPackageName;
 
+    /**
+     * SharedPreference package name to load this file from different context.
+     */
     private String mSharedPrefPackageName;
 
     private boolean mSkipBroker = false;
-    
+
     /**
      * Expiration buffer in seconds.
      */
     private int mExpirationBuffer = 300;
+
+    private int mConnectTimeOut = 30000;
+
+    private int mReadTimeOut = 30000;
 
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt.
@@ -179,7 +186,8 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * Gets package name provided for shared preferences. 
+     * Gets package name provided for shared preferences.
+     * 
      * @return package name provided for shared preferences
      */
     public String getSharedPrefPackageName() {
@@ -205,5 +213,44 @@ public enum AuthenticationSettings {
      */
     public void setExpirationBuffer(int expirationBuffer) {
         this.mExpirationBuffer = expirationBuffer;
+    }
+
+    public int getConnectTimeOut() {
+        return mConnectTimeOut;
+    }
+
+    /**
+     * Sets the maximum time in milliseconds to wait while connecting.
+     * Connecting to a server will fail with a SocketTimeoutException if the
+     * timeout elapses before a connection is established. Default value is
+     * 30000 milliseconds.
+     * 
+     * @param timeOutMillis the connect timeout in milliseconds. Non-negative
+     * @throws IllegalArgumentException if timeoutMillis < 0.
+     */
+    public void setConnectTimeOut(int timeOutMillis) {
+        if (timeOutMillis < 0) {
+            throw new IllegalArgumentException("Invalid timeOutMillis");
+        }
+        this.mConnectTimeOut = timeOutMillis;
+    }
+
+    public int getReadTimeOut() {
+        return mReadTimeOut;
+    }
+
+    /**
+     * Sets the maximum time to wait for an input stream read to complete before
+     * giving up. Reading will fail with a SocketTimeoutException if the timeout
+     * elapses before data becomes available. The default value is 30000.
+     * 
+     * @param timeoutMillis the read timeout in milliseconds. Non-negative
+     */
+    public void setReadTimeOut(int timeOutMillis) {
+        if (timeOutMillis < 0) {
+            throw new IllegalArgumentException("Invalid timeOutMillis");
+        }
+
+        this.mReadTimeOut = timeOutMillis;
     }
 }
