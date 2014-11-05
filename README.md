@@ -85,7 +85,9 @@ repositories {
 }
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile ('com.microsoft.aad:adal:1.0.0')
+    compile('com.microsoft.aad:adal:1.0.0') {
+        exclude group: 'com.android.support'
+    }
 }
 ```
 
