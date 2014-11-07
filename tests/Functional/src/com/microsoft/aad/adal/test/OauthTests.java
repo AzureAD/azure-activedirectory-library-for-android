@@ -391,28 +391,17 @@ public class OauthTests extends AndroidTestCase {
             IllegalAccessException, InvocationTargetException {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         webrequest.setReturnResponse(new HttpWebResponse(503, null, null));
+        // Invalid status that cause some exception at webrequest
+        webrequest.setReturnException(TEST_RETURNED_EXCEPTION);
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
                 webrequest, "test");
 
         // Verify that callback can receive this error
-        assertNotNull("callback receives error code in the result after processing",
-                testResult.mResult);
-        assertTrue("callback has status info", testResult.mResult.getErrorCode().contains("503"));
-        assertNull("Exception is null", testResult.mException);
-
-        // Invalid status that cause some exception at webrequest
-        webrequest.setReturnException(TEST_RETURNED_EXCEPTION);
-
-        // send request
-        TestLogResponse response = new TestLogResponse();
-        response.listenForLogMessage(TEST_RETURNED_EXCEPTION, null);
-        testResult = refreshToken(getValidAuthenticationRequest(), webrequest, "test");
-
-        // Verify that result returns null from this error
-        assertNull("Result is null", testResult.mResult);
-        assertEquals("Exception has same error message", TEST_RETURNED_EXCEPTION, response.message);
+        assertNull("AuthenticationResult is null", testResult.mResult);
+        assertNotNull("Exception is not null", testResult.mException);
+        assertEquals("Exception has same error message", TEST_RETURNED_EXCEPTION, testResult.mException.getCause().getMessage());
     }
 
     @SmallTest
@@ -618,8 +607,7 @@ public class OauthTests extends AndroidTestCase {
 
         // call for empty response
         AuthenticationResult result = (AuthenticationResult)m.invoke(null, response);
-        assertEquals("Failed status", AuthenticationStatus.Failed, result.getStatus());
-        assertNull("Token is null", result.getAccessToken());
+        assertNull("Result is null", result);
 
         // call when response has error
         response.put(AuthenticationConstants.OAuth2.ERROR, "error");
