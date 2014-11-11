@@ -28,6 +28,8 @@ interface IBrokerProxy {
 	 *         Account manager
 	 */
 	boolean canSwitchToBroker();
+	
+	boolean canUseLocalCache();
 
 	void removeAccounts();
 

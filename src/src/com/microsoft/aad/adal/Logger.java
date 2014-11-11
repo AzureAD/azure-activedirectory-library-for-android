@@ -107,9 +107,20 @@ public class Logger {
         this.mExternalLogger = customLogger;
     }
 
+    private static String addVersion(String message) {
+        if(message != null){
+            return message + " ver:" + AuthenticationContext.getVersionName();
+        }
+        
+        return " ver:" + AuthenticationContext.getVersionName();
+    }
+
     public void debug(String tag, String message) {
-        if (mLogLevel.compareTo(LogLevel.Debug) < 0 || StringExtensions.IsNullOrBlank(message))
+        if (mLogLevel.compareTo(LogLevel.Debug) < 0 || StringExtensions.IsNullOrBlank(message)) {
             return;
+        }
+
+        message = addVersion(message);
 
         if (mAndroidLogEnabled) {
             Log.d(tag, message);
@@ -126,12 +137,15 @@ public class Logger {
     }
 
     public void verbose(String tag, String message, String additionalMessage, ADALError errorCode) {
-        if (mLogLevel.compareTo(LogLevel.Verbose) < 0)
+        if (mLogLevel.compareTo(LogLevel.Verbose) < 0) {
             return;
+        }
 
         if (mAndroidLogEnabled) {
             Log.v(tag, getLogMessage(message, additionalMessage, errorCode));
         }
+
+        message = addVersion(message);
 
         if (mExternalLogger != null) {
             try {
@@ -144,12 +158,15 @@ public class Logger {
     }
 
     public void inform(String tag, String message, String additionalMessage, ADALError errorCode) {
-        if (mLogLevel.compareTo(LogLevel.Info) < 0)
+        if (mLogLevel.compareTo(LogLevel.Info) < 0) {
             return;
+        }
 
         if (mAndroidLogEnabled) {
             Log.i(tag, getLogMessage(message, additionalMessage, errorCode));
         }
+
+        message = addVersion(message);
 
         if (mExternalLogger != null) {
             try {
@@ -162,12 +179,15 @@ public class Logger {
     }
 
     public void warn(String tag, String message, String additionalMessage, ADALError errorCode) {
-        if (mLogLevel.compareTo(LogLevel.Warn) < 0)
+        if (mLogLevel.compareTo(LogLevel.Warn) < 0) {
             return;
+        }
 
         if (mAndroidLogEnabled) {
             Log.w(tag, getLogMessage(message, additionalMessage, errorCode));
         }
+
+        message = addVersion(message);
 
         if (mExternalLogger != null) {
             try {
@@ -184,6 +204,8 @@ public class Logger {
             Log.e(tag, getLogMessage(message, additionalMessage, errorCode));
         }
 
+        message = addVersion(message);
+
         if (mExternalLogger != null) {
             try {
                 mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
@@ -199,6 +221,8 @@ public class Logger {
         if (mAndroidLogEnabled) {
             Log.e(tag, getLogMessage(message, additionalMessage, errorCode), err);
         }
+
+        message = addVersion(message);
 
         if (mExternalLogger != null) {
             try {
@@ -217,11 +241,13 @@ public class Logger {
             msg.append(getCodeName(errorCode)).append(":");
         }
         if (message != null) {
+            message = addVersion(message);
             msg.append(message);
         }
         if (additionalMessage != null) {
             msg.append(" ").append(additionalMessage);
         }
+
         return msg.toString();
     }
 

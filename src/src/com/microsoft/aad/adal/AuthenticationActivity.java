@@ -249,7 +249,11 @@ public class AuthenticationActivity extends Activity {
             mCallingUID = info.getUIDForPackage(mCallingPackage);
             String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
             mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
-            mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
+
+            if (!isCallerBrokerInstaller()) {
+                Logger.v(TAG, "Caller needs to be verified using special redirectUri");
+                mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
+            }
             Logger.v(TAG,
                     "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
                             + " calling package:" + mCallingPackage + " signatureDigest:"
@@ -274,6 +278,27 @@ public class AuthenticationActivity extends Activity {
         } else {
             Logger.d(TAG, "Reuse webview");
         }
+    }
+
+    private boolean isCallerBrokerInstaller() {
+        // Allow intune's signature check
+        PackageHelper info = new PackageHelper(AuthenticationActivity.this);
+        String packageName = getCallingPackage();
+        if (!StringExtensions.IsNullOrBlank(packageName)) {
+
+            if (packageName.equals(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
+                Logger.v(TAG, "isCallerBrokerInstaller: same package as broker " + packageName);
+                return true;
+            }
+
+            String signature = info.getCurrentSignatureForPackage(packageName);
+            Logger.v(TAG, "isCallerBrokerInstaller: Check signature for " + packageName
+                    + " signature:" + signature + " brokerSignature:"
+                    + AuthenticationSettings.INSTANCE.getBrokerSignature());
+            return signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature());
+        }
+
+        return false;
     }
 
     @Override
@@ -504,7 +529,7 @@ public class AuthenticationActivity extends Activity {
         mSpinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
                 this.getPackageName())));
     }
-    
+
     @Override
     protected void onRestart() {
         Logger.d(TAG, "AuthenticationActivity onRestart");

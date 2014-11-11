@@ -35,6 +35,7 @@ We recommend you use the "adal" tag so we can see it! Here is the latest Q&A on 
 ## Contributing
 
 All code is licensed under the Apache 2.0 license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. if you want to setup a maven enviroment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
+More details [about contribution](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/contributing.md) 
 
 ## Versions
 Please check the releases for updates.
@@ -89,7 +90,9 @@ repositories {
 }
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile ('com.microsoft.aad:adal:1.0.0') // Recent version is 1.0.6
+    compile('com.microsoft.aad:adal:1.0.0') { 
+        exclude group: 'com.android.support'
+    } // Recent version is 1.0.6
 }
 ```
 
@@ -235,7 +238,6 @@ You can call **acquireTokenSilent** to handle caching, and token refresh. It pro
     ```
  Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth:<UrlEncoded packagename>%2C<Urlencoded signature>. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
  
- 
 Using this walkthrough, you should have what you need to successfully integrate with Azure Active Directory. For more examples of this working, viist the AzureADSamples/ repository on GitHub.
        
 ## Important Information
@@ -245,6 +247,7 @@ Using this walkthrough, you should have what you need to successfully integrate 
 Library project resources can be overwritten by your application resources. This happens when your app is building. For this reason, you can customize Authentication Activity layout the way you want. You need to make sure to keep the id of the controls that ADAL uses(Webview).
 
 ### Broker
+
 Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challange for one of the apps. 
 
 ### Authority Url and ADFS
