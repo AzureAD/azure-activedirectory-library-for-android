@@ -961,26 +961,19 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        webrequest.setReturnResponse(new HttpWebResponse(503, null, null));
+        webrequest.setReturnResponse(new HttpWebResponse(500, null, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         final TestLogResponse response = new TestLogResponse();
-        response.listenForLogMessage("Prompt is not allowed and failed to get token:", signal);
-        TestLogResponse response2 = new TestLogResponse();
-        response2.listenLogForMessageSegments(null, "Refresh token did not return accesstoken",
-                "503");
+        response.listenLogForMessageSegments(signal, "Refresh token did not return accesstoken");
 
         context.acquireTokenSilent("resource", "clientid", "userid", callback);
 
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result
-        assertNotNull("Error is not null", callback.mException);
-        assertTrue("Log message has same webstatus code",
-                response2.additionalMessage.contains("503"));
-        assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
+        assertTrue("Log message has same webstatus code", response.errorCode.equals(ADALError.AUTH_FAILED_NO_TOKEN));
+        assertNotNull("Cache item is not removed for this item", mockCache.getItem(CacheKey.createCacheKey(
                 VALID_AUTHORITY, "resource", "clientId", false, "userid")));
-        assertNull("Cache is empty for this item", mockCache.getItem(CacheKey.createCacheKey(
-                VALID_AUTHORITY, "resource", "clientId", true, "userid")));
         clearCache(context);
     }
 
@@ -1286,7 +1279,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        webrequest.setReturnResponse(new HttpWebResponse(503, null, null));
+        String responseBody = "{\"error\":\"invalid_grant\",\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null}";
+        webrequest.setReturnResponse(new HttpWebResponse(400, responseBody.getBytes(), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
 
         // Call refresh token in silent API method

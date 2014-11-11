@@ -791,13 +791,15 @@ public class AuthenticationContext {
                                 }
 
                                 try {
-                                    if (result != null
-                                            && !StringExtensions.IsNullOrBlank(result
-                                                    .getAccessToken())) {
+                                    if (result != null) {
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
-                                        setItemToCache(authenticationRequest, result, true);
+                                        
+                                        if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+                                            setItemToCache(authenticationRequest, result, true);
+                                        }
+                                        
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
                                             Logger.v(TAG, "Sending result to callback. "
@@ -1514,21 +1516,15 @@ public class AuthenticationContext {
         try {
             Oauth2 oauthRequest = new Oauth2(request, mWebRequest, mJWSBuilder);
             result = oauthRequest.refreshToken(refreshItem.mRefreshToken);
-            if (StringExtensions.IsNullOrBlank(result.getRefreshToken())) {
+            if (result != null && StringExtensions.IsNullOrBlank(result.getRefreshToken())) {
                 Logger.v(TAG, "Refresh token is not returned or empty");
                 result.setRefreshToken(refreshItem.mRefreshToken);
             }
         } catch (Exception exc) {
-            // remove item from cache
+            // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
                     exc);
-            if (useCache) {
-                Logger.v(TAG,
-                        "Error in refresh token. Cache is used. It will remove item from cache"
-                                + request.getLogInfo());
-                removeItemFromCache(refreshItem);
-            }
 
             AuthenticationException authException = new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
@@ -1539,8 +1535,9 @@ public class AuthenticationContext {
 
         if (useCache) {
             if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+                String errLogInfo = result == null ? "" : result.getErrorLogInfo();
                 Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
-                        + result.getErrorLogInfo(), ADALError.AUTH_FAILED_NO_TOKEN);
+                        + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
 
                 // remove item from cache to avoid same usage of
                 // refresh token in next acquireToken call
