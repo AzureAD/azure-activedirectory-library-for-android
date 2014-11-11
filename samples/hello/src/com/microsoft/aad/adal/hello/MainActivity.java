@@ -35,6 +35,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -59,16 +60,23 @@ public class MainActivity extends Activity {
 
     final static String AUTHORIZATION_HEADER_BEARER = "Bearer ";
 
+    /**
+     * Extra query parameter nux=1 uses new login page
+     */
+    final static String EXTRA_QUERY_PARAM = "nux=1";
+
     private AuthenticationContext mAuthContext;
 
     private ProgressDialog mLoginProgressDialog;
 
     private AuthenticationResult mResult;
 
+    private Handler mHandler;
+
     TextView textView1;
 
     EditText mEditText;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,7 +101,7 @@ public class MainActivity extends Activity {
 
         mEditText = (EditText)findViewById(R.id.editTextUsername);
         mEditText.setText("");
-        
+
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
 
@@ -115,6 +123,18 @@ public class MainActivity extends Activity {
             mLoginProgressDialog.dismiss();
             mLoginProgressDialog = null;
         }
+    }
+
+    public void onClickFragmentTest(View v) {
+        Intent intent = new Intent(getApplicationContext(), FragmentHolderActivity.class);
+        this.startActivity(intent);
+    }
+
+    public void onClickDialog(View v) {
+        Log.v(TAG, "dialog button is clicked");
+        mAuthContext.acquireToken(Constants.RESOURCE_ID, Constants.CLIENT_ID,
+                Constants.REDIRECT_URL, getUserLoginHint(), PromptBehavior.Auto, EXTRA_QUERY_PARAM,
+                getCallback());
     }
 
     public void onClickAcquireByRefreshToken(View v) {

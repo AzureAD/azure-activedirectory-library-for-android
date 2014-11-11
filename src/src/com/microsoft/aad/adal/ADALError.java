@@ -100,6 +100,11 @@ public enum ADALError {
     DEVELOPER_CALLING_ON_MAIN_THREAD("Calling from main thread for background operation"),
 
     /**
+     * Layout file does not have correct elements such as different webview id
+     */
+    DEVELOPER_DIALOG_LAYOUT_INVALID("dialog_authentication.xml file has invalid elements"),
+    
+    /**
      * Invalid request to server.
      */
     SERVER_INVALID_REQUEST("Invalid request to server"),

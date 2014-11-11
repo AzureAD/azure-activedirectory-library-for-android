@@ -19,7 +19,6 @@
 package com.microsoft.aad.adal;
 
 import java.io.IOException;
-import java.lang.annotation.Target;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
