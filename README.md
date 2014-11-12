@@ -26,6 +26,9 @@ Recent version is 1.0.6.
 
 Visit your Azure Identity samples for Android is here: [https://github.com/AzureADSamples/NativeClient-Android](https://github.com/AzureADSamples/NativeClient-Android)
 
+Xamarin related info is here:
+[https://github.com/AzureADSamples/NativeClient-Xamarin-Android](https://github.com/AzureADSamples/NativeClient-Xamarin-Android)
+
 ## Community Help and Support
 
 We leverage [Stack Overflow](http://stackoverflow.com/) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browser existing issues to see if someone has had your question before. 
@@ -236,7 +239,7 @@ You can call **acquireTokenSilent** to handle caching, and token refresh. It pro
     ```java
     AuthenticationSettings.Instance.setSkipBroker(true);
     ```
- Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth:<UrlEncoded packagename>%2C<Urlencoded signature>. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
+ Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
  
 Using this walkthrough, you should have what you need to successfully integrate with Azure Active Directory. For more examples of this working, viist the AzureADSamples/ repository on GitHub.
        
