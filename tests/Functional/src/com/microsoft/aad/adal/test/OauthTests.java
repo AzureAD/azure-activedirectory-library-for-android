@@ -1,4 +1,4 @@
-﻿// Copyright © Microsoft Open Technologies, Inc.
+// Copyright © Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -17,7 +17,6 @@
 // governing permissions and limitations under the License.
 
 package com.microsoft.aad.adal.test;
-
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
