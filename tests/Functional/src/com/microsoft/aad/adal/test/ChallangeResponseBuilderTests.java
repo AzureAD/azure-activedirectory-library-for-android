@@ -135,14 +135,15 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromUri",
                 String.class);
 
-        try {
-            m.invoke(handler, CERT_REDIRECT
-                    + "?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Context=1");
-            Assert.fail("No exception");
-        } catch (Exception ex) {
-            assertEquals("API exception", ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
-                    ((AuthenticationException)ex.getCause()).getCode());
-        }
+        Object response = m.invoke(handler, CERT_REDIRECT
+                + "?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Context=1");
+
+        // assert
+        String authHeaderValue = (String)ReflectionUtils.getFieldValue(response,
+                "mAuthorizationHeaderValue");
+
+        assertTrue(authHeaderValue.contains(String.format("%s Context=\"%s\",Version=\"1.0\"",
+                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, "1")));
     }
 
     public void testGetChallangeResponse_InvalidRedirect() throws ClassNotFoundException,
@@ -274,7 +275,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
             assertTrue(authHeaderValue.contains(String.format("%s AuthToken=\"%s\",Context=\"%s\"",
                     CERT_AUTH_TYPE, auth, context)));
         } else {
-            assertTrue(authHeaderValue.contains(String.format("CertAuth Context=\"%s\"", context)));
+            assertTrue(authHeaderValue.contains(String.format("%s Context=\"%s\"", CERT_AUTH_TYPE, context)));
         }
     }
 

@@ -618,6 +618,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, userId, getRequestCorrelationId());
         request.setSilent(true);
+        request.setPrompt(PromptBehavior.Auto);
         return acquireTokenLocal(null, false, request, callback);
     }
 
