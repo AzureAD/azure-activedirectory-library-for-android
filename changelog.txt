@@ -1,3 +1,8 @@
+Version 1.0.7
+--------------
+Send PkeyAuth flag from embeded adal usage.
+Fix issue with promptBehavior param in broker usage.
+
 Version 1.0.6
 --------------
 Fragment and dialog support
