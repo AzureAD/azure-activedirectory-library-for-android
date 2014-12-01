@@ -187,8 +187,9 @@ class Oauth2 {
 
     public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) {
 
-        AuthenticationResult result = new AuthenticationResult();
+        AuthenticationResult result = null;
 
+        // Protocol error related
         if (response.containsKey(AuthenticationConstants.OAuth2.ERROR)) {
             // Error response from the server
             // CorrelationID will be same as in request headers. This is
@@ -363,7 +364,7 @@ class Oauth2 {
      * 
      * @param authorizationUrl browser reached to this final url and it has code
      *            or token for next step
-     * @return Token in the AuthenticationResult
+     * @return Token in the AuthenticationResult. Null result if response does not have protocol error.
      * @throws Exception
      */
     public AuthenticationResult getToken(String authorizationUrl) throws Exception {
@@ -390,25 +391,14 @@ class Oauth2 {
 
                 AuthenticationResult result = processUIResponseParams(parameters);
 
-                // Check if we have token or code
-                if (result != null
-                        && result.getStatus() == AuthenticationResult.AuthenticationStatus.Succeeded) {
-                    if (!result.getCode().isEmpty()) {
+                // Check if we have code
+                if (result != null && !result.getCode().isEmpty()) {
 
-                        // Get token and use external callback to set result
-                        return getTokenForCode(result.getCode());
-
-                    } else if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                        // We have token directly with implicit flow
-                        return result;
-                    } else {
-                        throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN);
-                    }
-                } else {
-                    throw new AuthenticationException(ADALError.AUTH_FAILED_NO_TOKEN,
-                            result.getErrorCode() + " " + result.getErrorDescription());
+                    // Get token and use external callback to set result
+                    return getTokenForCode(result.getCode());
                 }
 
+                return result;
             } else {
                 throw new AuthenticationException(ADALError.AUTH_FAILED_BAD_STATE);
             }
@@ -502,24 +492,28 @@ class Oauth2 {
                 }
             }
 
-            if (response.getResponseException() == null) {
+            if (response.getBody() != null) {
 
                 // Protocol related errors will read the error stream and report
                 // the error and error description
                 Logger.v(TAG, "Token request does not have exception");
                 result = processTokenResponse(response);
-            } else {
-
-                // 400 Status code will throw here
-            	String errMessage = null;
+            } 
+            
+            if (result == null) {
+                // non-protocol related error
+                String errMessage = null;
                 byte[] message = response.getBody();
                 if (message != null) {
                     errMessage = new String(message);
                 } else {
                     errMessage = "Status code:" + String.valueOf(response.getStatusCode());
                 }
+
                 Logger.v(TAG, "Server error message:" + errMessage);
-                throw response.getResponseException();
+                if(response.getResponseException() != null){
+                    throw response.getResponseException();
+                }
             }
         } catch (IllegalArgumentException e) {
             Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);

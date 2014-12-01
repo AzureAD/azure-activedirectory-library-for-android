@@ -21,7 +21,6 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.security.DigestException;
 import java.security.InvalidAlgorithmParameterException;
@@ -56,7 +55,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -112,6 +110,8 @@ public class AuthenticationActivity extends Activity {
 
     private String mQueryParameters;
 
+    private boolean mPkeyAuthRedirect = false;
+    
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
     // one active activity
@@ -221,6 +221,13 @@ public class AuthenticationActivity extends Activity {
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
                 new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
+        
+        String userAgent = mWebView.getSettings().getUserAgentString();
+        mWebView.getSettings().setUserAgentString(
+                userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
+        userAgent = mWebView.getSettings().getUserAgentString();
+        Logger.v(TAG, "UserAgent:" + userAgent);
+        
         if (isBrokerRequest(getIntent())) {
             // This activity is started from calling app and running in
             // Authenticator's process
@@ -236,11 +243,7 @@ public class AuthenticationActivity extends Activity {
                 returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
                 return;
             }
-            String userAgent = mWebView.getSettings().getUserAgentString();
-            mWebView.getSettings().setUserAgentString(
-                    userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
-            userAgent = mWebView.getSettings().getUserAgentString();
-            Logger.v(TAG, "UserAgent:" + userAgent);
+            
             mAccountAuthenticatorResponse = getIntent().getParcelableExtra(
                     AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
             if (mAccountAuthenticatorResponse != null) {
@@ -251,7 +254,11 @@ public class AuthenticationActivity extends Activity {
             mCallingUID = info.getUIDForPackage(mCallingPackage);
             String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
             mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
-            mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
+
+            if (!isCallerBrokerInstaller()) {
+                Logger.v(TAG, "Caller needs to be verified using special redirectUri");
+                mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
+            }
             Logger.v(TAG,
                     "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
                             + " calling package:" + mCallingPackage + " signatureDigest:"
@@ -276,6 +283,28 @@ public class AuthenticationActivity extends Activity {
         } else {
             Logger.d(TAG, "Reuse webview");
         }
+    }
+
+    private boolean isCallerBrokerInstaller() {
+        // Allow intune's signature check
+        PackageHelper info = new PackageHelper(AuthenticationActivity.this);
+        String packageName = getCallingPackage();
+        if (!StringExtensions.IsNullOrBlank(packageName)) {
+            
+            if (packageName.equals(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
+                Logger.v(TAG, "isCallerBrokerInstaller: same package as broker " + packageName);
+                return true;
+            }
+            
+            String signature = info.getCurrentSignatureForPackage(packageName);
+            Logger.v(TAG, "isCallerBrokerInstaller: Check signature for " + packageName
+                    + " signature:" + signature + " brokerSignature:"
+                    + AuthenticationSettings.INSTANCE.getBrokerSignature());
+            return signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature()) || 
+                    signature.equals(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE);
+        }
+
+        return false;
     }
 
     @Override
@@ -517,7 +546,9 @@ public class AuthenticationActivity extends Activity {
     @Override
     public void onBackPressed() {
         Logger.d(TAG, "Back button is pressed");
-        if (!mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
+        
+        // User should be able to click back button to cancel in case pkeyauth happen.
+        if (mPkeyAuthRedirect || !mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
             // counting blank page as well
             cancelRequest();
         } else {
@@ -545,6 +576,7 @@ public class AuthenticationActivity extends Activity {
                 Logger.v(TAG, "Webview detected request for client certificate");
                 view.stopLoading();
                 // avoid main thread locking
+                mPkeyAuthRedirect = true;
                 final String challangeUrl = url;
                 new Thread(new Runnable() {
                     @Override
@@ -653,8 +685,14 @@ public class AuthenticationActivity extends Activity {
         private boolean hasCancelError(String redirectUrl) {
             try {
                 HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
-                String cancelError = parameters.get("error");
-                return cancelError.equals(AuthenticationConstants.AAD.WEB_UI_CANCEL);
+                String error = parameters.get("error");
+                String errorDescription = parameters.get("error_description");
+                
+                if(!StringExtensions.IsNullOrBlank(error))
+                {
+                    Logger.v(TAG, "Cancel error:" + error + " " +errorDescription);
+                    return true;
+                }
             } catch (Exception exc) {
                 Logger.e(TAG, "Error in processing url parameters", "Url:" + redirectUrl,
                         ADALError.ERROR_WEBVIEW);

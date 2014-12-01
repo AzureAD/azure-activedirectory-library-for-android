@@ -19,7 +19,6 @@
 package com.microsoft.aad.adal;
 
 import java.io.IOException;
-import java.lang.annotation.Target;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -87,10 +86,29 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public boolean canSwitchToBroker() {
+        String packageName = mContext.getPackageName();
         return !AuthenticationSettings.INSTANCE.getSkipBroker() && verifyManifestPermissions()
+                && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
                 && verifyAuthenticator(mAcctManager) && verifyAccount();
     }
 
+    @Override
+    public boolean canUseLocalCache(){
+        boolean brokerSwitch = canSwitchToBroker();
+        if(!brokerSwitch){
+            Logger.v(TAG, "It does not use broker");
+            return true;
+        }
+        
+        String packageName = mContext.getPackageName();
+        if(verifySignature(packageName)){
+            Logger.v(TAG, "Broker installer can use local cache");
+            return true;
+        }
+        
+        return false;
+    }
+    
     private boolean verifyAccount() {
         Logger.v(TAG, "Verify account count");
         // only call authenticator if there is an account
@@ -396,7 +414,10 @@ class BrokerProxy implements IBrokerProxy {
                     MessageDigest md = MessageDigest.getInstance("SHA");
                     md.update(signature.toByteArray());
                     String tag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
-                    if (tag.equals(mBrokerTag)) {
+                    
+                    // Company portal(Intune) app and Azure authenticator app have authenticator.
+                    if (tag.equals(mBrokerTag)
+                            || tag.equals(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE)) {
                         return true;
                     }
                 }

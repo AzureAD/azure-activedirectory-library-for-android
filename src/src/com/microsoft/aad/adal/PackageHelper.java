@@ -150,9 +150,8 @@ class PackageHelper {
         if (!StringExtensions.IsNullOrBlank(packageName)
                 && !StringExtensions.IsNullOrBlank(signatureDigest)) {
             try {
-                return String.format("%s:%s%s%s", AuthenticationConstants.Broker.REDIRECT_PREFIX,
+                return String.format("%s://%s/%s", AuthenticationConstants.Broker.REDIRECT_PREFIX,
                         URLEncoder.encode(packageName, AuthenticationConstants.ENCODING_UTF8),
-                        AuthenticationConstants.Broker.REDIRECT_DELIMETER_ENCODED,
                         URLEncoder.encode(signatureDigest, AuthenticationConstants.ENCODING_UTF8));
             } catch (UnsupportedEncodingException e) {
                 // This encoding issue will happen at the beginning of API call,

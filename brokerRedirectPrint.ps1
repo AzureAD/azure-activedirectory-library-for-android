@@ -51,7 +51,7 @@ Function printRedirect($pass, $alias, $key_store){
     
         #Url encode the tag
         $tag_encoded = [System.Web.HttpUtility]::UrlEncode($out)    
-        Write-Host "RedirectURI: msauth:$package_name_encoded%2C$tag_encoded" -ForegroundColor Green    
+        Write-Host "RedirectURI: msauth://$package_name_encoded/$tag_encoded" -ForegroundColor Green    
     }else{
         Write-Host "Android $key_store file is not found. Please update the script" -ForegroundColor Red
     }

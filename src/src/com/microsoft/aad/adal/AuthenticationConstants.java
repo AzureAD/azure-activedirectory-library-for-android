@@ -284,10 +284,16 @@ public class AuthenticationConstants {
         public static final String PACKAGE_NAME = "com.microsoft.windowsintune.companyportal";
 
         /**
-         * Signature info for AD-Authenticator installing app to verify broker
+         * Signature info for Intune Company portal app that installs authenticator
          * component.
          */
         public static final String SIGNATURE = "1L4Z9FJCgn5c0VLhyAxC5O9LdlE=";
+        
+        /**
+         * Signature info for Azure authenticator app that installs authenticator
+         * component.
+         */
+        public static final String AZURE_AUTHENTICATOR_APP_SIGNATURE = "ho040S3ffZkmxqtQrSwpTVOn9r0=";
 
         public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
 
