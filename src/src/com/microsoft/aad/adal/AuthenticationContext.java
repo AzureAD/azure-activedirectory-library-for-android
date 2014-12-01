@@ -1333,15 +1333,22 @@ public class AuthenticationContext {
         UserInfo mUserInfo;
 
         String mRawIdToken;
+        
+        String mKeyWithUserId;
+        
+        String mKeyWithDisplayableId;
 
         public RefreshItem(String keyInCache, String refreshTokenValue, boolean multiResource,
-                UserInfo userInfo, String rawIdToken) {
+                UserInfo userInfo, String rawIdToken, String refreshUserIdKey, String refreshDisplayableKey) {
             mKey = keyInCache;
             mRefreshToken = refreshTokenValue;
             mMultiResource = multiResource;
             mUserInfo = userInfo;
             mRawIdToken = rawIdToken;
+            mKeyWithUserId = refreshUserIdKey;
+            mKeyWithDisplayableId = refreshDisplayableKey;
         }
+        
     }
 
     private RefreshItem getRefreshToken(final AuthenticationRequest request) {
@@ -1372,8 +1379,14 @@ public class AuthenticationContext {
 
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed + getCorrelationLogInfo());
+                String keyWithUserId = "";
+                String keyWithDisplayableId = "";
+                if(item.getUserInfo() != null){
+                    keyWithUserId = CacheKey.createCacheKey(request, item.getUserInfo().getUserId());
+                    keyWithDisplayableId = CacheKey.createCacheKey(request, item.getUserInfo().getDisplayableId());
+                }
                 refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource,
-                        item.getUserInfo(), item.getRawIdToken());
+                        item.getUserInfo(), item.getRawIdToken(), keyWithUserId, keyWithDisplayableId);
             }
         }
 
@@ -1474,6 +1487,9 @@ public class AuthenticationContext {
             Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey
                     + getCorrelationLogInfo());
             mTokenCacheStore.removeItem(refreshItem.mKey);
+            // clean up keys related to userid/displayableid for same request
+            mTokenCacheStore.removeItem(refreshItem.mKeyWithUserId);
+            mTokenCacheStore.removeItem(refreshItem.mKeyWithDisplayableId);
         }
     }
 
@@ -1740,7 +1756,8 @@ public class AuthenticationContext {
                 // It is not using cache and refresh is not expected to
                 // show authentication activity.
                 request.setSilent(true);
-                final RefreshItem refreshItem = new RefreshItem("", refreshToken, false, null, "");
+                final RefreshItem refreshItem = new RefreshItem("", refreshToken, false, null, "",
+                        "", "");
 
                 if (mValidateAuthority) {
                     Logger.v(TAG, "Validating authority" + getCorrelationLogInfo());
