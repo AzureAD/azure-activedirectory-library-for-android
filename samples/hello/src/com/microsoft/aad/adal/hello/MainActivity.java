@@ -104,7 +104,7 @@ public class MainActivity extends Activity {
 
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
     }
-   
+
     @Override
     protected void onResume() {
         super.onResume();
