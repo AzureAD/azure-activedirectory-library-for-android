@@ -61,7 +61,7 @@ public class MainActivity extends Activity {
     final static String AUTHORIZATION_HEADER_BEARER = "Bearer ";
 
     /**
-     * Extra query parameter nux=1 uses new login page
+     * Extra query parameter nux=1 uses new login page at AAD. This is optional.
      */
     final static String EXTRA_QUERY_PARAM = "nux=1";
 
@@ -238,7 +238,7 @@ public class MainActivity extends Activity {
         Log.v(TAG, "token button is clicked");
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserLoginHint(), getCallback());
+                Constants.REDIRECT_URL, getUserLoginHint(), EXTRA_QUERY_PARAM, getCallback());
     }
 
     private void clearSessionCookie() {

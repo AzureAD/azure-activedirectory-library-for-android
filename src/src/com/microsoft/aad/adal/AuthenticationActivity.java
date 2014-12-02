@@ -627,6 +627,16 @@ public class AuthenticationActivity extends Activity {
                 return true;
             } else if (url.toLowerCase(Locale.US).startsWith(mRedirectUrl.toLowerCase(Locale.US))) {
                 Logger.v(TAG, "Webview reached redirecturl");
+                if (hasCancelError(url)) {
+                    // Catch WEB-UI cancel request
+                    Logger.v(TAG, "Sending intent to cancel authentication activity");
+                    Intent resultIntent = new Intent();
+                    returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                            resultIntent);
+                    view.stopLoading();
+                    return true;
+                }
+
                 if (!isBrokerRequest(getIntent())) {
                     // It is pointing to redirect. Final url can be processed to
                     // get the code or error.
@@ -667,6 +677,25 @@ public class AuthenticationActivity extends Activity {
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
+            }
+
+            return false;
+        }
+
+        private boolean hasCancelError(String redirectUrl) {
+            try {
+                HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
+                String error = parameters.get("error");
+                String errorDescription = parameters.get("error_description");
+                
+                if(!StringExtensions.IsNullOrBlank(error))
+                {
+                    Logger.v(TAG, "Cancel error:" + error + " " +errorDescription);
+                    return true;
+                }
+            } catch (Exception exc) {
+                Logger.e(TAG, "Error in processing url parameters", "Url:" + redirectUrl,
+                        ADALError.ERROR_WEBVIEW);
             }
 
             return false;

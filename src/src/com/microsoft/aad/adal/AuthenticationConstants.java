@@ -150,6 +150,8 @@ public class AuthenticationConstants {
         public static final String REALM = "realm";
 
         public static final String LOGIN_HINT = "login_hint";
+        
+        public static final String WEB_UI_CANCEL = "access_denied";
 
         public static final String CORRELATION_ID = "correlation_id";
 
