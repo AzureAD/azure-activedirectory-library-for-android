@@ -1360,6 +1360,11 @@ public class AuthenticationContext {
                 }
             }
         }
+
+        public RefreshItem(String refreshToken) {
+            mMultiResource = false;
+            mRefreshToken = refreshToken;
+        }
     }
 
     private RefreshItem getRefreshToken(final AuthenticationRequest request) {
@@ -1761,7 +1766,7 @@ public class AuthenticationContext {
                 // It is not using cache and refresh is not expected to
                 // show authentication activity.
                 request.setSilent(true);
-                final RefreshItem refreshItem = new RefreshItem("", request, null, false);
+                final RefreshItem refreshItem = new RefreshItem(refreshToken);
 
                 if (mValidateAuthority) {
                     Logger.v(TAG, "Validating authority" + getCorrelationLogInfo());
