@@ -796,11 +796,11 @@ public class AuthenticationContext {
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
-                                        
+
                                         if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                                             setItemToCache(authenticationRequest, result, true);
                                         }
-                                        
+
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
                                             Logger.v(TAG, "Sending result to callback. "
@@ -1059,7 +1059,8 @@ public class AuthenticationContext {
      * @return
      */
     private AuthenticationResult acquireTokenLocalCall(final CallbackHandler callbackHandle,
-            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request) {
+            final IWindowComponent activity, final boolean useDialog,
+            final AuthenticationRequest request) {
         URL authorityUrl = StringExtensions.getUrl(mAuthority);
         if (authorityUrl == null) {
             callbackHandle.onError(new AuthenticationException(
@@ -1103,7 +1104,8 @@ public class AuthenticationContext {
     }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
-            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request) {
+            final IWindowComponent activity, final boolean useDialog,
+            final AuthenticationRequest request) {
         Logger.v(TAG, "Token request started" + getCorrelationLogInfo());
 
         // BROKER flow intercepts here
@@ -1199,7 +1201,8 @@ public class AuthenticationContext {
     }
 
     private AuthenticationResult localFlow(CallbackHandler callbackHandle,
-            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request) {
+            final IWindowComponent activity, final boolean useDialog,
+            final AuthenticationRequest request) {
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
         if (cachedItem != null && isUserMisMatch(request, cachedItem)) {
@@ -1229,7 +1232,8 @@ public class AuthenticationContext {
             return refreshToken(callbackHandle, activity, useDialog, request, refreshItem, true);
         } else {
             Logger.v(TAG, "Refresh token is not available" + getCorrelationLogInfo());
-            if (!request.isSilent() && callbackHandle.callback != null && (activity != null || useDialog)) {
+            if (!request.isSilent() && callbackHandle.callback != null
+                    && (activity != null || useDialog)) {
                 // start activity if other options are not available
                 // delegate map is used to remember callback if another
                 // instance of authenticationContext is created for config
@@ -1243,7 +1247,8 @@ public class AuthenticationContext {
                                 callbackHandle.callback));
 
                 if (useDialog) {
-                    AuthenticationDialog dialog = new AuthenticationDialog(mHandler, mContext, this, request);
+                    AuthenticationDialog dialog = new AuthenticationDialog(mHandler, mContext,
+                            this, request);
                     dialog.show();
                 } else {
                     // onActivityResult will receive the response
@@ -1334,13 +1339,31 @@ public class AuthenticationContext {
 
         String mRawIdToken;
 
-        public RefreshItem(String keyInCache, String refreshTokenValue, boolean multiResource,
-                UserInfo userInfo, String rawIdToken) {
+        String mKeyWithUserId;
+
+        String mKeyWithDisplayableId;
+
+        public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item,
+                boolean multiResource) {
             mKey = keyInCache;
-            mRefreshToken = refreshTokenValue;
             mMultiResource = multiResource;
-            mUserInfo = userInfo;
-            mRawIdToken = rawIdToken;
+
+            if (item != null) {
+                mRefreshToken = item.getRefreshToken();
+                mUserInfo = item.getUserInfo();
+                mRawIdToken = item.getRawIdToken();
+                if (item.getUserInfo() != null) {
+                    mKeyWithUserId = CacheKey.createCacheKey(request, item.getUserInfo()
+                            .getUserId());
+                    mKeyWithDisplayableId = CacheKey.createCacheKey(request, item.getUserInfo()
+                            .getDisplayableId());
+                }
+            }
+        }
+
+        public RefreshItem(String refreshToken) {
+            mMultiResource = false;
+            mRefreshToken = refreshToken;
         }
     }
 
@@ -1372,8 +1395,7 @@ public class AuthenticationContext {
 
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed + getCorrelationLogInfo());
-                refreshItem = new RefreshItem(keyUsed, item.getRefreshToken(), multiResource,
-                        item.getUserInfo(), item.getRawIdToken());
+                refreshItem = new RefreshItem(keyUsed, request, item, multiResource);
             }
         }
 
@@ -1474,6 +1496,9 @@ public class AuthenticationContext {
             Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey
                     + getCorrelationLogInfo());
             mTokenCacheStore.removeItem(refreshItem.mKey);
+            // clean up keys related to userid/displayableid for same request
+            mTokenCacheStore.removeItem(refreshItem.mKeyWithUserId);
+            mTokenCacheStore.removeItem(refreshItem.mKeyWithDisplayableId);
         }
     }
 
@@ -1493,8 +1518,9 @@ public class AuthenticationContext {
      * @return
      */
     private AuthenticationResult refreshToken(final CallbackHandler callbackHandle,
-            final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest request,
-            final RefreshItem refreshItem, final boolean useCache) {
+            final IWindowComponent activity, final boolean useDialog,
+            final AuthenticationRequest request, final RefreshItem refreshItem,
+            final boolean useCache) {
 
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
                 + getTokenHash(refreshItem.mRefreshToken));
@@ -1740,7 +1766,7 @@ public class AuthenticationContext {
                 // It is not using cache and refresh is not expected to
                 // show authentication activity.
                 request.setSilent(true);
-                final RefreshItem refreshItem = new RefreshItem("", refreshToken, false, null, "");
+                final RefreshItem refreshItem = new RefreshItem(refreshToken);
 
                 if (mValidateAuthority) {
                     Logger.v(TAG, "Validating authority" + getCorrelationLogInfo());
