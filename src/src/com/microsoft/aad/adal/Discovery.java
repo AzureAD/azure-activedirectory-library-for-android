@@ -91,7 +91,7 @@ final class Discovery implements IDiscovery {
                 && StringExtensions.IsNullOrBlank(authorizationEndpoint.getRef())
                 && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())) {
 
-            if (isADFSAuthority(authorizationEndpoint)) {
+            if (UrlExtensions.isADFSAuthority(authorizationEndpoint)) {
                 throw new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED);
             } else if (sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
                 // host can be the instance or inside the validated list.
@@ -108,12 +108,7 @@ final class Discovery implements IDiscovery {
         return false;
     }
 
-    private boolean isADFSAuthority(URL authorizationEndpoint) {
-        // similar to ADAL.NET
-        String path = authorizationEndpoint.getPath();
-        return !StringExtensions.IsNullOrBlank(path)
-                && path.toLowerCase(Locale.ENGLISH).equals("/adfs");
-    }
+    
 
     /**
      * add this host as valid to skip another query to server.
@@ -181,21 +176,27 @@ final class Discovery implements IDiscovery {
             headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, mCorrelationId.toString());
             headers.put(AuthenticationConstants.AAD.RETURN_CLIENT_REQUEST_ID, "true");
         }
-
-    	ClientMetrics clientMetrics = new ClientMetrics();
                
         HttpWebResponse webResponse = null;
+        String errorCodes = "";
         try {
-            clientMetrics.beginClientMetricsRecord(headers);        	           
+            ClientMetrics.INSTANCE.beginClientMetricsRecord(queryUrl, mCorrelationId, headers);
             webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
             if (webResponse.getResponseException() == null) {
-                clientMetrics.setLastError(null);
+                ClientMetrics.INSTANCE.setLastError(null);
             } else {
-            	// TODO: Extract error from response
-                clientMetrics.setLastError(null);
+                ClientMetrics.INSTANCE.setLastError(String.valueOf(webResponse.getStatusCode()));
             }
+            
             // parse discovery response to find tenant info
-            return parseResponse(webResponse);
+            HashMap<String, String> discoveryResponse = parseResponse(webResponse);
+            if(discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES))
+            {
+                errorCodes = discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
+                ClientMetrics.INSTANCE.setLastError(errorCodes);
+            }
+            
+            return (discoveryResponse != null && discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT));
         } catch (IllegalArgumentException exc) {
             Logger.e(TAG, exc.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
                     exc);
@@ -206,7 +207,7 @@ final class Discovery implements IDiscovery {
             throw e;
         }
         finally {
-            clientMetrics.endClientMetricsRecord(ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);                
+            ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);                
         }
     }
 
@@ -218,11 +219,9 @@ final class Discovery implements IDiscovery {
      * @return true if tenant discovery endpoint is reported. false otherwise.
      * @throws JSONException
      */
-    private Boolean parseResponse(HttpWebResponse webResponse) throws JSONException {
+    private HashMap<String, String> parseResponse(HttpWebResponse webResponse) throws JSONException {
 
-        HashMap<String, String> response = HashMapExtensions.getJsonResponse(webResponse);
-
-        return (response != null && response.containsKey(TENANT_DISCOVERY_ENDPOINT));
+        return HashMapExtensions.getJsonResponse(webResponse);
     }
 
     /**

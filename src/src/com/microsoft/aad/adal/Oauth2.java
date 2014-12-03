@@ -455,11 +455,10 @@ class Oauth2 {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
-    	ClientMetrics clientMetrics = new ClientMetrics();
 
     	try {
         	mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
-            clientMetrics.beginClientMetricsRecord(headers);        	
+        	ClientMetrics.INSTANCE.beginClientMetricsRecord(authority, mRequest.getCorrelationId(), headers);        	
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
@@ -512,10 +511,10 @@ class Oauth2 {
                 // the error and error description
                 Logger.v(TAG, "Token request does not have exception");
                 result = processTokenResponse(response);
-                clientMetrics.setLastError(null);
+                ClientMetrics.INSTANCE.setLastError(null);
             } else {
                 result = processTokenResponse(response);
-                clientMetrics.setLastError(result.getErrorCodes());
+                ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
 
                 // 400 Status code will throw here
             	String errMessage = null;
@@ -529,19 +528,19 @@ class Oauth2 {
                 throw response.getResponseException();
             }
         } catch (IllegalArgumentException e) {
-            clientMetrics.setLastError(null);
+            ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
             throw e;
         } catch (UnsupportedEncodingException e) {
-            clientMetrics.setLastError(null);
+            ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             throw e;
         } catch (Exception e) {
-            clientMetrics.setLastError(null);
+            ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
         } finally {
-            clientMetrics.endClientMetricsRecord(ClientMetricsEndpointType.TOKEN, mRequest.getCorrelationId());        
+            ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.TOKEN, mRequest.getCorrelationId());        
         }
 
         return result;

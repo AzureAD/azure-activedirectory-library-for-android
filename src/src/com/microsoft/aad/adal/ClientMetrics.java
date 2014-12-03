@@ -18,75 +18,98 @@
 
 package com.microsoft.aad.adal;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.UUID;
-import android.text.TextUtils;
-import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 
-class ClientMetricsEndpointType
-{
+class ClientMetricsEndpointType {
     public static final String TOKEN = "token";
+
     public static final String INSTANCE_DISCOVERY = "instance";
 }
 
-class ClientMetrics {
+enum ClientMetrics {
+
+    /**
+     * Singleton instance.
+     */
+    INSTANCE;
+
     private static final String CLIENT_METRICS_HEADER_LAST_ERROR = "x-client-last-error";
+
     private static final String CLIENT_METRICS_HEADER_LAST_REQUEST = "x-client-last-request";
+
     private static final String CLIENT_METRICS_HEADER_LAST_RESPONSE_TIME = "x-client-last-response-time";
-    private static final String CLIENT_METRICS_HEADER_LAST_ENDPOINT = "x-client-last-endpoint";	
-	
-    private static ClientMetrics mPendingClientMetrics;	
-	
+
+    private static final String CLIENT_METRICS_HEADER_LAST_ENDPOINT = "x-client-last-endpoint";
+
     private long mStartTimeMillis = 0;
+
     private String mLastError;
+
     private UUID mLastCorrelationId;
+
     private long mLastResponseTime;
-    private String mLastEndpoint;    
-    
-    public void beginClientMetricsRecord(HashMap<String, String> headers)
-    {
-    	// TODO: Change the condition below to only send metrics to AAD (not ADFS)
-	    if (true)
-	    {
-	    	addClientMetricsHeadersToRequest(headers);
-	    	mStartTimeMillis = System.currentTimeMillis();
-	    }                
+
+    private String mLastEndpoint;
+
+    private boolean mIsPending = false;
+
+    private URL mQueryUrl;
+
+    public void beginClientMetricsRecord(URL queryUrl, UUID correlationId,
+            HashMap<String, String> headers) {
+        if (UrlExtensions.isADFSAuthority(queryUrl)) {
+            // Don't add for ADFS endpoint
+            return;
+        }
+
+        if (mIsPending) {
+            addClientMetricsHeadersToRequest(headers);
+        }
+
+        mStartTimeMillis = System.currentTimeMillis();
+        mQueryUrl = queryUrl;
+        mLastCorrelationId = correlationId;
+        mLastError = "";
+        mIsPending = false;
     }
 
-    public void endClientMetricsRecord(String endpoint, UUID correlationId)
-    {
-    	// TODO: Change the condition below to only send metrics to AAD (not ADFS)
-        if (mStartTimeMillis != 0)
-        {
+    public void endClientMetricsRecord(String endpoint, UUID correlationId) {
+        if (UrlExtensions.isADFSAuthority(mQueryUrl)) {
+            // Don't send to ADFS endpoint
+            return;
+        }
+
+        mLastEndpoint = endpoint;
+
+        if (mStartTimeMillis != 0) {
             mLastResponseTime = System.currentTimeMillis() - mStartTimeMillis;
             mLastCorrelationId = correlationId;
-            mLastEndpoint = endpoint;
-            if (mPendingClientMetrics == null) 
-            {
-                mPendingClientMetrics = this;
-            }
         }
+
+        mIsPending = true;
     }
 
-    public void setLastError(String[] errorCodes)
-    {
+    public void setLastError(String errorCode) {
+        mLastError = (errorCode != null) ? errorCode.replaceAll("[\\[\\]]", "") : "";
+    }
+
+    public void setLastErrorCodes(String[] errorCodes) {
         mLastError = (errorCodes != null) ? android.text.TextUtils.join(",", errorCodes) : null;
     }
 
-    private static void addClientMetricsHeadersToRequest(HashMap<String, String> headers)
-    {
-        if (mPendingClientMetrics != null)
-        {
-            if (mPendingClientMetrics.mLastError != null)
-            {
-                headers.put(CLIENT_METRICS_HEADER_LAST_ERROR, mPendingClientMetrics.mLastError);
-            }
+    private void addClientMetricsHeadersToRequest(HashMap<String, String> headers) {
 
-            headers.put(CLIENT_METRICS_HEADER_LAST_REQUEST, mPendingClientMetrics.mLastCorrelationId.toString());
-            headers.put(CLIENT_METRICS_HEADER_LAST_RESPONSE_TIME, Long.toString(mPendingClientMetrics.mLastResponseTime));
-            headers.put(CLIENT_METRICS_HEADER_LAST_ENDPOINT, mPendingClientMetrics.mLastEndpoint);
-
-            mPendingClientMetrics = null;
+        if (mLastError != null) {
+            headers.put(CLIENT_METRICS_HEADER_LAST_ERROR, mLastError);
         }
+
+        if (mLastCorrelationId != null) {
+            headers.put(CLIENT_METRICS_HEADER_LAST_REQUEST, mLastCorrelationId.toString());
+        }
+
+        headers.put(CLIENT_METRICS_HEADER_LAST_RESPONSE_TIME, Long.toString(mLastResponseTime));
+        headers.put(CLIENT_METRICS_HEADER_LAST_ENDPOINT, mLastEndpoint);
     }
 }
