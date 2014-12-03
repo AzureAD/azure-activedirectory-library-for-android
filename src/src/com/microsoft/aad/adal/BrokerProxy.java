@@ -66,6 +66,8 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final String KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL = "AppAccountsForTokenRemoval";
 
+    private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
+
     public BrokerProxy() {
         mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
@@ -84,13 +86,29 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public boolean canSwitchToBroker() {
-        return !AuthenticationSettings.INSTANCE.getSkipBroker()
-                && !mContext.getPackageName().equalsIgnoreCase(
-                        AuthenticationSettings.INSTANCE.getBrokerPackageName())
-                && verifyManifestPermissions() && verifyBroker()
+        String packageName = mContext.getPackageName();
+        return !AuthenticationSettings.INSTANCE.getSkipBroker() && verifyManifestPermissions()
+                && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
                 && verifyAuthenticator(mAcctManager) && verifyAccount();
     }
 
+    @Override
+    public boolean canUseLocalCache(){
+        boolean brokerSwitch = canSwitchToBroker();
+        if(!brokerSwitch){
+            Logger.v(TAG, "It does not use broker");
+            return true;
+        }
+        
+        String packageName = mContext.getPackageName();
+        if(verifySignature(packageName)){
+            Logger.v(TAG, "Broker installer can use local cache");
+            return true;
+        }
+        
+        return false;
+    }
+    
     private boolean verifyAccount() {
         Logger.v(TAG, "Verify account count");
         // only call authenticator if there is an account
@@ -207,13 +225,14 @@ class BrokerProxy implements IBrokerProxy {
                 case AccountManager.ERROR_CODE_BAD_ARGUMENTS:
                     adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS;
                     break;
-                case AccountManager.ERROR_CODE_BAD_AUTHENTICATION:
+                case ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION:
                     adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_AUTHENTICATION;
                     break;
                 case AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION:
                     adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
                     break;
             }
+
             throw new AuthenticationException(adalErrorCode, msg);
         } else {
             boolean initialRequest = bundleResult
@@ -227,7 +246,8 @@ class BrokerProxy implements IBrokerProxy {
             // IDtoken is not present in the current broker user model
             UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
             AuthenticationResult result = new AuthenticationResult(
-                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false, userinfo, "", "");
+                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false,
+                    userinfo, "", "");
             return result;
         }
     }
@@ -316,7 +336,7 @@ class BrokerProxy implements IBrokerProxy {
             // Authenticator should throw OperationCanceledException if
             // token is not available
             intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
-            
+
             // Add flag to this intent to signal that request is for broker
             // logic
             if (intent != null) {
@@ -355,7 +375,6 @@ class BrokerProxy implements IBrokerProxy {
                 request.getClientId());
         brokerOptions.putString(AuthenticationConstants.Broker.ADAL_VERSION_KEY,
                 request.getVersion());
-        
 
         // allowing single user for now
         brokerOptions
@@ -382,10 +401,9 @@ class BrokerProxy implements IBrokerProxy {
         return null;
     }
 
-    private boolean verifyBroker() {
+    private boolean verifySignature(final String brokerPackageName) {
         try {
-            PackageInfo info = mContext.getPackageManager().getPackageInfo(
-                    AuthenticationSettings.INSTANCE.getBrokerPackageName(),
+            PackageInfo info = mContext.getPackageManager().getPackageInfo(brokerPackageName,
                     PackageManager.GET_SIGNATURES);
 
             if (info != null && info.signatures != null) {
@@ -396,7 +414,10 @@ class BrokerProxy implements IBrokerProxy {
                     MessageDigest md = MessageDigest.getInstance("SHA");
                     md.update(signature.toByteArray());
                     String tag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
-                    if (tag.equals(mBrokerTag)) {
+                    
+                    // Company portal(Intune) app and Azure authenticator app have authenticator.
+                    if (tag.equals(mBrokerTag)
+                            || tag.equals(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE)) {
                         return true;
                     }
                 }
@@ -423,10 +444,8 @@ class BrokerProxy implements IBrokerProxy {
         // queue up and will be active after first one is uninstalled.
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
-            if (authenticator.packageName.equals(AuthenticationSettings.INSTANCE
-                    .getBrokerPackageName())
-                    && authenticator.type
-                            .equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
+            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
+                    && verifySignature(authenticator.packageName)) {
                 return true;
             }
         }

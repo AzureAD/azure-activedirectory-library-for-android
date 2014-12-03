@@ -53,7 +53,7 @@ class AuthenticationRequest implements Serializable {
     private boolean mSilent = false;
 
     private String mVersion = null;
-    
+
     public AuthenticationRequest() {
 
     }
@@ -102,7 +102,7 @@ class AuthenticationRequest implements Serializable {
      * @param resource
      * @param clientid
      * @param userid
-     * @param correlationId 
+     * @param correlationId
      */
     public AuthenticationRequest(String authority, String resource, String clientid, String userid,
             UUID correlationId) {
@@ -123,6 +123,10 @@ class AuthenticationRequest implements Serializable {
 
     public String getAuthority() {
         return mAuthority;
+    }
+
+    public void setAuthority(String authority) {
+        mAuthority = authority;
     }
 
     public String getRedirectUri() {
@@ -210,11 +214,11 @@ class AuthenticationRequest implements Serializable {
         this.mSilent = silent;
     }
 
-	public String getVersion() {
-		return mVersion;
-	}
+    public String getVersion() {
+        return mVersion;
+    }
 
-	public void setVersion(String version) {
-		this.mVersion = version;
-	}
+    public void setVersion(String version) {
+        this.mVersion = version;
+    }
 }

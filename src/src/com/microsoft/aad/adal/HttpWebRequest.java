@@ -46,9 +46,9 @@ class HttpWebRequest {
 
     static final String REQUEST_METHOD_DELETE = "DELETE";
 
-    static final int CONNECT_TIME_OUT = 30000;
+    static int CONNECT_TIME_OUT = AuthenticationSettings.INSTANCE.getConnectTimeOut();
 
-    private static final int READ_TIME_OUT = 30000;
+    private static int READ_TIME_OUT = AuthenticationSettings.INSTANCE.getReadTimeOut();
 
     private static int sDebugSimulateDelay = 0;
 

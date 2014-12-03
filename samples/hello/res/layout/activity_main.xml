@@ -18,29 +18,28 @@
         android:id="@+id/buttonClearTokens"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/button2"
+        android:layout_below="@+id/buttonClickUseToken"
         android:layout_centerHorizontal="true"
         android:onClick="onClickClearTokens"
-        android:text="Clear Tokens" />
+        android:text="@string/sample_clear_tokens" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/buttonClickUseToken"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/button1"
+        android:layout_below="@+id/buttonClickToken"
         android:layout_centerHorizontal="true"
         android:onClick="onClickUseToken"
-        android:text="Use Token" />
+        android:text="@string/sample_use_token" />
 
     <Button
-        android:id="@+id/button1"
-        android:layout_width="match_parent"
+        android:id="@+id/buttonClickToken"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView1"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="19dp"
         android:onClick="onClickToken"
-        android:text="Get Token" />
+        android:text="@string/sample_get_token" />
 
     <Button
         android:id="@+id/buttonClearCookies"
@@ -49,7 +48,7 @@
         android:layout_below="@+id/buttonClearTokens"
         android:layout_centerHorizontal="true"
         android:onClick="onClickClearCookies"
-        android:text="Clear Cookies" />
+        android:text="@string/sample_clear_cookies" />
 
     <Button
         android:id="@+id/buttonAcquireByRefreshToken"
@@ -59,39 +58,58 @@
         android:layout_alignRight="@+id/buttonClearCookies"
         android:layout_below="@+id/buttonClearCookies"
         android:onClick="onClickAcquireByRefreshToken"
-        android:text="Token By Refresh Token" />
+        android:text="@string/sample_token_by_refresh_token" />
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/buttonRefreshSession"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/buttonAcquireByRefreshToken"
         android:layout_alignRight="@+id/buttonAcquireByRefreshToken"
         android:layout_below="@+id/buttonAcquireByRefreshToken"
         android:onClick="onClickAcquireTokenForceRefresh"
-        android:text="Refresh Session" />
+        android:text="@string/sample_refresh_session" />
 
     <Button
-        android:id="@+id/button4"
+        android:id="@+id/buttonAcquireTokenSilent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/button3"
-        android:layout_alignRight="@+id/button3"
-        android:layout_below="@+id/button3"
+        android:layout_alignLeft="@+id/buttonRefreshSession"
+        android:layout_alignRight="@+id/buttonRefreshSession"
+        android:layout_below="@+id/buttonRefreshSession"
         android:onClick="onClickAcquireTokenSilent"
-        android:text="Get Token Silent" />
+        android:text="@string/sample_token_silent" />
+
+    <Button
+        android:id="@+id/buttonFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/buttonAcquireTokenSilent"
+        android:layout_alignRight="@+id/buttonAcquireTokenSilent"
+        android:layout_below="@+id/buttonAcquireTokenSilent"
+        android:onClick="onClickFragmentTest"
+        android:text="@string/sample_fragment_test" />
 
     <EditText
         android:id="@+id/editTextUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/button4"
-        android:layout_alignRight="@+id/button4"
-        android:layout_below="@+id/button4"
+        android:layout_alignLeft="@+id/buttonFragment"
+        android:layout_below="@+id/buttonFragment"
         android:ems="10"
         android:hint="@string/login_hint" >
 
         <requestFocus />
     </EditText>
+
+    <Button
+        android:id="@+id/buttonWebview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/buttonClickToken"
+        android:layout_marginLeft="15dp"
+        android:layout_toRightOf="@+id/buttonClickToken"
+        android:onClick="onClickDialog"        
+        android:text="Dialog" />
 
 </RelativeLayout>

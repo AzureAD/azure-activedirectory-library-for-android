@@ -139,13 +139,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         assertNotNull(webview);
 
         // Javascript enabled
-        assertTrue(webview.getSettings().getJavaScriptEnabled());
-
-        // Spinner
-        Field f = AuthenticationActivity.class.getDeclaredField("mSpinner");
-        f.setAccessible(true);
-        ProgressDialog spinner = (ProgressDialog)f.get(getActivity());
-        assertNotNull(spinner);
+        assertTrue(webview.getSettings().getJavaScriptEnabled());       
     }
 
     @SmallTest
@@ -513,7 +507,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         // Test onReceive call with correct request id
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("log the message for correct Intent",
-                response.message.equals(broadcastCancelMsg1));
+                response.message.startsWith(broadcastCancelMsg1));
 
         // update requestId to match the AuthenticationRequest
         final CountDownLatch signal2 = new CountDownLatch(1);
@@ -527,7 +521,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         // verify that it received intent
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("log the message for correct Intent",
-                response2.message.equals(broadcastCancelMsg2));
+                response2.message.startsWith(broadcastCancelMsg2));
     }
 
     @Override

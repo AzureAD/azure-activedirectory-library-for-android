@@ -21,7 +21,6 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.security.DigestException;
 import java.security.InvalidAlgorithmParameterException;
@@ -33,6 +32,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -55,7 +55,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -111,6 +110,8 @@ public class AuthenticationActivity extends Activity {
 
     private String mQueryParameters;
 
+    private boolean mPkeyAuthRedirect = false;
+    
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
     // one active activity
@@ -220,6 +221,13 @@ public class AuthenticationActivity extends Activity {
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
                 new IntentFilter(AuthenticationConstants.Browser.ACTION_CANCEL));
+        
+        String userAgent = mWebView.getSettings().getUserAgentString();
+        mWebView.getSettings().setUserAgentString(
+                userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
+        userAgent = mWebView.getSettings().getUserAgentString();
+        Logger.v(TAG, "UserAgent:" + userAgent);
+        
         if (isBrokerRequest(getIntent())) {
             // This activity is started from calling app and running in
             // Authenticator's process
@@ -235,11 +243,7 @@ public class AuthenticationActivity extends Activity {
                 returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
                 return;
             }
-            String userAgent = mWebView.getSettings().getUserAgentString();
-            mWebView.getSettings().setUserAgentString(
-                    userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
-            userAgent = mWebView.getSettings().getUserAgentString();
-            Logger.v(TAG, "UserAgent:" + userAgent);
+            
             mAccountAuthenticatorResponse = getIntent().getParcelableExtra(
                     AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
             if (mAccountAuthenticatorResponse != null) {
@@ -250,7 +254,11 @@ public class AuthenticationActivity extends Activity {
             mCallingUID = info.getUIDForPackage(mCallingPackage);
             String signatureDigest = info.getCurrentSignatureForPackage(mCallingPackage);
             mStartUrl = getBrokerStartUrl(mStartUrl, mCallingPackage, signatureDigest);
-            mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
+
+            if (!isCallerBrokerInstaller()) {
+                Logger.v(TAG, "Caller needs to be verified using special redirectUri");
+                mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
+            }
             Logger.v(TAG,
                     "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
                             + " calling package:" + mCallingPackage + " signatureDigest:"
@@ -277,6 +285,28 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
+    private boolean isCallerBrokerInstaller() {
+        // Allow intune's signature check
+        PackageHelper info = new PackageHelper(AuthenticationActivity.this);
+        String packageName = getCallingPackage();
+        if (!StringExtensions.IsNullOrBlank(packageName)) {
+            
+            if (packageName.equals(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
+                Logger.v(TAG, "isCallerBrokerInstaller: same package as broker " + packageName);
+                return true;
+            }
+            
+            String signature = info.getCurrentSignatureForPackage(packageName);
+            Logger.v(TAG, "isCallerBrokerInstaller: Check signature for " + packageName
+                    + " signature:" + signature + " brokerSignature:"
+                    + AuthenticationSettings.INSTANCE.getBrokerSignature());
+            return signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature()) || 
+                    signature.equals(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE);
+        }
+
+        return false;
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -294,12 +324,6 @@ public class AuthenticationActivity extends Activity {
     }
 
     private void setupWebView() {
-
-        // Spinner dialog to show some message while it is loading
-        mSpinner = new ProgressDialog(this);
-        mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mSpinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
-                this.getPackageName())));
 
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
@@ -440,8 +464,7 @@ public class AuthenticationActivity extends Activity {
         // Intent should have a flag and activity is hosted inside broker
         return callingIntent != null
                 && !StringExtensions.IsNullOrBlank(callingIntent
-                        .getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST))
-                && getPackageName().equals(AuthenticationSettings.INSTANCE.getBrokerPackageName());
+                        .getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
     }
 
     /**
@@ -482,13 +505,17 @@ public class AuthenticationActivity extends Activity {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
         }
         mRegisterReceiver = true;
-        // restart webview when it comes back from onresume
+
+        if (mSpinner != null) {
+            Logger.d(TAG, "Spinner at onPause will dismiss");
+            mSpinner.dismiss();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
+        Logger.d(TAG, "onResume");
         // It can come here from onCreate, onRestart or onPause.
         // Don't load url again since it will send another 2FA request
         if (mRegisterReceiver) {
@@ -501,6 +528,12 @@ public class AuthenticationActivity extends Activity {
             }
         }
         mRegisterReceiver = false;
+
+        // Spinner dialog to show some message while it is loading
+        mSpinner = new ProgressDialog(this);
+        mSpinner.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mSpinner.setMessage(this.getText(this.getResources().getIdentifier("app_loading", "string",
+                this.getPackageName())));
     }
 
     @Override
@@ -513,7 +546,9 @@ public class AuthenticationActivity extends Activity {
     @Override
     public void onBackPressed() {
         Logger.d(TAG, "Back button is pressed");
-        if (!mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
+        
+        // User should be able to click back button to cancel in case pkeyauth happen.
+        if (mPkeyAuthRedirect || !mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
             // counting blank page as well
             cancelRequest();
         } else {
@@ -521,13 +556,6 @@ public class AuthenticationActivity extends Activity {
             // webview
             mWebView.goBack();
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.login, menu);
-        return true;
     }
 
     private void cancelRequest() {
@@ -548,6 +576,7 @@ public class AuthenticationActivity extends Activity {
                 Logger.v(TAG, "Webview detected request for client certificate");
                 view.stopLoading();
                 // avoid main thread locking
+                mPkeyAuthRedirect = true;
                 final String challangeUrl = url;
                 new Thread(new Runnable() {
                     @Override
@@ -596,7 +625,7 @@ public class AuthenticationActivity extends Activity {
                 }).start();
 
                 return true;
-            } else if (url.startsWith(mRedirectUrl)) {
+            } else if (url.toLowerCase(Locale.US).startsWith(mRedirectUrl.toLowerCase(Locale.US))) {
                 Logger.v(TAG, "Webview reached redirecturl");
                 if (!isBrokerRequest(getIntent())) {
                     // It is pointing to redirect. Final url can be processed to
@@ -711,7 +740,9 @@ public class AuthenticationActivity extends Activity {
      * @param show
      */
     private void displaySpinner(boolean show) {
-        if (!AuthenticationActivity.this.isFinishing() && mSpinner != null) {
+        if (!AuthenticationActivity.this.isFinishing()
+                && !AuthenticationActivity.this.isChangingConfigurations() && mSpinner != null) {
+            Logger.d(TAG, "displaySpinner:" + show + " showing:" + mSpinner.isShowing());
             if (show && !mSpinner.isShowing()) {
                 mSpinner.show();
             }

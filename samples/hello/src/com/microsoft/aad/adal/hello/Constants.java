@@ -32,13 +32,13 @@ public class Constants {
 
     // AAD PARAMETERS
     // https://login.windows.net/tenantInfo
-    static final String AUTHORITY_URL = "https://login.windows.net/omercantest.onmicrosoft.com";
+    static final String AUTHORITY_URL = "https://login.windows.net/common";
 
     // Clientid is given from AAD page when you register your Android app
     static final String CLIENT_ID = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
 
     // RedirectUri
-    static final String REDIRECT_URL = "http://taskapp";
+    static final String REDIRECT_URL = "http://TaskApp";
 
     // URI for the resource. You need to setup this resource at AAD
     static final String RESOURCE_ID = "https://omercantest.onmicrosoft.com/AllHandsTry";

@@ -1,0 +1,24 @@
+Version 1.0.7
+--------------
+Send PkeyAuth flag from embeded adal usage.
+Fix issue with promptBehavior param in broker usage.
+
+Version 1.0.6
+--------------
+Fragment and dialog support
+
+Version 1.0.5
+--------------
+Change broker redirectUri requirement to msauth://packagename/base64urlencodedSignature
+
+Version 1.0.4
+--------------
+Intune specific fix: Rollback logic for connecting to authenticator
+Add version to logs
+
+Version 1.0.3
+--------------
+Release Date: 10-3-2014
+* Dismiss spinner to resolve some UI issues
+* Use broker signature and authenticator type for checks. Get broker package from authenticator.
+
