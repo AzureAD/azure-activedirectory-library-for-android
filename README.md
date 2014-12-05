@@ -298,6 +298,10 @@ Logger.getInstance().setExternalLogger(new ILogger() {
 // you can manage min log level as well
 Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
 ```
+Error codes are returned for warning and error level. Messages will have correlationid to track server side issues. You can also use Fiddler to capture the traffic.
+You should follow Fiddler setup for Android first: http://docs.telerik.com/fiddler/configure-fiddler/tasks/ConfigureForAndroid
+You need to add rules to Fiddler to capture HttpURLConnection. Please follow the link: https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/How-to-listen-to-httpUrlConnection-in-Android-app-from-Fiddler
+
 
 ### Dialog mode
 acquireToken method without activity supports dialog prompt.
