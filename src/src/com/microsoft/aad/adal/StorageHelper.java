@@ -265,7 +265,7 @@ public class StorageHelper {
             InvalidKeySpecException, InvalidKeyException, InvalidAlgorithmParameterException,
             IllegalBlockSizeException, BadPaddingException, IOException, NoSuchPaddingException {
 
-        Logger.d(TAG, "Starting encryption");
+        Logger.v(TAG, "Starting encryption");
 
         if (StringExtensions.IsNullOrBlank(clearText)) {
             throw new IllegalArgumentException("Input is empty or null");
@@ -311,7 +311,7 @@ public class StorageHelper {
 
         String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
                 Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
-        Logger.d(TAG, "Finished encryption");
+        Logger.v(TAG, "Finished encryption");
 
         return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
     }
@@ -322,7 +322,7 @@ public class StorageHelper {
             UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,
             IllegalBlockSizeException, BadPaddingException {
 
-        Logger.d(TAG, "Starting decryption");
+        Logger.v(TAG, "Starting decryption");
 
         if (StringExtensions.IsNullOrBlank(value)) {
             throw new IllegalArgumentException("Input is empty or null");
@@ -382,7 +382,7 @@ public class StorageHelper {
         // Decrypt data bytes from 0 to ivindex
         String decrypted = new String(cipher.doFinal(bytes, KEY_VERSION_BLOB_LENGTH,
                 encryptedLength), AuthenticationConstants.ENCODING_UTF8);
-        Logger.d(TAG, "Finished decryption");
+        Logger.v(TAG, "Finished decryption");
         return decrypted;
     }
 
@@ -600,7 +600,7 @@ public class StorageHelper {
     }
 
     private static void writeKeyData(File file, byte[] data) throws IOException {
-        Logger.d(TAG, "Writing key data to a file");
+        Logger.v(TAG, "Writing key data to a file");
         final OutputStream out = new FileOutputStream(file);
         try {
             out.write(data);
@@ -610,7 +610,7 @@ public class StorageHelper {
     }
 
     private static byte[] readKeyData(File file) throws IOException {
-        Logger.d(TAG, "Reading key data from a file");
+        Logger.v(TAG, "Reading key data from a file");
         final InputStream in = new FileInputStream(file);
 
         try {
