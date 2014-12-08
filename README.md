@@ -313,7 +313,7 @@ You can configure the library to generate log messages that you can use to help 
      }
  }
  ```
-Messages can be written to a file to send to your server for reporting.
+Messages can be written to a custom log file as seen below. Unfortunately, there is no standard way of getting logs from a device. There are some services that can help you with this. You can also invent your own, such as sending the file to a server.
 
 ```Java
 private syncronized void writeToLogFile(Context ctx, String msg) {      
@@ -333,12 +333,20 @@ private syncronized void writeToLogFile(Context ctx, String msg) {
 + Warn(Warning)
 + Info(Information purposes)
 + Verbose(More details)
-+ Debug(Only debug)
++ Debug(Only debug)- depracated
 
 You set the log level like this:
 ```Java
 Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
  ```
+ 
+ When you are debugging your app, Eclipse will update your manifest file to add debuggable element to the application object. Adal's Logger methods also output using android.util.Log. You will get the log output with Logcat. You can use adb logcat cmds to direct logcat outputs for debugging.
+ More examples: https://developer.android.com/tools/debugging/debugging-log.html#startingLogcat
+ 
+ ```
+  adb logcat > "C:\logmsg\logfile.txt"
+ ```
+ 
 #### Network Traces
 
 You can use various tools to capture the HTTP traffic that ADAL generates.  This is most useful if you are familiar with the OAuth protocol or if you need to provide diagnostic information to Microsoft or other support channels.
