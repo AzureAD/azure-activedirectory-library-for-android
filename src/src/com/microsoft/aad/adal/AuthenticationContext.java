@@ -182,6 +182,7 @@ public class AuthenticationContext {
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = tokenCacheStore;
         mJWSBuilder = new JWSBuilder();
+        Logger.setCorrelationId(getRequestCorrelationId());
     }
 
     /**
