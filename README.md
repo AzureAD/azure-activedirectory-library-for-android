@@ -339,12 +339,13 @@ You set the log level like this:
 Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
  ```
  
- When you are debugging your app, Eclipse will update your manifest file to add debuggable element to the application object. Adal's Logger methods also output using android.util.Log. You will get the log output with Logcat. You can use adb logcat cmds to direct logcat outputs for debugging.
- More examples: https://developer.android.com/tools/debugging/debugging-log.html#startingLogcat
+ All log messages are sent to logcat in addition to any custom log callbacks.
+ You can get log to a file form logcat as shown belog:
  
  ```
   adb logcat > "C:\logmsg\logfile.txt"
  ```
+ More examples about adb cmds: https://developer.android.com/tools/debugging/debugging-log.html#startingLogcat
  
 #### Network Traces
 
