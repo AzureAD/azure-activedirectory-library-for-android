@@ -284,20 +284,78 @@ This method does not use UI pop up and not require an activity. It will return t
     
 You can also make sync call with this method. You can set null to callback or use acquireTokenSilentSync.
 
-### Logger
+### Diagnostics
 
-ADAL provides simple callback logger. You can set your callback for logging.
+The following are the primary sources of information for diagnosing issues:
+
++ Exceptions
++ Logs
++ Network traces
+
+Also, note that correlation IDs are central to the diagnostics in the library. You can set your correlation IDs on a per request basis if you want to correlate an ADAL request with other operations in your code. If you don't set a correlations id then ADAL will generate a random one and all log messages and network calls will be stamped with the correlation id. The self generated id changes on each request.
+
+#### Exceptions
+
+This is obviously the first diagnostic. We try to provide helpful error messages. If you find one that is not helpful please file an issue and let us know. Please also provide device information such as model and SDK#.
+
+#### Logs
+
+You can configure the library to generate log messages that you can use to help diagnose issues. You configure logging by making the following call to configure a callback that ADAL will use to hand off each log message as it is generated.
+
+
+ ```Java
+ Logger.getInstance().setExternalLogger(new ILogger() {
+     @Override
+     public void Log(String tag, String message, String additionalMessage, LogLevel level, ADALError errorCode) {
+      ...
+      // You can write this to logfile depending on level or errorcode.
+      writeToLogFile(getApplicationContext(), tag +":" + message + "-" + additionalMessage);
+     }
+ }
+ ```
+Messages can be written to a custom log file as seen below. Unfortunately, there is no standard way of getting logs from a device. There are some services that can help you with this. You can also invent your own, such as sending the file to a server.
 
 ```Java
-Logger.getInstance().setExternalLogger(new ILogger() {
-    @Override
-    public void Log(String tag, String message, String additionalMessage, LogLevel level, ADALError errorCode) {
-    ...
-    }
+private syncronized void writeToLogFile(Context ctx, String msg) {      
+       File directory = ctx.getDir(ctx.getPackageName(), Context.MODE_PRIVATE);
+       File logFile = new File(directory, "logfile");
+       FileOutputStream outputStream = new FileOutputStream(logFile, true);
+       OutputStreamWriter osw = new OutputStreamWriter(outputStream);
+       osw.write(msg);
+       osw.flush();
+       osw.close(); 
 }
-// you can manage min log level as well
-Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
 ```
+
+##### Logging Levels
+
++ Error(Exceptions)
++ Warn(Warning)
++ Info(Information purposes)
++ Verbose(More details)
+
+You set the log level like this:
+```Java
+Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
+ ```
+ 
+ All log messages are sent to logcat in addition to any custom log callbacks.
+ You can get log to a file form logcat as shown belog:
+ 
+ ```
+  adb logcat > "C:\logmsg\logfile.txt"
+ ```
+ More examples about adb cmds: https://developer.android.com/tools/debugging/debugging-log.html#startingLogcat
+ 
+#### Network Traces
+
+You can use various tools to capture the HTTP traffic that ADAL generates.  This is most useful if you are familiar with the OAuth protocol or if you need to provide diagnostic information to Microsoft or other support channels.
+
+Fiddler is the easiest HTTP tracing tool.  Use the following links to setup it up to correctly record ADAL network traffic.  In order to be useful it is necessary to configure fiddler, or any other tool such as Charles, to record unencrypted SSL traffic.  NOTE: Traces generated in this way may contain highly privileged information such as access tokens, usernames and passwords.  If you are using production accounts, do not share these traces with 3rd parties.  If you need to supply a trace to someone in order to get support, reproduce the issue with a temporary account with usernames and passwords that you don't mind sharing.
+
++ [Setting Up Fiddler For Android](http://docs.telerik.com/fiddler/configure-fiddler/tasks/ConfigureForAndroid)
++ [Configure Fiddler Rules For ADAL](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/How-to-listen-to-httpUrlConnection-in-Android-app-from-Fiddler)
+
 
 ### Dialog mode
 acquireToken method without activity supports dialog prompt.
