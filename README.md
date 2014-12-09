@@ -333,7 +333,6 @@ private syncronized void writeToLogFile(Context ctx, String msg) {
 + Warn(Warning)
 + Info(Information purposes)
 + Verbose(More details)
-+ Debug(Only debug)- depracated
 
 You set the log level like this:
 ```Java
