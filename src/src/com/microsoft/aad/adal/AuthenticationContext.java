@@ -182,7 +182,6 @@ public class AuthenticationContext {
         mValidateAuthority = validateAuthority;
         mTokenCacheStore = tokenCacheStore;
         mJWSBuilder = new JWSBuilder();
-        Logger.setCorrelationId(getRequestCorrelationId());
     }
 
     /**
@@ -1031,6 +1030,7 @@ public class AuthenticationContext {
         // Executes all the calls inside the Runnable to return immediately to
         // user. All UI
         // related actions will be performed using Handler.
+        Logger.setCorrelationId(getRequestCorrelationId());
         Logger.v(TAG, "Sending async task from thread:" + android.os.Process.myTid());
         return sThreadExecutor.submit(new Callable<AuthenticationResult>() {
 
@@ -1691,9 +1691,7 @@ public class AuthenticationContext {
      */
     public UUID getRequestCorrelationId() {
         if (mRequestCorrelationId == null) {
-            mRequestCorrelationId = UUID.randomUUID();
-            Logger.v(TAG, "CorrelationId generated " + mRequestCorrelationId.toString());
-            Logger.setCorrelationId(mRequestCorrelationId);
+            return UUID.randomUUID();
         }
 
         return mRequestCorrelationId;
@@ -1717,6 +1715,7 @@ public class AuthenticationContext {
     private void refreshTokenWithoutCache(final String refreshToken, final String clientId,
             final String resource,
             final AuthenticationCallback<AuthenticationResult> externalCallback) {
+        Logger.setCorrelationId(getRequestCorrelationId());
         Logger.v(TAG, "Refresh token without cache");
 
         if (StringExtensions.IsNullOrBlank(refreshToken)) {
