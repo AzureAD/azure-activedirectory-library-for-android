@@ -93,7 +93,7 @@ class HttpWebRequest {
      * setupConnection before sending the request.
      */
     private void setupConnection() {
-        Logger.d(TAG, "HttpWebRequest setupConnection thread:" + android.os.Process.myTid());
+        Logger.v(TAG, "HttpWebRequest setupConnection thread:" + android.os.Process.myTid());
         if (mUrl == null) {
             throw new IllegalArgumentException("requestURL");
         }
@@ -116,7 +116,7 @@ class HttpWebRequest {
      */
     public HttpWebResponse send() {
 
-        Logger.d(TAG, "HttpWebRequest send thread:" + android.os.Process.myTid());
+        Logger.v(TAG, "HttpWebRequest send thread:" + android.os.Process.myTid());
         setupConnection();
         HttpWebResponse response = new HttpWebResponse();
 
@@ -127,7 +127,7 @@ class HttpWebRequest {
 
                 while (headerKeys.hasNext()) {
                     String header = headerKeys.next();
-                    Logger.d(TAG, "Setting header: " + header);
+                    Logger.v(TAG, "Setting header: " + header);
                     mConnection.setRequestProperty(header, mRequestHeaders.get(header));
                 }
 
@@ -175,11 +175,11 @@ class HttpWebRequest {
                 // It will only run in debugger and set from outside for testing
                 if (android.os.Debug.isDebuggerConnected() && sDebugSimulateDelay > 0) {
                     // sleep background thread in debugging mode
-                    Logger.d(TAG, "Sleeping to simulate slow network response");
+                    Logger.v(TAG, "Sleeping to simulate slow network response");
                     Thread.sleep(sDebugSimulateDelay);
                 }
 
-                Logger.d(TAG, "Response is received");
+                Logger.v(TAG, "Response is received");
                 response.setBody(responseBody);
                 response.setResponseHeaders(mConnection.getHeaderFields());
             } catch (Exception e) {
@@ -244,7 +244,6 @@ class HttpWebRequest {
             connection.setConnectTimeout(mTimeOut);
 
         } catch (IOException e) {
-            Logger.d(TAG, e.getMessage());
             mException = e;
         }
         return connection;

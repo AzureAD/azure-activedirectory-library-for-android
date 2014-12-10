@@ -85,7 +85,7 @@ final class PRNGFixes {
         if ((Build.VERSION.SDK_INT < VERSION_CODE_JELLY_BEAN)
                 || (Build.VERSION.SDK_INT > VERSION_CODE_JELLY_BEAN_MR2)) {
             // No need to apply the fix
-            Logger.d(TAG, "No need to apply the fix");
+            Logger.v(TAG, "No need to apply the fix");
             return;
         }
         try {
@@ -117,7 +117,7 @@ final class PRNGFixes {
     private static void installLinuxPRNGSecureRandom() throws SecurityException {
         if (Build.VERSION.SDK_INT > VERSION_CODE_JELLY_BEAN_MR2) {
             // No need to apply the fix
-            Logger.d(TAG, "No need to apply the fix");
+            Logger.v(TAG, "No need to apply the fix");
             return;
         }
         // Install a Linux PRNG-based SecureRandom implementation as the
@@ -127,7 +127,7 @@ final class PRNGFixes {
                 || (secureRandomProviders.length < 1)
                 || (!LinuxPRNGSecureRandomProvider.class
                         .equals(secureRandomProviders[0].getClass()))) {
-            Logger.d(TAG, "insert provider as LinuxPRNGSecureRandomProvider");
+            Logger.v(TAG, "insert provider as LinuxPRNGSecureRandomProvider");
             Security.insertProviderAt(new LinuxPRNGSecureRandomProvider(), 1);
         }
         // Assert that new SecureRandom() and
@@ -135,7 +135,7 @@ final class PRNGFixes {
         // by the Linux PRNG-based SecureRandom implementation.
         SecureRandom rng1 = new SecureRandom();
         if (!LinuxPRNGSecureRandomProvider.class.equals(rng1.getProvider().getClass())) {
-            Logger.d(TAG, "new SecureRandom() backed by wrong Provider:");
+            Logger.v(TAG, "new SecureRandom() backed by wrong Provider:");
             throw new SecurityException("new SecureRandom() backed by wrong Provider: "
                     + rng1.getProvider().getClass());
         }
@@ -143,7 +143,7 @@ final class PRNGFixes {
         try {
             rng2 = SecureRandom.getInstance("SHA1PRNG");
         } catch (NoSuchAlgorithmException e) {
-            Logger.d(TAG, "SHA1PRNG not available");
+            Logger.v(TAG, "SHA1PRNG not available");
             throw new SecurityException("SHA1PRNG not available", e);
         }
         if (!LinuxPRNGSecureRandomProvider.class.equals(rng2.getProvider().getClass())) {

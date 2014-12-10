@@ -182,7 +182,7 @@ public class TokenCacheItem implements Serializable {
         calendarWithBuffer.add(Calendar.SECOND,
                 AuthenticationSettings.INSTANCE.getExpirationBuffer());
         Date validity = calendarWithBuffer.getTime();
-        Logger.d(TAG, "expiresOn:" + expiresOn + " timeWithBuffer:" + calendarWithBuffer.getTime()
+        Logger.v(TAG, "expiresOn:" + expiresOn + " timeWithBuffer:" + calendarWithBuffer.getTime()
                 + " Buffer:" + AuthenticationSettings.INSTANCE.getExpirationBuffer());
 
         if (expiresOn != null && expiresOn.before(validity)) {
