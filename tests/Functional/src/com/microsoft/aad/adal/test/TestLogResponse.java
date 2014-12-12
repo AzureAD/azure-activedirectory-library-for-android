@@ -53,7 +53,7 @@ public class TestLogResponse {
             public void Log(String tag, String message, String additionalMessage, LogLevel level,
                     ADALError errorCode) {
 
-                if (message.equals(msg + " ver:" + AuthenticationContext.getVersionName())) {
+                if (message.contains(msg + " ver:" + AuthenticationContext.getVersionName())) {
                     response.tag = tag;
                     response.message = message;
                     response.additionalMessage = additionalMessage;

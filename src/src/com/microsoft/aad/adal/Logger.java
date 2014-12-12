@@ -18,6 +18,11 @@
 
 package com.microsoft.aad.adal;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.UUID;
+
 import android.util.Log;
 
 /**
@@ -30,6 +35,8 @@ public class Logger {
     private LogLevel mLogLevel;
 
     private static final String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
+
+    static final String DATEFORMAT = "yyyy-MM-dd HH:mm:ss";
 
     /**
      * Log level.
@@ -53,6 +60,8 @@ public class Logger {
         Verbose(3),
         /**
          * Debug level only.
+         * 
+         * @deprecated
          */
         Debug(4);
 
@@ -73,6 +82,8 @@ public class Logger {
     private boolean mAndroidLogEnabled = true;
 
     private static Logger sInstance = new Logger();
+
+    private String mCorrelationId = null;
 
     /**
      * @return logger
@@ -107,12 +118,14 @@ public class Logger {
         this.mExternalLogger = customLogger;
     }
 
-    private static String addVersion(String message) {
-        if(message != null){
-            return message + " ver:" + AuthenticationContext.getVersionName();
+    private static String addMoreInfo(String message) {
+        if (message != null) {
+            return GetUTCdatetimeAsString() + "-" + getInstance().mCorrelationId + "-" + message
+                    + " ver:" + AuthenticationContext.getVersionName();
         }
-        
-        return " ver:" + AuthenticationContext.getVersionName();
+
+        return GetUTCdatetimeAsString() + "-" + getInstance().mCorrelationId + "- ver:"
+                + AuthenticationContext.getVersionName();
     }
 
     public void debug(String tag, String message) {
@@ -120,20 +133,11 @@ public class Logger {
             return;
         }
 
-        message = addVersion(message);
-
         if (mAndroidLogEnabled) {
             Log.d(tag, message);
         }
 
-        if (mExternalLogger != null) {
-            try {
-                mExternalLogger.Log(tag, message, null, LogLevel.Debug, null);
-            } catch (Exception e) {
-                // log message as warning to report callback error issue
-                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
-            }
-        }
+        logCommon(tag, message, "", LogLevel.Info, null);
     }
 
     public void verbose(String tag, String message, String additionalMessage, ADALError errorCode) {
@@ -145,16 +149,7 @@ public class Logger {
             Log.v(tag, getLogMessage(message, additionalMessage, errorCode));
         }
 
-        message = addVersion(message);
-
-        if (mExternalLogger != null) {
-            try {
-                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Verbose, errorCode);
-            } catch (Exception e) {
-                // log message as warning to report callback error issue
-                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
-            }
-        }
+        logCommon(tag, message, additionalMessage, LogLevel.Verbose, errorCode);
     }
 
     public void inform(String tag, String message, String additionalMessage, ADALError errorCode) {
@@ -166,16 +161,7 @@ public class Logger {
             Log.i(tag, getLogMessage(message, additionalMessage, errorCode));
         }
 
-        message = addVersion(message);
-
-        if (mExternalLogger != null) {
-            try {
-                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Info, errorCode);
-            } catch (Exception e) {
-                // log message as warning to report callback error issue
-                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
-            }
-        }
+        logCommon(tag, message, additionalMessage, LogLevel.Info, errorCode);
     }
 
     public void warn(String tag, String message, String additionalMessage, ADALError errorCode) {
@@ -187,16 +173,7 @@ public class Logger {
             Log.w(tag, getLogMessage(message, additionalMessage, errorCode));
         }
 
-        message = addVersion(message);
-
-        if (mExternalLogger != null) {
-            try {
-                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Warn, errorCode);
-            } catch (Exception e) {
-                // log message as warning to report callback error issue
-                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
-            }
-        }
+        logCommon(tag, message, additionalMessage, LogLevel.Warn, errorCode);
     }
 
     public void error(String tag, String message, String additionalMessage, ADALError errorCode) {
@@ -204,16 +181,7 @@ public class Logger {
             Log.e(tag, getLogMessage(message, additionalMessage, errorCode));
         }
 
-        message = addVersion(message);
-
-        if (mExternalLogger != null) {
-            try {
-                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
-            } catch (Exception e) {
-                // log message as warning to report callback error issue
-                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
-            }
-        }
+        logCommon(tag, message, additionalMessage, LogLevel.Error, errorCode);
     }
 
     public void error(String tag, String message, String additionalMessage, ADALError errorCode,
@@ -222,11 +190,16 @@ public class Logger {
             Log.e(tag, getLogMessage(message, additionalMessage, errorCode), err);
         }
 
-        message = addVersion(message);
+        logCommon(tag, message, additionalMessage, LogLevel.Error, errorCode);
+    }
+
+    private void logCommon(String tag, String message, String additionalMessage, LogLevel level,
+            ADALError errorCode) {
+        message = addMoreInfo(message);
 
         if (mExternalLogger != null) {
             try {
-                mExternalLogger.Log(tag, message, additionalMessage, LogLevel.Error, errorCode);
+                mExternalLogger.Log(tag, message, additionalMessage, level, errorCode);
             } catch (Exception e) {
                 // log message as warning to report callback error issue
                 Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
@@ -241,7 +214,7 @@ public class Logger {
             msg.append(getCodeName(errorCode)).append(":");
         }
         if (message != null) {
-            message = addVersion(message);
+            message = addMoreInfo(message);
             msg.append(message);
         }
         if (additionalMessage != null) {
@@ -287,6 +260,13 @@ public class Logger {
         Logger.getInstance().error(tag, message, additionalMessage, errorCode, err);
     }
 
+    public static void setCorrelationId(UUID correlation) {
+        Logger.getInstance().mCorrelationId = "";
+        if (correlation != null) {
+            Logger.getInstance().mCorrelationId = correlation.toString();
+        }
+    }
+
     public boolean isAndroidLogEnabled() {
         return mAndroidLogEnabled;
     }
@@ -301,5 +281,17 @@ public class Logger {
         }
 
         return "";
+    }
+
+    private static String GetUTCdatetimeAsString() {
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        final String utcTime = dateFormat.format(new Date());
+
+        return utcTime;
+    }
+
+    public String getCorrelationId() {
+        return mCorrelationId;
     }
 }
