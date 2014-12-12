@@ -130,25 +130,19 @@ final class PRNGFixes {
             Logger.v(TAG, "insert provider as LinuxPRNGSecureRandomProvider");
             Security.insertProviderAt(new LinuxPRNGSecureRandomProvider(), 1);
         }
-        // Assert that new SecureRandom() and
-        // SecureRandom.getInstance("SHA1PRNG") return a SecureRandom backed
-        // by the Linux PRNG-based SecureRandom implementation.
+        
+        // Log info about providers
+        // Different libraries could apply same prng fixes with different namespace
         SecureRandom rng1 = new SecureRandom();
-        if (!LinuxPRNGSecureRandomProvider.class.equals(rng1.getProvider().getClass())) {
-            Logger.v(TAG, "new SecureRandom() backed by wrong Provider:");
-            throw new SecurityException("new SecureRandom() backed by wrong Provider: "
-                    + rng1.getProvider().getClass());
-        }
+        Logger.v(TAG, "LinuxPRNGSecureRandomProvider for SecureRandom:" + rng1.getProvider().getClass().getName());
+        
         SecureRandom rng2;
         try {
             rng2 = SecureRandom.getInstance("SHA1PRNG");
+            Logger.v(TAG, "LinuxPRNGSecureRandomProvider for SecureRandom with alg SHA1PRNG:" + rng2.getProvider().getClass().getName());
         } catch (NoSuchAlgorithmException e) {
             Logger.v(TAG, "SHA1PRNG not available");
             throw new SecurityException("SHA1PRNG not available", e);
-        }
-        if (!LinuxPRNGSecureRandomProvider.class.equals(rng2.getProvider().getClass())) {
-            throw new SecurityException("SecureRandom.getInstance(\"SHA1PRNG\") backed by wrong"
-                    + " Provider: " + rng2.getProvider().getClass());
         }
     }
 
