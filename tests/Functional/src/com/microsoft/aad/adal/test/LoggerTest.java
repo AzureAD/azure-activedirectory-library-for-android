@@ -119,7 +119,7 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.d(null, "someMessage234");
         assertNull("null log tag since not logging this", response.tag);
         assertTrue("log message", response.message.contains("someMessage234"));
-        assertNull("null log detail message", response.additionalMessage);
+        assertEquals("empty log detail message", "", response.additionalMessage);
         response.reset();
 
         Logger.d(null, null);
