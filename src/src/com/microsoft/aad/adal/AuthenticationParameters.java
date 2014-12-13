@@ -153,7 +153,7 @@ public class AuthenticationParameters {
             throw new IllegalArgumentException("callback");
         }
 
-        Logger.d(TAG, "createFromResourceUrl");
+        Logger.v(TAG, "createFromResourceUrl");
         final Handler handler = new Handler(context.getMainLooper());
 
         sThreadExecutor.submit(new Runnable() {
@@ -229,7 +229,7 @@ public class AuthenticationParameters {
                             key = StringExtensions.URLFormDecode(key);
                             value = StringExtensions.URLFormDecode(value);
                         } catch (UnsupportedEncodingException e) {
-                            Logger.d(TAG, e.getMessage());
+                            Logger.v(TAG, e.getMessage());
                         }
 
                         key = key.trim();

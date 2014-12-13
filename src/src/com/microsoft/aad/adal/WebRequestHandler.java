@@ -56,7 +56,7 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     @Override
     public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) {
-        Logger.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
+        Logger.v(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         HttpWebRequest request = new HttpWebRequest(url);
         request.setRequestMethod(HttpWebRequest.REQUEST_METHOD_GET);
@@ -68,7 +68,7 @@ public class WebRequestHandler implements IWebRequestHandler {
     @Override
     public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
             String contentType) {
-        Logger.d(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
+        Logger.v(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         HttpWebRequest request = new HttpWebRequest(url);
         request.setRequestMethod(HttpWebRequest.REQUEST_METHOD_POST);

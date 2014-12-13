@@ -94,6 +94,8 @@ public class AuthenticationConstants {
 
         public static final String ERROR_DESCRIPTION = "error_description";
 
+        public static final String ERROR_CODES = "error_codes";
+
         public static final String EXPIRES_IN = "expires_in";
 
         public static final String GRANT_TYPE = "grant_type";
@@ -150,6 +152,8 @@ public class AuthenticationConstants {
         public static final String REALM = "realm";
 
         public static final String LOGIN_HINT = "login_hint";
+        
+        public static final String WEB_UI_CANCEL = "access_denied";
 
         public static final String CORRELATION_ID = "correlation_id";
 

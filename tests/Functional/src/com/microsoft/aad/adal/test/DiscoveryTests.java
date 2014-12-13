@@ -136,7 +136,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         assertNull("Exception should not throw", response.exception);
         assertFalse("not valid instance", response.result);
-        assertTrue("Exception msg is logged", logTrack.message.startsWith("Json parsing error"));
+        assertTrue("Exception msg is logged", logTrack.message.contains("Json parsing error"));
     }
 
     public void testIsValidAuthorityNegative_InvalidUrl() throws MalformedURLException,

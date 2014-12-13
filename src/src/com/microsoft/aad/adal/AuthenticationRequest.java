@@ -154,14 +154,8 @@ class AuthenticationRequest implements Serializable {
     }
 
     public String getLogInfo() {
-        // directly access values without getter to make it fast
-        String correlation = "";
-        if (mCorrelationId != null) {
-            correlation = mCorrelationId.toString();
-        }
-
-        return String.format("Request authority:%s resource:%s clientid:%s correlationId:%s",
-                mAuthority, mResource, mClientId, correlation);
+        return String.format("Request authority:%s resource:%s clientid:%s",
+                mAuthority, mResource, mClientId);
     }
 
     public PromptBehavior getPrompt() {

@@ -20,6 +20,7 @@ package com.microsoft.aad.adal.test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.UUID;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationContext;
@@ -69,7 +70,7 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.d("test", "testmessage");
 
         assertEquals("same log tag", "test", response.tag);
-        assertTrue("same log message", response.message.startsWith("testmessage"));
+        assertTrue("same log message", response.message.contains("testmessage"));
         response.reset();
 
         // set to warn
@@ -103,7 +104,7 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.v(null, null, null, ADALError.AUTH_FAILED_BAD_STATE);
 
         assertNull("null log tag", response.tag);
-        assertEquals(" ver:" + AuthenticationContext.getVersionName(), response.message);
+        assertTrue(response.message.contains(" ver:" + AuthenticationContext.getVersionName()));
         assertNull("null log detail message", response.additionalMessage);
         assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.errorCode);
         response.reset();
@@ -115,10 +116,10 @@ public class LoggerTest extends AndroidTestHelper {
         assertNull("null log detail message", response.additionalMessage);
         response.reset();
 
-        Logger.d(null, "someMessage");
+        Logger.d(null, "someMessage234");
         assertNull("null log tag since not logging this", response.tag);
-        assertTrue("log message", response.message.startsWith("someMessage"));
-        assertNull("null log detail message", response.additionalMessage);
+        assertTrue("log message", response.message.contains("someMessage234"));
+        assertEquals("empty log detail message", "", response.additionalMessage);
         response.reset();
 
         Logger.d(null, null);
@@ -171,10 +172,12 @@ public class LoggerTest extends AndroidTestHelper {
 
         // set to v
         Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
+        UUID testId = UUID.randomUUID();
+        Logger.setCorrelationId(testId);
         Logger.v(null, "testMessage", null, ADALError.AUTH_FAILED_BAD_STATE);
 
         assertTrue("Expected to come here", true);
-        assertTrue("same log message", response.message.startsWith("testMessage"));
+        assertTrue("same log message", response.message.contains("testMessage") && response.message.contains(testId.toString()));
     }
 
     public void testLogMessage() throws IllegalArgumentException, ClassNotFoundException,
@@ -189,12 +192,12 @@ public class LoggerTest extends AndroidTestHelper {
 
         msg = (String)m.invoke(null, "logMsg", null, ADALError.AUTH_FAILED);
 
-        assertTrue("Verify message", msg.startsWith(ADALError.AUTH_FAILED.name() + ":logMsg"));
+        assertTrue("Verify message", msg.contains(ADALError.AUTH_FAILED.name()));
     }
 
     private void verifyLogMessage(final TestLogResponse response) {
         assertEquals("same log tag", "test", response.tag);
-        assertTrue("same log message", response.message.startsWith("testmessage"));
+        assertTrue("same log message", response.message.contains("testmessage"));
         assertEquals("same log detail message", "additionalMessage", response.additionalMessage);
         assertEquals("same log error code", ADALError.AUTH_FAILED_BAD_STATE, response.errorCode);
         response.reset();

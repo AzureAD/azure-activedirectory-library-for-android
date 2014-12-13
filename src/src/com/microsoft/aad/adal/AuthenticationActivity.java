@@ -281,7 +281,7 @@ public class AuthenticationActivity extends Activity {
                 }
             });
         } else {
-            Logger.d(TAG, "Reuse webview");
+            Logger.v(TAG, "Reuse webview");
         }
     }
 
@@ -474,7 +474,7 @@ public class AuthenticationActivity extends Activity {
      * @param data
      */
     private void returnToCaller(int resultCode, Intent data) {
-        Logger.d(TAG, "Return To Caller:" + resultCode);
+        Logger.v(TAG, "Return To Caller:" + resultCode);
         displaySpinner(false);
 
         if (data == null) {
@@ -483,7 +483,7 @@ public class AuthenticationActivity extends Activity {
 
         if (mAuthRequest != null) {
             // set request id related to this response to send the delegateId
-            Logger.d(TAG, "Return To Caller REQUEST_ID:" + mAuthRequest.getRequestId());
+            Logger.v(TAG, "Return To Caller REQUEST_ID:" + mAuthRequest.getRequestId());
             data.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthRequest.getRequestId());
         } else {
             Logger.w(TAG, "Request object is null", "",
@@ -496,7 +496,7 @@ public class AuthenticationActivity extends Activity {
 
     @Override
     protected void onPause() {
-        Logger.d(TAG, "AuthenticationActivity onPause unregister receiver");
+        Logger.v(TAG, "AuthenticationActivity onPause unregister receiver");
         super.onPause();
 
         // Unregister the cancel action listener from the local broadcast
@@ -507,7 +507,7 @@ public class AuthenticationActivity extends Activity {
         mRegisterReceiver = true;
 
         if (mSpinner != null) {
-            Logger.d(TAG, "Spinner at onPause will dismiss");
+            Logger.v(TAG, "Spinner at onPause will dismiss");
             mSpinner.dismiss();
         }
     }
@@ -515,7 +515,7 @@ public class AuthenticationActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        Logger.d(TAG, "onResume");
+        Logger.v(TAG, "onResume");
         // It can come here from onCreate, onRestart or onPause.
         // Don't load url again since it will send another 2FA request
         if (mRegisterReceiver) {
@@ -538,14 +538,14 @@ public class AuthenticationActivity extends Activity {
 
     @Override
     protected void onRestart() {
-        Logger.d(TAG, "AuthenticationActivity onRestart");
+        Logger.v(TAG, "AuthenticationActivity onRestart");
         super.onRestart();
         mRegisterReceiver = true;
     }
 
     @Override
     public void onBackPressed() {
-        Logger.d(TAG, "Back button is pressed");
+        Logger.v(TAG, "Back button is pressed");
         
         // User should be able to click back button to cancel in case pkeyauth happen.
         if (mPkeyAuthRedirect || !mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
@@ -570,7 +570,7 @@ public class AuthenticationActivity extends Activity {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Logger.d(TAG, "shouldOverrideUrlLoading:url=" + url);
+            Logger.v(TAG, "shouldOverrideUrlLoading:url=" + url);
             displaySpinner(true);
             if (url.startsWith(AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT)) {
                 Logger.v(TAG, "Webview detected request for client certificate");
@@ -627,6 +627,16 @@ public class AuthenticationActivity extends Activity {
                 return true;
             } else if (url.toLowerCase(Locale.US).startsWith(mRedirectUrl.toLowerCase(Locale.US))) {
                 Logger.v(TAG, "Webview reached redirecturl");
+                if (hasCancelError(url)) {
+                    // Catch WEB-UI cancel request
+                    Logger.v(TAG, "Sending intent to cancel authentication activity");
+                    Intent resultIntent = new Intent();
+                    returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                            resultIntent);
+                    view.stopLoading();
+                    return true;
+                }
+
                 if (!isBrokerRequest(getIntent())) {
                     // It is pointing to redirect. Final url can be processed to
                     // get the code or error.
@@ -667,6 +677,25 @@ public class AuthenticationActivity extends Activity {
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
+            }
+
+            return false;
+        }
+
+        private boolean hasCancelError(String redirectUrl) {
+            try {
+                HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
+                String error = parameters.get("error");
+                String errorDescription = parameters.get("error_description");
+                
+                if(!StringExtensions.IsNullOrBlank(error))
+                {
+                    Logger.v(TAG, "Cancel error:" + error + " " +errorDescription);
+                    return true;
+                }
+            } catch (Exception exc) {
+                Logger.e(TAG, "Error in processing url parameters", "Url:" + redirectUrl,
+                        ADALError.ERROR_WEBVIEW);
             }
 
             return false;
@@ -742,7 +771,7 @@ public class AuthenticationActivity extends Activity {
     private void displaySpinner(boolean show) {
         if (!AuthenticationActivity.this.isFinishing()
                 && !AuthenticationActivity.this.isChangingConfigurations() && mSpinner != null) {
-            Logger.d(TAG, "displaySpinner:" + show + " showing:" + mSpinner.isShowing());
+            Logger.v(TAG, "displaySpinner:" + show + " showing:" + mSpinner.isShowing());
             if (show && !mSpinner.isShowing()) {
                 mSpinner.show();
             }
@@ -871,7 +900,7 @@ public class AuthenticationActivity extends Activity {
             String digestKey = StringExtensions
                     .createHash(AuthenticationConstants.Broker.USERDATA_UID_KEY + mAppCallingUID
                             + cacheKey);
-            Logger.d(TAG, "Cache key original:" + cacheKey + " digestKey:" + digestKey
+            Logger.v(TAG, "Cache key original:" + cacheKey + " digestKey:" + digestKey
                     + " calling app UID:" + mAppCallingUID);
             return digestKey;
         }
@@ -1004,7 +1033,7 @@ public class AuthenticationActivity extends Activity {
         }
 
         private void saveCacheKey(String key, Account cacheAccount, int callingUID) {
-            Logger.d(TAG, "Get CacheKeys for account");
+            Logger.v(TAG, "Get CacheKeys for account");
             // Store cachekeys for each UID
             // Activity has access to packagename and UID, but background call
             // in getAuthToken only knows about UID
