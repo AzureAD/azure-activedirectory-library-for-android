@@ -1,3 +1,10 @@
+Version 1.0.8
+--------------
+Adding client metrics information to be sent to AAD
+Detect webui cancel
+Update logger for correlationid
+Update PRNGfixes to allow different providers to be installed
+
 Version 1.0.7
 --------------
 Send PkeyAuth flag from embeded adal usage.
