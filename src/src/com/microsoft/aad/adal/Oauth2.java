@@ -394,7 +394,7 @@ class Oauth2 {
                 AuthenticationResult result = processUIResponseParams(parameters);
 
                 // Check if we have code
-                if (result != null && !result.getCode().isEmpty()) {
+                if (result != null && result.getCode() != null && !result.getCode().isEmpty()) {
 
                     // Get token and use external callback to set result
                     return getTokenForCode(result.getCode());
