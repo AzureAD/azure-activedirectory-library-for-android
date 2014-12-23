@@ -34,6 +34,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
 
+import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
+
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -306,7 +308,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
                 getRequestCorrelationId());
-
+        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -341,7 +343,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
                 getRequestCorrelationId());
-
+        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -402,7 +404,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, extraQueryParameters,
                 getRequestCorrelationId());
-
+        
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -435,7 +437,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
                 getRequestCorrelationId());
-
+        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -467,7 +469,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
                 getRequestCorrelationId());
-
+        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(fragment, false, request, callback);
     }
 
@@ -500,7 +502,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
                 getRequestCorrelationId());
-
+        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(null, true, request, callback);
     }
 
@@ -619,6 +621,7 @@ public class AuthenticationContext {
                 clientId, userId, getRequestCorrelationId());
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
+        request.setUserIdentifierType(UserIdentifierType.UniqueId);
         return acquireTokenLocal(null, false, request, callback);
     }
 
@@ -828,6 +831,15 @@ public class AuthenticationContext {
                 && !StringExtensions.IsNullOrBlank(request.getUserId())) {
             // Verify if IdToken is present and userid is specified
             return !request.getUserId().equalsIgnoreCase(result.getUserInfo().getUserId());
+        }
+
+        // it should verify loginhint as well if specified
+        if (result.getUserInfo() != null
+                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())
+                && !StringExtensions.IsNullOrBlank(request.getLoginHint())) {
+            // Verify if IdToken is present and userid is specified
+            return !request.getLoginHint()
+                    .equalsIgnoreCase(result.getUserInfo().getDisplayableId());
         }
 
         return false;
@@ -1276,18 +1288,28 @@ public class AuthenticationContext {
      * get token from cache to return it, if not expired.
      * 
      * @param request
-     * @return
+     * @return AuthenticationResult
      */
     private AuthenticationResult getItemFromCache(final AuthenticationRequest request) {
         if (mTokenCacheStore != null) {
+            
             // get token if resourceid matches to cache key.
-            TokenCacheItem item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
-                    request.getUserId()));
-            if (item == null) {
+            TokenCacheItem item = null;
+            if(request.getUserIdentifierType() == UserIdentifierType.LoginHint){
                 item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
                         request.getLoginHint()));
             }
-
+            
+            if(request.getUserIdentifierType() == UserIdentifierType.UniqueId){
+                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
+                        request.getUserId()));
+            }
+            
+            if(request.getUserIdentifierType() == UserIdentifierType.NoUser){
+                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
+                        null));
+            }
+            
             if (item != null) {
                 Logger.v(TAG,
                         "getItemFromCache accessTokenId:" + getTokenHash(item.getAccessToken())
