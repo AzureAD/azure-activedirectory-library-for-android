@@ -166,6 +166,25 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
+    public void testGetToken_Null_Code() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException {
+        // with login hint
+        Object request = createAuthenticationRequest("http://www.something.com",
+                "https://officeapps.live.com", "clientID123456789", "redirect123",
+                "loginhint", null, null, null);
+        Object oauth = createOAuthInstance(request);
+        Method m = ReflectionUtils.getTestMethod(oauth, "getToken", String.class);
+
+        AuthenticationResult actual = (AuthenticationResult)m.invoke(oauth, "http://www.nocodeurl.com?state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L2NvbW1vbiZyPWh0dHBzOi8vb2ZmaWNlYXBwcy5saXZlLmNvbQ");
+        assertNull(actual);
+        
+        actual = (AuthenticationResult)m.invoke(oauth, "http://www.nocodeurl.com?error=testerr&error_description=errtestdecription&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L2NvbW1vbiZyPWh0dHBzOi8vb2ZmaWNlYXBwcy5saXZlLmNvbQ");
+        assertTrue(actual.getStatus() == AuthenticationStatus.Failed);
+        assertEquals(actual.getErrorCode(), "testerr");
+    }
+    
+    @SmallTest
     public void testGetCodeRequestUrl() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException {
