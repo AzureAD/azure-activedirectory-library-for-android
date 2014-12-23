@@ -103,8 +103,6 @@ public class MainActivity extends Activity {
         mEditText.setText("");
 
         Toast.makeText(getApplicationContext(), TAG + "done", Toast.LENGTH_SHORT).show();
-        
-        testOffice();
     }
 
     @Override
@@ -127,40 +125,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void testOffice(){
-        Log.v(TAG, "dialog button is clicked");
-        mAuthContext.acquireToken("https://officeapps.live.com", "d3590ed6-52b3-4102-aeff-aad2292ab01c",
-                "msauth://com.microsoft.office.officehub/KY73qr6dKJ2MioJnHBaFkoQLp8Q%3D", "ahub@officemobiletest.onmicrosoft.com", 
-                PromptBehavior.Auto, "nux=1",
-                new AuthenticationCallback<AuthenticationResult>() {
-                    
-                    @Override
-                    public void onSuccess(AuthenticationResult result) {
-                       // now launch second resource
-                        mAuthContext.acquireToken("https://officemobiletest-my.sharepoint.com", "d3590ed6-52b3-4102-aeff-aad2292ab01c",
-                                "msauth://com.microsoft.office.officehub/KY73qr6dKJ2MioJnHBaFkoQLp8Q%3D", "ahub@officemobiletest.onmicrosoft.com", 
-                                PromptBehavior.Always, "nux=1",
-                                new AuthenticationCallback<AuthenticationResult>() {
-                                    
-                                    @Override
-                                    public void onSuccess(AuthenticationResult result) {
-                                       Log.d(TAG, "Finished the flow");                                     
-                                    }
-                                    
-                                    @Override
-                                    public void onError(Exception exc) {
-                                        Log.d(TAG, "Error in the flow for spo request");                                          
-                                    }
-                                });                        
-                    }
-                    
-                    @Override
-                    public void onError(Exception exc) {
-                        Log.d(TAG, "Error in the flow for initial"); 
-                    }
-                });
-    }
-    
     public void onClickFragmentTest(View v) {
         Intent intent = new Intent(getApplicationContext(), FragmentHolderActivity.class);
         this.startActivity(intent);
