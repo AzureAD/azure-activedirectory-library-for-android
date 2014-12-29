@@ -10,7 +10,7 @@ A Work Account is an identity you use to get work done no matter if at your busi
 ## ADAL for Android 1.0 Released!
 
 Thanks to all your great feedback over the preview period, we have released 1.0 (GA) of the Microsoft Azure Active Directory Library for Android! 
-Recent version is 1.0.6.
+Recent version is 1.0.9.
 
 ## Features
 * Industry standard Oauth2 protocol support.
@@ -68,7 +68,7 @@ We've made it easy for you to have multiple options to use this library in your 
 
 ###Option 1: Source Zip
 
-To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/archive/v1.0.6.tar.gz).
+To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/archive/v1.0.9.tar.gz).
 
 ###Option 2: Source via Git
 
@@ -95,7 +95,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile('com.microsoft.aad:adal:1.0.0') { 
         exclude group: 'com.android.support'
-    } // Recent version is 1.0.6
+    } // Recent version is 1.0.9
 }
 ```
 
@@ -107,10 +107,11 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.8</version>
     <type>aar</type>
 </dependency>
 ```
+// Recent version is 1.0.9
 
 ###Option 5: jar package inside libs folder
 You can get the jar file from maven the repo and drop into the *libs* folder in your project. You need to copy the required resources to your project as well since the jar packages don't include them.
@@ -241,6 +242,20 @@ You can call **acquireTokenSilent** to handle caching, and token refresh. It pro
     ```
  Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
  
+ Current broker model is for one user. AuthenticationContext provides API method to get the broker user. 
+
+ ```java
+ String brokerAccount =  mContext.getBrokerUser();
+ ```
+ Broker user will be returned if account is valid. 
+
+ Your app manifest should have permissions to use AccountManager accounts: http://developer.android.com/reference/android/accounts/AccountManager.html
+
+ * GET_ACCOUNTS
+ * USE_CREDENTIALS
+ * MANAGE_ACCOUNTS
+
+
 Using this walkthrough, you should have what you need to successfully integrate with Azure Active Directory. For more examples of this working, viist the AzureADSamples/ repository on GitHub.
        
 ## Important Information

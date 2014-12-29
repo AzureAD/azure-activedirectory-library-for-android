@@ -54,8 +54,18 @@ class AuthenticationRequest implements Serializable {
 
     private String mVersion = null;
 
-    public AuthenticationRequest() {
+    private UserIdentifierType mIdentifierType;
 
+    /**
+     * Developer can use acquiretoken(with loginhint) or acquireTokenSilent(with
+     * userid), so this sets the type of the request.
+     */
+    enum UserIdentifierType {
+        UniqueId, LoginHint, NoUser
+    }
+
+    public AuthenticationRequest() {
+        mIdentifierType = UserIdentifierType.NoUser;
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
@@ -68,6 +78,7 @@ class AuthenticationRequest implements Serializable {
         mPrompt = prompt;
         mExtraQueryParamsAuthentication = extraQueryParams;
         mCorrelationId = correlationId;
+        mIdentifierType = UserIdentifierType.NoUser;
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
@@ -154,8 +165,8 @@ class AuthenticationRequest implements Serializable {
     }
 
     public String getLogInfo() {
-        return String.format("Request authority:%s resource:%s clientid:%s",
-                mAuthority, mResource, mClientId);
+        return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, mResource,
+                mClientId);
     }
 
     public PromptBehavior getPrompt() {
@@ -214,5 +225,13 @@ class AuthenticationRequest implements Serializable {
 
     public void setVersion(String version) {
         this.mVersion = version;
+    }
+
+    public UserIdentifierType getUserIdentifierType() {
+        return mIdentifierType;
+    }
+
+    public void setUserIdentifierType(UserIdentifierType user) {
+        mIdentifierType = user;
     }
 }
