@@ -29,7 +29,7 @@ public class Constants {
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
     public static final String HEADER_AUTHORIZATION_VALUE_PREFIX = "Bearer ";
-
+    
     // AAD PARAMETERS
     // https://login.windows.net/tenantInfo
     static final String AUTHORITY_URL = "https://login.windows.net/common";

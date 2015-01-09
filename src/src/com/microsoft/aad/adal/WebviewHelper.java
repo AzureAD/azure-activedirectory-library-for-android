@@ -11,7 +11,12 @@ import android.text.TextUtils;
  * Wrapper class to handle internals for request intent and response for custom
  * webview usage.
  */
-class WebviewHelper {
+//#if CompileSwitch=="Custom"
+//#local PRE_PUBLIC="public"
+//#else
+//#local PRE_PUBLIC=""
+//#endif
+/*$PRE_PUBLIC$*/ class WebviewHelper {
 
     private static final String TAG = "WebviewHelper";
 
@@ -29,6 +34,8 @@ class WebviewHelper {
         mRequestIntent = requestIntent;
         mRequest = getAuthenticationRequestFromIntent(mRequestIntent);
     }
+
+
 
     /**
      * Check request intent fields.
