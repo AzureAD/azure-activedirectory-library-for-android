@@ -228,6 +228,10 @@ public class Logger {
         Logger.getInstance().debug(tag, message);
     }
 
+    public static void i(String tag, String message, String additionalMessage) {
+        Logger.getInstance().inform(tag, message, additionalMessage, null);
+    }
+    
     public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().inform(tag, message, additionalMessage, errorCode);
     }

@@ -574,20 +574,25 @@ public class AuthenticationActivity extends Activity {
                 String host, String realm) {
 
             // Create a dialog to ask for creds and post it to the handler.
+            Logger.i(TAG, "onReceivedHttpAuthRequest for host:" + host, "");
             HttpAuthDialog authDialog = new HttpAuthDialog(AuthenticationActivity.this, host, realm);
 
             authDialog.setOkListener(new HttpAuthDialog.OkListener() {
                 public void onOk(String host, String realm, String username, String password) {
+                    Logger.i(TAG, "onReceivedHttpAuthRequest: handler proceed" + host, "");
                     handler.proceed(username, password);
                 }
             });
 
             authDialog.setCancelListener(new HttpAuthDialog.CancelListener() {
                 public void onCancel() {
+                    Logger.i(TAG, "onReceivedHttpAuthRequest: handler cancelled", "");
                     handler.cancel();
+                    cancelRequest();
                 }
             });
 
+            Logger.i(TAG, "onReceivedHttpAuthRequest: show dialog", "");
             authDialog.show();
         }
 

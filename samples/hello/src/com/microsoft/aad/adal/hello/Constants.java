@@ -35,13 +35,13 @@ public class Constants {
     static final String AUTHORITY_URL = "https://login.windows.net/common";
 
     // Clientid is given from AAD page when you register your Android app
-    static final String CLIENT_ID = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
+    static final String CLIENT_ID = "79a24254-1323-4638-80b6-3d25ed4a8795";
 
     // RedirectUri
-    static final String REDIRECT_URL = "http://TaskApp";
+    static final String REDIRECT_URL = "http://TodoListClient";
 
     // URI for the resource. You need to setup this resource at AAD
-    static final String RESOURCE_ID = "https://omercantest.onmicrosoft.com/AllHandsTry";
+    static final String RESOURCE_ID = "https://graph.windows.net";
 
     // Endpoint we are targeting for the deployed WebAPI service
     static final String SERVICE_URL = "https://android.azurewebsites.net/api/values";
