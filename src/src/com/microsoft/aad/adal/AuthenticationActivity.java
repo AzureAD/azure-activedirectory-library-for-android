@@ -60,6 +60,7 @@ import android.view.View;
 import android.view.Window;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.HttpAuthHandler;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -567,6 +568,28 @@ public class AuthenticationActivity extends Activity {
     class CustomWebViewClient extends WebViewClient {
 
         private static final String BLANK_PAGE = "about:blank";
+
+        @Override
+        public void onReceivedHttpAuthRequest(WebView view, final HttpAuthHandler handler,
+                String host, String realm) {
+
+            // Create a dialog to ask for creds and post it to the handler.
+            HttpAuthDialog authDialog = new HttpAuthDialog(AuthenticationActivity.this, host, realm);
+
+            authDialog.setOkListener(new HttpAuthDialog.OkListener() {
+                public void onOk(String host, String realm, String username, String password) {
+                    handler.proceed(username, password);
+                }
+            });
+
+            authDialog.setCancelListener(new HttpAuthDialog.CancelListener() {
+                public void onCancel() {
+                    handler.cancel();
+                }
+            });
+
+            authDialog.show();
+        }
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
