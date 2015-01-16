@@ -220,7 +220,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         // it should be in the list
         Set<String> validHosts = (Set<String>)ReflectionUtils.getFieldValue(discovery,
                 "sValidHosts");
-        assertTrue("added new host in the list", validHosts.size() == 4);
+        assertTrue("added new host in the list", validHosts.size() == 5);
         assertTrue("has new host in the list to skip query",
                 validHosts.contains("login.windows-ppe.net"));
 
