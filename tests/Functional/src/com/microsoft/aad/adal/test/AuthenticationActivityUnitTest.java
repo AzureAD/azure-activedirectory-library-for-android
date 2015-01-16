@@ -389,7 +389,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
         // Verification from returned intent data
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE);
-        verify(mockAct, times(3)).setUserData(any(Account.class), anyString(), anyString());
+        verify(mockAct, times(8)).setUserData(any(Account.class), anyString(), anyString());
     }
 
     private MockWebRequestHandler setMockWebResponse() throws NoSuchFieldException,
