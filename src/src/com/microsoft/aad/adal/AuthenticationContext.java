@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -36,6 +37,8 @@ import javax.crypto.NoSuchPaddingException;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -265,6 +268,23 @@ public class AuthenticationContext {
         return null;
     }
 
+    /*
+     * Gets user info from broker. This should not be called on main thread.
+     * @return user {@link UserInfo}
+     * 
+     * @throws IOException
+     * @throws AuthenticatorException
+     * @throws OperationCanceledException
+     */
+    public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
+            IOException {
+        if (mBrokerProxy != null) {
+            return mBrokerProxy.getBrokerUsers();
+        }
+
+        return null;
+    }
+
     /**
      * Get expected redirect Uri for your app to use in broker. You need to
      * register this redirectUri in order to get token from Broker.
@@ -404,7 +424,7 @@ public class AuthenticationContext {
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, extraQueryParameters,
                 getRequestCorrelationId());
-        
+
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -1292,24 +1312,23 @@ public class AuthenticationContext {
      */
     private AuthenticationResult getItemFromCache(final AuthenticationRequest request) {
         if (mTokenCacheStore != null) {
-            
+
             // get token if resourceid matches to cache key.
             TokenCacheItem item = null;
-            if(request.getUserIdentifierType() == UserIdentifierType.LoginHint){
+            if (request.getUserIdentifierType() == UserIdentifierType.LoginHint) {
                 item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
                         request.getLoginHint()));
             }
-            
-            if(request.getUserIdentifierType() == UserIdentifierType.UniqueId){
+
+            if (request.getUserIdentifierType() == UserIdentifierType.UniqueId) {
                 item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
                         request.getUserId()));
             }
-            
-            if(request.getUserIdentifierType() == UserIdentifierType.NoUser){
-                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
-                        null));
+
+            if (request.getUserIdentifierType() == UserIdentifierType.NoUser) {
+                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request, null));
             }
-            
+
             if (item != null) {
                 Logger.v(TAG,
                         "getItemFromCache accessTokenId:" + getTokenHash(item.getAccessToken())
