@@ -13,9 +13,10 @@
     <adal.version>1.0.9</adal.version>
     <android.platform.maven.plugin>18</android.platform.maven.plugin>
     <android.version>[4.1.1.4,)</android.version>
-    <android.support.version>[18,)</android.support.version>
+    <android.support.version>r7</android.support.version>
     <android.support.name>support-v4</android.support.name>
-    <gson.name>gson</gson.name>    
+    <gson.name>gson</gson.name>
+    <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
   </properties>
   <description>
     Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.
@@ -34,17 +35,22 @@
   </licenses>
   <inceptionYear>2003</inceptionYear>
   <scm>
-    <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git</url>
-  </scm>  
+    <url>https://github.com/email4rohit/ad-accounts-for-android.git</url>
+  </scm>
+  <repositories>
+     <repository>
+        <id>libs</id>
+        <url>file://${basedir}/libs</url>
+     </repository>
+  </repositories>
   <dependencies>
     <dependency>
-      <groupId>android</groupId>
+      <groupId>com.google.android</groupId>
       <artifactId>android</artifactId>
       <version>${android.version}</version>
-      <scope>provided</scope>
-    </dependency>
+      </dependency>
     <dependency>
-      <groupId>com.android.support</groupId>
+      <groupId>com.google.android</groupId>
       <artifactId>${android.support.name}</artifactId>
       <version>${android.support.version}</version>
     </dependency>
@@ -112,6 +118,7 @@
               <excludes>
                 <exclude>**/gson.jar</exclude>
                 <exclude>**/support-v4.jar</exclude>
+                <exclude>**/android.jar</exclude>
               </excludes>
               <followSymlinks>false</followSymlinks>
             </fileset>
@@ -135,7 +142,7 @@
                   <version>2.2.4</version>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>com.android.support</groupId>
+                  <groupId>com.google.android</groupId>
                   <artifactId>${android.support.name}</artifactId>
                   <version>LATEST</version>
                 </artifactItem>
