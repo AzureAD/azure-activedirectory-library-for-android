@@ -990,28 +990,30 @@ public class AuthenticationActivity extends Activity {
                 
                 // Single user in authenticator is already created.
                 // This is only registering UID for the app
-                if (result.taskResult.getUserInfo() == null
-                        || StringExtensions.IsNullOrBlank(result.taskResult.getUserInfo()
-                                .getUserId())) {
+                UserInfo userinfo = result.taskResult.getUserInfo();
+                if (userinfo == null || StringExtensions.IsNullOrBlank(userinfo.getUserId())) {
                     // return userid in the userinfo and use only account name
                     // for all fields
                     Logger.i(TAG, "Set userinfo from account", "");
                     result.taskResult.setUserInfo(new UserInfo(name, name, "", "", name));
                     mRequest.setLoginHint(name);
-                }
-                else
-                {
+                } else {
                     Logger.i(TAG, "Saving userinfo to account", "");
-                    mAccountManager.setUserData(newaccount, AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
-                            result.taskResult.getUserInfo().getUserId());
-                    mAccountManager.setUserData(newaccount, AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
-                            result.taskResult.getUserInfo().getGivenName());
-                    mAccountManager.setUserData(newaccount, AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
-                            result.taskResult.getUserInfo().getFamilyName());
-                    mAccountManager.setUserData(newaccount, AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
-                            result.taskResult.getUserInfo().getIdentityProvider());
-                    mAccountManager.setUserData(newaccount, AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                            result.taskResult.getUserInfo().getDisplayableId());
+                    mAccountManager.setUserData(newaccount,
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
+                            userinfo.getUserId());
+                    mAccountManager.setUserData(newaccount,
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
+                            userinfo.getGivenName());
+                    mAccountManager.setUserData(newaccount,
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
+                            userinfo.getFamilyName());
+                    mAccountManager.setUserData(newaccount,
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
+                            userinfo.getIdentityProvider());
+                    mAccountManager.setUserData(newaccount,
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
+                            userinfo.getDisplayableId());
                 }
                 result.accountName = name;
                 Logger.i(TAG, "Setting account. Account name: " + name + " package:"

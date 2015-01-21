@@ -89,6 +89,13 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public boolean canSwitchToBroker() {
         String packageName = mContext.getPackageName();
+        
+        // ADAL switches broker for following conditions:
+        // 1- app is not skipping the broker
+        // 2- permissions are set in the manifest,
+        // 3- if package is not broker itself
+        // 4- signature of the broker is valid
+        // 5- account exists
         return !AuthenticationSettings.INSTANCE.getSkipBroker()
                 && verifyManifestPermissions()
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
@@ -470,6 +477,7 @@ class BrokerProxy implements IBrokerProxy {
     public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
             IOException {
 
+        // Calling this on main thread will cause exception since this is waiting on AccountManagerFuture 
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalArgumentException("Calling getBrokerUsers on main thread");
         }
@@ -484,6 +492,8 @@ class BrokerProxy implements IBrokerProxy {
             // get info for each user
             UserInfo[] users = new UserInfo[accountList.length];
             for (int i = 0; i < accountList.length; i++) {
+                
+                // Use AccountManager Api method to get extended user info
                 AccountManagerFuture<Bundle> result = mAcctManager.updateCredentials(
                         accountList[i], AuthenticationConstants.Broker.AUTHTOKEN_TYPE, bundle,
                         null, null, null);

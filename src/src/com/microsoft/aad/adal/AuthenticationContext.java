@@ -278,11 +278,7 @@ public class AuthenticationContext {
      */
     public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
             IOException {
-        if (mBrokerProxy != null) {
-            return mBrokerProxy.getBrokerUsers();
-        }
-
-        return null;
+        return mBrokerProxy != null ? mBrokerProxy.getBrokerUsers() : null;
     }
 
     /**
