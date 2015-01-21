@@ -234,12 +234,14 @@ You can call **acquireTokenSilent** to handle caching, and token refresh. It pro
     ```java
      mContext.acquireTokenSilent(resource, clientid, userId, callback );
     ```
-11. Broker:
+    
+11. **Broker**:
   Microsoft Intune's Company portal app will provide the broker component. Adal will use the broker account, if there is one user account is created at this authenticator and Developer choose not to skip it. Developer can skip the broker user with:
 
     ```java
-    AuthenticationSettings.Instance.setSkipBroker(true);
+     AuthenticationSettings.Instance.setSkipBroker(true);
     ```
+    
  Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
  
  Current broker model is for one user. AuthenticationContext provides API method to get the broker user. 
