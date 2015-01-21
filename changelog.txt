@@ -1,3 +1,9 @@
+Version 1.1.0
+--------------
+HttpAuth dialog for ntlm challange
+getBrokerUsers support
+whitelisted login.microsoftonline.com
+
 Version 1.0.9
 --------------
 Bug fixes for Oauth2.java and loginhint usage
