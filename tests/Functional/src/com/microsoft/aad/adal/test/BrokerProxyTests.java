@@ -65,6 +65,7 @@ import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UserInfo;
 
 public class BrokerProxyTests extends AndroidTestCase {
 
@@ -226,6 +227,46 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // assert
         assertEquals("Username is not equal", "currentUserName", result);
+    }
+    
+    public void testGetBrokerUsers() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, NoSuchFieldException, NameNotFoundException, OperationCanceledException, AuthenticatorException, IOException {
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        Account[] accounts = getAccountList("currentUserName", authenticatorType);
+        AccountManager mockAcctManager = mock(AccountManager.class);
+        AccountManagerFuture<Bundle> mockResult = mock( AccountManagerFuture.class);
+        Bundle testBundle = new Bundle();
+        testBundle.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID, "userid");
+        testBundle.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME, "given_name");
+        testBundle.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME, "family_name");
+        testBundle.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER, "idp");
+        testBundle.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE, "displayableid_upn");       
+        when(mockResult.getResult()).thenReturn(testBundle);
+        when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accounts);
+        
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("com.microsoft.workaccount.user.info", true);
+        Context mockContext = getMockContext(signature, brokerPackage, contextPackage,
+                true);
+        when(mockAcctManager.updateCredentials(
+                eq(accounts[0]), eq(AuthenticationConstants.Broker.AUTHTOKEN_TYPE), any(Bundle.class),
+                (Activity)eq(null), (AccountManagerCallback)eq(null), (Handler)eq(null))).thenReturn(mockResult);        
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "getBrokerUsers");
+        UserInfo[] result = (UserInfo[])m.invoke(brokerProxy);
+
+        // assert
+        assertNotNull("It returns one user", result);
+        assertEquals("displayableid_upn", result[0].getDisplayableId());
     }
 
     public void testCanSwitchToBroker_MissingBrokerPermission() throws IllegalArgumentException,

@@ -54,6 +54,10 @@ public class UserInfo implements Serializable {
 
     }
 
+    public UserInfo(String upn) {
+        mDisplayableId = upn;
+    }
+
     public UserInfo(String userid, String givenName, String familyName, String identityProvider,
             String displayableId) {
         mUniqueId = userid;
@@ -98,7 +102,8 @@ public class UserInfo implements Serializable {
     }
 
     static UserInfo getUserInfoFromBrokerResult(final Bundle bundle) {
-        // Broker has one user and related to ADFS WPJ user. It does not return idtoken
+        // Broker has one user and related to ADFS WPJ user. It does not return
+        // idtoken
         String userid = bundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
         String givenName = bundle
                 .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME);
