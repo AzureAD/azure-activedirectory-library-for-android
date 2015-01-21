@@ -66,6 +66,8 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final String KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL = "AppAccountsForTokenRemoval";
 
+    public static final String DATA_USER_INFO = "com.microsoft.workaccount.user.info";
+
     private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
 
     public BrokerProxy() {
@@ -87,28 +89,37 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public boolean canSwitchToBroker() {
         String packageName = mContext.getPackageName();
-        return !AuthenticationSettings.INSTANCE.getSkipBroker() && verifyManifestPermissions()
-                && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
-                && verifyAuthenticator(mAcctManager) && verifyAccount();
+        
+        // ADAL switches broker for following conditions:
+        // 1- app is not skipping the broker
+        // 2- permissions are set in the manifest,
+        // 3- if package is not broker itself
+        // 4- signature of the broker is valid
+        // 5- account exists
+        return !AuthenticationSettings.INSTANCE.getSkipBroker()
+                && verifyManifestPermissions()
+                && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
+                        .getBrokerPackageName()) && verifyAuthenticator(mAcctManager)
+                && verifyAccount();
     }
 
     @Override
-    public boolean canUseLocalCache(){
+    public boolean canUseLocalCache() {
         boolean brokerSwitch = canSwitchToBroker();
-        if(!brokerSwitch){
+        if (!brokerSwitch) {
             Logger.v(TAG, "It does not use broker");
             return true;
         }
-        
+
         String packageName = mContext.getPackageName();
-        if(verifySignature(packageName)){
+        if (verifySignature(packageName)) {
             Logger.v(TAG, "Broker installer can use local cache");
             return true;
         }
-        
+
         return false;
     }
-    
+
     private boolean verifyAccount() {
         Logger.v(TAG, "Verify account count");
         // only call authenticator if there is an account
@@ -414,8 +425,9 @@ class BrokerProxy implements IBrokerProxy {
                     MessageDigest md = MessageDigest.getInstance("SHA");
                     md.update(signature.toByteArray());
                     String tag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
-                    
-                    // Company portal(Intune) app and Azure authenticator app have authenticator.
+
+                    // Company portal(Intune) app and Azure authenticator app
+                    // have authenticator.
                     if (tag.equals(mBrokerTag)
                             || tag.equals(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE)) {
                         return true;
@@ -451,5 +463,58 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return false;
+    }
+
+    /**
+     * Waits on AccountManager results, so it should not be called on main
+     * thread.
+     * 
+     * @throws IOException
+     * @throws AuthenticatorException
+     * @throws OperationCanceledException
+     */
+    @Override
+    public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
+            IOException {
+
+        // Calling this on main thread will cause exception since this is waiting on AccountManagerFuture 
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            throw new IllegalArgumentException("Calling getBrokerUsers on main thread");
+        }
+
+        Account[] accountList = mAcctManager
+                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(DATA_USER_INFO, true);
+
+        if (accountList != null) {
+
+            // get info for each user
+            UserInfo[] users = new UserInfo[accountList.length];
+            for (int i = 0; i < accountList.length; i++) {
+                
+                // Use AccountManager Api method to get extended user info
+                AccountManagerFuture<Bundle> result = mAcctManager.updateCredentials(
+                        accountList[i], AuthenticationConstants.Broker.AUTHTOKEN_TYPE, bundle,
+                        null, null, null);
+                Logger.v(TAG, "Waiting for the result");
+                Bundle userInfoBundle = result.getResult();
+
+                users[i] = new UserInfo(
+                        userInfoBundle
+                                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID),
+                        userInfoBundle
+                                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME),
+                        userInfoBundle
+                                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME),
+                        userInfoBundle
+                                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER),
+                        userInfoBundle
+                                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
+            }
+
+            return users;
+        }
+        return null;
     }
 }

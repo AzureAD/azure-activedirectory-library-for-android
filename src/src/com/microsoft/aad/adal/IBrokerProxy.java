@@ -18,44 +18,54 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
+
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.content.Intent;
 
 interface IBrokerProxy {
-	/**
-	 * Checks if broker package correct and authenticator valid.
-	 * 
-	 * @return True package is available and authenticator is installed at
-	 *         Account manager
-	 */
-	boolean canSwitchToBroker();
-	
-	boolean canUseLocalCache();
+    /**
+     * Checks if broker package correct and authenticator valid.
+     * 
+     * @return True package is available and authenticator is installed at
+     *         Account manager
+     */
+    boolean canSwitchToBroker();
 
-	void removeAccounts();
+    boolean canUseLocalCache();
 
-	void saveAccount(String accountName);
+    void removeAccounts();
 
-	/**
-	 * Gets current broker user(Single User model).
-	 * 
-	 * @return Current user from AccountManager
-	 */
-	public String getCurrentUser();
+    void saveAccount(String accountName);
 
-	/**
-	 * gets token using authenticator service.
-	 * 
-	 * @param request
-	 * @return AuthenticationResult
-	 */
-	AuthenticationResult getAuthTokenInBackground(
-			final AuthenticationRequest request);
+    /**
+     * Gets current broker user(Single User model).
+     * 
+     * @return Current user from AccountManager
+     */
+    public String getCurrentUser();
 
-	/**
-	 * only gets intent to start from calling app's activity.
-	 * 
-	 * @param request
-	 * @return Intent
-	 */
-	Intent getIntentForBrokerActivity(final AuthenticationRequest request);
+    /**
+     * gets token using authenticator service.
+     * 
+     * @param request
+     * @return AuthenticationResult
+     */
+    AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request);
+
+    /**
+     * only gets intent to start from calling app's activity.
+     * 
+     * @param request
+     * @return Intent
+     */
+    Intent getIntentForBrokerActivity(final AuthenticationRequest request);
+
+    /*
+     * Gets user info from broker.
+     * @return user {@link UserInfo}
+     */
+    UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
+            IOException;
 }

@@ -131,6 +131,7 @@ final class Discovery implements IDiscovery {
         // mValidHosts is a sync set
         if (sValidHosts.size() == 0) {
             sValidHosts.add("login.windows.net");
+            sValidHosts.add("login.microsoftonline.com");
             sValidHosts.add("login.chinacloudapi.cn");
             sValidHosts.add("login.cloudgovapi.us");
         }

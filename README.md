@@ -10,7 +10,7 @@ A Work Account is an identity you use to get work done no matter if at your busi
 ## ADAL for Android 1.0 Released!
 
 Thanks to all your great feedback over the preview period, we have released 1.0 (GA) of the Microsoft Azure Active Directory Library for Android! 
-Recent version is 1.0.9.
+Recent version is 1.1.0
 
 ## Features
 * Industry standard Oauth2 protocol support.
@@ -403,9 +403,17 @@ Your application should overwrite them if localized strings are desired.
 ```Java
 <string name="app_loading">Loading...</string>
 <string name="broker_processing">Broker is processing</string>
+<string name="http_auth_dialog_username">Username</string>
+<string name="http_auth_dialog_password">Password</string>
+<string name="http_auth_dialog_title">Sign In</string>
+<string name="http_auth_dialog_login">Login</string>
+<string name="http_auth_dialog_cancel">Cancel</string>
 ```
 
 =======
+
+### NTLM dialog
+Adal version 1.1.0 supports NTLM dialog that is processed through onReceivedHttpAuthRequest event from WebViewClient. Dialog layout and strings can be customized.
 
 ## License
 

@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion> 
+  <modelVersion>4.0.0</modelVersion>
   <groupId>com.microsoft.aad</groupId>
   <artifactId>adal</artifactId>
-  <version>1.0.9</version>
+  <version>1.1.0</version>
   <packaging>aar</packaging>
   <name>adal</name>
   <properties>
     <scm.branch>master</scm.branch>
     <maven.version>3.1.1</maven.version>
-    <adal.version>1.0.9</adal.version>
+    <adal.version>1.1.0</adal.version>
     <android.platform.maven.plugin>18</android.platform.maven.plugin>
     <android.version>[4.1.1.4,)</android.version>
     <android.support.version>[18,)</android.support.version>
     <android.support.name>support-v4</android.support.name>
-    <gson.name>gson</gson.name>    
+    <gson.name>gson</gson.name>
+    <adal.compile.env>Normal</adal.compile.env>
   </properties>
   <description>
     Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.
@@ -35,7 +36,7 @@
   <inceptionYear>2003</inceptionYear>
   <scm>
     <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git</url>
-  </scm>  
+  </scm>
   <dependencies>
     <dependency>
       <groupId>android</groupId>
@@ -55,15 +56,15 @@
     </dependency>
   </dependencies>
   <build>
-    <sourceDirectory>src</sourceDirectory>
+    <sourceDirectory>preprocessed</sourceDirectory>    
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.9.1</version>
-		<configuration>
-	        	<sourceEncoding>UTF-8</sourceEncoding>
-		</configuration>
+        <configuration>
+          <sourceEncoding>UTF-8</sourceEncoding>
+        </configuration>
         <executions>
           <execution>
             <id>attach-javadocs</id>
@@ -86,22 +87,10 @@
           </execution>
         </executions>
       </plugin>
-       <plugin>
-        <artifactId>maven-clean-plugin</artifactId>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>libs</directory>
-              <includes>
-                <include>**/*.jar</include>
-              </includes>              
-              <followSymlinks>false</followSymlinks>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
+       
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
+        <version>2.6.1</version>
         <configuration>
           <filesets>
             <fileset>
@@ -114,6 +103,13 @@
                 <exclude>**/support-v4.jar</exclude>
               </excludes>
               <followSymlinks>false</followSymlinks>
+            </fileset>
+            <fileset>
+              <directory>preprocessed</directory>
+              <includes>
+                <include>**/*.java</include>
+              </includes>
+              <followSymlinks>true</followSymlinks>
             </fileset>
           </filesets>
         </configuration>
@@ -171,6 +167,46 @@
           <target>1.6</target>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>com.igormaznitsa</groupId>
+        <artifactId>jcp</artifactId>
+        <version>6.0.0</version>
+        <executions>
+          <execution>
+            <id>preprocessSources</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>preprocess</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>clearGeneratedFolders</id>
+            <goals>
+              <goal>clear</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <source>${project.basedir}/src</source>
+          <destination>${project.basedir}/preprocessed</destination>
+          <excluded>html, xml, project, classpath, png, properties, jar, gitignore, ps1, sh, txt,</excluded>
+          <processing>java</processing>
+          <inEncoding>UTF-8</inEncoding>
+          <outEncoding>UTF-8</outEncoding>
+          <keepSrcRoot>false</keepSrcRoot>
+          <removeComments>false</removeComments>
+          <disableOut>false</disableOut>
+          <verbose>true</verbose>
+          <clear>true</clear>
+          <keepLines>true</keepLines>
+          <globalVars>
+            <property>
+              <name>CompileSwitch</name>
+              <value>${adal.compile.env}</value>
+            </property>
+          </globalVars>
+        </configuration>
+      </plugin>      
     </plugins>
   </build>
 </project>
