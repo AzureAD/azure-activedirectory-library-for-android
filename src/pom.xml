@@ -126,34 +126,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>install-jar</id>
-            <phase>install</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>com.google.code.gson</groupId>
-                  <artifactId>gson</artifactId>
-                  <version>2.2.4</version>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.google.android</groupId>
-                  <artifactId>${android.support.name}</artifactId>
-                  <version>${android.support.version}</version>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>./libs</outputDirectory>
-              <stripVersion>true</stripVersion>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>com.jayway.maven.plugins.android.generation2</groupId>
         <artifactId>android-maven-plugin</artifactId>
         <version>3.8.2</version>
