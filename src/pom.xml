@@ -144,7 +144,7 @@
                 <artifactItem>
                   <groupId>com.google.android</groupId>
                   <artifactId>${android.support.name}</artifactId>
-                  <version>${android.support.name}</version>
+                  <version>${android.support.version}</version>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>./libs</outputDirectory>
