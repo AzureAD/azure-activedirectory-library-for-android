@@ -243,8 +243,8 @@ abstract class BasicWebViewClient extends WebViewClient {
             if (hasCancelError(url)) {
                 // Catch WEB-UI cancel request
                 Logger.i(TAG, "Sending intent to cancel authentication activity", "");
-                sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, new Intent());
                 view.stopLoading();
+                cancelWebViewRequest();
                 return true;
             }
             

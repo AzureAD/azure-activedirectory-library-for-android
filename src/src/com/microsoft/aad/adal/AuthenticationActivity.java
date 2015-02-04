@@ -388,6 +388,7 @@ public class AuthenticationActivity extends Activity {
                     loginhint, correlationIdParsed);
             authRequest.setBrokerAccountName(accountName);
             authRequest.setPrompt(promptBehavior);
+            authRequest.setRequestId(mWaitingRequestId);
         } else {
             Serializable request = callingIntent
                     .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
@@ -616,8 +617,7 @@ public class AuthenticationActivity extends Activity {
 
         @Override
         public void cancelWebViewRequest() {
-            // TODO Auto-generated method stub
-            
+            cancelRequest();            
         }
 
         @Override
