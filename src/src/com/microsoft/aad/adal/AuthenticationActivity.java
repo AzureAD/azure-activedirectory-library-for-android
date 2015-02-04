@@ -31,8 +31,6 @@ import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
-import java.util.Locale;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -48,9 +46,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.net.Uri;
-import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -60,13 +55,9 @@ import android.view.View;
 import android.view.Window;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.HttpAuthHandler;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
 import com.google.gson.Gson;
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
@@ -198,7 +189,9 @@ public class AuthenticationActivity extends Activity {
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
         Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
-        setupWebView();
+     // Create the Web View to show the page
+        mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
+                this.getPackageName()));
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
 
@@ -271,6 +264,8 @@ public class AuthenticationActivity extends Activity {
                 " device:" + android.os.Build.VERSION.RELEASE + " " + android.os.Build.MANUFACTURER
                         + android.os.Build.MODEL);
 
+        setupWebView(mRedirectUrl, mQueryParameters, mAuthRequest);
+        
         if (savedInstanceState == null) {
             mWebView.post(new Runnable() {
                 @Override
@@ -324,11 +319,9 @@ public class AuthenticationActivity extends Activity {
         mWebView.restoreState(savedInstanceState);
     }
 
-    private void setupWebView() {
+    private void setupWebView(String redirect, String queryParam, AuthenticationRequest request) {
 
-        // Create the Web View to show the page
-        mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
-                this.getPackageName()));
+        
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
@@ -350,7 +343,7 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.getSettings().setUseWideViewPort(true);
         mWebView.getSettings().setBuiltInZoomControls(true);
-        mWebView.setWebViewClient(new CustomWebViewClient());
+        mWebView.setWebViewClient(new CustomWebViewClient(AuthenticationActivity.this, redirect, queryParam, request));
         mWebView.setVisibility(View.INVISIBLE);
     }
 
@@ -566,147 +559,40 @@ public class AuthenticationActivity extends Activity {
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
 
-    class CustomWebViewClient extends WebViewClient {
+    class CustomWebViewClient extends BasicWebViewClient {
 
-        private static final String BLANK_PAGE = "about:blank";
-
-        @Override
-        public void onReceivedHttpAuthRequest(WebView view, final HttpAuthHandler handler,
-                String host, String realm) {
-
-            // Create a dialog to ask for creds and post it to the handler.
-            Logger.i(TAG, "onReceivedHttpAuthRequest for host:" + host, "");
-            HttpAuthDialog authDialog = new HttpAuthDialog(AuthenticationActivity.this, host, realm);
-
-            authDialog.setOkListener(new HttpAuthDialog.OkListener() {
-                public void onOk(String host, String realm, String username, String password) {
-                    Logger.i(TAG, "onReceivedHttpAuthRequest: handler proceed" + host, "");
-                    handler.proceed(username, password);
-                }
-            });
-
-            authDialog.setCancelListener(new HttpAuthDialog.CancelListener() {
-                public void onCancel() {
-                    Logger.i(TAG, "onReceivedHttpAuthRequest: handler cancelled", "");
-                    handler.cancel();
-                    cancelRequest();
-                }
-            });
-
-            Logger.i(TAG, "onReceivedHttpAuthRequest: show dialog", "");
-            authDialog.show();
+        public CustomWebViewClient(Context appContext, String redirect, String query, AuthenticationRequest request){
+            super(appContext, redirect, query, request);
         }
-
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Logger.v(TAG, "shouldOverrideUrlLoading:url=" + url);
-            displaySpinner(true);
-            if (url.startsWith(AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT)) {
-                Logger.v(TAG, "Webview detected request for client certificate");
-                view.stopLoading();
-                // avoid main thread locking
-                mPkeyAuthRedirect = true;
-                final String challangeUrl = url;
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
-                                    mJWSBuilder);
-                            final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponseFromUri(challangeUrl);
-                            final HashMap<String, String> headers = new HashMap<String, String>();
-                            headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
-                                    challangeResponse.mAuthorizationHeaderValue);
-                            mWebView.post(new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    String loadUrl = challangeResponse.mSubmitUrl;
-                                    HashMap<String, String> parameters = StringExtensions
-                                            .getUrlParameters(challangeResponse.mSubmitUrl);
-                                    Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
-                                    if (!parameters
-                                            .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
-                                        loadUrl = loadUrl + "?" + mQueryParameters;
-                                    }
-                                    Logger.v(TAG, "Loadurl:" + loadUrl);
-                                    mWebView.loadUrl(loadUrl, headers);
-                                }
-                            });
-                        } catch (IllegalArgumentException e) {
-                            Logger.e(TAG, "Argument exception", e.getMessage(),
-                                    ADALError.ARGUMENT_EXCEPTION, e);
-                            // It should return error code and finish the
-                            // activity, so that onActivityResult implementation
-                            // returns errors to callback.
-                            returnAuthenticationException(new AuthenticationException(
-                                    ADALError.ARGUMENT_EXCEPTION, e.getMessage(), e));
-                        } catch (AuthenticationException e) {
-                            Logger.e(TAG, "It is failed to create device certificate response",
-                                    e.getMessage(), ADALError.DEVICE_CERTIFICATE_RESPONSE_FAILED, e);
-                            // It should return error code and finish the
-                            // activity, so that onActivityResult implementation
-                            // returns errors to callback.
-                            returnAuthenticationException(e);
-                        }
-                    }
-                }).start();
-
-                return true;
-            } else if (url.toLowerCase(Locale.US).startsWith(mRedirectUrl.toLowerCase(Locale.US))) {
-                Logger.v(TAG, "Webview reached redirecturl");
-                if (hasCancelError(url)) {
-                    // Catch WEB-UI cancel request
-                    Logger.i(TAG, "Sending intent to cancel authentication activity", "");
-                    Intent resultIntent = new Intent();
-                    returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
-                            resultIntent);
-                    view.stopLoading();
-                    return true;
-                }
-
-                if (!isBrokerRequest(getIntent())) {
-                    // It is pointing to redirect. Final url can be processed to
-                    // get the code or error.
-                    Logger.i(TAG, "It is not a broker request", "");
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
-                    resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                            mAuthRequest);
-                    returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
-                            resultIntent);
-                    view.stopLoading();
-                    return true;
-                } else {
-                    Logger.i(TAG, "It is a broker request", "");
-                    displaySpinnerWithMessage(AuthenticationActivity.this
-                            .getText(AuthenticationActivity.this.getResources().getIdentifier(
-                                    "broker_processing", "string", getPackageName())));
-
-                    view.stopLoading();
-
-                    // do async task and show spinner while exchanging code for
-                    // access token
-                    new TokenTask(mWebRequestHandler, mAuthRequest, mCallingPackage, mCallingUID)
-                            .execute(url);
-                    return true;
-                }
-            } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
-                Logger.i(TAG, "It is an external website request", "");
-                openLinkInBrowser(url);
                 
-                /*
-                 * Return cancel error to close the webview.
-                 * In case of enrollment, this page needs to be closed.
-                 */
+        public void processRedirectUrl(final WebView view, String url){
+            if (!isBrokerRequest(getIntent())) {
+                // It is pointing to redirect. Final url can be processed to
+                // get the code or error.
+                Logger.i(TAG, "It is not a broker request", "");
                 Intent resultIntent = new Intent();
-                returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
+                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                        mAuthRequest);
+                returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
                         resultIntent);
                 view.stopLoading();
-                return true;
-            }
+            } else {
+                Logger.i(TAG, "It is a broker request", "");
+                displaySpinnerWithMessage(AuthenticationActivity.this
+                        .getText(AuthenticationActivity.this.getResources().getIdentifier(
+                                "broker_processing", "string", getPackageName())));
 
+                view.stopLoading();
+
+                // do async task and show spinner while exchanging code for
+                // access token
+                new TokenTask(mWebRequestHandler, mAuthRequest, mCallingPackage, mCallingUID)
+                        .execute(url);
+            }
+        }
+        
+        public boolean processInvalidUrl(final WebView view, String url) {
             if (isBrokerRequest(getIntent())
                     && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) {
                 returnError(ADALError.DEVELOPER_REDIRECTURI_INVALID, String.format(
@@ -718,84 +604,30 @@ public class AuthenticationActivity extends Activity {
 
             return false;
         }
-
-        private boolean hasCancelError(String redirectUrl) {
-            try {
-                HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
-                String error = parameters.get("error");
-                String errorDescription = parameters.get("error_description");
-
-                if (!StringExtensions.IsNullOrBlank(error)) {
-                    Logger.v(TAG, "Cancel error:" + error + " " + errorDescription);
-                    return true;
-                }
-            } catch (Exception exc) {
-                Logger.e(TAG, "Error in processing url parameters", "Url:" + redirectUrl,
-                        ADALError.ERROR_WEBVIEW);
-            }
-
-            return false;
+        
+        public void showSpinner(boolean status){
+            displaySpinner(status);
         }
 
         @Override
-        public void onReceivedError(WebView view, int errorCode, String description,
-                String failingUrl) {
-            super.onReceivedError(view, errorCode, description, failingUrl);
-            displaySpinner(false);
-            Logger.e(TAG, "Webview received an error. Errorcode:" + errorCode + " " + description,
-                    "", ADALError.ERROR_WEBVIEW);
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
-                    "Error Code:" + errorCode);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
-                    description);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                    mAuthRequest);
-            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+        public void sendResponse(int returnCode, Intent responseIntent) {
+            returnToCaller(returnCode, responseIntent);            
         }
 
         @Override
-        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-            // Developer does not have option to control this for now
-            super.onReceivedSslError(view, handler, error);
-            displaySpinner(false);
-            handler.cancel();
-            Logger.e(TAG, "Received ssl error", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Code:"
-                    + ERROR_FAILED_SSL_HANDSHAKE);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
-                    error.toString());
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                    mAuthRequest);
-            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
+        public void cancelWebViewRequest() {
+            // TODO Auto-generated method stub
+            
         }
 
         @Override
-        public void onPageFinished(WebView view, String url) {
-            super.onPageFinished(view, url);
-            Logger.v(TAG, "Page finished:" + url);
-
-            /*
-             * Once web view is fully loaded,set to visible
-             */
-            mWebView.setVisibility(View.VISIBLE);
-            if (!url.startsWith(BLANK_PAGE)) {
-                displaySpinner(false);
-            }
+        public void setPKeyAuthStatus(boolean status) {
+            mPkeyAuthRedirect = status;            
         }
 
         @Override
-        public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            super.onPageStarted(view, url, favicon);
-            displaySpinner(true);
-        }
-
-        private void openLinkInBrowser(String url) {
-            String link = url
-                    .replace(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
-            startActivity(intent);
+        public void postRunnable(Runnable item) {
+            mWebView.post(item);            
         }
     }
 
