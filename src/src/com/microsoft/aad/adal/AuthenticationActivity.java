@@ -695,6 +695,14 @@ public class AuthenticationActivity extends Activity {
             } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
                 Logger.i(TAG, "It is an external website request", "");
                 openLinkInBrowser(url);
+                
+                /*
+                 * Return cancel error to close the webview.
+                 * In case of enrollment, this page needs to be closed.
+                 */
+                Intent resultIntent = new Intent();
+                returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                        resultIntent);
                 view.stopLoading();
                 return true;
             }
