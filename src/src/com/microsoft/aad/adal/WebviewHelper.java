@@ -20,9 +20,12 @@ package com.microsoft.aad.adal;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 
 import android.content.Intent;
 import android.text.TextUtils;
+
+import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 /**
  * Wrapper class to handle internals for request intent and response for custom
@@ -36,6 +39,8 @@ public class WebviewHelper {
 
     private AuthenticationRequest mRequest;
 
+    private Oauth2 mOauth;
+
     /**
      * Construct with incoming requestIntent that you receive at
      * startActivityForResult.
@@ -45,6 +50,7 @@ public class WebviewHelper {
     public WebviewHelper(Intent requestIntent) {
         mRequestIntent = requestIntent;
         mRequest = getAuthenticationRequestFromIntent(mRequestIntent);
+        mOauth = new Oauth2(mRequest);
     }
 
     /**
@@ -81,8 +87,7 @@ public class WebviewHelper {
      * @throws UnsupportedEncodingException
      */
     public String getStartUrl() throws UnsupportedEncodingException {
-        Oauth2 oauth = new Oauth2(mRequest);
-        return oauth.getCodeRequestUrl();
+        return mOauth.getCodeRequestUrl();
     }
 
     /**
@@ -128,5 +133,52 @@ public class WebviewHelper {
         }
 
         return authRequest;
+    }
+
+    public PreKeyAuthInfo getPreKeyAuthInfo(String challengeUrl)
+            throws UnsupportedEncodingException {
+        IJWSBuilder jwsBuilder = new JWSBuilder();
+
+        ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(jwsBuilder);
+
+        final ChallangeResponse challangeResponse = certHandler
+                .getChallangeResponseFromUri(challengeUrl);
+
+        final HashMap<String, String> headers = new HashMap<String, String>();
+        headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
+                challangeResponse.mAuthorizationHeaderValue);
+
+        String loadUrl = challangeResponse.mSubmitUrl;
+
+        HashMap<String, String> parameters = StringExtensions
+                .getUrlParameters(challangeResponse.mSubmitUrl);
+
+        Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
+
+        if (!parameters.containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
+            loadUrl = loadUrl + "?" + mOauth.getAuthorizationEndpointQueryParameters();
+        }
+        PreKeyAuthInfo preKeyAuthInfo = new PreKeyAuthInfo(headers, loadUrl);
+        return preKeyAuthInfo;
+    }
+
+    public static class PreKeyAuthInfo {
+
+        private HashMap<String, String> mHttpHeaders;
+
+        private String mLoadUrl;
+
+        public PreKeyAuthInfo(HashMap<String, String> httpHeaders, String loadUrl) {
+            this.mHttpHeaders = httpHeaders;
+            this.mLoadUrl = loadUrl;
+        }
+
+        public HashMap<String, String> getHttpHeaders() {
+            return mHttpHeaders;
+        }
+
+        public String getLoadUrl() {
+            return mLoadUrl;
+        }
     }
 }
