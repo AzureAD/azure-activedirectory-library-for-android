@@ -160,9 +160,8 @@ abstract class BasicWebViewClient extends WebViewClient {
                 @Override
                 public void run() {
                     try {
-                        IJWSBuilder jwsBuilder = new JWSBuilder();
                         ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
-                                jwsBuilder);
+                                new JWSBuilder());
                         final ChallangeResponse challangeResponse = certHandler
                                 .getChallangeResponseFromUri(challangeUrl);
                         final HashMap<String, String> headers = new HashMap<String, String>();
