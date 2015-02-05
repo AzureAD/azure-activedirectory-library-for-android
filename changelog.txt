@@ -1,3 +1,9 @@
+Version 1.1.1
+--------------
+Enroll button fix
+Updated webviewhelper class
+
+
 Version 1.1.0
 --------------
 HttpAuth dialog for ntlm challange
