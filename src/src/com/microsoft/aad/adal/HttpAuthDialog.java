@@ -96,7 +96,6 @@ class HttpAuthDialog {
 
         mDialog = new AlertDialog.Builder(mContext)
                 .setTitle(title)
-                .setIconAttribute(android.R.attr.alertDialogIcon)
                 .setView(v)
                 .setPositiveButton(R.string.http_auth_dialog_login,
                         new DialogInterface.OnClickListener() {
