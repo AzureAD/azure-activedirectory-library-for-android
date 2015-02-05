@@ -1,8 +1,24 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.aad.adal;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -10,7 +26,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -33,6 +48,10 @@ class AuthenticationDialog {
     private Handler mHandlerInView;
 
     private Dialog mDialog;
+
+    private WebView mWebView;
+
+    private String mQueryParameters;
 
     public AuthenticationDialog(Handler handler, Context context, AuthenticationContext authCtx,
             AuthenticationRequest request) {
@@ -58,8 +77,9 @@ class AuthenticationDialog {
 
                 // using static layout
                 View webviewInDialog = inflater.inflate(R.layout.dialog_authentication, null);
-                final WebView webview = (WebView)webviewInDialog.findViewById(R.id.com_microsoft_aad_adal_webView1);
-                if (webview == null) {
+                mWebView = (WebView)webviewInDialog
+                        .findViewById(R.id.com_microsoft_aad_adal_webView1);
+                if (mWebView == null) {
                     Logger.e(
                             TAG,
                             "Expected resource name for webview is com_microsoft_aad_adal_webView1. It is not in your layout file",
@@ -81,11 +101,15 @@ class AuthenticationDialog {
                     }
                     return;
                 }
-                webview.getSettings().setJavaScriptEnabled(true);
-                webview.requestFocus(View.FOCUS_DOWN);
-
+                mWebView.getSettings().setJavaScriptEnabled(true);
+                mWebView.requestFocus(View.FOCUS_DOWN);
+                String userAgent = mWebView.getSettings().getUserAgentString();
+                mWebView.getSettings().setUserAgentString(
+                        userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
+                userAgent = mWebView.getSettings().getUserAgentString();
+                Logger.v(TAG, "UserAgent:" + userAgent);
                 // Set focus to the view for touch event
-                webview.setOnTouchListener(new View.OnTouchListener() {
+                mWebView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View view, MotionEvent event) {
                         int action = event.getAction();
@@ -98,23 +122,26 @@ class AuthenticationDialog {
                     }
                 });
 
-                webview.getSettings().setLoadWithOverviewMode(true);
-                webview.getSettings().setDomStorageEnabled(true);
-                webview.getSettings().setUseWideViewPort(true);
-                webview.getSettings().setBuiltInZoomControls(true);
+                mWebView.getSettings().setLoadWithOverviewMode(true);
+                mWebView.getSettings().setDomStorageEnabled(true);
+                mWebView.getSettings().setUseWideViewPort(true);
+                mWebView.getSettings().setBuiltInZoomControls(true);
 
                 try {
                     Oauth2 oauth = new Oauth2(mRequest);
                     final String startUrl = oauth.getCodeRequestUrl();
-
+                    mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
                     final String stopRedirect = mRequest.getRedirectUri();
-                    webview.setWebViewClient(new DialogWebViewClient(stopRedirect,
-                            AuthenticationConstants.UIRequest.BROWSER_FLOW, mRequest));
-                    webview.post(new Runnable() {
+                    mWebView.setWebViewClient(new DialogWebViewClient(
+                            mContext, stopRedirect,mQueryParameters,
+                             mRequest
+
+                            ));
+                    mWebView.post(new Runnable() {
                         @Override
                         public void run() {
-                            webview.loadUrl("about:blank");
-                            webview.loadUrl(startUrl);
+                            mWebView.loadUrl("about:blank");
+                            mWebView.loadUrl(startUrl);
                         }
                     });
 
@@ -127,36 +154,42 @@ class AuthenticationDialog {
 
                     @Override
                     public void onCancel(DialogInterface dialog) {
-                        Intent resultIntent = new Intent();
-                        resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
-                                mRequest.getRequestId());
-                        mAuthContext.onActivityResult(
-                                AuthenticationConstants.UIRequest.BROWSER_FLOW,
-                                AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
-                                resultIntent);
-                        if (mHandlerInView != null) {
-                            mHandlerInView.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (mDialog != null && mDialog.isShowing()) {
-                                        mDialog.dismiss();
-                                    }
-                                }
-                            });
-                        }
+                        cancelFlow();
                     }
                 });
                 mDialog = builder.create();
+                Logger.i(TAG, "Showing authenticationDialog", "");
                 mDialog.show();
             }
         });
     }
 
+    private void cancelFlow(){
+        Logger.i(TAG, "Cancelling dialog", "");
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
+                mRequest.getRequestId());
+        mAuthContext.onActivityResult(
+                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+                resultIntent);
+        if (mHandlerInView != null) {
+            mHandlerInView.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (mDialog != null && mDialog.isShowing()) {
+                        mDialog.dismiss();
+                    }
+                }
+            });
+        }
+    }
+    
     class DialogWebViewClient extends BasicWebViewClient {
 
-        public DialogWebViewClient(String stopRedirect, int browserFlow,
+        public DialogWebViewClient(Context ctx, String stopRedirect, String queryParam,
                 AuthenticationRequest request) {
-            super(stopRedirect, browserFlow, request);
+            super(ctx, stopRedirect, queryParam, request);
         }
 
         public void showSpinner(final boolean status) {
@@ -179,46 +212,40 @@ class AuthenticationDialog {
         }
 
         public void sendResponse(int returnCode, Intent responseIntent) {
+            // Close this dialog
+            mDialog.dismiss();
             mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                     returnCode, responseIntent);
         }
-
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                        mRequest);
-                resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
-                        mRequest.getRequestId());
-                sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
-                view.stopLoading();
-                mDialog.dismiss();
-                return true;
-            } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
-                Logger.v(TAG, "It is an external website request");
-                openLinkInBrowserFromDialog(url);
-                view.stopLoading();
-                return true;
-            }
-
-            return false;
+        
+        public void postRunnable(Runnable item){
+            mHandlerInView.post(item);
+        }
+        
+        public void processRedirectUrl(final WebView view, String url){
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                    mRequest);
+            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
+                    mRequest.getRequestId());
+            sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
+            view.stopLoading();
         }
 
-        private void openLinkInBrowserFromDialog(final String url) {
-            if (mHandlerInView != null) {
-                mHandlerInView.post(new Runnable() {
+        @Override
+        public void cancelWebViewRequest() {
+            cancelFlow();            
+        }
 
-                    @Override
-                    public void run() {
-                        String link = url.replace(
-                                AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
-                        mContext.startActivity(intent);
-                    }
-                });
-            }
+        @Override
+        public void setPKeyAuthStatus(boolean status) {
+            // no back press handling is needed here, so it is not required.
+        }
+
+        @Override
+        public boolean processInvalidUrl(WebView view, String url) {
+            return false;
         }
     }
 }

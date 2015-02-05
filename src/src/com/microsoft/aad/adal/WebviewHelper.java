@@ -1,28 +1,45 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 
 import android.content.Intent;
 import android.text.TextUtils;
+
+import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 /**
  * Wrapper class to handle internals for request intent and response for custom
  * webview usage.
  */
-//#if CompileSwitch=="Custom"
-//#local PRE_PUBLIC="public"
-//#else
-//#local PRE_PUBLIC=""
-//#endif
-/*$PRE_PUBLIC$*/ class WebviewHelper {
+public class WebviewHelper {
 
     private static final String TAG = "WebviewHelper";
 
     private Intent mRequestIntent;
 
     private AuthenticationRequest mRequest;
+
+    private Oauth2 mOauth;
 
     /**
      * Construct with incoming requestIntent that you receive at
@@ -33,9 +50,8 @@ import android.text.TextUtils;
     public WebviewHelper(Intent requestIntent) {
         mRequestIntent = requestIntent;
         mRequest = getAuthenticationRequestFromIntent(mRequestIntent);
+        mOauth = new Oauth2(mRequest);
     }
-
-
 
     /**
      * Check request intent fields.
@@ -71,8 +87,7 @@ import android.text.TextUtils;
      * @throws UnsupportedEncodingException
      */
     public String getStartUrl() throws UnsupportedEncodingException {
-        Oauth2 oauth = new Oauth2(mRequest);
-        return oauth.getCodeRequestUrl();
+        return mOauth.getCodeRequestUrl();
     }
 
     /**
@@ -118,5 +133,52 @@ import android.text.TextUtils;
         }
 
         return authRequest;
+    }
+
+    public PreKeyAuthInfo getPreKeyAuthInfo(String challengeUrl)
+            throws UnsupportedEncodingException {
+        IJWSBuilder jwsBuilder = new JWSBuilder();
+
+        ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(jwsBuilder);
+
+        final ChallangeResponse challangeResponse = certHandler
+                .getChallangeResponseFromUri(challengeUrl);
+
+        final HashMap<String, String> headers = new HashMap<String, String>();
+        headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
+                challangeResponse.mAuthorizationHeaderValue);
+
+        String loadUrl = challangeResponse.mSubmitUrl;
+
+        HashMap<String, String> parameters = StringExtensions
+                .getUrlParameters(challangeResponse.mSubmitUrl);
+
+        Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
+
+        if (!parameters.containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
+            loadUrl = loadUrl + "?" + mOauth.getAuthorizationEndpointQueryParameters();
+        }
+        PreKeyAuthInfo preKeyAuthInfo = new PreKeyAuthInfo(headers, loadUrl);
+        return preKeyAuthInfo;
+    }
+
+    public static class PreKeyAuthInfo {
+
+        private HashMap<String, String> mHttpHeaders;
+
+        private String mLoadUrl;
+
+        public PreKeyAuthInfo(HashMap<String, String> httpHeaders, String loadUrl) {
+            this.mHttpHeaders = httpHeaders;
+            this.mLoadUrl = loadUrl;
+        }
+
+        public HashMap<String, String> getHttpHeaders() {
+            return mHttpHeaders;
+        }
+
+        public String getLoadUrl() {
+            return mLoadUrl;
+        }
     }
 }
