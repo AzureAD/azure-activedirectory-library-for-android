@@ -343,7 +343,7 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.getSettings().setUseWideViewPort(true);
         mWebView.getSettings().setBuiltInZoomControls(true);
-        mWebView.setWebViewClient(new CustomWebViewClient(AuthenticationActivity.this, redirect, queryParam, request));
+        mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
     }
 
@@ -562,8 +562,8 @@ public class AuthenticationActivity extends Activity {
 
     class CustomWebViewClient extends BasicWebViewClient {
 
-        public CustomWebViewClient(Context appContext, String redirect, String query, AuthenticationRequest request){
-            super(appContext, redirect, query, request);
+        public CustomWebViewClient(){
+            super(AuthenticationActivity.this, mRedirectUrl, mQueryParameters, mAuthRequest);
         }
                 
         public void processRedirectUrl(final WebView view, String url){
