@@ -1,9 +1,24 @@
+// Copyright © Microsoft Open Technologies, Inc.
+//
+// All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
+// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
+// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+//
+// See the Apache License, Version 2.0 for the specific language
+// governing permissions and limitations under the License.
 
 package com.microsoft.aad.adal;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -11,15 +26,12 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
-
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 @SuppressLint({
         "InflateParams", "SetJavaScriptEnabled", "ClickableViewAccessibility"
@@ -120,8 +132,11 @@ class AuthenticationDialog {
                     final String startUrl = oauth.getCodeRequestUrl();
                     mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
                     final String stopRedirect = mRequest.getRedirectUri();
-                    mWebView.setWebViewClient(new DialogWebViewClient(stopRedirect,
-                            AuthenticationConstants.UIRequest.BROWSER_FLOW, mRequest));
+                    mWebView.setWebViewClient(new DialogWebViewClient(
+                            mContext, stopRedirect,mQueryParameters,
+                             mRequest
+
+                            ));
                     mWebView.post(new Runnable() {
                         @Override
                         public void run() {
@@ -143,12 +158,14 @@ class AuthenticationDialog {
                     }
                 });
                 mDialog = builder.create();
+                Logger.i(TAG, "Showing authenticationDialog", "");
                 mDialog.show();
             }
         });
     }
 
     private void cancelFlow(){
+        Logger.i(TAG, "Cancelling dialog", "");
         Intent resultIntent = new Intent();
         resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
                 mRequest.getRequestId());
@@ -170,9 +187,9 @@ class AuthenticationDialog {
     
     class DialogWebViewClient extends BasicWebViewClient {
 
-        public DialogWebViewClient(String stopRedirect, int browserFlow,
+        public DialogWebViewClient(Context ctx, String stopRedirect, String queryParam,
                 AuthenticationRequest request) {
-            super(stopRedirect, browserFlow, request);
+            super(ctx, stopRedirect, queryParam, request);
         }
 
         public void showSpinner(final boolean status) {
@@ -195,136 +212,40 @@ class AuthenticationDialog {
         }
 
         public void sendResponse(int returnCode, Intent responseIntent) {
+            // Close this dialog
+            mDialog.dismiss();
             mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                     returnCode, responseIntent);
         }
-
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (url.startsWith(AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT)) {
-                Logger.v(TAG, "Webview detected request for client certificate");
-                view.stopLoading();
-                final String challangeUrl = url;
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            IJWSBuilder jwsBuilder = new JWSBuilder();
-                            ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
-                                    jwsBuilder);
-                            final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponseFromUri(challangeUrl);
-                            final HashMap<String, String> headers = new HashMap<String, String>();
-                            headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
-                                    challangeResponse.mAuthorizationHeaderValue);
-                            mHandlerInView.post(new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    String loadUrl = challangeResponse.mSubmitUrl;
-                                    HashMap<String, String> parameters = StringExtensions
-                                            .getUrlParameters(challangeResponse.mSubmitUrl);
-                                    Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
-                                    if (!parameters
-                                            .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
-                                        loadUrl = loadUrl + "?" + mQueryParameters;
-                                    }
-                                    Logger.v(TAG, "Loadurl:" + loadUrl);
-                                    mWebView.loadUrl(loadUrl, headers);
-                                }
-                            });
-                        } catch (IllegalArgumentException e) {
-                            Logger.e(TAG, "Argument exception", e.getMessage(),
-                                    ADALError.ARGUMENT_EXCEPTION, e);
-                            // It should return error code and finish the
-                            // activity, so that onActivityResult implementation
-                            // returns errors to callback.
-                            Intent resultIntent = new Intent();
-                            resultIntent
-                                    .putExtra(
-                                            AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
-                                            e);
-                            if (mRequest != null) {
-                                resultIntent.putExtra(
-                                        AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                                        mRequest);
-                            }
-                            sendResponse(
-                                    AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                                    resultIntent);
-                        } catch (AuthenticationException e) {
-                            Logger.e(TAG, "It is failed to create device certificate response",
-                                    e.getMessage(), ADALError.DEVICE_CERTIFICATE_RESPONSE_FAILED, e);
-                            // It should return error code and finish the
-                            // activity, so that onActivityResult implementation
-                            // returns errors to callback.
-                            Intent resultIntent = new Intent();
-                            resultIntent
-                                    .putExtra(
-                                            AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
-                                            e);
-                            if (mRequest != null) {
-                                resultIntent.putExtra(
-                                        AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                                        mRequest);
-                            }
-                            sendResponse(
-                                    AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                                    resultIntent);
-                        } catch (Exception e) {
-                            Intent resultIntent = new Intent();
-                            resultIntent
-                                    .putExtra(
-                                            AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
-                                            e);
-                            if (mRequest != null) {
-                                resultIntent.putExtra(
-                                        AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                                        mRequest);
-                            }
-                            sendResponse(
-                                    AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                                    resultIntent);
-                        }
-                    }
-                }).start();
-
-                return true;
-            } else if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                        mRequest);
-                resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
-                        mRequest.getRequestId());
-                sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
-                view.stopLoading();
-                mDialog.dismiss();
-                return true;
-            } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
-                Logger.v(TAG, "It is an external website request");
-                openLinkInBrowserFromDialog(url);
-                view.stopLoading();
-                cancelFlow();
-                return true;
-            }
-
-            return false;
+        
+        public void postRunnable(Runnable item){
+            mHandlerInView.post(item);
+        }
+        
+        public void processRedirectUrl(final WebView view, String url){
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                    mRequest);
+            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
+                    mRequest.getRequestId());
+            sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
+            view.stopLoading();
         }
 
-        private void openLinkInBrowserFromDialog(final String url) {
-            if (mHandlerInView != null) {
-                mHandlerInView.post(new Runnable() {
+        @Override
+        public void cancelWebViewRequest() {
+            cancelFlow();            
+        }
 
-                    @Override
-                    public void run() {
-                        String link = url.replace(
-                                AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
-                        mContext.startActivity(intent);
-                    }
-                });
-            }
+        @Override
+        public void setPKeyAuthStatus(boolean status) {
+            // no back press handling is needed here, so it is not required.
+        }
+
+        @Override
+        public boolean processInvalidUrl(WebView view, String url) {
+            return false;
         }
     }
 }
