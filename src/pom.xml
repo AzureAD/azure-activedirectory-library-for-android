@@ -50,7 +50,7 @@
       <version>${android.version}</version>
       </dependency>
     <dependency>
-      <groupId>com.android.support</groupId>
+      <groupId>com.google.android</groupId>
       <artifactId>${android.support.name}</artifactId>
       <version>${android.support.version}</version>
     </dependency>
@@ -137,9 +137,9 @@
                   <version>2.2.4</version>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>com.android.support</groupId>
+                  <groupId>com.google.android</groupId>
                   <artifactId>${android.support.name}</artifactId>
-                  <version>${android.version}</version>
+                  <version>${android.support.version}</version>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>./libs</outputDirectory>
