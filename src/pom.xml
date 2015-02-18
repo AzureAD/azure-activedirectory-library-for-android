@@ -50,7 +50,7 @@
       <version>${android.version}</version>
       </dependency>
     <dependency>
-      <groupId>com.google.android</groupId>
+      <groupId>com.android.support</groupId>
       <artifactId>${android.support.name}</artifactId>
       <version>${android.support.version}</version>
     </dependency>
