@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion> 
+  <modelVersion>4.0.0</modelVersion>
   <groupId>com.microsoft.aad</groupId>
   <artifactId>adal</artifactId>
-  <version>1.0.9</version>
+  <version>1.1.1</version>
   <packaging>aar</packaging>
   <name>adal</name>
   <properties>
     <scm.branch>master</scm.branch>
     <maven.version>3.1.1</maven.version>
-    <adal.version>1.0.9</adal.version>
+    <adal.version>1.1.1</adal.version>
     <android.platform.maven.plugin>18</android.platform.maven.plugin>
     <android.version>[4.1.1.4,)</android.version>
     <android.support.version>r7</android.support.version>
@@ -35,7 +35,7 @@
   </licenses>
   <inceptionYear>2003</inceptionYear>
   <scm>
-    <url>https://github.com/email4rohit/ad-accounts-for-android.git</url>
+    <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git</url>
   </scm>
   <repositories>
      <repository>
@@ -67,9 +67,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.9.1</version>
-		<configuration>
-	        	<sourceEncoding>UTF-8</sourceEncoding>
-		</configuration>
+        <configuration>
+          <sourceEncoding>UTF-8</sourceEncoding>
+        </configuration>
         <executions>
           <execution>
             <id>attach-javadocs</id>
@@ -92,22 +92,10 @@
           </execution>
         </executions>
       </plugin>
-       <plugin>
-        <artifactId>maven-clean-plugin</artifactId>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>libs</directory>
-              <includes>
-                <include>**/*.jar</include>
-              </includes>              
-              <followSymlinks>false</followSymlinks>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
+       
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
+        <version>2.6.1</version>
         <configuration>
           <filesets>
             <fileset>
@@ -122,8 +110,43 @@
               </excludes>
               <followSymlinks>false</followSymlinks>
             </fileset>
+            <fileset>
+              <directory>preprocessed</directory>
+              <includes>
+                <include>**/*.java</include>
+              </includes>
+              <followSymlinks>true</followSymlinks>
+            </fileset>
           </filesets>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>install-jar</id>
+            <phase>install</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.google.code.gson</groupId>
+                  <artifactId>gson</artifactId>
+                  <version>2.2.4</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.android.support</groupId>
+                  <artifactId>${android.support.name}</artifactId>
+                  <version>LATEST</version>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>./libs</outputDirectory>
+              <stripVersion>true</stripVersion>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>com.jayway.maven.plugins.android.generation2</groupId>
@@ -150,6 +173,47 @@
           <target>1.6</target>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>com.igormaznitsa</groupId>
+        <artifactId>jcp</artifactId>
+        <version>6.0.0</version>
+        <executions>
+          <execution>
+            <id>preprocessSources</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>preprocess</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>clearGeneratedFolders</id>
+            <goals>
+              <goal>clear</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <source>${project.basedir}/src</source>
+          <destination>${project.basedir}/preprocessed</destination>
+          <excluded>html, xml, project, classpath, png, properties, jar, gitignore, ps1, sh, txt,</excluded>
+          <processing>java</processing>
+          <inEncoding>UTF-8</inEncoding>
+          <outEncoding>UTF-8</outEncoding>
+          <keepSrcRoot>false</keepSrcRoot>
+          <removeComments>false</removeComments>
+          <disableOut>false</disableOut>
+          <verbose>true</verbose>
+          <clear>true</clear>
+          <keepLines>true</keepLines>
+          <globalVars>
+            <property>
+              <name>CompileSwitch</name>
+              <value>${adal.compile.env}</value>
+            </property>
+          </globalVars>
+        </configuration>
+      </plugin>      
     </plugins>
   </build>
 </project>
+
