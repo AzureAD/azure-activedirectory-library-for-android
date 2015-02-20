@@ -12,8 +12,8 @@
     <maven.version>3.1.1</maven.version>
     <adal.version>1.1.1</adal.version>
     <android.platform.maven.plugin>18</android.platform.maven.plugin>
-    <android.version>4.3.1_r3</android.version>
-    <android.support.version>21.0.3</android.support.version>
+    <android.version>[4.1.1.4,)</android.version>
+    <android.support.version>[18,)</android.support.version>
     <android.support.name>support-v4</android.support.name>
     <gson.name>gson</gson.name>
     <adal.compile.env>Normal</adal.compile.env>
@@ -42,6 +42,7 @@
       <groupId>android</groupId>
       <artifactId>android</artifactId>
       <version>${android.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.android.support</groupId>
