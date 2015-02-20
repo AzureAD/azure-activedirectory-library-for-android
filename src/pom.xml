@@ -13,7 +13,7 @@
     <adal.version>1.1.1</adal.version>
     <android.platform.maven.plugin>18</android.platform.maven.plugin>
     <android.version>[4.1.1.4,)</android.version>
-    <android.support.version>r7</android.support.version>
+    <android.support.version>[18,)</android.support.version>
     <android.support.name>support-v4</android.support.name>
     <gson.name>gson</gson.name>
     <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
@@ -45,12 +45,13 @@
   </repositories>
   <dependencies>
     <dependency>
-      <groupId>com.google.android</groupId>
+      <groupId>android</groupId>
       <artifactId>android</artifactId>
       <version>${android.version}</version>
-      </dependency>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
-      <groupId>com.google.android</groupId>
+      <groupId>com.android.support</groupId>
       <artifactId>${android.support.name}</artifactId>
       <version>${android.support.version}</version>
     </dependency>
@@ -61,7 +62,7 @@
     </dependency>
   </dependencies>
   <build>
-    <sourceDirectory>src</sourceDirectory>
+    <sourceDirectory>preprocessed</sourceDirectory>    
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -106,7 +107,6 @@
               <excludes>
                 <exclude>**/gson.jar</exclude>
                 <exclude>**/support-v4.jar</exclude>
-                <exclude>**/android.jar</exclude>
               </excludes>
               <followSymlinks>false</followSymlinks>
             </fileset>
@@ -137,7 +137,7 @@
                   <version>2.2.4</version>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>com.google.android</groupId>
+                  <groupId>com.android.support</groupId>
                   <artifactId>${android.support.name}</artifactId>
                   <version>${android.support.version}</version>
                 </artifactItem>
