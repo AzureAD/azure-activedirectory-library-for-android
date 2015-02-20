@@ -140,7 +140,7 @@
                 <artifactItem>
                   <groupId>com.android.support</groupId>
                   <artifactId>${android.support.name}</artifactId>
-                  <version>${android.support.version}</version>
+                  <version>LATEST</version>
                 </artifactItem>
 		<artifactItem>
  		  <groupId>android</groupId>
