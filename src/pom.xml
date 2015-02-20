@@ -139,7 +139,7 @@
 		<artifactItem>
  		  <groupId>android</groupId>
       		  <artifactId>android</artifactId>
-      		  <version>${android.version}</version>
+      		  <version>LATEST</version>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>./libs</outputDirectory>
