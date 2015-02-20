@@ -42,7 +42,6 @@
       <groupId>android</groupId>
       <artifactId>android</artifactId>
       <version>${android.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.android.support</groupId>
