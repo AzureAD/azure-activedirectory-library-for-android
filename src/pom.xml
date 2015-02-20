@@ -101,6 +101,7 @@
               <excludes>
                 <exclude>**/gson.jar</exclude>
                 <exclude>**/support-v4.jar</exclude>
+		<exclude>**/android.jar</exclude>
               </excludes>
               <followSymlinks>false</followSymlinks>
             </fileset>
@@ -134,6 +135,11 @@
                   <groupId>com.android.support</groupId>
                   <artifactId>${android.support.name}</artifactId>
                   <version>${android.support.version}</version>
+                </artifactItem>
+		<artifactItem>
+ 		  <groupId>android</groupId>
+      		  <artifactId>android</artifactId>
+      		  <version>${android.version}</version>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>./libs</outputDirectory>
