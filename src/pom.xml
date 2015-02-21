@@ -16,11 +16,8 @@
     <android.support.version>[18,)</android.support.version>
     <android.support.name>support-v4</android.support.name>
     <gson.name>gson</gson.name>
-<<<<<<< HEAD
     <adal.compile.env>Normal</adal.compile.env>
-=======
     <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
->>>>>>> 1ab9d791cee78b0f1ea8509e9e43c0e56e9f8df2
   </properties>
   <description>
     Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.
@@ -41,15 +38,12 @@
   <scm>
     <url>https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git</url>
   </scm>
-<<<<<<< HEAD
-=======
   <repositories>
      <repository>
         <id>libs</id>
         <url>file://${basedir}/libs</url>
      </repository>
   </repositories>
->>>>>>> 1ab9d791cee78b0f1ea8509e9e43c0e56e9f8df2
   <dependencies>
     <dependency>
       <groupId>android</groupId>
