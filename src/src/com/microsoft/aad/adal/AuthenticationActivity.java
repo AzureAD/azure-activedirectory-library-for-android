@@ -58,6 +58,7 @@ import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
 
 import com.google.gson.Gson;
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
@@ -956,29 +957,42 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG, "Token task returns the result");
             displaySpinner(false);
             Intent intent = new Intent();
+
             if (result.taskResult != null) {
-                intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
-                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN,
-                        result.taskResult.getAccessToken());
-                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, result.accountName);
-                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
-                        result.taskResult.getExpiresOn().getTime());
-                if (result.taskResult.getUserInfo() != null) {
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
-                            result.taskResult.getUserInfo().getUserId());
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
-                            result.taskResult.getUserInfo().getGivenName());
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
-                            result.taskResult.getUserInfo().getFamilyName());
-                    intent.putExtra(
-                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
-                            result.taskResult.getUserInfo().getIdentityProvider());
-                    intent.putExtra(
-                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                            result.taskResult.getUserInfo().getDisplayableId());
+
+                if (result.taskResult.getStatus().equals(AuthenticationStatus.Succeeded)) {
+                    intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN,
+                            result.taskResult.getAccessToken());
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, result.accountName);
+
+                    if (result.taskResult.getExpiresOn() != null) {
+                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
+                                result.taskResult.getExpiresOn().getTime());
+                    }
+
+                    if (result.taskResult.getUserInfo() != null) {
+                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
+                                result.taskResult.getUserInfo().getUserId());
+                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
+                                result.taskResult.getUserInfo().getGivenName());
+                        intent.putExtra(
+                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
+                                result.taskResult.getUserInfo().getFamilyName());
+                        intent.putExtra(
+                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
+                                result.taskResult.getUserInfo().getIdentityProvider());
+                        intent.putExtra(
+                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
+                                result.taskResult.getUserInfo().getDisplayableId());
+                    }
+                    returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
+                } else {
+                    returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+                            result.taskResult.getErrorDescription());
                 }
-                returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
             } else {
+                Logger.v(TAG, "Token task has exception");
                 returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
                         result.taskException.getMessage());
             }
