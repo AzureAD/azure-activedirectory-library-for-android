@@ -17,6 +17,7 @@
     <android.support.name>support-v4</android.support.name>
     <gson.name>gson</gson.name>
     <adal.compile.env>Normal</adal.compile.env>
+    <android-maven-plugin-version>3.9.0-rc.2</android-maven-plugin-version>
     <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
   </properties>
   <description>
@@ -158,7 +159,7 @@
       <plugin>
         <groupId>com.jayway.maven.plugins.android.generation2</groupId>
         <artifactId>android-maven-plugin</artifactId>
-        <version>3.8.2</version>
+        <version>${android-maven-plugin-version}</version>
         <configuration>
           <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
           <assetsDirectory>${project.basedir}/assets</assetsDirectory>
