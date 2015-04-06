@@ -61,6 +61,10 @@ class AuthenticationDialog {
         mRequest = request;
     }
 
+    private int getResourceId(String name, String type) {
+        return mContext.getResources().getIdentifier(name, type, mContext.getPackageName());
+    }
+
     /**
      * Create dialog using the context. Inflate the layout with inflater
      * service. This will run with the handler.
@@ -76,9 +80,10 @@ class AuthenticationDialog {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
 
                 // using static layout
-                View webviewInDialog = inflater.inflate(R.layout.dialog_authentication, null);
-                mWebView = (WebView)webviewInDialog
-                        .findViewById(R.id.com_microsoft_aad_adal_webView1);
+                View webviewInDialog = inflater.inflate(
+                        getResourceId("dialog_authentication", "layout"), null);
+                mWebView = (WebView)webviewInDialog.findViewById(getResourceId(
+                        "com_microsoft_aad_adal_webView1", "id"));
                 if (mWebView == null) {
                     Logger.e(
                             TAG,
@@ -132,11 +137,10 @@ class AuthenticationDialog {
                     final String startUrl = oauth.getCodeRequestUrl();
                     mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
                     final String stopRedirect = mRequest.getRedirectUri();
-                    mWebView.setWebViewClient(new DialogWebViewClient(
-                            mContext, stopRedirect,mQueryParameters,
-                             mRequest
+                    mWebView.setWebViewClient(new DialogWebViewClient(mContext, stopRedirect,
+                            mQueryParameters, mRequest
 
-                            ));
+                    ));
                     mWebView.post(new Runnable() {
                         @Override
                         public void run() {
@@ -164,15 +168,12 @@ class AuthenticationDialog {
         });
     }
 
-    private void cancelFlow(){
+    private void cancelFlow() {
         Logger.i(TAG, "Cancelling dialog", "");
         Intent resultIntent = new Intent();
-        resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
-                mRequest.getRequestId());
-        mAuthContext.onActivityResult(
-                AuthenticationConstants.UIRequest.BROWSER_FLOW,
-                AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
-                resultIntent);
+        resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
+        mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
         if (mHandlerInView != null) {
             mHandlerInView.post(new Runnable() {
                 @Override
@@ -184,7 +185,7 @@ class AuthenticationDialog {
             });
         }
     }
-    
+
     class DialogWebViewClient extends BasicWebViewClient {
 
         public DialogWebViewClient(Context ctx, String stopRedirect, String queryParam,
@@ -200,7 +201,8 @@ class AuthenticationDialog {
                     public void run() {
                         if (mDialog != null && mDialog.isShowing()) {
                             ProgressBar progressBar = (ProgressBar)mDialog
-                                    .findViewById(R.id.com_microsoft_aad_adal_progressBar);
+                                    .findViewById(getResourceId(
+                                            "com_microsoft_aad_adal_progressBar", "id"));
                             if (progressBar != null) {
                                 int showFlag = status ? View.VISIBLE : View.INVISIBLE;
                                 progressBar.setVisibility(showFlag);
@@ -217,16 +219,15 @@ class AuthenticationDialog {
             mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                     returnCode, responseIntent);
         }
-        
-        public void postRunnable(Runnable item){
+
+        public void postRunnable(Runnable item) {
             mHandlerInView.post(item);
         }
-        
-        public void processRedirectUrl(final WebView view, String url){
+
+        public void processRedirectUrl(final WebView view, String url) {
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                    mRequest);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO, mRequest);
             resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
                     mRequest.getRequestId());
             sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
@@ -235,7 +236,7 @@ class AuthenticationDialog {
 
         @Override
         public void cancelWebViewRequest() {
-            cancelFlow();            
+            cancelFlow();
         }
 
         @Override
