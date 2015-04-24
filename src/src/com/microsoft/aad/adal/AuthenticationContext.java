@@ -1367,6 +1367,8 @@ public class AuthenticationContext {
         String mKeyWithUserId;
 
         String mKeyWithDisplayableId;
+        
+        String mTenantId;
 
         public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item,
                 boolean multiResource) {
@@ -1377,6 +1379,7 @@ public class AuthenticationContext {
                 mRefreshToken = item.getRefreshToken();
                 mUserInfo = item.getUserInfo();
                 mRawIdToken = item.getRawIdToken();
+                mTenantId = item.getTenantId();
                 if (item.getUserInfo() != null) {
                     mKeyWithUserId = CacheKey.createCacheKey(request, item.getUserInfo()
                             .getUserId());
@@ -1598,6 +1601,7 @@ public class AuthenticationContext {
                     Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());
                     result.setUserInfo(refreshItem.mUserInfo);
                     result.setIdToken(refreshItem.mRawIdToken);
+                    result.setTenantId(refreshItem.mTenantId);
                 }
 
                 // it replaces multi resource refresh token as
@@ -1889,6 +1893,6 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.2";
+        return "1.1.3";
     }
 }
