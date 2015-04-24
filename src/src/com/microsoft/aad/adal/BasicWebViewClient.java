@@ -255,6 +255,13 @@ abstract class BasicWebViewClient extends WebViewClient {
             view.stopLoading();
             cancelWebViewRequest();
             return true;
+        } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX)) {
+            Logger.v(TAG, "It is an install request");
+            ApplicationReceiver.saveRequest(mCallingContext, mRequest, url);
+            openLinkInBrowser(url);
+            view.stopLoading();
+            cancelWebViewRequest();
+            return true;
         }
 
         return processInvalidUrl(view, url);
