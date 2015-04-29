@@ -258,7 +258,9 @@ abstract class BasicWebViewClient extends WebViewClient {
         } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX)) {
             Logger.v(TAG, "It is an install request");
             ApplicationReceiver.saveRequest(mCallingContext, mRequest, url);
-            openLinkInBrowser(url);
+            HashMap<String, String> parameters = StringExtensions
+                    .getUrlParameters(url);
+            openLinkInBrowser(parameters.get(ApplicationReceiver.INSTALL_URL_KEY));
             view.stopLoading();
             cancelWebViewRequest();
             return true;

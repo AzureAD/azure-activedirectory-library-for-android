@@ -44,7 +44,9 @@ public class ApplicationReceiver extends BroadcastReceiver {
 
 	public static final String INSTALL_REQUEST_KEY = "adal.broker.install.request";
 
-	private static final String INSTALL_UPN_KEY = "upn";
+	private static final String INSTALL_UPN_KEY = "username";
+	
+	public static final String INSTALL_URL_KEY = "app_link";
 
 	/**
 	 * This method receives message for any application status based on filters
