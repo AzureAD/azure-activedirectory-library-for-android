@@ -34,6 +34,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -120,6 +121,35 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals(2, users.size());
     }
 
+    public void testDateTimeFormatterOldFormat() throws NoSuchAlgorithmException,
+            NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException,
+            KeyStoreException, CertificateException, NoSuchProviderException,
+            InvalidAlgorithmParameterException, UnrecoverableEntryException, DigestException,
+            IllegalBlockSizeException, BadPaddingException, IOException, NameNotFoundException,
+            NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        StorageHelper mockSecure = mock(StorageHelper.class);
+        Context mockContext = mock(Context.class);
+        SharedPreferences prefs = mock(SharedPreferences.class);
+        when(prefs.contains("testkey")).thenReturn(true);
+        when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
+        when(mockSecure.decrypt("test_encrypted")).thenReturn(
+                "{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"Apr 28, 2015 1:09:57 PM\"}");
+        when(
+                mockContext.getSharedPreferences("com.microsoft.aad.adal.cache",
+                        Activity.MODE_PRIVATE)).thenReturn(prefs);
+        Class<?> c = DefaultTokenCacheStore.class;
+        Field encryptHelper = c.getDeclaredField("sHelper");
+        encryptHelper.setAccessible(true);
+        encryptHelper.set(null, mockSecure);
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(mockContext);
+        TokenCacheItem item = cache.getItem("testkey");
+
+        // Verify returned item
+        assertNotNull(item.getExpiresOn());
+        assertNotNull(item.getExpiresOn().after(new Date()));
+        encryptHelper.set(null, null);
+    }
+
     public void testGetTokensForResource() throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
@@ -191,7 +221,8 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
             assertTrue("Should say expired", TokenCacheItem.isTokenExpired(item.getExpiresOn()));
         }
 
-        // Set expire time ahead of buffer 240 +100 secs more than 300secs buffer
+        // Set expire time ahead of buffer 240 +100 secs more than 300secs
+        // buffer
         expireTime.add(Calendar.SECOND, 100);
         for (TokenCacheItem item : tokens) {
             item.setExpiresOn(expireTime.getTime());
@@ -199,7 +230,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
                     TokenCacheItem.isTokenExpired(item.getExpiresOn()));
         }
     }
-    
+
     @Override
     protected ITokenCacheStore getTokenCacheStore() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
