@@ -58,6 +58,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.ApplicationReceiver;
 import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationException;
@@ -163,6 +164,39 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL);
         assertEquals(TEST_REQUEST_ID,
                 data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
+    }
+    
+    @SmallTest
+    @UiThreadTest
+    public void testWebview_InstallLink() throws IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            InterruptedException, ExecutionException {
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        String url = AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX
+                + "?upn=abc@outlook.com";
+        WebViewClient client = getCustomWebViewClient();
+        WebView mockview = new WebView(getActivity().getApplicationContext());
+        ReflectionUtils.setFieldValue(activity, "mSpinner", null);
+
+        // Act
+        client.shouldOverrideUrlLoading(mockview, url);
+
+        // Verify result code that includes requestid. Activity will set the
+        // result back to caller.
+        TestLogResponse response = new TestLogResponse();
+        final CountDownLatch signal = new CountDownLatch(1);
+        response.listenForLogMessage("It is an install request", signal);
+        int counter = 0;
+        while (!isFinishCalled() && counter < 20) {
+            Thread.sleep(DEVICE_RESPONSE_WAIT);
+            counter++;
+        }
+
+        String savedData = ApplicationReceiver.getInstallRequestInthisApp(getInstrumentation().getTargetContext());
+        assertNotNull(savedData);
+        assertTrue(savedData.contains("abc@outlook.com"));
     }
 
     /**
