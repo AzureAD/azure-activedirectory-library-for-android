@@ -34,54 +34,55 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
-public final class DateTimeAdapter implements JsonDeserializer<Date>,
-		JsonSerializer<Date> {
+public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerializer<Date> {
 
-	private static final String TAG = "DateTimeAdapter";
-	private final DateFormat enUsFormat = DateFormat.getDateTimeInstance(
-			DateFormat.DEFAULT, DateFormat.DEFAULT, Locale.US);
-	private final DateFormat localFormat = DateFormat.getDateTimeInstance(
-			DateFormat.DEFAULT, DateFormat.DEFAULT);
-	private final DateFormat iso8601Format = buildIso8601Format();
+    private static final String TAG = "DateTimeAdapter";
 
-	private static DateFormat buildIso8601Format() {
-		DateFormat iso8601Format = new SimpleDateFormat(
-				"yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-		iso8601Format.setTimeZone(TimeZone.getTimeZone("UTC"));
-		return iso8601Format;
-	}
+    private final DateFormat enUsFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT,
+            DateFormat.DEFAULT, Locale.US);
 
-	public DateTimeAdapter() {
-	}
+    private final DateFormat localFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT,
+            DateFormat.DEFAULT);
 
-	@Override
-	public synchronized Date deserialize(JsonElement json, Type typeOfT,
-			JsonDeserializationContext context) throws JsonParseException {
-		String jsonString = json.getAsString();
+    private final DateFormat iso8601Format = buildIso8601Format();
 
-		try {
-			return localFormat.parse(jsonString);
-		} catch (ParseException ignored) {
-		}
+    private static DateFormat buildIso8601Format() {
+        DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        iso8601Format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return iso8601Format;
+    }
 
-		try {
-			return enUsFormat.parse(jsonString);
-		} catch (ParseException ignored) {
-		}
+    public DateTimeAdapter() {
+    }
 
-		try {
-			return iso8601Format.parse(jsonString);
-		} catch (ParseException e) {
-			Logger.e(TAG, "Could not parse date: " + e.getMessage(), "",
-					ADALError.DATE_PARSING_FAILURE, e);
-		}
+    @Override
+    public synchronized Date deserialize(JsonElement json, Type typeOfT,
+            JsonDeserializationContext context) throws JsonParseException {
+        String jsonString = json.getAsString();
 
-		throw new JsonParseException("Could not parse date: " + jsonString);
-	}
+        try {
+            return localFormat.parse(jsonString);
+        } catch (ParseException ignored) {
+        }
 
-	@Override
-	public synchronized JsonElement serialize(Date src, Type typeOfSrc,
-			JsonSerializationContext context) {
-		return new JsonPrimitive(iso8601Format.format(src));
-	}
+        try {
+            return enUsFormat.parse(jsonString);
+        } catch (ParseException ignored) {
+        }
+
+        try {
+            return iso8601Format.parse(jsonString);
+        } catch (ParseException e) {
+            Logger.e(TAG, "Could not parse date: " + e.getMessage(), "",
+                    ADALError.DATE_PARSING_FAILURE, e);
+        }
+
+        throw new JsonParseException("Could not parse date: " + jsonString);
+    }
+
+    @Override
+    public synchronized JsonElement serialize(Date src, Type typeOfSrc,
+            JsonSerializationContext context) {
+        return new JsonPrimitive(iso8601Format.format(src));
+    }
 }

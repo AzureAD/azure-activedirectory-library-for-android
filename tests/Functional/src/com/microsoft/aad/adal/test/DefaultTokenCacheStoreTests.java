@@ -37,6 +37,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -148,6 +150,44 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertNotNull(item.getExpiresOn());
         assertNotNull(item.getExpiresOn().after(new Date()));
         encryptHelper.set(null, null);
+    }
+
+    public void testDateTimeFormatterLocaleChange() throws NoSuchAlgorithmException,
+            NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException,
+            KeyStoreException, CertificateException, NoSuchProviderException,
+            InvalidAlgorithmParameterException, UnrecoverableEntryException, DigestException,
+            IllegalBlockSizeException, BadPaddingException, IOException, NameNotFoundException,
+            NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+        ArrayList<TokenCacheItem> tokens = store.getTokensForResource("resource");
+        // Serializing without miliseconds
+        long precision = 1000;
+        TokenCacheItem item = tokens.get(0);
+        String cacheKey = CacheKey.createCacheKey(item);
+        Calendar time = Calendar.getInstance();
+        Date dateTimeNow = time.getTime();
+        long timeNowMiliSeconds = dateTimeNow.getTime();
+        item.setExpiresOn(dateTimeNow);
+        store.setItem(cacheKey, item);
+        TokenCacheItem fromCache = store.getItem(cacheKey);
+        assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
+
+        // Parse for different settings
+        Locale.setDefault(Locale.FRANCE);
+        fromCache = store.getItem(cacheKey);
+        assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
+        
+        Locale.setDefault(Locale.US);
+        fromCache = store.getItem(cacheKey);
+        assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
+        
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT+03:00"));
+        fromCache = store.getItem(cacheKey);
+        assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
+        
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT+05:00"));
+        fromCache = store.getItem(cacheKey);
+        assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
     }
 
     public void testGetTokensForResource() throws NoSuchAlgorithmException, NoSuchPaddingException {
