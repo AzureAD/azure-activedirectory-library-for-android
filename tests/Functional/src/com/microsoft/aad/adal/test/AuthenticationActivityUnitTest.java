@@ -175,7 +175,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         startActivity(intentToStartActivity, null, null);
         activity = getActivity();
         String url = AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX
-                + "?upn=abc@outlook.com";
+                + "?username=abc@outlook.com&app_link=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.azure.authenticator";
         WebViewClient client = getCustomWebViewClient();
         WebView mockview = new WebView(getActivity().getApplicationContext());
         ReflectionUtils.setFieldValue(activity, "mSpinner", null);
