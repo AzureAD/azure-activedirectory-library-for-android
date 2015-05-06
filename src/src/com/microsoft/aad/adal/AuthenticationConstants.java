@@ -239,6 +239,8 @@ public class AuthenticationConstants {
         public static final String MULTI_RESOURCE_TOKEN = "account.multi.resource.token";
 
         public static final String ACCOUNT_NAME = "account.name";
+        
+        public static final String ACCOUNT_IDTOKEN = "account.idtoken";
 
         public static final String ACCOUNT_USERINFO_USERID = "account.userinfo.userid";
 
@@ -312,6 +314,8 @@ public class AuthenticationConstants {
         public static final String BROWSER_EXT_PREFIX = "browser://";
         
         public static final String BROWSER_EXT_INSTALL_PREFIX = "msauth://";
+
+        public static final String CALLER_INFO_PACKAGE = "caller.info.package";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";
