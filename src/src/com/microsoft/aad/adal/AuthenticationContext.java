@@ -715,9 +715,11 @@ public class AuthenticationContext {
                     long expireTime = data.getLongExtra(
                             AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
                     Date expire = new Date(expireTime);
+                    String idtoken = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN);
+                    String tenantId = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                     UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
-                            expire, false, userinfo, "", "");
+                            expire, false, userinfo, tenantId, idtoken);
                     if (brokerResult != null && brokerResult.getAccessToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                         return;
@@ -1134,9 +1136,12 @@ public class AuthenticationContext {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             AuthenticationResult result = null;
             request.setVersion(getVersionName());
+            request.setBrokerAccountName(request.getLoginHint());
+            
             // Don't send background request, if prompt flag is always or
             // refresh_session
-            if (!promptUser(request.getPrompt())) {
+            if (!promptUser(request.getPrompt())
+                    && !StringExtensions.IsNullOrBlank(request.getBrokerAccountName())) {
                 try {
                     result = mBrokerProxy.getAuthTokenInBackground(request);
                 } catch (AuthenticationException ex) {
@@ -1178,7 +1183,7 @@ public class AuthenticationContext {
                                 callbackHandle.callback));
                 if (result != null && result.isInitialRequest()) {
                     Logger.v(TAG, "Initial request to authenticator");
-                    // Record the initial request but not force a prompt
+                    // Log the initial request but not force a prompt
                 }
 
                 // onActivityResult will receive the response
@@ -1893,6 +1898,6 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.3";
+        return "1.1.4";
     }
 }

@@ -89,7 +89,7 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public boolean canSwitchToBroker() {
         String packageName = mContext.getPackageName();
-        
+
         // ADAL switches broker for following conditions:
         // 1- app is not skipping the broker
         // 2- permissions are set in the manifest,
@@ -98,9 +98,9 @@ class BrokerProxy implements IBrokerProxy {
         // 5- account exists
         return !AuthenticationSettings.INSTANCE.getSkipBroker()
                 && verifyManifestPermissions()
+                && checkAccount(mAcctManager)
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
-                        .getBrokerPackageName()) && verifyAuthenticator(mAcctManager)
-                && verifyAccount();
+                        .getBrokerPackageName()) && verifyAuthenticator(mAcctManager);
     }
 
     @Override
@@ -118,14 +118,6 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return false;
-    }
-
-    private boolean verifyAccount() {
-        Logger.v(TAG, "Verify account count");
-        // only call authenticator if there is an account
-        Account[] accountList = mAcctManager
-                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        return accountList != null && accountList.length > 0;
     }
 
     /**
@@ -162,6 +154,19 @@ class BrokerProxy implements IBrokerProxy {
         }
     }
 
+    private Account findAccount(String accountName, Account[] accountList) {
+        if (accountList != null) {
+            for (Account account : accountList) {
+                if (account != null && account.name != null
+                        && account.name.equalsIgnoreCase(accountName)) {
+                    return account;
+                }
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Gets accessToken from Broker component.
      */
@@ -175,11 +180,7 @@ class BrokerProxy implements IBrokerProxy {
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
-        // Single WPJ user
-        if (accountList == null || accountList.length != 1) {
-            throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS);
-        }
-        Account targetAccount = accountList[0];
+        Account targetAccount = findAccount(request.getBrokerAccountName(), accountList);
 
         if (targetAccount != null) {
             Bundle brokerOptions = getBrokerOptions(request);
@@ -300,25 +301,25 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.v(TAG, "removeAccounts:");
                 Account[] accountList = mAcctManager
                         .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-                if (accountList != null && accountList.length == 1) {
-                    // single user changes
-                    Account targetAccount = accountList[0];
-                    Logger.v(TAG, "remove tokens for:" + targetAccount.name);
-                    if (targetAccount != null) {
-                        Bundle brokerOptions = new Bundle();
-                        brokerOptions.putString(
-                                AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
-                                AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
+                if (accountList != null) {
+                    for (Account targetAccount : accountList) {
+                        Logger.v(TAG, "remove tokens for:" + targetAccount.name);
+                        if (targetAccount != null) {
+                            Bundle brokerOptions = new Bundle();
+                            brokerOptions.putString(
+                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
+                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
 
-                        // only this API call sets calling UID. We are
-                        // setting
-                        // special value to indicate that tokens for this
-                        // calling UID will be cleaned from this account
-                        mAcctManager.getAuthToken(targetAccount,
-                                AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions,
-                                false, null /*
-                                             * set to null to avoid callback
-                                             */, mHandler);
+                            // only this API call sets calling UID. We are
+                            // setting
+                            // special value to indicate that tokens for this
+                            // calling UID will be cleaned from this account
+                            mAcctManager.getAuthToken(targetAccount,
+                                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, brokerOptions,
+                                    false, null /*
+                                                 * set to null to avoid callback
+                                                 */, mHandler);
+                        }
                     }
                 }
             }
@@ -386,13 +387,24 @@ class BrokerProxy implements IBrokerProxy {
                 request.getClientId());
         brokerOptions.putString(AuthenticationConstants.Broker.ADAL_VERSION_KEY,
                 request.getVersion());
+        if (request.getCorrelationId() != null) {
+            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID, request
+                    .getCorrelationId().toString());
+        }
 
-        // allowing single user for now
+        String username = request.getBrokerAccountName();
+        if(StringExtensions.IsNullOrBlank(username)){
+            username = request.getLoginHint();
+        }
+
         brokerOptions
-                .putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, getCurrentUser());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME, getCurrentUser());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt()
-                .name());
+                .putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, username);
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME, username);
+        
+        if (request.getPrompt() != null) {
+            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request
+                    .getPrompt().name());
+        }
         return brokerOptions;
     }
 
@@ -410,6 +422,24 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return null;
+    }
+    
+    private boolean checkAccount(final AccountManager am){
+        AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
+        for (AuthenticatorDescription authenticator : authenticators) {
+            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
+                
+                // Authenticator installed from Compoany portal
+                if (authenticator.packageName.equalsIgnoreCase(AuthenticationConstants.Broker.PACKAGE_NAME)){
+                    Account[] accountList = mAcctManager
+                            .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+                    return accountList != null && accountList.length > 0;
+                }
+            }
+        }
+
+        // new azure authenticator does not restrict for single account existence
+        return true;
     }
 
     private boolean verifySignature(final String brokerPackageName) {
@@ -477,7 +507,8 @@ class BrokerProxy implements IBrokerProxy {
     public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
             IOException {
 
-        // Calling this on main thread will cause exception since this is waiting on AccountManagerFuture 
+        // Calling this on main thread will cause exception since this is
+        // waiting on AccountManagerFuture
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalArgumentException("Calling getBrokerUsers on main thread");
         }
@@ -492,7 +523,7 @@ class BrokerProxy implements IBrokerProxy {
             // get info for each user
             UserInfo[] users = new UserInfo[accountList.length];
             for (int i = 0; i < accountList.length; i++) {
-                
+
                 // Use AccountManager Api method to get extended user info
                 AccountManagerFuture<Bundle> result = mAcctManager.updateCredentials(
                         accountList[i], AuthenticationConstants.Broker.AUTHTOKEN_TYPE, bundle,

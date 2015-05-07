@@ -35,6 +35,7 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager.NameNotFoundException;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Store/Retrieve TokenCacheItem from private SharedPreferences.
@@ -53,12 +54,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private Context mContext;
 
-    private Gson mGson = new Gson();
+    private Gson mGson = new GsonBuilder()
+    .registerTypeAdapter(Date.class, new DateTimeAdapter())
+    .create();
 
     private static StorageHelper sHelper;
 
     private static Object sLock = new Object();
-
+    
     /**
      * @param context {@link Context}
      * @throws NoSuchAlgorithmException

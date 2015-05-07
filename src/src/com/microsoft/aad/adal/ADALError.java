@@ -250,6 +250,11 @@ public enum ADALError {
      * IdToken is normally returned from token endpoint.
      */
     IDTOKEN_PARSING_FAILURE("Cannot parse IdToken"),
+    
+    /**
+     * Dateformat is invalid.
+     */
+    DATE_PARSING_FAILURE("Cannot parse date"),
 
     /**
      * Authorization code not exchanged for token.

@@ -184,6 +184,8 @@ public class AuthenticationConstants {
 
         public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.broker.request";
 
+        public static final String BROKER_REQUEST_RESUME = "com.microsoft.aadbroker.adal.broker.request.resume";
+        
         /**
          * Account type string.
          */
@@ -237,6 +239,8 @@ public class AuthenticationConstants {
         public static final String MULTI_RESOURCE_TOKEN = "account.multi.resource.token";
 
         public static final String ACCOUNT_NAME = "account.name";
+        
+        public static final String ACCOUNT_IDTOKEN = "account.idtoken";
 
         public static final String ACCOUNT_USERINFO_USERID = "account.userinfo.userid";
 
@@ -296,6 +300,8 @@ public class AuthenticationConstants {
          * component.
          */
         public static final String AZURE_AUTHENTICATOR_APP_SIGNATURE = "ho040S3ffZkmxqtQrSwpTVOn9r0=";
+        
+        public static final String AZURE_AUTHENTICATOR_APP_PACKAGE_NAME = "com.azure.authenticator";
 
         public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
 
@@ -308,6 +314,10 @@ public class AuthenticationConstants {
         public static final Object REDIRECT_DELIMETER_ENCODED = "%2C";
         
         public static final String BROWSER_EXT_PREFIX = "browser://";
+        
+        public static final String BROWSER_EXT_INSTALL_PREFIX = "msauth://";
+
+        public static final String CALLER_INFO_PACKAGE = "caller.info.package";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";

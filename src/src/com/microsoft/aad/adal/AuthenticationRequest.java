@@ -75,6 +75,7 @@ class AuthenticationRequest implements Serializable {
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
+        mBrokerAccountName = mLoginHint;
         mPrompt = prompt;
         mExtraQueryParamsAuthentication = extraQueryParams;
         mCorrelationId = correlationId;
@@ -88,6 +89,7 @@ class AuthenticationRequest implements Serializable {
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
+        mBrokerAccountName = mLoginHint;
         mCorrelationId = requestCorrelationId;
     }
 
@@ -98,6 +100,7 @@ class AuthenticationRequest implements Serializable {
         mClientId = client;
         mRedirectUri = redirect;
         mLoginHint = loginhint;
+        mBrokerAccountName = mLoginHint;
     }
 
     public AuthenticationRequest(String authority, String resource, String clientid) {
