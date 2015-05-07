@@ -98,6 +98,7 @@ class BrokerProxy implements IBrokerProxy {
         // 5- account exists
         return !AuthenticationSettings.INSTANCE.getSkipBroker()
                 && verifyManifestPermissions()
+                && checkAccount(mAcctManager)
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
                         .getBrokerPackageName()) && verifyAuthenticator(mAcctManager);
     }
@@ -421,6 +422,24 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return null;
+    }
+    
+    private boolean checkAccount(final AccountManager am){
+        AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
+        for (AuthenticatorDescription authenticator : authenticators) {
+            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
+                
+                // Authenticator installed from Compoany portal
+                if (authenticator.packageName.equalsIgnoreCase(AuthenticationConstants.Broker.PACKAGE_NAME)){
+                    Account[] accountList = mAcctManager
+                            .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+                    return accountList != null && accountList.length > 0;
+                }
+            }
+        }
+
+        // new azure authenticator does not restrict for single account existence
+        return true;
     }
 
     private boolean verifySignature(final String brokerPackageName) {

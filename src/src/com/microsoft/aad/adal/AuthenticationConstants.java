@@ -300,6 +300,8 @@ public class AuthenticationConstants {
          * component.
          */
         public static final String AZURE_AUTHENTICATOR_APP_SIGNATURE = "ho040S3ffZkmxqtQrSwpTVOn9r0=";
+        
+        public static final String AZURE_AUTHENTICATOR_APP_PACKAGE_NAME = "com.azure.authenticator";
 
         public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
 
