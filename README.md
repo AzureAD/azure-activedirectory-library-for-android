@@ -84,18 +84,15 @@ You can get the binaries from Maven central repo. AAR package can be included as
 ```gradle 
 repositories {
     mavenCentral()
-    flatDir {
-        dirs 'libs'
-    }
     maven {
-        url "YourLocalMavenRepoPath\\.m2\\repository"
+        url "http://repo1.maven.org/maven2/"
     }
 }
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile('com.microsoft.aad:adal:1.1.1') { 
+    compile ('com.microsoft.aad:adal:1.1.2') {
         exclude group: 'com.android.support'
-    } // Recent version is 1.1.1
+    }
 }
 ```
 
@@ -107,7 +104,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <type>aar</type>
 </dependency>
 ```
