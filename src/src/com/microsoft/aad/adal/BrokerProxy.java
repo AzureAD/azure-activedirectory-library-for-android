@@ -387,6 +387,8 @@ class BrokerProxy implements IBrokerProxy {
                 request.getClientId());
         brokerOptions.putString(AuthenticationConstants.Broker.ADAL_VERSION_KEY,
                 request.getVersion());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_EXTRA_QUERY_PARAM,
+                request.getExtraQueryParamsAuthentication());
         if (request.getCorrelationId() != null) {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID, request
                     .getCorrelationId().toString());
