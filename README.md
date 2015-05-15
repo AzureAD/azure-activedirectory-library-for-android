@@ -68,7 +68,7 @@ We've made it easy for you to have multiple options to use this library in your 
 
 ###Option 1: Source Zip
 
-To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/archive/v1.0.9.tar.gz).
+To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/archive/v1.1.5.tar.gz).
 
 ###Option 2: Source via Git
 
@@ -95,7 +95,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile('com.microsoft.aad:adal:1.0.0') { 
         exclude group: 'com.android.support'
-    } // Recent version is 1.0.9
+    } // Recent version is 1.1.5
 }
 ```
 
@@ -107,11 +107,11 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.0.8</version>
+    <version>1.1.5</version>
     <type>aar</type>
 </dependency>
 ```
-// Recent version is 1.0.9
+// Recent version is 1.1.5
 
 ###Option 5: jar package inside libs folder
 You can get the jar file from maven the repo and drop into the *libs* folder in your project. You need to copy the required resources to your project as well since the jar packages don't include them.
