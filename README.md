@@ -108,7 +108,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.1.5</version>
+    <version>1.1.3</version>
     <type>aar</type>
 </dependency>
 ```
