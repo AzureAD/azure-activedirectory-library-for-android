@@ -86,10 +86,10 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile('com.microsoft.aad:adal:1.1.1') { 
+    // your dependencies here...
+    compile('com.microsoft.aad:adal:1.1.3') { 
         exclude group: 'com.android.support'
-    } // Recent version is 1.1.5
+    }
 }
 ```
 
