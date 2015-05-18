@@ -112,7 +112,6 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
     <type>aar</type>
 </dependency>
 ```
-// Recent version is 1.1.5
 
 
 ###Option 5: jar package inside libs folder
