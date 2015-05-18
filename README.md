@@ -84,12 +84,6 @@ You can get the binaries from Maven central repo. AAR package can be included as
 ```gradle 
 repositories {
     mavenCentral()
-    flatDir {
-        dirs 'libs'
-    }
-    maven {
-        url "YourLocalMavenRepoPath\\.m2\\repository"
-    }
 }
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
