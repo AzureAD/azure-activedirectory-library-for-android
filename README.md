@@ -84,18 +84,19 @@ You can get the binaries from Maven central repo. AAR package can be included as
 ```gradle 
 repositories {
     mavenCentral()
-    flatDir {
-        dirs 'libs'
-    }
-    maven {
-        url "YourLocalMavenRepoPath\\.m2\\repository"
-    }
 }
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile('com.microsoft.aad:adal:1.0.0') { 
-        exclude group: 'com.android.support'
-    } // Recent version is 1.1.5
+    // your dependencies here...
+    compile('com.microsoft.aad:adal:1.1.3') {
+        // if your app includes android support
+        // libraries or Gson in its dependencies
+        // exclude that groupId from ADAL's compile
+        // task by un-commenting the appropriate
+        // line below
+
+        // exclude group: 'com.android.support'
+        // exclude group: 'com.google.code.gson'
+    }
 }
 ```
 
@@ -107,11 +108,10 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.1.5</version>
+    <version>1.1.3</version>
     <type>aar</type>
 </dependency>
 ```
-// Recent version is 1.1.5
 
 ###Option 5: jar package inside libs folder
 You can get the jar file from maven the repo and drop into the *libs* folder in your project. You need to copy the required resources to your project as well since the jar packages don't include them.
