@@ -87,8 +87,15 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:1.1.3') { 
-        exclude group: 'com.android.support'
+    compile('com.microsoft.aad:adal:1.1.3') {
+        // if your app includes android support
+        // libraries or Gson in its dependencies
+        // exclude that groupId from ADAL's compile
+        // task by un-commenting the appropriate
+        // line below
+        
+        // exclude group: 'com.android.support'
+        // exclude group: 'com.google.code.gson'
     }
 }
 ```
