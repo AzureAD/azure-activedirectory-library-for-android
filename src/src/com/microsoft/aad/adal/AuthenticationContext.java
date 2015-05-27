@@ -685,6 +685,8 @@ public class AuthenticationContext {
         // ResultCode is set back from AuthenticationActivity. RequestCode is
         // set when we start the activity for result.
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
+            getHandler();
+            
             if (data == null) {
                 // If data is null, RequestId is unknown. It could not find
                 // callback to respond to this request.
@@ -1898,6 +1900,6 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.5";
+        return "1.1.6";
     }
 }
