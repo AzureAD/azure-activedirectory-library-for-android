@@ -685,6 +685,8 @@ public class AuthenticationContext {
         // ResultCode is set back from AuthenticationActivity. RequestCode is
         // set when we start the activity for result.
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
+            getHandler();
+            
             if (data == null) {
                 // If data is null, RequestId is unknown. It could not find
                 // callback to respond to this request.
