@@ -21,6 +21,7 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -30,6 +31,7 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,6 +39,7 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
@@ -93,14 +96,18 @@ class BrokerProxy implements IBrokerProxy {
         // ADAL switches broker for following conditions:
         // 1- app is not skipping the broker
         // 2- permissions are set in the manifest,
-        // 3- if package is not broker itself
+        // 3- if package is not broker itself for both company portal and azure
+        // authenticator
         // 4- signature of the broker is valid
         // 5- account exists
         return !AuthenticationSettings.INSTANCE.getSkipBroker()
                 && verifyManifestPermissions()
                 && checkAccount(mAcctManager)
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
-                        .getBrokerPackageName()) && verifyAuthenticator(mAcctManager);
+                        .getBrokerPackageName())
+                && !packageName
+                        .equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
+                && verifyAuthenticator(mAcctManager);
     }
 
     @Override
@@ -395,14 +402,13 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         String username = request.getBrokerAccountName();
-        if(StringExtensions.IsNullOrBlank(username)){
+        if (StringExtensions.IsNullOrBlank(username)) {
             username = request.getLoginHint();
         }
 
-        brokerOptions
-                .putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, username);
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_LOGIN_HINT, username);
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_NAME, username);
-        
+
         if (request.getPrompt() != null) {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request
                     .getPrompt().name());
@@ -425,23 +431,53 @@ class BrokerProxy implements IBrokerProxy {
 
         return null;
     }
-    
-    private boolean checkAccount(final AccountManager am){
+
+    private boolean checkAccount(final AccountManager am) {
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
             if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
-                
-                // Authenticator installed from Compoany portal
-                if (authenticator.packageName.equalsIgnoreCase(AuthenticationConstants.Broker.PACKAGE_NAME)){
-                    Account[] accountList = mAcctManager
-                            .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+
+                Account[] accountList = mAcctManager
+                        .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+
+                // Authenticator installed from Company portal
+                if (authenticator.packageName
+                        .equalsIgnoreCase(AuthenticationConstants.Broker.PACKAGE_NAME)) {
                     return accountList != null && accountList.length > 0;
+
+                    // Check azure authenticator and allow calls for test
+                    // versions
+                } else if (authenticator.packageName
+                        .equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
+                        || authenticator.packageName
+                                .equalsIgnoreCase(AuthenticationSettings.INSTANCE
+                                        .getBrokerPackageName())) {
+
+                    // Existing broker logic only connects to broker for token
+                    // requests if account exists. New version can allow to
+                    // add accounts through Adal.
+                    if (hasSupportToAddUserThroughBroker()) {
+                        Logger.v(TAG, "Broker supports to add user through app");
+                        return true;
+                    } else {
+                        return accountList != null && accountList.length > 0;
+                    }
                 }
             }
         }
 
-        // new azure authenticator does not restrict for single account existence
-        return true;
+        return false;
+    }
+
+    private boolean hasSupportToAddUserThroughBroker() {
+        Intent intent = new Intent();
+        intent.setPackage(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
+        intent.setClassName(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME,
+                AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME
+                        + ".ui.AccountChooserActivity");
+        PackageManager packageManager = mContext.getPackageManager();
+        List<ResolveInfo> infos = packageManager.queryIntentActivities(intent, 0);
+        return infos.size() > 0;
     }
 
     private boolean verifySignature(final String brokerPackageName) {
