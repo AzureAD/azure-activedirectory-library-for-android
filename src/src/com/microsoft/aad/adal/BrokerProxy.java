@@ -45,6 +45,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Base64;
 
 /**
@@ -174,6 +175,19 @@ class BrokerProxy implements IBrokerProxy {
         return null;
     }
 
+    private UserInfo findUserInfo(String userid, UserInfo[] userList) {
+        if (userList != null) {
+            for (UserInfo user : userList) {
+                if (user != null && !TextUtils.isEmpty(user.getUserId())
+                        && user.getUserId().equalsIgnoreCase(userid)) {
+                    return user;
+                }
+            }
+        }
+
+        return null;
+    }
+    
     /**
      * Gets accessToken from Broker component.
      */
@@ -184,10 +198,23 @@ class BrokerProxy implements IBrokerProxy {
         verifyNotOnMainThread();
 
         // if there is not any user added to account, it returns empty
+        Account targetAccount = null;
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
-        Account targetAccount = findAccount(request.getBrokerAccountName(), accountList);
+        if (!TextUtils.isEmpty(request.getBrokerAccountName())) {
+            targetAccount = findAccount(request.getBrokerAccountName(), accountList);
+        } else {
+            try {
+                UserInfo[] users = getBrokerUsers();
+                UserInfo matchingUser = findUserInfo(request.getUserId(), users);
+                if (matchingUser != null) {
+                    targetAccount = findAccount(matchingUser.getDisplayableId(), accountList);
+                }
+            } catch (Exception e) {
+                Logger.e(TAG, e.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
+            }
+        }
 
         if (targetAccount != null) {
             Bundle brokerOptions = getBrokerOptions(request);
@@ -226,6 +253,8 @@ class BrokerProxy implements IBrokerProxy {
 
             Logger.v(TAG, "Returning result from Authenticator");
             return authResult;
+        } else {
+            Logger.v(TAG, "Target account is not found");
         }
 
         return null;
