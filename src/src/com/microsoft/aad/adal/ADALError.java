@@ -350,6 +350,11 @@ public enum ADALError {
      * Authenticator has IO Exception.
      */
     BROKER_AUTHENTICATOR_IO_EXCEPTION("Authenticator has IO Exception"),
+    
+    /**
+     * Authenticator returned exception.
+     */
+    BROKER_AUTHENTICATOR_EXCEPTION("Authenticator has an Exception"),
 
     /**
      * Signature could not be verified.
