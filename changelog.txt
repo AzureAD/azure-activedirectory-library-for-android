@@ -1,3 +1,15 @@
+Version 1.1.7
+--------------
+Fix issue with acquireTokenSilent for new authenticator version.
+
+Version 1.1.6
+--------------
+Fix issue with failing wpj through Azure Authenticator
+
+Version 1.1.5
+--------------
+Send extra query parameter to Authenticator with Bundle options
+
 Version 1.1.4
 --------------
 ApplicationReceiver to resume after install of Azure Authenticator

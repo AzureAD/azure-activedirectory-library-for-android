@@ -1143,8 +1143,10 @@ public class AuthenticationContext {
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())
-                    && !StringExtensions.IsNullOrBlank(request.getBrokerAccountName())) {
+                    && (!StringExtensions.IsNullOrBlank(request.getBrokerAccountName()) || !StringExtensions
+                            .IsNullOrBlank(request.getUserId()))) {
                 try {
+                    Logger.v(TAG, "User is specified for background token request");
                     result = mBrokerProxy.getAuthTokenInBackground(request);
                 } catch (AuthenticationException ex) {
                     // pass back to caller for known exceptions such as failure
@@ -1156,6 +1158,8 @@ public class AuthenticationContext {
                         throw ex;
                     }
                 }
+            } else {
+                Logger.v(TAG, "User is not specified for background token request");
             }
 
             if (result != null && result.getAccessToken() != null
@@ -1172,6 +1176,7 @@ public class AuthenticationContext {
             // Initial request to authenticator needs to launch activity to
             // record calling uid for the account. This happens for Prompt auto
             // or always behavior.
+            Logger.v(TAG, "Token is not returned from backgroud call");
             if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
 
                 // Only happens with callback since silent call does not show UI
@@ -1900,6 +1905,6 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.6";
+        return "1.1.7";
     }
 }
