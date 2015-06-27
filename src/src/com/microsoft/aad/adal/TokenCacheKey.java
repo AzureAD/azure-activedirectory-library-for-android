@@ -1,30 +1,16 @@
-// Copyright © Microsoft Open Technologies, Inc.
-//
-// All Rights Reserved
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
 
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
 import java.util.Locale;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
- * CacheKey will be the object for key.
+ * internal cache key implementation.
  */
-public final class CacheKey implements Serializable {
+final class TokenCacheKey implements Serializable {
 
     /**
      * Serial version id.
@@ -37,20 +23,39 @@ public final class CacheKey implements Serializable {
 
     private String mClientId;
 
-    private String mUserId;
+    private String mUniqueId;
+
+    private String mDisplayableId;
 
     private boolean mIsMultipleResourceRefreshToken;
 
-    private CacheKey() {
+    private TokenCacheKey() {
         mAuthority = null;
         mResource = null;
         mClientId = null;
     }
 
-    @Override
-    public String toString() {
-        return String.format(Locale.US, "%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
-                (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId);
+    public String toJsonString() throws JSONException {
+        JSONObject obj = new JSONObject();
+        obj.put("a", mAuthority);
+        obj.put("r", mResource);
+        obj.put("c", mClientId);
+        obj.put("u", mUniqueId);
+        obj.put("d", mDisplayableId);
+        obj.put("mr", mIsMultipleResourceRefreshToken);
+        return obj.toString();
+    }
+    
+    public static TokenCacheKey fromJsonString(String json) throws JSONException {
+        TokenCacheKey key = new TokenCacheKey();
+        JSONObject obj = new JSONObject(json);
+        key.mAuthority = obj.optString("a", "");
+        key.mResource = obj.optString("r", "");
+        key.mClientId = obj.optString("c", "");
+        key.mUniqueId = obj.optString("u", "");
+        key.mDisplayableId = obj.optString("d", "");
+        key.mIsMultipleResourceRefreshToken = obj.optBoolean("mr", false);
+        return key;
     }
 
     /**
@@ -61,8 +66,8 @@ public final class CacheKey implements Serializable {
      * @param userId userid provided from {@link UserInfo}
      * @return CacheKey to use in saving token
      */
-    public static String createCacheKey(String authority, String resource, String clientId,
-            boolean isMultiResourceRefreshToken, String userId) {
+    public static TokenCacheKey createCacheKey(String authority, String resource, String clientId,
+            boolean isMultiResourceRefreshToken, String uniqueId, String displayableId) {
 
         if (authority == null) {
             throw new IllegalArgumentException("authority");
@@ -72,7 +77,7 @@ public final class CacheKey implements Serializable {
             throw new IllegalArgumentException("clientId");
         }
 
-        CacheKey key = new CacheKey();
+        TokenCacheKey key = new TokenCacheKey();
 
         if (!isMultiResourceRefreshToken) {
 
@@ -93,44 +98,49 @@ public final class CacheKey implements Serializable {
         key.mIsMultipleResourceRefreshToken = isMultiResourceRefreshToken;
 
         // optional
-        if (!StringExtensions.IsNullOrBlank(userId)) {
-            key.mUserId = userId.toLowerCase(Locale.US);
+        if (!StringExtensions.IsNullOrBlank(uniqueId)) {
+            key.mUniqueId = uniqueId.toLowerCase(Locale.US);
         }
 
-        return key.toString();
+        if (!StringExtensions.IsNullOrBlank(displayableId)) {
+            key.mDisplayableId = displayableId.toLowerCase(Locale.US);
+        }
+
+        return key;
     }
 
     /**
      * @param item Token item in the cache
      * @return CacheKey to save token
      */
-    public static String createCacheKey(TokenCacheItem item) {
+    public static TokenCacheKey createCacheKey(TokenCacheItem item) {
         if (item == null) {
             throw new IllegalArgumentException("TokenCacheItem");
         }
 
-        String userid = null;
+        String uniqueId = null;
+        String displayableId = null;
 
         if (item.getUserInfo() != null) {
-            userid = item.getUserInfo().getUserId();
+            uniqueId = item.getUserInfo().getUniqueId();
+            displayableId = item.getUserInfo().getDisplayableId();
         }
 
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(),
-                item.getIsMultiResourceRefreshToken(), userid);
+                item.getIsMultiResourceRefreshToken(), uniqueId, displayableId);
     }
 
     /**
      * @param item AuthenticationRequest item
-     * @param cacheUserId UserId in the cache
      * @return CacheKey to save token
      */
-    public static String createCacheKey(AuthenticationRequest item, String cacheUserId) {
+    public static TokenCacheKey createCacheKey(AuthenticationRequest item) {
         if (item == null) {
             throw new IllegalArgumentException("AuthenticationRequest");
         }
 
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
-                cacheUserId);
+                item.getUserIdentifier().getUniqueId(), item.getUserIdentifier().getDisplayableId());
     }
 
     /**
@@ -141,14 +151,14 @@ public final class CacheKey implements Serializable {
      * @param cacheUserId UserId in the cache
      * @return CacheKey to save token
      */
-    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item,
-            String cacheUserId) {
+    public static TokenCacheKey createMultiResourceRefreshTokenKey(AuthenticationRequest item,
+            String cacheUniqueID, String cacheDispId) {
         if (item == null) {
             throw new IllegalArgumentException("AuthenticationRequest");
         }
 
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
-                cacheUserId);
+                cacheUniqueID, cacheDispId);
     }
 
     /**
@@ -179,12 +189,21 @@ public final class CacheKey implements Serializable {
     }
 
     /**
-     * Gets UserId.
+     * Gets UniqueId.
      * 
-     * @return UserId
+     * @return UniqueId
      */
-    public String getUserId() {
-        return mUserId;
+    public String getUniqueId() {
+        return mUniqueId;
+    }
+
+    /**
+     * Gets DisplayableId.
+     * 
+     * @return DisplayableId
+     */
+    public String getDisplayableId() {
+        return mDisplayableId;
     }
 
     /**
