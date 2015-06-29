@@ -31,6 +31,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -131,7 +132,7 @@ public class TokenCache implements ITokenCacheStore {
 
         if (mCacheItems != null && !mCacheItems.isEmpty()) {
 
-            String cacheJson = mGson.toJson((TokenCacheItem[])mCacheItems.values().toArray());
+            String cacheJson = mGson.toJson(mCacheItems.values().toArray(), TokenCacheItem[].class);
             return encrypt(cacheJson);
         }
 
@@ -232,32 +233,20 @@ public class TokenCache implements ITokenCacheStore {
         return null;
     }
 
-    private String decrypt(TokenCacheKey key, String value) {
-        try {
-            return sHelper.decrypt(value);
-        } catch (Exception e) {
-            Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
-            if (!StringExtensions.IsNullOrBlank(value)) {
-                Logger.v(TAG, String.format("Decryption error for key: '%s'. Item will be removed",
-                        value));
-                removeItem(key);
-                Logger.v(TAG, String.format("Item removed for key: '%s'", value));
-            }
-        }
-
-        return null;
-    }
-
     void removeItem(TokenCacheKey key) {
         argumentCheck();
 
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
+        
+        TokenCacheNotificationArgs args = new TokenCacheNotificationArgs();
+        beforeAccess(args);
+        beforeWrite(args);
 
-        if (mPrefs.contains(key.toString())) {
-
-        }
+        mCacheItems.remove(key);
+        stateChanged();
+        afterAccess(args);
     }
 
     TokenCacheItem getItem(TokenCacheKey key) {
@@ -268,15 +257,40 @@ public class TokenCache implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        if (mPrefs.contains(key.toString())) {
-            String json = mPrefs.getString(key.toString(), "");
-            String decrypted = decrypt(key, json);
-            if (decrypted != null) {
-                return mGson.fromJson(decrypted, TokenCacheItem.class);
-            }
-        }
+        TokenCacheNotificationArgs args = TokenCacheNotificationArgs.create(key);
+        beforeAccess(args);
 
-        return null;
+        Collection<TokenCacheItem> c = mCacheItems.values();
+        Iterator<TokenCacheItem> itr = c.iterator();
+        List<TokenCacheItem> items = new ArrayList<TokenCacheItem>();
+        while (itr.hasNext()) {
+        	TokenCacheItem item = itr.next();
+        	if(key.matches(item)){
+        		items.add(item);
+        	}
+        }
+        
+        // multiple entries for empty user
+        if(items.size() > 1 && key.isUserEmpty()){
+        	Logger.e(TAG, "Multiple entries in the cache for key:" + key.getLog(), " TokenCache:getItem", ADALError.CACHE_MULTIPLE_ENTRIES);
+        	throw new AuthenticationException(ADALError.CACHE_MULTIPLE_ENTRIES);
+        }
+        
+        afterAccess(args);
+        return !items.isEmpty() ? items.get(0) : null;
+    }
+    
+    void setItem(TokenCacheKey key, TokenCacheItem item) {
+
+        argumentCheck();
+
+        TokenCacheNotificationArgs args = TokenCacheNotificationArgs.create(key);
+        beforeAccess(args);
+        beforeWrite(args);
+
+        mCacheItems.put(key, item);
+        stateChanged();
+        afterAccess(args);
     }
 
     private void argumentCheck() {

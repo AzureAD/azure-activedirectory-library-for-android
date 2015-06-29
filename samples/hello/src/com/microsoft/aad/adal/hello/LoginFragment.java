@@ -20,6 +20,7 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.IWindowComponent;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UserIdentifier;
 
 public class LoginFragment extends Fragment {
 
@@ -79,11 +80,11 @@ public class LoginFragment extends Fragment {
             CookieManager cookieManager = CookieManager.getInstance();
             cookieManager.removeAllCookie();
             CookieSyncManager.getInstance().sync();
-            mAuthContext.getCache().removeAll();
+            mAuthContext.getCache().clear();
         } else {
             // login
             mAuthContext.acquireToken(wrapFragment(LoginFragment.this), Constants.RESOURCE_ID,
-                    Constants.CLIENT_ID, Constants.REDIRECT_URL, "", PromptBehavior.Auto, "",
+                    Constants.CLIENT_ID, Constants.REDIRECT_URL, UserIdentifier.getAnyUser(), PromptBehavior.Auto, "",
                     getCallback());
         }
     }
@@ -125,7 +126,7 @@ public class LoginFragment extends Fragment {
                 showInfo("Token is returned");
 
                 if (mResult.getUserInfo() != null) {
-                    Log.v(TAG, "User info userid:" + result.getUserInfo().getUserId()
+                    Log.v(TAG, "User info userid:" + result.getUserInfo().getUniqueId()
                             + " displayableId:" + result.getUserInfo().getDisplayableId());
                     textView.setText(result.getUserInfo().getDisplayableId());
                 }

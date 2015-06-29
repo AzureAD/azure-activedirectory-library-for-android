@@ -51,6 +51,8 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UserIdentifier;
+import com.microsoft.aad.adal.UserIdentifier.UserIdentifierType;
 
 public class MainActivity extends Activity {
 
@@ -133,52 +135,8 @@ public class MainActivity extends Activity {
     public void onClickDialog(View v) {
         Log.v(TAG, "dialog button is clicked");
         mAuthContext.acquireToken(Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserLoginHint(), PromptBehavior.Auto, EXTRA_QUERY_PARAM,
+                Constants.REDIRECT_URL, getUserInfo(), PromptBehavior.Auto, EXTRA_QUERY_PARAM,
                 getCallback());
-    }
-
-    public void onClickAcquireByRefreshToken(View v) {
-        Log.v(TAG, "onClickAcquireByRefreshToken is clicked");
-        if (mResult != null && mResult.getRefreshToken() != null
-                && !mResult.getRefreshToken().isEmpty()) {
-            mLoginProgressDialog.show();
-            mAuthContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), Constants.CLIENT_ID,
-                    Constants.RESOURCE_ID, new AuthenticationCallback<AuthenticationResult>() {
-
-                        @Override
-                        public void onError(Exception exc) {
-                            if (mLoginProgressDialog.isShowing()) {
-                                mLoginProgressDialog.dismiss();
-                            }
-
-                            Toast.makeText(getApplicationContext(),
-                                    TAG + "getToken Error:" + exc.getMessage(), Toast.LENGTH_SHORT)
-                                    .show();
-                        }
-
-                        @Override
-                        public void onSuccess(AuthenticationResult result) {
-                            if (mLoginProgressDialog.isShowing()) {
-                                mLoginProgressDialog.dismiss();
-                            }
-
-                            mResult = result;
-                            Toast.makeText(getApplicationContext(), "Token is returned",
-                                    Toast.LENGTH_SHORT).show();
-
-                            if (mResult.getUserInfo() != null) {
-                                Toast.makeText(getApplicationContext(),
-                                        "User:" + mResult.getUserInfo().getUserId(),
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-        } else {
-            Toast.makeText(getApplicationContext(),
-                    TAG + "onClickAcquireByRefreshToken refresh token is not present",
-                    Toast.LENGTH_SHORT).show();
-        }
-
     }
 
     private AuthenticationCallback<AuthenticationResult> getCallback() {
@@ -207,7 +165,7 @@ public class MainActivity extends Activity {
                         .show();
 
                 if (mResult.getUserInfo() != null) {
-                    Log.v(TAG, "User info userid:" + result.getUserInfo().getUserId()
+                    Log.v(TAG, "User info userid:" + result.getUserInfo().getUniqueId()
                             + " displayableId:" + result.getUserInfo().getDisplayableId());
                     mEditText.setText(result.getUserInfo().getDisplayableId());
                     Toast.makeText(getApplicationContext(),
@@ -223,14 +181,14 @@ public class MainActivity extends Activity {
         Log.v(TAG, "onClickAcquireTokenForceRefresh");
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserLoginHint(), PromptBehavior.REFRESH_SESSION, "",
+                Constants.REDIRECT_URL, getUserInfo(), PromptBehavior.REFRESH_SESSION, "",
                 getCallback());
     }
 
     public void onClickAcquireTokenSilent(View v) {
         Log.v(TAG, "onClickAcquireTokenSilent is clicked");
         mLoginProgressDialog.show();
-        mAuthContext.acquireTokenSilent(Constants.RESOURCE_ID, Constants.CLIENT_ID, getUserId(),
+        mAuthContext.acquireTokenSilent(Constants.RESOURCE_ID, Constants.CLIENT_ID, new UserIdentifier(getUserId(), UserIdentifier.UserIdentifierType.UniqueId),
                 getCallback());
     }
 
@@ -238,7 +196,7 @@ public class MainActivity extends Activity {
         Log.v(TAG, "token button is clicked");
         mLoginProgressDialog.show();
         mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserLoginHint(), EXTRA_QUERY_PARAM, getCallback());
+                Constants.REDIRECT_URL, getUserInfo(), EXTRA_QUERY_PARAM, getCallback());
     }
 
     private void clearSessionCookie() {
@@ -283,7 +241,7 @@ public class MainActivity extends Activity {
     public void onClickClearTokens(View view) {
         if (mAuthContext != null && mAuthContext.getCache() != null) {
             displayMessage("Clearing tokens");
-            mAuthContext.getCache().removeAll();
+            mAuthContext.getCache().clear();
         } else {
             textView1.setText("Cache is null");
         }
@@ -302,15 +260,17 @@ public class MainActivity extends Activity {
 
     private String getUserId() {
         if (mResult != null && mResult.getUserInfo() != null
-                && mResult.getUserInfo().getUserId() != null) {
-            return mResult.getUserInfo().getUserId();
+                && mResult.getUserInfo().getUniqueId() != null) {
+            return mResult.getUserInfo().getUniqueId();
         }
 
         return null;
     }
 
-    private String getUserLoginHint() {
-        return mEditText.getText().toString();
+    private UserIdentifier getUserInfo() {
+        
+        String name = mEditText.getText().toString();
+        return new UserIdentifier(name, UserIdentifier.UserIdentifierType.RequiredDisplayableId);
     }
 
     /**

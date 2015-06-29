@@ -368,6 +368,10 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
             String prompt = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
+            
+            
+            UserIdentifier userId = UserIdentifier.createFromIntent(callingIntent);
+            
             PromptBehavior promptBehavior = PromptBehavior.Auto;
             if (!StringExtensions.IsNullOrBlank(prompt)) {
                 promptBehavior = PromptBehavior.valueOf(prompt);
@@ -385,8 +389,9 @@ public class AuthenticationActivity extends Activity {
                             ADALError.CORRELATION_ID_FORMAT);
                 }
             }
+            
             authRequest = new AuthenticationRequest(authority, resource, clientidKey, redirect,
-                    loginhint, correlationIdParsed);
+                    userId, promptBehavior, "", correlationIdParsed);
             authRequest.setBrokerAccountName(accountName);
             authRequest.setPrompt(promptBehavior);
             authRequest.setRequestId(mWaitingRequestId);
@@ -567,31 +572,16 @@ public class AuthenticationActivity extends Activity {
             super(AuthenticationActivity.this, mRedirectUrl, mQueryParameters, mAuthRequest);
         }
                 
-        public void processRedirectUrl(final WebView view, String url){
-            if (!isBrokerRequest(getIntent())) {
-                // It is pointing to redirect. Final url can be processed to
-                // get the code or error.
-                Logger.i(TAG, "It is not a broker request", "");
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                        mAuthRequest);
-                returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
-                        resultIntent);
-                view.stopLoading();
-            } else {
-                Logger.i(TAG, "It is a broker request", "");
-                displaySpinnerWithMessage(AuthenticationActivity.this
-                        .getText(AuthenticationActivity.this.getResources().getIdentifier(
-                                "broker_processing", "string", getPackageName())));
-
-                view.stopLoading();
-
-                // do async task and show spinner while exchanging code for
-                // access token
-                new TokenTask(mWebRequestHandler, mAuthRequest, mCallingPackage, mCallingUID)
-                        .execute(url);
-            }
+        public void processRedirectUrl(final WebView view, String url) {
+            // It is pointing to redirect. Final url can be processed to
+            // get the code or error.
+            Logger.i(TAG, "It is not a broker request", "");
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                    mAuthRequest);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
+            view.stopLoading();
         }
         
         public boolean processInvalidUrl(final WebView view, String url) {
@@ -696,316 +686,5 @@ public class AuthenticationActivity extends Activity {
      */
     private final void setAccountAuthenticatorResult(Bundle result) {
         mAuthenticatorResultBundle = result;
-    }
-
-    /**
-     * Processes the authorization code to get token and stores inside the
-     * Account before returning back to the calling app. App does not receive
-     * refresh tokens. Calling app does not have access to
-     * setUserData/getUserData inside the AccountManager. This is used only for
-     * broker related call.
-     */
-    class TokenTask extends AsyncTask<String, String, TokenTaskResult> {
-
-        String mPackageName;
-
-        int mAppCallingUID;
-
-        AuthenticationRequest mRequest;
-
-        AccountManager mAccountManager;
-
-        IWebRequestHandler mRequestHandler;
-
-        public TokenTask() {
-        }
-
-        public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
-                final String packagename, final int callingUID) {
-            mRequestHandler = webHandler;
-            mRequest = request;
-            mPackageName = packagename;
-            mAppCallingUID = callingUID;
-            mAccountManager = AccountManager.get(AuthenticationActivity.this);
-        }
-
-        @Override
-        protected TokenTaskResult doInBackground(String... urlItems) {
-            Oauth2 oauthRequest = new Oauth2(mRequest, mRequestHandler, mJWSBuilder);
-            TokenTaskResult result = new TokenTaskResult();
-            try {
-                result.taskResult = oauthRequest.getToken(urlItems[0]);
-                Logger.v(TAG, "TokenTask processed the result. " + mRequest.getLogInfo());
-            } catch (Exception exc) {
-                Logger.e(TAG, "Error in processing code to get a token. " + mRequest.getLogInfo(),
-                        "Request url:" + urlItems[0],
-                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
-                result.taskException = exc;
-            }
-
-            if (result != null && result.taskResult != null
-                    && result.taskResult.getAccessToken() != null) {
-                Logger.v(TAG, "Setting account:" + mRequest.getLogInfo());
-
-                // Record account in the AccountManager service
-                try {
-                    setAccount(result);
-                } catch (Exception exc) {
-                    Logger.e(TAG, "Error in setting the account" + mRequest.getLogInfo(), "",
-                            ADALError.BROKER_ACCOUNT_SAVE_FAILED, exc);
-                    result.taskException = exc;
-                }
-            }
-
-            return result;
-        }
-
-        private String getBrokerAppCacheKey(StorageHelper cryptoHelper, String cacheKey)
-                throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException,
-                InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException,
-                NoSuchPaddingException, IOException {
-            // include UID in the key for broker to store caches for different
-            // apps under same account entry
-            String digestKey = StringExtensions
-                    .createHash(AuthenticationConstants.Broker.USERDATA_UID_KEY + mAppCallingUID
-                            + cacheKey);
-            Logger.v(TAG, "Cache key original:" + cacheKey + " digestKey:" + digestKey
-                    + " calling app UID:" + mAppCallingUID);
-            return digestKey;
-        }
-
-        private void appendAppUIDToAccount(StorageHelper cryptoHelper, Account account)
-                throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException,
-                InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException,
-                NoSuchPaddingException, IOException, KeyStoreException, CertificateException,
-                NoSuchProviderException, UnrecoverableEntryException, DigestException {
-            String appIdList = mAccountManager.getUserData(account,
-                    AuthenticationConstants.Broker.ACCOUNT_UID_CACHES);
-            if (appIdList == null) {
-                appIdList = "";
-            } else {
-                try {
-                    appIdList = cryptoHelper.decrypt(appIdList);
-                } catch (Exception ex) {
-                    Logger.e(TAG, "appUIDList failed to decrypt", "appIdList:" + appIdList,
-                            ADALError.ENCRYPTION_FAILED, ex);
-                    appIdList = "";
-                    Logger.i(TAG, "Reset the appUIDlist", "");
-                }
-            }
-
-            Logger.i(TAG, "Add calling UID:" + mAppCallingUID, "appIdList:" + appIdList);
-            if (!appIdList.contains(AuthenticationConstants.Broker.USERDATA_UID_KEY
-                    + mAppCallingUID)) {
-                Logger.i(TAG, "Account has new calling UID:" + mAppCallingUID, "");
-                mAccountManager
-                        .setUserData(
-                                account,
-                                AuthenticationConstants.Broker.ACCOUNT_UID_CACHES,
-                                cryptoHelper.encrypt(appIdList
-                                        + AuthenticationConstants.Broker.USERDATA_UID_KEY
-                                        + mAppCallingUID));
-            }
-        }
-
-        private void setAccount(final TokenTaskResult result) throws InvalidKeyException,
-                InvalidKeySpecException, InvalidAlgorithmParameterException,
-                IllegalBlockSizeException, BadPaddingException, IOException {
-            // TODO Add token logging
-            // TODO update for new cache logic
-
-            // Authenticator sets the account here and stores the tokens.
-            try {
-                String name = mRequest.getBrokerAccountName();
-                Account[] accountList = mAccountManager
-                        .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-
-                if (accountList == null || accountList.length != 1) {
-                    result.taskResult = null;
-                    result.taskException = new AuthenticationException(
-                            ADALError.BROKER_SINGLE_USER_EXPECTED);
-                    return;
-                }
-
-                Account newaccount = accountList[0];
-                
-                // Single user in authenticator is already created.
-                // This is only registering UID for the app
-                UserInfo userinfo = result.taskResult.getUserInfo();
-                if (userinfo == null || StringExtensions.IsNullOrBlank(userinfo.getUserId())) {
-                    // return userid in the userinfo and use only account name
-                    // for all fields
-                    Logger.i(TAG, "Set userinfo from account", "");
-                    result.taskResult.setUserInfo(new UserInfo(name, name, "", "", name));
-                    mRequest.setLoginHint(name);
-                } else {
-                    Logger.i(TAG, "Saving userinfo to account", "");
-                    mAccountManager.setUserData(newaccount,
-                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
-                            userinfo.getUserId());
-                    mAccountManager.setUserData(newaccount,
-                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
-                            userinfo.getGivenName());
-                    mAccountManager.setUserData(newaccount,
-                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
-                            userinfo.getFamilyName());
-                    mAccountManager.setUserData(newaccount,
-                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
-                            userinfo.getIdentityProvider());
-                    mAccountManager.setUserData(newaccount,
-                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                            userinfo.getDisplayableId());
-                }
-                result.accountName = name;
-                Logger.i(TAG, "Setting account. Account name: " + name + " package:"
-                        + mCallingPackage + " calling app UID:" + mAppCallingUID, "");
-               
-
-                // Cache logic will be changed based on latest logic
-                // This is currently keeping accesstoken and MRRT separate
-                // Encrypted Results are saved to AccountManager Service
-                // sqllite database. Only Authenticator and similar UID can
-                // access.
-                Gson gson = new Gson();
-                Logger.i(TAG, "app context:" + getApplicationContext().getPackageName()
-                        + " context:" + AuthenticationActivity.this.getPackageName()
-                        + " calling packagename:" + getCallingPackage(), "");
-                StorageHelper cryptoHelper = new StorageHelper(getApplicationContext());
-
-                if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
-                    Logger.i(TAG, "setAccount: user key is null", "");
-                }
-
-                TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
-                String json = gson.toJson(item);
-                String encrypted = cryptoHelper.encrypt(json);
-
-                // Single user and cache is stored per account
-                String key = CacheKey.createCacheKey(mRequest, null);
-                saveCacheKey(key, newaccount, mAppCallingUID);
-                mAccountManager.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
-                        encrypted);
-
-                if (result.taskResult.getIsMultiResourceRefreshToken()) {
-                    // ADAL stores MRRT refresh token separately
-                    TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
-                    json = gson.toJson(itemMRRT);
-                    encrypted = cryptoHelper.encrypt(json);
-                    key = CacheKey.createMultiResourceRefreshTokenKey(mRequest, null);
-                    saveCacheKey(key, newaccount, mAppCallingUID);
-                    mAccountManager.setUserData(newaccount,
-                            getBrokerAppCacheKey(cryptoHelper, key), encrypted);
-                }
-
-                // Record calling UID for this account so that app can get token
-                // in the background call without requiring server side
-                // validation
-                Logger.i(TAG, "Set calling uid:" + mAppCallingUID, "");
-                appendAppUIDToAccount(cryptoHelper, newaccount);
-            } catch (NoSuchAlgorithmException e) {
-                Logger.e(TAG, "Algorithm does not exist in the device", "",
-                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
-                result.taskException = e;
-            } catch (NoSuchPaddingException e) {
-                Logger.e(TAG, "Padding type does not exist in the device", "",
-                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
-                result.taskException = e;
-            } catch (KeyStoreException e) {
-                Logger.e(TAG, "Key store type is not supported", "",
-                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
-                result.taskException = e;
-            } catch (CertificateException e) {
-                Logger.e(TAG, "Certificate exception", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
-                result.taskException = e;
-            } catch (NoSuchProviderException e) {
-                Logger.e(TAG, "Requested security provider does not exists in the device", "",
-                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
-                result.taskException = e;
-            } catch (UnrecoverableEntryException e) {
-                Logger.e(TAG, "Key entry is not recoverable", "",
-                        ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
-                result.taskException = e;
-            } catch (DigestException e) {
-                Logger.e(TAG, "Digest is not valid", "", ADALError.DEVICE_CACHE_IS_NOT_WORKING, e);
-                result.taskException = e;
-            }
-        }
-
-        private void saveCacheKey(String key, Account cacheAccount, int callingUID) {
-            Logger.v(TAG, "Get CacheKeys for account");
-            // Store cachekeys for each UID
-            // Activity has access to packagename and UID, but background call
-            // in getAuthToken only knows about UID
-            String keylist = mAccountManager.getUserData(cacheAccount,
-                    AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + callingUID);
-            if (keylist == null) {
-                keylist = "";
-            }
-            if (!keylist.contains(AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key)) {
-                Logger.v(TAG, "Account does not have this cache key:" + key
-                        + " It will save it to accoun for the callerUID:" + callingUID);
-                keylist += AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key;
-                mAccountManager.setUserData(cacheAccount,
-                        AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + callingUID,
-                        keylist);
-                Logger.v(TAG, "keylist:" + keylist);
-            }
-        }
-
-        @Override
-        protected void onPostExecute(TokenTaskResult result) {
-            Logger.v(TAG, "Token task returns the result");
-            displaySpinner(false);
-            Intent intent = new Intent();
-
-            if (result.taskResult != null) {
-
-                if (result.taskResult.getStatus().equals(AuthenticationStatus.Succeeded)) {
-                    intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN,
-                            result.taskResult.getAccessToken());
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, result.accountName);
-
-                    if (result.taskResult.getExpiresOn() != null) {
-                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
-                                result.taskResult.getExpiresOn().getTime());
-                    }
-
-                    UserInfo userinfo = result.taskResult.getUserInfo();
-                    if (userinfo != null) {
-                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
-                                userinfo.getUserId());
-                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
-                                userinfo.getGivenName());
-                        intent.putExtra(
-                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
-                                userinfo.getFamilyName());
-                        intent.putExtra(
-                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
-                                userinfo.getIdentityProvider());
-                        intent.putExtra(
-                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                                userinfo.getDisplayableId());
-                    }
-                    
-                    returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
-                } else {
-                    returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                            result.taskResult.getErrorDescription());
-                }
-            } else {
-                Logger.v(TAG, "Token task has exception");
-                returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                        result.taskException.getMessage());
-            }
-        }
-    }
-
-    class TokenTaskResult {
-        AuthenticationResult taskResult;
-
-        Exception taskException;
-
-        String accountName;
     }
 }

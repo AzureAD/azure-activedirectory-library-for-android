@@ -82,7 +82,6 @@ public class ApplicationReceiver extends BroadcastReceiver {
         if (prefs != null) {
             HashMap<String, String> parameters = StringExtensions.getUrlParameters(url);
             if (parameters != null && parameters.containsKey(INSTALL_UPN_KEY)) {
-                request.setLoginHint(parameters.get(INSTALL_UPN_KEY));
                 request.setBrokerAccountName(parameters.get(INSTALL_UPN_KEY));
             }
             Editor prefsEditor = prefs.edit();

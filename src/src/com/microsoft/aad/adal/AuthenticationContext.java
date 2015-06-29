@@ -147,7 +147,7 @@ public class AuthenticationContext {
      * @param appContext {@link Context}
      * @param authority Authority Url
      * @param validateAuthority true/false for validation
-     * @param tokenCache Set to null if you don't want cache.
+     * @param tokenCache Set to null if you don't want cache. You can save the serialized cache to custom storage and update it.
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             TokenCache tokenCache) {
@@ -734,7 +734,7 @@ public class AuthenticationContext {
                                                         + authenticationRequest.getLogInfo());
 
                                         if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                                            setItemToCache(authenticationRequest, result, true);
+                                            setItemToCache(authenticationRequest, result);
                                         }
 
                                         if (waitingRequest != null
@@ -748,9 +748,20 @@ public class AuthenticationContext {
                                                 .onError(new AuthenticationException(
                                                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN));
                                     }
-                                } finally {
-                                    removeWaitingRequest(requestId);
-                                }
+								} catch (Exception exc) {
+									String msg = "Error in processing code to get token. "
+											+ authenticationRequest
+													.getLogInfo();
+									Logger.e(
+											TAG,
+											msg,
+											ExceptionExtensions
+													.getExceptionMessage(exc),
+											ADALError.DEVICE_CACHE_IS_NOT_WORKING,
+											exc);
+								} finally {
+									removeWaitingRequest(requestId);
+								}
                             }
                         });
                     }
@@ -1146,7 +1157,12 @@ public class AuthenticationContext {
             // It will start activity if callback is provided. Return null here.
             return null;
         } else {
-            return localFlow(callbackHandle, activity, useDialog, request);
+			try {
+				return localFlow(callbackHandle, activity, useDialog, request);
+			} catch (Exception e) {
+				callbackHandle.onError(new AuthenticationException(ADALError.INTERNAL_ERROR, e.getMessage(), e));
+			}
+			return null;
         }
     }
 
@@ -1311,19 +1327,14 @@ public class AuthenticationContext {
             boolean multiResource = false;
             // target refreshToken for this resource first. CacheKey will
             // include the resourceId in the cachekey
-            Logger.v(TAG, "Looking for regular refresh token");
-            String userId = request.getUserId();
-            if (StringExtensions.IsNullOrBlank(userId)) {
-                // acquireTokenSilent expects userid field from UserInfo
-                userId = request.getLoginHint();
-            }
-            String keyUsed = CacheKey.createCacheKey(request, userId);
-            TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
+            TokenCacheKey keyUsed = TokenCacheKey.createCacheKey(request);
+            Logger.v(TAG, "Looking for regular refresh token. Key:" + keyUsed.getLog());
+            TokenCacheItem item = mTokenCacheStore.getItem(TokenCacheKey.createCacheKey(request));
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 // if not present, check multiResource item in cache. Cache key
                 // will not include resourceId in the cache key string.
                 Logger.v(TAG, "Looking for Multi Resource Refresh token");
-                keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request, userId);
+                keyUsed.setIsMultipleResourceRefreshToken(true);
                 item = mTokenCacheStore.getItem(keyUsed);
                 multiResource = true;
             }
@@ -1340,8 +1351,7 @@ public class AuthenticationContext {
         return refreshItem;
     }
 
-    private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
-            boolean afterPrompt) throws AuthenticationException {
+    private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result) throws AuthenticationException {
         if (mTokenCacheStore != null) {
 
             // User can ask for token without login hint. Next call from same
@@ -1352,44 +1362,8 @@ public class AuthenticationContext {
             logReturnedToken(request, result);
 
             // acquireTokenSilent uses userid to request items
-            String userKey = request.getUserId();
-
-            if (afterPrompt) {
-                // User can change the username and enter a different one at
-                // prompt. Use idtoken if present instead of loginhint after
-                // prompt.
-                if (result.getUserInfo() != null
-                        && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
-                    Logger.v(TAG, "Updating cache for username:"
-                            + result.getUserInfo().getDisplayableId());
-                    setItemToCacheForUser(request, result, result.getUserInfo().getDisplayableId());
-                }
-            } else if (StringExtensions.IsNullOrBlank(userKey)) {
-                userKey = request.getLoginHint();
-            }
-
-            // It will store in the cache for empty idtokens as well
-            setItemToCacheForUser(request, result, userKey);
-
-            // Set item with userid if idtoken is present.
-            if (result.getUserInfo() != null
-                    && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
-                Logger.v(TAG, "Updating userId:" + result.getUserInfo().getUserId());
-                setItemToCacheForUser(request, result, result.getUserInfo().getUserId());
-            }
-        }
-    }
-
-    private void setItemToCacheForUser(final AuthenticationRequest request,
-            AuthenticationResult result, String userId) {
-        mTokenCacheStore.setItem(CacheKey.createCacheKey(request, userId), new TokenCacheItem(
-                request, result, false));
-
-        // Store broad refresh token if available
-        if (result.getIsMultiResourceRefreshToken()) {
-            Logger.v(TAG, "Setting Multi Resource Refresh token to cache");
-            mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request, userId),
-                    new TokenCacheItem(request, result, true));
+            TokenCacheKey key = TokenCacheKey.createCacheKey(request, result);
+            mTokenCacheStore.setItem(key, new TokenCacheItem(request, result, result.getIsMultiResourceRefreshToken()));
         }
     }
 
@@ -1422,8 +1396,6 @@ public class AuthenticationContext {
             // Update for cache key
             mTokenCacheStore.setItem(refreshItem.mKey, new TokenCacheItem(request, result,
                     refreshItem.mMultiResource));
-
-            setItemToCache(request, result, false);
         }
     }
 
@@ -1431,9 +1403,6 @@ public class AuthenticationContext {
         if (mTokenCacheStore != null) {
             Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey);
             mTokenCacheStore.removeItem(refreshItem.mKey);
-            // clean up keys related to userid/displayableid for same request
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithUserId);
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithDisplayableId);
         }
     }
 

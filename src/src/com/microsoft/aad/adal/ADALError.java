@@ -74,6 +74,11 @@ public enum ADALError {
      * Active callback is not found.
      */
     CALLBACK_IS_NOT_FOUND("Active callback is not found"),
+    
+    /**
+     * Internal error.
+     */
+    INTERNAL_ERROR("Internal error"),
 
     /**
      * Activity is not resolved.
@@ -495,7 +500,12 @@ public enum ADALError {
     /**
      * The redirectUri for broker is invalid.
      */
-    DEVELOPER_REDIRECTURI_INVALID("The redirectUri for broker is invalid");
+    DEVELOPER_REDIRECTURI_INVALID("The redirectUri for broker is invalid"), 
+    
+    /**
+     * Cache has multiple entries.
+     */
+    CACHE_MULTIPLE_ENTRIES("Cache has multiple entries");
 
     private String mDescription;
 

@@ -18,9 +18,19 @@
 
 package com.microsoft.aad.adal;
 
-public class UserIdentifier {
+import java.io.Serializable;
 
-    enum UserIdentifierType {
+import android.content.Intent;
+import android.text.TextUtils;
+
+public class UserIdentifier implements Serializable {
+
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5739521222033787270L;
+
+	public enum UserIdentifierType {
         UniqueId, OptionalDisplayableId, RequiredDisplayableId
     }
 
@@ -46,7 +56,7 @@ public class UserIdentifier {
         return mType;
     }
 
-    public UserIdentifier getAnyUser() {
+    public static UserIdentifier getAnyUser() {
         return AnyUser;
     }
 
@@ -61,5 +71,23 @@ public class UserIdentifier {
     String getDisplayableId() {
         return (!this.anyUser() && (this.mType.equals(UserIdentifierType.RequiredDisplayableId) || this.mType
                 .equals(UserIdentifierType.OptionalDisplayableId))) ? this.mId : "";
+    }
+
+    public static UserIdentifier createFromIntent(Intent callingIntent) {
+
+        UserIdentifier userid = new UserIdentifier("", UserIdentifierType.OptionalDisplayableId);
+
+        if (callingIntent != null && callingIntent.hasExtra(AuthenticationConstants.Broker.ACCOUNT_USERID_TYPE)) {
+            String idType = callingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERID_TYPE);
+
+            userid.mId = callingIntent
+                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERID_ID);
+            if(!TextUtils.isEmpty(idType)){
+                userid.mType = UserIdentifierType.valueOf(idType);
+            }
+        }
+
+        return userid;
     }
 }

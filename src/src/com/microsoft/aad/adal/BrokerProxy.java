@@ -178,8 +178,8 @@ class BrokerProxy implements IBrokerProxy {
     private UserInfo findUserInfo(String userid, UserInfo[] userList) {
         if (userList != null) {
             for (UserInfo user : userList) {
-                if (user != null && !TextUtils.isEmpty(user.getUserId())
-                        && user.getUserId().equalsIgnoreCase(userid)) {
+                if (user != null && !TextUtils.isEmpty(user.getUniqueId())
+                        && user.getUniqueId().equalsIgnoreCase(userid)) {
                     return user;
                 }
             }
@@ -207,7 +207,7 @@ class BrokerProxy implements IBrokerProxy {
         } else {
             try {
                 UserInfo[] users = getBrokerUsers();
-                UserInfo matchingUser = findUserInfo(request.getUserId(), users);
+                UserInfo matchingUser = findUserInfo(request.getUserIdentifier().getUniqueId(), users);
                 if (matchingUser != null) {
                     targetAccount = findAccount(matchingUser.getDisplayableId(), accountList);
                 }
