@@ -20,22 +20,19 @@ final class TokenCacheKey implements Serializable {
 
 	private static final String TAG = "TokenCacheKey";
 
-	private String mAuthority;
+	private String mAuthority = "";
 
-	private String mResource;
+	private String mResource = "";
 
-	private String mClientId;
+	private String mClientId = "";
 
-	private String mUniqueId;
+	private String mUniqueId = "";
 
-	private String mDisplayableId;
+	private String mDisplayableId = "";
 
 	private boolean mIsMultipleResourceRefreshToken;
 
 	private TokenCacheKey() {
-		mAuthority = null;
-		mResource = null;
-		mClientId = null;
 	}
 
 	public String toJsonString() throws JSONException {
@@ -134,8 +131,8 @@ final class TokenCacheKey implements Serializable {
 			throw new IllegalArgumentException("TokenCacheItem");
 		}
 
-		String uniqueId = null;
-		String displayableId = null;
+		String uniqueId = "";
+		String displayableId = "";
 
 		if (item.getUserInfo() != null) {
 			uniqueId = item.getUserInfo().getUniqueId();
@@ -185,8 +182,8 @@ final class TokenCacheKey implements Serializable {
 
 	public static TokenCacheKey createCacheKey(AuthenticationRequest request,
 			AuthenticationResult result) {
-		String uniqueId = null;
-		String displayableId = null;
+		String uniqueId = "";
+		String displayableId = "";
 
 		if (result.getUserInfo() != null) {
 			uniqueId = result.getUserInfo().getUniqueId();
@@ -271,8 +268,37 @@ final class TokenCacheKey implements Serializable {
 							.equalsIgnoreCase(item.getUserInfo()
 									.getDisplayableId()));
 	}
+
+	public boolean isUserEmpty() {
+		return TextUtils.isEmpty(mDisplayableId)
+				&& TextUtils.isEmpty(mUniqueId);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || !(o instanceof TokenCacheKey)) {
+			return false;
+		}
+
+		TokenCacheKey other = (TokenCacheKey) o;
+		return mAuthority.equalsIgnoreCase(other.getAuthority())
+				&& mClientId.equalsIgnoreCase(other.getClientId())
+				&& mResource.equalsIgnoreCase(other.getResource())
+				&& mIsMultipleResourceRefreshToken == other.mIsMultipleResourceRefreshToken
+				&& (mUniqueId.equalsIgnoreCase(other.getUniqueId()))
+				&& (mDisplayableId.equalsIgnoreCase(other.getDisplayableId()));
+
+	}
 	
-	public boolean isUserEmpty(){
-		return TextUtils.isEmpty(mDisplayableId) && TextUtils.isEmpty(mUniqueId);
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 17 * hash + mAuthority.hashCode();
+		hash = 17 * hash + mClientId.hashCode();
+		hash = 17 * hash + mResource.hashCode();
+		hash = 17 * hash + (mIsMultipleResourceRefreshToken ? 7 : 0);
+		hash = 17 * hash + mUniqueId.hashCode();
+		hash = 17 * hash + mDisplayableId.hashCode();
+		return hash;
 	}
 }

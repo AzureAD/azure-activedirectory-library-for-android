@@ -80,6 +80,7 @@ public class TokenCacheItem implements Serializable {
             mUserInfo = result.getUserInfo();
             mRawIdToken = result.getIdToken();
             mAccessToken = result.getAccessToken();
+            mResource = request.getResource();
         }
     }
 

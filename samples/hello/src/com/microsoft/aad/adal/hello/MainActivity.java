@@ -270,7 +270,7 @@ public class MainActivity extends Activity {
     private UserIdentifier getUserInfo() {
         
         String name = mEditText.getText().toString();
-        return new UserIdentifier(name, UserIdentifier.UserIdentifierType.RequiredDisplayableId);
+        return new UserIdentifier(name, UserIdentifier.UserIdentifierType.OptionalDisplayableId);
     }
 
     /**
