@@ -44,7 +44,7 @@ public enum AuthenticationSettings {
      */
     private String mSharedPrefPackageName;
 
-    private boolean mSkipBroker = false;
+    private boolean mSkipBroker = true;
 
     /**
      * Expiration buffer in seconds.

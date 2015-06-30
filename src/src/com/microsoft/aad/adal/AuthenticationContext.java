@@ -24,6 +24,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -34,7 +35,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
-
 
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
@@ -147,7 +147,8 @@ public class AuthenticationContext {
      * @param appContext {@link Context}
      * @param authority Authority Url
      * @param validateAuthority true/false for validation
-     * @param tokenCache Set to null if you don't want cache. You can save the serialized cache to custom storage and update it.
+     * @param tokenCache Set to null if you don't want cache. You can save the
+     *            serialized cache to custom storage and update it.
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
             TokenCache tokenCache) {
@@ -160,8 +161,8 @@ public class AuthenticationContext {
      * 
      * @param appContext {@link Context}
      * @param authority Authority Url
-     * @param tokenCache Cache {@link TokenCache} used to store
-     *            tokens. Set to null if you don't want cache.
+     * @param tokenCache Cache {@link TokenCache} used to store tokens. Set to
+     *            null if you don't want cache.
      */
     public AuthenticationContext(Context appContext, String authority, TokenCache tokenCache) {
         initialize(appContext, authority, tokenCache, true, false);
@@ -265,23 +266,22 @@ public class AuthenticationContext {
      * this refresh token from cache and start authentication.
      * 
      * @param activity required to launch authentication activity.
-     * @param resource required resource identifier.
+     * @param scope required scope identifier.
      * @param clientId required client identifier
      * @param redirectUri Optional. It will use package name info if not
      *            provided.
-     * @param user  UserIdentifier to specify a user.
+     * @param user UserIdentifier to specify a user.
      * @param callback required
      */
-    public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, UserIdentifier user,
+    public void acquireToken(Activity activity, String[] scope, String[] additionalScope,
+            String clientId, String redirectUri, UserIdentifier user,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
-                callback);
+        redirectUri = checkInputParameters(scope, additionalScope, clientId, redirectUri,
+                PromptBehavior.Auto, callback);
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, user, PromptBehavior.Auto, null,
-                getRequestCorrelationId());
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
+                clientId, redirectUri, user, PromptBehavior.Auto, null, getRequestCorrelationId());
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -292,27 +292,29 @@ public class AuthenticationContext {
      * remove this refresh token from cache and fall back on the UI.
      * 
      * @param activity Calling activity
-     * @param resource required resource identifier.
+     * @param scope required scope identifier.
+     * @param additionalScope optional scope identifier.
      * @param clientId required client identifier
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param user  UserIdentifier to specify a user.
+     * @param user UserIdentifier to specify a user.
      * @param extraQueryParameters Optional. This parameter will be appended as
      *            is to the query string in the HTTP authentication request to
      *            the authority. The parameter can be null.
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      */
-    public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, UserIdentifier user, String extraQueryParameters,
+    public void acquireToken(Activity activity, String[] scope, String[] additionalScope,
+            String clientId, String redirectUri, UserIdentifier user, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
-                callback);
+        redirectUri = checkInputParameters(scope, additionalScope, clientId, redirectUri,
+                PromptBehavior.Auto, callback);
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
                 clientId, redirectUri, user, PromptBehavior.Auto, extraQueryParameters,
                 getRequestCorrelationId());
+        request.setAdditionalScope(additionalScope);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -325,7 +327,8 @@ public class AuthenticationContext {
      * {@link PromptBehavior} is Always, it will display prompt screen.
      * 
      * @param activity Calling activity
-     * @param resource required resource identifier.
+     * @param scope required scope identifier.
+     * @param additionalScope optional scope identifier.
      * @param clientId required client identifier.
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
@@ -334,15 +337,16 @@ public class AuthenticationContext {
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      */
-    public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, PromptBehavior prompt,
+    public void acquireToken(Activity activity, String[] scope, String[] additionalScope,
+            String clientId, String redirectUri, PromptBehavior prompt,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+        redirectUri = checkInputParameters(scope, additionalScope, clientId, redirectUri, prompt,
+                callback);
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
                 clientId, redirectUri, null, prompt, null, getRequestCorrelationId());
-
+        request.setAdditionalScope(additionalScope);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -355,7 +359,8 @@ public class AuthenticationContext {
      * Default is AUTO.
      * 
      * @param activity Calling activity
-     * @param resource required resource identifier.
+     * @param scope required scope identifier.
+     * @param additionalScope optional scope identifier.
      * @param clientId required client identifier.
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
@@ -364,47 +369,51 @@ public class AuthenticationContext {
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      */
-    public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, PromptBehavior prompt, String extraQueryParameters,
-            AuthenticationCallback<AuthenticationResult> callback) {
-
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, null, prompt, extraQueryParameters,
-                getRequestCorrelationId());
-
-        acquireTokenLocal(wrapActivity(activity), false, request, callback);
-    }
-
-    /**
-     * acquire Token will start interactive flow if needed. It checks the cache
-     * to return existing result if not expired. It tries to use refresh token
-     * if available. If it fails to get token with refresh token, behavior will
-     * depend on options. If promptbehavior is AUTO, it will remove this refresh
-     * token from cache and fall back on the UI if activitycontext is not null.
-     * Default is AUTO.
-     * 
-     * @param activity Calling activity
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param redirectUri Optional. It will use packagename and provided suffix
-     *            for this.
-     * @param user  UserIdentifier to specify a user.
-     * @param prompt Optional. added as query parameter to authorization url
-     * @param extraQueryParameters Optional. added to authorization url
-     * @param callback required {@link AuthenticationCallback} object for async
-     *            call.
-     */
-    public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, UserIdentifier user, PromptBehavior prompt,
+    public void acquireToken(Activity activity, String[] scope, String[] additionalScope,
+            String clientId, String redirectUri, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+        redirectUri = checkInputParameters(scope, additionalScope, clientId, redirectUri, prompt,
+                callback);
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
+                clientId, redirectUri, null, prompt, extraQueryParameters,
+                getRequestCorrelationId());
+        request.setAdditionalScope(additionalScope);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
+    }
+
+    /**
+     * acquire Token will start interactive flow if needed. It checks the cache
+     * to return existing result if not expired. It tries to use refresh token
+     * if available. If it fails to get token with refresh token, behavior will
+     * depend on options. If promptbehavior is AUTO, it will remove this refresh
+     * token from cache and fall back on the UI if activitycontext is not null.
+     * Default is AUTO.
+     * 
+     * @param activity Calling activity
+     * @param scope required scope identifier.
+     * @param additionalScope optional scope identifier.
+     * @param clientId required client identifier.
+     * @param redirectUri Optional. It will use packagename and provided suffix
+     *            for this.
+     * @param user UserIdentifier to specify a user.
+     * @param prompt Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
+     * @param callback required {@link AuthenticationCallback} object for async
+     *            call.
+     */
+    public void acquireToken(Activity activity, String[] scope, String[] additionalScope,
+            String clientId, String redirectUri, UserIdentifier user, PromptBehavior prompt,
+            String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
+
+        redirectUri = checkInputParameters(scope, additionalScope, clientId, redirectUri, prompt,
+                callback);
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
                 clientId, redirectUri, user, prompt, extraQueryParameters,
                 getRequestCorrelationId());
+        request.setAdditionalScope(additionalScope);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -416,25 +425,28 @@ public class AuthenticationContext {
      * token from cache and fall back on the UI. Default is AUTO.
      * 
      * @param fragment It accepts both type of fragments.
-     * @param resource required resource identifier.
+     * @param scope required scope identifier.
+     * @param additionalScope optional scope identifier.
      * @param clientId required client identifier.
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param user  UserIdentifier to specify a user.
+     * @param user UserIdentifier to specify a user.
      * @param prompt Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      */
-    public void acquireToken(IWindowComponent fragment, String resource, String clientId,
-            String redirectUri, UserIdentifier user, PromptBehavior prompt,
+    public void acquireToken(IWindowComponent fragment, String[] scope, String[] additionalScope,
+            String clientId, String redirectUri, UserIdentifier user, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+        redirectUri = checkInputParameters(scope, additionalScope, clientId, redirectUri, prompt,
+                callback);
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
                 clientId, redirectUri, user, prompt, extraQueryParameters,
                 getRequestCorrelationId());
+        request.setAdditionalScope(additionalScope);
         acquireTokenLocal(fragment, false, request, callback);
     }
 
@@ -447,25 +459,28 @@ public class AuthenticationContext {
      * remove this refresh token from cache and fall back on the UI. Default is
      * AUTO.
      * 
-     * @param resource required resource identifier.
+     * @param scope required scope identifier.
+     * @param additionalScope optional scope identifier.
      * @param clientId required client identifier.
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param user  UserIdentifier to specify a user.
+     * @param user UserIdentifier to specify a user.
      * @param prompt Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      */
-    public void acquireToken(String resource, String clientId, String redirectUri,
-            UserIdentifier user, PromptBehavior prompt, String extraQueryParameters,
-            AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(String[] scope, String[] additionalScope, String clientId,
+            String redirectUri, UserIdentifier user, PromptBehavior prompt,
+            String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+        redirectUri = checkInputParameters(scope, additionalScope, clientId, redirectUri, prompt,
+                callback);
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
                 clientId, redirectUri, user, prompt, extraQueryParameters,
                 getRequestCorrelationId());
+        request.setAdditionalScope(additionalScope);
         acquireTokenLocal(null, true, request, callback);
     }
 
@@ -480,14 +495,36 @@ public class AuthenticationContext {
         };
     }
 
-    private String checkInputParameters(String resource, String clientId, String redirectUri,
-            PromptBehavior behavior, AuthenticationCallback<AuthenticationResult> callback) {
+    private String checkInputParameters(String[] scopeInput, String[] additionalScope,
+            String clientId, String redirectUri, PromptBehavior behavior,
+            AuthenticationCallback<AuthenticationResult> callback) {
         if (mContext == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
         }
 
-        if (StringExtensions.IsNullOrBlank(resource)) {
-            throw new IllegalArgumentException("resource");
+        if (scopeInput == null || scopeInput.length == 0) {
+            throw new IllegalArgumentException("scope");
+        }
+
+        Set<String> set = StringExtensions.createSet(scopeInput, additionalScope);
+        // make sure developer does not pass openid scope.
+        if (set.contains("openid")) {
+            throw new IllegalArgumentException(
+                    "API does not accept openid as a user-provided scope");
+        }
+
+        // make sure developer does not pass offline_access scope.
+        if (set.contains("offline_access")) {
+            throw new IllegalArgumentException(
+                    "API does not accept offline_access as a user-provided scope");
+        }
+
+        // check if scope or additional scope contains client ID.
+        if (set.contains(clientId)) {
+            if (set.size() > 1) {
+                throw new IllegalArgumentException(
+                        "Client Id can only be provided as a single scope");
+            }
         }
 
         if (StringExtensions.IsNullOrBlank(clientId)) {
@@ -512,18 +549,17 @@ public class AuthenticationContext {
      * will use the refresh token automatically. This method will not show UI
      * for the user. If prompt is needed, the method will return an exception
      * 
-     * @param resource required resource identifier.
+     * @param scope required scope identifier.
      * @param clientId required client identifier.
-     * @param user  UserIdentifier to specify a user.
+     * @param user UserIdentifier to specify a user.
      * @return A {@link Future} object representing the
      *         {@link AuthenticationResult} of the call. It contains Access
      *         Token,the Access Token's expiration time, Refresh token, and
      *         {@link UserInfo}.
      */
-    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId,
+    public AuthenticationResult acquireTokenSilentSync(String[] scope, String clientId,
             UserIdentifier user) {
-        Future<AuthenticationResult> futureResult = acquireTokenSilent(resource, clientId, user,
-                null);
+        Future<AuthenticationResult> futureResult = acquireTokenSilent(scope, clientId, user, null);
         try {
             return futureResult.get();
         } catch (InterruptedException e) {
@@ -561,7 +597,7 @@ public class AuthenticationContext {
      * 
      * @param resource required resource identifier.
      * @param clientId required client identifier.
-     * @param user  UserIdentifier to specify a user.
+     * @param user UserIdentifier to specify a user.
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      * @return A {@link Future} object representing the
@@ -569,16 +605,16 @@ public class AuthenticationContext {
      *         Token,the Access Token's expiration time, Refresh token, and
      *         {@link UserInfo}.
      */
-    public Future<AuthenticationResult> acquireTokenSilent(String resource, String clientId,
+    public Future<AuthenticationResult> acquireTokenSilent(String[] scope, String clientId,
             UserIdentifier user, AuthenticationCallback<AuthenticationResult> callback) {
-        if (StringExtensions.IsNullOrBlank(resource)) {
-            throw new IllegalArgumentException("resource");
+        if (scope == null || scope.length == 0) {
+            throw new IllegalArgumentException("scope");
         }
         if (StringExtensions.IsNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
                 clientId, user, getRequestCorrelationId());
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
@@ -735,33 +771,35 @@ public class AuthenticationContext {
 
                                         if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                                             setItemToCache(authenticationRequest, result);
-                                        }
-
-                                        if (waitingRequest != null
-                                                && waitingRequest.mDelagete != null) {
-                                            Logger.v(TAG, "Sending result to callback. "
-                                                    + authenticationRequest.getLogInfo());
-                                            callbackHandle.onSuccess(result);
+                                            if (waitingRequest != null
+                                                    && waitingRequest.mDelagete != null) {
+                                                Logger.v(TAG, "Sending result to callback. "
+                                                        + authenticationRequest.getLogInfo());
+                                                callbackHandle.onSuccess(result);
+                                            }
+                                        } else {
+                                            waitingRequestOnError(
+                                                    callbackHandle,
+                                                    waitingRequest,
+                                                    requestId,
+                                                    new AuthenticationException(
+                                                            ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+                                                            result.getErrorDescription()));
                                         }
                                     } else {
                                         callbackHandle
                                                 .onError(new AuthenticationException(
                                                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN));
                                     }
-								} catch (Exception exc) {
-									String msg = "Error in processing code to get token. "
-											+ authenticationRequest
-													.getLogInfo();
-									Logger.e(
-											TAG,
-											msg,
-											ExceptionExtensions
-													.getExceptionMessage(exc),
-											ADALError.DEVICE_CACHE_IS_NOT_WORKING,
-											exc);
-								} finally {
-									removeWaitingRequest(requestId);
-								}
+                                } catch (Exception exc) {
+                                    String msg = "Error in processing code to get token. "
+                                            + authenticationRequest.getLogInfo();
+                                    Logger.e(TAG, msg,
+                                            ExceptionExtensions.getExceptionMessage(exc),
+                                            ADALError.DEVICE_CACHE_IS_NOT_WORKING, exc);
+                                } finally {
+                                    removeWaitingRequest(requestId);
+                                }
                             }
                         });
                     }
@@ -772,23 +810,28 @@ public class AuthenticationContext {
 
     private static boolean isUserMisMatch(final AuthenticationRequest request,
             final AuthenticationResult result) {
-        if(request.getUserIdentifier().getType().equals(UserIdentifier.UserIdentifierType.OptionalDisplayableId)){
+        if (request.getUserIdentifier().getType()
+                .equals(UserIdentifier.UserIdentifierType.OptionalDisplayableId)) {
             Logger.v(TAG, "OptionalId is specified.");
             return false;
         }
-        
+
         if (result.getUserInfo() != null) {
             // Verify if IdToken is present and userid is specified
-            if(request.getUserIdentifier().getType().equals(UserIdentifier.UserIdentifierType.UniqueId)){
+            if (request.getUserIdentifier().getType()
+                    .equals(UserIdentifier.UserIdentifierType.UniqueId)) {
                 String resultUniqueID = result.getUserInfo().getUniqueId();
                 Logger.v(TAG, "UniqueId is specified.");
-                return resultUniqueID == null || !resultUniqueID.equalsIgnoreCase(request.getUserIdentifier().getId());
+                return resultUniqueID == null
+                        || !resultUniqueID.equalsIgnoreCase(request.getUserIdentifier().getId());
             }
-            
-            if(request.getUserIdentifier().getType().equals(UserIdentifier.UserIdentifierType.RequiredDisplayableId)){
+
+            if (request.getUserIdentifier().getType()
+                    .equals(UserIdentifier.UserIdentifierType.RequiredDisplayableId)) {
                 String resultDispID = result.getUserInfo().getDisplayableId();
                 Logger.v(TAG, "RequiredDisplayableId is specified.");
-                return resultDispID == null || !resultDispID.equalsIgnoreCase(request.getUserIdentifier().getId());
+                return resultDispID == null
+                        || !resultDispID.equalsIgnoreCase(request.getUserIdentifier().getId());
             }
         }
 
@@ -1157,12 +1200,13 @@ public class AuthenticationContext {
             // It will start activity if callback is provided. Return null here.
             return null;
         } else {
-			try {
-				return localFlow(callbackHandle, activity, useDialog, request);
-			} catch (Exception e) {
-				callbackHandle.onError(new AuthenticationException(ADALError.INTERNAL_ERROR, e.getMessage(), e));
-			}
-			return null;
+            try {
+                return localFlow(callbackHandle, activity, useDialog, request);
+            } catch (Exception e) {
+                callbackHandle.onError(new AuthenticationException(ADALError.INTERNAL_ERROR, e
+                        .getMessage(), e));
+            }
+            return null;
         }
     }
 
@@ -1299,11 +1343,10 @@ public class AuthenticationContext {
 
         String mRawIdToken;
 
-
         String mTenantId;
 
-        public RefreshItem(TokenCacheKey keyInCache, AuthenticationRequest request, TokenCacheItem item,
-                boolean multiResource) {
+        public RefreshItem(TokenCacheKey keyInCache, AuthenticationRequest request,
+                TokenCacheItem item, boolean multiResource) {
             mKey = keyInCache;
             mMultiResource = multiResource;
 
@@ -1313,11 +1356,6 @@ public class AuthenticationContext {
                 mRawIdToken = item.getRawIdToken();
                 mTenantId = item.getTenantId();
             }
-        }
-
-        public RefreshItem(String refreshToken) {
-            mMultiResource = false;
-            mRefreshToken = refreshToken;
         }
     }
 
@@ -1351,7 +1389,8 @@ public class AuthenticationContext {
         return refreshItem;
     }
 
-    private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result) throws AuthenticationException {
+    private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result)
+            throws AuthenticationException {
         if (mTokenCacheStore != null) {
 
             // User can ask for token without login hint. Next call from same
@@ -1363,7 +1402,8 @@ public class AuthenticationContext {
 
             // acquireTokenSilent uses userid to request items
             TokenCacheKey key = TokenCacheKey.createCacheKey(request, result);
-            mTokenCacheStore.setItem(key, new TokenCacheItem(request, result, result.getIsMultiResourceRefreshToken()));
+            mTokenCacheStore.setItem(key,
+                    new TokenCacheItem(request, result, result.getIsMultiResourceRefreshToken()));
         }
     }
 
@@ -1625,86 +1665,6 @@ public class AuthenticationContext {
     public void setRequestCorrelationId(UUID requestCorrelationId) {
         this.mRequestCorrelationId = requestCorrelationId;
         Logger.setCorrelationId(requestCorrelationId);
-    }
-
-    /**
-     * Developer is using refresh token call to do refresh without cache usage.
-     * App context or activity is not needed. Async requests are created,so this
-     * needs to be called at UI thread.
-     */
-    private void refreshTokenWithoutCache(final String refreshToken, final String clientId,
-            final String resource,
-            final AuthenticationCallback<AuthenticationResult> externalCallback) {
-        Logger.setCorrelationId(getRequestCorrelationId());
-        Logger.v(TAG, "Refresh token without cache");
-
-        if (StringExtensions.IsNullOrBlank(refreshToken)) {
-            throw new IllegalArgumentException("Refresh token is not provided");
-        }
-
-        if (StringExtensions.IsNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("ClientId is not provided");
-        }
-
-        if (externalCallback == null) {
-            throw new IllegalArgumentException("Callback is not provided");
-        }
-
-        final CallbackHandler callbackHandle = new CallbackHandler(getHandler(), externalCallback);
-
-        // Execute all the calls inside Runnable to return immediately. All UI
-        // related actions will be performed using Handler.
-        sThreadExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                final URL authorityUrl = StringExtensions.getUrl(mAuthority);
-                if (authorityUrl == null) {
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
-
-                    return;
-                }
-
-                final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
-                        resource, clientId, getRequestCorrelationId());
-
-                // It is not using cache and refresh is not expected to
-                // show authentication activity.
-                request.setSilent(true);
-                final RefreshItem refreshItem = new RefreshItem(refreshToken);
-
-                if (mValidateAuthority) {
-                    Logger.v(TAG, "Validating authority");
-
-                    try {
-                        if (validateAuthority(authorityUrl)) {
-                            Logger.v(TAG, "Authority is validated" + authorityUrl.toString());
-                        } else {
-                            Logger.v(
-                                    TAG,
-                                    "Call callback since instance is invalid:"
-                                            + authorityUrl.toString());
-                            callbackHandle.onError(new AuthenticationException(
-                                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                            return;
-                        }
-                    } catch (Exception exc) {
-                        Logger.e(TAG, "Authority validation is failed",
-                                ExceptionExtensions.getExceptionMessage(exc),
-                                ADALError.SERVER_INVALID_REQUEST, exc);
-                        callbackHandle
-                                .onError(new AuthenticationException(
-                                        ADALError.SERVER_INVALID_REQUEST,
-                                        "Authority validation is failed"));
-                        return;
-                    }
-                }
-
-                // Follow refresh logic now. Authority is valid or
-                // skipped validation
-                refreshToken(callbackHandle, null, false, request, refreshItem, false);
-            }
-        });
     }
 
     private synchronized Handler getHandler() {

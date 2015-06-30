@@ -76,6 +76,8 @@ public class AuthenticationResult implements Serializable {
     private String mTenantId;
 
     private String mIdToken;
+    
+    private String[] mScopeInResponse;
 
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
@@ -250,7 +252,7 @@ public class AuthenticationResult implements Serializable {
      * 
      * @return Error code
      */
-    public String getErrorCode() {
+    String getErrorCode() {
         return mErrorCode;
     }
 
@@ -259,7 +261,7 @@ public class AuthenticationResult implements Serializable {
      * 
      * @return error description
      */
-    public String getErrorDescription() {
+    String getErrorDescription() {
         return mErrorDescription;
     }
 
@@ -268,7 +270,7 @@ public class AuthenticationResult implements Serializable {
      * 
      * @return log info
      */
-    public String getErrorLogInfo() {
+    String getErrorLogInfo() {
         return " ErrorCode:" + getErrorCode() + " ErrorDescription:" + getErrorDescription();
     }
 
@@ -308,5 +310,9 @@ public class AuthenticationResult implements Serializable {
     
     void setRefreshToken(String refreshToken){
         mRefreshToken = refreshToken;
+    }
+
+    public String[] getScopeInResponse() {
+        return mScopeInResponse;
     }
 }

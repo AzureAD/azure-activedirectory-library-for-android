@@ -25,7 +25,7 @@ public class TokenCacheNotificationArgs {
 
     private String mClientId;
 
-    private String mResource;
+    private String[] mScope;
 
     private String mUniqueId;
 
@@ -35,8 +35,8 @@ public class TokenCacheNotificationArgs {
         return mClientId;
     }
 
-    public String getResource() {
-        return mResource;
+    public String[] getScope() {
+        return mScope;
     }
 
     public String getUniqueId() {
@@ -55,7 +55,7 @@ public class TokenCacheNotificationArgs {
     static TokenCacheNotificationArgs create(TokenCacheKey key){
         TokenCacheNotificationArgs cacheNotication = new TokenCacheNotificationArgs();
         cacheNotication.mClientId = key.getClientId();
-        cacheNotication.mResource = key.getResource();
+        cacheNotication.mScope = key.getScope();
         cacheNotication.mDisplayableId = key.getDisplayableId();
         cacheNotication.mUniqueId = key.getUniqueId();
         return cacheNotication;

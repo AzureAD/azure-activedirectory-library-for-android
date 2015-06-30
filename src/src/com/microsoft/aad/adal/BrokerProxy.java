@@ -31,7 +31,6 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -415,8 +414,10 @@ class BrokerProxy implements IBrokerProxy {
         brokerOptions.putInt(AuthenticationConstants.Browser.REQUEST_ID, request.getRequestId());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY,
                 request.getAuthority());
-        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_RESOURCE,
-                request.getResource());
+        brokerOptions.putStringArray(AuthenticationConstants.Broker.ACCOUNT_SCOPE,
+                request.getScope());
+        brokerOptions.putStringArray(AuthenticationConstants.Broker.ACCOUNT_ADDITONAL_SCOPE,
+                request.getAdditionalScope());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT,
                 request.getRedirectUri());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY,

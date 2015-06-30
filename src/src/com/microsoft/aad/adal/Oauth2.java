@@ -32,11 +32,10 @@ import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
-
-import android.net.Uri;
 import android.os.Build;
 import android.util.Base64;
+
+import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 /**
  * Base Oauth class.
@@ -51,9 +50,9 @@ class Oauth2 {
 
     private final static String TAG = "Oauth";
 
-    private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
+    private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
 
-    private final static String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
+    private final static String DEFAULT_TOKEN_ENDPOINT = "/oauth2/v2.0/token";
 
     private final static String JSON_PARSING_ERROR = "It failed to parse response as json";
 
@@ -85,14 +84,12 @@ class Oauth2 {
     }
 
     public String getAuthorizationEndpointQueryParameters() throws UnsupportedEncodingException {
-        String requestUrl = String
-                .format("response_type=%s&client_id=%s&resource=%s&redirect_uri=%s&state=%s",
-                        AuthenticationConstants.OAuth2.CODE, URLEncoder.encode(
-                                mRequest.getClientId(), AuthenticationConstants.ENCODING_UTF8),
-                        URLEncoder.encode(mRequest.getResource(),
-                                AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
-                                mRequest.getRedirectUri(), AuthenticationConstants.ENCODING_UTF8),
-                        encodeProtocolState());
+        String requestUrl = String.format("response_type=%s&client_id=%s&scope=%s&redirect_uri=%s",
+                AuthenticationConstants.OAuth2.CODE, URLEncoder.encode(mRequest.getClientId(),
+                        AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(StringExtensions
+                        .createStringFromArray(mRequest.getDecoratedScopeConsent(), " "),
+                        AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
+                        mRequest.getRedirectUri(), AuthenticationConstants.ENCODING_UTF8));
 
         if (mRequest.getLoginHint() != null && !mRequest.getLoginHint().isEmpty()) {
             requestUrl = String.format("%s&%s=%s", requestUrl,
@@ -177,9 +174,11 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.CLIENT_ID,
                 StringExtensions.URLFormEncode(mRequest.getClientId()));
 
-        if (!StringExtensions.IsNullOrBlank(mRequest.getResource())) {
-            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.RESOURCE,
-                    StringExtensions.URLFormEncode(mRequest.getResource()));
+        String scope = StringExtensions.createStringFromArray(mRequest.getDecoratedScopeRequest(),
+                " ");
+        if (!StringExtensions.IsNullOrBlank(scope)) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.SCOPE,
+                    StringExtensions.URLFormEncode(scope));
         }
 
         return message;
@@ -377,38 +376,17 @@ class Oauth2 {
 
         // Success
         HashMap<String, String> parameters = StringExtensions.getUrlParameters(authorizationUrl);
-        String encodedState = parameters.get("state");
-        String state = decodeProtocolState(encodedState);
 
-        if (!StringExtensions.IsNullOrBlank(state)) {
+        AuthenticationResult result = processUIResponseParams(parameters);
 
-            // We have encoded state at the end of the url
-            Uri stateUri = Uri.parse("http://state/path?" + state);
-            String authorizationUri = stateUri.getQueryParameter("a");
-            String resource = stateUri.getQueryParameter("r");
+        // Check if we have code
+        if (result != null && result.getCode() != null && !result.getCode().isEmpty()) {
 
-            if (!StringExtensions.IsNullOrBlank(authorizationUri)
-                    && !StringExtensions.IsNullOrBlank(resource)
-                    && resource.equalsIgnoreCase(mRequest.getResource())) {
-
-                AuthenticationResult result = processUIResponseParams(parameters);
-
-                // Check if we have code
-                if (result != null && result.getCode() != null && !result.getCode().isEmpty()) {
-
-                    // Get token and use external callback to set result
-                    return getTokenForCode(result.getCode());
-                }
-
-                return result;
-            } else {
-                throw new AuthenticationException(ADALError.AUTH_FAILED_BAD_STATE);
-            }
-        } else {
-
-            // The response from the server had no state
-            throw new AuthenticationException(ADALError.AUTH_FAILED_NO_STATE);
+            // Get token and use external callback to set result
+            return getTokenForCode(result.getCode());
         }
+
+        return result;
     }
 
     /**
@@ -540,22 +518,6 @@ class Oauth2 {
         }
 
         return result;
-    }
-
-    public static String decodeProtocolState(String encodedState) {
-
-        if (!StringExtensions.IsNullOrBlank(encodedState)) {
-            byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
-
-            return new String(stateBytes);
-        }
-
-        return null;
-    }
-
-    public String encodeProtocolState() {
-        String state = String.format("a=%s&r=%s", mRequest.getAuthority(), mRequest.getResource());
-        return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
     private HashMap<String, String> getRequestHeaders() {

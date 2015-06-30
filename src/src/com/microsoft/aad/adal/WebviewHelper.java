@@ -67,8 +67,8 @@ public class WebviewHelper {
             throw new IllegalArgumentException("Authority is null");
         }
 
-        if (TextUtils.isEmpty(mRequest.getResource())) {
-            throw new IllegalArgumentException("Resource is null");
+        if (mRequest.getScope() == null || mRequest.getScope().length == 0) {
+        	throw new IllegalArgumentException("Scope is null or empty");
         }
 
         if (TextUtils.isEmpty(mRequest.getClientId())) {

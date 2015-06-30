@@ -170,9 +170,8 @@ public class AuthenticationActivity extends Activity {
             return;
         }
 
-        if (mAuthRequest.getResource() == null || mAuthRequest.getResource().isEmpty()) {
-            returnError(ADALError.ARGUMENT_EXCEPTION,
-                    AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
+        if (mAuthRequest.getScope() == null || mAuthRequest.getScope().length == 0) {
+            returnError(ADALError.ARGUMENT_EXCEPTION, AuthenticationConstants.Broker.ACCOUNT_SCOPE);
             return;
         }
 
@@ -190,7 +189,7 @@ public class AuthenticationActivity extends Activity {
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
         Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
-     // Create the Web View to show the page
+        // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
@@ -266,7 +265,7 @@ public class AuthenticationActivity extends Activity {
                         + android.os.Build.MODEL);
 
         setupWebView(mRedirectUrl, mQueryParameters, mAuthRequest);
-        
+
         if (savedInstanceState == null) {
             mWebView.post(new Runnable() {
                 @Override
@@ -322,7 +321,6 @@ public class AuthenticationActivity extends Activity {
 
     private void setupWebView(String redirect, String queryParam, AuthenticationRequest request) {
 
-        
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
@@ -354,8 +352,10 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG, "It is a broker request. Get request info from bundle extras.");
             String authority = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
-            String resource = callingIntent
-                    .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_RESOURCE);
+            String[] scope = callingIntent
+                    .getStringArrayExtra(AuthenticationConstants.Broker.ACCOUNT_SCOPE);
+            String[] additionalScope = callingIntent
+                    .getStringArrayExtra(AuthenticationConstants.Broker.ACCOUNT_ADDITONAL_SCOPE);
             String redirect = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
             String loginhint = callingIntent
@@ -368,10 +368,9 @@ public class AuthenticationActivity extends Activity {
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CORRELATIONID);
             String prompt = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
-            
-            
+
             UserIdentifier userId = UserIdentifier.createFromIntent(callingIntent);
-            
+
             PromptBehavior promptBehavior = PromptBehavior.Auto;
             if (!StringExtensions.IsNullOrBlank(prompt)) {
                 promptBehavior = PromptBehavior.valueOf(prompt);
@@ -389,11 +388,12 @@ public class AuthenticationActivity extends Activity {
                             ADALError.CORRELATION_ID_FORMAT);
                 }
             }
-            
-            authRequest = new AuthenticationRequest(authority, resource, clientidKey, redirect,
+
+            authRequest = new AuthenticationRequest(authority, scope, clientidKey, redirect,
                     userId, promptBehavior, "", correlationIdParsed);
             authRequest.setBrokerAccountName(accountName);
             authRequest.setPrompt(promptBehavior);
+            authRequest.setAdditionalScope(additionalScope);
             authRequest.setRequestId(mWaitingRequestId);
         } else {
             Serializable request = callingIntent
@@ -568,10 +568,10 @@ public class AuthenticationActivity extends Activity {
 
     class CustomWebViewClient extends BasicWebViewClient {
 
-        public CustomWebViewClient(){
+        public CustomWebViewClient() {
             super(AuthenticationActivity.this, mRedirectUrl, mQueryParameters, mAuthRequest);
         }
-                
+
         public void processRedirectUrl(final WebView view, String url) {
             // It is pointing to redirect. Final url can be processed to
             // get the code or error.
@@ -583,7 +583,7 @@ public class AuthenticationActivity extends Activity {
             returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, resultIntent);
             view.stopLoading();
         }
-        
+
         public boolean processInvalidUrl(final WebView view, String url) {
             if (isBrokerRequest(getIntent())
                     && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) {
@@ -596,29 +596,29 @@ public class AuthenticationActivity extends Activity {
 
             return false;
         }
-        
-        public void showSpinner(boolean status){
+
+        public void showSpinner(boolean status) {
             displaySpinner(status);
         }
 
         @Override
         public void sendResponse(int returnCode, Intent responseIntent) {
-            returnToCaller(returnCode, responseIntent);            
+            returnToCaller(returnCode, responseIntent);
         }
 
         @Override
         public void cancelWebViewRequest() {
-            cancelRequest();            
+            cancelRequest();
         }
 
         @Override
         public void setPKeyAuthStatus(boolean status) {
-            mPkeyAuthRedirect = status;            
+            mPkeyAuthRedirect = status;
         }
 
         @Override
         public void postRunnable(Runnable item) {
-            mWebView.post(item);            
+            mWebView.post(item);
         }
     }
 
