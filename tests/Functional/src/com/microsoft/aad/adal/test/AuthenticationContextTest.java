@@ -70,7 +70,7 @@ import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
-import com.microsoft.aad.adal.DefaultTokenCacheStore;
+import com.microsoft.aad.adal.TokenCache;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.IConnectionService;
 import com.microsoft.aad.adal.IDiscovery;
@@ -181,7 +181,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     public void testConstructorWithCache() throws NoSuchAlgorithmException, NoSuchPaddingException {
         String authority = "https://github.com/MSOpenTech";
-        DefaultTokenCacheStore expected = new DefaultTokenCacheStore(getContext());
+        TokenCache expected = new TokenCache(getContext());
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
                 expected);
         assertEquals("Cache object is expected to be same", expected, context.getCache());
@@ -1357,7 +1357,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         String tokenToTest = "accessToken=" + UUID.randomUUID();
         String resource = "Resource" + UUID.randomUUID();
-        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        ITokenCacheStore mockCache = new TokenCache(mockContext);
         mockCache.removeAll();
         addItemToCache(mockCache, tokenToTest, "refreshToken", VALID_AUTHORITY, resource,
                 "clientId", "userId124", "name", "familyName", "userA", "tenantId", false);
@@ -1396,7 +1396,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         String resource = "Resource" + UUID.randomUUID();
         String clientId = "clientid" + UUID.randomUUID();
-        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        ITokenCacheStore mockCache = new TokenCache(mockContext);
         mockCache.removeAll();
         Calendar timeAhead = new GregorianCalendar();
         timeAhead.add(Calendar.MINUTE, 10);
@@ -1443,7 +1443,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         
         String resource = "Resource" + UUID.randomUUID();
         String clientId = "clientid" + UUID.randomUUID();
-        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        ITokenCacheStore mockCache = new TokenCache(mockContext);
         mockCache.removeAll();
         addItemToCache(mockCache, "token1", "refresh1", VALID_AUTHORITY, resource, clientId, "userid1", "userAname", "userAfamily" , "userName1", "tenant", false);
         addItemToCache(mockCache, "token2", "refresh2", VALID_AUTHORITY, resource, clientId, "userid2", "userBname", "userBfamily" , "userName2", "tenant", false);
@@ -1717,7 +1717,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         String tokenId = "id" + UUID.randomUUID().toString().replace("-", "");
         String tokenInfo = "accessToken" + tokenId;
         String resource = "Resource" + UUID.randomUUID();
-        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        ITokenCacheStore mockCache = new TokenCache(mockContext);
         mockCache.removeAll();
         addItemToCache(mockCache, tokenToTest, "refreshTokenNormal", VALID_AUTHORITY, resource,
                 "ClienTid", TEST_IDTOKEN_USERID, "name", "familyName", TEST_IDTOKEN_UPN, "tenantId", false);
@@ -1807,7 +1807,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         String tokenToTest = "accessToken=" + UUID.randomUUID();
         String resource = "Resource" + UUID.randomUUID();
-        ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        ITokenCacheStore mockCache = new TokenCache(mockContext);
         mockCache.removeAll();
         // add item without userid and normal refresh token
         addItemToCache(mockCache, tokenToTest, "refreshToken", VALID_AUTHORITY, resource,
@@ -1902,7 +1902,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) throws NoSuchAlgorithmException,
             NoSuchPaddingException {
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
+        TokenCache cache = new TokenCache(getContext());
         cache.removeAll();
         Calendar expiredTime = new GregorianCalendar();
         Log.d("Test", "Time now:" + expiredTime.toString());
@@ -1928,7 +1928,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
     private ITokenCacheStore getMockCache(int minutes, String token, String resource,
             String client, String user, boolean isMultiResource) throws NoSuchAlgorithmException,
             NoSuchPaddingException {
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
+        TokenCache cache = new TokenCache(getContext());
         // Code response
         Calendar timeAhead = new GregorianCalendar();
         Log.d("Test", "Time now:" + timeAhead.toString());

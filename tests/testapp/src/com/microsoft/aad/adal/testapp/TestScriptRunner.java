@@ -38,6 +38,7 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UserIdentifier;
 import com.microsoft.aad.adal.WebRequestHandler;
 
 public class TestScriptRunner {
@@ -382,7 +383,7 @@ public class TestScriptRunner {
                 data.mErrorMessage = "Context is not initialized";
                 data.mErrorInRun = true;
             } else {
-                data.mContext.getCache().removeAll();
+                data.mContext.getCache().clear();
             }
         }
     }
@@ -409,7 +410,7 @@ public class TestScriptRunner {
 
             try {
                 data.mContext = new AuthenticationContext(mContextActivity, data.mAuthority, false);
-                data.mContext.getCache().removeAll();
+                data.mContext.getCache().clear();
                 mContextActivity.setContextForScriptRun(data.mContext);
             } catch (Exception e) {
                 data.mErrorInRun = true;
@@ -451,7 +452,7 @@ public class TestScriptRunner {
                     public void run() {
                         // Call API from handler
                         data.mContext.acquireToken(mContextActivity, data.mResource,
-                                data.mClientId, data.mRedirect, data.mLoginHint,
+                                data.mClientId, data.mRedirect, new UserIdentifier(data.mLoginHint, UserIdentifier.UserIdentifierType.OptionalDisplayableId) ,
                                 data.getPromptBehavior(), data.mExtraQuery,
                                 new AuthenticationCallback<AuthenticationResult>() {
 

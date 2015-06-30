@@ -253,6 +253,10 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_USERINFO_USERID_DISPLAYABLE = "account.userinfo.userid.displayable";
 
         public static final String ACCOUNT_USERINFO_TENANTID = "account.userinfo.tenantid";
+        
+        public static final String ACCOUNT_USERID_TYPE = "account.userid.type";
+        
+        public static final String ACCOUNT_USERID_ID = "account.userid.id";
 
         public static final String ADAL_VERSION_KEY = "adal.version.key";
         

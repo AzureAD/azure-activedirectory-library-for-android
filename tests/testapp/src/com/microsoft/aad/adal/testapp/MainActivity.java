@@ -32,10 +32,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import javax.crypto.NoSuchPaddingException;
@@ -71,13 +68,13 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.CacheKey;
-import com.microsoft.aad.adal.DefaultTokenCacheStore;
-import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.TokenCache;
 import com.microsoft.aad.adal.TokenCacheItem;
+import com.microsoft.aad.adal.UserIdentifier;
+import com.microsoft.aad.adal.UserIdentifier.UserIdentifierType;
 
 public class MainActivity extends Activity {
 
@@ -264,20 +261,6 @@ public class MainActivity extends Activity {
                 resetToken();
             }
         });
-
-        btnSetExpired.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setTokenExpired();
-            }
-        });
-
-        btnRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getTokenByRefreshToken();
-            }
-        });
     }
 
     public void initDeviceCertificateMock() throws NoSuchAlgorithmException,
@@ -333,38 +316,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void acquireTokenByRefreshToken(String refreshToken) {
-        textViewStatus.setText(GETTING_TOKEN);
-        if (mContext == null) {
-            initContext();
-        }
-
-        String clientId = mClientId.getText().toString();
-        if (clientId == null || clientId.isEmpty()) {
-            clientId = CLIENT_ID;
-        }
-        mContext.setRequestCorrelationId(mRequestCorrelationId);
-        mContext.acquireTokenByRefreshToken(refreshToken, clientId, new AdalCallback());
-    }
-
-    private void getTokenByRefreshToken() {
-        Logger.v(TAG, "get Token with refresh token");
-        textViewStatus.setText(GETTING_TOKEN);
-        if (mResult != null && mResult.getRefreshToken() != null
-                && !mResult.getRefreshToken().isEmpty()) {
-            String clientId = mClientId.getText().toString();
-
-            if (clientId == null || clientId.isEmpty()) {
-                clientId = CLIENT_ID;
-            }
-            mContext.setRequestCorrelationId(mRequestCorrelationId);
-            mContext.acquireTokenByRefreshToken(mResult.getRefreshToken(), clientId,
-                    new AdalCallback());
-        } else {
-            textViewStatus.setText(FAILED);
-        }
-    }
-
     private void getToken() {
         Logger.v(TAG, "get Token");
         textViewStatus.setText(GETTING_TOKEN);
@@ -396,7 +347,7 @@ public class MainActivity extends Activity {
         String redirect = mRedirect.getText().toString();
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, userid, prompt,
+        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, new UserIdentifier(userid, UserIdentifierType.RequiredDisplayableId), prompt,
                 mExtraQueryParam, new AdalCallback());
     }
 
@@ -422,7 +373,7 @@ public class MainActivity extends Activity {
 
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-        mContext.acquireTokenSilent(resource, clientId, userid, new AdalCallback());
+        mContext.acquireTokenSilent(resource, clientId, new UserIdentifier(userid, UserIdentifierType.UniqueId), new AdalCallback());
     }
     
     @Override
@@ -453,7 +404,7 @@ public class MainActivity extends Activity {
             initContext();
         }
 
-        mContext.getCache().removeAll();
+        mContext.getCache().clear();
         textViewStatus.setText("");
     }
 
@@ -469,53 +420,11 @@ public class MainActivity extends Activity {
     /**
      * set all expired
      */
-    private void setTokenExpired() {
-        Log.d(TAG, "Setting item to expire...");
-
-        Calendar calendar = new GregorianCalendar();
-        calendar.add(Calendar.MINUTE, -30);
-        Date date = calendar.getTime();
-        ITokenCacheStore cache = mContext.getCache();
-        String key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
-                .toString(), mClientId.getText().toString(), false, mUserid.getText().toString());
-        TokenCacheItem item = cache.getItem(key);
-        setTime(cache, date, key, item);
-
-        key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
-                .toString(), mClientId.getText().toString(), true, mUserid.getText().toString());
-        item = cache.getItem(key);
-        setTime(cache, date, key, item);
-    }
-
-    private void setTime(ITokenCacheStore cache, Date date, String key, TokenCacheItem item) {
-        if (item != null) {
-            Calendar calendar = new GregorianCalendar();
-            calendar.add(Calendar.MINUTE, -30);
-            item.setExpiresOn(calendar.getTime());
-
-            cache.setItem(key, item);
-            Log.d(TAG, "Item is set to expire for key:" + key);
-        } else {
-            Log.d(TAG, "item is null: setTokenExpired");
-        }
-    }
-
-    /**
-     * set all expired
-     */
-    public ArrayList<TokenCacheItem> getTokens() {
+    public List<TokenCacheItem> getTokens() {
         Log.d(TAG, "Setting item to expire...");
         ArrayList<TokenCacheItem> items = new ArrayList<TokenCacheItem>();
-        DefaultTokenCacheStore cache = (DefaultTokenCacheStore)mContext.getCache();
-        Iterator<TokenCacheItem> iterator = cache.getAll();
-        while (iterator.hasNext()) {
-            TokenCacheItem item = iterator.next();
-            if (item != null) {
-                items.add(item);
-            }
-        }
-
-        return items;
+        TokenCache cache = (TokenCache)mContext.getCache();
+        return cache.readItems();
     }
 
     /**
@@ -545,7 +454,7 @@ public class MainActivity extends Activity {
         this.mResult = result;
         if (result != null && result.getUserInfo() != null) {
             Log.v(TAG, "Active UserId:" + mActiveUser);
-            mActiveUser = result.getUserInfo().getUserId();
+            mActiveUser = result.getUserInfo().getUniqueId();
         }
     }
 

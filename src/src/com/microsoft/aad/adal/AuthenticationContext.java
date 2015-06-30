@@ -35,7 +35,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
 
-import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
@@ -69,7 +68,7 @@ public class AuthenticationContext {
 
     private boolean mAuthorityValidated = false;
 
-    private ITokenCacheStore mTokenCacheStore;
+    private TokenCache mTokenCacheStore;
 
     private static final ReentrantReadWriteLock RWL = new ReentrantReadWriteLock();
 
@@ -136,8 +135,9 @@ public class AuthenticationContext {
         // The fixes need to be applied before any use of Java Cryptography
         // Architecture primitives. Default cache uses encryption
         PRNGFixes.apply();
-        initialize(appContext, authority, new DefaultTokenCacheStore(appContext),
-                validateAuthority, true);
+        TokenCache cache = new TokenCache(appContext);
+        cache.initCache();
+        initialize(appContext, authority, cache, validateAuthority, true);
     }
 
     /**
@@ -147,11 +147,11 @@ public class AuthenticationContext {
      * @param appContext {@link Context}
      * @param authority Authority Url
      * @param validateAuthority true/false for validation
-     * @param tokenCacheStore Set to null if you don't want cache.
+     * @param tokenCache Set to null if you don't want cache. You can save the serialized cache to custom storage and update it.
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
-            ITokenCacheStore tokenCacheStore) {
-        initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
+            TokenCache tokenCache) {
+        initialize(appContext, authority, tokenCache, validateAuthority, false);
     }
 
     /**
@@ -160,15 +160,14 @@ public class AuthenticationContext {
      * 
      * @param appContext {@link Context}
      * @param authority Authority Url
-     * @param tokenCacheStore Cache {@link ITokenCacheStore} used to store
+     * @param tokenCache Cache {@link TokenCache} used to store
      *            tokens. Set to null if you don't want cache.
      */
-    public AuthenticationContext(Context appContext, String authority,
-            ITokenCacheStore tokenCacheStore) {
-        initialize(appContext, authority, tokenCacheStore, true, false);
+    public AuthenticationContext(Context appContext, String authority, TokenCache tokenCache) {
+        initialize(appContext, authority, tokenCache, true, false);
     }
 
-    private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
+    private void initialize(Context appContext, String authority, TokenCache tokenCacheStore,
             boolean validateAuthority, boolean defaultCache) {
         if (appContext == null) {
             throw new IllegalArgumentException("appContext");
@@ -195,47 +194,7 @@ public class AuthenticationContext {
      * 
      * @return ITokenCacheStore Current cache used
      */
-    public ITokenCacheStore getCache() {
-        if (mBrokerProxy.canSwitchToBroker()) {
-            // return cache implementation related to broker so that app can
-            // clear tokens for related accounts
-            return new ITokenCacheStore() {
-
-                /**
-                 * default serial #
-                 */
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void setItem(String key, TokenCacheItem item) {
-                    throw new UnsupportedOperationException(
-                            "Broker cache does not support direct setItem operation");
-                }
-
-                @Override
-                public void removeItem(String key) {
-                    throw new UnsupportedOperationException(
-                            "Broker cache does not support direct removeItem operation");
-                }
-
-                @Override
-                public void removeAll() {
-                    mBrokerProxy.removeAccounts();
-                }
-
-                @Override
-                public TokenCacheItem getItem(String key) {
-                    throw new UnsupportedOperationException(
-                            "Broker cache does not support direct getItem operation");
-                }
-
-                @Override
-                public boolean contains(String key) {
-                    throw new UnsupportedOperationException(
-                            "Broker cache does not support contains operation");
-                }
-            };
-        }
+    public TokenCache getCache() {
         return mTokenCacheStore;
     }
 
@@ -271,7 +230,6 @@ public class AuthenticationContext {
     /*
      * Gets user info from broker. This should not be called on main thread.
      * @return user {@link UserInfo}
-     * 
      * @throws IOException
      * @throws AuthenticatorException
      * @throws OperationCanceledException
@@ -311,20 +269,19 @@ public class AuthenticationContext {
      * @param clientId required client identifier
      * @param redirectUri Optional. It will use package name info if not
      *            provided.
-     * @param loginHint Optional login hint
+     * @param user  UserIdentifier to specify a user.
      * @param callback required
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String loginHint,
+            String redirectUri, UserIdentifier user,
             AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
                 callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
+                clientId, redirectUri, user, PromptBehavior.Auto, null,
                 getRequestCorrelationId());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -339,10 +296,7 @@ public class AuthenticationContext {
      * @param clientId required client identifier
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param loginHint Optional. This parameter will be used to pre-populate
-     *            the username field in the authentication form. Please note
-     *            that the end user can still edit the username field and
-     *            authenticate as a different user. This parameter can be null.
+     * @param user  UserIdentifier to specify a user.
      * @param extraQueryParameters Optional. This parameter will be appended as
      *            is to the query string in the HTTP authentication request to
      *            the authority. The parameter can be null.
@@ -350,16 +304,15 @@ public class AuthenticationContext {
      *            call.
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String loginHint, String extraQueryParameters,
+            String redirectUri, UserIdentifier user, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
                 callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
+                clientId, redirectUri, user, PromptBehavior.Auto, extraQueryParameters,
                 getRequestCorrelationId());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -437,23 +390,21 @@ public class AuthenticationContext {
      * @param clientId required client identifier.
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param loginHint Optional. It is used for cache and as a loginhint at
-     *            authentication.
+     * @param user  UserIdentifier to specify a user.
      * @param prompt Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String loginHint, PromptBehavior prompt,
+            String redirectUri, UserIdentifier user, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                clientId, redirectUri, user, prompt, extraQueryParameters,
                 getRequestCorrelationId());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
 
@@ -469,23 +420,21 @@ public class AuthenticationContext {
      * @param clientId required client identifier.
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param loginHint Optional. It is used for cache and as a loginhint at
-     *            authentication.
+     * @param user  UserIdentifier to specify a user.
      * @param prompt Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      */
     public void acquireToken(IWindowComponent fragment, String resource, String clientId,
-            String redirectUri, String loginHint, PromptBehavior prompt,
+            String redirectUri, UserIdentifier user, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                clientId, redirectUri, user, prompt, extraQueryParameters,
                 getRequestCorrelationId());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(fragment, false, request, callback);
     }
 
@@ -502,23 +451,21 @@ public class AuthenticationContext {
      * @param clientId required client identifier.
      * @param redirectUri Optional. It will use packagename and provided suffix
      *            for this.
-     * @param loginHint Optional. It is used for cache and as a loginhint at
-     *            authentication.
+     * @param user  UserIdentifier to specify a user.
      * @param prompt Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      */
     public void acquireToken(String resource, String clientId, String redirectUri,
-            String loginHint, PromptBehavior prompt, String extraQueryParameters,
+            UserIdentifier user, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                clientId, redirectUri, user, prompt, extraQueryParameters,
                 getRequestCorrelationId());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
         acquireTokenLocal(null, true, request, callback);
     }
 
@@ -567,16 +514,15 @@ public class AuthenticationContext {
      * 
      * @param resource required resource identifier.
      * @param clientId required client identifier.
-     * @param userId UserID obtained from
-     *            {@link AuthenticationResult #getUserInfo()}
+     * @param user  UserIdentifier to specify a user.
      * @return A {@link Future} object representing the
      *         {@link AuthenticationResult} of the call. It contains Access
      *         Token,the Access Token's expiration time, Refresh token, and
      *         {@link UserInfo}.
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId,
-            String userId) {
-        Future<AuthenticationResult> futureResult = acquireTokenSilent(resource, clientId, userId,
+            UserIdentifier user) {
+        Future<AuthenticationResult> futureResult = acquireTokenSilent(resource, clientId, user,
                 null);
         try {
             return futureResult.get();
@@ -615,8 +561,7 @@ public class AuthenticationContext {
      * 
      * @param resource required resource identifier.
      * @param clientId required client identifier.
-     * @param userId UserId obtained from {@link UserInfo} inside
-     *            {@link AuthenticationResult}
+     * @param user  UserIdentifier to specify a user.
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
      * @return A {@link Future} object representing the
@@ -625,7 +570,7 @@ public class AuthenticationContext {
      *         {@link UserInfo}.
      */
     public Future<AuthenticationResult> acquireTokenSilent(String resource, String clientId,
-            String userId, AuthenticationCallback<AuthenticationResult> callback) {
+            UserIdentifier user, AuthenticationCallback<AuthenticationResult> callback) {
         if (StringExtensions.IsNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
@@ -634,42 +579,10 @@ public class AuthenticationContext {
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId());
+                clientId, user, getRequestCorrelationId());
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
-        request.setUserIdentifierType(UserIdentifierType.UniqueId);
         return acquireTokenLocal(null, false, request, callback);
-    }
-
-    /**
-     * acquire token using refresh token if cache is not used. Otherwise, use
-     * acquireToken to let the ADAL handle the cache lookup and refresh token
-     * request.
-     * 
-     * @param refreshToken Required.
-     * @param clientId Required.
-     * @param callback Required
-     */
-    public void acquireTokenByRefreshToken(String refreshToken, String clientId,
-            AuthenticationCallback<AuthenticationResult> callback) {
-        // Authenticator is not supported if user is managing the cache
-        refreshTokenWithoutCache(refreshToken, clientId, null, callback);
-    }
-
-    /**
-     * acquire token using refresh token if cache is not used. Otherwise, use
-     * acquireToken to let the ADAL handle the cache lookup and refresh token
-     * request.
-     * 
-     * @param refreshToken Required.
-     * @param clientId Required.
-     * @param resource Required resource identifier.
-     * @param callback Required
-     */
-    public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
-            AuthenticationCallback<AuthenticationResult> callback) {
-        // Authenticator is not supported if user is managing the cache
-        refreshTokenWithoutCache(refreshToken, clientId, resource, callback);
     }
 
     /**
@@ -686,7 +599,7 @@ public class AuthenticationContext {
         // set when we start the activity for result.
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
             getHandler();
-            
+
             if (data == null) {
                 // If data is null, RequestId is unknown. It could not find
                 // callback to respond to this request.
@@ -717,8 +630,10 @@ public class AuthenticationContext {
                     long expireTime = data.getLongExtra(
                             AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
                     Date expire = new Date(expireTime);
-                    String idtoken = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN);
-                    String tenantId = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+                    String idtoken = data
+                            .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN);
+                    String tenantId = data
+                            .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                     UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken);
@@ -819,7 +734,7 @@ public class AuthenticationContext {
                                                         + authenticationRequest.getLogInfo());
 
                                         if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                                            setItemToCache(authenticationRequest, result, true);
+                                            setItemToCache(authenticationRequest, result);
                                         }
 
                                         if (waitingRequest != null
@@ -833,9 +748,20 @@ public class AuthenticationContext {
                                                 .onError(new AuthenticationException(
                                                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN));
                                     }
-                                } finally {
-                                    removeWaitingRequest(requestId);
-                                }
+								} catch (Exception exc) {
+									String msg = "Error in processing code to get token. "
+											+ authenticationRequest
+													.getLogInfo();
+									Logger.e(
+											TAG,
+											msg,
+											ExceptionExtensions
+													.getExceptionMessage(exc),
+											ADALError.DEVICE_CACHE_IS_NOT_WORKING,
+											exc);
+								} finally {
+									removeWaitingRequest(requestId);
+								}
                             }
                         });
                     }
@@ -846,22 +772,27 @@ public class AuthenticationContext {
 
     private static boolean isUserMisMatch(final AuthenticationRequest request,
             final AuthenticationResult result) {
-        if (result.getUserInfo() != null
-                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())
-                && !StringExtensions.IsNullOrBlank(request.getUserId())) {
+        if(request.getUserIdentifier().getType().equals(UserIdentifier.UserIdentifierType.OptionalDisplayableId)){
+            Logger.v(TAG, "OptionalId is specified.");
+            return false;
+        }
+        
+        if (result.getUserInfo() != null) {
             // Verify if IdToken is present and userid is specified
-            return !request.getUserId().equalsIgnoreCase(result.getUserInfo().getUserId());
+            if(request.getUserIdentifier().getType().equals(UserIdentifier.UserIdentifierType.UniqueId)){
+                String resultUniqueID = result.getUserInfo().getUniqueId();
+                Logger.v(TAG, "UniqueId is specified.");
+                return resultUniqueID == null || !resultUniqueID.equalsIgnoreCase(request.getUserIdentifier().getId());
+            }
+            
+            if(request.getUserIdentifier().getType().equals(UserIdentifier.UserIdentifierType.RequiredDisplayableId)){
+                String resultDispID = result.getUserInfo().getDisplayableId();
+                Logger.v(TAG, "RequiredDisplayableId is specified.");
+                return resultDispID == null || !resultDispID.equalsIgnoreCase(request.getUserIdentifier().getId());
+            }
         }
 
-        // it should verify loginhint as well if specified
-        if (result.getUserInfo() != null
-                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())
-                && !StringExtensions.IsNullOrBlank(request.getLoginHint())) {
-            // Verify if IdToken is present and userid is specified
-            return !request.getLoginHint()
-                    .equalsIgnoreCase(result.getUserInfo().getDisplayableId());
-        }
-
+        Logger.v(TAG, "result.getUserInfo() is null.");
         return false;
     }
 
@@ -1138,13 +1069,13 @@ public class AuthenticationContext {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             AuthenticationResult result = null;
             request.setVersion(getVersionName());
-            request.setBrokerAccountName(request.getLoginHint());
-            
+            request.setBrokerAccountName(request.getUserIdentifier().getDisplayableId());
+
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())
                     && (!StringExtensions.IsNullOrBlank(request.getBrokerAccountName()) || !StringExtensions
-                            .IsNullOrBlank(request.getUserId()))) {
+                            .IsNullOrBlank(request.getUserIdentifier().getUniqueId()))) {
                 try {
                     Logger.v(TAG, "User is specified for background token request");
                     result = mBrokerProxy.getAuthTokenInBackground(request);
@@ -1226,7 +1157,12 @@ public class AuthenticationContext {
             // It will start activity if callback is provided. Return null here.
             return null;
         } else {
-            return localFlow(callbackHandle, activity, useDialog, request);
+			try {
+				return localFlow(callbackHandle, activity, useDialog, request);
+			} catch (Exception e) {
+				callbackHandle.onError(new AuthenticationException(ADALError.INTERNAL_ERROR, e.getMessage(), e));
+			}
+			return null;
         }
     }
 
@@ -1322,20 +1258,7 @@ public class AuthenticationContext {
         if (mTokenCacheStore != null) {
 
             // get token if resourceid matches to cache key.
-            TokenCacheItem item = null;
-            if (request.getUserIdentifierType() == UserIdentifierType.LoginHint) {
-                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
-                        request.getLoginHint()));
-            }
-
-            if (request.getUserIdentifierType() == UserIdentifierType.UniqueId) {
-                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
-                        request.getUserId()));
-            }
-
-            if (request.getUserIdentifierType() == UserIdentifierType.NoUser) {
-                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request, null));
-            }
+            TokenCacheItem item = mTokenCacheStore.getItem(TokenCacheKey.createCacheKey(request));
 
             if (item != null) {
                 Logger.v(TAG,
@@ -1368,7 +1291,7 @@ public class AuthenticationContext {
     private class RefreshItem {
         String mRefreshToken;
 
-        String mKey;
+        TokenCacheKey mKey;
 
         boolean mMultiResource;
 
@@ -1376,13 +1299,10 @@ public class AuthenticationContext {
 
         String mRawIdToken;
 
-        String mKeyWithUserId;
 
-        String mKeyWithDisplayableId;
-        
         String mTenantId;
 
-        public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item,
+        public RefreshItem(TokenCacheKey keyInCache, AuthenticationRequest request, TokenCacheItem item,
                 boolean multiResource) {
             mKey = keyInCache;
             mMultiResource = multiResource;
@@ -1392,12 +1312,6 @@ public class AuthenticationContext {
                 mUserInfo = item.getUserInfo();
                 mRawIdToken = item.getRawIdToken();
                 mTenantId = item.getTenantId();
-                if (item.getUserInfo() != null) {
-                    mKeyWithUserId = CacheKey.createCacheKey(request, item.getUserInfo()
-                            .getUserId());
-                    mKeyWithDisplayableId = CacheKey.createCacheKey(request, item.getUserInfo()
-                            .getDisplayableId());
-                }
             }
         }
 
@@ -1413,19 +1327,14 @@ public class AuthenticationContext {
             boolean multiResource = false;
             // target refreshToken for this resource first. CacheKey will
             // include the resourceId in the cachekey
-            Logger.v(TAG, "Looking for regular refresh token");
-            String userId = request.getUserId();
-            if (StringExtensions.IsNullOrBlank(userId)) {
-                // acquireTokenSilent expects userid field from UserInfo
-                userId = request.getLoginHint();
-            }
-            String keyUsed = CacheKey.createCacheKey(request, userId);
-            TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
+            TokenCacheKey keyUsed = TokenCacheKey.createCacheKey(request);
+            Logger.v(TAG, "Looking for regular refresh token. Key:" + keyUsed.getLog());
+            TokenCacheItem item = mTokenCacheStore.getItem(TokenCacheKey.createCacheKey(request));
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 // if not present, check multiResource item in cache. Cache key
                 // will not include resourceId in the cache key string.
                 Logger.v(TAG, "Looking for Multi Resource Refresh token");
-                keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request, userId);
+                keyUsed.setIsMultipleResourceRefreshToken(true);
                 item = mTokenCacheStore.getItem(keyUsed);
                 multiResource = true;
             }
@@ -1442,8 +1351,7 @@ public class AuthenticationContext {
         return refreshItem;
     }
 
-    private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
-            boolean afterPrompt) throws AuthenticationException {
+    private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result) throws AuthenticationException {
         if (mTokenCacheStore != null) {
 
             // User can ask for token without login hint. Next call from same
@@ -1454,44 +1362,8 @@ public class AuthenticationContext {
             logReturnedToken(request, result);
 
             // acquireTokenSilent uses userid to request items
-            String userKey = request.getUserId();
-
-            if (afterPrompt) {
-                // User can change the username and enter a different one at
-                // prompt. Use idtoken if present instead of loginhint after
-                // prompt.
-                if (result.getUserInfo() != null
-                        && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
-                    Logger.v(TAG, "Updating cache for username:"
-                            + result.getUserInfo().getDisplayableId());
-                    setItemToCacheForUser(request, result, result.getUserInfo().getDisplayableId());
-                }
-            } else if (StringExtensions.IsNullOrBlank(userKey)) {
-                userKey = request.getLoginHint();
-            }
-
-            // It will store in the cache for empty idtokens as well
-            setItemToCacheForUser(request, result, userKey);
-
-            // Set item with userid if idtoken is present.
-            if (result.getUserInfo() != null
-                    && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
-                Logger.v(TAG, "Updating userId:" + result.getUserInfo().getUserId());
-                setItemToCacheForUser(request, result, result.getUserInfo().getUserId());
-            }
-        }
-    }
-
-    private void setItemToCacheForUser(final AuthenticationRequest request,
-            AuthenticationResult result, String userId) {
-        mTokenCacheStore.setItem(CacheKey.createCacheKey(request, userId), new TokenCacheItem(
-                request, result, false));
-
-        // Store broad refresh token if available
-        if (result.getIsMultiResourceRefreshToken()) {
-            Logger.v(TAG, "Setting Multi Resource Refresh token to cache");
-            mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request, userId),
-                    new TokenCacheItem(request, result, true));
+            TokenCacheKey key = TokenCacheKey.createCacheKey(request, result);
+            mTokenCacheStore.setItem(key, new TokenCacheItem(request, result, result.getIsMultiResourceRefreshToken()));
         }
     }
 
@@ -1524,8 +1396,6 @@ public class AuthenticationContext {
             // Update for cache key
             mTokenCacheStore.setItem(refreshItem.mKey, new TokenCacheItem(request, result,
                     refreshItem.mMultiResource));
-
-            setItemToCache(request, result, false);
         }
     }
 
@@ -1533,9 +1403,6 @@ public class AuthenticationContext {
         if (mTokenCacheStore != null) {
             Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey);
             mTokenCacheStore.removeItem(refreshItem.mKey);
-            // clean up keys related to userid/displayableid for same request
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithUserId);
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithDisplayableId);
         }
     }
 

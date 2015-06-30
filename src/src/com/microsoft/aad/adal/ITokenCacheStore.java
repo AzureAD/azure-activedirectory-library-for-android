@@ -19,6 +19,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Minimal interface needed by ADAL for cache.
@@ -26,35 +27,48 @@ import java.io.Serializable;
 public interface ITokenCacheStore extends Serializable {
 
     /**
-     * Get cache item.
+     * Get cache items.
      * 
-     * @param key {@link CacheKey}
      * @return Token cache item
      */
-    TokenCacheItem getItem(String key);
-
-    /**
-     * Checks if cache key exists.
-     * @param key {@link CacheKey}
-     * @return true if it exists
-     */
-    boolean contains(String key);
-
-    /**
-     * Sets item.
-     * @param key {@link CacheKey}
-     * @param item Cache item
-     */
-    void setItem(String key, TokenCacheItem item);
+    List<TokenCacheItem> readItems();
 
     /**
      * Removes item with key.
-     * @param key {@link CacheKey}
+     * 
+     * @param item {@link TokenCacheItem}
      */
-    void removeItem(String key);
+    void deleteItem(TokenCacheItem item);
 
     /**
      * Removes all items from cache.
      */
-    void removeAll();
+    void clear();
+
+    /**
+     * Called before using the cache.
+     * 
+     * @param args
+     */
+    void beforeAccess(TokenCacheNotificationArgs args);
+
+    /**
+     * Notification method called before any library method writes to the cache.
+     * 
+     * @param args
+     */
+    void beforeWrite(TokenCacheNotificationArgs args);
+
+    /**
+     * Notification method called after any library method accesses the cache.
+     * 
+     * @param args
+     */
+    void afterAccess(TokenCacheNotificationArgs args);
+    
+    void stateChanged();
+    
+    String serialize();
+    
+    void deSerialize(String blob);
 }

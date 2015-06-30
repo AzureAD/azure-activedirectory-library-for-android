@@ -176,7 +176,7 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * Sets package name to use {@link DefaultTokenCacheStore} with sharedUserId
+     * Sets package name to use {@link TokenCache} with sharedUserId
      * apps.
      * 
      * @param packageNameForSharedFile Package name of other app
