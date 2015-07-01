@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
                         .show();
 
                 if (mResult.getUserInfo() != null) {
-                    Log.v(TAG, "User info userid:" + result.getUserInfo().getUniqueId()
+                    Log.v(TAG, "User info uniqueid:" + result.getUserInfo().getUniqueId()
                             + " displayableId:" + result.getUserInfo().getDisplayableId());
                     mEditText.setText(result.getUserInfo().getDisplayableId());
                     Toast.makeText(getApplicationContext(),
@@ -188,7 +188,7 @@ public class MainActivity extends Activity {
     public void onClickAcquireTokenSilent(View v) {
         Log.v(TAG, "onClickAcquireTokenSilent is clicked");
         mLoginProgressDialog.show();
-        mAuthContext.acquireTokenSilent(Constants.RESOURCE_ID, Constants.CLIENT_ID, new UserIdentifier(getUserId(), UserIdentifier.UserIdentifierType.UniqueId),
+        mAuthContext.acquireTokenSilent(Constants.RESOURCE_ID, Constants.CLIENT_ID, new UserIdentifier(getUniqueId(), UserIdentifier.UserIdentifierType.UniqueId),
                 getCallback());
     }
 
@@ -258,7 +258,7 @@ public class MainActivity extends Activity {
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
     }
 
-    private String getUserId() {
+    private String getUniqueId() {
         if (mResult != null && mResult.getUserInfo() != null
                 && mResult.getUserInfo().getUniqueId() != null) {
             return mResult.getUserInfo().getUniqueId();
