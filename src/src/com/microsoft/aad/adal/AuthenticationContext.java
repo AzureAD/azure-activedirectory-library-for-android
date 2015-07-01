@@ -1367,7 +1367,8 @@ public class AuthenticationContext {
             // include the resourceId in the cachekey
             TokenCacheKey keyUsed = TokenCacheKey.createCacheKey(request);
             Logger.v(TAG, "Looking for regular refresh token. Key:" + keyUsed.getLog());
-            TokenCacheItem item = mTokenCacheStore.getItem(TokenCacheKey.createCacheKey(request));
+            keyUsed.setIsMultipleResourceRefreshToken(false);
+            TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 // if not present, check multiResource item in cache. Cache key
                 // will not include resourceId in the cache key string.

@@ -245,6 +245,7 @@ final class TokenCacheKey implements Serializable {
     public boolean matches(TokenCacheItem item) {
         // MMRT items can be used without checking resource
         // Match user if specified
+        // if key is specified for mrrt, it does not need to check scope intersection
         return mAuthority.equalsIgnoreCase(item.getAuthority())
                 && mClientId.equalsIgnoreCase(item.getClientId())
                 && (mIsMultipleResourceRefreshToken || isScopeIntersect(item.getScope()))
@@ -253,8 +254,6 @@ final class TokenCacheKey implements Serializable {
                 && (TextUtils.isEmpty(mDisplayableId) || item.getUserInfo() == null || mDisplayableId
                         .equalsIgnoreCase(item.getUserInfo().getDisplayableId()));
     }
-
-	
 
     public boolean isUserEmpty() {
 		return TextUtils.isEmpty(mDisplayableId)
