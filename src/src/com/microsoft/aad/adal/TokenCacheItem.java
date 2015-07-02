@@ -57,6 +57,8 @@ public class TokenCacheItem implements Serializable {
     private boolean mIsMultiResourceRefreshToken;
 
     private String mTenantId;
+    
+    private String mPolicy;
 
     /**
      * Construct default cache item.
@@ -70,6 +72,7 @@ public class TokenCacheItem implements Serializable {
         if (request != null) {
             mAuthority = request.getAuthority();
             mClientId = request.getClientId();
+            mPolicy = request.getPolicy();
         }
 
         if (result != null) {
@@ -182,5 +185,9 @@ public class TokenCacheItem implements Serializable {
         }
 
         return false;
+    }
+
+    public String getPolicy() {
+        return mPolicy;
     }
 }

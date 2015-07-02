@@ -137,6 +137,13 @@ class Oauth2 {
             }
             requestUrl = requestUrl + params;
         }
+        
+        if (!StringExtensions.IsNullOrBlank(mRequest.getPolicy())) {
+            requestUrl = String.format("%s&%s=%s", requestUrl,
+                    AuthenticationConstants.AAD.QUERY_POLICY, URLEncoder.encode(
+                            mRequest.getPolicy(),
+                            AuthenticationConstants.ENCODING_UTF8));
+        }
         return requestUrl;
 
     }
@@ -159,6 +166,11 @@ class Oauth2 {
 
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
                 StringExtensions.URLFormEncode(mRequest.getRedirectUri()));
+        
+        if (!StringExtensions.IsNullOrBlank(mRequest.getPolicy())) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.QUERY_POLICY,
+                    URLEncoder.encode(mRequest.getPolicy(), AuthenticationConstants.ENCODING_UTF8));
+        }
         return message;
     }
 
@@ -181,6 +193,11 @@ class Oauth2 {
                     StringExtensions.URLFormEncode(scope));
         }
 
+        if (!StringExtensions.IsNullOrBlank(mRequest.getPolicy())) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.QUERY_POLICY,
+                    URLEncoder.encode(mRequest.getPolicy(), AuthenticationConstants.ENCODING_UTF8));
+        }
+        
         return message;
     }
 

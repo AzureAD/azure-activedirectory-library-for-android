@@ -32,6 +32,8 @@ final class TokenCacheKey implements Serializable {
 	private String mDisplayableId = "";
 
 	private boolean mIsMultipleResourceRefreshToken;
+	
+	private String mPolicy = "";
 
 	private TokenCacheKey() {
 	}
@@ -44,6 +46,7 @@ final class TokenCacheKey implements Serializable {
 		obj.put("u", mUniqueId);
 		obj.put("d", mDisplayableId);
 		obj.put("mr", mIsMultipleResourceRefreshToken);
+		obj.put("p", mPolicy);
 		return obj.toString();
 	}
 
@@ -54,6 +57,7 @@ final class TokenCacheKey implements Serializable {
 		sb.append(" clientid:" + mClientId);
 		sb.append(" uniqueid:" + mUniqueId);
 		sb.append(" mrrt:" + mIsMultipleResourceRefreshToken);
+		sb.append(" p:" + mPolicy);
 		return sb.toString();
 	}
 
@@ -71,7 +75,7 @@ final class TokenCacheKey implements Serializable {
 	 * @return CacheKey to use in saving token
 	 */
 	public static TokenCacheKey createCacheKey(String authority,
-			String[] scope, String clientId,
+			String[] scope, String policy, String clientId,
 			boolean isMultiResourceRefreshToken, String uniqueId,
 			String displayableId) {
 
@@ -105,6 +109,10 @@ final class TokenCacheKey implements Serializable {
 		if (!StringExtensions.IsNullOrBlank(displayableId)) {
 			key.mDisplayableId = displayableId.toLowerCase(Locale.US);
 		}
+		
+		if (!StringExtensions.IsNullOrBlank(policy)) {
+		    key.mPolicy = policy;
+		}
 
 		return key;
 	}
@@ -127,7 +135,7 @@ final class TokenCacheKey implements Serializable {
 			displayableId = item.getUserInfo().getDisplayableId();
 		}
 
-		return createCacheKey(item.getAuthority(), item.getScope(),
+		return createCacheKey(item.getAuthority(), item.getScope(), item.getPolicy(),
 				item.getClientId(), item.getIsMultiResourceRefreshToken(),
 				uniqueId, displayableId);
 	}
@@ -142,7 +150,7 @@ final class TokenCacheKey implements Serializable {
 			throw new IllegalArgumentException("AuthenticationRequest");
 		}
 
-		return createCacheKey(item.getAuthority(), item.getScope(),
+		return createCacheKey(item.getAuthority(), item.getScope(), item.getPolicy(),
 				item.getClientId(), false, item.getUserIdentifier()
 						.getUniqueId(), item.getUserIdentifier()
 						.getDisplayableId());
@@ -164,7 +172,7 @@ final class TokenCacheKey implements Serializable {
 			throw new IllegalArgumentException("AuthenticationRequest");
 		}
 
-		return createCacheKey(item.getAuthority(), item.getScope(),
+		return createCacheKey(item.getAuthority(), item.getScope(), item.getPolicy(),
 				item.getClientId(), true, cacheUniqueID, cacheDispId);
 	}
 
@@ -179,7 +187,7 @@ final class TokenCacheKey implements Serializable {
 			displayableId = result.getUserInfo().getDisplayableId();
 		}
 
-		return createCacheKey(request.getAuthority(), request.getScope(),
+		return createCacheKey(request.getAuthority(), request.getScope(), request.getPolicy(),
 				request.getClientId(), result.getIsMultiResourceRefreshToken(),
 				uniqueId, displayableId);
 	}
@@ -245,14 +253,16 @@ final class TokenCacheKey implements Serializable {
     public boolean matches(TokenCacheItem item) {
         // MMRT items can be used without checking resource
         // Match user if specified
-        // if key is specified for mrrt, it does not need to check scope intersection
+        // if key is specified for mrrt, it does not need to check scope
+        // intersection
         return mAuthority.equalsIgnoreCase(item.getAuthority())
                 && mClientId.equalsIgnoreCase(item.getClientId())
                 && (mIsMultipleResourceRefreshToken || isScopeIntersect(item.getScope()))
                 && (TextUtils.isEmpty(mUniqueId) || item.getUserInfo() == null || mUniqueId
                         .equalsIgnoreCase(item.getUserInfo().getUniqueId()))
                 && (TextUtils.isEmpty(mDisplayableId) || item.getUserInfo() == null || mDisplayableId
-                        .equalsIgnoreCase(item.getUserInfo().getDisplayableId()));
+                        .equalsIgnoreCase(item.getUserInfo().getDisplayableId()))
+                && (TextUtils.isEmpty(mPolicy) || mPolicy.equalsIgnoreCase(item.getPolicy()));
     }
 
     public boolean isUserEmpty() {
@@ -272,8 +282,8 @@ final class TokenCacheKey implements Serializable {
 				&& isScopeEquals(other.getScope())
 				&& mIsMultipleResourceRefreshToken == other.mIsMultipleResourceRefreshToken
 				&& (mUniqueId.equalsIgnoreCase(other.getUniqueId()))
-				&& (mDisplayableId.equalsIgnoreCase(other.getDisplayableId()));
-
+				&& (mDisplayableId.equalsIgnoreCase(other.getDisplayableId())
+				&& mPolicy.equalsIgnoreCase(other.mPolicy));
 	}
 	
 	@Override
@@ -285,6 +295,7 @@ final class TokenCacheKey implements Serializable {
 		hash = 17 * hash + (mIsMultipleResourceRefreshToken ? 7 : 0);
 		hash = 17 * hash + mUniqueId.hashCode();
 		hash = 17 * hash + mDisplayableId.hashCode();
+		hash = 17 * hash + mPolicy.hashCode();
 		return hash;
 	}
 	

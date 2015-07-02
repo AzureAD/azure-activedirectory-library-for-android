@@ -180,6 +180,8 @@ public class AuthenticationConstants {
         public static final String SCOPE_DELIMETER = " ";
 
         public static final Object SCOPE = "scope";
+
+        public static final Object QUERY_POLICY = "p";
     }
 
     public static final class Broker {

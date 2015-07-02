@@ -418,6 +418,42 @@ public class AuthenticationContext {
     }
 
     /**
+     * acquire Token will start interactive flow if needed. It checks the cache
+     * to return existing result if not expired. It tries to use refresh token
+     * if available. If it fails to get token with refresh token, behavior will
+     * depend on options. If promptbehavior is AUTO, it will remove this refresh
+     * token from cache and fall back on the UI if activitycontext is not null.
+     * Default is AUTO.
+     * 
+     * @param activity Calling activity
+     * @param scope required scope identifier.
+     * @param additionalScope optional scope identifier.
+     * @param policy optional policy identifier.
+     * @param clientId required client identifier.
+     * @param redirectUri Optional. It will use packagename and provided suffix
+     *            for this.
+     * @param user UserIdentifier to specify a user.
+     * @param prompt Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
+     * @param callback required {@link AuthenticationCallback} object for async
+     *            call.
+     */
+    public void acquireToken(Activity activity, String[] scope, String[] additionalScope, String policy,
+            String clientId, String redirectUri, UserIdentifier user, PromptBehavior prompt,
+            String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
+
+        redirectUri = checkInputParameters(scope, additionalScope, clientId, redirectUri, prompt,
+                callback);
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
+                clientId, redirectUri, user, prompt, extraQueryParameters,
+                getRequestCorrelationId());
+        request.setAdditionalScope(additionalScope);
+        request.setPolicy(policy);
+        acquireTokenLocal(wrapActivity(activity), false, request, callback);
+    }
+
+    /**
      * It will start interactive flow if needed. It checks the cache to return
      * existing result if not expired. It tries to use refresh token if
      * available. If it fails to get token with refresh token, behavior will
@@ -595,7 +631,7 @@ public class AuthenticationContext {
      * refresh token automatically. This method will not show UI for the user.
      * If prompt is needed, the method will return an exception
      * 
-     * @param resource required resource identifier.
+     * @param scope required resource identifier.
      * @param clientId required client identifier.
      * @param user UserIdentifier to specify a user.
      * @param callback required {@link AuthenticationCallback} object for async
@@ -621,6 +657,42 @@ public class AuthenticationContext {
         return acquireTokenLocal(null, false, request, callback);
     }
 
+    /**
+     * The function will first look at the cache and automatically checks for
+     * the token expiration. Additionally, if no suitable access token is found
+     * in the cache, but refresh token is available, the function will use the
+     * refresh token automatically. This method will not show UI for the user.
+     * If prompt is needed, the method will return an exception
+     * 
+     * @param scope required resource identifier.
+     * @param clientId required client identifier.
+     * @param policy optional policy identifier.
+     * @param user UserIdentifier to specify a user.
+     * @param callback required {@link AuthenticationCallback} object for async
+     *            call.
+     * @return A {@link Future} object representing the
+     *         {@link AuthenticationResult} of the call. It contains Access
+     *         Token,the Access Token's expiration time, Refresh token, and
+     *         {@link UserInfo}.
+     */
+    public Future<AuthenticationResult> acquireTokenSilent(String[] scope, String policy, String clientId,
+            UserIdentifier user, AuthenticationCallback<AuthenticationResult> callback) {
+        if (scope == null || scope.length == 0) {
+            throw new IllegalArgumentException("scope");
+        }
+        if (StringExtensions.IsNullOrBlank(clientId)) {
+            throw new IllegalArgumentException("clientId");
+        }
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
+                clientId, user, getRequestCorrelationId());
+        request.setSilent(true);
+        request.setPrompt(PromptBehavior.Auto);
+        request.setPolicy(policy);
+        return acquireTokenLocal(null, false, request, callback);
+    }
+
+    
     /**
      * This method wraps the implementation for onActivityResult at the related
      * Activity class. This method is called at UI thread.

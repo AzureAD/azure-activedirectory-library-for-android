@@ -54,6 +54,8 @@ class AuthenticationRequest implements Serializable {
     private String mVersion = null;
 
     private UserIdentifier mUser;
+    
+    private String mPolicy = null;
 
     public AuthenticationRequest() {
     }
@@ -218,4 +220,12 @@ class AuthenticationRequest implements Serializable {
 	public void setAdditionalScope(String[] mAdditionalScope) {
 		this.mAdditionalScope = mAdditionalScope;
 	}
+
+    public void setPolicy(String policy) {
+        this.mPolicy = policy;
+    }
+    
+    public String getPolicy() {
+        return this.mPolicy;
+    }
 }
