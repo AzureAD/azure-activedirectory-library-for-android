@@ -57,7 +57,7 @@ public class TokenCacheItem implements Serializable {
     private boolean mIsMultiResourceRefreshToken;
 
     private String mTenantId;
-    
+
     private String mPolicy;
 
     /**
@@ -189,5 +189,9 @@ public class TokenCacheItem implements Serializable {
 
     public String getPolicy() {
         return mPolicy;
+    }
+
+    public void setPolicy(String policy) {
+        mPolicy = policy;
     }
 }

@@ -33,7 +33,6 @@ import android.test.AndroidTestCase;
 
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.IWindowComponent;
 import com.microsoft.aad.adal.TokenCacheItem;
 

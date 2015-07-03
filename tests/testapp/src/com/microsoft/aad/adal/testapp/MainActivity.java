@@ -177,11 +177,6 @@ public class MainActivity extends Activity {
                     || result.getAccessToken().isEmpty()) {
                 textViewStatus.setText(FAILED);
                 Log.d(TAG, "Token is empty");
-                if (result != null) {
-                    Log.d(TAG,
-                            "Error  code:" + result.getErrorCode() + " Description:"
-                                    + result.getErrorDescription());
-                }
             } else {
                 // request is successful
                 Log.d(TAG, String.format(LOG_STATUS_FORMAT, result.getStatus(), result
@@ -225,14 +220,6 @@ public class MainActivity extends Activity {
         mPrompt = (EditText)findViewById(R.id.editPrompt);
         mRedirect = (EditText)findViewById(R.id.editRedirect);
         mValidate = (CheckBox)findViewById(R.id.checkBoxValidate);
-
-        findViewById(R.id.buttonTestScriptRun).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TestScriptRunner runner = new TestScriptRunner(MainActivity.this);
-                runner.runRemoteScript();
-            }
-        });
 
         buttonRemoveCookies.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -347,7 +334,7 @@ public class MainActivity extends Activity {
         String redirect = mRedirect.getText().toString();
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-        mContext.acquireToken(MainActivity.this, resource, clientId, redirect, new UserIdentifier(userid, UserIdentifierType.RequiredDisplayableId), prompt,
+        mContext.acquireToken(MainActivity.this, new String[]{resource}, null, clientId, redirect, new UserIdentifier(userid, UserIdentifierType.RequiredDisplayableId), prompt,
                 mExtraQueryParam, new AdalCallback());
     }
 
@@ -358,9 +345,9 @@ public class MainActivity extends Activity {
             initContext();
         }
 
-        String resource = mResource.getText().toString();
-        if (resource == null || resource.isEmpty()) {
-            resource = RESOURCE_ID;
+        String scope = mResource.getText().toString();
+        if (scope == null || scope.isEmpty()) {
+            scope = RESOURCE_ID;
         }
 
         String clientId = mClientId.getText().toString();
@@ -373,7 +360,7 @@ public class MainActivity extends Activity {
 
         mResult = null;
         mContext.setRequestCorrelationId(mRequestCorrelationId);
-        mContext.acquireTokenSilent(resource, clientId, new UserIdentifier(userid, UserIdentifierType.UniqueId), new AdalCallback());
+        mContext.acquireTokenSilent(new String[]{scope}, null, clientId, new UserIdentifier(userid, UserIdentifierType.UniqueId), new AdalCallback());
     }
     
     @Override
