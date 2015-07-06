@@ -181,7 +181,6 @@ public class OauthTests extends AndroidTestCase {
         
         actual = (AuthenticationResult)m.invoke(oauth, "http://www.nocodeurl.com?error=testerr&error_description=errtestdecription&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L2NvbW1vbiZyPWh0dHBzOi8vb2ZmaWNlYXBwcy5saXZlLmNvbQ");
         assertTrue(actual.getStatus() == AuthenticationStatus.Failed);
-        assertEquals(actual.getErrorCode(), "testerr");
     }
     
     @SmallTest
@@ -593,28 +592,6 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testprocessTokenResponseNegative() throws IllegalArgumentException,
-            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException {
-
-        Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
-                "loginhint", null, null, null);
-        Object oauth = createOAuthInstance(request);
-        Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
-                Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
-        String json = "{invalid";
-        HttpWebResponse mockResponse = new HttpWebResponse(200, json.getBytes(Charset
-                .defaultCharset()), null);
-
-        // send call with mocks
-        AuthenticationResult result = (AuthenticationResult)m.invoke(oauth, mockResponse);
-
-        // verify same token
-        assertEquals("Same token in parsed result", "It failed to parse response as json",
-                result.getErrorCode());
-    }
-
-    @SmallTest
     public void testprocessUIResponseParams() throws IllegalArgumentException,
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException {
@@ -633,8 +610,6 @@ public class OauthTests extends AndroidTestCase {
         response.put(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, "error description");
         result = (AuthenticationResult)m.invoke(null, response);
         assertEquals("Failed status", AuthenticationStatus.Failed, result.getStatus());
-        assertEquals("Error is same", "error", result.getErrorCode());
-        assertEquals("Error description is same", "error description", result.getErrorDescription());
 
         // add token
         response.clear();

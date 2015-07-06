@@ -99,7 +99,7 @@ public class TokenCacheItem implements Serializable {
         return mScope;
     }
 
-    public void setResource(String[] scope) {
+    public void setScope(String[] scope) {
         this.mScope = scope;
     }
 

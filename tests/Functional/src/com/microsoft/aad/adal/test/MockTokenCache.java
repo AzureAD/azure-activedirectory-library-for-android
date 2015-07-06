@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 
 import com.microsoft.aad.adal.TokenCache;
 import com.microsoft.aad.adal.TokenCacheItem;
+import com.microsoft.aad.adal.UserIdentifier;
 
 public class MockTokenCache extends TokenCache {
 
@@ -15,23 +16,6 @@ public class MockTokenCache extends TokenCache {
     private static final long serialVersionUID = -571377076835584408L;
 
     public static final String CLASS_TOKEN_CACHE_KEY = "com.microsoft.aad.adal.TokenCacheKey";
-
-    class MockTokenCacheKey {
-
-        public Object key;
-
-        public MockTokenCacheKey createCacheKey(String authority, String[] scope, String policy,
-                String clientId, boolean mrrt, String uniqueId, String displayableId)
-                throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
-                InstantiationException, IllegalAccessException, InvocationTargetException {
-            Object keyObj = ReflectionUtils.getInstance(CLASS_TOKEN_CACHE_KEY, authority, scope,
-                    policy, clientId, mrrt, uniqueId, displayableId);
-            MockTokenCacheKey key = new MockTokenCacheKey();
-            key.key = keyObj;
-            return key;
-        }
-
-    }
 
     public void setItem(MockTokenCacheKey mockKey, TokenCacheItem item)
             throws IllegalArgumentException, IllegalAccessException, InvocationTargetException,

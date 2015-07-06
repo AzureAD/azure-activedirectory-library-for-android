@@ -44,7 +44,6 @@ import javax.crypto.spec.SecretKeySpec;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -65,6 +64,8 @@ import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.R;
+import com.microsoft.aad.adal.UserIdentifier;
+import com.microsoft.aad.adal.UserIdentifier.UserIdentifierType;
 
 /**
  * Unit test to verify buttons, webview and other items.
@@ -290,8 +291,10 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         ReflectionUtils.setFieldValue(activity, "mWebRequestHandler", webrequest);
         String username = "admin@aaltests.onmicrosoft.com";
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(
-                "https://login.windows.net/test.test.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect", username);
+                "https://login.windows.net/test.test.com", new String[] {
+                    "https://omercantest.onmicrosoft.com/AllHandsTry"
+                }, "client", "redirect", new UserIdentifier(username,
+                        UserIdentifierType.RequiredDisplayableId));
         Method setAcctName = ReflectionUtils.getTestMethod(authRequest, "setBrokerAccountName",
                 String.class);
         setAcctName.invoke(authRequest, username);
@@ -349,8 +352,8 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         ReflectionUtils.setFieldValue(activity, "mWebRequestHandler", webrequest);
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(
                 "https://login.windows.net/test.test.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect",
-                "different@aaltests.onmicrosoft.com");
+                new String[]{"https://omercantest.onmicrosoft.com/AllHandsTry"}, "client", "redirect",
+               new UserIdentifier("different@aaltests.onmicrosoft.com", UserIdentifierType.RequiredDisplayableId));
         AsyncTask<String, ?, ?> tokenTask = (AsyncTask<String, ?, ?>)getTokenTask();
         Method executeDirect = ReflectionUtils.getTestMethod(tokenTask, "doInBackground",
                 String[].class);
@@ -389,8 +392,10 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         MockWebRequestHandler webrequest = setMockWebResponse();
         String username = "admin@aaltests.onmicrosoft.com";
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(
-                "https://login.windows.net/test.test.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect", username);
+                "https://login.windows.net/test.test.com", new String[] {
+                    "https://omercantest.onmicrosoft.com/AllHandsTry"
+                }, "client", "redirect", new UserIdentifier(username,
+                        UserIdentifierType.RequiredDisplayableId));
         Method setAcctName = ReflectionUtils.getTestMethod(authRequest, "setBrokerAccountName",
                 String.class);
         setAcctName.invoke(authRequest, username);
