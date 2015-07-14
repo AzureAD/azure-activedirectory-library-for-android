@@ -43,6 +43,7 @@ import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -53,6 +54,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
@@ -506,6 +508,8 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG, "Spinner at onPause will dismiss");
             mSpinner.dismiss();
         }
+        
+        hideKeyBoard();
     }
 
     @Override
@@ -561,6 +565,14 @@ public class AuthenticationActivity extends Activity {
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
 
+    private void hideKeyBoard() {
+        if (mWebView != null) {
+            InputMethodManager imm = (InputMethodManager)this
+                    .getSystemService(Service.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(mWebView.getApplicationWindowToken(), 0);
+        }
+    }
+    
     class CustomWebViewClient extends BasicWebViewClient {
 
         public CustomWebViewClient(){
