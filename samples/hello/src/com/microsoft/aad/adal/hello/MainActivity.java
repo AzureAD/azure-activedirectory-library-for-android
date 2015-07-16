@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
     /**
      * Extra query parameter nux=1 uses new login page at AAD. This is optional.
      */
-    final static String EXTRA_QUERY_PARAM = "nux=1";
+    final static String EXTRA_QUERY_PARAM = "nux=1&slice=testslice&msaproxy=true";
 
     private AuthenticationContext mAuthContext;
 
