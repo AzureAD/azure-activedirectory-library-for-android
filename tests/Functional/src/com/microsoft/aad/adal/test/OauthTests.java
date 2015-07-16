@@ -55,11 +55,13 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.aad.adal.UserIdentifier.UserIdentifierType;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.IJWSBuilder;
 import com.microsoft.aad.adal.IWebRequestHandler;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UserIdentifier;
 
 @SuppressLint("TrulyRandom")
 public class OauthTests extends AndroidTestCase {
@@ -103,24 +105,6 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testEncodeDecodeProtocolState() throws UnsupportedEncodingException,
-            IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException {
-        String resource = "resource:" + UUID.randomUUID().toString();
-        Object request = createAuthenticationRequest("http://www.something.com", resource,
-                "client", "redirect", "loginhint@ggg.com", null, null, null);
-        Object oauth = createOAuthInstance(request);
-        Method decodeMethod = ReflectionUtils.getTestMethod(oauth, "decodeProtocolState",
-                String.class);
-        Method encodeMethod = ReflectionUtils.getTestMethod(oauth, "encodeProtocolState");
-
-        String encoded = (String)encodeMethod.invoke(oauth);
-        String decoded = (String)decodeMethod.invoke(oauth, encoded);
-        assertTrue("State contains authority", decoded.contains("http://www.something.com"));
-        assertTrue("State contains resource", decoded.contains(resource));
-    }
-
-    @SmallTest
     public void testParseIdTokenNegativeIncorrectMessage() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
@@ -152,6 +136,10 @@ public class OauthTests extends AndroidTestCase {
         idToken = ".....";
         actual = parseIdToken(idToken);
         assertNull("IdToken is null", actual);
+    }
+    
+    private static UserIdentifier getUserId(String login){
+        return new UserIdentifier(login, UserIdentifierType.OptionalDisplayableId);
     }
 
     @SmallTest
@@ -198,56 +186,9 @@ public class OauthTests extends AndroidTestCase {
         String actual = (String)m.invoke(oauth);
         assertTrue(
                 "Matching message",
-                actual.contains("http://www.something.com/oauth2/authorize?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&resource=resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&state="));
+                actual.contains("http://www.something.com/oauth2/v2.0/authorize?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&scope=openid+offline_access+resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&login_hint=loginhint+1234567890-%2B%3D%3B%27"));
         assertTrue("Matching loginhint",
                 actual.contains("login_hint=loginhint+1234567890-%2B%3D%3B%27"));
-
-        // without login hint
-        Object requestWithoutLogin = createAuthenticationRequest("http://www.something.com",
-                "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
-                "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890", "", null,
-                null, null);
-
-        Object oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
-
-        actual = (String)m.invoke(oauthWithoutLoginHint);
-        assertTrue(
-                "Matching message",
-                actual.contains("http://www.something.com/oauth2/authorize?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&resource=resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&state="));
-        assertFalse("Without loginhint", actual.contains("login_hint=loginhintForCode"));
-
-        Object requestAlways = createAuthenticationRequest("http://www.something.com",
-                "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
-                "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890", "",
-                PromptBehavior.Always, null, null);
-
-        Object oauthAlways = createOAuthInstance(requestAlways);
-
-        actual = (String)m.invoke(oauthAlways);
-        assertTrue(
-                "Matching message",
-                actual.contains("http://www.something.com/oauth2/authorize?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&resource=resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&state="));
-        assertTrue("Prompt", actual.contains("&prompt=login"));
-
-        Object requestExtraParam = createAuthenticationRequest("http://www.something.com",
-                "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
-                "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890", "",
-                PromptBehavior.Always, "extra=1", null);
-
-        Object oauthExtraParam = createOAuthInstance(requestExtraParam);
-
-        actual = (String)m.invoke(oauthExtraParam);
-        assertTrue("Prompt", actual.contains("&prompt=login&extra=1"));
-
-        requestExtraParam = createAuthenticationRequest("http://www.something.com",
-                "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
-                "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890", "",
-                PromptBehavior.Always, "&extra=1", null);
-
-        oauthExtraParam = createOAuthInstance(requestExtraParam);
-
-        actual = (String)m.invoke(oauthExtraParam);
-        assertTrue("Prompt", actual.contains("&prompt=login&extra=1"));
     }
 
     @SmallTest
@@ -671,19 +612,19 @@ public class OauthTests extends AndroidTestCase {
         return callback;
     }
 
-    public static Object createAuthenticationRequest(String authority, String resource,
-            String client, String redirect, String loginhint, PromptBehavior prompt,
+    public static Object createAuthenticationRequest(String authority, String scope,
+            String client, String redirect, String username, PromptBehavior prompt,
             String extraQueryParams, UUID correlationId) throws ClassNotFoundException,
             NoSuchMethodException, IllegalArgumentException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
 
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
 
-        Constructor<?> constructor = c.getDeclaredConstructor(String.class, String.class,
-                String.class, String.class, String.class, PromptBehavior.class, String.class,
+        Constructor<?> constructor = c.getDeclaredConstructor(String.class, String[].class,
+                String.class, String.class, UserIdentifier.class, PromptBehavior.class, String.class,
                 UUID.class);
         constructor.setAccessible(true);
-        Object o = constructor.newInstance(authority, resource, client, redirect, loginhint,
+        Object o = constructor.newInstance(authority, new String[]{scope}, client, redirect, getUserId(username),
                 prompt, extraQueryParams, correlationId);
         return o;
     }

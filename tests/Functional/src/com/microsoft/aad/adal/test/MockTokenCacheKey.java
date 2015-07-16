@@ -2,6 +2,7 @@
 package com.microsoft.aad.adal.test;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import com.microsoft.aad.adal.UserIdentifier;
 import com.microsoft.aad.adal.UserIdentifier.UserIdentifierType;
@@ -26,12 +27,15 @@ class MockTokenCacheKey {
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
         String uniqueId = userid.getType() == UserIdentifierType.UniqueId ? userid.getId() : "";
-        String displayableId = userid.getType() != UserIdentifierType.UniqueId ? userid.getId()
+        String displayableId = userid.getType() == UserIdentifierType.RequiredDisplayableId ? userid.getId()
                 : "";
-        Object keyObj = ReflectionUtils.getInstance(MockTokenCache.CLASS_TOKEN_CACHE_KEY,
-                validAuthority, testScope, policy, clientId, mrrt, uniqueId, displayableId);
+        Method m = ReflectionUtils.getStaticTestMethod(
+                Class.forName(MockTokenCache.CLASS_TOKEN_CACHE_KEY), "createCacheKey",
+                String.class, String[].class, String.class,
+                String.class, boolean.class, String.class, String.class);
         MockTokenCacheKey key = new MockTokenCacheKey();
-        key.key = keyObj;
+        key.key = m.invoke(null, validAuthority, testScope, policy, clientId, mrrt, uniqueId,
+                displayableId);
         return key;
     }
 }

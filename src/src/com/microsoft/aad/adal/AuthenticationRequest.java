@@ -209,7 +209,7 @@ class AuthenticationRequest implements Serializable {
         Set<String> set = StringExtensions.createSet(mScope, scope2);
         set.remove(mClientId); //remove client id if it exists
         set.add("openid");
-        //set.Add("offline_access");
+        set.add("offline_access");
         return set.toArray(new String[set.size()]);
     }
     

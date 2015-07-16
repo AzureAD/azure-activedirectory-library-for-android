@@ -114,6 +114,11 @@ public class TokenCache implements ITokenCacheStore {
         }
     }
 
+    private SharedPreferences getSharedPreferences(){
+        mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
+        return mPrefs;
+    }
+    
     public final String serialize() {
 
         if (mCacheItems != null && !mCacheItems.isEmpty()) {
@@ -303,7 +308,7 @@ public class TokenCache implements ITokenCacheStore {
     @Override
     public void stateChanged() {
         String cacheData = serialize();
-        Editor prefsEditor = mPrefs.edit();
+        Editor prefsEditor = getSharedPreferences().edit();
         prefsEditor.putString(CACHE_BLOB, cacheData);
         // apply will do Async disk write operation.
         prefsEditor.apply();
