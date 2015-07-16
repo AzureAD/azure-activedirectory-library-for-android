@@ -193,7 +193,7 @@ final class StringExtensions {
     
 	static Set<String> createSet(String[] items) {
 		Set<String> scopes = new HashSet<String>();
-		if (items != null && items.length == 0) {
+		if (items != null && items.length != 0) {
 			for (String item : items) {
 				scopes.add(item);
 			}
@@ -204,13 +204,13 @@ final class StringExtensions {
 	
 	static Set<String> createSet(String[] items, String[] items2) {
 		Set<String> scopes = new HashSet<String>();
-		if (items != null && items.length == 0) {
+		if (items != null && items.length != 0) {
 			for (String item : items) {
 				scopes.add(item);
 			}
 		}
 		
-		if (items2 != null && items2.length == 0) {
+		if (items2 != null && items2.length != 0) {
 			for (String item : items2) {
 				scopes.add(item);
 			}
