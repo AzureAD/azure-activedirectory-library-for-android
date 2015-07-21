@@ -238,15 +238,6 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
-            
-            if (hasCancelError(url)) {
-                // Catch WEB-UI cancel request
-                Logger.i(TAG, "Sending intent to cancel authentication activity", "");
-                view.stopLoading();
-                cancelWebViewRequest();
-                return true;
-            }
-            
             processRedirectUrl(view, url);
             return true;
         } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
@@ -278,23 +269,5 @@ abstract class BasicWebViewClient extends WebViewClient {
                 .replace(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
         mCallingContext.startActivity(intent);
-    }
-    
-    private boolean hasCancelError(String redirectUrl) {
-        try {
-            HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
-            String error = parameters.get("error");
-            String errorDescription = parameters.get("error_description");
-
-            if (!StringExtensions.IsNullOrBlank(error)) {
-                Logger.v(TAG, "Cancel error:" + error + " " + errorDescription);
-                return true;
-            }
-        } catch (Exception exc) {
-            Logger.e(TAG, "Error in processing url parameters", "Url:" + redirectUrl,
-                    ADALError.ERROR_WEBVIEW);
-        }
-
-        return false;
     }
 }

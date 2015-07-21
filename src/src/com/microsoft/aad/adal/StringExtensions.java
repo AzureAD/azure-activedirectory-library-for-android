@@ -27,7 +27,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import android.net.Uri;
@@ -188,4 +190,55 @@ final class StringExtensions {
         return value.startsWith(prefix) && value.length() > prefix.length() + 2
                 && Character.isWhitespace(value.charAt(prefix.length()));
     }
+    
+	static Set<String> createSet(String[] items) {
+		Set<String> scopes = new HashSet<String>();
+		if (items != null && items.length != 0) {
+			for (String item : items) {
+				scopes.add(item);
+			}
+		}
+
+		return scopes;
+	}
+	
+	static Set<String> createSet(String[] items, String[] items2) {
+		Set<String> scopes = new HashSet<String>();
+		if (items != null && items.length != 0) {
+			for (String item : items) {
+				scopes.add(item);
+			}
+		}
+		
+		if (items2 != null && items2.length != 0) {
+			for (String item : items2) {
+				scopes.add(item);
+			}
+		}
+
+		return scopes;
+	}
+
+	static String createStringFromArray(String[] items, String delimiter) {
+		if (items == null || items.length == 0) {
+			return "";
+		}
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(items[0]);
+		for (int i = 1; i < items.length; i++) {
+			sb.append(delimiter);
+			sb.append(items[i]);
+		}
+
+		return sb.toString();
+	}
+
+	static String[] createArrayFromString(String itemDelimited, String delimiter) {
+		if (IsNullOrBlank(itemDelimited)) {
+			return new String[] {};
+		}
+
+		return itemDelimited.split(delimiter);
+	}
 }

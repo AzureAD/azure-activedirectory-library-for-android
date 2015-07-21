@@ -37,7 +37,7 @@ public class TokenCacheItem implements Serializable {
 
     private UserInfo mUserInfo;
 
-    private String mResource;
+    private String[] mScope;
 
     private String mAuthority;
 
@@ -58,6 +58,8 @@ public class TokenCacheItem implements Serializable {
 
     private String mTenantId;
 
+    private String mPolicy;
+
     /**
      * Construct default cache item.
      */
@@ -70,6 +72,7 @@ public class TokenCacheItem implements Serializable {
         if (request != null) {
             mAuthority = request.getAuthority();
             mClientId = request.getClientId();
+            mPolicy = request.getPolicy();
         }
 
         if (result != null) {
@@ -80,7 +83,7 @@ public class TokenCacheItem implements Serializable {
             mUserInfo = result.getUserInfo();
             mRawIdToken = result.getIdToken();
             mAccessToken = result.getAccessToken();
-            mResource = request.getResource();
+            mScope = result.getScopeInResponse();
         }
     }
 
@@ -92,12 +95,12 @@ public class TokenCacheItem implements Serializable {
         this.mUserInfo = info;
     }
 
-    public String getResource() {
-        return mResource;
+    public String[] getScope() {
+        return mScope;
     }
 
-    public void setResource(String resource) {
-        this.mResource = resource;
+    public void setScope(String[] scope) {
+        this.mScope = scope;
     }
 
     public String getAuthority() {
@@ -182,5 +185,13 @@ public class TokenCacheItem implements Serializable {
         }
 
         return false;
+    }
+
+    public String getPolicy() {
+        return mPolicy;
+    }
+
+    public void setPolicy(String policy) {
+        mPolicy = policy;
     }
 }

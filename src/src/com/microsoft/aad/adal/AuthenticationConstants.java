@@ -176,6 +176,12 @@ public class AuthenticationConstants {
         public final static String ADAL_ID_OS_VER = "x-client-OS";
 
         public final static String ADAL_ID_DM = "x-client-DM";
+        
+        public static final String SCOPE_DELIMETER = " ";
+
+        public static final Object SCOPE = "scope";
+
+        public static final Object QUERY_POLICY = "p";
     }
 
     public static final class Broker {
@@ -257,6 +263,10 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_USERID_TYPE = "account.userid.type";
         
         public static final String ACCOUNT_USERID_ID = "account.userid.id";
+        
+        public static final String ACCOUNT_SCOPE = "account.scope";
+        
+        public static final String ACCOUNT_ADDITONAL_SCOPE = "account.additional.scope";
 
         public static final String ADAL_VERSION_KEY = "adal.version.key";
         

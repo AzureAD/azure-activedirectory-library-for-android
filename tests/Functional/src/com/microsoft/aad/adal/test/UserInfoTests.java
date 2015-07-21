@@ -33,7 +33,7 @@ public class UserInfoTests extends TestCase {
     @SmallTest
     public void testUserInfo() {
         UserInfo user = new UserInfo("userid", "givenName", "familyName", "identity", "userid");
-        assertEquals("same userid", "userid", user.getUserId());
+        assertEquals("same userid", "userid", user.getUniqueId());
         assertEquals("same name", "givenName", user.getGivenName());
         assertEquals("same family name", "familyName", user.getFamilyName());
         assertEquals("same idenity name", "identity", user.getIdentityProvider());
@@ -47,7 +47,7 @@ public class UserInfoTests extends TestCase {
         Object obj = setIdTokenFields("objectid", "upnid", "email", "subj");
         UserInfo info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
-        assertEquals("same userid", "objectid", info.getUserId());
+        assertEquals("same userid", "objectid", info.getUniqueId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
@@ -56,7 +56,7 @@ public class UserInfoTests extends TestCase {
         obj = setIdTokenFields("", "upnid", "email", "subj");
         info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
-        assertEquals("same userid", "subj", info.getUserId());
+        assertEquals("same userid", "subj", info.getUniqueId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
@@ -65,7 +65,7 @@ public class UserInfoTests extends TestCase {
         obj = setIdTokenFields("", "upnid", "email", "");
         info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
-        assertNull("null userid", info.getUserId());
+        assertNull("null userid", info.getUniqueId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
@@ -74,7 +74,7 @@ public class UserInfoTests extends TestCase {
         obj = setIdTokenFields("", "", "email", "");
         info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
-        assertNull("null userid", info.getUserId());
+        assertNull("null userid", info.getUniqueId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
@@ -84,7 +84,7 @@ public class UserInfoTests extends TestCase {
         info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
 
-        assertNull("null userid", info.getUserId());
+        assertNull("null userid", info.getUniqueId());
         assertNull("check displayable", info.getDisplayableId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
@@ -105,7 +105,7 @@ public class UserInfoTests extends TestCase {
                 + ".UserInfo", obj);
         calendar.add(Calendar.SECOND, seconds);
         Date passwordExpiresOn = calendar.getTime();
-        assertEquals("same userid", "objectid", info.getUserId());
+        assertEquals("same userid", "objectid", info.getUniqueId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());

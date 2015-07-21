@@ -32,16 +32,16 @@ public class Constants {
     
     // AAD PARAMETERS
     // https://login.windows.net/tenantInfo
-    static final String AUTHORITY_URL = "https://login.windows.net/common";
+    static final String AUTHORITY_URL = "https://login.windows-ppe.net/common";
 
     // Clientid is given from AAD page when you register your Android app
-    static final String CLIENT_ID = "a4063e37-07c9-471d-b935-fd38d60dcb7d";
+    static final String CLIENT_ID = "b67b2169-6966-4597-b3e4-f698dc5df864";
 
     // RedirectUri
-    static final String REDIRECT_URL = "http://helloapp";
+    static final String REDIRECT_URL = "urn:ietf:wg:oauth:2.0:oob";// "msauth://com.example.userapp2/WiEb9EPiRwdK5vgH%2FQPajYeR%2F%2Bs%3D";
 
     // URI for the resource. You need to setup this resource at AAD
-    static final String RESOURCE_ID = "2720df1b-a913-4b2d-be8c-e759a4aaa36a";
+    static final String[] SCOPE = new String[]{"https://outlook.office.com/Mail.Read"};
 
     // Endpoint we are targeting for the deployed WebAPI service
     static final String SERVICE_URL = "https://android.azurewebsites.net/api/values";

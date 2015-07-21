@@ -83,7 +83,7 @@ public class LoginFragment extends Fragment {
             mAuthContext.getCache().clear();
         } else {
             // login
-            mAuthContext.acquireToken(wrapFragment(LoginFragment.this), Constants.RESOURCE_ID,
+            mAuthContext.acquireToken(wrapFragment(LoginFragment.this), Constants.SCOPE, null,
                     Constants.CLIENT_ID, Constants.REDIRECT_URL, UserIdentifier.getAnyUser(), PromptBehavior.Auto, "",
                     getCallback());
         }

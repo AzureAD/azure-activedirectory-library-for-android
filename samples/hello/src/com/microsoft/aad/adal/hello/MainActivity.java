@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
     /**
      * Extra query parameter nux=1 uses new login page at AAD. This is optional.
      */
-    final static String EXTRA_QUERY_PARAM = "nux=1";
+    final static String EXTRA_QUERY_PARAM = "nux=1&slice=testslice&msaproxy=true";
 
     private AuthenticationContext mAuthContext;
 
@@ -134,7 +134,7 @@ public class MainActivity extends Activity {
 
     public void onClickDialog(View v) {
         Log.v(TAG, "dialog button is clicked");
-        mAuthContext.acquireToken(Constants.RESOURCE_ID, Constants.CLIENT_ID,
+        mAuthContext.acquireToken(Constants.SCOPE, null, Constants.CLIENT_ID,
                 Constants.REDIRECT_URL, getUserInfo(), PromptBehavior.Auto, EXTRA_QUERY_PARAM,
                 getCallback());
     }
@@ -180,7 +180,7 @@ public class MainActivity extends Activity {
     public void onClickAcquireTokenForceRefresh(View v) {
         Log.v(TAG, "onClickAcquireTokenForceRefresh");
         mLoginProgressDialog.show();
-        mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
+        mAuthContext.acquireToken(MainActivity.this, Constants.SCOPE, null, Constants.CLIENT_ID,
                 Constants.REDIRECT_URL, getUserInfo(), PromptBehavior.REFRESH_SESSION, "",
                 getCallback());
     }
@@ -188,14 +188,14 @@ public class MainActivity extends Activity {
     public void onClickAcquireTokenSilent(View v) {
         Log.v(TAG, "onClickAcquireTokenSilent is clicked");
         mLoginProgressDialog.show();
-        mAuthContext.acquireTokenSilent(Constants.RESOURCE_ID, Constants.CLIENT_ID, new UserIdentifier(getUniqueId(), UserIdentifier.UserIdentifierType.UniqueId),
+        mAuthContext.acquireTokenSilent(Constants.SCOPE, Constants.CLIENT_ID, new UserIdentifier(getUniqueId(), UserIdentifier.UserIdentifierType.UniqueId),
                 getCallback());
     }
 
     public void onClickToken(View v) {
         Log.v(TAG, "token button is clicked");
         mLoginProgressDialog.show();
-        mAuthContext.acquireToken(MainActivity.this, Constants.RESOURCE_ID, Constants.CLIENT_ID,
+        mAuthContext.acquireToken(MainActivity.this, Constants.SCOPE, null, Constants.CLIENT_ID,
                 Constants.REDIRECT_URL, getUserInfo(), EXTRA_QUERY_PARAM, getCallback());
     }
 

@@ -19,6 +19,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -34,7 +35,9 @@ class AuthenticationRequest implements Serializable {
 
     private String mRedirectUri = null;
 
-    private String mResource = null;
+    private String[] mScope = null;
+    
+    private String[] mAdditionalScope = null;
 
     private String mClientId = null;
 
@@ -51,14 +54,16 @@ class AuthenticationRequest implements Serializable {
     private String mVersion = null;
 
     private UserIdentifier mUser;
+    
+    private String mPolicy = null;
 
     public AuthenticationRequest() {
     }
 
-    public AuthenticationRequest(String authority, String resource, String client, String redirect,
+    public AuthenticationRequest(String authority, String[] scope, String client, String redirect,
             UserIdentifier user, PromptBehavior prompt, String extraQueryParams, UUID correlationId) {
         mAuthority = authority;
-        mResource = resource;
+        mScope = scope;
         mClientId = client;
         mRedirectUri = redirect;
         mBrokerAccountName = user.getDisplayableId();
@@ -68,9 +73,9 @@ class AuthenticationRequest implements Serializable {
         mUser = user;
     }
 
-    public AuthenticationRequest(String authority, String resource, String clientid) {
+    public AuthenticationRequest(String authority, String[] scope, String clientid) {
         mAuthority = authority;
-        mResource = resource;
+        mScope = scope;
         mClientId = clientid;
     }
 
@@ -83,21 +88,21 @@ class AuthenticationRequest implements Serializable {
      * @param userid
      * @param correlationId
      */
-    public AuthenticationRequest(String authority, String resource, String clientid,
+    public AuthenticationRequest(String authority, String[] scope, String clientid,
             UserIdentifier user, UUID correlationId) {
         mAuthority = authority;
-        mResource = resource;
+        mScope = scope;
         mClientId = clientid;
         mUser = user;
         mCorrelationId = correlationId;
         mBrokerAccountName = user.getDisplayableId();
     }
 
-    public AuthenticationRequest(String authority, String resource, String clientId,
+    public AuthenticationRequest(String authority, String[] scope, String clientId,
             UUID correlationId) {
         mAuthority = authority;
         mClientId = clientId;
-        mResource = resource;
+        mScope = scope;
         mCorrelationId = correlationId;
     }
 
@@ -113,8 +118,8 @@ class AuthenticationRequest implements Serializable {
         return mRedirectUri;
     }
 
-    public String getResource() {
-        return mResource;
+    public String[] getScope() {
+        return mScope;
     }
 
     public String getClientId() {
@@ -134,7 +139,7 @@ class AuthenticationRequest implements Serializable {
     }
 
     public String getLogInfo() {
-        return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, mResource,
+        return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, StringExtensions.createStringFromArray(mScope, " "),
                 mClientId);
     }
 
@@ -190,5 +195,37 @@ class AuthenticationRequest implements Serializable {
 
     public void setUserIdentifier(UserIdentifier user) {
         mUser = user;
+    }
+    
+    public String[] getDecoratedScopeConsent(){
+    	return getDecoratedScope(mAdditionalScope);
+    }
+
+    public String[] getDecoratedScopeRequest(){
+        return getDecoratedScope(null);
+    }
+    
+    private String[] getDecoratedScope(String[] scope2){
+        Set<String> set = StringExtensions.createSet(mScope, scope2);
+        set.remove(mClientId); //remove client id if it exists
+        set.add("openid");
+        set.add("offline_access");
+        return set.toArray(new String[set.size()]);
+    }
+    
+    public String[] getAdditionalScope() {
+		return mAdditionalScope;
+	}
+
+	public void setAdditionalScope(String[] mAdditionalScope) {
+		this.mAdditionalScope = mAdditionalScope;
+	}
+
+    public void setPolicy(String policy) {
+        this.mPolicy = policy;
+    }
+    
+    public String getPolicy() {
+        return this.mPolicy;
     }
 }
