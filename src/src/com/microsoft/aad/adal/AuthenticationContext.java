@@ -1134,12 +1134,14 @@ public class AuthenticationContext {
 
         // BROKER flow intercepts here
         // cache and refresh call happens through the authenticator service
-        if (mBrokerProxy.canSwitchToBroker()) {
+        if (mBrokerProxy.canSwitchToBroker()
+                && mBrokerProxy.verifyUser(request.getLoginHint(),
+                        request.getUserId())) {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             AuthenticationResult result = null;
             request.setVersion(getVersionName());
             request.setBrokerAccountName(request.getLoginHint());
-            
+
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())

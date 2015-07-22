@@ -32,6 +32,8 @@ interface IBrokerProxy {
      *         Account manager
      */
     boolean canSwitchToBroker();
+    
+    boolean verifyUser(String username, String uniqueid);
 
     boolean canUseLocalCache();
 

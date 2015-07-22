@@ -31,7 +31,6 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -103,12 +102,19 @@ class BrokerProxy implements IBrokerProxy {
         // 5- account exists
         return !AuthenticationSettings.INSTANCE.getSkipBroker()
                 && verifyManifestPermissions()
-                && checkAccount(mAcctManager)
+                && checkAccount(mAcctManager, "", "")
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
                         .getBrokerPackageName())
                 && !packageName
                         .equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
                 && verifyAuthenticator(mAcctManager);
+    }
+    
+    /**
+     * Do this check after other checks.
+     */
+    public boolean verifyUser(String username, String uniqueid) {
+        return checkAccount(mAcctManager, username, uniqueid);
     }
 
     @Override
@@ -461,7 +467,7 @@ class BrokerProxy implements IBrokerProxy {
         return null;
     }
 
-    private boolean checkAccount(final AccountManager am) {
+    private boolean checkAccount(final AccountManager am, String username, String uniqueId) {
         AuthenticatorDescription[] authenticators = am.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
             if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
@@ -470,9 +476,15 @@ class BrokerProxy implements IBrokerProxy {
                         .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
                 // Authenticator installed from Company portal
+                // This supports only one account
                 if (authenticator.packageName
                         .equalsIgnoreCase(AuthenticationConstants.Broker.PACKAGE_NAME)) {
-                    return accountList != null && accountList.length > 0;
+                    // Adal should not connect if given username does not match
+                    if (accountList != null && accountList.length > 0) {
+                        return verifyAccount(accountList, username, uniqueId);
+                    }
+                    
+                    return false;                    
 
                     // Check azure authenticator and allow calls for test
                     // versions
@@ -488,14 +500,41 @@ class BrokerProxy implements IBrokerProxy {
                     if (hasSupportToAddUserThroughBroker()) {
                         Logger.v(TAG, "Broker supports to add user through app");
                         return true;
-                    } else {
-                        return accountList != null && accountList.length > 0;
+                    } else if (accountList != null && accountList.length > 0) {
+                        return verifyAccount(accountList, username, uniqueId);
                     }
                 }
             }
         }
 
         return false;
+    }
+
+    private boolean verifyAccount(Account[] accountList, String username, String uniqueId) {
+        if (!StringExtensions.IsNullOrBlank(username)) {
+            return username.equalsIgnoreCase(accountList[0].name);
+        }
+
+        if (!StringExtensions.IsNullOrBlank(uniqueId)) {
+            // Uniqueid for account at authenticator is not available with
+            // Account
+            UserInfo[] users;
+            try {
+                users = getBrokerUsers();
+                UserInfo matchingUser = findUserInfo(uniqueId, users);
+                return matchingUser != null;
+            } catch (Exception e) {
+                Logger.e(TAG, "VerifyAccount:" + e.getMessage(), "",
+                        ADALError.BROKER_AUTHENTICATOR_EXCEPTION, e);
+            }
+
+            Logger.v(TAG, "It could not check the uniqueid from broker. It is not using broker");
+            return false;
+        }
+
+        // if username or uniqueid not specified, it should use the broker
+        // account.
+        return true;
     }
 
     private boolean hasSupportToAddUserThroughBroker() {
