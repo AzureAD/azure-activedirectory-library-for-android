@@ -26,6 +26,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.crypto.NoSuchPaddingException;
 
@@ -235,7 +237,17 @@ public class TokenCache implements ITokenCacheStore {
         beforeAccess(args);
         beforeWrite(args);
 
-        mCacheItems.remove(key);
+        Iterator<Entry<TokenCacheKey, TokenCacheItem>> it = mCacheItems.entrySet().iterator();
+        TokenCacheKey itemToRemove = null;
+        while (it.hasNext()) {
+            Map.Entry<TokenCacheKey, TokenCacheItem> pair = (Map.Entry)it.next();
+            TokenCacheItem item = (TokenCacheItem)pair.getValue();
+            if(key.matches(item)){
+                itemToRemove = pair.getKey();
+                break;
+            }
+        }
+        mCacheItems.remove(itemToRemove);
         stateChanged();
         afterAccess(args);
     }

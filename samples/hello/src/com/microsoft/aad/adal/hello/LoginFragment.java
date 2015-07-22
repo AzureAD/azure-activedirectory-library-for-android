@@ -6,9 +6,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.widget.Button;
@@ -49,6 +51,15 @@ public class LoginFragment extends Fragment {
             Toast.makeText(this.getActivity().getApplicationContext(), "Encryption failed",
                     Toast.LENGTH_SHORT).show();
         }
+    }
+    
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.setHeaderTitle("Context Menu");
+        menu.add(0, v.getId(), 0, "Action 1");
+        menu.add(0, v.getId(), 0, "Action 2");
+        menu.add(0, v.getId(), 0, "Action 3");
     }
 
     @Override
