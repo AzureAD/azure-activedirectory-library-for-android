@@ -92,9 +92,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
      */
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
-    protected final static int CONTEXT_REQUEST_TIME_OUT = 20000;
+    protected final static int CONTEXT_REQUEST_TIME_OUT = 2000000;
 
-    protected final static int ACTIVITY_TIME_OUT = 1000;
+    protected final static int ACTIVITY_TIME_OUT = 10000;
 
     private final static String TEST_AUTHORITY = "https://login.windows.net/ComMon/";
 
@@ -1161,7 +1161,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testAcquireTokenCacheLookup_ReturnWrongUserId() throws InterruptedException,
+    public void testAcquireTokenCacheLookup_WrongUserId() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException {
@@ -1183,8 +1183,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         UserInfo userinfo = new UserInfo("user2", "test", "test", "idp", "user2");
         refreshItem.setUserInfo(userinfo);
         MockTokenCacheKey key = MockTokenCacheKey.createCacheKey(VALID_AUTHORITY, scope, "",
-                clientId, false, new UserIdentifier("user1",
-                        UserIdentifierType.OptionalDisplayableId));
+                clientId, false, new UserIdentifier("user2",
+                        UserIdentifierType.RequiredDisplayableId));
         mockCache.setItem(key, refreshItem);
         TokenCacheItem item = mockCache.getItem(key);
         assertNotNull("item is in cache", item);
@@ -1202,10 +1202,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Check response in callback
         assertNotNull("Error is not null", callback.mException);
-        assertTrue(
-                "Error is related to user mismatch",
-                callback.mException.getMessage().contains(
-                        "User returned by service does not match the one in the request"));
         clearCache(context);
     }
 
@@ -1508,10 +1504,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         mockCache.clear();
         addItemToCache(mockCache, tokenToTest, "refreshTokenNormal", VALID_AUTHORITY, resource,
                 "ClienTid", TEST_IDTOKEN_USERID.getId(), "name", "familyName", TEST_IDTOKEN_UPN,
-                "tenantId", false);
-        addItemToCache(mockCache, "", "refreshTokenMultiResource", VALID_AUTHORITY, resource,
-                "ClienTid", TEST_IDTOKEN_USERID.getId(), "name", "familyName", TEST_IDTOKEN_UPN,
                 "tenantId", true);
+         
         // only one MRRT for same user, client, authority
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
