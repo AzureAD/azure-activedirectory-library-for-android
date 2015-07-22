@@ -1,3 +1,9 @@
+Version 1.1.8
+--------------
+hide keyboard at on pause at AuthenticationActivity.
+Update applicationreceiver to use only Azure Authenticator as broker.
+Check broker user for multi account usage.
+
 Version 1.1.7
 --------------
 Fix issue with acquireTokenSilent for new authenticator version.
