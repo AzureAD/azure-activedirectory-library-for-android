@@ -64,7 +64,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
                         .getData()
                         .toString()
                         .equalsIgnoreCase(
-                                "package:" + AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
+                                "package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)) {
                     Logger.v(TAG, "Message is related to the broker");
                     String request = getInstallRequestInthisApp(context);
                     if (!StringExtensions.IsNullOrBlank(request)) {
@@ -77,6 +77,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
     }
 
     public static void saveRequest(Context ctx, AuthenticationRequest request, String url) {
+        Logger.v(TAG, "ApplicationReceiver:saveRequest");
         SharedPreferences prefs = ctx.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
                 Activity.MODE_PRIVATE);
         if (prefs != null) {
@@ -100,6 +101,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
      * @return
      */
     public static String getUserName(Context ctx) {
+        Logger.v(TAG, "ApplicationReceiver:getUserName");
         String request = getInstallRequestInthisApp(ctx);
         if (!StringExtensions.IsNullOrBlank(request)) {
             Gson gson = new Gson();
@@ -119,6 +121,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
      * @param ctx
      */
     public static void clearUserName(Context ctx) {
+        Logger.v(TAG, "ApplicationReceiver:clearUserName");
         SharedPreferences prefs = ctx.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
                 Activity.MODE_PRIVATE);
         if (prefs != null) {
@@ -129,6 +132,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
     }
 
     private void resumeRequestInBroker(Context ctx, String request) {
+        Logger.v(TAG, "ApplicationReceiver:resumeRequestInBroker");
         Gson gson = new Gson();
         AuthenticationRequest pendingRequest = gson.fromJson(request, AuthenticationRequest.class);
         Intent intent = new Intent();
@@ -157,6 +161,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
     }
 
     public static String getInstallRequestInthisApp(Context ctx) {
+        Logger.v(TAG, "ApplicationReceiver:getInstallRequestInthisApp");
         SharedPreferences prefs = ctx.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
                 Activity.MODE_PRIVATE);
         if (prefs != null && prefs.contains(INSTALL_REQUEST_KEY)) {
