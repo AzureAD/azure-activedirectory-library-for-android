@@ -115,36 +115,13 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
             IllegalArgumentException, InstantiationException, IllegalAccessException,
             InvocationTargetException, NoSuchFieldException {
 
-        Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
-
-        // getConstructor() returns only public constructors,
-
-        Constructor<?> constructor = c.getDeclaredConstructor(String.class, String[].class,
-                String.class, UserIdentifier.class, UUID.class);
-        constructor.setAccessible(true);
-        Object o = constructor.newInstance("authority", new String[] {
+        Object o = AuthenticationContextTest.createAuthenticationRequest("authority", new String[] {
             "scope"
-        }, "client", new UserIdentifier("loginhint", UserIdentifierType.OptionalDisplayableId),
-                UUID.randomUUID());
+        }, "clientid", "redirect", new UserIdentifier("user1",
+                UserIdentifierType.RequiredDisplayableId));
         ReflectionUtils.setFieldValue(o, "mRequestId", TEST_REQUEST_ID);
 
         return o;
-    }
-
-    @SmallTest
-    @UiThreadTest
-    public void testLayout() throws NoSuchFieldException, IllegalArgumentException,
-            IllegalAccessException {
-
-        startActivity(intentToStartActivity, null, null);
-        activity = getActivity();
-
-        // Webview
-        WebView webview = (WebView)activity.findViewById(R.id.webView1);
-        assertNotNull(webview);
-
-        // Javascript enabled
-        assertTrue(webview.getSettings().getJavaScriptEnabled());       
     }
 
     @SmallTest
@@ -169,40 +146,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         assertEquals(TEST_REQUEST_ID,
                 data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
-    
-    @SmallTest
-    @UiThreadTest
-    public void testWebview_InstallLink() throws IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            InterruptedException, ExecutionException {
-        startActivity(intentToStartActivity, null, null);
-        activity = getActivity();
-        String url = AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX
-                + "?username=abc@outlook.com&app_link=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.azure.authenticator";
-        WebViewClient client = getCustomWebViewClient();
-        WebView mockview = new WebView(getActivity().getApplicationContext());
-        ReflectionUtils.setFieldValue(activity, "mSpinner", null);
-
-        // Act
-        client.shouldOverrideUrlLoading(mockview, url);
-
-        // Verify result code that includes requestid. Activity will set the
-        // result back to caller.
-        TestLogResponse response = new TestLogResponse();
-        final CountDownLatch signal = new CountDownLatch(1);
-        response.listenForLogMessage("It is an install request", signal);
-        int counter = 0;
-        while (!isFinishCalled() && counter < 20) {
-            Thread.sleep(DEVICE_RESPONSE_WAIT);
-            counter++;
-        }
-
-        String savedData = ApplicationReceiver.getInstallRequestInthisApp(getInstrumentation().getTargetContext());
-        assertNotNull(savedData);
-        assertTrue(savedData.contains("abc@outlook.com"));
-    }
-
+     
     /**
      * Return authentication exception at setResult so that activity receives at
      * onActivityResult

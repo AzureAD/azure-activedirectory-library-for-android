@@ -312,7 +312,7 @@ public class AuthenticationContext {
                 callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
-                clientId, redirectUri, null, prompt, null, getRequestCorrelationId());
+                clientId, redirectUri, UserIdentifier.getAnyUser(), prompt, null, getRequestCorrelationId());
         request.setAdditionalScope(additionalScope);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
     }
@@ -344,7 +344,7 @@ public class AuthenticationContext {
                 callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
-                clientId, redirectUri, null, prompt, extraQueryParameters,
+                clientId, redirectUri, UserIdentifier.getAnyUser(), prompt, extraQueryParameters,
                 getRequestCorrelationId());
         request.setAdditionalScope(additionalScope);
         acquireTokenLocal(wrapActivity(activity), false, request, callback);
@@ -616,7 +616,9 @@ public class AuthenticationContext {
         if (StringExtensions.IsNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
-
+        if (user == null) {
+            throw new IllegalArgumentException("user");
+        }
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, scope,
                 clientId, user, getRequestCorrelationId());
         request.setSilent(true);
@@ -1146,6 +1148,8 @@ public class AuthenticationContext {
 
         try {
             return localFlow(callbackHandle, activity, useDialog, request);
+        } catch (AuthenticationException e) {
+            callbackHandle.onError(e);
         } catch (Exception e) {
             callbackHandle.onError(new AuthenticationException(ADALError.INTERNAL_ERROR, e
                     .getMessage(), e));

@@ -70,6 +70,10 @@ public class OauthTests extends AndroidTestCase {
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
 
+    private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/v2.0/authorize";
+
+    private final static String DEFAULT_TOKEN_ENDPOINT = "/oauth2/v2.0/token";
+
     @SmallTest
     public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
@@ -183,12 +187,14 @@ public class OauthTests extends AndroidTestCase {
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "getCodeRequestUrl");
 
-        String actual = (String)m.invoke(oauth);
-        assertTrue(
-                "Matching message",
-                actual.contains("http://www.something.com/oauth2/v2.0/authorize?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&scope=openid+offline_access+resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&login_hint=loginhint+1234567890-%2B%3D%3B%27"));
-        assertTrue("Matching loginhint",
-                actual.contains("login_hint=loginhint+1234567890-%2B%3D%3B%27"));
+		String actual = (String) m.invoke(oauth);
+		assertTrue(
+				"Matching message",
+				actual.contains("http://www.something.com"
+						+ DEFAULT_AUTHORIZE_ENDPOINT
+						+ "?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&scope=openid+offline_access+resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&login_hint=loginhint+1234567890-%2B%3D%3B%27"));
+		assertTrue("Matching loginhint",
+				actual.contains("login_hint=loginhint+1234567890-%2B%3D%3B%27"));
     }
 
     @SmallTest
@@ -266,7 +272,7 @@ public class OauthTests extends AndroidTestCase {
         String actual = (String)m.invoke(oauth, "refreshToken23434=");
         assertEquals(
                 "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&resource=resource%2520+",
+                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=openid+offline_access+resource%2520+",
                 actual);
 
         // without resource
@@ -279,7 +285,7 @@ public class OauthTests extends AndroidTestCase {
         actual = (String)m.invoke(oauthWithoutResource, "refreshToken234343455=");
         assertEquals(
                 "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27",
+                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=openid+offline_access",
                 actual);
     }
 
@@ -419,7 +425,7 @@ public class OauthTests extends AndroidTestCase {
                 tokenPositiveResponse.getBytes(Charset.defaultCharset()), null);
         // first call returns 401 and second call returns token
         when(
-                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + DEFAULT_TOKEN_ENDPOINT)),
                         any(headers.getClass()), any(byte[].class),
                         eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange)
                 .thenReturn(responseValid);
@@ -447,7 +453,7 @@ public class OauthTests extends AndroidTestCase {
                 AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER, " ");
         HttpWebResponse responeChallange = new HttpWebResponse(401, null, headers);
         when(
-                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
+                mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + DEFAULT_TOKEN_ENDPOINT)),
                         any(headers.getClass()), any(byte[].class),
                         eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange);
 
