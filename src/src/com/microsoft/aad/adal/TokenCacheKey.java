@@ -286,24 +286,24 @@ final class TokenCacheKey implements Serializable {
 				&& mPolicy.equalsIgnoreCase(other.mPolicy));
 	}
 	
-	@Override
-	public int hashCode() {
-		int hash = 7;
-		hash = 17 * hash + mAuthority.hashCode();
-		hash = 17 * hash + mClientId.hashCode();
-		hash = 17 * hash + mScope.hashCode();
-		hash = 17 * hash + (mIsMultipleResourceRefreshToken ? 7 : 0);
-		hash = 17 * hash + mUniqueId.hashCode();
-		hash = 17 * hash + mDisplayableId.hashCode();
-		hash = 17 * hash + mPolicy.hashCode();
-		return hash;
-	}
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 17 * hash + mAuthority.hashCode();
+        hash = 17 * hash + mClientId.hashCode();
+        hash = 17 * hash + ((mScope == null || mScope.length == 0) ? 7 : mScope.hashCode());
+        hash = 17 * hash + (mIsMultipleResourceRefreshToken ? 7 : 0);
+        hash = 17 * hash + mUniqueId.hashCode();
+        hash = 17 * hash + mDisplayableId.hashCode();
+        hash = 17 * hash + mPolicy.hashCode();
+        return hash;
+    }
 	
 	private boolean isScopeIntersect(String[] scopes) {
 	    Set<String> self = StringExtensions.createSet(mScope);
 	    if(scopes != null && scopes.length != 0){
 	        for(String onescope: scopes){
-	            if(self.contains(onescope)){
+	            if(self.contains(onescope.toLowerCase(Locale.US))){
 	                return true;
 	            }
 	        }

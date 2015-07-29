@@ -61,6 +61,10 @@ public class UserIdentifier implements Serializable {
     }
 
     boolean anyUser() {
+        if(mType == null || mId == null){
+            return false;
+        }
+            
         return mType.equals(AnyUser.mType) && mId.equalsIgnoreCase(AnyUserId);
     }
 

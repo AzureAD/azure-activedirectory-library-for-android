@@ -282,6 +282,7 @@ class Oauth2 {
             result = new AuthenticationResult(token,
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
                     isMultiResourcetoken, userinfo, tenantId, rawProfileInfo);
+            result.setScopeInResponse(response.get(AuthenticationConstants.OAuth2.SCOPE));
         }
 
         return result;

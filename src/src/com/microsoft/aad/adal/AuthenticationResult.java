@@ -20,6 +20,7 @@ package com.microsoft.aad.adal;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Result class to keep code, token and other info Serializable properties Mark
@@ -311,5 +312,11 @@ public class AuthenticationResult implements Serializable {
 
     public String[] getScopeInResponse() {
         return mScopeInResponse;
+    }
+    
+    void setScopeInResponse(String scope) {
+        if(!StringExtensions.IsNullOrBlank(scope)){
+            mScopeInResponse = StringExtensions.createArrayFromString(scope.toLowerCase(Locale.US), " ");
+        }
     }
 }

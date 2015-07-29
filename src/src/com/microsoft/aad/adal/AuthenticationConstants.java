@@ -118,7 +118,7 @@ public class AuthenticationConstants {
 
         static final String ID_TOKEN_TENANTID = "tid";
 
-        static final String ID_TOKEN_UPN = "upn";
+        static final String ID_TOKEN_UPN = "preferred_username";
 
         static final String ID_TOKEN_GIVEN_NAME = "given_name";
 

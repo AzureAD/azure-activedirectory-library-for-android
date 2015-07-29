@@ -65,15 +65,15 @@ public class MainActivity extends Activity {
     /**
      * Extra query parameter nux=1 uses new login page at AAD. This is optional.
      */
-    final static String EXTRA_QUERY_PARAM = "nux=1";
+    final static String EXTRA_QUERY_PARAM = "nux=1&slice=testslice&msaproxy=true";
     
-    private String policySignin = "B2C_1_signin";
+    private String policySignin = "";
 
     private AuthenticationContext mAuthContext;
 
     private ProgressDialog mLoginProgressDialog;
 
-    private AuthenticationResult mResult;
+    private static AuthenticationResult sResult;
 
     private Handler mHandler;
 
@@ -160,18 +160,18 @@ public class MainActivity extends Activity {
                     mLoginProgressDialog.dismiss();
                 }
 
-                mResult = result;
+                MainActivity.sResult = result;
                 Log.v(TAG, "Token info:" + result.getToken());
                 Log.v(TAG, "IDToken info:" + result.getProfileInfo());
                 Toast.makeText(getApplicationContext(), "Token is returned", Toast.LENGTH_SHORT)
                         .show();
 
-                if (mResult.getUserInfo() != null) {
+                if (sResult.getUserInfo() != null) {
                     Log.v(TAG, "User info uniqueid:" + result.getUserInfo().getUniqueId()
                             + " displayableId:" + result.getUserInfo().getDisplayableId());
                     mEditText.setText(result.getUserInfo().getDisplayableId());
                     Toast.makeText(getApplicationContext(),
-                            "User:" + mResult.getUserInfo().getDisplayableId(), Toast.LENGTH_SHORT)
+                            "User:" + sResult.getUserInfo().getDisplayableId(), Toast.LENGTH_SHORT)
                             .show();
                 }
             }
@@ -231,10 +231,10 @@ public class MainActivity extends Activity {
      * @param result
      */
     public void onClickUseToken(View view) {
-        if (mResult != null && mResult.getToken() != null) {
+        if (sResult != null && sResult.getToken() != null) {
             textView1.setText("");
             displayMessage("Sending token to a service");
-            new RequestTask(Constants.SERVICE_URL, mResult.getToken()).execute();
+            new RequestTask(Constants.SERVICE_URL, sResult.getToken()).execute();
         } else {
             textView1.setText("Token is empty");
         }
@@ -261,9 +261,9 @@ public class MainActivity extends Activity {
     }
 
     private String getUniqueId() {
-        if (mResult != null && mResult.getUserInfo() != null
-                && mResult.getUserInfo().getUniqueId() != null) {
-            return mResult.getUserInfo().getUniqueId();
+        if (sResult != null && sResult.getUserInfo() != null
+                && sResult.getUserInfo().getUniqueId() != null) {
+            return sResult.getUserInfo().getUniqueId();
         }
 
         return null;
