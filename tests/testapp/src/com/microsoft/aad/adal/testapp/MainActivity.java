@@ -173,8 +173,8 @@ public class MainActivity extends Activity {
             Log.d(TAG, "Callback has result");
             setResult(result);
 
-            if (result == null || result.getAccessToken() == null
-                    || result.getAccessToken().isEmpty()) {
+            if (result == null || result.getToken() == null
+                    || result.getToken().isEmpty()) {
                 textViewStatus.setText(FAILED);
                 Log.d(TAG, "Token is empty");
             } else {
@@ -420,10 +420,10 @@ public class MainActivity extends Activity {
      * @param result
      */
     private void useToken() {
-        if (mResult != null && mResult.getRefreshToken() != null
-                && !mResult.getRefreshToken().isEmpty()) {
+        if (mResult != null && mResult.getToken() != null
+                && !mResult.getToken().isEmpty()) {
             textViewStatus.setText("");
-            new RequestTask(SERVICE_URL, mResult.getAccessToken()).execute();
+            new RequestTask(SERVICE_URL, mResult.getToken()).execute();
         } else {
             textViewStatus.setText(FAILED);
         }

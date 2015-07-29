@@ -385,9 +385,7 @@ public class OauthTests extends AndroidTestCase {
         // Verify that callback can receive this error
         assertNull("callback doesnot have error", testResult.mException);
         assertNotNull("Result is not null", testResult.mResult);
-        assertEquals("Same access token", "sometokenhere", testResult.mResult.getAccessToken());
-        assertEquals("Same refresh token", "refreshfasdfsdf435",
-                testResult.mResult.getRefreshToken());
+        assertEquals("Same access token", "sometokenhere", testResult.mResult.getToken());
     }
 
     @SuppressWarnings("unchecked")
@@ -437,9 +435,7 @@ public class OauthTests extends AndroidTestCase {
         // Verify that callback can receive this error
         assertNull("callback doesnot have error", testResult.mException);
         assertNotNull("Result is not null", testResult.mResult);
-        assertEquals("Same access token", "accessTokenHere", testResult.mResult.getAccessToken());
-        assertEquals("Same refresh token", "refreshWithDeviceChallange",
-                testResult.mResult.getRefreshToken());
+        assertEquals("Same access token", "accessTokenHere", testResult.mResult.getToken());
     }
 
     @SuppressWarnings("unchecked")
@@ -489,10 +485,8 @@ public class OauthTests extends AndroidTestCase {
         AuthenticationResult result = (AuthenticationResult)m.invoke(oauth, mockResponse);
 
         // verify same token
-        assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
-        assertEquals("Same refresh token in parsed result", "refreshfasdfsdf435=",
-                result.getRefreshToken());
-        assertEquals("Same rawIdToken", idToken, result.getIdToken());
+        assertEquals("Same token in parsed result", "sometokenhere2343=", result.getToken());
+        assertEquals("Same rawIdToken", idToken, result.getProfileInfo());
     }
 
     @SmallTest
@@ -518,7 +512,7 @@ public class OauthTests extends AndroidTestCase {
         AuthenticationResult result = (AuthenticationResult)m.invoke(oauth, mockResponse);
 
         // verify same token
-        assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
+        assertEquals("Same token in parsed result", "sometokenhere2343=", result.getToken());
         assertTrue("Log response has message",
                 logResponse.errorCode
                         .equals(ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE));
@@ -563,14 +557,14 @@ public class OauthTests extends AndroidTestCase {
         response.put(AuthenticationConstants.OAuth2.ACCESS_TOKEN, "token");
         result = (AuthenticationResult)m.invoke(null, response);
         assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
-        assertEquals("Token is same", "token", result.getAccessToken());
+        assertEquals("Token is same", "token", result.getToken());
         assertFalse("MultiResource token", result.getIsMultiResourceRefreshToken());
 
         // multi resource token
         response.put(AuthenticationConstants.AAD.RESOURCE, "resource");
         result = (AuthenticationResult)m.invoke(null, response);
         assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
-        assertEquals("Token is same", "token", result.getAccessToken());
+        assertEquals("Token is same", "token", result.getToken());
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
     }
 

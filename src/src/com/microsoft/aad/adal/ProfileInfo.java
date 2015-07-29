@@ -18,7 +18,7 @@
 
 package com.microsoft.aad.adal;
 
-class IdToken {
+class ProfileInfo {
     String mSubject;
 
     String mTenantId;
@@ -39,7 +39,7 @@ class IdToken {
     
     String mPasswordChangeUrl;
         
-    public IdToken(){
+    public ProfileInfo(){
         
     }
 }

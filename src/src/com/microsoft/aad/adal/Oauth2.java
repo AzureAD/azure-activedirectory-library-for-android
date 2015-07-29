@@ -201,7 +201,7 @@ class Oauth2 {
         return message;
     }
 
-    public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) {
+    public AuthenticationResult processUIResponseParams(HashMap<String, String> response) {
 
         AuthenticationResult result = null;
 
@@ -235,10 +235,20 @@ class Oauth2 {
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
-        } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
+        } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN) ||
+                response.containsKey(AuthenticationConstants.OAuth2.ID_TOKEN)) {
             // Token response
             boolean isMultiResourcetoken = false;
-            String expires_in = response.get("expires_in");
+            
+            // AccessToken/Idtoken expiresIn
+            String expiresInLookUp = "expires_in";
+            String token = response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN);
+            if(mRequest.isIdTokenRequest()){
+                expiresInLookUp = "idtoken_expires_in";
+                token = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
+            }
+            
+            String expires_in = response.get(expiresInLookUp);
             Calendar expires = new GregorianCalendar();
 
             // Compute token expiration
@@ -253,26 +263,25 @@ class Oauth2 {
 
             UserInfo userinfo = null;
             String tenantId = null;
-            String rawIdToken = null;
-            if (response.containsKey(AuthenticationConstants.OAuth2.ID_TOKEN)) {
+            String rawProfileInfo = null;
+            if (response.containsKey(AuthenticationConstants.OAuth2.PROFILE_INFO)) {
                 // IDtoken is related to Azure AD and returned with token
                 // response. ADFS does not return that.
-                rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
-                if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
-                    IdToken tokenParsed = parseIdToken(rawIdToken);
+                rawProfileInfo = response.get(AuthenticationConstants.OAuth2.PROFILE_INFO);
+                if (!StringExtensions.IsNullOrBlank(rawProfileInfo)) {
+                    ProfileInfo tokenParsed = parseProfileInfo(rawProfileInfo);
                     if (tokenParsed != null) {
                         tenantId = tokenParsed.mTenantId;
                         userinfo = new UserInfo(tokenParsed);
                     }
                 } else {
-                    Logger.v(TAG, "IdToken is not provided");
+                    Logger.v(TAG, "ProfileInfo is not provided");
                 }
             }
 
-            result = new AuthenticationResult(
-                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
+            result = new AuthenticationResult(token,
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
-                    isMultiResourcetoken, userinfo, tenantId, rawIdToken);
+                    isMultiResourcetoken, userinfo, tenantId, rawProfileInfo);
         }
 
         return result;
@@ -284,26 +293,23 @@ class Oauth2 {
      * @param idtoken
      * @return UserInfo
      */
-    private static IdToken parseIdToken(String idtoken) {
+    private static ProfileInfo parseProfileInfo(String profileInfo) {
         try {
-            // Message segments: Header.Body.Signature
-            int firstDot = idtoken.indexOf(".");
-            int secondDot = idtoken.indexOf(".", firstDot + 1);
-            int invalidDot = idtoken.indexOf(".", secondDot + 1);
+            // Message Base64 encoded text
+             
 
-            if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
-                String idbody = idtoken.substring(firstDot + 1, secondDot);
+            if (!StringExtensions.IsNullOrBlank(profileInfo)) {
                 // URL_SAFE: Encoder/decoder flag bit to use
                 // "URL and filename safe" variant of Base64
                 // (see RFC 3548 section 4) where - and _ are used in place of +
                 // and /.
-                byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
+                byte[] data = Base64.decode(profileInfo, Base64.URL_SAFE);
                 String decodedBody = new String(data, "UTF-8");
 
                 HashMap<String, String> responseItems = new HashMap<String, String>();
                 extractJsonObjects(responseItems, decodedBody);
                 if (responseItems != null && !responseItems.isEmpty()) {
-                    IdToken idtokenInfo = new IdToken();
+                    ProfileInfo idtokenInfo = new ProfileInfo();
                     idtokenInfo.mSubject = responseItems
                             .get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
                     idtokenInfo.mTenantId = responseItems

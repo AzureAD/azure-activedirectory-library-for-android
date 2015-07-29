@@ -20,7 +20,6 @@ package com.microsoft.aad.adal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -164,10 +163,9 @@ public class TokenCache implements ITokenCacheStore {
      * 
      * @return Token cache item
      */
-    @SuppressWarnings("unchecked")
     public List<TokenCacheItem> readItems() {
         beforeAccess(new TokenCacheNotificationArgs());
-        return (List<TokenCacheItem>)new ArrayList(mCacheItems.values());
+        return (List<TokenCacheItem>)new ArrayList<TokenCacheItem>(mCacheItems.values());
     }
 
     /**
@@ -240,9 +238,10 @@ public class TokenCache implements ITokenCacheStore {
         Iterator<Entry<TokenCacheKey, TokenCacheItem>> it = mCacheItems.entrySet().iterator();
         TokenCacheKey itemToRemove = null;
         while (it.hasNext()) {
-            Map.Entry<TokenCacheKey, TokenCacheItem> pair = (Map.Entry)it.next();
+            Map.Entry<TokenCacheKey, TokenCacheItem> pair = (Map.Entry<TokenCacheKey, TokenCacheItem>)it
+                    .next();
             TokenCacheItem item = (TokenCacheItem)pair.getValue();
-            if(key.matches(item)){
+            if (key.matches(item)) {
                 itemToRemove = pair.getKey();
                 break;
             }
@@ -260,6 +259,10 @@ public class TokenCache implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
+        if (StringExtensions.createStringFromArray(key.getScope(), " ").contains(key.getClientId())) {
+            Logger.v(TAG, "Looking for id token...");
+        }
+        
         TokenCacheNotificationArgs args = TokenCacheNotificationArgs.create(key);
         beforeAccess(args);
 
@@ -306,14 +309,6 @@ public class TokenCache implements ITokenCacheStore {
         }
     }
 
-    private static final int TOKEN_VALIDITY_WINDOW = 10;
-
-    private static Calendar getTokenValidityTime() {
-        Calendar timeAhead = Calendar.getInstance();
-        timeAhead.add(Calendar.SECOND, TOKEN_VALIDITY_WINDOW);
-        return timeAhead;
-    }
-
     /**
      * Override this method to define custom persistence.
      */
@@ -334,5 +329,37 @@ public class TokenCache implements ITokenCacheStore {
             String json = mPrefs.getString(CACHE_BLOB, "");
             deSerialize(json);
         }
+    }
+
+    /**
+     * Delete items that have scopes intersecting with this scope to remove
+     * duplicates since service will return full supported scopes.
+     * 
+     * @param key
+     */
+    void deleteIntersectingScope(TokenCacheKey key) {
+
+        argumentCheck();
+
+        if (key == null) {
+            throw new IllegalArgumentException("key");
+        }
+
+        TokenCacheNotificationArgs args = new TokenCacheNotificationArgs();
+        beforeAccess(args);
+        beforeWrite(args);
+
+        Iterator<Entry<TokenCacheKey, TokenCacheItem>> it = mCacheItems.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<TokenCacheKey, TokenCacheItem> pair = (Map.Entry<TokenCacheKey, TokenCacheItem>)it
+                    .next();
+            TokenCacheItem item = (TokenCacheItem)pair.getValue();
+            if (key.matches(item)) {
+                it.remove();
+            }
+        }
+
+        stateChanged();
+        afterAccess(args);
     }
 }

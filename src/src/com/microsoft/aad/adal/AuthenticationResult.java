@@ -21,9 +21,6 @@ package com.microsoft.aad.adal;
 import java.io.Serializable;
 import java.util.Date;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 /**
  * Result class to keep code, token and other info Serializable properties Mark
  * temp properties as Transient if you dont want to keep them in serialization.
@@ -55,8 +52,8 @@ public class AuthenticationResult implements Serializable {
 
     private String mCode;
 
-    private String mAccessToken;
-
+    private String mToken;
+    
     private String mRefreshToken;
 
     private String mTokenType;
@@ -75,7 +72,7 @@ public class AuthenticationResult implements Serializable {
 
     private String mTenantId;
 
-    private String mIdToken;
+    private String mProfileInfo;
     
     private String[] mScopeInResponse;
 
@@ -90,26 +87,26 @@ public class AuthenticationResult implements Serializable {
     AuthenticationResult(String code) {
         mCode = code;
         mStatus = AuthenticationStatus.Succeeded;
-        mAccessToken = null;
+        mToken = null;
         mRefreshToken = null;
     }
 
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
-            UserInfo userInfo, String tenantId, String idToken) {
+            UserInfo userInfo, String tenantId, String profile_info) {
         mCode = null;
-        mAccessToken = accessToken;
+        mToken = accessToken;
         mRefreshToken = refreshToken;
         mExpiresOn = expires;
         mIsMultiResourceRefreshToken = isBroad;
         mStatus = AuthenticationStatus.Succeeded;
         mUserInfo = userInfo;
         mTenantId = tenantId;
-        mIdToken = idToken;
+        mProfileInfo = profile_info;
     }
 
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad) {
         mCode = null;
-        mAccessToken = accessToken;
+        mToken = accessToken;
         mRefreshToken = refreshToken;
         mExpiresOn = expires;
         mIsMultiResourceRefreshToken = isBroad;
@@ -154,7 +151,7 @@ public class AuthenticationResult implements Serializable {
      * @return AuthorizationHeader
      */
     public String createAuthorizationHeader() {
-        return AuthenticationConstants.AAD.BEARER + " " + getAccessToken();
+        return AuthenticationConstants.AAD.BEARER + " " + getToken();
     }
 
     /**
@@ -162,8 +159,8 @@ public class AuthenticationResult implements Serializable {
      * 
      * @return Access token
      */
-    public String getAccessToken() {
-        return mAccessToken;
+    public String getToken() {
+        return mToken;
     }
 
     /**
@@ -171,7 +168,7 @@ public class AuthenticationResult implements Serializable {
      * 
      * @return Refresh token
      */
-    public String getRefreshToken() {
+    String getRefreshToken() {
         return mRefreshToken;
     }
 
@@ -180,7 +177,7 @@ public class AuthenticationResult implements Serializable {
      * 
      * @return access token type
      */
-    public String getAccessTokenType() {
+    public String getTokenType() {
         return mTokenType;
     }
 
@@ -204,7 +201,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * UserInfo returned from IdToken.
+     * UserInfo returned from ProfileInfo.
      * 
      * @return {@link UserInfo}
      */
@@ -213,7 +210,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * Set userinfo after refresh from previous idtoken.
+     * Set userinfo after refresh from previous profile_info.
      * 
      * @param userinfo
      */
@@ -292,16 +289,16 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * Get raw idtoken.
+     * Get raw profile_info.
      * 
-     * @return IdToken
+     * @return profile_info
      */
-    public String getIdToken() {
-        return mIdToken;
+    public String getProfileInfo() {
+        return mProfileInfo;
     }
 
-    void setIdToken(String idToken) {
-        this.mIdToken = idToken;
+    void setProfileInfo(String profileInfo) {
+        this.mProfileInfo = profileInfo;
     }
 
     void setTenantId(String tenantid) {

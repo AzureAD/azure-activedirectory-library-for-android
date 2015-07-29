@@ -205,10 +205,31 @@ class AuthenticationRequest implements Serializable {
         return getDecoratedScope(null);
     }
     
+    /**
+     * idtoken request will be send if token is requested with only clientid as
+     * scope.
+     * 
+     * @return
+     */
+    boolean isIdTokenRequest() {
+        if (mScope != null && mScope.length != 0) {
+            for (String scope : mScope) {
+                if (scope.equalsIgnoreCase("openid") || scope.equalsIgnoreCase(mClientId)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    
     private String[] getDecoratedScope(String[] scope2){
         Set<String> set = StringExtensions.createSet(mScope, scope2);
-        set.remove(mClientId); //remove client id if it exists
-        set.add("openid");
+        if (set.contains(mClientId)) {
+            set.remove(mClientId); // remove client id if it exists
+            set.add("openid");
+        }
+       
         set.add("offline_access");
         return set.toArray(new String[set.size()]);
     }

@@ -43,11 +43,11 @@ public class TokenCacheItem implements Serializable {
 
     private String mClientId;
 
-    private String mAccessToken;
-
+    private String mToken;
+    
     private String mRefreshtoken;
 
-    private String mRawIdToken;
+    private String mRawProfileInfo;
 
     /**
      * This time is GMT.
@@ -81,8 +81,8 @@ public class TokenCacheItem implements Serializable {
             mIsMultiResourceRefreshToken = storeMultiResourceRefreshToken;
             mTenantId = result.getTenantId();
             mUserInfo = result.getUserInfo();
-            mRawIdToken = result.getIdToken();
-            mAccessToken = result.getAccessToken();
+            mRawProfileInfo = result.getProfileInfo();
+            mToken = result.getToken();
             mScope = result.getScopeInResponse();
         }
     }
@@ -120,11 +120,11 @@ public class TokenCacheItem implements Serializable {
     }
 
     public String getAccessToken() {
-        return mAccessToken;
+        return mToken;
     }
 
     public void setAccessToken(String accessToken) {
-        this.mAccessToken = accessToken;
+        this.mToken = accessToken;
     }
 
     public String getRefreshToken() {
@@ -160,11 +160,11 @@ public class TokenCacheItem implements Serializable {
     }
 
     public String getRawIdToken() {
-        return mRawIdToken;
+        return mRawProfileInfo;
     }
 
     public void setRawIdToken(String rawIdToken) {
-        this.mRawIdToken = rawIdToken;
+        this.mRawProfileInfo = rawIdToken;
     }
 
     /**

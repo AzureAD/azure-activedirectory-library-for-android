@@ -65,7 +65,9 @@ public class MainActivity extends Activity {
     /**
      * Extra query parameter nux=1 uses new login page at AAD. This is optional.
      */
-    final static String EXTRA_QUERY_PARAM = "nux=1&slice=testslice&msaproxy=true";
+    final static String EXTRA_QUERY_PARAM = "nux=1";
+    
+    private String policySignin = "B2C_1_signin";
 
     private AuthenticationContext mAuthContext;
 
@@ -159,8 +161,8 @@ public class MainActivity extends Activity {
                 }
 
                 mResult = result;
-                Log.v(TAG, "Token info:" + result.getAccessToken());
-                Log.v(TAG, "IDToken info:" + result.getIdToken());
+                Log.v(TAG, "Token info:" + result.getToken());
+                Log.v(TAG, "IDToken info:" + result.getProfileInfo());
                 Toast.makeText(getApplicationContext(), "Token is returned", Toast.LENGTH_SHORT)
                         .show();
 
@@ -188,15 +190,15 @@ public class MainActivity extends Activity {
     public void onClickAcquireTokenSilent(View v) {
         Log.v(TAG, "onClickAcquireTokenSilent is clicked");
         mLoginProgressDialog.show();
-        mAuthContext.acquireTokenSilent(Constants.SCOPE, Constants.CLIENT_ID, new UserIdentifier(getUniqueId(), UserIdentifier.UserIdentifierType.UniqueId),
+        mAuthContext.acquireTokenSilent(Constants.SCOPE, policySignin, Constants.CLIENT_ID, new UserIdentifier(getUniqueId(), UserIdentifier.UserIdentifierType.UniqueId),
                 getCallback());
     }
 
     public void onClickToken(View v) {
         Log.v(TAG, "token button is clicked");
         mLoginProgressDialog.show();
-        mAuthContext.acquireToken(MainActivity.this, Constants.SCOPE, null, Constants.CLIENT_ID,
-                Constants.REDIRECT_URL, getUserInfo(), EXTRA_QUERY_PARAM, getCallback());
+        mAuthContext.acquireToken(MainActivity.this, Constants.SCOPE, null, policySignin, Constants.CLIENT_ID,
+                Constants.REDIRECT_URL, getUserInfo(), PromptBehavior.Auto, EXTRA_QUERY_PARAM, getCallback());
     }
 
     private void clearSessionCookie() {
@@ -229,10 +231,10 @@ public class MainActivity extends Activity {
      * @param result
      */
     public void onClickUseToken(View view) {
-        if (mResult != null && mResult.getAccessToken() != null) {
+        if (mResult != null && mResult.getToken() != null) {
             textView1.setText("");
             displayMessage("Sending token to a service");
-            new RequestTask(Constants.SERVICE_URL, mResult.getAccessToken()).execute();
+            new RequestTask(Constants.SERVICE_URL, mResult.getToken()).execute();
         } else {
             textView1.setText("Token is empty");
         }

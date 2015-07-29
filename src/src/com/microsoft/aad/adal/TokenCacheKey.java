@@ -299,16 +299,22 @@ final class TokenCacheKey implements Serializable {
 		return hash;
 	}
 	
-	private boolean isScopeIntersect(String[] scope) {
+	private boolean isScopeIntersect(String[] scopes) {
 	    Set<String> self = StringExtensions.createSet(mScope);
-        Set<String> other = StringExtensions.createSet(mScope);
-        
-        return self.containsAll(other);
+	    if(scopes != null && scopes.length != 0){
+	        for(String onescope: scopes){
+	            if(self.contains(onescope)){
+	                return true;
+	            }
+	        }
+	    }
+	    
+        return false;
     }
 	
 	private boolean isScopeEquals(String[] otherScope){
 	    Set<String> self = StringExtensions.createSet(mScope);
-        Set<String> other = StringExtensions.createSet(mScope);
+        Set<String> other = StringExtensions.createSet(otherScope);
 
         if (self.size() == other.size())
         {
@@ -317,4 +323,8 @@ final class TokenCacheKey implements Serializable {
 
         return false;
 	}
+
+    void setScope(String[] scope) {
+       this.mScope = scope;        
+    }
 }

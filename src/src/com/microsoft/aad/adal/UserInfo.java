@@ -67,7 +67,7 @@ public class UserInfo implements Serializable {
         mDisplayableId = displayableId;
     }
 
-    public UserInfo(IdToken token) {
+    public UserInfo(ProfileInfo token) {
 
         mUniqueId = null;
         mDisplayableId = null;

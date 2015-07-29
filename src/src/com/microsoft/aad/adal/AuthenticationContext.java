@@ -701,8 +701,6 @@ public class AuthenticationContext {
                 if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
                     String accessToken = data
                             .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
-                    String accountName = data
-                            .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
                     long expireTime = data.getLongExtra(
                             AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
                     Date expire = new Date(expireTime);
@@ -713,7 +711,7 @@ public class AuthenticationContext {
                     UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken);
-                    if (brokerResult != null && brokerResult.getAccessToken() != null) {
+                    if (brokerResult != null && brokerResult.getToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                         return;
                     }
@@ -809,7 +807,7 @@ public class AuthenticationContext {
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
 
-                                        if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+                                        if (!StringExtensions.IsNullOrBlank(result.getToken())) {
                                             setItemToCache(authenticationRequest, result);
                                             if (waitingRequest != null
                                                     && waitingRequest.mDelagete != null) {
@@ -1231,7 +1229,7 @@ public class AuthenticationContext {
     }
 
     private boolean isValidCache(AuthenticationResult cachedItem) {
-        if (cachedItem != null && !StringExtensions.IsNullOrBlank(cachedItem.getAccessToken())
+        if (cachedItem != null && !StringExtensions.IsNullOrBlank(cachedItem.getToken())
                 && !cachedItem.isExpired()) {
             return true;
         }
@@ -1349,9 +1347,21 @@ public class AuthenticationContext {
             logReturnedToken(request, result);
 
             // acquireTokenSilent uses userid to request items
+            // record normal token with returned scope
             TokenCacheKey key = TokenCacheKey.createCacheKey(request, result);
-            mTokenCacheStore.setItem(key,
-                    new TokenCacheItem(request, result, result.getIsMultiResourceRefreshToken()));
+            
+            Logger.v(TAG, "Clean up intersecting scopes");
+            mTokenCacheStore.deleteIntersectingScope(key);
+            
+            TokenCacheItem cacheItem = new TokenCacheItem(request, result, result.getIsMultiResourceRefreshToken());
+            mTokenCacheStore.setItem(key, cacheItem);
+            
+            // Record idtoken with clientid as scope
+            if(request.isIdTokenRequest()){
+                cacheItem.setScope(new String[]{request.getClientId()});
+                key.setScope(new String[]{request.getClientId()});
+                mTokenCacheStore.setItem(key, cacheItem);
+            }
         }
     }
 
@@ -1363,8 +1373,8 @@ public class AuthenticationContext {
      */
     private void logReturnedToken(final AuthenticationRequest request,
             final AuthenticationResult result) {
-        if (result != null && result.getAccessToken() != null) {
-            String accessTokenHash = getTokenHash(result.getAccessToken());
+        if (result != null && result.getToken() != null) {
+            String accessTokenHash = getTokenHash(result.getToken());
             String refreshTokenHash = getTokenHash(result.getRefreshToken());
             Logger.v(TAG, String.format(
                     "Access TokenID %s and Refresh TokenID %s returned. CorrelationId: %s",
@@ -1453,7 +1463,7 @@ public class AuthenticationContext {
         }
 
         if (useCache) {
-            if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+            if (result == null || StringExtensions.IsNullOrBlank(result.getToken())) {
                 String errLogInfo = result == null ? "" : result.getErrorLogInfo();
                 Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
                         + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
@@ -1467,7 +1477,7 @@ public class AuthenticationContext {
                 if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
                     Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());
                     result.setUserInfo(refreshItem.mUserInfo);
-                    result.setIdToken(refreshItem.mRawIdToken);
+                    result.setProfileInfo(refreshItem.mRawIdToken);
                     result.setTenantId(refreshItem.mTenantId);
                 }
 

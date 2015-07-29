@@ -18,8 +18,6 @@
 
 package com.microsoft.aad.adal.test;
 
-import static org.mockito.Mockito.mock;
-
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
@@ -59,7 +57,6 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 import android.util.Log;
-import android.util.SparseArray;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
@@ -69,17 +66,17 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.TokenCache;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.IConnectionService;
 import com.microsoft.aad.adal.IDiscovery;
 import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.TokenCache;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserIdentifier;
-import com.microsoft.aad.adal.UserInfo;
 import com.microsoft.aad.adal.UserIdentifier.UserIdentifierType;
+import com.microsoft.aad.adal.UserInfo;
 
 public class AuthenticationContextTest extends AndroidTestCase {
 
@@ -805,9 +802,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         AuthenticationResult result = context.acquireTokenSilentSync(TEST_SCOPE, "clientid",
                 TEST_IDTOKEN_USERID);
-        assertEquals("Access Token", "TokenReturnsWithIdToken", result.getAccessToken());
-        assertEquals("Refresh Token", "refreshABC", result.getRefreshToken());
-        assertEquals("IdToken", TEST_IDTOKEN, result.getIdToken());
+        assertEquals("Access Token", "TokenReturnsWithIdToken", result.getToken());
+        assertEquals("IdToken", TEST_IDTOKEN, result.getProfileInfo());
         clearCache(context);
     }
 
@@ -1006,8 +1002,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
 
     private void verifyTokenResult(IdToken idtoken, AuthenticationResult result) {
-        assertEquals("Check access token", "TokenUserIdTest", result.getAccessToken());
-        assertEquals("Check refresh token", "refresh112", result.getRefreshToken());
+        assertEquals("Check access token", "TokenUserIdTest", result.getToken());
         if (idtoken != null) {
             assertEquals("Result has userid", idtoken.oid, result.getUserInfo().getUniqueId());
             assertEquals("Result has username", idtoken.upn, result.getUserInfo()
@@ -1091,7 +1086,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException {
         assertNull("Error is null", resultException);
-        assertEquals("Token is same", "TokenFortestRefreshTokenPositive", result.getAccessToken());
+        assertEquals("Token is same", "TokenFortestRefreshTokenPositive", result.getToken());
         assertNotNull("Cache is NOT empty for this userid for regular token",
                 mockCache.getItem(MockTokenCacheKey.createCacheKey(VALID_AUTHORITY, TEST_SCOPE, "",
                         "clientId", false, TEST_IDTOKEN_USERID)));
@@ -1143,9 +1138,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Check response in callback
         assertNull("Error is null", callback.mException);
-        assertEquals("Same access token in cache", tokenToTest, callback.mResult.getAccessToken());
-        assertEquals("Same refresh token in cache", "refreshToken",
-                callback.mResult.getRefreshToken());
+        assertEquals("Same access token in cache", tokenToTest, callback.mResult.getToken());
         assertEquals("Same userid in cache", "userId124", callback.mResult.getUserInfo()
                 .getUniqueId());
         assertEquals("Same name in cache", "name", callback.mResult.getUserInfo().getGivenName());
@@ -1231,7 +1224,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Check response in callback
         assertNull("Error is null", callback.mException);
-        assertEquals("token for user1", "token1", callback.mResult.getAccessToken());
+        assertEquals("token for user1", "token1", callback.mResult.getToken());
         assertEquals("idtoken for user1", "userName1", callback.mResult.getUserInfo()
                 .getDisplayableId());
         assertEquals("idtoken for user1", "userAname", callback.mResult.getUserInfo()
@@ -1247,7 +1240,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Check response in callback
         assertNull("Error is null", callback2.mException);
-        assertEquals("token for user1", "token2", callback2.mResult.getAccessToken());
+        assertEquals("token for user1", "token2", callback2.mResult.getToken());
         assertEquals("idtoken for user1", "userName2", callback2.mResult.getUserInfo()
                 .getDisplayableId());
 
@@ -1262,7 +1255,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Check response in callback
         assertNull("Error is null", callback3.mException);
-        assertEquals("token for user1", "token1", callback3.mResult.getAccessToken());
+        assertEquals("token for user1", "token1", callback3.mResult.getToken());
         assertEquals("idtoken for user1", "userName1", callback3.mResult.getUserInfo()
                 .getDisplayableId());
 
@@ -1439,7 +1432,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // assert
         assertEquals("Same token in response", "testAccessToken",
-                callback.callbackResult.getAccessToken());
+                callback.callbackResult.getToken());
     }
 
     private Object getRequestState(TestAuthCallBack callback) throws ClassNotFoundException,
@@ -1522,7 +1515,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         assertNull("Error is null", callback.mException);
         assertEquals("Same token in response as in cache", tokenToTest,
-                callback.mResult.getAccessToken());
+                callback.mResult.getToken());
 
         // Acquire token call will not return from cache for broad
         // Token-cached item does not have access token since it was broad
@@ -1535,7 +1528,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         assertNull("Error is null", callback.mException);
         assertEquals("Same token as refresh token result", tokenToTest,
-                callback.mResult.getAccessToken());
+                callback.mResult.getToken());
 
         // Different resource with same userid
         signal = new CountDownLatch(1);
@@ -1546,7 +1539,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         assertEquals("Token is returned from refresh token request", tokenToTest,
-                callback.mResult.getAccessToken());
+                callback.mResult.getToken());
 
         // Same call again to use it from cache
         signal = new CountDownLatch(1);
@@ -1558,7 +1551,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         assertEquals("Same token in response as in cache for same call", tokenToTest,
-                callback.mResult.getAccessToken());
+                callback.mResult.getToken());
 
         // Empty userid will prompt.
         // Items are linked to userid. If it is not there, it can't use for

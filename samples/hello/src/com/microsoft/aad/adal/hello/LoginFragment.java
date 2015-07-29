@@ -132,8 +132,8 @@ public class LoginFragment extends Fragment {
             @Override
             public void onSuccess(AuthenticationResult result) {
                 mResult = result;
-                Log.v(TAG, "Token info:" + result.getAccessToken());
-                Log.v(TAG, "IDToken info:" + result.getIdToken());
+                Log.v(TAG, "Token info:" + result.getToken());
+                Log.v(TAG, "IDToken info:" + result.getProfileInfo());
                 showInfo("Token is returned");
 
                 if (mResult.getUserInfo() != null) {
