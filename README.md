@@ -231,9 +231,9 @@ Optional:  **acquireTokenSilent**
 
 You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well. It accepts userid as paremeter.
  
-    ```java
-     mContext.acquireTokenSilent(resource, clientid, userId, callback );
-    ```
+```java
+mContext.acquireTokenSilent(resource, clientid, userId, callback );
+```
 11. Broker:
   Microsoft Intune's Company portal app will provide the broker component. Adal will use the broker account, if there is one user account is created at this authenticator and Developer choose not to skip it. Developer can skip the broker user with:
 
@@ -293,9 +293,9 @@ ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop u
 
 This method does not use UI pop up and not require an activity. It will return token from cache if available. If token is expired, it will try to refresh it. If refresh token is expired or failed, it will return AuthenticationException.
 
-    ```Java
-    Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clientid, userId, callback );
-    ```
+```Java
+Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clientid, userId, callback );
+```
     
 You can also make sync call with this method. You can set null to callback or use acquireTokenSilentSync.
 
