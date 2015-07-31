@@ -10,23 +10,6 @@ import java.util.UUID;
 
 public class ClientMetricTests extends AndroidTestHelper {
 
-    public void testADFSBehavior() throws ClassNotFoundException, IllegalArgumentException,
-            IllegalAccessException, InvocationTargetException, NoSuchMethodException,
-            InstantiationException, MalformedURLException, NoSuchFieldException {
-
-        Object clientMetrics = getInstance();
-        final URL endpointAdfs = new URL("https://fs.ade2eadfs30.com/adfs");
-        UUID correlationId = UUID.randomUUID();
-        HashMap<String, String> headers = new HashMap<String, String>();
-        Method method = ReflectionUtils.getTestMethod(clientMetrics, "beginClientMetricsRecord",
-                URL.class, UUID.class, headers.getClass());
-        method.invoke(clientMetrics, endpointAdfs, correlationId, headers);
-
-        assertTrue("Expecting empty header", headers.isEmpty());
-        assertEquals("CorrelationId is empty", null,
-                ReflectionUtils.getFieldValue(clientMetrics, "mLastCorrelationId"));
-    }
-
     public void testPendingMetrics() throws ClassNotFoundException, IllegalArgumentException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, MalformedURLException, NoSuchFieldException {

@@ -78,20 +78,11 @@ public class OauthTests extends AndroidTestCase {
     public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, NoSuchFieldException, UnsupportedEncodingException {
-        IdToken idtoken = new IdToken();
+        ProfileInfo idtoken = new ProfileInfo();
         Object actual = parseIdToken(idtoken.getIdToken());
         assertEquals("0DxnAlLi12IvGL", ReflectionUtils.getFieldValue(actual, "mSubject"));
         assertEquals("6fd1f5cd-a94c-4335-889b-6c598e6d8048",
                 ReflectionUtils.getFieldValue(actual, "mTenantId"));
-        assertEquals("test@test.onmicrosoft.com", ReflectionUtils.getFieldValue(actual, "mUpn"));
-        assertEquals("givenName", ReflectionUtils.getFieldValue(actual, "mGivenName"));
-        assertEquals("familyName", ReflectionUtils.getFieldValue(actual, "mFamilyName"));
-        assertEquals("emailField", ReflectionUtils.getFieldValue(actual, "mEmail"));
-        assertEquals("idpProvider", ReflectionUtils.getFieldValue(actual, "mIdentityProvider"));
-        assertEquals("53c6acf2-2742-4538-918d-e78257ec8516",
-                ReflectionUtils.getFieldValue(actual, "mObjectId"));
-        assertTrue(1387227772 == (Long)ReflectionUtils.getFieldValue(actual, "mPasswordExpiration"));
-        assertEquals("pwdUrl", ReflectionUtils.getFieldValue(actual, "mPasswordChangeUrl"));
     }
 
     @SmallTest
@@ -112,7 +103,7 @@ public class OauthTests extends AndroidTestCase {
     public void testParseIdTokenNegativeIncorrectMessage() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
-        String idToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2.";
+        String idToken = "eyJ0eXAiOi";
         Object actual = parseIdToken(idToken);
         assertNull("IdToken is null", actual);
     }
@@ -153,7 +144,7 @@ public class OauthTests extends AndroidTestCase {
         Object request = createAuthenticationRequest("http://www.something.com", "resource",
                 "client", "redirect", "loginhint@ggg.com", null, null, null);
         Object oauth = createOAuthInstance(request);
-        Method m = ReflectionUtils.getTestMethod(oauth, "parseIdToken", String.class);
+        Method m = ReflectionUtils.getTestMethod(oauth, "parseProfileInfo", String.class);
         return (Object)m.invoke(oauth, idToken);
     }
 
@@ -187,14 +178,14 @@ public class OauthTests extends AndroidTestCase {
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "getCodeRequestUrl");
 
-		String actual = (String) m.invoke(oauth);
-		assertTrue(
-				"Matching message",
-				actual.contains("http://www.something.com"
-						+ DEFAULT_AUTHORIZE_ENDPOINT
-						+ "?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&scope=openid+offline_access+resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&login_hint=loginhint+1234567890-%2B%3D%3B%27"));
-		assertTrue("Matching loginhint",
-				actual.contains("login_hint=loginhint+1234567890-%2B%3D%3B%27"));
+        String actual = (String)m.invoke(oauth);
+        assertTrue(
+                "Matching message",
+                actual.contains("http://www.something.com"
+                        + DEFAULT_AUTHORIZE_ENDPOINT
+                        + "?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&scope=offline_access+openid+resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&login_hint=loginhint+1234567890-%2B%3D%3B%27"));
+        assertTrue("Matching loginhint",
+                actual.contains("login_hint=loginhint+1234567890-%2B%3D%3B%27"));
     }
 
     @SmallTest
@@ -272,7 +263,7 @@ public class OauthTests extends AndroidTestCase {
         String actual = (String)m.invoke(oauth, "refreshToken23434=");
         assertEquals(
                 "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=openid+offline_access+resource%2520+",
+                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=offline_access+openid+resource%2520+",
                 actual);
 
         // without resource
@@ -285,7 +276,7 @@ public class OauthTests extends AndroidTestCase {
         actual = (String)m.invoke(oauthWithoutResource, "refreshToken234343455=");
         assertEquals(
                 "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=openid+offline_access",
+                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=offline_access+openid",
                 actual);
     }
 
@@ -473,9 +464,9 @@ public class OauthTests extends AndroidTestCase {
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
                 Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
-        IdToken defaultIdToken = new IdToken();
+        ProfileInfo defaultIdToken = new ProfileInfo();
         String idToken = defaultIdToken.getIdToken();
-        String json = "{\"id_token\":\""
+        String json = "{\"profile_info\":\""
                 + idToken
                 + "\",\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
         HttpWebResponse mockResponse = new HttpWebResponse(200, json.getBytes(Charset
@@ -530,42 +521,6 @@ public class OauthTests extends AndroidTestCase {
         // verify same token
         assertTrue("Log response has message",
                 logResponse2.errorCode.equals(ADALError.CORRELATION_ID_FORMAT));
-    }
-
-    @SmallTest
-    public void testprocessUIResponseParams() throws IllegalArgumentException,
-            IllegalAccessException, InvocationTargetException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException {
-        HashMap<String, String> response = new HashMap<String, String>();
-        Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
-                "loginhint", null, null, null);
-        Object oauth = createOAuthInstance(request);
-        Method m = ReflectionUtils.getTestMethod(oauth, "processUIResponseParams", HashMap.class);
-
-        // call for empty response
-        AuthenticationResult result = (AuthenticationResult)m.invoke(null, response);
-        assertNull("Result is null", result);
-
-        // call when response has error
-        response.put(AuthenticationConstants.OAuth2.ERROR, "error");
-        response.put(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, "error description");
-        result = (AuthenticationResult)m.invoke(null, response);
-        assertEquals("Failed status", AuthenticationStatus.Failed, result.getStatus());
-
-        // add token
-        response.clear();
-        response.put(AuthenticationConstants.OAuth2.ACCESS_TOKEN, "token");
-        result = (AuthenticationResult)m.invoke(null, response);
-        assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
-        assertEquals("Token is same", "token", result.getToken());
-        assertFalse("MultiResource token", result.getIsMultiResourceRefreshToken());
-
-        // multi resource token
-        response.put(AuthenticationConstants.AAD.RESOURCE, "resource");
-        result = (AuthenticationResult)m.invoke(null, response);
-        assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
-        assertEquals("Token is same", "token", result.getToken());
-        assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
     }
 
     private Object getValidAuthenticationRequest() throws IllegalArgumentException,
