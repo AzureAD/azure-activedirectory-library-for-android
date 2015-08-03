@@ -18,21 +18,11 @@
 
 package com.microsoft.aad.adal.test;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -42,13 +32,10 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.test.ActivityUnitTestCase;
 import android.test.RenamingDelegatingContext;
@@ -58,13 +45,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.ApplicationReceiver;
 import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.R;
 import com.microsoft.aad.adal.UserIdentifier;
 import com.microsoft.aad.adal.UserIdentifier.UserIdentifierType;
 

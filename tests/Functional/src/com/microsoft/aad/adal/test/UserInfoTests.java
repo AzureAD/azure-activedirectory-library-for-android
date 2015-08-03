@@ -91,35 +91,10 @@ public class UserInfoTests extends TestCase {
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
     }
 
-    @SmallTest
-    public void testIdTokenParam_password() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException, NoSuchFieldException {
-        Object obj = setIdTokenFields("objectid", "upnid", "email", "subj");
-        Calendar calendar = new GregorianCalendar();
-        int seconds = 1000;
-        ReflectionUtils.setFieldValue(obj, "mPasswordExpiration", seconds);
-        ReflectionUtils.setFieldValue(obj, "mPasswordChangeUrl",
-                "https://github.com/MSOpenTech/azure-activedirectory-library");
-        UserInfo info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".UserInfo", obj);
-        calendar.add(Calendar.SECOND, seconds);
-        Date passwordExpiresOn = calendar.getTime();
-        assertEquals("same userid", "objectid", info.getUniqueId());
-        assertEquals("same name", "givenName", info.getGivenName());
-        assertEquals("same family name", "familyName", info.getFamilyName());
-        assertEquals("same idenity name", "provider", info.getIdentityProvider());
-        assertEquals("check displayable", "upnid", info.getDisplayableId());
-        assertEquals("check expireson", passwordExpiresOn.getTime() / 1000, info
-                .getPasswordExpiresOn().getTime() / 1000);
-        assertEquals("check uri", "https://github.com/MSOpenTech/azure-activedirectory-library",
-                info.getPasswordChangeUrl().toString());
-    }
-
     private Object setIdTokenFields(String objId, String upn, String email, String subject)
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchFieldException {
-        Object obj = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME + ".IdToken");
+        Object obj = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME + ".ProfileInfo");
         ReflectionUtils.setFieldValue(obj, "mObjectId", objId);
         ReflectionUtils.setFieldValue(obj, "mSubject", subject);
         ReflectionUtils.setFieldValue(obj, "mTenantId", "tenantid");

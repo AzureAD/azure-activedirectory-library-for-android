@@ -34,8 +34,6 @@ import android.widget.TextView.OnEditorActionListener;
  */
 class HttpAuthDialog {
 
-    private static final String TAG = "HttpAuthDialog";
-    
     private final Context mContext;
 
     private final String mHost;

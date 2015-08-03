@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -195,7 +196,7 @@ final class StringExtensions {
 		Set<String> scopes = new HashSet<String>();
 		if (items != null && items.length != 0) {
 			for (String item : items) {
-				scopes.add(item);
+				scopes.add(item.toLowerCase(Locale.US));
 			}
 		}
 

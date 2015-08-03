@@ -26,15 +26,12 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.NoSuchPaddingException;
 
 import junit.framework.Assert;
-
-import android.app.Activity;
 import android.content.Intent;
 import android.test.AndroidTestCase;
 
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IWindowComponent;
-import com.microsoft.aad.adal.TokenCacheItem;
 
 /**
  * settings to use in ADAL

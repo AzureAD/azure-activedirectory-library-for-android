@@ -118,7 +118,7 @@ public class AuthenticationConstants {
 
         static final String ID_TOKEN_TENANTID = "tid";
 
-        static final String ID_TOKEN_UPN = "upn";
+        static final String ID_TOKEN_UPN = "preferred_username";
 
         static final String ID_TOKEN_GIVEN_NAME = "given_name";
 
@@ -135,6 +135,8 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_PASSWORD_EXPIRATION = "pwd_exp";
 
         static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
+
+        public static final Object PROFILE_INFO = "profile_info";
     }
 
     public static final class AAD {
