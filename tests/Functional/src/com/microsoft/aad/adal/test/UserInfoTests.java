@@ -32,10 +32,9 @@ public class UserInfoTests extends TestCase {
 
     @SmallTest
     public void testUserInfo() {
-        UserInfo user = new UserInfo("userid", "givenName", "familyName", "identity", "userid");
+        UserInfo user = new UserInfo("userid", "givenName", "identity", "userid");
         assertEquals("same userid", "userid", user.getUniqueId());
-        assertEquals("same name", "givenName", user.getGivenName());
-        assertEquals("same family name", "familyName", user.getFamilyName());
+        assertEquals("same name", "givenName", user.getName());
         assertEquals("same idenity name", "identity", user.getIdentityProvider());
         assertEquals("same flag", "userid", user.getDisplayableId());
     }
@@ -48,8 +47,7 @@ public class UserInfoTests extends TestCase {
         UserInfo info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
         assertEquals("same userid", "objectid", info.getUniqueId());
-        assertEquals("same name", "givenName", info.getGivenName());
-        assertEquals("same family name", "familyName", info.getFamilyName());
+        assertEquals("same name", "Name", info.getName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
 
@@ -57,8 +55,7 @@ public class UserInfoTests extends TestCase {
         info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
         assertEquals("same userid", "subj", info.getUniqueId());
-        assertEquals("same name", "givenName", info.getGivenName());
-        assertEquals("same family name", "familyName", info.getFamilyName());
+        assertEquals("same name", "Name", info.getName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
 
@@ -66,8 +63,7 @@ public class UserInfoTests extends TestCase {
         info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
         assertNull("null userid", info.getUniqueId());
-        assertEquals("same name", "givenName", info.getGivenName());
-        assertEquals("same family name", "familyName", info.getFamilyName());
+        assertEquals("same name", "Name", info.getName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
 
@@ -75,8 +71,7 @@ public class UserInfoTests extends TestCase {
         info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".UserInfo", obj);
         assertNull("null userid", info.getUniqueId());
-        assertEquals("same name", "givenName", info.getGivenName());
-        assertEquals("same family name", "familyName", info.getFamilyName());
+        assertEquals("same name", "Name", info.getName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "email", info.getDisplayableId());
 
@@ -86,8 +81,7 @@ public class UserInfoTests extends TestCase {
 
         assertNull("null userid", info.getUniqueId());
         assertNull("check displayable", info.getDisplayableId());
-        assertEquals("same name", "givenName", info.getGivenName());
-        assertEquals("same family name", "familyName", info.getFamilyName());
+        assertEquals("same name", "Name", info.getName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
     }
 
@@ -99,8 +93,7 @@ public class UserInfoTests extends TestCase {
         ReflectionUtils.setFieldValue(obj, "mSubject", subject);
         ReflectionUtils.setFieldValue(obj, "mTenantId", "tenantid");
         ReflectionUtils.setFieldValue(obj, "mUpn", upn);
-        ReflectionUtils.setFieldValue(obj, "mGivenName", "givenName");
-        ReflectionUtils.setFieldValue(obj, "mFamilyName", "familyName");
+        ReflectionUtils.setFieldValue(obj, "mName", "Name");
         ReflectionUtils.setFieldValue(obj, "mEmail", email);
         ReflectionUtils.setFieldValue(obj, "mIdentityProvider", "provider");
         return obj;

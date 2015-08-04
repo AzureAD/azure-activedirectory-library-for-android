@@ -25,9 +25,7 @@ class ProfileInfo {
 
     String mUpn;
 
-    String mGivenName;
-
-    String mFamilyName;
+    String mName;
 
     String mEmail;
 

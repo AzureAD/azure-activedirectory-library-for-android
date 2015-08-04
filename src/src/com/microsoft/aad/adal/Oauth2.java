@@ -318,11 +318,9 @@ class Oauth2 {
                     idtokenInfo.mUpn = responseItems
                             .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
                     idtokenInfo.mEmail = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_EMAIL);
-                    idtokenInfo.mGivenName = responseItems
+                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
+                    idtokenInfo.mName = responseItems
                             .get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
-                    idtokenInfo.mFamilyName = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
                     idtokenInfo.mIdentityProvider = responseItems
                             .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
                     idtokenInfo.mObjectId = responseItems
