@@ -1141,9 +1141,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("Same access token in cache", tokenToTest, callback.mResult.getToken());
         assertEquals("Same userid in cache", "userId124", callback.mResult.getUserInfo()
                 .getUniqueId());
-        assertEquals("Same name in cache", "name", callback.mResult.getUserInfo().getGivenName());
-        assertEquals("Same familyName in cache", "familyName", callback.mResult.getUserInfo()
-                .getFamilyName());
+        assertEquals("Same name in cache", "name", callback.mResult.getUserInfo().getName());
         assertEquals("Same displayid in cache", "userA", callback.mResult.getUserInfo()
                 .getDisplayableId());
         assertEquals("Same tenantid in cache", "tenantId", callback.mResult.getTenantId());
@@ -1170,7 +1168,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         refreshItem.setRefreshToken("refreshToken");
         refreshItem.setExpiresOn(timeAhead.getTime());
         refreshItem.setIsMultiResourceRefreshToken(false);
-        UserInfo userinfo = new UserInfo("user2", "test", "test", "idp", "user2");
+        UserInfo userinfo = new UserInfo("user2", "test", "idp", "user2");
         refreshItem.setUserInfo(userinfo);
         MockTokenCacheKey key = MockTokenCacheKey.createCacheKey(VALID_AUTHORITY, scope, "",
                 clientId, false, new UserIdentifier("user2",
@@ -1228,7 +1226,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("idtoken for user1", "userName1", callback.mResult.getUserInfo()
                 .getDisplayableId());
         assertEquals("idtoken for user1", "userAname", callback.mResult.getUserInfo()
-                .getGivenName());
+                .getName());
 
         // User2 with userid call
         final CountDownLatch signal2 = new CountDownLatch(1);
@@ -1600,8 +1598,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         refreshItem.setAccessToken("accessToken");
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(expiredTime.getTime());
-        refreshItem.setUserInfo(new UserInfo(userid, "givenName", "familyName",
-                "identityProvider", displayableId));
+        refreshItem
+                .setUserInfo(new UserInfo(userid, "givenName", "identityProvider", displayableId));
         UserIdentifier useridKey = new UserIdentifier(userid, UserIdentifierType.UniqueId);
         UserIdentifier useridDisplayableId = new UserIdentifier(displayableId, UserIdentifierType.RequiredDisplayableId);
         cache.setItem(MockTokenCacheKey.createCacheKey(VALID_AUTHORITY, TEST_SCOPE, "", "clientId", false,
@@ -1652,7 +1650,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         refreshItem.setExpiresOn(timeAhead.getTime());
         refreshItem.setIsMultiResourceRefreshToken(isMultiResource);
         refreshItem.setTenantId(tenantId);
-        refreshItem.setUserInfo(new UserInfo(userId, name, familyName, "", displayId));
+        refreshItem.setUserInfo(new UserInfo(userId, name, "", displayId));
         MockTokenCacheKey key = MockTokenCacheKey.createCacheKey(VALID_AUTHORITY, scope, "", clientId, isMultiResource,
                new UserIdentifier( userId, UserIdentifierType.UniqueId));
         Log.d(TAG, "Key: " + key);

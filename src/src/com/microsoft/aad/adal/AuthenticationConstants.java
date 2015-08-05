@@ -120,9 +120,7 @@ public class AuthenticationConstants {
 
         static final String ID_TOKEN_UPN = "preferred_username";
 
-        static final String ID_TOKEN_GIVEN_NAME = "given_name";
-
-        static final String ID_TOKEN_FAMILY_NAME = "family_name";
+        static final String ID_TOKEN_GIVEN_NAME = "name";
 
         static final String ID_TOKEN_UNIQUE_NAME = "unique_name";
 

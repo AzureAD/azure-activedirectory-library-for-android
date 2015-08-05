@@ -183,7 +183,7 @@ public class OauthTests extends AndroidTestCase {
                 "Matching message",
                 actual.contains("http://www.something.com"
                         + DEFAULT_AUTHORIZE_ENDPOINT
-                        + "?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&scope=offline_access+openid+resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&login_hint=loginhint+1234567890-%2B%3D%3B%27"));
+                        + "?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&scope=openid+offline_access+resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&login_hint=loginhint+1234567890-%2B%3D%3B%27"));
         assertTrue("Matching loginhint",
                 actual.contains("login_hint=loginhint+1234567890-%2B%3D%3B%27"));
     }
@@ -263,7 +263,7 @@ public class OauthTests extends AndroidTestCase {
         String actual = (String)m.invoke(oauth, "refreshToken23434=");
         assertEquals(
                 "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=offline_access+openid+resource%2520+",
+                "grant_type=refresh_token&refresh_token=refreshToken23434%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=openid+offline_access+resource%2520+",
                 actual);
 
         // without resource
@@ -276,7 +276,7 @@ public class OauthTests extends AndroidTestCase {
         actual = (String)m.invoke(oauthWithoutResource, "refreshToken234343455=");
         assertEquals(
                 "Token request",
-                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=offline_access+openid",
+                "grant_type=refresh_token&refresh_token=refreshToken234343455%3D&client_id=client+1234567890-%2B%3D%3B%27&scope=openid+offline_access",
                 actual);
     }
 

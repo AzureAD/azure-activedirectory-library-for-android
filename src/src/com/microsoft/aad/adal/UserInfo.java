@@ -40,9 +40,7 @@ public class UserInfo implements Serializable {
 
     private String mDisplayableId;
 
-    private String mGivenName;
-
-    private String mFamilyName;
+    private String mName;
 
     private String mIdentityProvider;
 
@@ -58,11 +56,10 @@ public class UserInfo implements Serializable {
         mDisplayableId = upn;
     }
 
-    public UserInfo(String userid, String givenName, String familyName, String identityProvider,
+    public UserInfo(String userid, String givenName, String identityProvider,
             String displayableId) {
         mUniqueId = userid;
-        mGivenName = givenName;
-        mFamilyName = familyName;
+        mName = givenName;
         mIdentityProvider = identityProvider;
         mDisplayableId = displayableId;
     }
@@ -84,8 +81,7 @@ public class UserInfo implements Serializable {
             mDisplayableId = token.mEmail;
         }
 
-        mGivenName = token.mGivenName;
-        mFamilyName = token.mFamilyName;
+        mName = token.mName;
         mIdentityProvider = token.mIdentityProvider;
         if (token.mPasswordExpiration > 0) {
             // pwd_exp returns seconds to expiration time
@@ -107,13 +103,11 @@ public class UserInfo implements Serializable {
         String userid = bundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
         String givenName = bundle
                 .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME);
-        String familyName = bundle
-                .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME);
         String identityProvider = bundle
                 .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER);
         String displayableId = bundle
                 .getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE);
-        return new UserInfo(userid, givenName, familyName, identityProvider, displayableId);
+        return new UserInfo(userid, givenName, identityProvider, displayableId);
     }
 
     /**
@@ -134,25 +128,12 @@ public class UserInfo implements Serializable {
      * 
      * @return
      */
-    public String getGivenName() {
-        return mGivenName;
+    public String getName() {
+        return mName;
     }
 
-    void setGivenName(String name) {
-        mGivenName = name;
-    }
-
-    /**
-     * Gets family name.
-     * 
-     * @return
-     */
-    public String getFamilyName() {
-        return mFamilyName;
-    }
-
-    void setFamilyName(String familyName) {
-        mFamilyName = familyName;
+    void setName(String name) {
+        mName = name;
     }
 
     /**
