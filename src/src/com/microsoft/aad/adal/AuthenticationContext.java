@@ -1270,7 +1270,7 @@ public class AuthenticationContext {
                     AuthenticationException exc = new AuthenticationException(
                             ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                             "Connection is not available to request token");
-                    Logger.w(TAG, "Connection is not available to refresh token", request.getLogInfo(),
+                    Logger.w(TAG, "Connection is not available to request token", request.getLogInfo(),
                             ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
                     callbackHandle.onError(exc);
                     return null;
