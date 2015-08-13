@@ -1265,6 +1265,17 @@ public class AuthenticationContext {
             Logger.v(TAG, "Refresh token is not available");
             if (!request.isSilent() && callbackHandle.callback != null
                     && (activity != null || useDialog)) {
+            	//Check if there is network connection
+                if (!mConnectionService.isConnectionAvailable()) {
+                    AuthenticationException exc = new AuthenticationException(
+                            ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                            "Connection is not available to request token");
+                    Logger.w(TAG, "Connection is not available to request token", request.getLogInfo(),
+                            ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+                    callbackHandle.onError(exc);
+                    return null;
+                }
+                
                 // start activity if other options are not available
                 // delegate map is used to remember callback if another
                 // instance of authenticationContext is created for config
