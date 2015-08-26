@@ -707,7 +707,7 @@ public class AuthenticationContext {
 
                 // Cancel or browser error can use recorded request to figure
                 // out original correlationId send with request.
-                String correlationInfo = getCorrelationInfoFromWaitingRequest(waitingRequest);
+                final String correlationInfo = getCorrelationInfoFromWaitingRequest(waitingRequest);
                 if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
                     String accessToken = data
                             .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
@@ -746,7 +746,7 @@ public class AuthenticationContext {
                                 waitingRequest,
                                 requestId,
                                 new AuthenticationException(
-                                        ADALError.WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION));
+                                        ADALError.WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION, correlationInfo));
                     }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
                     String errCode = extras
@@ -756,7 +756,7 @@ public class AuthenticationContext {
                     Logger.v(TAG, "Error info:" + errCode + " " + errMessage + " for requestId: "
                             + requestId + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
-                            ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage));
+                            ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
@@ -766,7 +766,7 @@ public class AuthenticationContext {
                         AuthenticationException e = new AuthenticationException(
                                 ADALError.WEBVIEW_RETURNED_EMPTY_REDIRECT_URL,
                                 "Webview did not reach the redirectUrl. "
-                                        + authenticationRequest.getLogInfo());
+                                        + authenticationRequest.getLogInfo() + correlationInfo);
                         Logger.e(TAG, e.getMessage(), "", e.getCode());
                         waitingRequestOnError(waitingRequest, requestId, e);
                     } else {
@@ -795,7 +795,7 @@ public class AuthenticationContext {
                                             + authenticationRequest.getLogInfo());
                                 } catch (Exception exc) {
                                     String msg = "Error in processing code to get token. "
-                                            + authenticationRequest.getLogInfo();
+                                            + authenticationRequest.getLogInfo() + correlationInfo;
                                     Logger.e(TAG, msg,
                                             ExceptionExtensions.getExceptionMessage(exc),
                                             ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
@@ -831,7 +831,7 @@ public class AuthenticationContext {
                                     } else {
                                         callbackHandle
                                                 .onError(new AuthenticationException(
-                                                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN));
+                                                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, correlationInfo));
                                     }
                                 } finally {
                                     removeWaitingRequest(requestId);
