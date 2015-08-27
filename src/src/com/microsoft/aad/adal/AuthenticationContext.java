@@ -814,6 +814,12 @@ public class AuthenticationContext {
 
                                 try {
                                     if (result != null) {
+                                    	if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
+                                    		Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
+                                    		callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
+                                    				result.getErrorLogInfo()));
+                                    		return;
+                                    	}
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
