@@ -208,11 +208,20 @@ class ChallangeResponseBuilder {
         if (StringExtensions.IsNullOrBlank(challange.mNonce)) {
             challange.mNonce = headerItems.get(RequestField.Nonce.name().toLowerCase(Locale.US));
         }
-        challange.mThumbprint = headerItems.get(RequestField.CertThumbprint.name());
-        if (StringExtensions.IsNullOrBlank(challange.mThumbprint)) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                    "CertThumbprint is not present in the header");
+        
+        if (!StringExtensions.IsNullOrBlank(headerItems.get(RequestField.CertThumbprint.name()))){
+        	challange.mThumbprint = headerItems.get(RequestField.CertThumbprint.name());
         }
+        else if (headerItems.containsKey(RequestField.CertAuthorities.name())) {
+        	String authorities = headerItems.get(RequestField.CertAuthorities.name());
+        	challange.mCertAuthorities = StringExtensions.getStringTokens(authorities, 
+    				AuthenticationConstants.Broker.CHALLANGE_REQUEST_CERT_AUTH_DELIMETER);
+        }
+        else {
+        	throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, 
+        			"Both certThumbprint and certauthorities are not present");
+        }
+        
         challange.mVersion = headerItems.get(RequestField.Version.name());
         challange.mContext = headerItems.get(RequestField.Context.name());
         return challange;
