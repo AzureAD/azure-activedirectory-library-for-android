@@ -86,7 +86,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-     // your dependencies here...
+    // your dependencies here...
     compile('com.microsoft.aad:adal:1.1.3') {
         // if your app includes android support
         // libraries or Gson in its dependencies
@@ -112,7 +112,6 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
     <type>aar</type>
 </dependency>
 ```
-
 
 ###Option 5: jar package inside libs folder
 You can get the jar file from maven the repo and drop into the *libs* folder in your project. You need to copy the required resources to your project as well since the jar packages don't include them.
@@ -232,17 +231,15 @@ Optional:  **acquireTokenSilent**
 
 You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well. It accepts userid as paremeter.
  
-    ```java
-     mContext.acquireTokenSilent(resource, clientid, userId, callback );
-    ```
-    
-11. **Broker**:
+```java
+mContext.acquireTokenSilent(resource, clientid, userId, callback );
+```
+11. Broker:
   Microsoft Intune's Company portal app will provide the broker component. Adal will use the broker account, if there is one user account is created at this authenticator and Developer choose not to skip it. Developer can skip the broker user with:
 
     ```java
-     AuthenticationSettings.Instance.setSkipBroker(true);
+    AuthenticationSettings.Instance.setSkipBroker(true);
     ```
-    
  Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
  
  Current broker model is for one user. AuthenticationContext provides API method to get the broker user. 
@@ -296,9 +293,9 @@ ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop u
 
 This method does not use UI pop up and not require an activity. It will return token from cache if available. If token is expired, it will try to refresh it. If refresh token is expired or failed, it will return AuthenticationException.
 
-    ```Java
-    Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clientid, userId, callback );
-    ```
+```Java
+Future<AuthenticationResult> result = mContext.acquireTokenSilent(resource, clientid, userId, callback );
+```
     
 You can also make sync call with this method. You can set null to callback or use acquireTokenSilentSync.
 

@@ -3,6 +3,7 @@ Version 1.1.8
 hide keyboard at on pause at AuthenticationActivity.
 Update applicationreceiver to use only Azure Authenticator as broker.
 Check broker user for multi account usage.
+fix issue #388, #407, #408
 
 Version 1.1.7
 --------------
