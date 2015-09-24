@@ -446,6 +446,18 @@ class Oauth2 {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
+        // Add policy to token request if present.
+
+        if (!StringExtensions.IsNullOrBlank(mRequest.getPolicy())) {
+            String newAuthority = authority.toString();
+            newAuthority = String.format("%s?%s=%s", newAuthority,
+                    AuthenticationConstants.AAD.QUERY_POLICY, URLEncoder.encode(
+                            mRequest.getPolicy(),
+                            AuthenticationConstants.ENCODING_UTF8));
+            authority = StringExtensions.getUrl(newAuthority);
+
+        }
+
         try {
             mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
             ClientMetrics.INSTANCE.beginClientMetricsRecord(authority, mRequest.getCorrelationId(),
