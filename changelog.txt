@@ -1,3 +1,7 @@
+Version 1.1.10
+--------------
+fix issue #420: pick up device cert based on either cert authority or cert thumbprint
+
 Version 1.1.9
 --------------
 fix issue #388, #407, #408
