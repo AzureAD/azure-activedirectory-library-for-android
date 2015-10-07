@@ -266,7 +266,7 @@ Library project resources can be overwritten by your application resources. This
 
 ### Broker
 
-Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challange for one of the apps. 
+Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challenge for one of the apps. 
 
 ### Authority Url and ADFS
 
@@ -379,9 +379,9 @@ acquireToken method without activity supports dialog prompt.
 
 ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details. Android introduced AndroidKeyStore for 4.3(API18) secure storage of private keys. ADAL uses that for API18 and above. If you want to use ADAL for lower SDK versions, you need to provide secret key at AuthenticationSettings.INSTANCE.setSecretKey
 
-### Oauth2 Bearer challange
+### Oauth2 Bearer challenge
 
-AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challange.
+AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challenge.
 
 ### Session cookies in Webview
 
