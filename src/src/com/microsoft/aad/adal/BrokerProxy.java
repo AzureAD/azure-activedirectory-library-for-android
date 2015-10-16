@@ -306,6 +306,7 @@ class BrokerProxy implements IBrokerProxy {
             
             final Date expires;
             if (bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE) == 0) {
+            	Logger.v(TAG, "Broker doesn't return expire date, set it current date plus one hour");
             	final Calendar currentTime = new GregorianCalendar();
             	currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);;
             	expires = currentTime.getTime(); 
