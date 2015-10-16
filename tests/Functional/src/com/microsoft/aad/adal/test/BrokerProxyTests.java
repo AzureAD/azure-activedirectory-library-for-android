@@ -30,7 +30,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -526,6 +528,66 @@ public class BrokerProxyTests extends AndroidTestCase {
         //Make sure what returned from broker is consistent with what returned from adal
         assertEquals("tenant id is expected", "testTenant", result.getTenantId());
         assertEquals("token expires is expected", new Date(1000), result.getExpiresOn());
+        assertNotNull("userinfo is expected", result.getUserInfo());
+        assertEquals("userid in userinfo is expected", acctName, result.getUserInfo().getUserId());
+        assertEquals("givenName in userinfo is expected", "givenName", result.getUserInfo()
+                .getGivenName());
+        assertEquals("familyName in userinfo is expected", "familyName", result.getUserInfo()
+                .getFamilyName());
+        assertEquals("idp in userinfo is expected", "idp", result.getUserInfo()
+                .getIdentityProvider());
+        assertEquals("displayable in userinfo is expected", acctName, result.getUserInfo()
+                .getDisplayableId());
+    }
+    
+    public void testGetAuthTokenInBackground_VerifyAuthenticationResult_NotReturnExpires() throws IllegalAccessException,
+    IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
+    NoSuchMethodException, InstantiationException, OperationCanceledException,
+    AuthenticatorException, IOException, NoSuchFieldException {
+    	Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+    	String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+    	String acctName = "testAcct123";
+        Object authRequest = createAuthenticationRequest("https://login.windows.net/authtest",
+                "resource", "client", "redirect", acctName.toLowerCase(Locale.US),
+                PromptBehavior.Auto, "", UUID.randomUUID());
+        
+        Account [] accts = getAccountList(acctName, authenticatorType);
+        Bundle expected = new Bundle();
+        expected.putString(AccountManager.KEY_AUTHTOKEN, "token123");
+        expected.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID, "testTenant");
+        expected.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID, acctName);
+        expected.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME, "givenName");
+        expected.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
+                "familyName");
+        expected.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER, "idp");
+        expected.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
+                acctName);
+        
+        AccountManagerFuture<Bundle> mockFuture = mock(AccountManagerFuture.class);
+        AccountManager mockAcctManager = mock(AccountManager.class);
+        when(mockFuture.getResult()).thenReturn(expected);
+        when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accts);
+        when(
+                mockAcctManager.getAuthToken(any(Account.class), anyString(), any(Bundle.class),
+                        eq(false), (AccountManagerCallback<Bundle>)eq(null), any(Handler.class)))
+                .thenReturn(mockFuture);
+        Context mockContext = mock(Context.class);
+        when(mockContext.getMainLooper()).thenReturn(null);
+        updateContextToSaveAccount(mockContext, "", acctName);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "getAuthTokenInBackground",
+                authRequest.getClass());
+        AuthenticationResult result = (AuthenticationResult)m.invoke(brokerProxy, authRequest);
+        
+        final Calendar expires = new GregorianCalendar();
+        expires.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);
+        
+        //Make sure what returned from broker is consistent with what returned from adal
+        assertEquals("tenant id is expected", "testTenant", result.getTenantId());
+        assertEquals("token expires is expected", expires.getTime().getDate(), result.getExpiresOn().getDate());
         assertNotNull("userinfo is expected", result.getUserInfo());
         assertEquals("userid in userinfo is expected", acctName, result.getUserInfo().getUserId());
         assertEquals("givenName in userinfo is expected", "givenName", result.getUserInfo()
