@@ -57,7 +57,6 @@ import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.Handler;
 import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.Suppress;
 import android.util.Base64;
 import android.util.Log;
 
@@ -68,7 +67,7 @@ import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.UserInfo;
-@Suppress
+
 public class BrokerProxyTests extends AndroidTestCase {
 
     private static final String TAG = "BrokerProxyTests";
