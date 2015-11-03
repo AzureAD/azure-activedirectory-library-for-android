@@ -423,19 +423,6 @@ public class AuthenticationActivity extends Activity {
         this.finish();
     }
 
-    private void returnAuthenticationException(final AuthenticationException e) {
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION, e);
-        if (mAuthRequest != null) {
-            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                    mAuthRequest);
-        }
-        this.setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                resultIntent);
-        this.finish();
-    }
-
     private String getBrokerStartUrl(String loadUrl, String packageName, String signatureDigest) {
         if (!StringExtensions.IsNullOrBlank(packageName)
                 && !StringExtensions.IsNullOrBlank(signatureDigest)) {
