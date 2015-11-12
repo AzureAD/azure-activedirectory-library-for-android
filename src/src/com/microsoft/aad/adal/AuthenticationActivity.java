@@ -1013,6 +1013,11 @@ public class AuthenticationActivity extends Activity {
                         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
                                 result.taskResult.getExpiresOn().getTime());
                     }
+                    
+                    if (result.taskResult.getTenantId() != null) {
+                    	intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID, 
+                    			result.taskResult.getTenantId());
+                    }
 
                     UserInfo userinfo = result.taskResult.getUserInfo();
                     if (userinfo != null) {

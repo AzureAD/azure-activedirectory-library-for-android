@@ -381,6 +381,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 "https://login.windows.net/common", false, null);
+        setConnectionAvailable(context, true);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -416,6 +417,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 "https://login.windows.net/common", false, null);
+        setConnectionAvailable(context, true);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -441,6 +443,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 "https://login.windows.net/common", false, null);
+        setConnectionAvailable(context, true);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
@@ -484,6 +487,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 "https://login.windows.net/common", false, null);
+        setConnectionAvailable(context, true);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         String expected = "&extraParam=1";
@@ -806,6 +810,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
                 true);
+        setConnectionAvailable(context, true);
         final CountDownLatch signal = new CountDownLatch(1);
         MockActivity testActivity = new MockActivity();
         testActivity.mSignal = signal;
@@ -832,6 +837,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY,
                 true, null);
+        setConnectionAvailable(context, true);
         final CountDownLatch signal = new CountDownLatch(1);
         UUID correlationId = UUID.randomUUID();
         MockActivity testActivity = new MockActivity();
@@ -921,6 +927,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, null);
+        setConnectionAvailable(context, true);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
@@ -1798,7 +1805,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         clearCache(context);
     }
-
+ 
     @SmallTest
     public void testAcquireTokenMultiResource_ADFSIssue() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,

@@ -707,7 +707,7 @@ public class AuthenticationContext {
 
                 // Cancel or browser error can use recorded request to figure
                 // out original correlationId send with request.
-                String correlationInfo = getCorrelationInfoFromWaitingRequest(waitingRequest);
+                final String correlationInfo = getCorrelationInfoFromWaitingRequest(waitingRequest);
                 if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
                     String accessToken = data
                             .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
@@ -746,7 +746,7 @@ public class AuthenticationContext {
                                 waitingRequest,
                                 requestId,
                                 new AuthenticationException(
-                                        ADALError.WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION));
+                                        ADALError.WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION, correlationInfo));
                     }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR) {
                     String errCode = extras
@@ -756,7 +756,7 @@ public class AuthenticationContext {
                     Logger.v(TAG, "Error info:" + errCode + " " + errMessage + " for requestId: "
                             + requestId + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
-                            ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage));
+                            ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
@@ -766,7 +766,7 @@ public class AuthenticationContext {
                         AuthenticationException e = new AuthenticationException(
                                 ADALError.WEBVIEW_RETURNED_EMPTY_REDIRECT_URL,
                                 "Webview did not reach the redirectUrl. "
-                                        + authenticationRequest.getLogInfo());
+                                        + authenticationRequest.getLogInfo() + correlationInfo);
                         Logger.e(TAG, e.getMessage(), "", e.getCode());
                         waitingRequestOnError(waitingRequest, requestId, e);
                     } else {
@@ -795,7 +795,7 @@ public class AuthenticationContext {
                                             + authenticationRequest.getLogInfo());
                                 } catch (Exception exc) {
                                     String msg = "Error in processing code to get token. "
-                                            + authenticationRequest.getLogInfo();
+                                            + authenticationRequest.getLogInfo() + correlationInfo;
                                     Logger.e(TAG, msg,
                                             ExceptionExtensions.getExceptionMessage(exc),
                                             ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
@@ -814,6 +814,12 @@ public class AuthenticationContext {
 
                                 try {
                                     if (result != null) {
+                                    	if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
+                                    		Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
+                                    		callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
+                                    				result.getErrorLogInfo()));
+                                    		return;
+                                    	}
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
@@ -831,7 +837,7 @@ public class AuthenticationContext {
                                     } else {
                                         callbackHandle
                                                 .onError(new AuthenticationException(
-                                                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN));
+                                                        ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, correlationInfo));
                                     }
                                 } finally {
                                     removeWaitingRequest(requestId);
@@ -1265,6 +1271,17 @@ public class AuthenticationContext {
             Logger.v(TAG, "Refresh token is not available");
             if (!request.isSilent() && callbackHandle.callback != null
                     && (activity != null || useDialog)) {
+            	//Check if there is network connection
+                if (!mConnectionService.isConnectionAvailable()) {
+                    AuthenticationException exc = new AuthenticationException(
+                            ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                            "Connection is not available to request token");
+                    Logger.w(TAG, "Connection is not available to request token", request.getLogInfo(),
+                            ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+                    callbackHandle.onError(exc);
+                    return null;
+                }
+                
                 // start activity if other options are not available
                 // delegate map is used to remember callback if another
                 // instance of authenticationContext is created for config
@@ -1907,6 +1924,6 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.8";
+        return "1.1.10";
     }
 }
