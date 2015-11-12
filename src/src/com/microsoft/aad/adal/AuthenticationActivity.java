@@ -28,8 +28,10 @@ import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
 
@@ -41,6 +43,7 @@ import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.app.Service;
@@ -48,13 +51,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.security.KeyChain;
+import android.security.KeyChainAliasCallback;
+import android.security.KeyChainException;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
@@ -641,6 +649,29 @@ public class AuthenticationActivity extends Activity {
         @Override
         public void postRunnable(Runnable item) {
             mWebView.post(item);            
+        }
+        
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+		@Override
+        public void onReceivedClientCertRequest (WebView view, final ClientCertRequest request){
+        	Logger.v(TAG + "onReceivedClientCertRequest", "onReceivedClientCertRequest");
+            KeyChain.choosePrivateKeyAlias(AuthenticationActivity.this, new KeyChainAliasCallback() {
+
+                @Override
+                public void alias(String alias) {
+                    try {
+                    	final X509Certificate[] certChain = KeyChain.getCertificateChain(
+                                getApplicationContext(), alias);
+                    	final PrivateKey privateKey = KeyChain.getPrivateKey(mCallingContext, alias);
+                        request.proceed(privateKey, certChain);
+                        
+                    } catch (KeyChainException e) {
+                        Log.e(TAG, "KeyChain exception", e);
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "KeyChain exception", e);
+                    }
+                }
+            }, request.getKeyTypes(), request.getPrincipals(), request.getHost(), request.getPort(), null);
         }
     }
 
