@@ -668,7 +668,7 @@ public class AuthenticationActivity extends Activity {
                     } catch (KeyChainException e) {
                         Log.e(TAG, "KeyChain exception", e);
                     } catch (InterruptedException e) {
-                        Log.e(TAG, "KeyChain exception", e);
+                        Log.e(TAG, "InterruptedException exception", e);
                     }
                 }
             }, request.getKeyTypes(), request.getPrincipals(), request.getHost(), request.getPort(), null);
