@@ -68,8 +68,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     
     public abstract void setPKeyAuthStatus(boolean status);
     
-    public abstract void postRunnable(Runnable item);
-    
+    public abstract void postRunnable(Runnable item);    
 
     @Override
     public void onReceivedHttpAuthRequest(WebView view, final HttpAuthHandler handler,
@@ -144,6 +143,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
+    	Logger.v(TAG + "onPageStarted", "page is started with the url " + url);
         super.onPageStarted(view, url, favicon);
         showSpinner(true);
     }

@@ -21,6 +21,9 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import android.accounts.Account;
@@ -299,9 +302,22 @@ class BrokerProxy implements IBrokerProxy {
 
             // IDtoken is not present in the current broker user model
             UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(bundleResult);
+            final String tenantId = bundleResult.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID, "");
+            
+            final Date expires;
+            if (bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE) == 0) {
+            	Logger.v(TAG, "Broker doesn't return expire date, set it current date plus one hour");
+            	final Calendar currentTime = new GregorianCalendar();
+            	currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);;
+            	expires = currentTime.getTime(); 
+            }
+            else {
+            	expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
+            }
+            
             AuthenticationResult result = new AuthenticationResult(
-                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", null, false,
-                    userinfo, "", "");
+                    bundleResult.getString(AccountManager.KEY_AUTHTOKEN), "", expires, false,
+                    userinfo, tenantId, "");
             return result;
         }
     }

@@ -4,16 +4,16 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.microsoft.aad</groupId>
   <artifactId>adal</artifactId>
-  <version>1.1.10</version>
+  <version>1.1.11</version>
   <packaging>aar</packaging>
   <name>adal</name>
   <properties>
     <scm.branch>master</scm.branch>
     <maven.version>3.1.1</maven.version>
-    <adal.version>1.1.10</adal.version>
-    <android.platform.maven.plugin>18</android.platform.maven.plugin>
+    <adal.version>1.1.11</adal.version>
+    <android.platform.maven.plugin>21</android.platform.maven.plugin>
     <android.version>[4.1.1.4,)</android.version>
-    <android.support.version>[18,)</android.support.version>
+    <android.support.version>[21,)</android.support.version>
     <android.support.name>support-v4</android.support.name>
     <gson.name>gson</gson.name>
     <gson.version>2.3.1</gson.version>
@@ -167,7 +167,7 @@
           <resourceDirectory>${project.basedir}/res</resourceDirectory>
           <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
           <sdk>
-            <platform>18</platform>
+            <platform>21</platform>
           </sdk>
           <dexCoreLibrary>true</dexCoreLibrary>
           <deleteConflictingFiles>true</deleteConflictingFiles>
