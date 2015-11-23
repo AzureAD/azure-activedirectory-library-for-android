@@ -652,9 +652,9 @@ public class AuthenticationActivity extends Activity {
         }
         
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-		@Override
+        @Override
         public void onReceivedClientCertRequest (WebView view, final ClientCertRequest request){
-        	Logger.v(TAG + "onReceivedClientCertRequest", "onReceivedClientCertRequest");
+            Logger.v(TAG + "onReceivedClientCertRequest", "onReceivedClientCertRequest");
             KeyChain.choosePrivateKeyAlias(AuthenticationActivity.this, new KeyChainAliasCallback() {
 
                 @Override
