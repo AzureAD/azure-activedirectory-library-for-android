@@ -12,7 +12,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name="com.microsoft.aad.adal.AuthenticationActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:configChanges="orientation|keyboardHidden"
             android:label="@string/login_title"
             >
         </activity>
