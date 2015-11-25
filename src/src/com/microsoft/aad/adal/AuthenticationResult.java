@@ -21,9 +21,6 @@ package com.microsoft.aad.adal;
 import java.io.Serializable;
 import java.util.Date;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 /**
  * Result class to keep code, token and other info Serializable properties Mark
  * temp properties as Transient if you dont want to keep them in serialization.

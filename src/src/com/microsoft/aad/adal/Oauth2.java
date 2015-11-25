@@ -326,11 +326,10 @@ class Oauth2 {
             throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
 
-        @SuppressWarnings("unchecked")
-        final Iterator<String> i = jsonObject.keys();
+        final Iterator<?> i = jsonObject.keys();
 
         while (i.hasNext()) {
-            final String key = i.next();
+            final String key = (String) i.next();
             responseItems.put(key, jsonObject.getString(key));
         }
     }
