@@ -28,20 +28,20 @@ public class Constants {
 
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
-    public static final String HEADER_AUTHORIZATION_VALUE_PREFIX = "Bearer ";
+    public static final String HEADER_AUTHORIZATION_VALUE_PREFIX = "Bearer";
     
     // AAD PARAMETERS
     // https://login.windows.net/tenantInfo
-    static final String AUTHORITY_URL = "https://login.windows.net/common";
+    static final String AUTHORITY_URL = "https://login.microsoftonline.com/msdevex.onmicrosoft.com";
 
     // Clientid is given from AAD page when you register your Android app
-    static final String CLIENT_ID = "a4063e37-07c9-471d-b935-fd38d60dcb7d";
+    static final String CLIENT_ID = "2652503c-ba8e-4ed9-b2ea-6512b9f16c98";
 
     // RedirectUri
-    static final String REDIRECT_URL = "http://helloapp";
+    static final String REDIRECT_URL = "http://HelloApp";
 
     // URI for the resource. You need to setup this resource at AAD
-    static final String RESOURCE_ID = "2720df1b-a913-4b2d-be8c-e759a4aaa36a";
+    static final String RESOURCE_ID = "00000002-0000-0000-c000-000000000000";
 
     // Endpoint we are targeting for the deployed WebAPI service
     static final String SERVICE_URL = "https://android.azurewebsites.net/api/values";
