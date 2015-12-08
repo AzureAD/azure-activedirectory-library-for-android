@@ -95,11 +95,10 @@ final class HashMapExtensions {
             JSONObject jsonObject = new JSONObject(
                     new String(webResponse.getBody()));
 
-            @SuppressWarnings("unchecked")
-            Iterator<String> i = jsonObject.keys();
+            Iterator<?> i = jsonObject.keys();
 
             while (i.hasNext()) {
-                String key = i.next();
+                String key = (String) i.next();
                 response.put(key,
                         jsonObject.getString(key));
             }
