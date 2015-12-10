@@ -87,7 +87,7 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:1.1.3') {
+    compile('com.microsoft.aad:adal:1.1.11') {
         // if your app includes android support
         // libraries or Gson in its dependencies
         // exclude that groupId from ADAL's compile
