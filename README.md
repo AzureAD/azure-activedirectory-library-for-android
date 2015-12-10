@@ -10,7 +10,7 @@ A Work Account is an identity you use to get work done no matter if at your busi
 ## ADAL for Android 1.0 Released!
 
 Thanks to all your great feedback over the preview period, we have released 1.0 (GA) of the Microsoft Azure Active Directory Library for Android! 
-Recent version is 1.1.0
+Recent version is 1.1.11
 
 ## Features
 * Industry standard Oauth2 protocol support.
