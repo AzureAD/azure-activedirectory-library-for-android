@@ -103,6 +103,9 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                 mInMemoryCache = new MemoryTokenCacheStore();
             }
         } catch (Exception ex) {
+        	//need to re-throw runtime exceptions after logging
+        	//@heidi
+        	//@Dec 15 2015        	
             Logger.e(TAG, "Exception during cache load",
                     ExceptionExtensions.getExceptionMessage(ex),
                     ADALError.DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE);
@@ -157,6 +160,9 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                     outputStream.close();
 
                 } catch (Exception ex) {
+                	//FileNotFoundException,IOException
+                	//@heidi
+                	//@Dec 15 2015
                     Logger.e(TAG, "Exception during cache flush",
                             ExceptionExtensions.getExceptionMessage(ex),
                             ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE);

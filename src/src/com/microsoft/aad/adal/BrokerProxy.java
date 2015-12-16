@@ -221,6 +221,10 @@ class BrokerProxy implements IBrokerProxy {
                     targetAccount = findAccount(matchingUser.getDisplayableId(), accountList);
                 }
             } catch (Exception e) {
+            	//getBrokerUsers()
+            	//OperationCanceledException, AuthenticatorException,IOException
+            	//@heidi
+            	//@Dec 15 2015            	
                 Logger.e(TAG, e.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
             }
         }
@@ -540,6 +544,9 @@ class BrokerProxy implements IBrokerProxy {
                 UserInfo matchingUser = findUserInfo(uniqueId, users);
                 return matchingUser != null;
             } catch (Exception e) {
+            	//getBrokerUsers(). OperationCanceledException, AuthenticatorException,IOException
+            	//@heidi
+            	//@Dec 15 2015
                 Logger.e(TAG, "VerifyAccount:" + e.getMessage(), "",
                         ADALError.BROKER_AUTHENTICATOR_EXCEPTION, e);
             }
@@ -593,6 +600,9 @@ class BrokerProxy implements IBrokerProxy {
             Logger.e(TAG, "Digest SHA algorithm does not exists", "",
                     ADALError.DEVICE_NO_SUCH_ALGORITHM);
         } catch (Exception e) {
+        	//need to re-throw runtime exceptions after logging
+        	//@heidi
+        	//@Dec 15 2015
             Logger.e(TAG, "Error in verifying signature", "", ADALError.BROKER_VERIFICATION_FAILED,
                     e);
         }
