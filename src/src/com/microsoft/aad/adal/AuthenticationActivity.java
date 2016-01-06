@@ -149,6 +149,8 @@ public class AuthenticationActivity extends Activity {
                 	Logger.e(TAG, "ActivityBroadcastReceiver onReceive exception",
                             ExceptionExtensions.getExceptionMessage(ex),
                             ADALError.BROADCAST_RECEIVER_ERROR);
+                	//lack the handling method here
+                	//@heidi
                 }
             }
         }
@@ -448,6 +450,8 @@ public class AuthenticationActivity extends Activity {
                 // if it is not supported on this device. ADAL uses one encoding
                 // type.
                 Log.e(TAG, "Encoding", e);
+                //what should we do with the encoding exception?
+                //@heidi
             }
         }
         return loadUrl;
@@ -578,6 +582,8 @@ public class AuthenticationActivity extends Activity {
             super(AuthenticationActivity.this, mRedirectUrl, mQueryParameters, mAuthRequest);
         }
                 
+        //check the redictURl here?
+        //@heidi
         public void processRedirectUrl(final WebView view, String url){
             if (!isBrokerRequest(getIntent())) {
                 // It is pointing to redirect. Final url can be processed to
