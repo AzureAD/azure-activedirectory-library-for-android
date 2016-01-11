@@ -1138,6 +1138,36 @@ public class AuthenticationContext {
     private boolean promptUser(PromptBehavior prompt) {
         return prompt == PromptBehavior.Always || prompt == PromptBehavior.REFRESH_SESSION;
     }
+    
+    
+    //checkRedictUri() checks the redirectUri before sending the request
+    //if the redirectUri from the client does not match the valid redirectUri
+    // the client app would not jump to the login page
+    //redirectUri format %PREFIX://%PACKAGE_NAME/%SIGNATURE   
+    private boolean checkRedictUri(CallbackHandler callbackHandle, final AuthenticationRequest request) throws UnsupportedEncodingException{
+    	
+    	String errMsg = new String();    	
+    	String inputUri = request.getRedirectUri();
+    	PackageHelper helper = new PackageHelper(mContext);
+    	
+    	if(inputUri == null){
+    		errMsg = "the redirectUri is null";    		
+    	}else if(!inputUri.split("://")[0].equals(AuthenticationConstants.Broker.REDIRECT_PREFIX)){
+    		errMsg = "the redirectUri is not starting with the valid redict prefix " + AuthenticationConstants.Broker.REDIRECT_PREFIX;    		
+    	}else if((inputUri.split("://").length > 1 && !inputUri.split("://")[1].split("/")[0].equals(URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8))) || inputUri.split("://").length == 1 ){
+    		errMsg = "the package name of redirectUri is not as expected";
+    	}else if((inputUri.split("://")[1].split("/").length > 1 && !inputUri.split("://")[1].split("/")[1].equals(URLEncoder.encode(helper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8)))||inputUri.split("://")[1].split("/").length == 1){
+    		errMsg = "the signature of redirectUri is not as expected";
+    	}
+    	if(errMsg.isEmpty()){
+    		return true;
+    	}else{
+    		Logger.e(TAG,errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);    		
+    		callbackHandle.onError(new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg));
+    		return false;
+    	}
+    	
+    }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
@@ -1154,15 +1184,18 @@ public class AuthenticationContext {
             request.setVersion(getVersionName());
             request.setBrokerAccountName(request.getLoginHint());
             
-            //check the redirectUri before sending the request
-            //if the redirectUri from the client does not match the valid redirectUri
-            // the client app would not jump to the login page
-            if(!request.getRedirectUri().equals(this.getRedirectUriForBroker())){
-             String msg = "the redirectUri is invalid.";
-             Logger.e(TAG,msg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
-             callbackHandle.onError(new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, msg));
-             return result;
-            }
+            //check if the redirectUri is valid
+            //checkRedictUri will return false for invalid redirectUri
+            try {
+				if(!checkRedictUri(callbackHandle, request)){
+					Logger.v(TAG + ".checkRedictUri", "the request stopped because of the invalid input redirectUri");
+					return result;
+				}
+			} catch (UnsupportedEncodingException e) {
+				Logger.e(TAG + ".acquireTokenAfterValidation", "Digest error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+			}
+           
+
 
             // Don't send background request, if prompt flag is always or
             // refresh_session
