@@ -1153,6 +1153,16 @@ public class AuthenticationContext {
             AuthenticationResult result = null;
             request.setVersion(getVersionName());
             request.setBrokerAccountName(request.getLoginHint());
+            
+            //check the redirectUri before sending the request
+            //if the redirectUri from the client does not match the valid redirectUri
+            // the client app would not jump to the login page
+            if(!request.getRedirectUri().equals(this.getRedirectUriForBroker())){
+             String msg = "the redirectUri is invalid.";
+             Logger.e(TAG,msg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
+             callbackHandle.onError(new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, msg));
+             return result;
+            }
 
             // Don't send background request, if prompt flag is always or
             // refresh_session
