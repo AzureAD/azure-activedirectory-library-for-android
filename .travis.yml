@@ -5,12 +5,12 @@ android:
     - build-tools-19.1.0
 env:
     matrix:
-      - ANDROID_SDKS=android-18 ANDROID_TARGET=android-18
+      - ANDROID_SDKS=android-21 ANDROID_TARGET=android-21
 
 before_install:
   # setup maven android sdk deployer
   - git clone git://github.com/mosabua/maven-android-sdk-deployer.git
-  - cd $PWD/maven-android-sdk-deployer/platforms/android-18
+  - cd $PWD/maven-android-sdk-deployer/platforms/android-21
   - mvn clean install
   - cd -
   - cd $PWD/maven-android-sdk-deployer/extras/compatibility-v4
@@ -18,8 +18,8 @@ before_install:
   - cd -
 
   # setup main and testproject
-  - android update lib-project -p src --target android-18
-  - android update project -p tests/testapp --target android-18
+  - android update lib-project -p src --target android-21
+  - android update project -p tests/testapp --target android-21
   - android update test-project -p tests/testapp -m tests
 
 before_script:
@@ -30,7 +30,7 @@ before_script:
   - sleep 5 # wait xvfb to start
   - xdpyinfo -display :99 >/dev/null 2>&1 && echo "In use" || echo "Free"
   # create and start emulator
-  - echo no | android create avd --force -n test -t android-18 --abi armeabi-v7a
+  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
   - emulator -avd test -no-skin -no-audio &   
   # wait for emulator to start
   - chmod +x wait_for_emulator.sh
