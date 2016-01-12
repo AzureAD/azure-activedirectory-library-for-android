@@ -127,7 +127,7 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG, "ActivityBroadcastReceiver onReceive");
 
             if (intent.getAction().equalsIgnoreCase(AuthenticationConstants.Browser.ACTION_CANCEL)) {
-                try {
+            //  try {
                     Logger.v(TAG,
                             "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
 
@@ -141,15 +141,11 @@ public class AuthenticationActivity extends Activity {
                         // cancelled
                         // and callback will be called after this request.
                     }
-                } catch (Exception ex) {
-                	//we need to re-throw runtime exceptions after logging
-                    //if(e instanceof NullPointerException){ throw ex; }
-                    //@heidi 
-                    //@Dec 15 2015
+                /*} catch (Exception ex) {
                 	Logger.e(TAG, "ActivityBroadcastReceiver onReceive exception",
-                            ExceptionExtensions.getExceptionMessage(ex),
-                            ADALError.BROADCAST_RECEIVER_ERROR);
-                }
+                			ExceptionExtensions.getExceptionMessage(ex),
+                			ADALError.BROADCAST_RECEIVER_ERROR);
+                }*/
             }
         }
     }
@@ -215,7 +211,10 @@ public class AuthenticationActivity extends Activity {
             mStartUrl = oauth.getCodeRequestUrl();
             mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
         } catch (UnsupportedEncodingException e) {
-            Log.d(TAG, e.getMessage());
+        	//checked exceptions
+        	//in which situations, the checked exceptions catch need to call returnToCaller()?
+        	//@heidi
+            Log.d(TAG + ".onCreate()", e.getMessage());
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
@@ -394,8 +393,9 @@ public class AuthenticationActivity extends Activity {
                 try {
                     correlationIdParsed = UUID.fromString(correlationId);
                 } catch (IllegalArgumentException ex) {
+                	//unchecked exception
                     correlationIdParsed = null;
-                    Logger.e(TAG, "CorrelationId is malformed: " + correlationId, "",
+                    Logger.e(TAG + ".getAuthenticationRequestFromIntent()", "CorrelationId is malformed: " + correlationId, "",
                             ADALError.CORRELATION_ID_FORMAT);
                 }
             }
@@ -447,7 +447,8 @@ public class AuthenticationActivity extends Activity {
                 // This encoding issue will happen at the beginning of API call,
                 // if it is not supported on this device. ADAL uses one encoding
                 // type.
-                Log.e(TAG, "Encoding", e);
+            	//checked exceptions
+            	Log.e(TAG + ".getBrokerStartUrl()", e.getMessage(), e); 
             }
         }
         return loadUrl;
@@ -657,9 +658,10 @@ public class AuthenticationActivity extends Activity {
                         request.proceed(privateKey, certChain);
                         
                     } catch (KeyChainException e) {
-                        Log.e(TAG, "KeyChain exception", e);
+                        Log.e(TAG + ".onReceivedClientCertRequest()", "The alias of the desired certificate chain is valid, but have problems on accessing it.", e);
                     } catch (InterruptedException e) {
-                        Log.e(TAG, "InterruptedException exception", e);
+                    	//KeyChain.bindAsUser() throws InterruptedException                    	
+                        Log.e(TAG + ".onReceivedClientCertRequest()", "Could not bind to KeyChainService, the binding process got interrupted.", e);
                     }
                 }
             }, request.getKeyTypes(), request.getPrincipals(), request.getHost(), request.getPort(), null);
