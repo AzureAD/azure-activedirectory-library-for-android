@@ -316,9 +316,6 @@ class Oauth2 {
                 }
             }
         } catch (Exception ex) {
-        	//JSONException
-        	//@heidi
-        	//@Dec 15 2015
             Logger.e(TAG, "Error in parsing user id token", null,
                     ADALError.IDTOKEN_PARSING_FAILURE, ex);
         }
@@ -536,9 +533,6 @@ class Oauth2 {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
-            //it throws e after logging
-            //@heidi
-            //@Dec 15 2015
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.TOKEN,
                     mRequest.getCorrelationId());
@@ -629,9 +623,6 @@ class Oauth2 {
 
                 Logger.v(TAG, "Response correlationId:" + correlationIdInHeader);
             } catch (Exception ex) {
-            	//need to re-throw the runtime exceptions 
-            	//@heidi
-            	//@Dec 15 2015
                 Logger.e(TAG, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
                         ADALError.CORRELATION_ID_FORMAT, ex);
             }

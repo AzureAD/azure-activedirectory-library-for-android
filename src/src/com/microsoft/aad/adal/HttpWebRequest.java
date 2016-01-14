@@ -183,9 +183,6 @@ class HttpWebRequest {
                 response.setBody(responseBody);
                 response.setResponseHeaders(mConnection.getHeaderFields());
             } catch (Exception e) {
-            	//need to re-throw the runtime exceptions
-            	//@heidi
-            	//@Dec 15 2015S
                 Logger.e(TAG, "Exception:" + e.getMessage(), " Method:" + mRequestMethod,
                         ADALError.SERVER_ERROR, e);
                 mException = e;

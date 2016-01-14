@@ -137,9 +137,6 @@ public class AuthenticationParameters {
          * @param param {@link AuthenticationParameters}
          */
         void onCompleted(Exception exception, AuthenticationParameters param);
-        //Question on onCompleted()
-        //@heidi
-        //@Dec 15 2015
     }
 
     /**
@@ -176,9 +173,6 @@ public class AuthenticationParameters {
                         }
                     }
                 } catch (Exception exception) {
-                	//Questions: statement to deal with all the exceptions in Run()
-                	//@heidi
-                	//@Dec 15 2015
                     onCompleted(exception, null);
                 }
             }

@@ -794,9 +794,6 @@ public class AuthenticationContext {
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
                                 } catch (Exception exc) {
-                                	//@heidi 
-                                	//@Dec 15 2015
-                                    //IllegalArgumentException, AuthenticationException
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo() + correlationInfo;
                                     Logger.e(TAG, msg,
@@ -1120,9 +1117,6 @@ public class AuthenticationContext {
                     return null;
                 }
             } catch (Exception exc) {
-            	//AuthenticationException
-            	//@heidi
-            	//@Dec 15 2015
                 Logger.e(TAG, "Authority validation has an error.", "",
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, exc);
                 callbackHandle.onError(new AuthenticationException(
@@ -1611,10 +1605,6 @@ public class AuthenticationContext {
             }
         } catch (Exception exc) {
             // Server side error or similar
-        	
-        	//IllegalArgumentException
-        	//@heidi
-        	//@Dec 15 2015
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
                     exc);
@@ -1687,9 +1677,6 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Finish validating authority:" + authorityUrl + " result:" + result);
                 return result;
             } catch (Exception exc) {
-            	//AuthenticationException
-            	//@heidi
-            	//@Dec 15 2015
                 Logger.e(TAG, "Instance validation returned error", "",
                         ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
 
@@ -1854,9 +1841,6 @@ public class AuthenticationContext {
                             return;
                         }
                     } catch (Exception exc) {
-                    	//only throws the runtime exceptions
-                    	//@heidi
-                    	//@Dec 15 2015
                         Logger.e(TAG, "Authority validation is failed",
                                 ExceptionExtensions.getExceptionMessage(exc),
                                 ADALError.SERVER_INVALID_REQUEST, exc);

@@ -220,9 +220,6 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
                                 resultIntent);
                     } catch (Exception e) {
-                    	// @heidi
-                    	// @Dec 15 2015
-                    	// we need to re-throw runtime exceptions after logging
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra(
                                         AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
@@ -294,9 +291,6 @@ abstract class BasicWebViewClient extends WebViewClient {
                 return true;
             }
         } catch (Exception exc) {
-        	//need to re-throw runtime exceptions after logging
-        	//@heidi
-        	//@Dec 15 2015
             Logger.e(TAG, "Error in processing url parameters", "Url:" + redirectUrl,
                     ADALError.ERROR_WEBVIEW);
         }

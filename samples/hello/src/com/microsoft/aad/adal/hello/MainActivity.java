@@ -20,11 +20,6 @@ package com.microsoft.aad.adal.hello;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -96,15 +91,10 @@ public class MainActivity extends Activity {
             if (Build.VERSION.SDK_INT < 18) {
                 Utils.setupKeyForSample();
             }
-            //setupKeyForSample() throws NoSuchAlgorithmException,
-            //InvalidKeySpecException, UnsupportedEncodingException
-            //@heidi
 
             // init authentication Context
             mAuthContext = new AuthenticationContext(MainActivity.this, Constants.AUTHORITY_URL,
                     false);
-            //AuthenticationContext() throws NoSuchAlgorithmException, NoSuchPaddingException
-            //@heidi
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Encryption failed", Toast.LENGTH_SHORT).show();
         }
