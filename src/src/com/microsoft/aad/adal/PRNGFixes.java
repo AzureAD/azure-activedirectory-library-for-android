@@ -102,6 +102,9 @@ final class PRNGFixes {
                         + bytesRead);
             }
         } catch (Exception e) {
+        	//need to re-throw the runtime exception
+        	//@heidi
+        	//@Dec 15 2015
             Logger.e(TAG, "Failed to seed OpenSSL PRNG", "", ADALError.DEVICE_PRNG_FIX_ERROR, e);
             throw new SecurityException("Failed to seed OpenSSL PRNG", e);
         }

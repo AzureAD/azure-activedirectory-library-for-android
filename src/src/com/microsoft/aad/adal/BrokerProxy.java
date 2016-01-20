@@ -103,8 +103,7 @@ class BrokerProxy implements IBrokerProxy {
         // authenticator
         // 4- signature of the broker is valid
         // 5- account exists
-        return !AuthenticationSettings.INSTANCE.getSkipBroker()
-                && verifyManifestPermissions()
+        return !AuthenticationSettings.INSTANCE.getSkipBroker()                
                 && checkAccount(mAcctManager, "", "")
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
                         .getBrokerPackageName())
@@ -135,28 +134,7 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return false;
-    }
-
-    /**
-     * App needs to give permission to AccountManager to use broker.
-     */
-    private boolean verifyManifestPermissions() {
-        PackageManager pm = mContext.getPackageManager();
-        boolean permission = PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                "android.permission.GET_ACCOUNTS", mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                        "android.permission.USE_CREDENTIALS", mContext.getPackageName());
-        if (!permission) {
-            Logger.w(
-                    TAG,
-                    "Broker related permissions are missing for GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS",
-                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-        }
-
-        return permission;
-    }
+    }    
 
     private void verifyNotOnMainThread() {
         final Looper looper = Looper.myLooper();
@@ -221,6 +199,10 @@ class BrokerProxy implements IBrokerProxy {
                     targetAccount = findAccount(matchingUser.getDisplayableId(), accountList);
                 }
             } catch (Exception e) {
+            	//getBrokerUsers()
+            	//OperationCanceledException, AuthenticatorException,IOException
+            	//@heidi
+            	//@Dec 15 2015            	
                 Logger.e(TAG, e.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
             }
         }
@@ -540,6 +522,9 @@ class BrokerProxy implements IBrokerProxy {
                 UserInfo matchingUser = findUserInfo(uniqueId, users);
                 return matchingUser != null;
             } catch (Exception e) {
+            	//getBrokerUsers(). OperationCanceledException, AuthenticatorException,IOException
+            	//@heidi
+            	//@Dec 15 2015
                 Logger.e(TAG, "VerifyAccount:" + e.getMessage(), "",
                         ADALError.BROKER_AUTHENTICATOR_EXCEPTION, e);
             }
@@ -593,6 +578,9 @@ class BrokerProxy implements IBrokerProxy {
             Logger.e(TAG, "Digest SHA algorithm does not exists", "",
                     ADALError.DEVICE_NO_SUCH_ALGORITHM);
         } catch (Exception e) {
+        	//need to re-throw runtime exceptions after logging
+        	//@heidi
+        	//@Dec 15 2015
             Logger.e(TAG, "Error in verifying signature", "", ADALError.BROKER_VERIFICATION_FAILED,
                     e);
         }

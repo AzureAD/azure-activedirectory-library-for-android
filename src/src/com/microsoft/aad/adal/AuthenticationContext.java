@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.UUID;
@@ -794,6 +795,9 @@ public class AuthenticationContext {
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
                                 } catch (Exception exc) {
+                                	//@heidi 
+                                	//@Dec 15 2015
+                                    //IllegalArgumentException, AuthenticationException
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo() + correlationInfo;
                                     Logger.e(TAG, msg,
@@ -1117,6 +1121,9 @@ public class AuthenticationContext {
                     return null;
                 }
             } catch (Exception exc) {
+            	//AuthenticationException
+            	//@heidi
+            	//@Dec 15 2015
                 Logger.e(TAG, "Authority validation has an error.", "",
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, exc);
                 callbackHandle.onError(new AuthenticationException(
@@ -1132,6 +1139,91 @@ public class AuthenticationContext {
     private boolean promptUser(PromptBehavior prompt) {
         return prompt == PromptBehavior.Always || prompt == PromptBehavior.REFRESH_SESSION;
     }
+    
+    /**
+     * check the redirectUri before sending the request
+     * if the redirectUri from the client does not match the valid redirectUri
+     * the client app would not jump to the login page
+     * redirectUri format %PREFIX://%PACKAGE_NAME/%SIGNATURE
+     * 
+     * @param callbackHandle
+     * @param request
+     * @throws UnsupportedEncodingException
+     * @return true if the RedictUri is valid
+     */
+    private boolean checkRedirectUri(CallbackHandler callbackHandle, final AuthenticationRequest request) throws UnsupportedEncodingException{
+        
+        String errMsg = new String();        
+        String inputUri = request.getRedirectUri();
+        PackageHelper helper = new PackageHelper(mContext);
+        
+        if(StringExtensions.IsNullOrBlank(inputUri))
+        {
+            errMsg = "the redirectUri is null";            
+        }
+        else if(!inputUri.split("://")[0].equals(AuthenticationConstants.Broker.REDIRECT_PREFIX))
+        {
+            errMsg = "the redirectUri is not starting with the valid redict prefix " + AuthenticationConstants.Broker.REDIRECT_PREFIX;            
+        }
+        else if((inputUri.split("://").length == 2 && !inputUri.split("://")[1].split("/")[0].equals(URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8))) || inputUri.split("://").length == 1 )
+        {
+            errMsg = "the package name of redirectUri is not as expected. The expected package name is" + mContext.getPackageName();
+        }
+        else if((inputUri.split("://")[1].split("/").length == 2 && !inputUri.split("://")[1].split("/")[1].equals(URLEncoder.encode(helper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8)))||inputUri.split("://")[1].split("/").length == 1)
+        {
+            errMsg = "the signature of redirectUri is not as expected. The expected signiture is " + URLEncoder.encode(helper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
+        }
+        if(errMsg.isEmpty())
+        {
+            return true;
+        }
+        else
+        {
+            Logger.e(TAG,errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);            
+            callbackHandle.onError(new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg));
+            return false;
+        }        
+    }
+    
+    /**
+     * App needs to give permission to AccountManager to use broker.
+     */
+    private boolean verifyManifestPermissions() {
+        PackageManager pm = mContext.getPackageManager();
+        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
+                "android.permission.GET_ACCOUNTS", mContext.getPackageName()))
+        {
+        	Logger.w(
+                    TAG + ".verifyManifestPermissions",
+                    "Broker related permissions are missing for GET_ACCOUNTS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+        	return false;
+        }
+        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
+                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName()))
+        {
+        	Logger.w(
+                    TAG + ".verifyManifestPermissions",
+                    "Broker related permissions are missing for MANAGE_ACCOUNTS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+        	return false;
+        }
+        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
+                        "android.permission.USE_CREDENTIALS", mContext.getPackageName()))
+        {
+        	Logger.w(
+                    TAG + ".verifyManifestPermissions",
+                    "Broker related permissions are missing for USE_CREDENTIALS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+        	return false;
+        }
+        Logger.v(
+                TAG + ".verifyManifestPermissions",
+                "Broker related permissions are verified");                        
+        return true;
+    }
+        
+
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
@@ -1142,12 +1234,32 @@ public class AuthenticationContext {
         // cache and refresh call happens through the authenticator service
         if (mBrokerProxy.canSwitchToBroker()
                 && mBrokerProxy.verifyUser(request.getLoginHint(),
-                        request.getUserId())) {
+                        request.getUserId())) 
+        {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
             AuthenticationResult result = null;
             request.setVersion(getVersionName());
             request.setBrokerAccountName(request.getLoginHint());
-
+            
+            //check if App gives permission to AccountManager
+            if(!verifyManifestPermissions())
+            {
+                return result;
+            }
+            
+            //check if the redirectUri is valid
+            try 
+            {
+                if(!checkRedirectUri(callbackHandle, request))
+                {
+                    return result;
+                }
+            } 
+            catch (UnsupportedEncodingException e) 
+            {
+                Logger.e(TAG + ".acquireTokenAfterValidation", "Digest error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+            }       
+            
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())
@@ -1605,6 +1717,10 @@ public class AuthenticationContext {
             }
         } catch (Exception exc) {
             // Server side error or similar
+        	
+        	//IllegalArgumentException
+        	//@heidi
+        	//@Dec 15 2015
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
                     exc);
@@ -1677,6 +1793,9 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Finish validating authority:" + authorityUrl + " result:" + result);
                 return result;
             } catch (Exception exc) {
+            	//AuthenticationException
+            	//@heidi
+            	//@Dec 15 2015
                 Logger.e(TAG, "Instance validation returned error", "",
                         ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
 
@@ -1841,6 +1960,9 @@ public class AuthenticationContext {
                             return;
                         }
                     } catch (Exception exc) {
+                    	//only throws the runtime exceptions
+                    	//@heidi
+                    	//@Dec 15 2015
                         Logger.e(TAG, "Authority validation is failed",
                                 ExceptionExtensions.getExceptionMessage(exc),
                                 ADALError.SERVER_INVALID_REQUEST, exc);
