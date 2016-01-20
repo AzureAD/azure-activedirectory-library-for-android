@@ -20,6 +20,11 @@ package com.microsoft.aad.adal.hello;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -79,7 +84,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         CookieSyncManager.createInstance(getApplicationContext());
         textView1 = (TextView)findViewById(R.id.textView1);

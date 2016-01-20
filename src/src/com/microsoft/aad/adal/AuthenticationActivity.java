@@ -142,9 +142,15 @@ public class AuthenticationActivity extends Activity {
                         // and callback will be called after this request.
                     }
                 } catch (Exception ex) {
-                    Logger.e(TAG, "ActivityBroadcastReceiver onReceive exception",
+                	//we need to re-throw runtime exceptions after logging
+                    //if(e instanceof NullPointerException){ throw ex; }
+                    //@heidi 
+                    //@Dec 15 2015
+                	Logger.e(TAG, "ActivityBroadcastReceiver onReceive exception",
                             ExceptionExtensions.getExceptionMessage(ex),
                             ADALError.BROADCAST_RECEIVER_ERROR);
+                	//lack the handling method here
+                	//@heidi
                 }
             }
         }
@@ -431,19 +437,6 @@ public class AuthenticationActivity extends Activity {
         this.finish();
     }
 
-    private void returnAuthenticationException(final AuthenticationException e) {
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION, e);
-        if (mAuthRequest != null) {
-            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                    mAuthRequest);
-        }
-        this.setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                resultIntent);
-        this.finish();
-    }
-
     private String getBrokerStartUrl(String loadUrl, String packageName, String signatureDigest) {
         if (!StringExtensions.IsNullOrBlank(packageName)
                 && !StringExtensions.IsNullOrBlank(signatureDigest)) {
@@ -457,6 +450,8 @@ public class AuthenticationActivity extends Activity {
                 // if it is not supported on this device. ADAL uses one encoding
                 // type.
                 Log.e(TAG, "Encoding", e);
+                //what should we do with the encoding exception?
+                //@heidi
             }
         }
         return loadUrl;
@@ -587,6 +582,8 @@ public class AuthenticationActivity extends Activity {
             super(AuthenticationActivity.this, mRedirectUrl, mQueryParameters, mAuthRequest);
         }
                 
+        //check the redictURl here?
+        //@heidi
         public void processRedirectUrl(final WebView view, String url){
             if (!isBrokerRequest(getIntent())) {
                 // It is pointing to redirect. Final url can be processed to
@@ -780,6 +777,13 @@ public class AuthenticationActivity extends Activity {
                 result.taskResult = oauthRequest.getToken(urlItems[0]);
                 Logger.v(TAG, "TokenTask processed the result. " + mRequest.getLogInfo());
             } catch (Exception exc) {
+            	//NoSuchAlgorithmException
+            	//IllegalArgumentException
+            	//NullPointerException
+            	// will it be better only to catch the IllegalArgumentException  
+                // and AuthenticationException thrown by getToken() 
+                //@heidi
+            	//@Dec 15 2015
                 Logger.e(TAG, "Error in processing code to get a token. " + mRequest.getLogInfo(),
                         "Request url:" + urlItems[0],
                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
@@ -794,6 +798,11 @@ public class AuthenticationActivity extends Activity {
                 try {
                     setAccount(result);
                 } catch (Exception exc) {
+                	//InvalidKeyException, 
+                    //InvalidKeySpecException, InvalidAlgorithmParameterException, 
+                    //IllegalBlockSizeException, BadPaddingException, IOException 
+                	//@Dec 15 2015
+                	//@heidi
                     Logger.e(TAG, "Error in setting the account" + mRequest.getLogInfo(), "",
                             ADALError.BROKER_ACCOUNT_SAVE_FAILED, exc);
                     result.taskException = exc;
@@ -830,6 +839,13 @@ public class AuthenticationActivity extends Activity {
                 try {
                     appIdList = cryptoHelper.decrypt(appIdList);
                 } catch (Exception ex) {
+                	// NoSuchAlgorithmException, InvalidKeySpecException, 
+                    // NoSuchPaddingException, KeyStoreException, CertificateException, 
+                    // NoSuchProviderException, InvalidAlgorithmParameterException, 
+                    // UnrecoverableEntryException, IOException, InvalidKeyException, DigestException, 
+                    // IllegalBlockSizeException, BadPaddingException 
+                    // @heidi
+                	// @Dec 15 2015
                     Logger.e(TAG, "appUIDList failed to decrypt", "appIdList:" + appIdList,
                             ADALError.ENCRYPTION_FAILED, ex);
                     appIdList = "";

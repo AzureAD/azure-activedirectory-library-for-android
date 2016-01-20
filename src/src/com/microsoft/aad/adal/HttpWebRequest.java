@@ -183,6 +183,9 @@ class HttpWebRequest {
                 response.setBody(responseBody);
                 response.setResponseHeaders(mConnection.getHeaderFields());
             } catch (Exception e) {
+            	//need to re-throw the runtime exceptions
+            	//@heidi
+            	//@Dec 15 2015S
                 Logger.e(TAG, "Exception:" + e.getMessage(), " Method:" + mRequestMethod,
                         ADALError.SERVER_ERROR, e);
                 mException = e;
@@ -208,7 +211,7 @@ class HttpWebRequest {
                 // Android source code for previous SDKs.
                 // Status code handling is throwing exceptions if it does not
                 // see challenge
-                if (ex.getMessage() == UNAUTHORIZED_ERROR_MESSAGE_PRE18) {
+                if (ex.getMessage().equals(UNAUTHORIZED_ERROR_MESSAGE_PRE18)) {
                     statusCode = HttpURLConnection.HTTP_UNAUTHORIZED;
                 }
             } else {
