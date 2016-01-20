@@ -216,7 +216,23 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
      mContext.acquireToken(MainActivity.this, resource, clientId, redirect, user_loginhint, PromptBehavior.Auto, "",
                     callback);
     ```
-    
+If you're implementing your authentication logic in a Fragment, you'll need to wrap it in a `IWindowComponent` before passing it as a parameter like this:
+
+    ```Java
+    mContext.acquireToken(wrapFragment(MainFragment.this), resource, clientId, redirect, user_loginhint, PromptBehavior.Auto, "",
+                    callback);
+                    
+    private IWindowComponent wrapFragment(final Fragment fragment){
+       return new IWindowComponent() {
+          Fragment refFragment = fragment;
+          @Override
+          public void startActivityForResult(Intent intent, int requestCode) {
+             refFragment.startActivityForResult(intent, requestCode);
+          }
+       };
+    }
+    ```
+
 Explanation of the parameters:
     
   * Resource is required and is the resource you are trying to access.
