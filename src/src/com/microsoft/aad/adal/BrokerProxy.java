@@ -199,10 +199,10 @@ class BrokerProxy implements IBrokerProxy {
                     targetAccount = findAccount(matchingUser.getDisplayableId(), accountList);
                 }
             } catch (Exception e) {
-                //getBrokerUsers()
-                //OperationCanceledException, AuthenticatorException,IOException
-                //@heidi
-                //@Dec 15 2015                
+            	//getBrokerUsers()
+            	//OperationCanceledException, AuthenticatorException,IOException
+            	//@heidi
+            	//@Dec 15 2015            	
                 Logger.e(TAG, e.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
             }
         }
@@ -288,13 +288,13 @@ class BrokerProxy implements IBrokerProxy {
             
             final Date expires;
             if (bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE) == 0) {
-                Logger.v(TAG, "Broker doesn't return expire date, set it current date plus one hour");
-                final Calendar currentTime = new GregorianCalendar();
-                currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);;
-                expires = currentTime.getTime(); 
+            	Logger.v(TAG, "Broker doesn't return expire date, set it current date plus one hour");
+            	final Calendar currentTime = new GregorianCalendar();
+            	currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);;
+            	expires = currentTime.getTime(); 
             }
             else {
-                expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
+            	expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
             
             AuthenticationResult result = new AuthenticationResult(
@@ -522,9 +522,9 @@ class BrokerProxy implements IBrokerProxy {
                 UserInfo matchingUser = findUserInfo(uniqueId, users);
                 return matchingUser != null;
             } catch (Exception e) {
-                //getBrokerUsers(). OperationCanceledException, AuthenticatorException,IOException
-                //@heidi
-                //@Dec 15 2015
+            	//getBrokerUsers(). OperationCanceledException, AuthenticatorException,IOException
+            	//@heidi
+            	//@Dec 15 2015
                 Logger.e(TAG, "VerifyAccount:" + e.getMessage(), "",
                         ADALError.BROKER_AUTHENTICATOR_EXCEPTION, e);
             }
@@ -578,9 +578,9 @@ class BrokerProxy implements IBrokerProxy {
             Logger.e(TAG, "Digest SHA algorithm does not exists", "",
                     ADALError.DEVICE_NO_SUCH_ALGORITHM);
         } catch (Exception e) {
-            //need to re-throw runtime exceptions after logging
-            //@heidi
-            //@Dec 15 2015
+        	//need to re-throw runtime exceptions after logging
+        	//@heidi
+        	//@Dec 15 2015
             Logger.e(TAG, "Error in verifying signature", "", ADALError.BROKER_VERIFICATION_FAILED,
                     e);
         }
