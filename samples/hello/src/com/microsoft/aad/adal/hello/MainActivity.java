@@ -96,15 +96,10 @@ public class MainActivity extends Activity {
             if (Build.VERSION.SDK_INT < 18) {
                 Utils.setupKeyForSample();
             }
-            //setupKeyForSample() throws NoSuchAlgorithmException,
-            //InvalidKeySpecException, UnsupportedEncodingException
-            //@heidi
 
             // init authentication Context
             mAuthContext = new AuthenticationContext(MainActivity.this, Constants.AUTHORITY_URL,
                     false);
-            //AuthenticationContext() throws NoSuchAlgorithmException, NoSuchPaddingException
-            //@heidi
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Encryption failed", Toast.LENGTH_SHORT).show();
         }
