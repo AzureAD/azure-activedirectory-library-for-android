@@ -795,8 +795,8 @@ public class AuthenticationContext {
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
                                 } catch (Exception exc) {
-                                	//@heidi 
-                                	//@Dec 15 2015
+                                    //@heidi 
+                                    //@Dec 15 2015
                                     //IllegalArgumentException, AuthenticationException
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo() + correlationInfo;
@@ -818,12 +818,12 @@ public class AuthenticationContext {
 
                                 try {
                                     if (result != null) {
-                                    	if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
-                                    		Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
-                                    		callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
-                                    				result.getErrorLogInfo()));
-                                    		return;
-                                    	}
+                                        if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
+                                            Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
+                                            callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
+                                                    result.getErrorLogInfo()));
+                                            return;
+                                        }
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
@@ -1091,7 +1091,7 @@ public class AuthenticationContext {
      * @param request
      * @param prompt
      * @param callback
-     * @return
+     * @return AuthenticationResult or null
      */
     private AuthenticationResult acquireTokenLocalCall(final CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
@@ -1102,6 +1102,7 @@ public class AuthenticationContext {
                     ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
             return null;
         }
+        
 
         if (mValidateAuthority && !mAuthorityValidated) {
             try {
@@ -1121,9 +1122,9 @@ public class AuthenticationContext {
                     return null;
                 }
             } catch (Exception exc) {
-            	//AuthenticationException
-            	//@heidi
-            	//@Dec 15 2015
+                //AuthenticationException
+                //@heidi
+                //@Dec 15 2015
                 Logger.e(TAG, "Authority validation has an error.", "",
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, exc);
                 callbackHandle.onError(new AuthenticationException(
@@ -1193,29 +1194,29 @@ public class AuthenticationContext {
         if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
                 "android.permission.GET_ACCOUNTS", mContext.getPackageName()))
         {
-        	Logger.w(
+            Logger.w(
                     TAG + ".verifyManifestPermissions",
                     "Broker related permissions are missing for GET_ACCOUNTS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-        	return false;
+            return false;
         }
         if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
                         "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName()))
         {
-        	Logger.w(
+            Logger.w(
                     TAG + ".verifyManifestPermissions",
                     "Broker related permissions are missing for MANAGE_ACCOUNTS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-        	return false;
+            return false;
         }
         if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
                         "android.permission.USE_CREDENTIALS", mContext.getPackageName()))
         {
-        	Logger.w(
+            Logger.w(
                     TAG + ".verifyManifestPermissions",
                     "Broker related permissions are missing for USE_CREDENTIALS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-        	return false;
+            return false;
         }
         Logger.v(
                 TAG + ".verifyManifestPermissions",
@@ -1383,7 +1384,7 @@ public class AuthenticationContext {
             Logger.v(TAG, "Refresh token is not available");
             if (!request.isSilent() && callbackHandle.callback != null
                     && (activity != null || useDialog)) {
-            	//Check if there is network connection
+                //Check if there is network connection
                 if (!mConnectionService.isConnectionAvailable()) {
                     AuthenticationException exc = new AuthenticationException(
                             ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
@@ -1717,10 +1718,10 @@ public class AuthenticationContext {
             }
         } catch (Exception exc) {
             // Server side error or similar
-        	
-        	//IllegalArgumentException
-        	//@heidi
-        	//@Dec 15 2015
+            
+            //IllegalArgumentException
+            //@heidi
+            //@Dec 15 2015
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
                     exc);
@@ -1793,9 +1794,9 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Finish validating authority:" + authorityUrl + " result:" + result);
                 return result;
             } catch (Exception exc) {
-            	//AuthenticationException
-            	//@heidi
-            	//@Dec 15 2015
+                //AuthenticationException
+                //@heidi
+                //@Dec 15 2015
                 Logger.e(TAG, "Instance validation returned error", "",
                         ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
 
@@ -1960,9 +1961,9 @@ public class AuthenticationContext {
                             return;
                         }
                     } catch (Exception exc) {
-                    	//only throws the runtime exceptions
-                    	//@heidi
-                    	//@Dec 15 2015
+                        //only throws the runtime exceptions
+                        //@heidi
+                        //@Dec 15 2015
                         Logger.e(TAG, "Authority validation is failed",
                                 ExceptionExtensions.getExceptionMessage(exc),
                                 ADALError.SERVER_INVALID_REQUEST, exc);

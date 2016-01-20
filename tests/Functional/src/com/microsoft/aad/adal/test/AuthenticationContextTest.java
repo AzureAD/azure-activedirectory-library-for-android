@@ -1875,7 +1875,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertTrue("should have signature url encoded",
                 actual.contains(URLEncoder.encode(testTag, AuthenticationConstants.ENCODING_UTF8)));
     }
-
+    
     private AuthenticationContext getAuthenticationContext(Context mockContext, String authority,
             boolean validate, ITokenCacheStore mockCache) {
         AuthenticationContext context = new AuthenticationContext(mockContext, authority, validate,
