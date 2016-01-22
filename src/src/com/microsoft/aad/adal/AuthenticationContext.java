@@ -675,12 +675,26 @@ public class AuthenticationContext {
     /**
      * This method wraps the implementation for onActivityResult at the related
      * Activity class. This method is called at UI thread.
-     * 
+     *
      * @param requestCode Request code provided at the start of the activity.
      * @param resultCode Result code set from the activity.
      * @param data {@link Intent}
      */
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        this.onActivityResult(requestCode, resultCode, data, null);
+    }
+
+    /**
+     * This method wraps the implementation for onActivityResult at the related
+     * Activity class. This method is called at UI thread.
+     *
+     * @param requestCode Request code provided at the start of the activity.
+     * @param resultCode Result code set from the activity.
+     * @param data {@link Intent}
+     * @param callback {@link AuthenticationCallback} object for async
+     *            call, that will replace the one passed before.
+     */
+    public void onActivityResult(int requestCode, int resultCode, Intent data, AuthenticationCallback<AuthenticationResult> callback) {
         // This is called at UI thread when Activity sets result back.
         // ResultCode is set back from AuthenticationActivity. RequestCode is
         // set when we start the activity for result.
@@ -698,6 +712,9 @@ public class AuthenticationContext {
                 final AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
                 if (waitingRequest != null) {
                     Logger.v(TAG, "onActivityResult RequestId:" + requestId);
+                    if (callback != null) {
+                        waitingRequest.mDelagete = callback;
+                    }
                 } else {
                     Logger.e(TAG, "onActivityResult did not find waiting request for RequestId:"
                             + requestId, "", ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
