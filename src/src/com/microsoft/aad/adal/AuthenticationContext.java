@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.UUID;
@@ -1132,6 +1133,51 @@ public class AuthenticationContext {
     private boolean promptUser(PromptBehavior prompt) {
         return prompt == PromptBehavior.Always || prompt == PromptBehavior.REFRESH_SESSION;
     }
+    
+    /**
+     * check the redirectUri before sending the request
+     * if the redirectUri from the client does not match the valid redirectUri
+     * the client app would not jump to the login page
+     * redirectUri format %PREFIX://%PACKAGE_NAME/%SIGNATURE
+     * 
+     * @param callbackHandle
+     * @param request
+     * @throws UnsupportedEncodingException
+     * @return true if the RedictUri is valid
+     */
+    private boolean checkRedirectUri(CallbackHandler callbackHandle, final AuthenticationRequest request) throws UnsupportedEncodingException{
+        
+        String errMsg = new String();        
+        String inputUri = request.getRedirectUri();
+        PackageHelper helper = new PackageHelper(mContext);
+        
+        if(StringExtensions.IsNullOrBlank(inputUri))
+        {
+            errMsg = "the redirectUri is null";            
+        }
+        else if(!inputUri.split("://")[0].equals(AuthenticationConstants.Broker.REDIRECT_PREFIX))
+        {
+            errMsg = "the redirectUri is not starting with the valid redict prefix " + AuthenticationConstants.Broker.REDIRECT_PREFIX;            
+        }
+        else if((inputUri.split("://").length == 2 && !inputUri.split("://")[1].split("/")[0].equals(URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8))) || inputUri.split("://").length == 1 )
+        {
+            errMsg = "the package name of redirectUri is not as expected. The expected package name is" + mContext.getPackageName();
+        }
+        else if((inputUri.split("://")[1].split("/").length == 2 && !inputUri.split("://")[1].split("/")[1].equals(URLEncoder.encode(helper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8)))||inputUri.split("://")[1].split("/").length == 1)
+        {
+            errMsg = "the signature of redirectUri is not as expected. The expected signiture is " + URLEncoder.encode(helper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
+        }
+        if(errMsg.isEmpty())
+        {
+            return true;
+        }
+        else
+        {
+            Logger.e(TAG,errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);            
+            callbackHandle.onError(new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg));
+            return false;
+        }        
+    }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
@@ -1147,6 +1193,19 @@ public class AuthenticationContext {
             AuthenticationResult result = null;
             request.setVersion(getVersionName());
             request.setBrokerAccountName(request.getLoginHint());
+            
+            //check if the redirectUri is valid
+            try 
+            {
+                if(!checkRedirectUri(callbackHandle, request))
+                {
+                    return result;
+                }
+            } 
+            catch (UnsupportedEncodingException e) 
+            {
+                Logger.e(TAG + ".acquireTokenAfterValidation", "Digest error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+            }
 
             // Don't send background request, if prompt flag is always or
             // refresh_session
