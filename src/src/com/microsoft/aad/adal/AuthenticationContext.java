@@ -1132,6 +1132,44 @@ public class AuthenticationContext {
     private boolean promptUser(PromptBehavior prompt) {
         return prompt == PromptBehavior.Always || prompt == PromptBehavior.REFRESH_SESSION;
     }
+    
+    /**
+     * App needs to give permission to AccountManager to use broker.
+     */
+    private boolean verifyManifestPermissions() {
+        PackageManager pm = mContext.getPackageManager();
+        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
+                "android.permission.GET_ACCOUNTS", mContext.getPackageName()))
+        {
+            Logger.w(
+                    TAG + ".verifyManifestPermissions",
+                    "Broker related permissions are missing for GET_ACCOUNTS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+            return false;
+        }
+        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
+                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName()))
+        {
+            Logger.w(
+                    TAG + ".verifyManifestPermissions",
+                    "Broker related permissions are missing for MANAGE_ACCOUNTS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+            return false;
+        }
+        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
+                        "android.permission.USE_CREDENTIALS", mContext.getPackageName()))
+        {
+            Logger.w(
+                    TAG + ".verifyManifestPermissions",
+                    "Broker related permissions are missing for USE_CREDENTIALS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+            return false;
+        }
+        Logger.v(
+                TAG + ".verifyManifestPermissions",
+                "Broker related permissions are verified");                        
+        return true;
+    }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
@@ -1148,6 +1186,12 @@ public class AuthenticationContext {
             request.setVersion(getVersionName());
             request.setBrokerAccountName(request.getLoginHint());
 
+            //check if App gives permission to AccountManager
+            if(!verifyManifestPermissions())
+            {
+                return result;
+            }
+            
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())
