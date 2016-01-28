@@ -814,12 +814,12 @@ public class AuthenticationContext {
 
                                 try {
                                     if (result != null) {
-                                    	if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
-                                    		Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
-                                    		callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
-                                    				result.getErrorLogInfo()));
-                                    		return;
-                                    	}
+                                        if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
+                                            Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
+                                            callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
+                                                    result.getErrorLogInfo()));
+                                            return;
+                                        }
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
@@ -1141,29 +1141,29 @@ public class AuthenticationContext {
         if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
                 "android.permission.GET_ACCOUNTS", mContext.getPackageName()))
         {
-        	Logger.w(
+            Logger.w(
                     TAG + ".verifyManifestPermissions",
                     "Broker related permissions are missing for GET_ACCOUNTS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-        	return false;
+            return false;
         }
         if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
                         "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName()))
         {
-        	Logger.w(
+            Logger.w(
                     TAG + ".verifyManifestPermissions",
                     "Broker related permissions are missing for MANAGE_ACCOUNTS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-        	return false;
+            return false;
         }
         if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
                         "android.permission.USE_CREDENTIALS", mContext.getPackageName()))
         {
-        	Logger.w(
+            Logger.w(
                     TAG + ".verifyManifestPermissions",
                     "Broker related permissions are missing for USE_CREDENTIALS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-        	return false;
+            return false;
         }
         Logger.v(
                 TAG + ".verifyManifestPermissions",
@@ -1315,7 +1315,7 @@ public class AuthenticationContext {
             Logger.v(TAG, "Refresh token is not available");
             if (!request.isSilent() && callbackHandle.callback != null
                     && (activity != null || useDialog)) {
-            	//Check if there is network connection
+                //Check if there is network connection
                 if (!mConnectionService.isConnectionAvailable()) {
                     AuthenticationException exc = new AuthenticationException(
                             ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
