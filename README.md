@@ -10,7 +10,7 @@ A Work Account is an identity you use to get work done no matter if at your busi
 ## ADAL for Android 1.0 Released!
 
 Thanks to all your great feedback over the preview period, we have released 1.0 (GA) of the Microsoft Azure Active Directory Library for Android! 
-Recent version is 1.1.0
+Recent version is 1.1.11
 
 ## Features
 * Industry standard Oauth2 protocol support.
@@ -87,7 +87,7 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:1.1.3') {
+    compile('com.microsoft.aad:adal:1.1.11') {
         // if your app includes android support
         // libraries or Gson in its dependencies
         // exclude that groupId from ADAL's compile
@@ -108,7 +108,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.1.3</version>
+    <version>1.1.11</version>
     <type>aar</type>
 </dependency>
 ```
@@ -216,7 +216,23 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
      mContext.acquireToken(MainActivity.this, resource, clientId, redirect, user_loginhint, PromptBehavior.Auto, "",
                     callback);
     ```
-    
+If you're implementing your authentication logic in a Fragment, you'll need to wrap it in a `IWindowComponent` before passing it as a parameter like this:
+
+    ```Java
+    mContext.acquireToken(wrapFragment(MainFragment.this), resource, clientId, redirect, user_loginhint, PromptBehavior.Auto, "",
+                    callback);
+                    
+    private IWindowComponent wrapFragment(final Fragment fragment){
+       return new IWindowComponent() {
+          Fragment refFragment = fragment;
+          @Override
+          public void startActivityForResult(Intent intent, int requestCode) {
+             refFragment.startActivityForResult(intent, requestCode);
+          }
+       };
+    }
+    ```
+
 Explanation of the parameters:
     
   * Resource is required and is the resource you are trying to access.

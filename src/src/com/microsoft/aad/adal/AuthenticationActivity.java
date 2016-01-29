@@ -431,19 +431,6 @@ public class AuthenticationActivity extends Activity {
         this.finish();
     }
 
-    private void returnAuthenticationException(final AuthenticationException e) {
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION, e);
-        if (mAuthRequest != null) {
-            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                    mAuthRequest);
-        }
-        this.setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                resultIntent);
-        this.finish();
-    }
-
     private String getBrokerStartUrl(String loadUrl, String packageName, String signatureDigest) {
         if (!StringExtensions.IsNullOrBlank(packageName)
                 && !StringExtensions.IsNullOrBlank(signatureDigest)) {
@@ -658,18 +645,28 @@ public class AuthenticationActivity extends Activity {
             KeyChain.choosePrivateKeyAlias(AuthenticationActivity.this, new KeyChainAliasCallback() {
 
                 @Override
-                public void alias(String alias) {
+                public void alias(String alias) 
+                {
+                    if (alias == null)
+                    {
+                        request.cancel();
+                        return;
+                    }
+                    
                     try {
-                    	final X509Certificate[] certChain = KeyChain.getCertificateChain(
+                        final X509Certificate[] certChain = KeyChain.getCertificateChain(
                                 getApplicationContext(), alias);
-                    	final PrivateKey privateKey = KeyChain.getPrivateKey(mCallingContext, alias);
-                        request.proceed(privateKey, certChain);
+                        final PrivateKey privateKey = KeyChain.getPrivateKey(mCallingContext, alias);
                         
+                        request.proceed(privateKey, certChain);
+                        return;
                     } catch (KeyChainException e) {
                         Log.e(TAG, "KeyChain exception", e);
                     } catch (InterruptedException e) {
                         Log.e(TAG, "InterruptedException exception", e);
                     }
+                    
+                    request.cancel();
                 }
             }, request.getKeyTypes(), request.getPrincipals(), request.getHost(), request.getPort(), null);
         }
