@@ -1136,39 +1136,52 @@ public class AuthenticationContext {
     /**
      * App needs to give permission to AccountManager to use broker.
      */
-    private boolean verifyManifestPermissions() {
-        PackageManager pm = mContext.getPackageManager();
-        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
+    private String verifyManifestPermissions() {    	
+    	final String methodName = ".verifyManifestPermissions";
+    	final PackageManager packageManager = mContext.getPackageManager();
+    	String msg = new String();
+    	
+    	Logger.v(
+                TAG + methodName,
+                "Broker related permissions checking starts.");       
+               
+        if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
                 "android.permission.GET_ACCOUNTS", mContext.getPackageName()))
         {
-            Logger.w(
-                    TAG + ".verifyManifestPermissions",
-                    "Broker related permissions are missing for GET_ACCOUNTS",
-                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-            return false;
+        	msg = "Broker related permissions are missing for GET_ACCOUNTS";
+        	Logger.w(
+                    TAG + methodName,
+                    msg,
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);        	
+            return msg;
         }
-        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
+        
+        if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
                         "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName()))
         {
+        	msg = "Broker related permissions are missing for MANAGE_ACCOUNTS";
             Logger.w(
-                    TAG + ".verifyManifestPermissions",
-                    "Broker related permissions are missing for MANAGE_ACCOUNTS",
+                    TAG + methodName,
+                    msg,
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-            return false;
+            return msg;
         }
-        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission(
+        
+        if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
                         "android.permission.USE_CREDENTIALS", mContext.getPackageName()))
         {
+        	msg = "Broker related permissions are missing for MANAGE_ACCOUNTS";
             Logger.w(
-                    TAG + ".verifyManifestPermissions",
-                    "Broker related permissions are missing for USE_CREDENTIALS",
+                    TAG + methodName,
+                    msg,
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-            return false;
+            return msg;
         }
+        
         Logger.v(
-                TAG + ".verifyManifestPermissions",
+                TAG + methodName,
                 "Broker related permissions are verified");                        
-        return true;
+        return msg;
     }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
@@ -1187,8 +1200,11 @@ public class AuthenticationContext {
             request.setBrokerAccountName(request.getLoginHint());
             
             //check if App gives permission to AccountManager
-            if(!verifyManifestPermissions())
-            {
+            String permissionCheckResult = verifyManifestPermissions();
+            if(!StringExtensions.IsNullOrBlank(permissionCheckResult))
+            {            	
+            	callbackHandle.onError(new AuthenticationException(
+                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, permissionCheckResult));
                 return result;
             }
 
