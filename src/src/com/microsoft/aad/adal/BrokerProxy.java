@@ -103,8 +103,7 @@ class BrokerProxy implements IBrokerProxy {
         // authenticator
         // 4- signature of the broker is valid
         // 5- account exists
-        return !AuthenticationSettings.INSTANCE.getSkipBroker()
-                && verifyManifestPermissions()
+        return !AuthenticationSettings.INSTANCE.getSkipBroker()                
                 && checkAccount(mAcctManager, "", "")
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
                         .getBrokerPackageName())
@@ -135,28 +134,7 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return false;
-    }
-
-    /**
-     * App needs to give permission to AccountManager to use broker.
-     */
-    private boolean verifyManifestPermissions() {
-        PackageManager pm = mContext.getPackageManager();
-        boolean permission = PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                "android.permission.GET_ACCOUNTS", mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                        "android.permission.USE_CREDENTIALS", mContext.getPackageName());
-        if (!permission) {
-            Logger.w(
-                    TAG,
-                    "Broker related permissions are missing for GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS",
-                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-        }
-
-        return permission;
-    }
+    }    
 
     private void verifyNotOnMainThread() {
         final Looper looper = Looper.myLooper();
