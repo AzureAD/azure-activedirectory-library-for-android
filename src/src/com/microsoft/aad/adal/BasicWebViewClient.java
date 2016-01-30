@@ -151,8 +151,8 @@ abstract class BasicWebViewClient extends WebViewClient {
     @Override
     public boolean shouldOverrideUrlLoading(final WebView view, String url) {
         Logger.v(TAG, "Navigation is detected");
-        if (url.startsWith(AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT)) {
-            Logger.v(TAG, "Webview detected request for client certificate");
+        if (url.startsWith(AuthenticationConstants.Broker.PKEYAUTH_REDIRECT)) {
+            Logger.v(TAG, "Webview detected request for pkeyauth challenge.");
             view.stopLoading();
             setPKeyAuthStatus(true);
             final String challangeUrl = url;

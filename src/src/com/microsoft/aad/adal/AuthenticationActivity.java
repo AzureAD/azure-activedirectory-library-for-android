@@ -28,6 +28,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
@@ -152,7 +153,9 @@ public class AuthenticationActivity extends Activity {
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) 
+    {
+        final String methodName = ":onCreate";
         super.onCreate(savedInstanceState);
         setContentView(this.getResources().getIdentifier("activity_authentication", "layout",
                 this.getPackageName()));
@@ -233,7 +236,8 @@ public class AuthenticationActivity extends Activity {
         userAgent = mWebView.getSettings().getUserAgentString();
         Logger.v(TAG, "UserAgent:" + userAgent);
 
-        if (isBrokerRequest(getIntent())) {
+        if (isBrokerRequest(getIntent())) 
+        {
             // This activity is started from calling app and running in
             // Authenticator's process
             mCallingPackage = getCallingPackage();
@@ -269,6 +273,11 @@ public class AuthenticationActivity extends Activity {
                     + " calling package:" + mCallingPackage + " signatureDigest:" + signatureDigest
                     + " current Context Package: " + getPackageName());
         }
+        else
+        {
+            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage());
+        }
+        
         mRegisterReceiver = false;
         final String postUrl = mStartUrl;
         Logger.i(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage,
@@ -449,11 +458,8 @@ public class AuthenticationActivity extends Activity {
         return loadUrl;
     }
 
-    private boolean isBrokerRequest(Intent callingIntent) {
-        Logger.v(TAG, "Packagename:" + getPackageName() + " Broker packagename:"
-                + AuthenticationSettings.INSTANCE.getBrokerPackageName() + " Calling packagename:"
-                + getCallingPackage());
-
+    private boolean isBrokerRequest(Intent callingIntent) 
+    {
         // Intent should have a flag and activity is hosted inside broker
         return callingIntent != null
                 && !StringExtensions.IsNullOrBlank(callingIntent
@@ -640,8 +646,23 @@ public class AuthenticationActivity extends Activity {
         
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
-        public void onReceivedClientCertRequest (WebView view, final ClientCertRequest request){
-            Logger.v(TAG + "onReceivedClientCertRequest", "onReceivedClientCertRequest");
+        public void onReceivedClientCertRequest (WebView view, final ClientCertRequest request)
+        {
+            final String methodName = ":onReceivedClientCertRequest";
+            Logger.v(TAG + methodName, "Webview receives client TLS request.");
+            
+            final Principal[] acceptableCertIssuers = request.getPrincipals();
+            for (Principal issuer : acceptableCertIssuers)
+            {
+                if (issuer.getName().contains("CN=MS-Organization-Access"))
+                {
+                    //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
+                    Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
+                    request.cancel();
+                    return;
+                }
+            }
+            
             KeyChain.choosePrivateKeyAlias(AuthenticationActivity.this, new KeyChainAliasCallback() {
 
                 @Override
@@ -649,6 +670,7 @@ public class AuthenticationActivity extends Activity {
                 {
                     if (alias == null)
                     {
+                        Logger.v(TAG + methodName, "No certificate chosen by user, cancelling the TLS request.");
                         request.cancel();
                         return;
                     }
@@ -658,6 +680,7 @@ public class AuthenticationActivity extends Activity {
                                 getApplicationContext(), alias);
                         final PrivateKey privateKey = KeyChain.getPrivateKey(mCallingContext, alias);
                         
+                        Logger.v(TAG + methodName, "Certificate is chosen by user, proceed with TLS request.");
                         request.proceed(privateKey, certChain);
                         return;
                     } catch (KeyChainException e) {
