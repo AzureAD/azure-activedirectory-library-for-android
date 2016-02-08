@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.DigestException;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
@@ -127,24 +128,18 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG, "ActivityBroadcastReceiver onReceive");
 
             if (intent.getAction().equalsIgnoreCase(AuthenticationConstants.Browser.ACTION_CANCEL)) {
-                try {
-                    Logger.v(TAG,
-                            "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
+                Logger.v(TAG,
+                        "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
 
-                    int cancelRequestId = intent.getIntExtra(
-                            AuthenticationConstants.Browser.REQUEST_ID, 0);
+                int cancelRequestId = intent.getIntExtra(
+                        AuthenticationConstants.Browser.REQUEST_ID, 0);
 
-                    if (cancelRequestId == mWaitingRequestId) {
-                        Logger.v(TAG, "Waiting requestId is same and cancelling this activity");
-                        AuthenticationActivity.this.finish();
-                        // no need to send result back to activity. It is
-                        // cancelled
-                        // and callback will be called after this request.
-                    }
-                } catch (Exception ex) {
-                    Logger.e(TAG, "ActivityBroadcastReceiver onReceive exception",
-                            ExceptionExtensions.getExceptionMessage(ex),
-                            ADALError.BROADCAST_RECEIVER_ERROR);
+                if (cancelRequestId == mWaitingRequestId) {
+                    Logger.v(TAG, "Waiting requestId is same and cancelling this activity");
+                    AuthenticationActivity.this.finish();
+                    // no need to send result back to activity. It is
+                    // cancelled
+                    // and callback will be called after this request.
                 }
             }
         }
@@ -428,19 +423,6 @@ public class AuthenticationActivity extends Activity {
                     mAuthRequest);
         }
         this.setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
-        this.finish();
-    }
-
-    private void returnAuthenticationException(final AuthenticationException e) {
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION, e);
-        if (mAuthRequest != null) {
-            resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                    mAuthRequest);
-        }
-        this.setResult(AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                resultIntent);
         this.finish();
     }
 
@@ -779,7 +761,7 @@ public class AuthenticationActivity extends Activity {
             try {
                 result.taskResult = oauthRequest.getToken(urlItems[0]);
                 Logger.v(TAG, "TokenTask processed the result. " + mRequest.getLogInfo());
-            } catch (Exception exc) {
+            } catch (IOException exc) {
                 Logger.e(TAG, "Error in processing code to get a token. " + mRequest.getLogInfo(),
                         "Request url:" + urlItems[0],
                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
@@ -793,7 +775,7 @@ public class AuthenticationActivity extends Activity {
                 // Record account in the AccountManager service
                 try {
                     setAccount(result);
-                } catch (Exception exc) {
+                } catch (GeneralSecurityException | IOException exc) {
                     Logger.e(TAG, "Error in setting the account" + mRequest.getLogInfo(), "",
                             ADALError.BROKER_ACCOUNT_SAVE_FAILED, exc);
                     result.taskException = exc;
@@ -829,7 +811,7 @@ public class AuthenticationActivity extends Activity {
             } else {
                 try {
                     appIdList = cryptoHelper.decrypt(appIdList);
-                } catch (Exception ex) {
+                } catch (GeneralSecurityException | IOException ex) {
                     Logger.e(TAG, "appUIDList failed to decrypt", "appIdList:" + appIdList,
                             ADALError.ENCRYPTION_FAILED, ex);
                     appIdList = "";

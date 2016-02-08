@@ -29,7 +29,7 @@ public class HttpWebResponse {
     private int mStatusCode;
     private byte[] mResponseBody;
     private Map<String, List<String>> mResponseHeaders;
-    private Exception mResponseException = null;
+    private Throwable mResponseException = null;
 
     public HttpWebResponse() {
         mStatusCode = HttpURLConnection.HTTP_OK;
@@ -43,11 +43,11 @@ public class HttpWebResponse {
         mResponseHeaders = responseHeaders;
     }
 
-    public Exception getResponseException() {
+    public Throwable getResponseException() {
         return mResponseException;
     }
 
-    public void setResponseException(Exception responseException) {
+    public void setResponseException(Throwable responseException) {
         this.mResponseException = responseException;
     }
 
