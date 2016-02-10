@@ -793,7 +793,7 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                } catch (Exception exc) {
+                                } catch (IOException exc) {
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo() + correlationInfo;
                                     Logger.e(TAG, msg,
@@ -1100,25 +1100,17 @@ public class AuthenticationContext {
         }
 
         if (mValidateAuthority && !mAuthorityValidated) {
-            try {
-                final URL authorityUrlInCallback = authorityUrl;
-                // Discovery call creates an Async Task to send
-                // Web Requests
-                // using a handler
-                boolean result = validateAuthority(authorityUrl);
-                if (result) {
-                    mAuthorityValidated = true;
-                    Logger.v(TAG, "Authority is validated: " + authorityUrlInCallback.toString());
-                } else {
-                    Logger.v(TAG, "Call external callback since instance is invalid"
-                            + authorityUrlInCallback.toString());
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                    return null;
-                }
-            } catch (Exception exc) {
-                Logger.e(TAG, "Authority validation has an error.", "",
-                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, exc);
+            final URL authorityUrlInCallback = authorityUrl;
+            // Discovery call creates an Async Task to send
+            // Web Requests
+            // using a handler
+            boolean result = validateAuthority(authorityUrl);
+            if (result) {
+                mAuthorityValidated = true;
+                Logger.v(TAG, "Authority is validated: " + authorityUrlInCallback.toString());
+            } else {
+                Logger.v(TAG, "Call external callback since instance is invalid"
+                        + authorityUrlInCallback.toString());
                 callbackHandle.onError(new AuthenticationException(
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
                 return null;
@@ -1603,7 +1595,7 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Refresh token is not returned or empty");
                 result.setRefreshToken(refreshItem.mRefreshToken);
             }
-        } catch (Exception exc) {
+        } catch (IOException exc) {
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
@@ -1672,15 +1664,9 @@ public class AuthenticationContext {
 
             // Set CorrelationId for Instance Discovery
             mDiscovery.setCorrelationId(getRequestCorrelationId());
-            try {
-                boolean result = mDiscovery.isValidAuthority(authorityUrl);
-                Logger.v(TAG, "Finish validating authority:" + authorityUrl + " result:" + result);
-                return result;
-            } catch (Exception exc) {
-                Logger.e(TAG, "Instance validation returned error", "",
-                        ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, exc);
-
-            }
+            boolean result = mDiscovery.isValidAuthority(authorityUrl);
+            Logger.v(TAG, "Finish validating authority:" + authorityUrl + " result:" + result);
+            return result;
         }
         return false;
     }
@@ -1828,26 +1814,15 @@ public class AuthenticationContext {
                 if (mValidateAuthority) {
                     Logger.v(TAG, "Validating authority");
 
-                    try {
-                        if (validateAuthority(authorityUrl)) {
-                            Logger.v(TAG, "Authority is validated" + authorityUrl.toString());
-                        } else {
-                            Logger.v(
-                                    TAG,
-                                    "Call callback since instance is invalid:"
-                                            + authorityUrl.toString());
-                            callbackHandle.onError(new AuthenticationException(
-                                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                            return;
-                        }
-                    } catch (Exception exc) {
-                        Logger.e(TAG, "Authority validation is failed",
-                                ExceptionExtensions.getExceptionMessage(exc),
-                                ADALError.SERVER_INVALID_REQUEST, exc);
-                        callbackHandle
-                                .onError(new AuthenticationException(
-                                        ADALError.SERVER_INVALID_REQUEST,
-                                        "Authority validation is failed"));
+                    if (validateAuthority(authorityUrl)) {
+                        Logger.v(TAG, "Authority is validated" + authorityUrl.toString());
+                    } else {
+                        Logger.v(
+                                TAG,
+                                "Call callback since instance is invalid:"
+                                        + authorityUrl.toString());
+                        callbackHandle.onError(new AuthenticationException(
+                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
                         return;
                     }
                 }
