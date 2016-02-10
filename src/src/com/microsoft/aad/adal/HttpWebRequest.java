@@ -68,7 +68,7 @@ class HttpWebRequest {
 
     int mTimeOut = CONNECT_TIME_OUT;
 
-    Exception mException = null;
+    private Exception mException = null;
 
     HashMap<String, String> mRequestHeaders = null;
 
@@ -138,7 +138,7 @@ class HttpWebRequest {
                 mConnection.setUseCaches(mUseCaches);
                 mConnection.setRequestMethod(mRequestMethod);
                 mConnection.setDoInput(true); // it will at least read status
-                                              // code. Default is true.
+                // code. Default is true.
                 setRequestBody();
 
                 byte[] responseBody = null;
@@ -182,8 +182,10 @@ class HttpWebRequest {
                 Logger.v(TAG, "Response is received");
                 response.setBody(responseBody);
                 response.setResponseHeaders(mConnection.getHeaderFields());
-            } catch (Exception e) {
-                Logger.e(TAG, "Exception:" + e.getMessage(), " Method:" + mRequestMethod,
+            } catch (InterruptedException ignore) {
+                Logger.v(TAG, "Thread.sleep got interrupted exception " + ignore);
+            } catch (IOException e ) {
+                Logger.e(TAG, "IOException:" + e.getMessage(), " Method:" + mRequestMethod,
                         ADALError.SERVER_ERROR, e);
                 mException = e;
             } finally {

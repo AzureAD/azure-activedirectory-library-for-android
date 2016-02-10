@@ -161,19 +161,14 @@ public class AuthenticationParameters {
             public void run() {
                 HashMap<String, String> headers = new HashMap<String, String>();
                 headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
+                HttpWebResponse webResponse = sWebRequest.sendGet(resourceUrl, headers);
 
-                try {
-                    HttpWebResponse webResponse = sWebRequest.sendGet(resourceUrl, headers);
-
-                    if (webResponse != null) {
-                        try {
-                            onCompleted(null, parseResponse(webResponse));
-                        } catch (IllegalArgumentException exc) {
-                            onCompleted(exc, null);
-                        }
+                if (webResponse != null) {
+                    try {
+                        onCompleted(null, parseResponse(webResponse));
+                    } catch (IllegalArgumentException exc) {
+                        onCompleted(exc, null);
                     }
-                } catch (Exception exception) {
-                    onCompleted(exception, null);
                 }
             }
 
