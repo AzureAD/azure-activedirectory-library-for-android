@@ -653,21 +653,18 @@ public class AuthenticationActivity extends Activity {
             
             final Principal[] acceptableCertIssuers = request.getPrincipals();
             
-            if (acceptableCertIssuers == null)
+            // ADFS server could send null or empty acceptable issuers, and that basically means user needs to choose for right certificate.
+            if (acceptableCertIssuers != null)
             {
-                Logger.v(TAG + methodName, "Received acceptable issuers are null, ignoring the TLS request.");
-                request.ignore();
-                return;
-            }
-            
-            for (Principal issuer : acceptableCertIssuers)
-            {
-                if (issuer.getName().contains("CN=MS-Organization-Access"))
+                for (Principal issuer : acceptableCertIssuers)
                 {
-                    //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
-                    Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
-                    request.cancel();
-                    return;
+                    if (issuer.getName().contains("CN=MS-Organization-Access"))
+                    {
+                        //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
+                        Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
+                        request.cancel();
+                        return;
+                    }
                 }
             }
             
