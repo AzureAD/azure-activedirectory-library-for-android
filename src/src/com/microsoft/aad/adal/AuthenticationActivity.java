@@ -652,14 +652,19 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG + methodName, "Webview receives client TLS request.");
             
             final Principal[] acceptableCertIssuers = request.getPrincipals();
-            for (Principal issuer : acceptableCertIssuers)
+            
+            // When ADFS server sends null or empty issuers, we'll continue with cert prompt.
+            if (acceptableCertIssuers != null)
             {
-                if (issuer.getName().contains("CN=MS-Organization-Access"))
+                for (Principal issuer : acceptableCertIssuers)
                 {
-                    //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
-                    Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
-                    request.cancel();
-                    return;
+                    if (issuer.getName().contains("CN=MS-Organization-Access"))
+                    {
+                        //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
+                        Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
+                        request.cancel();
+                        return;
+                    }
                 }
             }
             
