@@ -652,6 +652,14 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG + methodName, "Webview receives client TLS request.");
             
             final Principal[] acceptableCertIssuers = request.getPrincipals();
+            
+            if (acceptableCertIssuers == null)
+            {
+                Logger.v(TAG + methodName, "Received acceptable issuers are null, ignoring the TLS request.");
+                request.ignore();
+                return;
+            }
+            
             for (Principal issuer : acceptableCertIssuers)
             {
                 if (issuer.getName().contains("CN=MS-Organization-Access"))
