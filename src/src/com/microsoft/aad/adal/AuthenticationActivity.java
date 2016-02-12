@@ -653,7 +653,7 @@ public class AuthenticationActivity extends Activity {
             
             final Principal[] acceptableCertIssuers = request.getPrincipals();
             
-            // ADFS server could send null or empty acceptable issuers, and that basically means user needs to choose for right certificate.
+            // When ADFS server sends null or empty issuers, we'll continue with cert prompt.
             if (acceptableCertIssuers != null)
             {
                 for (Principal issuer : acceptableCertIssuers)
