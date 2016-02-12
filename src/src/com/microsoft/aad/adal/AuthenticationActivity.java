@@ -565,6 +565,15 @@ public class AuthenticationActivity extends Activity {
         Intent resultIntent = new Intent();
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
+    
+    private void prepareForBrokerResume ()
+    {
+        final String methodName = ":prepareForBrokerResume";
+        Logger.v(TAG + methodName, "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");
+        
+        final Intent resultIntent = new Intent();
+        returnToCaller(AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME, resultIntent);
+    }
 
     private void hideKeyBoard() {
         if (mWebView != null) {
@@ -632,6 +641,12 @@ public class AuthenticationActivity extends Activity {
         @Override
         public void cancelWebViewRequest() {
             cancelRequest();            
+        }
+        
+        @Override
+        public void prepareForBrokerResumeRequest ()
+        {
+            prepareForBrokerResume();
         }
 
         @Override

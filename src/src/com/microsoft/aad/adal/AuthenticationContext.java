@@ -41,14 +41,18 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ResultReceiver;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.SparseArray;
 
@@ -680,7 +684,9 @@ public class AuthenticationContext {
      * @param resultCode Result code set from the activity.
      * @param data {@link Intent}
      */
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) 
+    {
+        final String methodName = ":onActivityResult";
         // This is called at UI thread when Activity sets result back.
         // ResultCode is set back from AuthenticationActivity. RequestCode is
         // set when we start the activity for result.
@@ -733,7 +739,17 @@ public class AuthenticationContext {
                             + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
-                } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
+                }
+                else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME)
+                {
+                    Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker installation. Once "
+                            + "broker is installed, request will be resumed and result will be received");
+//                    BrokerResumeResultReceiver receiver = new BrokerResumeResultReceiver(mHandler);
+//                    final Intent intent = new Intent();
+//                    intent.putExtra("BrokerResumeResultReceiver", receiver);
+//                    mContext.startService(intent);
+                }
+                else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
                     if (authException != null && authException instanceof AuthenticationException) {
@@ -1135,9 +1151,13 @@ public class AuthenticationContext {
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
-            final AuthenticationRequest request) {
+            final AuthenticationRequest request) 
+    {
         Logger.v(TAG, "Token request started");
 
+        BrokerInstallLocalReceiver receiver = new BrokerInstallLocalReceiver();
+        (new ContextWrapper(mContext)).registerReceiver(receiver, new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME), null, mHandler);
+        
         // BROKER flow intercepts here
         // cache and refresh call happens through the authenticator service
         if (mBrokerProxy.canSwitchToBroker()
@@ -1915,6 +1935,70 @@ public class AuthenticationContext {
         }
     }
 
+    protected class BrokerInstallLocalReceiver extends BroadcastReceiver
+    {
+        public BrokerInstallLocalReceiver() {}
+
+        @Override
+        public void onReceive(Context context, Intent intent) 
+        {
+            final String methodName = ":BrokerInstallLocalReceiver:onReceive";
+            Logger.d(TAG + methodName, "Received result from broker.");
+            final int receivedWaitingRequestId = intent.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0);
+            if (receivedWaitingRequestId == 0)
+            {
+                Logger.v(TAG + methodName, "Received waiting request is 0, error will be thrown, cannot find correct "
+                    + "callback to send back the result.");
+                throw new AuthenticationException(ADALError.AUTH_FAILED_NO_STATE, "Received waiting request id is 0.");
+            }
+          
+            final AuthenticationRequestState waitingRequest = getWaitingRequest(receivedWaitingRequestId);
+            
+            final String errorCode = intent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
+            if (!StringExtensions.IsNullOrBlank(errorCode))
+            {
+                final String errorMessage = intent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
+                final String returnedErrorMessage = "ErrorCode: " + errorCode + " ErrorMessage" + errorMessage + getCorrelationInfoFromWaitingRequest(waitingRequest);
+                Logger.v(TAG + methodName, returnedErrorMessage);
+                waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, returnedErrorMessage));
+            }
+            else
+            {
+                Logger.v(TAG + methodName, "Received token result from broker reqest resume.");
+                final AuthenticationResult brokerResult = processTokenResultFromBroker(intent);
+                if (brokerResult != null && brokerResult.getAccessToken() != null) 
+                {
+                    Logger.v(TAG + methodName, "Broker resume request successfully returns the access token.");
+                    waitingRequest.mDelagete.onSuccess(brokerResult);
+                }
+                else
+                {
+                    Logger.v(TAG + methodName, "No access token returned from broker resume request.");
+                    waitingRequest.mDelagete.onError(new AuthenticatorException("No access token returned from broker."));
+                }
+            }
+        }
+    }
+    
+    private AuthenticationResult processTokenResultFromBroker (final Intent intent)
+    {
+        final String accessToken = intent
+                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
+        final String accountName = intent
+                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
+        mBrokerProxy.saveAccount(accountName);
+        final long expireTime = intent.getLongExtra(
+                AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
+        final Date expire = new Date(expireTime);
+        final String idtoken = intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN);
+        final String tenantId = intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+        final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(intent.getExtras());
+        final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
+                expire, false, userinfo, tenantId, idtoken);
+        
+        return brokerResult;
+    }
+    
     /**
      * Version name for ADAL not for the app itself.
      * 

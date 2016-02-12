@@ -68,6 +68,12 @@ public class AuthenticationConstants {
          * callback.
          */
         public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = 2005;
+        
+        /**
+         * CA flow, device doesn't have company portal or azure authenticator installed. 
+         * Waiting for broker package to be installed, and resume request in broker. 
+         */
+        public static final int BROKER_REQUEST_RESUME = 2006;
     }
 
     public static final class UIRequest {
@@ -196,6 +202,8 @@ public class AuthenticationConstants {
         public static final String BACKGROUND_REQUEST_MESSAGE = "background.request";
 
         public static final String ACCOUNT_DEFAULT_NAME = "Default";
+        
+        public static final String BROKER_VERSION = "broker.version";
 
         /**
          * Authtoken type string.

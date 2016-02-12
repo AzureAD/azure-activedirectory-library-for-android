@@ -66,6 +66,8 @@ abstract class BasicWebViewClient extends WebViewClient {
     
     public abstract void cancelWebViewRequest();
     
+    public abstract void prepareForBrokerResumeRequest();
+    
     public abstract void setPKeyAuthStatus(boolean status);
     
     public abstract void postRunnable(Runnable item);    
@@ -262,7 +264,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                     .getUrlParameters(url);
             openLinkInBrowser(parameters.get(ApplicationReceiver.INSTALL_URL_KEY));
             view.stopLoading();
-            cancelWebViewRequest();
+            prepareForBrokerResumeRequest();
             return true;
         }
 

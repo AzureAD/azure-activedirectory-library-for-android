@@ -20,6 +20,9 @@ package com.microsoft.aad.adal;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -31,6 +34,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 
 import com.google.gson.Gson;
+import com.microsoft.aad.adal.AuthenticationConstants.Broker;
 
 /**
  * Receives system broadcast message for application install events. You need to
@@ -54,35 +58,48 @@ public class ApplicationReceiver extends BroadcastReceiver {
      * defined in your manifest.
      */
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(Context context, Intent intent) 
+    {
         // Check if the application is install and belongs to the broker package
-        if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
-            Logger.v(TAG, "Application install message is received");
-            if (intent != null && intent.getData() != null) {
-                Logger.v(TAG, "Installing:" + intent.getData().toString());
-                if (intent
-                        .getData()
-                        .toString()
-                        .equalsIgnoreCase(
-                                "package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)) {
-                    Logger.v(TAG, "Message is related to the broker");
+        final String methodName = ":onReceive";
+        if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) 
+        {
+            Logger.v(TAG + methodName, "Application install message is received");
+            if (intent != null && intent.getData() != null) 
+            {
+                Logger.v(TAG + methodName, "Installing:" + intent.getData().toString());
+                final String receivedInstalledPackageName = intent.getData().toString();
+                if (receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME) ||
+                        receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationSettings.INSTANCE.getBrokerPackageName()))
+                {
+                    Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
                     String request = getInstallRequestInthisApp(context);
-                    if (!StringExtensions.IsNullOrBlank(request)) {
-                        Logger.v(TAG, "Resume request in broker");
+                    if (!StringExtensions.IsNullOrBlank(request)) 
+                    {
                         resumeRequestInBroker(context, request);
+                    }
+                    else
+                    {
+                        Logger.v(TAG + methodName, "No request saved in sharedpreferences, cannot resume broker request.");
                     }
                 }
             }
         }
     }
 
-    public static void saveRequest(Context ctx, AuthenticationRequest request, String url) {
-        Logger.v(TAG, "ApplicationReceiver:saveRequest");
+    public static void saveRequest(final Context ctx, final AuthenticationRequest request, final String url) 
+    {
+        final String methodName = ":saveRequest";
+        
+        Logger.v(TAG + methodName, "ApplicationReceiver starts to save the request in shared preference.");
         SharedPreferences prefs = ctx.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
                 Activity.MODE_PRIVATE);
+        
         if (prefs != null) {
             HashMap<String, String> parameters = StringExtensions.getUrlParameters(url);
-            if (parameters != null && parameters.containsKey(INSTALL_UPN_KEY)) {
+            if (parameters != null && parameters.containsKey(INSTALL_UPN_KEY)) 
+            {
+                Logger.v(TAG + methodName, "Coming redirect contains the UNP, setting it on the request for both loginhint and broker account name.");
                 request.setLoginHint(parameters.get(INSTALL_UPN_KEY));
                 request.setBrokerAccountName(parameters.get(INSTALL_UPN_KEY));
             }
@@ -91,6 +108,10 @@ public class ApplicationReceiver extends BroadcastReceiver {
             String jsonRequest = gson.toJson(request);
             prefsEditor.putString(INSTALL_REQUEST_KEY, jsonRequest);
             prefsEditor.apply();
+        }
+        else
+        {
+            Logger.v(TAG + methodName, "SharePreference is null, nothing saved.");
         }
     }
 
@@ -131,45 +152,74 @@ public class ApplicationReceiver extends BroadcastReceiver {
         }
     }
 
-    private void resumeRequestInBroker(Context ctx, String request) {
-        Logger.v(TAG, "ApplicationReceiver:resumeRequestInBroker");
+    private void resumeRequestInBroker(final Context context, final String request) 
+    {
+        final String methodName = ":resumeRequestInBroker";
+        Logger.v(TAG + methodName, "Start resuming request in broker");
         Gson gson = new Gson();
-        AuthenticationRequest pendingRequest = gson.fromJson(request, AuthenticationRequest.class);
-        Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_PICK);
-        intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST, pendingRequest);
-        intent.putExtra(AuthenticationConstants.Broker.CALLER_INFO_PACKAGE, ctx.getPackageName());
-        intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME,
+        final AuthenticationRequest pendingRequest = gson.fromJson(request, AuthenticationRequest.class);
+        ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
+        
+        sThreadExecutor.submit(new Callable<Object>() 
+        {
+            @Override
+            public Object call() 
+            {
+                Logger.v(TAG + methodName, "Running task in thread:" + android.os.Process.myTid() + ", trying to get intent for "
+                        + "broker activity.");
+                BrokerProxy brokerProxy = new BrokerProxy(context);
+                final Intent resumeIntent = brokerProxy.getIntentForBrokerActivity(pendingRequest);
+                resumeIntent.setAction(Intent.ACTION_PICK);
+                
+                Logger.v(TAG + methodName, "Setting flag for broker resume request for calling package " + context.getPackageName());
+                resumeIntent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME,
                 AuthenticationConstants.Broker.BROKER_REQUEST_RESUME);
-        intent.setPackage(AuthenticationSettings.INSTANCE.getBrokerPackageName());
-        intent.setClassName(AuthenticationSettings.INSTANCE.getBrokerPackageName(),
-                AuthenticationSettings.INSTANCE.getBrokerPackageName()
-                        + ".ui.AccountChooserActivity");
+                resumeIntent.putExtra(AuthenticationConstants.Broker.CALLER_INFO_PACKAGE, context.getPackageName());
 
-        PackageManager packageManager = ctx.getPackageManager();
+                final String brokerProtocolVersion = resumeIntent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
+                if (StringExtensions.IsNullOrBlank(brokerProtocolVersion))
+                {
+                    Logger.v(TAG + methodName, "Broker request resume is not supported in the older version of broker.");
+                    return null;
+                }
+                
+                PackageManager packageManager = context.getPackageManager();
+                // Get activities that can handle the intent
+                List<ResolveInfo> activities = packageManager.queryIntentActivities(resumeIntent, 0);
 
-        // Get activities that can handle the intent
-        List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
+                // Check if 1 or more were returned
+                boolean isIntentSafe = activities.size() > 0;
 
-        // Check if 1 or more were returned
-        boolean isIntentSafe = activities.size() > 0;
-
-        if (isIntentSafe) {
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-            ctx.startActivity(intent);
-        }
+                if (isIntentSafe) 
+                {
+                    Logger.v(TAG + methodName, "It's safe to start .ui.AccountChooserActivity.");
+                    resumeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                    context.startActivity(resumeIntent);
+                }
+                else
+                {
+                    Logger.v(TAG + methodName, "Unable to resolve .ui.AccountChooserActivity.");
+                }
+                return null;
+            }
+        });
     }
 
-    public static String getInstallRequestInthisApp(Context ctx) {
-        Logger.v(TAG, "ApplicationReceiver:getInstallRequestInthisApp");
-        SharedPreferences prefs = ctx.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
+    public static String getInstallRequestInthisApp(final Context context) 
+    {
+        final String methodName = ":getInstallRequestInthisApp";
+        
+        Logger.v(TAG + methodName, "Retrieve saved request from shared preference.");
+        SharedPreferences prefs = context.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
                 Activity.MODE_PRIVATE);
-        if (prefs != null && prefs.contains(INSTALL_REQUEST_KEY)) {
+        if (prefs != null && prefs.contains(INSTALL_REQUEST_KEY)) 
+        {
             String request = prefs.getString(INSTALL_REQUEST_KEY, "");
-            Logger.d(TAG, "Install request:" + request);
+            Logger.d(TAG + methodName, "Install request:" + request);
             return request;
         }
 
+        Logger.v(TAG + methodName, "Unable to retrieve saved request from shared preference.");
         return "";
     }
 }
