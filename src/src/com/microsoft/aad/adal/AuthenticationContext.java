@@ -744,10 +744,6 @@ public class AuthenticationContext {
                 {
                     Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker installation. Once "
                             + "broker is installed, request will be resumed and result will be received");
-//                    BrokerResumeResultReceiver receiver = new BrokerResumeResultReceiver(mHandler);
-//                    final Intent intent = new Intent();
-//                    intent.putExtra("BrokerResumeResultReceiver", receiver);
-//                    mContext.startService(intent);
                 }
                 else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
@@ -1155,7 +1151,8 @@ public class AuthenticationContext {
     {
         Logger.v(TAG, "Token request started");
 
-        BrokerInstallLocalReceiver receiver = new BrokerInstallLocalReceiver();
+        //Register the broker resume result receiver.
+        BrokerResumeResultReceiver receiver = new BrokerResumeResultReceiver();
         (new ContextWrapper(mContext)).registerReceiver(receiver, new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME), null, mHandler);
         
         // BROKER flow intercepts here
@@ -1935,9 +1932,9 @@ public class AuthenticationContext {
         }
     }
 
-    protected class BrokerInstallLocalReceiver extends BroadcastReceiver
+    protected class BrokerResumeResultReceiver extends BroadcastReceiver
     {
-        public BrokerInstallLocalReceiver() {}
+        public BrokerResumeResultReceiver() {}
 
         @Override
         public void onReceive(Context context, Intent intent) 
