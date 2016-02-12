@@ -77,6 +77,8 @@ public class AuthenticationResult implements Serializable {
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
     private boolean mInitialRequest;
+    
+    private String mFamilyClientId;
 
     AuthenticationResult() {
         mCode = null;
@@ -116,6 +118,21 @@ public class AuthenticationResult implements Serializable {
         mErrorDescription = errDescription;
         mErrorCodes = errorCodes;
         mStatus = AuthenticationStatus.Failed;
+    }
+    
+    AuthenticationResult(final String accessToken, final String refreshToken, final Date expires, final boolean isBroad,
+            final UserInfo userInfo, final String tenantId, final String idToken, final String familyClientId) 
+    {
+        mCode = null;
+        mAccessToken = accessToken;
+        mRefreshToken = refreshToken;
+        mExpiresOn = expires;
+        mIsMultiResourceRefreshToken = isBroad;
+        mStatus = AuthenticationStatus.Succeeded;
+        mUserInfo = userInfo;
+        mTenantId = tenantId;
+        mIdToken = idToken;
+        mFamilyClientId = familyClientId;
     }
 
     /**
@@ -305,5 +322,15 @@ public class AuthenticationResult implements Serializable {
     
     void setRefreshToken(String refreshToken){
         mRefreshToken = refreshToken;
+    }
+    
+    final String getFamilyClientId()
+    {
+        return mFamilyClientId;
+    }
+    
+    final void setFamilyClientId (final String familyClientId)
+    {
+        mFamilyClientId = familyClientId;
     }
 }

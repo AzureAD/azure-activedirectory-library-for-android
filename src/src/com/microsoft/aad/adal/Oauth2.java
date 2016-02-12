@@ -219,7 +219,9 @@ class Oauth2 {
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
-        } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
+        } 
+        else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) 
+        {
             // Token response
             boolean isMultiResourcetoken = false;
             String expires_in = response.get("expires_in");
@@ -252,11 +254,20 @@ class Oauth2 {
                     Logger.v(TAG, "IdToken is not provided");
                 }
             }
+            
+            String familyClientId = null;
+            if (response.containsKey(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID))
+            {
+                familyClientId = response.get(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID);
+            }
 
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
                     isMultiResourcetoken, userinfo, tenantId, rawIdToken);
+            
+            //Set family client id on authentication result for TokenCacheItem to pick up
+            result.setFamilyClientId(familyClientId);
         }
 
         return result;
