@@ -43,7 +43,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
 
     static final String TAG = "ClientCertHandlerTests";
 
-    private static final String CERT_REDIRECT = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT;
+    private static final String CERT_REDIRECT = AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT;
 
     private static final String CERT_AUTH_TYPE = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE;
 

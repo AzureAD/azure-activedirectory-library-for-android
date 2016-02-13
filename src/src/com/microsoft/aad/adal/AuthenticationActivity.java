@@ -609,12 +609,25 @@ public class AuthenticationActivity extends Activity {
         
         public boolean processInvalidUrl(final WebView view, String url) {
             if (isBrokerRequest(getIntent())
-                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) {
+                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) 
+            {
+            	Logger.e(TAG, String.format(
+                        "The RedirectUri is not as expected. Received %s and expected %s", url,
+                        mRedirectUrl), "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
                 returnError(ADALError.DEVELOPER_REDIRECTURI_INVALID, String.format(
                         "The RedirectUri is not as expected. Received %s and expected %s", url,
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
+            }
+            
+            //check if the redirect URL is under SSL protected
+            if(!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX))
+            {
+            	Logger.e(TAG, "the redirected URL is not SSL protected.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
+            	returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, "the redirected URL is not SSL protected.");
+            	view.stopLoading();
+            	return true;
             }
 
             return false;

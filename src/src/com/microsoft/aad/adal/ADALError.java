@@ -466,6 +466,11 @@ public enum ADALError {
      * WebView returned empty redirect url.
      */
     WEBVIEW_RETURNED_EMPTY_REDIRECT_URL("Webview returned empty redirect url"),
+    
+    /**
+     * WebView  redirect url is not SSL protected.
+     */
+    WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED("Webview redirect url is not SSL protected"),
 
     /**
      * Device certificate API has exception.

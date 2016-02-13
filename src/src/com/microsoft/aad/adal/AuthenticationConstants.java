@@ -303,7 +303,7 @@ public class AuthenticationConstants {
         
         public static final String AZURE_AUTHENTICATOR_APP_PACKAGE_NAME = "com.azure.authenticator";
 
-        public static final String PKEYAUTH_REDIRECT = "urn:http-auth:PKeyAuth";
+        public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
 
         public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
 
@@ -318,6 +318,8 @@ public class AuthenticationConstants {
         public static final String BROWSER_EXT_INSTALL_PREFIX = "msauth://";
 
         public static final String CALLER_INFO_PACKAGE = "caller.info.package";
+        
+        public static final String REDIRECT_SSL_PREFIX = "https://";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";

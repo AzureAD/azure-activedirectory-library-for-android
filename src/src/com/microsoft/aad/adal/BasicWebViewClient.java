@@ -148,11 +148,14 @@ abstract class BasicWebViewClient extends WebViewClient {
         showSpinner(true);
     }
     
+    
+    
     @Override
+    //Give the host application a chance to take over the control when a new url is about to be loaded in the current WebView.
     public boolean shouldOverrideUrlLoading(final WebView view, String url) {
         Logger.v(TAG, "Navigation is detected");
-        if (url.startsWith(AuthenticationConstants.Broker.PKEYAUTH_REDIRECT)) {
-            Logger.v(TAG, "Webview detected request for pkeyauth challenge.");
+        if (url.startsWith(AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT)) {
+            Logger.v(TAG, "Webview detected request for client certificate");
             view.stopLoading();
             setPKeyAuthStatus(true);
             final String challangeUrl = url;
