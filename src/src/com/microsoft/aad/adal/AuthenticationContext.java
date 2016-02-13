@@ -1628,7 +1628,9 @@ public class AuthenticationContext {
                 if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
                     return acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
                 } else {
-                    throw new AuthenticationException(ADALError.AUTH_FAILED_SERVER_ERROR, request.getLogInfo() + errLogInfo);
+                    callbackHandle.onError(
+                            new AuthenticationException(ADALError.AUTH_FAILED_SERVER_ERROR, request.getLogInfo() + errLogInfo));
+                    return null;
                 }
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
