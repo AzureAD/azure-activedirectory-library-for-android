@@ -470,7 +470,7 @@ public enum ADALError {
     /**
      * WebView  redirect url is not SSL protected.
      */
-    WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED("Webview redirect url is not SSL protected"),
+    WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED("The webview was redirected to an unsafe URL"),
 
     /**
      * Device certificate API has exception.
