@@ -609,7 +609,7 @@ public class AuthenticationActivity extends Activity {
         }
         
         public boolean processInvalidUrl(final WebView view, String url) {
-        	final String methodName = ".processInvalidUrl";
+        	final String methodName = ":processInvalidUrl";
             if (isBrokerRequest(getIntent())
                     && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) 
             {

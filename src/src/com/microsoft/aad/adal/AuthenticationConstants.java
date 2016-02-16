@@ -303,7 +303,7 @@ public class AuthenticationConstants {
         
         public static final String AZURE_AUTHENTICATOR_APP_PACKAGE_NAME = "com.azure.authenticator";
 
-        public static final String CLIENT_TLS_REDIRECT = "urn:http-auth:PKeyAuth";
+        public static final String PKEYAUTH_REDIRECT = "urn:http-auth:PKeyAuth";
 
         public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
 
