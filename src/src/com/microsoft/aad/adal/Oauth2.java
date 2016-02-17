@@ -349,7 +349,7 @@ class Oauth2 {
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
-            throw new IllegalArgumentException("webRequestHandler");
+            throw new IllegalArgumentException("webRequestHandler is null.");
         }
 
         // Token request message

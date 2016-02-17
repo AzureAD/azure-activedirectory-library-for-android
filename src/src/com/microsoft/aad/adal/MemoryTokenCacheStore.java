@@ -23,6 +23,7 @@ import java.io.NotActiveException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * tokenCacheItem is not persisted. Memory cache does not keep static items.
@@ -113,6 +114,15 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         Logger.v(TAG, "contains Item from cache. Key:" + key.toString());
         synchronized (mCacheLock) {
             return mCache.get(key) != null;
+        }
+    }
+
+    @Override
+    public Iterator<TokenCacheItem> getAll() 
+    {
+        Logger.v(TAG, "Retrieving all items from cache. ");
+        synchronized (mCacheLock) {
+            return mCache.values().iterator();
         }
     }
 }
