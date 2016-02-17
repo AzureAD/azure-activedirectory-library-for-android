@@ -204,6 +204,8 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_DEFAULT_NAME = "Default";
         
         public static final String BROKER_VERSION = "broker.version";
+        
+        public static final String BROKER_RESULT_RETURNED = "broker.result.returned";
 
         /**
          * Authtoken type string.

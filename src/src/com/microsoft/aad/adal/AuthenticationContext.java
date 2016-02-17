@@ -1939,7 +1939,7 @@ public class AuthenticationContext {
         @Override
         public void onReceive(Context context, Intent intent) 
         {
-            final String methodName = ":BrokerInstallLocalReceiver:onReceive";
+            final String methodName = ":BrokerResumeResultReceiver:onReceive";
             Logger.d(TAG + methodName, "Received result from broker.");
             final int receivedWaitingRequestId = intent.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0);
             if (receivedWaitingRequestId == 0)
@@ -1961,39 +1961,40 @@ public class AuthenticationContext {
             }
             else
             {
-                Logger.v(TAG + methodName, "Received token result from broker reqest resume.");
-                final AuthenticationResult brokerResult = processTokenResultFromBroker(intent);
-                if (brokerResult != null && brokerResult.getAccessToken() != null) 
+                final boolean isBrokerCompleteTokenRequest = intent.getBooleanExtra(AuthenticationConstants.Broker.BROKER_RESULT_RETURNED, false);
+                if (isBrokerCompleteTokenRequest)
                 {
-                    Logger.v(TAG + methodName, "Broker resume request successfully returns the access token.");
-                    waitingRequest.mDelagete.onSuccess(brokerResult);
+                    Logger.v(TAG + methodName, "Broker already completed the token request, calling acquireTokenSilentSync to retrieve token from broker.");
+                    final AuthenticationRequest authenticationRequest = waitingRequest.mRequest;
+                    String userId = intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
+                    if (StringExtensions.IsNullOrBlank(userId))
+                    {
+                        userId = authenticationRequest.getUserId();
+                    }
+                    
+                    if (StringExtensions.IsNullOrBlank(userId))
+                    {
+                        userId = authenticationRequest.getLoginHint();
+                    }
+
+                    try
+                    {
+                        final AuthenticationResult authResult = acquireTokenSilentSync(authenticationRequest.getResource(), authenticationRequest.getClientId(), userId);
+                        waitingRequest.mDelagete.onSuccess(authResult);
+                    }
+                    catch (Exception exception)
+                    {
+                        waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, exception.getMessage()));
+                    }
+                    
                 }
                 else
                 {
-                    Logger.v(TAG + methodName, "No access token returned from broker resume request.");
-                    waitingRequest.mDelagete.onError(new AuthenticatorException("No access token returned from broker."));
+                    Logger.v(TAG + methodName, "Broker doesn't send back error nor the completion notification.");
+                    waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, "Broker doesn't send back error nor the completion notification."));
                 }
             }
         }
-    }
-    
-    private AuthenticationResult processTokenResultFromBroker (final Intent intent)
-    {
-        final String accessToken = intent
-                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
-        final String accountName = intent
-                .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_NAME);
-        mBrokerProxy.saveAccount(accountName);
-        final long expireTime = intent.getLongExtra(
-                AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
-        final Date expire = new Date(expireTime);
-        final String idtoken = intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN);
-        final String tenantId = intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
-        final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(intent.getExtras());
-        final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
-                expire, false, userinfo, tenantId, idtoken);
-        
-        return brokerResult;
     }
     
     /**
