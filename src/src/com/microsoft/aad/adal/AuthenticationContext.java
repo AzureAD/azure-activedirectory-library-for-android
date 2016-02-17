@@ -1628,8 +1628,10 @@ public class AuthenticationContext {
                 if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
                     return acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
                 } else {
+                    // returns extended AuthenticationException so that client app can record event that refresh token was wiped and why
+                    // it doesn't use another error code for backward compatibility
                     callbackHandle.onError(
-                            new AuthenticationException(ADALError.AUTH_FAILED_SERVER_ERROR, request.getLogInfo() + errLogInfo));
+                            new AccessTokenException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, request.getLogInfo() + errLogInfo));
                     return null;
                 }
             } else {
