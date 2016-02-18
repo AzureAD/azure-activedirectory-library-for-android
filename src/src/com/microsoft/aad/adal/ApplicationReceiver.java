@@ -25,6 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -52,6 +54,8 @@ public class ApplicationReceiver extends BroadcastReceiver {
     private static final String INSTALL_UPN_KEY = "username";
 
     public static final String INSTALL_URL_KEY = "app_link";
+    
+    private String installedPackageName = null;
 
     /**
      * This method receives message for any application status based on filters
@@ -73,6 +77,10 @@ public class ApplicationReceiver extends BroadcastReceiver {
                         receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationSettings.INSTANCE.getBrokerPackageName()))
                 {
                     Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
+                    
+                    installedPackageName = receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)? 
+                    		AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME : AuthenticationConstants.Broker.PACKAGE_NAME;
+                    
                     String request = getInstallRequestInthisApp(context);
                     if (!StringExtensions.IsNullOrBlank(request)) 
                     {
@@ -99,7 +107,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
             HashMap<String, String> parameters = StringExtensions.getUrlParameters(url);
             if (parameters != null && parameters.containsKey(INSTALL_UPN_KEY)) 
             {
-                Logger.v(TAG + methodName, "Coming redirect contains the UNP, setting it on the request for both loginhint and broker account name.");
+                Logger.v(TAG + methodName, "Coming redirect contains the UPN, setting it on the request for both loginhint and broker account name.");
                 request.setLoginHint(parameters.get(INSTALL_UPN_KEY));
                 request.setBrokerAccountName(parameters.get(INSTALL_UPN_KEY));
             }
@@ -192,6 +200,19 @@ public class ApplicationReceiver extends BroadcastReceiver {
 
                 if (isIntentSafe) 
                 {
+                    if (!isRunningInForeground(context, installedPackageName))
+                    {
+                        Logger.v(TAG + methodName, "Broker " + installedPackageName + " is not running in foreground yet. "
+                            + "Thread will be sleeping for 2 seconds to wait for broker package going foreground.");
+                        try 
+                        {
+                            Thread.sleep(2000);
+                        } 
+                        catch (InterruptedException e) 
+                        {
+                            Logger.v(TAG + methodName, "Receiving InterruptedException for thread sleep: " + e.getMessage());
+                        }
+                    }
                     Logger.v(TAG + methodName, "It's safe to start .ui.AccountChooserActivity.");
                     resumeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                     context.startActivity(resumeIntent);
@@ -203,6 +224,21 @@ public class ApplicationReceiver extends BroadcastReceiver {
                 return null;
             }
         });
+    }
+    
+    protected boolean isRunningInForeground(final Context context, final String packageName) 
+    {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService( Context.ACTIVITY_SERVICE );
+        List<RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+        for(RunningAppProcessInfo appProcess : appProcesses)
+        {
+            if(appProcess.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND)
+            {
+                return appProcess.processName.equalsIgnoreCase(packageName);
+            }
+        }
+        
+        return false;
     }
 
     public static String getInstallRequestInthisApp(final Context context) 
