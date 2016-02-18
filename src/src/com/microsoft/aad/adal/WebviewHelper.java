@@ -136,7 +136,7 @@ public class WebviewHelper {
     }
 
     public PreKeyAuthInfo getPreKeyAuthInfo(String challengeUrl)
-            throws UnsupportedEncodingException {
+            throws UnsupportedEncodingException, UnexpectedServerResponseException {
         IJWSBuilder jwsBuilder = new JWSBuilder();
 
         ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(jwsBuilder);

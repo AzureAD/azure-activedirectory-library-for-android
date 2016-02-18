@@ -72,7 +72,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
     }
 
     public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
-            final Runnable testCode) {
+            final ThrowableRunnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
@@ -142,4 +142,8 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
     }
 
+    interface ThrowableRunnable
+    {
+        void run( ) throws Exception;
+    }
 }

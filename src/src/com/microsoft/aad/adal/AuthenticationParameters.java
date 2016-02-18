@@ -166,7 +166,7 @@ public class AuthenticationParameters {
                 if (webResponse != null) {
                     try {
                         onCompleted(null, parseResponse(webResponse));
-                    } catch (IllegalArgumentException exc) {
+                    } catch (UnexpectedServerResponseException exc) {
                         onCompleted(exc, null);
                     }
                 }
@@ -191,11 +191,11 @@ public class AuthenticationParameters {
      * @return {@link AuthenticationParameters}
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
-            String authenticateHeader) {
+            String authenticateHeader) throws UnexpectedServerResponseException{
         AuthenticationParameters authParams = null;
 
         if (StringExtensions.IsNullOrBlank(authenticateHeader)) {
-            throw new IllegalArgumentException(AUTH_HEADER_MISSING);
+            throw new UnexpectedServerResponseException(AUTH_HEADER_MISSING);
         } else {
             Pattern p = Pattern.compile(REGEX);
             Matcher m = p.matcher(authenticateHeader);
@@ -239,7 +239,7 @@ public class AuthenticationParameters {
                         headerItems.put(key, value);
                     } else {
                         // invalid format
-                        throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
+                        throw new UnexpectedServerResponseException(AUTH_HEADER_INVALID_FORMAT);
                     }
                 }
 
@@ -250,17 +250,17 @@ public class AuthenticationParameters {
                             StringExtensions.removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
                 } else {
                     // invalid format
-                    throw new IllegalArgumentException(AUTH_HEADER_MISSING_AUTHORITY);
+                    throw new UnexpectedServerResponseException(AUTH_HEADER_MISSING_AUTHORITY);
                 }
             } else {
-                throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
+                throw new UnexpectedServerResponseException(AUTH_HEADER_INVALID_FORMAT);
             }
         }
 
         return authParams;
     }
 
-    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) {
+    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) throws UnexpectedServerResponseException{
         // Depending on the service side implementation for this resource
         if (webResponse.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
             Map<String, List<String>> responseHeaders = webResponse.getResponseHeaders();
@@ -273,8 +273,8 @@ public class AuthenticationParameters {
                 }
             }
 
-            throw new IllegalArgumentException(AUTH_HEADER_MISSING);
+            throw new UnexpectedServerResponseException(AUTH_HEADER_MISSING);
         }
-        throw new IllegalArgumentException(AUTH_HEADER_WRONG_STATUS);
+        throw new UnexpectedServerResponseException(AUTH_HEADER_WRONG_STATUS);
     }
 }

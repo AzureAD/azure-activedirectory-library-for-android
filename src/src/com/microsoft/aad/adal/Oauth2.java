@@ -522,7 +522,7 @@ class Oauth2 {
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
-        } catch (IllegalArgumentException e) {
+        } catch (UnexpectedServerResponseException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
             throw e;

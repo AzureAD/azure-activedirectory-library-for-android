@@ -20,6 +20,7 @@ package com.microsoft.aad.adal;
 
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
@@ -183,6 +184,24 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 view.loadUrl(loadUrl, headers);
                             }
                         });
+                    } catch (UnexpectedServerResponseException e) {
+                        Logger.e(TAG, "Argument exception", e.getMessage(),
+                                ADALError.ARGUMENT_EXCEPTION, e);
+                        // It should return error code and finish the
+                        // activity, so that onActivityResult implementation
+                        // returns errors to callback.
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra(
+                                AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
+                                e);
+                        if (mRequest != null) {
+                            resultIntent.putExtra(
+                                    AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                                    mRequest);
+                        }
+                        sendResponse(
+                                AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
+                                resultIntent);
                     } catch (AuthenticationException e) {
                         Logger.e(TAG, "It is failed to create device certificate response",
                                 e.getMessage(), ADALError.DEVICE_CERTIFICATE_RESPONSE_FAILED, e);
@@ -250,7 +269,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
     
     private boolean hasCancelError(String redirectUrl) {
-        HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
+        Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
         String error = parameters.get("error");
         String errorDescription = parameters.get("error_description");
 
