@@ -1337,9 +1337,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 VALID_AUTHORITY, false, mockCache);
         
         setConnectionAvailable(context, true);
-//        final MockActivity testActivity = new MockActivity();
-//        final CountDownLatch signal = new CountDownLatch(1);
-//        testActivity.mSignal = signal;
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         
         // Do silent token request and return idtoken in the result
