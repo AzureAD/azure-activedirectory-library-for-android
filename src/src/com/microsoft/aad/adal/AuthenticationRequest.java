@@ -24,7 +24,7 @@ import java.util.UUID;
 /**
  * Represent request and keeps authorization code and similar info.
  */
-class AuthenticationRequest implements Serializable {
+public class AuthenticationRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

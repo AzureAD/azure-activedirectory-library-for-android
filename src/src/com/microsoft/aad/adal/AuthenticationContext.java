@@ -1145,7 +1145,7 @@ public class AuthenticationContext {
      * @throws UnsupportedEncodingException
      * @return true if the RedictUri is valid
      */
-    private boolean verifyBrokerRedirectUri(CallbackHandler callbackHandle, final AuthenticationRequest request){
+    private boolean verifyBrokerRedirectUri(CallbackHandler callbackHandle, final AuthenticationRequest request){   
         final String methodName = ":verifyBrokerRedirectUri";
         String errMsg = new String();        
         String inputUri = request.getRedirectUri();
