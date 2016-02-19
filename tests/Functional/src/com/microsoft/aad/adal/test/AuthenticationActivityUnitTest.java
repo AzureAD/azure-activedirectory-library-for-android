@@ -225,7 +225,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.sValidIssuer = true;
         MockDeviceCertProxy.sPrivateKey = null;
-        String url = AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT
+        String url = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
                 + "?Nonce=nonce1234&CertAuthorities=ABC&Version=1.0&SubmitUrl=submiturl&Context=serverContext";
         WebViewClient client = getCustomWebViewClient();
         WebView mockview = new WebView(getActivity().getApplicationContext());
@@ -253,6 +253,28 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         assertEquals("Exception has AdalError for key", ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION,
                 exception.getCode());
     }
+    
+    
+    @SmallTest
+    @UiThreadTest    
+    public void testWebview_sslprotectedredirectURL() throws IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            InterruptedException, ExecutionException {
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        /*
+         * case 1: url = "http://login.microsoftonline.com/"
+         * case 2: url = "https://login.microsoftonline.com/"
+         */
+        String url = "https://login.microsoftonline.com/";
+        WebViewClient client = getCustomWebViewClient();
+        WebView mockview = new WebView(getActivity().getApplicationContext());
+        ReflectionUtils.setFieldValue(activity, "mSpinner", null);
+        //shouldOverrideUrlLoading should prevent non https redirects in the web view
+        assertEquals(false,client.shouldOverrideUrlLoading(mockview, url));
+    }
+    
 
     private WebViewClient getCustomWebViewClient() throws NoSuchMethodException,
             ClassNotFoundException, InstantiationException, IllegalAccessException,
