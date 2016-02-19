@@ -181,7 +181,7 @@ public class TokenCacheItem implements Serializable {
         return mFamilyClientId;
     }
     
-    public final void setFamilyClientId(final String familyClientId)
+    final void setFamilyClientId(final String familyClientId)
     {
         this.mFamilyClientId = familyClientId;
     }
