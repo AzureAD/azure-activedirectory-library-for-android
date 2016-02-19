@@ -1483,7 +1483,6 @@ public class AuthenticationContext {
             // If still cannot find an item, try with family clientid
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken()))
             {
-//                Logger.v(TAG + methodName, "Skip family Item is set to " + Boolean.toString(skipFamilyItem));
                 Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
                 item = findFamilyItemForUser(request.getUserIdentifierType(), userId);
             }
