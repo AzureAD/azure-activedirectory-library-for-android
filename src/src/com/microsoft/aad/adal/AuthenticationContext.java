@@ -1270,12 +1270,12 @@ public class AuthenticationContext {
 
         // Trying to find refresh token first, if existed, will try to use the refresh token. 
         Logger.v(TAG, "Checking refresh tokens");
-        RefreshItem refreshItem = getRefreshToken(request);
+        RefreshItem refreshItem = getRefreshItem(request);
         AuthenticationResult authResult = null;
         if (!promptUser(request.getPrompt()) && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token");
-            authResult = refreshToken(callbackHandle, activity, useDialog, request, refreshItem, true);
+            authResult = getTokenWithRefreshToken(callbackHandle, activity, useDialog, request, refreshItem, true);
             if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken()))
             {
                 callbackHandle.onSuccess(authResult);
@@ -1454,7 +1454,7 @@ public class AuthenticationContext {
         }
     }
 
-    private RefreshItem getRefreshToken(final AuthenticationRequest request) 
+    private RefreshItem getRefreshItem(final AuthenticationRequest request) 
     {
         final String methodName = ":getRefreshToken";
         RefreshItem refreshItem = null;
@@ -1527,7 +1527,8 @@ public class AuthenticationContext {
                     && tokenUserInfo.getUserId() != null 
                     && tokenUserInfo.getUserId().equalsIgnoreCase(userId))
                 {
-                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId()))
+                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
+                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken()))
                     {
                         Logger.v(TAG + methodName, "Found family item matching the given user id.");
                         return tokenCacheItem;
@@ -1545,7 +1546,8 @@ public class AuthenticationContext {
                 if (tokenUserInfo != null && tokenUserInfo.getDisplayableId() != null
                     && tokenUserInfo.getDisplayableId().equalsIgnoreCase(userId))
                 {
-                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId()))
+                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
+                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken()))
                     {
                         Logger.v(TAG + methodName, "Found family item matching the given user id.");
                         return tokenCacheItem;
@@ -1670,7 +1672,7 @@ public class AuthenticationContext {
      * @param externalCallback
      * @return
      */
-    private AuthenticationResult refreshToken(final CallbackHandler callbackHandle,
+    private AuthenticationResult getTokenWithRefreshToken(final CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request, final RefreshItem refreshItem,
             final boolean useCache) {
@@ -1954,7 +1956,7 @@ public class AuthenticationContext {
 
                 // Follow refresh logic now. Authority is valid or
                 // skipped validation
-                refreshToken(callbackHandle, null, false, request, refreshItem, false);
+                getTokenWithRefreshToken(callbackHandle, null, false, request, refreshItem, false);
             }
         });
     }
