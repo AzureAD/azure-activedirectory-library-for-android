@@ -56,6 +56,8 @@ public class ApplicationReceiver extends BroadcastReceiver {
     public static final String INSTALL_URL_KEY = "app_link";
     
     private String installedPackageName = null;
+    
+    private BrokerProxy brokerProxy;
 
     /**
      * This method receives message for any application status based on filters
@@ -71,7 +73,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
             Logger.v(TAG + methodName, "Application install message is received");
             if (intent != null && intent.getData() != null) 
             {
-                Logger.v(TAG + methodName, "Installing:" + intent.getData().toString());
+                Logger.v(TAG + methodName, "ApplicationReceiver detectes the installation of " + intent.getData().toString());
                 final String receivedInstalledPackageName = intent.getData().toString();
                 if (receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME) ||
                         receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationSettings.INSTANCE.getBrokerPackageName()))
@@ -79,10 +81,11 @@ public class ApplicationReceiver extends BroadcastReceiver {
                     Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
                     
                     installedPackageName = receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)? 
-                    		AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME : AuthenticationConstants.Broker.PACKAGE_NAME;
+                            AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME : AuthenticationConstants.Broker.PACKAGE_NAME;
                     
                     String request = getInstallRequestInthisApp(context);
-                    if (!StringExtensions.IsNullOrBlank(request)) 
+                    brokerProxy = new BrokerProxy(context);
+                    if (!StringExtensions.IsNullOrBlank(request) && brokerProxy.canSwitchToBroker()) 
                     {
                         resumeRequestInBroker(context, request);
                     }
@@ -175,7 +178,6 @@ public class ApplicationReceiver extends BroadcastReceiver {
             {
                 Logger.v(TAG + methodName, "Running task in thread:" + android.os.Process.myTid() + ", trying to get intent for "
                         + "broker activity.");
-                BrokerProxy brokerProxy = new BrokerProxy(context);
                 final Intent resumeIntent = brokerProxy.getIntentForBrokerActivity(pendingRequest);
                 resumeIntent.setAction(Intent.ACTION_PICK);
                 

@@ -1153,9 +1153,9 @@ public class AuthenticationContext {
     {
         Logger.v(TAG, "Token request started");
 
-        //Register the broker resume result receiver.
-        
-        (new ContextWrapper(mContext)).registerReceiver(brokerResumeResultReceiver, new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME), null, mHandler);
+        //Register the broker resume result receiver with intent filter as broker_request_resume and specific app package name
+        (new ContextWrapper(mContext)).registerReceiver(brokerResumeResultReceiver, 
+                new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME + mContext.getPackageName()), null, mHandler);
         
         // BROKER flow intercepts here
         // cache and refresh call happens through the authenticator service
@@ -1934,6 +1934,9 @@ public class AuthenticationContext {
         }
     }
 
+    /**
+     * Responsible for receiving message from broker indicating the broker has completed the token acquisition. 
+     */
     protected class BrokerResumeResultReceiver extends BroadcastReceiver
     {
         public BrokerResumeResultReceiver() {}
@@ -1982,10 +1985,22 @@ public class AuthenticationContext {
                     try
                     {
                         final AuthenticationResult authResult = acquireTokenSilentSync(authenticationRequest.getResource(), authenticationRequest.getClientId(), userId);
-                        waitingRequest.mDelagete.onSuccess(authResult);
+                        
+                        if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken()))
+                        {
+                            Logger.v(TAG + methodName, "Token received from acquireTokenSilentSync.");
+                            waitingRequest.mDelagete.onSuccess(authResult);
+                        }
+                        else
+                        {
+                            Logger.v(TAG + methodName, "acquireTokenSilentSync completes successfully, but token is not returned.");
+                            waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, 
+                                    "acquireTokenSilentSync completes successfully, but token is not returned." + getCorrelationInfoFromWaitingRequest(waitingRequest)));
+                        }
                     }
                     catch (Exception exception)
                     {
+                        Logger.e(TAG + methodName, "Receive exception from acquireTokenSilentCall", "", ADALError.AUTH_FAILED, exception);
                         waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, exception.getMessage()));
                     }
                     
