@@ -36,7 +36,6 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Handler;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -68,7 +67,6 @@ import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationRequest;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
@@ -341,7 +339,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
                     @Override
                     public void run() {
                         context.acquireToken(testActivity, "resource", "clientId", "redirectUri",
-                                "userid", null);                        
+                                "userid", null);
                     }
                 });
 
@@ -373,7 +371,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
                         context.acquireToken(testActivity, "resource", null, "redirectUri",
                                 "userid", testEmptyCallback);
                     }
-                });       
+                });
     }
 
     @SmallTest
@@ -547,7 +545,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Object o = constructor.newInstance(authority, resource, client, redirect, loginhint);
         return o;
     }
-  
 
     /**
      * Test throws for different missing arguments
@@ -1877,33 +1874,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertTrue("should have packagename", actual.contains(TEST_PACKAGE_NAME));
         assertTrue("should have signature url encoded",
                 actual.contains(URLEncoder.encode(testTag, AuthenticationConstants.ENCODING_UTF8)));
-    }
-    
-    public void testVerifyBrokerRedirectURI() throws Exception{
-    	/*
-    	 * test case for redirectUri
-    	 * case 1: prefix
-    	 * 
-    	 */
-		//String redirect = "msauth://com.example.userapp/QK0hWtPIQviyU3IX8AhunaS0IY4%3D";
-		String redirect = "http://userapp";
-		
-		FileMockContext mockContext = new FileMockContext(getContext());
-        final AuthenticationContext context = getAuthenticationContext(mockContext,
-                "https://login.windows.net/common", false, null);
-        setConnectionAvailable(context, true);
-        final MockActivity testActivity = new MockActivity();
-        final CountDownLatch signal = new CountDownLatch(1);
-        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
-        testActivity.mSignal = signal;
-
-        context.acquireToken(testActivity, "resource56", "clientId345", redirect, "userid123",
-                callback);
-        String actUri = context.getRedirectUriForBroker();
-        
-        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        assertNull("Error is null", callback.mException);
-	
     }
 
     private AuthenticationContext getAuthenticationContext(Context mockContext, String authority,
