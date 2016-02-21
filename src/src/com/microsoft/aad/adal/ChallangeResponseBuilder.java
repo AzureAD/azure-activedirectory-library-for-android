@@ -180,7 +180,6 @@ class ChallangeResponseBuilder {
 
     private ChallangeRequest getChallangeRequestFromHeader(final String headerValue)
             throws UnsupportedEncodingException, UnexpectedServerResponseException {
-    {
         final String methodName = ":getChallangeRequestFromHeader";
         
         if (StringExtensions.IsNullOrBlank(headerValue)) {
