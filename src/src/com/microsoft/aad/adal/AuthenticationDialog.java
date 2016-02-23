@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -106,6 +107,13 @@ class AuthenticationDialog {
                     }
                     return;
                 }
+
+                // Disable hardware acceleration in WebView if needed
+                if (!AuthenticationSettings.INSTANCE.isWebViewHardwareAccelerated()) {
+                    mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
+                    Log.d(TAG, "Hardware acceleration is disabled in WebView");
+                }
+
                 mWebView.getSettings().setJavaScriptEnabled(true);
                 mWebView.requestFocus(View.FOCUS_DOWN);
                 String userAgent = mWebView.getSettings().getUserAgentString();

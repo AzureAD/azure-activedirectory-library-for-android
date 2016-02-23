@@ -44,7 +44,6 @@ import javax.crypto.spec.SecretKeySpec;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -556,6 +555,54 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("log the message for correct Intent",
                 response2.message.contains(broadcastCancelMsg2));
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testWebview_HardwareAccelerationDisable() throws IllegalArgumentException, 
+           NoSuchFieldException, IllegalAccessException {
+        
+        //By default hardware acceleration should be enable.
+        assertTrue(AuthenticationSettings.INSTANCE.isWebViewHardwareAccelerated());
+        
+        // Disable webview hardware acceleration
+        AuthenticationSettings.INSTANCE.setWebViewHardwareAcceleration(false);
+        
+        startActivity(intentToStartActivity, null, null);
+
+        activity = getActivity();
+
+        // get field value to check
+        WebView webView = (WebView) ReflectionUtils.getFieldValue(activity,"mWebView");
+
+        // Assert WebView is not null
+        assertNotNull("WebView:: ", webView);
+
+        // If LayerType is LAYER_TYPE_SOFTWARE then HardwareAcceleration would be disabled
+        assertEquals("LayerType", WebView.LAYER_TYPE_SOFTWARE, webView.getLayerType());
+        
+        // Reset hardware acceleration to default value.
+        AuthenticationSettings.INSTANCE.setWebViewHardwareAcceleration(true);
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testWebview_HardwareAccelerationEnable() throws IllegalArgumentException, 
+           NoSuchFieldException, IllegalAccessException {
+
+        startActivity(intentToStartActivity, null, null);
+
+        activity = getActivity();
+
+        // get field value to check
+        WebView webView = (WebView) ReflectionUtils.getFieldValue(activity, "mWebView");
+
+        // Assert WebView is not null
+        assertNotNull("WebView:: ", webView);
+
+        // In case if webview is hardware accelerated then 
+        // its layer type should not be LAYER_TYPE_SOFTWARE
+        assertNotSame("LayerType", WebView.LAYER_TYPE_SOFTWARE, webView.getLayerType());
     }
 
     @Override

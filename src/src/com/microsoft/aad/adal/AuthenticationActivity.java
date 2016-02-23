@@ -203,9 +203,16 @@ public class AuthenticationActivity extends Activity {
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
         Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
-     // Create the Web View to show the page
+        // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
+        
+        // Disable hardware acceleration in WebView if needed
+        if (!AuthenticationSettings.INSTANCE.isWebViewHardwareAccelerated()) {
+            mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
+            Log.d(TAG, "Hardware acceleration is disabled in WebView");
+        }
+
         Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
 
