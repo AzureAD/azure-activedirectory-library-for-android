@@ -1288,7 +1288,7 @@ public class AuthenticationContext {
         // if it's silent request, will return the AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED.
         if (refreshItem == null || authResult == null || (authResult != null && StringExtensions.IsNullOrBlank(authResult.getAccessToken()))) 
         {
-            Logger.v(TAG, "Refresh token is not available");
+            Logger.v(TAG, "Refresh token is not available or refresh token request failed to return token.");
             if (!request.isSilent() && callbackHandle.callback != null
                     && (activity != null || useDialog)) 
             {
@@ -1481,10 +1481,18 @@ public class AuthenticationContext {
             }
             
             // If still cannot find an item, try with family clientid
+            // Disable this feature for ADFS authority
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken()))
             {
-                Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
-                item = findFamilyItemForUser(request.getUserIdentifierType(), userId);
+                if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority)))
+                {
+                    Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
+                    item = findFamilyItemForUser(request.getUserIdentifierType(), userId);
+                }
+                else 
+                {
+                    Logger.v(TAG + methodName, "No refresh token found, skip the family client id item lookup for ADFS authority.");
+                }
             }
 
             if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
@@ -1529,7 +1537,7 @@ public class AuthenticationContext {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                             && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken()))
                     {
-                        Logger.v(TAG + methodName, "Found family item matching the given user id.");
+                        Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
                         return tokenCacheItem;
                     }
                 }
@@ -1548,7 +1556,7 @@ public class AuthenticationContext {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                             && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken()))
                     {
-                        Logger.v(TAG + methodName, "Found family item matching the given user id.");
+                        Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
                         return tokenCacheItem;
                     }
                 }
