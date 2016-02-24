@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -576,8 +577,7 @@ public class AuthenticationContext {
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId,
             String userId) {
-        Future<AuthenticationResult> futureResult = acquireTokenSilent(resource, clientId, userId,
-                null);
+        Future<AuthenticationResult> futureResult = acquireTokenSilent(resource, clientId, userId, null);
         try {
             return futureResult.get();
         } catch (InterruptedException e) {
@@ -625,7 +625,7 @@ public class AuthenticationContext {
      *         {@link UserInfo}.
      */
     public Future<AuthenticationResult> acquireTokenSilent(String resource, String clientId,
-            String userId, AuthenticationCallback<AuthenticationResult> callback) {
+            String userId, final AuthenticationCallback<AuthenticationResult> callback) {
         if (StringExtensions.IsNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
@@ -638,7 +638,25 @@ public class AuthenticationContext {
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
-        return acquireTokenLocal(null, false, request, callback);
+        final SettableFuture<AuthenticationResult> futureTask = new SettableFuture();
+        acquireTokenLocal(null, false, request, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                if (callback != null) {
+                    callback.onSuccess(result);
+                }
+                futureTask.set(result);
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                if (callback != null) {
+                    callback.onError(exc);
+                }
+                futureTask.setException(exc);
+            }
+        });
+        return futureTask;
     }
 
     /**
@@ -1059,23 +1077,21 @@ public class AuthenticationContext {
         }
     }
 
-    private Future<AuthenticationResult> acquireTokenLocal(final IWindowComponent activity,
+    private void acquireTokenLocal(final IWindowComponent activity,
             final boolean useDialog, final AuthenticationRequest request,
             final AuthenticationCallback<AuthenticationResult> externalCall) {
         getHandler();
         final CallbackHandler callbackHandle = new CallbackHandler(mHandler, externalCall);
-
         // Executes all the calls inside the Runnable to return immediately to
         // user. All UI
         // related actions will be performed using Handler.
         Logger.setCorrelationId(getRequestCorrelationId());
         Logger.v(TAG, "Sending async task from thread:" + android.os.Process.myTid());
-        return sThreadExecutor.submit(new Callable<AuthenticationResult>() {
-
+        sThreadExecutor.execute(new Runnable() {
             @Override
-            public AuthenticationResult call() {
+            public void run() {
                 Logger.v(TAG, "Running task in thread:" + android.os.Process.myTid());
-                return acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
+                acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
             }
         });
     }
@@ -1907,7 +1923,7 @@ public class AuthenticationContext {
         }
 
         public boolean isConnectionAvailable() {
-            ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
+            ConnectivityManager connectivityManager = (ConnectivityManager) mConnectionContext
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
             boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
@@ -1925,5 +1941,28 @@ public class AuthenticationContext {
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
         return "1.1.12";
+    }
+
+    /**
+     * A {@link Future}  whose result can be set by a {@link #set(Object)} or {@link #setException(Throwable)}
+     */
+    final static class SettableFuture<V> extends FutureTask<V> {
+        SettableFuture() {
+            super(new Callable<V>() {
+                @Override
+                public V call() throws Exception {
+                    return null;
+                }
+            });
+        }
+        @Override
+        public void set(V v) {
+            super.set(v);
+        }
+
+        @Override
+        public void setException(Throwable t) {
+            super.setException(t);
+        }
     }
 }

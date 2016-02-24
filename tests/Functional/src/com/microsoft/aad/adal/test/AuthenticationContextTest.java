@@ -57,6 +57,7 @@ import android.test.AndroidTestCase;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.test.suitebuilder.annotation.Suppress;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
@@ -1947,6 +1948,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         refreshItem.setAccessToken(token);
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(timeAhead.getTime());
+        refreshItem.setUserInfo(new UserInfo(user, "", "", "", user));
         cache.setItem(
                 CacheKey.createCacheKey(VALID_AUTHORITY, resource, client, isMultiResource, user),
                 refreshItem);
