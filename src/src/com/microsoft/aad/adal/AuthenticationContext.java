@@ -1147,54 +1147,53 @@ public class AuthenticationContext {
      */
     private boolean verifyBrokerRedirectUri(CallbackHandler callbackHandle, final AuthenticationRequest request){   
         final String methodName = ":verifyBrokerRedirectUri";
-        String errMsg = new String();        
-        String inputUri = request.getRedirectUri();
-        PackageHelper helper = new PackageHelper(mContext);
-        AuthenticationException excep = null;
+        String errMsg = "";
+        final String inputUri = request.getRedirectUri();
+        AuthenticationException exception = null;
         
         if(StringExtensions.IsNullOrBlank(inputUri))
         {
-            errMsg = "the redirectUri is null or blank";   
-            excep = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+            errMsg = "the redirectUri is null or blank";
+            exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
-            
         }
         else if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://"))
         {
             errMsg = "redirectUri does not start with the valid redict prefix " + AuthenticationConstants.Broker.REDIRECT_PREFIX; 
-            excep = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+            exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
         } 
         else
         {
             try 
             {
+                PackageHelper packageHelper = new PackageHelper(mContext);
                 String urlEncodedPackagename = URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8);
-                String urlEncodedSignature = URLEncoder.encode(helper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
+                String urlEncodedSignature = URLEncoder.encode(packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
                 if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + urlEncodedPackagename + "/"))
                 {
                     errMsg = "the package name of redirectUri is not as expected. The expected package name is" + urlEncodedPackagename;
-                    excep = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+                    exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                 }
                 else if(!inputUri.equalsIgnoreCase(getRedirectUriForBroker()))
                 {
                     errMsg = "the signature of redirectUri is not as expected. The expected signature is " + urlEncodedSignature;
-                    excep = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+                    exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                    
                 }
             } 
             catch (UnsupportedEncodingException e) 
             {
-                excep = new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "Digest error"); 
-                Logger.e(TAG + methodName, "Digest error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+            	exception = new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "Digest error"); 
+                Logger.e(TAG + methodName, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             }
         }
         
-        if(excep != null)
+        if(exception != null)
         { 
-            callbackHandle.onError(excep);
+            callbackHandle.onError(exception);
             return false;
         }
         else
