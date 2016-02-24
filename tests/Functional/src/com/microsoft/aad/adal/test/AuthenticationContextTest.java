@@ -32,6 +32,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -42,24 +43,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import junit.framework.Assert;
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.os.Build;
-import android.os.Bundle;
-import android.test.AndroidTestCase;
-import android.test.UiThreadTest;
-import android.test.suitebuilder.annotation.MediumTest;
-import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Base64;
-import android.util.Log;
-import android.util.SparseArray;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
@@ -79,6 +62,24 @@ import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.os.Build;
+import android.os.Bundle;
+import android.test.AndroidTestCase;
+import android.test.UiThreadTest;
+import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Base64;
+import android.util.Log;
+import android.util.SparseArray;
+import junit.framework.Assert;
 
 public class AuthenticationContextTest extends AndroidTestCase {
 
@@ -202,7 +203,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         new AuthenticationContext(mockContext, authority, false);
 
         try {
-            mockContext.responsePermissionFlag = PackageManager.PERMISSION_DENIED;
+            mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_DENIED);
             new AuthenticationContext(mockContext, authority, false);
             Assert.fail("Supposed to fail");
         } catch (Exception e) {
@@ -1874,6 +1875,50 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertTrue("should have packagename", actual.contains(TEST_PACKAGE_NAME));
         assertTrue("should have signature url encoded",
                 actual.contains(URLEncoder.encode(testTag, AuthenticationConstants.ENCODING_UTF8)));
+    }
+    
+    @SmallTest
+    public void testVerifyManifestPermission() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        //mock context
+        FileMockContext mockContext = new FileMockContext(getContext());
+        List<String> actual;
+        
+        //set the permission
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.MANAGE_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.USE_CREDENTIALS",PackageManager.PERMISSION_GRANTED);
+        AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
+        
+        try{
+            //set the access to private method
+            Method m = ReflectionUtils.getTestMethod(context, "verifyManifestPermissions", null);
+      
+            actual = (List<String>)m.invoke(context);
+            assertTrue(actual.isEmpty());
+            
+            mockContext.removePermission("android.permission.GET_ACCOUNTS");
+            actual = (List<String>)m.invoke(context);
+            assertEquals("[GET_ACCOUNTS]", actual.toString());
+            
+            mockContext.removePermission("android.permission.MANAGE_ACCOUNTS");
+            mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+            actual = (List<String>)m.invoke(context);
+            assertEquals("[MANAGE_ACCOUNTS]", actual.toString());//assertEquals("Broker related permissions are missing for USE_CREDENTIALS", actual);
+        
+            mockContext.removePermission("android.permission.USE_CREDENTIALS");
+            mockContext.setPermission("android.permission.MANAGE_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+            actual = (List<String>)m.invoke(context);
+            assertEquals("[USE_CREDENTIALS]", actual.toString());//assertEquals("Broker related permissions are missing for USE_CREDENTIALS", actual);
+       
+            mockContext.removePermission("android.permission.MANAGE_ACCOUNTS");
+            actual = (List<String>)m.invoke(context);
+            assertEquals("[MANAGE_ACCOUNTS, USE_CREDENTIALS]", actual.toString());//assertEquals("Broker related permissions are missing for USE_CREDENTIALS", actual);
+        }
+        catch(InvocationTargetException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private AuthenticationContext getAuthenticationContext(Context mockContext, String authority,

@@ -21,6 +21,9 @@ package com.microsoft.aad.adal.test;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 import android.accounts.AccountManager;
 import android.content.Context;
@@ -48,12 +51,15 @@ class FileMockContext extends MockContext {
     String requestedPermissionName;
 
     int responsePermissionFlag;
+    
+    HashMap<String, Integer> permissionMap = new HashMap<String, Integer>();
 
     public FileMockContext(Context context) {
         mContext = context;
         // default
         requestedPermissionName = "android.permission.INTERNET";
         responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+        permissionMap.put(requestedPermissionName,responsePermissionFlag);
     }
 
     @Override
@@ -95,6 +101,24 @@ class FileMockContext extends MockContext {
     public PackageManager getPackageManager() {
         return new TestPackageManager();
     }
+    
+    public void setPermission(String permissionName, int permissionFlag){
+        Set set = permissionMap.entrySet();
+        Iterator i = set.iterator();
+        permissionMap.put(permissionName, permissionFlag);
+    }
+    
+    public boolean removePermission(String permissionName){
+    	if(permissionMap.containsKey(permissionName))
+    	{
+        	permissionMap.remove(permissionName);
+        	return true;
+        }
+    	else
+    	{
+        	return false;
+        }
+    }
 
     class TestPackageManager extends MockPackageManager {
         @Override
@@ -107,10 +131,11 @@ class FileMockContext extends MockContext {
 
         @Override
         public int checkPermission(String permName, String pkgName) {
-            if (permName.equals(requestedPermissionName)) {
-                return responsePermissionFlag;
-            }
-            return PackageManager.PERMISSION_DENIED;
+        	if (permissionMap.containsKey(permName)) 
+        	{
+        		return permissionMap.get(permName);
+        	}
+        	return PackageManager.PERMISSION_DENIED;
         }
 
         @Override

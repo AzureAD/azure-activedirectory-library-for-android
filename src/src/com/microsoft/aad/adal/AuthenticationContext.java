@@ -23,7 +23,9 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -1136,52 +1138,49 @@ public class AuthenticationContext {
     /**
      * App needs to give permission to AccountManager to use broker.
      */
-    private String verifyManifestPermissions() {    	
-    	final String methodName = ".verifyManifestPermissions";
-    	final PackageManager packageManager = mContext.getPackageManager();
-    	String msg = new String();
-    	
-    	Logger.v(
+    private List<String> verifyManifestPermissions() {
+        final String methodName = ":verifyManifestPermissions";
+        final PackageManager packageManager = mContext.getPackageManager();
+        List<String> permerssionMissing = new ArrayList<String>();
+        
+        Logger.v(
                 TAG + methodName,
                 "Broker related permissions checking starts.");       
                
         if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
                 "android.permission.GET_ACCOUNTS", mContext.getPackageName()))
         {
-        	msg = "Broker related permissions are missing for GET_ACCOUNTS";
-        	Logger.w(
+            permerssionMissing.add("GET_ACCOUNTS");
+            Logger.w(
                     TAG + methodName,
-                    msg,
-                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);        	
-            return msg;
+                    "Broker related permissions are missing for GET_ACCOUNTS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
         }
         
         if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
                         "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName()))
         {
-        	msg = "Broker related permissions are missing for MANAGE_ACCOUNTS";
+            permerssionMissing.add("MANAGE_ACCOUNTS");
             Logger.w(
                     TAG + methodName,
-                    msg,
+                    "Broker related permissions are missing for MANAGE_ACCOUNTS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-            return msg;
         }
         
         if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
                         "android.permission.USE_CREDENTIALS", mContext.getPackageName()))
         {
-        	msg = "Broker related permissions are missing for MANAGE_ACCOUNTS";
+            permerssionMissing.add("USE_CREDENTIALS");
             Logger.w(
                     TAG + methodName,
-                    msg,
+                    "Broker related permissions are missing for USE_CREDENTIALS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-            return msg;
         }
         
         Logger.v(
                 TAG + methodName,
                 "Broker related permissions are verified");                        
-        return msg;
+        return permerssionMissing;
     }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
@@ -1200,11 +1199,11 @@ public class AuthenticationContext {
             request.setBrokerAccountName(request.getLoginHint());
             
             //check if App gives permission to AccountManager
-            String permissionCheckResult = verifyManifestPermissions();
-            if(!StringExtensions.IsNullOrBlank(permissionCheckResult))
-            {            	
-            	callbackHandle.onError(new AuthenticationException(
-                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, permissionCheckResult));
+            List<String> permissionCheckResult = verifyManifestPermissions();
+            if(!permissionCheckResult.isEmpty())
+            {
+                callbackHandle.onError(new AuthenticationException(
+                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, permissionCheckResult.toArray().toString()));
                 return result;
             }
 
