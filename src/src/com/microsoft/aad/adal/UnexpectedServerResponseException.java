@@ -1,11 +1,10 @@
 package com.microsoft.aad.adal;
 
-import java.io.IOException;
-
 /**
- * Created by imakhal on 2/17/2016.
+ * ADAL exception for the case when server response doesn't have expected data
+ * e.g. missing header, wrong status code, invalid format
  */
-public class UnexpectedServerResponseException extends IOException {
+public class UnexpectedServerResponseException extends Exception {
     static final long serialVersionUID = 1;
 
     public UnexpectedServerResponseException(String detailMessage) {

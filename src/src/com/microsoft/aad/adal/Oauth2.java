@@ -335,7 +335,7 @@ class Oauth2 {
         }
     }
 
-    public AuthenticationResult refreshToken(String refreshToken) throws IOException {
+    public AuthenticationResult refreshToken(String refreshToken) throws IOException, UnexpectedServerResponseException {
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
@@ -369,7 +369,7 @@ class Oauth2 {
      *         not have protocol error.
      * @throws Exception
      */
-    public AuthenticationResult getToken(String authorizationUrl) throws IOException {
+    public AuthenticationResult getToken(String authorizationUrl) throws IOException, UnexpectedServerResponseException {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
             throw new IllegalArgumentException("authorizationUrl");
@@ -418,7 +418,7 @@ class Oauth2 {
      * @return Token in the AuthenticationResult
      * @throws Exception
      */
-    public AuthenticationResult getTokenForCode(String code) throws IOException {
+    public AuthenticationResult getTokenForCode(String code) throws IOException, UnexpectedServerResponseException {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -438,7 +438,7 @@ class Oauth2 {
     }
 
     private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
-            throws IOException {
+            throws IOException,UnexpectedServerResponseException {
         URL authority = null;
         AuthenticationResult result = null;
         authority = StringExtensions.getUrl(getTokenEndpoint());

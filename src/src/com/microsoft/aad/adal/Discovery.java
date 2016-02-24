@@ -92,7 +92,9 @@ final class Discovery implements IDiscovery {
                 && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())) {
 
             if (UrlExtensions.isADFSAuthority(authorizationEndpoint)) {
-                throw new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED);
+                Logger.e(TAG, "Instance validation returned error", "",
+                        ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
+                return false;
             } else if (sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
                 // host can be the instance or inside the validated list.
                 // Valid hosts will help to skip validation if validated before

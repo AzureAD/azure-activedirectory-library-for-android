@@ -466,10 +466,10 @@ public class StorageHelper {
             final byte[] encryptedKey = readKeyData(keyFile);
             sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
             Logger.v(TAG, "Finished reading SecretKey");
-        } catch (GeneralSecurityException ex) {
+        } catch (GeneralSecurityException | IOException ex) {
             // Reset KeyPair info so that new request will generate correct KeyPairs.
             // All tokens with previous SecretKey are not possible to decrypt.
-            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED);
+            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED, ex);
             mKeyPair = null;
             sSecretKeyFromAndroidKeyStore = null;
             deleteKeyFile();

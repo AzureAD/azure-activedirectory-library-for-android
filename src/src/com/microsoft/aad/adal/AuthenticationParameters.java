@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -164,6 +165,9 @@ public class AuthenticationParameters {
                 HttpWebResponse webResponse = sWebRequest.sendGet(resourceUrl, headers);
 
                 if (webResponse != null) {
+                    if(webResponse.getResponseException() != null) {
+                        onCompleted(new IOException(webResponse.getResponseException()), null);
+                    }
                     try {
                         onCompleted(null, parseResponse(webResponse));
                     } catch (UnexpectedServerResponseException exc) {
