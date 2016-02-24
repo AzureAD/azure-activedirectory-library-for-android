@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import android.accounts.AccountManager;
@@ -48,17 +49,13 @@ class FileMockContext extends MockContext {
 
     int fileWriteMode;
 
-    String requestedPermissionName;
-
-    int responsePermissionFlag;
-    
-    HashMap<String, Integer> permissionMap = new HashMap<String, Integer>();
+    Map<String, Integer> permissionMap = new HashMap<String, Integer>();
 
     public FileMockContext(Context context) {
         mContext = context;
         // default
-        requestedPermissionName = "android.permission.INTERNET";
-        responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+        String requestedPermissionName = "android.permission.INTERNET";
+        int responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
         permissionMap.put(requestedPermissionName,responsePermissionFlag);
     }
 
