@@ -1145,7 +1145,7 @@ public class AuthenticationContext {
      * @throws UnsupportedEncodingException
      * @return true if the RedictUri is valid
      */
-    private boolean verifyBrokerRedirectUri(CallbackHandler callbackHandle, final AuthenticationRequest request){   
+    private boolean verifyBrokerRedirectUri(final AuthenticationRequest request){   
         final String methodName = ":verifyBrokerRedirectUri";
         String errMsg = "";
         final String inputUri = request.getRedirectUri();
@@ -1168,17 +1168,17 @@ public class AuthenticationContext {
             try 
             {
                 PackageHelper packageHelper = new PackageHelper(mContext);
-                String urlEncodedPackagename = URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8);
-                String urlEncodedSignature = URLEncoder.encode(packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
-                if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + urlEncodedPackagename + "/"))
+                String base64URLEncodePackagename = URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8);
+                String base64URLEncodeSignature = URLEncoder.encode(packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
+                if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + base64URLEncodePackagename + "/"))
                 {
-                    errMsg = "the package name of redirectUri is not as expected. The expected package name is" + urlEncodedPackagename;
+                    errMsg = "the package name of redirectUri is not as expected. The expected package name is " + base64URLEncodePackagename;
                     exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                 }
                 else if(!inputUri.equalsIgnoreCase(getRedirectUriForBroker()))
                 {
-                    errMsg = "the signature of redirectUri is not as expected. The expected signature is " + urlEncodedSignature;
+                    errMsg = "the signature of redirectUri is not as expected. The expected signature is " + base64URLEncodeSignature;
                     exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                    
@@ -1186,19 +1186,18 @@ public class AuthenticationContext {
             } 
             catch (UnsupportedEncodingException e) 
             {
-            	exception = new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "Digest error"); 
+                exception = new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "the encoding is nor supported."); 
                 Logger.e(TAG + methodName, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             }
         }
         
         if(exception != null)
         { 
-            callbackHandle.onError(exception);
-            return false;
+            throw exception;
         }
         else
         {
-            Logger.v(TAG + methodName, "The broker redirect URI is valid.");
+            Logger.v(TAG + methodName, "The broker redirect URI is valid: " + inputUri);
             return true;
         }        
     }
@@ -1220,12 +1219,17 @@ public class AuthenticationContext {
             request.setBrokerAccountName(request.getLoginHint());
             
             //check if the redirectUri is valid
-            if(!verifyBrokerRedirectUri(callbackHandle, request))
+            try
+            {
+                verifyBrokerRedirectUri(request);
+            }
+            catch(AuthenticationException exception)
             {
                 Logger.v(TAG + methodName, "Did not pass the verification of the broker redirect URI");
+                callbackHandle.onError(exception);
                 return result;
             }
-
+            
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())
