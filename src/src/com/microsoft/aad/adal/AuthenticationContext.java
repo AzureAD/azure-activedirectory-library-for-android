@@ -1138,7 +1138,7 @@ public class AuthenticationContext {
     /**
      * App needs to give permission to AccountManager to use broker.
      */
-    private List<String> verifyManifestPermissions() {
+    private boolean verifyManifestPermissions(){
         final String methodName = ":verifyManifestPermissions";
         final PackageManager packageManager = mContext.getPackageManager();
         List<String> permerssionMissing = new ArrayList<String>();
@@ -1180,7 +1180,15 @@ public class AuthenticationContext {
         Logger.v(
                 TAG + methodName,
                 "Broker related permissions are verified");                        
-        return permerssionMissing;
+        if(permerssionMissing.isEmpty())
+        {
+            return true;
+        }
+        else
+        {
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, "Broker related permissions are missing for " + permerssionMissing.toString());
+        }
     }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
@@ -1199,11 +1207,13 @@ public class AuthenticationContext {
             request.setBrokerAccountName(request.getLoginHint());
             
             //check if App gives permission to AccountManager
-            List<String> permissionCheckResult = verifyManifestPermissions();
-            if(!permissionCheckResult.isEmpty())
+            try
             {
-                callbackHandle.onError(new AuthenticationException(
-                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, permissionCheckResult.toArray().toString()));
+                verifyManifestPermissions();
+            }
+            catch(AuthenticationException exception)
+            {
+                callbackHandle.onError(exception);
                 return result;
             }
 
