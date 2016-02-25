@@ -335,7 +335,7 @@ class Oauth2 {
         }
     }
 
-    public AuthenticationResult refreshToken(String refreshToken) throws IOException, UnexpectedServerResponseException {
+    public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationServerProtocolException {
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
@@ -369,7 +369,7 @@ class Oauth2 {
      *         not have protocol error.
      * @throws Exception
      */
-    public AuthenticationResult getToken(String authorizationUrl) throws IOException, UnexpectedServerResponseException {
+    public AuthenticationResult getToken(String authorizationUrl) throws IOException, AuthenticationServerProtocolException {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
             throw new IllegalArgumentException("authorizationUrl");
@@ -418,7 +418,7 @@ class Oauth2 {
      * @return Token in the AuthenticationResult
      * @throws Exception
      */
-    public AuthenticationResult getTokenForCode(String code) throws IOException, UnexpectedServerResponseException {
+    public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationServerProtocolException {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -438,7 +438,7 @@ class Oauth2 {
     }
 
     private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
-            throws IOException,UnexpectedServerResponseException {
+            throws IOException, AuthenticationServerProtocolException {
         URL authority = null;
         AuthenticationResult result = null;
         authority = StringExtensions.getUrl(getTokenEndpoint());
@@ -517,15 +517,11 @@ class Oauth2 {
 
                 Logger.v(TAG, "Server error message:" + errMessage);
                 if (response.getResponseException() != null) {
-                    throw new IOException(response.getResponseException());
+                    throw response.getResponseException();
                 }
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
-        } catch (UnexpectedServerResponseException e) {
-            ClientMetrics.INSTANCE.setLastError(null);
-            Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
-            throw e;
         } catch (UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
@@ -615,13 +611,18 @@ class Oauth2 {
 
         // Set correlationId in the result
         if (correlationIdInHeader != null && !correlationIdInHeader.isEmpty()) {
-            UUID correlation = UUID.fromString(correlationIdInHeader);
-            if (!correlation.equals(mRequest.getCorrelationId())) {
-                Logger.w(TAG, "CorrelationId is not matching", "",
-                        ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE);
-            }
+            try {
+                UUID correlation = UUID.fromString(correlationIdInHeader);
+                if (!correlation.equals(mRequest.getCorrelationId())) {
+                    Logger.w(TAG, "CorrelationId is not matching", "",
+                            ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE);
+                }
 
-            Logger.v(TAG, "Response correlationId:" + correlationIdInHeader);
+                Logger.v(TAG, "Response correlationId:" + correlationIdInHeader);
+            } catch (IllegalArgumentException ex) {
+                Logger.e(TAG, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
+                        ADALError.CORRELATION_ID_FORMAT, ex);
+            }
         }
 
         return result;

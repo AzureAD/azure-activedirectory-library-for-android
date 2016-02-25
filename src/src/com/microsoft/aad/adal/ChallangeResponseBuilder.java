@@ -86,13 +86,13 @@ class ChallangeResponseBuilder {
      * @return Return Device challange response
      */
     public ChallangeResponse getChallangeResponseFromUri(final String redirectUri)
-            throws UnexpectedServerResponseException {
+            throws AuthenticationServerProtocolException {
         ChallangeRequest request = getChallangeRequest(redirectUri);
         return getDeviceCertResponse(request);
     }
 
     public ChallangeResponse getChallangeResponseFromHeader(final String challangeHeaderValue,
-            final String endpoint) throws UnsupportedEncodingException, UnexpectedServerResponseException {
+            final String endpoint) throws UnsupportedEncodingException, AuthenticationServerProtocolException {
         ChallangeRequest request = getChallangeRequestFromHeader(challangeHeaderValue);
         request.mSubmitUrl = endpoint;
         return getDeviceCertResponse(request);
@@ -179,11 +179,11 @@ class ChallangeResponseBuilder {
     }
 
     private ChallangeRequest getChallangeRequestFromHeader(final String headerValue)
-            throws UnsupportedEncodingException, UnexpectedServerResponseException {
+            throws UnsupportedEncodingException, AuthenticationServerProtocolException {
         final String methodName = ":getChallangeRequestFromHeader";
         
         if (StringExtensions.IsNullOrBlank(headerValue)) {
-            throw new UnexpectedServerResponseException("headerValue");
+            throw new AuthenticationServerProtocolException("headerValue");
         }
 
         // Header value should start with correct challenge type
@@ -282,9 +282,9 @@ class ChallangeResponseBuilder {
         }
     }
 
-    private ChallangeRequest getChallangeRequest(final String redirectUri) throws UnexpectedServerResponseException{
+    private ChallangeRequest getChallangeRequest(final String redirectUri) throws AuthenticationServerProtocolException {
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
-            throw new UnexpectedServerResponseException("redirectUri");
+            throw new AuthenticationServerProtocolException("redirectUri");
         }
 
         ChallangeRequest challange = new ChallangeRequest();

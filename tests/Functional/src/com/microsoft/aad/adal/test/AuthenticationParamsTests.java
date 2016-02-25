@@ -32,11 +32,7 @@ import junit.framework.Assert;
 import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationParameters;
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 
@@ -68,21 +64,21 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     }
 
     public void testCreateFromResponseAuthenticateHeader() {
-        assertThrowsException(UnexpectedServerResponseException.class,
+        assertThrowsException(ResourceAuthenticationChallengeException.class,
                 AuthenticationParameters.AUTH_HEADER_MISSING.toLowerCase(), new ThrowableRunnable() {
 
                     @Override
-                    public void run() throws UnexpectedServerResponseException{
+                    public void run() throws ResourceAuthenticationChallengeException {
                         AuthenticationParameters.createFromResponseAuthenticateHeader(null);
                     }
                 });
 
         // empty value inside the authorization_uri will throw exception
-        assertThrowsException(UnexpectedServerResponseException.class,
+        assertThrowsException(ResourceAuthenticationChallengeException.class,
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT.toLowerCase(), new ThrowableRunnable() {
 
                     @Override
-                    public void run() throws UnexpectedServerResponseException {
+                    public void run() throws ResourceAuthenticationChallengeException {
                         AuthenticationParameters
                                 .createFromResponseAuthenticateHeader("Bearer\t resource=\"is=outer, space=ornot\",\t\t  authorization_uri=\"\"");
                     }

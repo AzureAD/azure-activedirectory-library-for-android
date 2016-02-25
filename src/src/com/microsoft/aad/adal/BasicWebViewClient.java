@@ -185,7 +185,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 view.loadUrl(loadUrl, headers);
                             }
                         });
-                    } catch (UnexpectedServerResponseException e) {
+                    } catch (AuthenticationServerProtocolException e) {
                         Logger.e(TAG, "Argument exception", e.getMessage(),
                                 ADALError.ARGUMENT_EXCEPTION, e);
                         // It should return error code and finish the
