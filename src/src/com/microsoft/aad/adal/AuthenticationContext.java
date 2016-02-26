@@ -1270,7 +1270,7 @@ public class AuthenticationContext {
 
         // Trying to find refresh token first, if existed, will try to use the refresh token. 
         Logger.v(TAG, "Checking refresh tokens");
-        RefreshItem refreshItem = getRefreshItem(request);
+        RefreshItem refreshItem = getRefreshToken(request);
         AuthenticationResult authResult = null;
         if (!promptUser(request.getPrompt()) && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
@@ -1454,7 +1454,7 @@ public class AuthenticationContext {
         }
     }
 
-    private RefreshItem getRefreshItem(final AuthenticationRequest request) 
+    private RefreshItem getRefreshToken(final AuthenticationRequest request) 
     {
         final String methodName = ":getRefreshToken";
         RefreshItem refreshItem = null;
