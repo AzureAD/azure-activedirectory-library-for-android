@@ -1145,7 +1145,7 @@ public class AuthenticationContext {
      * @throws UnsupportedEncodingException
      * @return true if the redirectUri is valid
      */
-    private boolean verifyBrokerRedirectUri(final AuthenticationRequest request){   
+    private boolean verifyBrokerRedirectUri(final AuthenticationRequest request) {   
         final String methodName = ":verifyBrokerRedirectUri";
         String errMsg = "";
         final String inputUri = request.getRedirectUri();
@@ -1157,7 +1157,8 @@ public class AuthenticationContext {
             errMsg = "The redirectUri is null or blank. "
                     + "so the redirect uri is expected to be:" + actualUri;
             exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
-            Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
+            Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID); 
+            throw exception;
         }
         else if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://"))
         {
@@ -1165,7 +1166,8 @@ public class AuthenticationContext {
                     + "The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
                     + "so the redirect uri is expected to be:" + actualUri;
             exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
-            Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
+            Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
+            throw exception;
         } 
         else
         {
@@ -1181,6 +1183,7 @@ public class AuthenticationContext {
                             + "so the redirect uri is expected to be:" + actualUri;
                     exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
+                    throw exception;
                 }
                 else if(!inputUri.equalsIgnoreCase(actualUri))
                 {
@@ -1189,25 +1192,18 @@ public class AuthenticationContext {
                             + "so the redirect uri is expected to be:" + actualUri;
                     exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
-                   
+                    throw exception;
                 }
             } 
             catch (UnsupportedEncodingException e) 
             {
-                exception = new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The base64 url encoding is not supported."); 
+                exception = new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The verifying BrokerRedirectUri process failed because the base64 url encoding is not supported.", e); 
                 Logger.e(TAG + methodName, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+                throw exception;
             }
         }
-        
-        if(exception != null)
-        { 
-            throw exception;
-        }
-        else
-        {
-            Logger.v(TAG + methodName, "The broker redirect URI is valid: " + inputUri);
-            return true;
-        }        
+        Logger.v(TAG + methodName, "The broker redirect URI is valid: " + inputUri);
+        return true;
     }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
