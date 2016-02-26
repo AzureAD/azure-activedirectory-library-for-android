@@ -1202,8 +1202,8 @@ public class AuthenticationContext {
         //check the Manifest permissions upfront if developer clearly choose to use broker.
         if(!AuthenticationSettings.INSTANCE.getSkipBroker())
         {
-        	AuthenticationResult result = null;
-        	try
+            AuthenticationResult result = null;
+            try
             {
                 verifyManifestPermissions();
             }
