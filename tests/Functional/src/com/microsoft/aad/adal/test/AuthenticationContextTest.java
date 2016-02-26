@@ -1875,7 +1875,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
     
     @SmallTest
-    public void testVerifyManifestPermission() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+    public void testVerifyManifestPermission_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
         //mock context
         FileMockContext mockContext = new FileMockContext(getContext());
         Boolean actual;
@@ -1893,26 +1893,24 @@ public class AuthenticationContextTest extends AndroidTestCase {
         //test@case all permissions are granted
         actual = (Boolean)m.invoke(context);
         assertTrue(actual);
+    }
+    
+    public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        //mock context
+        FileMockContext mockContext = new FileMockContext(getContext());
         
-        //test@case permission GET_ACCOUNTS is missing
+        //set the permission
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.USE_CREDENTIALS",PackageManager.PERMISSION_GRANTED);
+        AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
+
+        //set the access to private method
+        Method m = ReflectionUtils.getTestMethod(context, "verifyManifestPermissions");
+        
+      //test@case permission MANAGE_ACCOUNTS is missing
         try
         {
-            mockContext.removePermission("android.permission.GET_ACCOUNTS");
-            m.invoke(context);
-            Assert.fail("It is expected to return an exception here.");
-        }
-        catch(InvocationTargetException e)
-        {
-            assertTrue(e.getCause() instanceof AuthenticationException);
-            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("[GET_ACCOUNTS]"));
-            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((AuthenticationException)e.getCause()).getCode());
-        }
-        
-        //test@case permission MANAGE_ACCOUNTS is missing
-        try
-        {
-            mockContext.removePermission("android.permission.MANAGE_ACCOUNTS");
-            mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
             m.invoke(context);
             Assert.fail();
         }
@@ -1922,12 +1920,24 @@ public class AuthenticationContextTest extends AndroidTestCase {
             assertTrue(((AuthenticationException)e.getCause()).getMessage().contains("[MANAGE_ACCOUNTS]"));
             assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((AuthenticationException)e.getCause()).getCode());
         }
-       
+    }
+    
+    public void testVerifyManifestPermission_missingPermission_USE_CREDENTIALS() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        //mock context
+        FileMockContext mockContext = new FileMockContext(getContext());
+        
+        //set the permission
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.MANAGE_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
+
+        //set the access to private method
+        Method m = ReflectionUtils.getTestMethod(context, "verifyManifestPermissions");
+        
         //test@case permission USE_CREDENTIALS is missing
         try
         {
-            mockContext.removePermission("android.permission.USE_CREDENTIALS");
-            mockContext.setPermission("android.permission.MANAGE_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
             m.invoke(context);
             Assert.fail();
         }
@@ -1937,11 +1947,50 @@ public class AuthenticationContextTest extends AndroidTestCase {
             assertTrue(((AuthenticationException)e.getCause()).getMessage().contains("[USE_CREDENTIALS]"));
             assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((AuthenticationException)e.getCause()).getCode());
         }
+    }
+    
+    public void testVerifyManifestPermission_missingPermission_GET_ACCOUNT() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        //mock context
+        FileMockContext mockContext = new FileMockContext(getContext());
+        
+        //set the permission
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.MANAGE_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.USE_CREDENTIALS",PackageManager.PERMISSION_GRANTED);
+        AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
+
+        //set the access to private method
+        Method m = ReflectionUtils.getTestMethod(context, "verifyManifestPermissions");
+        
+        //test@case permission GET_ACCOUNTS is missing
+        try
+        {
+            m.invoke(context);
+            Assert.fail("It is expected to return an exception here.");
+        }
+        catch(InvocationTargetException e)
+        {
+            assertTrue(e.getCause() instanceof AuthenticationException);
+            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("[GET_ACCOUNTS]"));
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((AuthenticationException)e.getCause()).getCode());
+        }
+    }
+    
+    public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS_USE_CREDENTIALS() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        //mock context
+        FileMockContext mockContext = new FileMockContext(getContext());
+        
+        //set the permission
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY, false);
+
+        //set the access to private method
+        Method m = ReflectionUtils.getTestMethod(context, "verifyManifestPermissions");
         
         //test@case permissions USE_CREDENTIALS and MANAGE_ACCOUNTS are missing
         try
         {
-            mockContext.removePermission("android.permission.MANAGE_ACCOUNTS");
             m.invoke(context);
             Assert.fail();
         }
