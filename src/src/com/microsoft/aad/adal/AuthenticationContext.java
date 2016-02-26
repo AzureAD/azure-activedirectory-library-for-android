@@ -1143,23 +1143,27 @@ public class AuthenticationContext {
      * @param callbackHandle
      * @param request
      * @throws UnsupportedEncodingException
-     * @return true if the RedictUri is valid
+     * @return true if the redirectUri is valid
      */
     private boolean verifyBrokerRedirectUri(final AuthenticationRequest request){   
         final String methodName = ":verifyBrokerRedirectUri";
         String errMsg = "";
         final String inputUri = request.getRedirectUri();
+        final String actualUri = getRedirectUriForBroker();
         AuthenticationException exception = null;
         
         if(StringExtensions.IsNullOrBlank(inputUri))
         {
-            errMsg = "the redirectUri is null or blank";
+            errMsg = "The redirectUri is null or blank. "
+                    + "so the redirect uri is expected to be:" + actualUri;
             exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
         }
         else if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://"))
         {
-            errMsg = "redirectUri does not start with the valid redict prefix " + AuthenticationConstants.Broker.REDIRECT_PREFIX; 
+            errMsg = "The prefix of the redirect uri does not match the expected value. "
+                    + "The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
+                    + "so the redirect uri is expected to be:" + actualUri;
             exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
         } 
@@ -1172,13 +1176,17 @@ public class AuthenticationContext {
                 String base64URLEncodeSignature = URLEncoder.encode(packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
                 if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + base64URLEncodePackagename + "/"))
                 {
-                    errMsg = "the package name of redirectUri is not as expected. The expected package name is " + base64URLEncodePackagename;
+                    errMsg = "The base64 url encoded package name component of the redirect uri does not match the expected value. "
+                            + "This apps package name is: " + base64URLEncodePackagename
+                            + "so the redirect uri is expected to be:" + actualUri;
                     exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                 }
-                else if(!inputUri.equalsIgnoreCase(getRedirectUriForBroker()))
+                else if(!inputUri.equalsIgnoreCase(actualUri))
                 {
-                    errMsg = "the signature of redirectUri is not as expected. The expected signature is " + base64URLEncodeSignature;
+                    errMsg = "The base64 url encoded signature component of the redirect uri does not match the expected value. "
+                            + "This apps signature is: " + base64URLEncodeSignature
+                            + "so the redirect uri is expected to be:" + actualUri;
                     exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                    
@@ -1186,7 +1194,7 @@ public class AuthenticationContext {
             } 
             catch (UnsupportedEncodingException e) 
             {
-                exception = new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "the encoding is nor supported."); 
+                exception = new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The base64 url encoding is not supported."); 
                 Logger.e(TAG + methodName, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             }
         }
