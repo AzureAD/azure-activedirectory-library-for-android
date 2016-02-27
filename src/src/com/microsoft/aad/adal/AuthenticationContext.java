@@ -1707,7 +1707,8 @@ public class AuthenticationContext {
         // may be interrupted, if app is shutdown by user. Detect connection
         // state to not remove refresh token if user turned Airplane mode or
         // similar.
-        if (!mConnectionService.isConnectionAvailable()) {
+        if (!mConnectionService.isConnectionAvailable()) 
+        {
             AuthenticationException authenticationException = new AuthenticationException(
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                     "Connection is not available to refresh token");
@@ -1718,14 +1719,17 @@ public class AuthenticationContext {
         }
 
         AuthenticationResult result = null;
-        try {
+        try 
+        {
             Oauth2 oauthRequest = new Oauth2(request, mWebRequest, mJWSBuilder);
             result = oauthRequest.refreshToken(refreshItem.mRefreshToken);
             if (result != null && StringExtensions.IsNullOrBlank(result.getRefreshToken())) {
                 Logger.v(TAG, "Refresh token is not returned or empty");
                 result.setRefreshToken(refreshItem.mRefreshToken);
             }
-        } catch (Exception exc) {
+        } 
+        catch (Exception exc) 
+        {
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
