@@ -1754,9 +1754,12 @@ public class AuthenticationContext {
                 // refresh token in next acquireToken call
                 removeItemFromCache(refreshItem);
                 return result;
-            } else {
+            } 
+            else 
+            {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
-                if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
+                if (result.getUserInfo() == null && refreshItem.mUserInfo != null) 
+                {
                     Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());
                     result.setUserInfo(refreshItem.mUserInfo);
                     result.setIdToken(refreshItem.mRawIdToken);
@@ -1777,7 +1780,6 @@ public class AuthenticationContext {
         } 
         else 
         {
-
             // User is not using cache and explicitly
             // calling with refresh token. User should received
             // error code and error description in
