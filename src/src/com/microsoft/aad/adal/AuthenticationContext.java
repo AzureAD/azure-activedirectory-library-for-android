@@ -1140,34 +1140,30 @@ public class AuthenticationContext {
      * the client app would not jump to the login page
      * redirectUri format %PREFIX://%PACKAGE_NAME/%SIGNATURE
      * 
-     * @param callbackHandle
      * @param request
-     * @throws UnsupportedEncodingException
-     * @return true if the redirectUri is valid
+     * @throws AuthenticationException
+     * @return true if the redirectUri is valid or fail and throw the AuthenticationException
      */
     private boolean verifyBrokerRedirectUri(final AuthenticationRequest request) {   
         final String methodName = ":verifyBrokerRedirectUri";
-        String errMsg = "";
         final String inputUri = request.getRedirectUri();
         final String actualUri = getRedirectUriForBroker();
-        AuthenticationException exception = null;
+        String errMsg = "";
         
         if(StringExtensions.IsNullOrBlank(inputUri))
         {
             errMsg = "The redirectUri is null or blank. "
                     + "so the redirect uri is expected to be:" + actualUri;
-            exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID); 
-            throw exception;
+            throw new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
         }
         else if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://"))
         {
             errMsg = "The prefix of the redirect uri does not match the expected value. "
-                    + "The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
-                    + "so the redirect uri is expected to be:" + actualUri;
-            exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+                    + " The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
+                    + " so the redirect uri is expected to be: " + actualUri;
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
-            throw exception;
+            throw new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
         } 
         else
         {
@@ -1179,27 +1175,25 @@ public class AuthenticationContext {
                 if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + base64URLEncodePackagename + "/"))
                 {
                     errMsg = "The base64 url encoded package name component of the redirect uri does not match the expected value. "
-                            + "This apps package name is: " + base64URLEncodePackagename
-                            + "so the redirect uri is expected to be:" + actualUri;
-                    exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+                            + " This apps package name is: " + base64URLEncodePackagename
+                            + " so the redirect uri is expected to be: " + actualUri;
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
-                    throw exception;
+                    throw new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                 }
                 else if(!inputUri.equalsIgnoreCase(actualUri))
                 {
                     errMsg = "The base64 url encoded signature component of the redirect uri does not match the expected value. "
-                            + "This apps signature is: " + base64URLEncodeSignature
-                            + "so the redirect uri is expected to be:" + actualUri;
-                    exception = new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+                            + " This apps signature is: " + base64URLEncodeSignature
+                            + " so the redirect uri is expected to be: " + actualUri;
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
-                    throw exception;
+                    throw new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                 }
             } 
             catch (UnsupportedEncodingException e) 
             {
-                exception = new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The verifying BrokerRedirectUri process failed because the base64 url encoding is not supported.", e); 
                 Logger.e(TAG + methodName, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-                throw exception;
+                throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The verifying BrokerRedirectUri "
+                        + "process failed because the base64 url encoding is not supported.", e);
             }
         }
         Logger.v(TAG + methodName, "The broker redirect URI is valid: " + inputUri);
