@@ -26,11 +26,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -575,35 +577,47 @@ public class AuthenticationContext {
      *         Token,the Access Token's expiration time, Refresh token, and
      *         {@link UserInfo}.
      */
-    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId,
-            String userId) {
-        Future<AuthenticationResult> futureResult = acquireTokenSilent(resource, clientId, userId, null);
-        try {
-            return futureResult.get();
-        } catch (InterruptedException e) {
-            convertExceptionForSync(e);
-        } catch (ExecutionException e) {
-            convertExceptionForSync(e);
-        }
-
-        return null;
-    }
-
-    private void convertExceptionForSync(Exception e) {
-        // change to unchecked exception
-        if (e.getCause() != null) {
-
-            if (e.getCause() instanceof AuthenticationException) {
-                throw (AuthenticationException)e.getCause();
-            } else if (e.getCause() instanceof IllegalArgumentException) {
-                throw (IllegalArgumentException)e.getCause();
-            } else {
-                throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getCause()
-                        .getMessage(), e.getCause());
+    public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId) throws AuthenticationException, InterruptedException {
+        final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
+        final AtomicReference<Exception> exception = new AtomicReference<>();
+        final CountDownLatch latch = new CountDownLatch(1);
+        acquireTokenSilentAsync(resource, clientId, userId, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                authenticationResult.set(result);
+                latch.countDown();
             }
+
+            @Override
+            public void onError(Exception exc) {
+                exception.set(exc);
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+        Exception e = exception.get();
+        if (e != null) {
+            // change to unchecked exception
+            if(e instanceof AuthenticationException) {
+                throw (AuthenticationException)e;
+            } else if(e instanceof RuntimeException) {
+                throw (RuntimeException)e;
+            }
+            if (e.getCause() != null) {
+                if (e.getCause() instanceof AuthenticationException) {
+                    throw (AuthenticationException) e.getCause();
+                } else if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                } else {
+                    throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getCause()
+                            .getMessage(), e.getCause());
+                }
+            }
+            throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getMessage(), e);
         }
 
-        throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getMessage(), e);
+        return authenticationResult.get();
     }
 
     /**
@@ -624,6 +638,8 @@ public class AuthenticationContext {
      *         Token,the Access Token's expiration time, Refresh token, and
      *         {@link UserInfo}.
      */
+    /* Use the {@link #acquireTokenSilentAsync} method. */
+    @Deprecated
     public Future<AuthenticationResult> acquireTokenSilent(String resource, String clientId,
             String userId, final AuthenticationCallback<AuthenticationResult> callback) {
         if (StringExtensions.IsNullOrBlank(resource)) {
@@ -657,6 +673,43 @@ public class AuthenticationContext {
             }
         });
         return futureTask;
+    }
+
+    /**
+     * The function will first look at the cache and automatically checks for
+     * the token expiration. Additionally, if no suitable access token is found
+     * in the cache, but refresh token is available, the function will use the
+     * refresh token automatically. This method will not show UI for the user.
+     * If prompt is needed, the method will return an exception
+     *
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param userId UserId obtained from {@link UserInfo} inside
+     *            {@link AuthenticationResult}
+     * @param callback required {@link AuthenticationCallback} object for async
+     *            call.
+     * @return A {@link Future} object representing the
+     *         {@link AuthenticationResult} of the call. It contains Access
+     *         Token,the Access Token's expiration time, Refresh token, and
+     *         {@link UserInfo}.
+     */
+    public void acquireTokenSilentAsync(String resource,
+                                   String clientId,
+                                   String userId,
+                                   AuthenticationCallback<AuthenticationResult> callback) {
+        if (StringExtensions.IsNullOrBlank(resource)) {
+            throw new IllegalArgumentException("resource");
+        }
+        if (StringExtensions.IsNullOrBlank(clientId)) {
+            throw new IllegalArgumentException("clientId");
+        }
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, userId, getRequestCorrelationId());
+        request.setSilent(true);
+        request.setPrompt(PromptBehavior.Auto);
+        request.setUserIdentifierType(UserIdentifierType.UniqueId);
+        acquireTokenLocal(null, false, request, callback);
     }
 
     /**
@@ -797,7 +850,7 @@ public class AuthenticationContext {
                         // immediately to
                         // UI thread. All UI
                         // related actions will be performed using the Handler.
-                        sThreadExecutor.submit(new Runnable() {
+                        sThreadExecutor.execute(new Runnable() {
 
                             @Override
                             public void run() {
@@ -832,12 +885,12 @@ public class AuthenticationContext {
 
                                 try {
                                     if (result != null) {
-                                    	if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
-                                    		Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
-                                    		callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
-                                    				result.getErrorLogInfo()));
-                                    		return;
-                                    	}
+                                        if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
+                                            Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
+                                            callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
+                                                    result.getErrorLogInfo()));
+                                            return;
+                                        }
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
@@ -1822,7 +1875,7 @@ public class AuthenticationContext {
 
         // Execute all the calls inside Runnable to return immediately. All UI
         // related actions will be performed using Handler.
-        sThreadExecutor.submit(new Runnable() {
+        sThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 final URL authorityUrl = StringExtensions.getUrl(mAuthority);
@@ -1923,7 +1976,7 @@ public class AuthenticationContext {
         }
 
         public boolean isConnectionAvailable() {
-            ConnectivityManager connectivityManager = (ConnectivityManager) mConnectionContext
+            ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
             boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
