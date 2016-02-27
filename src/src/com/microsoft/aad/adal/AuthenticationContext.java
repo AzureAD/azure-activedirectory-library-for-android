@@ -237,10 +237,11 @@ public class AuthenticationContext {
                 }
 
                 @Override
-                public Iterator<TokenCacheItem> getAll() {
+                public Iterator<TokenCacheItem> getAll() 
+                {
                     throw new UnsupportedOperationException(
                             "Broker cache does not support direct getAll operation");
-                    }
+                }
             };
         }
         return mTokenCacheStore;
