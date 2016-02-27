@@ -1322,8 +1322,9 @@ public class AuthenticationContext {
 
     private void acquireTokenInteractively(final CallbackHandler callbackHandle, final IWindowComponent activity, final AuthenticationRequest request, final boolean useDialog)
     {
-    	//Check if there is network connection
-        if (!mConnectionService.isConnectionAvailable()) {
+        //Check if there is network connection
+        if (!mConnectionService.isConnectionAvailable()) 
+        {
             AuthenticationException exc = new AuthenticationException(
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                     "Connection is not available to request token");
@@ -1345,13 +1346,17 @@ public class AuthenticationContext {
                 new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
                         callbackHandle.callback));
 
-        if (useDialog) {
+        if (useDialog) 
+        {
             AuthenticationDialog dialog = new AuthenticationDialog(mHandler, mContext,
                     this, request);
             dialog.show();
-        } else {
+        } 
+        else 
+        {
             // onActivityResult will receive the response
-            if (!startAuthenticationActivity(activity, request)) {
+            if (!startAuthenticationActivity(activity, request)) 
+            {
                 callbackHandle.onError(new AuthenticationException(
                         ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
             }
