@@ -1273,7 +1273,8 @@ public class AuthenticationContext {
         RefreshItem refreshItem = getRefreshToken(request);
         AuthenticationResult authResult = null;
         if (!promptUser(request.getPrompt()) && refreshItem != null
-                && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
+                && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) 
+        {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token");
             try
             {
@@ -1295,7 +1296,8 @@ public class AuthenticationContext {
         // refresh token does not exist or refresh token request failed to give back the token. 
         // If it's non-silent request, will try to acquire token interactively. 
         // if it's silent request, will return the AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED.
-        if (refreshItem == null || authResult == null || (authResult != null && StringExtensions.IsNullOrBlank(authResult.getAccessToken()))) 
+        if (refreshItem == null || authResult == null 
+                || (authResult != null && StringExtensions.IsNullOrBlank(authResult.getAccessToken()))) 
         {
             Logger.v(TAG, "Refresh token is not available or refresh token request failed to return token.");
             if (!request.isSilent() && callbackHandle.callback != null
