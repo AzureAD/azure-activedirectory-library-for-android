@@ -1320,7 +1320,8 @@ public class AuthenticationContext {
         return null;
     }
 
-    private void acquireTokenInteractively(final CallbackHandler callbackHandle, final IWindowComponent activity, final AuthenticationRequest request, final boolean useDialog)
+    private void acquireTokenInteractively(final CallbackHandler callbackHandle, final IWindowComponent activity, 
+            final AuthenticationRequest request, final boolean useDialog)
     {
         //Check if there is network connection
         if (!mConnectionService.isConnectionAvailable()) 
