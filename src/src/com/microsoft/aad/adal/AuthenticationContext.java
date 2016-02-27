@@ -1275,7 +1275,16 @@ public class AuthenticationContext {
         if (!promptUser(request.getPrompt()) && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token");
-            authResult = getTokenWithRefreshToken(callbackHandle, activity, useDialog, request, refreshItem, true);
+            try
+            {
+                authResult = getTokenWithRefreshToken(activity, useDialog, request, refreshItem, true);
+            }
+            catch (AuthenticationException authenticationException)
+            {
+                callbackHandle.onError(authenticationException);
+                return null;
+            }
+            
             if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken()))
             {
                 callbackHandle.onSuccess(authResult);
@@ -1679,11 +1688,10 @@ public class AuthenticationContext {
      * @param externalCallback
      * @return
      */
-    private AuthenticationResult getTokenWithRefreshToken(final CallbackHandler callbackHandle,
-            final IWindowComponent activity, final boolean useDialog,
-            final AuthenticationRequest request, final RefreshItem refreshItem,
-            final boolean useCache) {
-
+    private AuthenticationResult getTokenWithRefreshToken(final IWindowComponent activity, final boolean useDialog,
+            final AuthenticationRequest request, final RefreshItem refreshItem, final boolean useCache) 
+            throws AuthenticationException 
+    {
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
                 + getTokenHash(refreshItem.mRefreshToken));
 
@@ -1692,13 +1700,13 @@ public class AuthenticationContext {
         // state to not remove refresh token if user turned Airplane mode or
         // similar.
         if (!mConnectionService.isConnectionAvailable()) {
-            AuthenticationException exc = new AuthenticationException(
+            AuthenticationException authenticationException = new AuthenticationException(
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                     "Connection is not available to refresh token");
             Logger.w(TAG, "Connection is not available to refresh token", request.getLogInfo(),
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            callbackHandle.onError(exc);
-            return null;
+            
+            throw authenticationException;
         }
 
         AuthenticationResult result = null;
@@ -1718,8 +1726,7 @@ public class AuthenticationContext {
             AuthenticationException authException = new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
                     exc);
-            callbackHandle.onError(authException);
-            return null;
+            throw authException;
         }
 
         // useCache will be false when calling from acquireTokenUsingRefreshToken, and if false, need to return
@@ -1764,10 +1771,6 @@ public class AuthenticationContext {
             // error code and error description in
             // Authentication result for Oauth errors
             Logger.v(TAG, "Cache is not used for Request:" + request.getLogInfo());
-            if (callbackHandle.callback != null) 
-            {
-                callbackHandle.onSuccess(result);
-            }
             return result;
         }
     }
@@ -1963,7 +1966,18 @@ public class AuthenticationContext {
 
                 // Follow refresh logic now. Authority is valid or
                 // skipped validation
-                getTokenWithRefreshToken(callbackHandle, null, false, request, refreshItem, false);
+                final AuthenticationResult authResult;
+                try
+                {
+                    authResult = getTokenWithRefreshToken(null, false, request, refreshItem, false);
+                }
+                catch (final AuthenticationException authException)
+                {
+                    callbackHandle.onError(authException);
+                    return;
+                }
+                
+                callbackHandle.onSuccess(authResult);
             }
         });
     }
