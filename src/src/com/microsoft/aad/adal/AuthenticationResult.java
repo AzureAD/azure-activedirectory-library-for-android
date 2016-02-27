@@ -119,21 +119,6 @@ public class AuthenticationResult implements Serializable {
         mErrorCodes = errorCodes;
         mStatus = AuthenticationStatus.Failed;
     }
-    
-    AuthenticationResult(final String accessToken, final String refreshToken, final Date expires, final boolean isBroad,
-            final UserInfo userInfo, final String tenantId, final String idToken, final String familyClientId) 
-    {
-        mCode = null;
-        mAccessToken = accessToken;
-        mRefreshToken = refreshToken;
-        mExpiresOn = expires;
-        mIsMultiResourceRefreshToken = isBroad;
-        mStatus = AuthenticationStatus.Succeeded;
-        mUserInfo = userInfo;
-        mTenantId = tenantId;
-        mIdToken = idToken;
-        mFamilyClientId = familyClientId;
-    }
 
     /**
      * Creates result from {@link TokenCacheItem}.
