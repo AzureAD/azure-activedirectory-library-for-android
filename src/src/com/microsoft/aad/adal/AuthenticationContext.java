@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.UUID;
@@ -288,12 +289,12 @@ public class AuthenticationContext {
      * @return RedirectUri string to use for broker requests.
      */
     public String getRedirectUriForBroker() {
-        PackageHelper helper = new PackageHelper(mContext);
+        PackageHelper packageHelper = new PackageHelper(mContext);
         String packageName = mContext.getPackageName();
 
         // First available signature. Applications can be signed with multiple
         // signatures.
-        String signatureDigest = helper.getCurrentSignatureForPackage(packageName);
+        String signatureDigest = packageHelper.getCurrentSignatureForPackage(packageName);
         String redirectUri = PackageHelper.getBrokerRedirectUrl(packageName, signatureDigest);
         Logger.v(TAG, "Broker redirectUri:" + redirectUri + " packagename:" + packageName
                 + " signatureDigest:" + signatureDigest);
@@ -814,12 +815,12 @@ public class AuthenticationContext {
 
                                 try {
                                     if (result != null) {
-                                    	if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
-                                    		Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
-                                    		callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
-                                    				result.getErrorLogInfo()));
-                                    		return;
-                                    	}
+                                        if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
+                                            Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
+                                            callbackHandle.onError(new AuthenticationException(ADALError.AUTH_FAILED,
+                                                    result.getErrorLogInfo()));
+                                            return;
+                                        }
                                         Logger.v(TAG,
                                                 "OnActivityResult is setting the token to cache. "
                                                         + authenticationRequest.getLogInfo());
@@ -1132,10 +1133,77 @@ public class AuthenticationContext {
     private boolean promptUser(PromptBehavior prompt) {
         return prompt == PromptBehavior.Always || prompt == PromptBehavior.REFRESH_SESSION;
     }
+    
+    /**
+     * check the redirectUri before sending the request
+     * if the redirectUri from the client does not match the valid redirectUri
+     * the client app would not jump to the login page
+     * redirectUri format %PREFIX://%PACKAGE_NAME/%SIGNATURE
+     * 
+     * @param request
+     * @throws AuthenticationException
+     * @return true if the redirectUri is valid or fail and throw the AuthenticationException
+     */
+    private boolean verifyBrokerRedirectUri(final AuthenticationRequest request) {   
+        final String methodName = ":verifyBrokerRedirectUri";
+        final String inputUri = request.getRedirectUri();
+        final String actualUri = getRedirectUriForBroker();
+        String errMsg = "";
+        
+        if(StringExtensions.IsNullOrBlank(inputUri))
+        {
+            errMsg = "The redirectUri is null or blank. "
+                    + "so the redirect uri is expected to be:" + actualUri;
+            Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID); 
+            throw new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+        }
+        else if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://"))
+        {
+            errMsg = "The prefix of the redirect uri does not match the expected value. "
+                    + " The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
+                    + " so the redirect uri is expected to be: " + actualUri;
+            Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
+            throw new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+        } 
+        else
+        {
+            try 
+            {
+                PackageHelper packageHelper = new PackageHelper(mContext);
+                String base64URLEncodePackagename = URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8);
+                String base64URLEncodeSignature = URLEncoder.encode(packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
+                if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + base64URLEncodePackagename + "/"))
+                {
+                    errMsg = "The base64 url encoded package name component of the redirect uri does not match the expected value. "
+                            + " This apps package name is: " + base64URLEncodePackagename
+                            + " so the redirect uri is expected to be: " + actualUri;
+                    Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
+                    throw new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+                }
+                else if(!inputUri.equalsIgnoreCase(actualUri))
+                {
+                    errMsg = "The base64 url encoded signature component of the redirect uri does not match the expected value. "
+                            + " This apps signature is: " + base64URLEncodeSignature
+                            + " so the redirect uri is expected to be: " + actualUri;
+                    Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
+                    throw new AuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
+                }
+            } 
+            catch (UnsupportedEncodingException e) 
+            {
+                Logger.e(TAG + methodName, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+                throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The verifying BrokerRedirectUri "
+                        + "process failed because the base64 url encoding is not supported.", e);
+            }
+        }
+        Logger.v(TAG + methodName, "The broker redirect URI is valid: " + inputUri);
+        return true;
+    }
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request) {
+        final String methodName = ":acquireTokenAfterValidation";
         Logger.v(TAG, "Token request started");
 
         // BROKER flow intercepts here
@@ -1147,7 +1215,19 @@ public class AuthenticationContext {
             AuthenticationResult result = null;
             request.setVersion(getVersionName());
             request.setBrokerAccountName(request.getLoginHint());
-
+            
+            //check if the redirectUri is valid
+            try
+            {
+                verifyBrokerRedirectUri(request);
+            }
+            catch(AuthenticationException exception)
+            {
+                Logger.v(TAG + methodName, "Did not pass the verification of the broker redirect URI");
+                callbackHandle.onError(exception);
+                return result;
+            }
+            
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())
@@ -1271,7 +1351,7 @@ public class AuthenticationContext {
             Logger.v(TAG, "Refresh token is not available");
             if (!request.isSilent() && callbackHandle.callback != null
                     && (activity != null || useDialog)) {
-            	//Check if there is network connection
+                //Check if there is network connection
                 if (!mConnectionService.isConnectionAvailable()) {
                     AuthenticationException exc = new AuthenticationException(
                             ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
