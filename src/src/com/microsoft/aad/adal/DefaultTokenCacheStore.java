@@ -119,10 +119,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         } catch (Exception e) {
             Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
             if (!StringExtensions.IsNullOrBlank(value)) {
-                Logger.v(TAG, String.format("Decryption error for key: '%s'. Item will be removed",
-                        key));
                 removeItem(key);
-                Logger.v(TAG, String.format("Item removed for key: '%s'", key));
+                Logger.v(TAG, String.format("Decryption error, item removed for key: '%s'", key));
             }
         }
 

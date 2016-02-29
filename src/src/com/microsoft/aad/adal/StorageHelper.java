@@ -147,10 +147,7 @@ public class StorageHelper {
     final private void loadSecretKeyForAPI() throws NoSuchAlgorithmException,
             InvalidKeySpecException {
         // Loading key only once for performance. If API is upgraded, it will
-        // restart the device anyway. It will load the correct key for new API.
-        // Remove the static class variable sKey and sMacKey. Static variables are 
-        // shared across instances. Once issue identified related to this is when two
-        // broker apps are involved. 
+        // restart the device anyway. It will load the correct key for new API. 
         if (sKey != null && sMacKey != null)
             return;
 
