@@ -1283,10 +1283,10 @@ public class AuthenticationContextTest extends AndroidTestCase {
      */
     @SmallTest
     public void testRefreshTokenRequestWithFamilyIdSuccess() throws InterruptedException, IllegalArgumentException,
-        NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
-        NoSuchMethodException, InstantiationException, InvocationTargetException,
-        NoSuchAlgorithmException, NoSuchPaddingException 
-    {
+            NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, InvocationTargetException,
+            NoSuchAlgorithmException, NoSuchPaddingException {
+        
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheWithFamilyIdForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
@@ -1327,10 +1327,10 @@ public class AuthenticationContextTest extends AndroidTestCase {
      */
     @SmallTest
     public void testRefreshTokenRequestWithFamilyIdFailed() throws InterruptedException, IllegalArgumentException,
-        NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
-        NoSuchMethodException, InstantiationException, InvocationTargetException,
-        NoSuchAlgorithmException, NoSuchPaddingException 
-    {
+            NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, InvocationTargetException,
+            NoSuchAlgorithmException, NoSuchPaddingException {
+        
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheWithFamilyIdForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
@@ -1345,21 +1345,19 @@ public class AuthenticationContextTest extends AndroidTestCase {
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         
         final String anotherClientId = "clientId2";
-        try
-        {
+        try {
             context.acquireTokenSilentSync("resource", anotherClientId,
                     TEST_IDTOKEN_USERID);
-        }
-        catch (AuthenticationException authException)
-        {
+        } catch (AuthenticationException authException) {
             assertEquals("Error code is not as expected", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
         }
         
         clearCache(context);
     }
     
-    private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey, final String expectedFamilyClientId)
-    {
+    private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey, 
+            final String expectedFamilyClientId) {
+        
         final TokenCacheItem tokenCacheItem = cacheStore.getItem(cacheKey);
         assertNotNull(tokenCacheItem);
         assertEquals(expectedFamilyClientId, tokenCacheItem.getFamilyClientId());
@@ -2094,9 +2092,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
     
     private ITokenCacheStore getCacheWithFamilyIdForRefreshToken(String userId, String displayableId) 
-        throws NoSuchAlgorithmException,
-        NoSuchPaddingException 
-    {
+            throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         cache.removeAll();
         Calendar expiredTime = new GregorianCalendar();
@@ -2221,11 +2217,11 @@ public class AuthenticationContextTest extends AndroidTestCase {
             // TODO Auto-generated method stub
         }
 
-		@Override
-		public Iterator<TokenCacheItem> getAll() {
-			// TODO Auto-generated method stub
-			return null;
-		}
+        @Override
+        public Iterator<TokenCacheItem> getAll() {
+            // TODO Auto-generated method stub
+            return null;
+        }
     }
 
     class MockDiscovery implements IDiscovery {

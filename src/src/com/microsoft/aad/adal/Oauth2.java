@@ -220,8 +220,7 @@ class Oauth2 {
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
         } 
-        else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) 
-        {
+        else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
             boolean isMultiResourcetoken = false;
             String expires_in = response.get("expires_in");
@@ -256,8 +255,7 @@ class Oauth2 {
             }
             
             String familyClientId = null;
-            if (response.containsKey(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID))
-            {
+            if (response.containsKey(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID)) {
                 familyClientId = response.get(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID);
             }
 

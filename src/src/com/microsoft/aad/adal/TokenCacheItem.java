@@ -176,13 +176,11 @@ public class TokenCacheItem implements Serializable {
         this.mRawIdToken = rawIdToken;
     }
     
-    public final String getFamilyClientId()
-    {
+    public final String getFamilyClientId() {
         return mFamilyClientId;
     }
     
-    public final void setFamilyClientId(final String familyClientId)
-    {
+    public final void setFamilyClientId(final String familyClientId) {
         this.mFamilyClientId = familyClientId;
     }
 

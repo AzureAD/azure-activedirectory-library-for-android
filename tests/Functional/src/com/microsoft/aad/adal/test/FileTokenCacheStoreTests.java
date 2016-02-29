@@ -198,8 +198,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         assertNull("Token cache item is expected to be null", item);
     }
     
-    public void testGetAll()
-    {
+    public void testGetAll() {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);

@@ -237,8 +237,7 @@ public class AuthenticationContext {
                 }
 
                 @Override
-                public Iterator<TokenCacheItem> getAll() 
-                {
+                public Iterator<TokenCacheItem> getAll() {
                     throw new UnsupportedOperationException(
                             "Broker cache does not support direct getAll operation");
                 }
@@ -1274,21 +1273,16 @@ public class AuthenticationContext {
         RefreshItem refreshItem = getRefreshToken(request);
         AuthenticationResult authResult = null;
         if (!promptUser(request.getPrompt()) && refreshItem != null
-                && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) 
-        {
+                && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token");
-            try
-            {
+            try {
                 authResult = getTokenWithRefreshToken(activity, useDialog, request, refreshItem, true);
-            }
-            catch (AuthenticationException authenticationException)
-            {
+            } catch (AuthenticationException authenticationException) {
                 callbackHandle.onError(authenticationException);
                 return null;
             }
             
-            if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken()))
-            {
+            if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken())) {
                 callbackHandle.onSuccess(authResult);
                 return authResult;
             }
@@ -1298,16 +1292,12 @@ public class AuthenticationContext {
         // If it's non-silent request, will try to acquire token interactively. 
         // if it's silent request, will return the AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED.
         if (refreshItem == null || authResult == null 
-                || (authResult != null && StringExtensions.IsNullOrBlank(authResult.getAccessToken()))) 
-        {
+                || (authResult != null && StringExtensions.IsNullOrBlank(authResult.getAccessToken()))) {
             Logger.v(TAG, "Refresh token is not available or refresh token request failed to return token.");
             if (!request.isSilent() && callbackHandle.callback != null
-                    && (activity != null || useDialog)) 
-            {
+                    && (activity != null || useDialog)) {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
-            } 
-            else 
-            {
+            } else {
                 final String errorInfo = authResult == null? "" : authResult.getErrorLogInfo();
                 // User does not want to launch activity
                 Logger.e(TAG, "Prompt is not allowed and failed to get token:", request.getLogInfo() + " " + errorInfo,
@@ -1321,11 +1311,9 @@ public class AuthenticationContext {
     }
 
     private void acquireTokenInteractively(final CallbackHandler callbackHandle, final IWindowComponent activity, 
-            final AuthenticationRequest request, final boolean useDialog)
-    {
+            final AuthenticationRequest request, final boolean useDialog) {
         //Check if there is network connection
-        if (!mConnectionService.isConnectionAvailable()) 
-        {
+        if (!mConnectionService.isConnectionAvailable()) {
             AuthenticationException exc = new AuthenticationException(
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                     "Connection is not available to request token");
@@ -1347,17 +1335,13 @@ public class AuthenticationContext {
                 new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
                         callbackHandle.callback));
 
-        if (useDialog) 
-        {
+        if (useDialog) {
             AuthenticationDialog dialog = new AuthenticationDialog(mHandler, mContext,
                     this, request);
             dialog.show();
-        } 
-        else 
-        {
+        } else {
             // onActivityResult will receive the response
-            if (!startAuthenticationActivity(activity, request)) 
-            {
+            if (!startAuthenticationActivity(activity, request)) {
                 callbackHandle.onError(new AuthenticationException(
                         ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
             }
@@ -1472,12 +1456,10 @@ public class AuthenticationContext {
         }
     }
 
-    private RefreshItem getRefreshToken(final AuthenticationRequest request) 
-    {
+    private RefreshItem getRefreshToken(final AuthenticationRequest request) {
         final String methodName = ":getRefreshToken";
         RefreshItem refreshItem = null;
-        if (mTokenCacheStore != null) 
-        {
+        if (mTokenCacheStore != null) {
             boolean multiResource = false;
             // target refreshToken for this resource first. CacheKey will
             // include the resourceId in the cachekey
@@ -1500,15 +1482,11 @@ public class AuthenticationContext {
             
             // If still cannot find an item, try with family clientid
             // Disable this feature for ADFS authority
-            if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken()))
-            {
-                if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority)))
-                {
+            if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
+                if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority))) {
                     Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
                     item = findFamilyItemForUser(request.getUserIdentifierType(), userId);
-                }
-                else 
-                {
+                } else {
                     Logger.v(TAG + methodName, "No refresh token found, skip the family client id item lookup for ADFS authority.");
                 }
             }
@@ -1525,55 +1503,43 @@ public class AuthenticationContext {
         return refreshItem;
     }
 
-    private TokenCacheItem findFamilyItemForUser(final UserIdentifierType userIdentifierType, final String userId)
-    {
+    private TokenCacheItem findFamilyItemForUser(final UserIdentifierType userIdentifierType, final String userId) {
         final String methodName = ":findFamilyItemForUser";
             
-        if (StringExtensions.IsNullOrBlank(userId))
-        {
+        if (StringExtensions.IsNullOrBlank(userId)) {
             Logger.v(TAG + methodName, "User id is not provided, cannot continue with finding family item.");
             return null;
         }
 
         Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
-        if (allItems == null || !allItems.hasNext())
-        {
+        if (allItems == null || !allItems.hasNext()) {
             Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
         }
         
-        if (userIdentifierType == UserIdentifierType.UniqueId)
-        {
+        if (userIdentifierType == UserIdentifierType.UniqueId) {
             Logger.v(TAG + methodName, "UserIdentifier type is unique id, will look for the family item based on unique id.");
-            while (allItems.hasNext())
-            {
+            while (allItems.hasNext()) {
                 final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
                 if (tokenUserInfo!= null 
                     && tokenUserInfo.getUserId() != null 
-                    && tokenUserInfo.getUserId().equalsIgnoreCase(userId))
-                {
+                    && tokenUserInfo.getUserId().equalsIgnoreCase(userId)) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
-                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken()))
-                    {
+                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
                         Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
                         return tokenCacheItem;
                     }
                 }
             }
-        }
-        else if (userIdentifierType == UserIdentifierType.LoginHint)
-        {
+        } else if (userIdentifierType == UserIdentifierType.LoginHint) {
             Logger.v(TAG + methodName, "UserIdentifier type is loginhint, will look for the family item based on login hint.");
-            while (allItems.hasNext())
-            {
+            while (allItems.hasNext()) {
                 final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
                 if (tokenUserInfo != null && tokenUserInfo.getDisplayableId() != null
-                    && tokenUserInfo.getDisplayableId().equalsIgnoreCase(userId))
-                {
+                    && tokenUserInfo.getDisplayableId().equalsIgnoreCase(userId)) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
-                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken()))
-                    {
+                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
                         Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
                         return tokenCacheItem;
                     }
@@ -1581,7 +1547,7 @@ public class AuthenticationContext {
             }
         }
 
-    return null;
+        return null;
     }
     
     private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
@@ -1699,8 +1665,7 @@ public class AuthenticationContext {
      */
     private AuthenticationResult getTokenWithRefreshToken(final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request, final RefreshItem refreshItem, final boolean useCache) 
-            throws AuthenticationException 
-    {
+            throws AuthenticationException {
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
                 + getTokenHash(refreshItem.mRefreshToken));
 
@@ -1708,8 +1673,7 @@ public class AuthenticationContext {
         // may be interrupted, if app is shutdown by user. Detect connection
         // state to not remove refresh token if user turned Airplane mode or
         // similar.
-        if (!mConnectionService.isConnectionAvailable()) 
-        {
+        if (!mConnectionService.isConnectionAvailable()) {
             AuthenticationException authenticationException = new AuthenticationException(
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                     "Connection is not available to refresh token");
@@ -1720,17 +1684,14 @@ public class AuthenticationContext {
         }
 
         AuthenticationResult result = null;
-        try 
-        {
+        try {
             Oauth2 oauthRequest = new Oauth2(request, mWebRequest, mJWSBuilder);
             result = oauthRequest.refreshToken(refreshItem.mRefreshToken);
             if (result != null && StringExtensions.IsNullOrBlank(result.getRefreshToken())) {
                 Logger.v(TAG, "Refresh token is not returned or empty");
                 result.setRefreshToken(refreshItem.mRefreshToken);
             }
-        } 
-        catch (Exception exc) 
-        {
+        } catch (Exception exc) {
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
@@ -1744,8 +1705,7 @@ public class AuthenticationContext {
 
         // useCache will be false when calling from acquireTokenUsingRefreshToken, and if false, need to return
         // the error through callback. If true, just return the result back to localflow. 
-        if (useCache) 
-        {
+        if (useCache) {
             if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                 String errLogInfo = result == null ? "" : result.getErrorLogInfo();
                 Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
@@ -1755,12 +1715,9 @@ public class AuthenticationContext {
                 // refresh token in next acquireToken call
                 removeItemFromCache(refreshItem);
                 return result;
-            } 
-            else 
-            {
+            } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
-                if (result.getUserInfo() == null && refreshItem.mUserInfo != null) 
-                {
+                if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
                     Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());
                     result.setUserInfo(refreshItem.mUserInfo);
                     result.setIdToken(refreshItem.mRawIdToken);
@@ -1778,9 +1735,7 @@ public class AuthenticationContext {
                 // server response
                 return result;
             }
-        } 
-        else 
-        {
+        } else {
             // User is not using cache and explicitly
             // calling with refresh token. User should received
             // error code and error description in

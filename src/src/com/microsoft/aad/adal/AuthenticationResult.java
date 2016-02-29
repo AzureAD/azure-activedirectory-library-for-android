@@ -309,13 +309,11 @@ public class AuthenticationResult implements Serializable {
         mRefreshToken = refreshToken;
     }
     
-    final String getFamilyClientId()
-    {
+    final String getFamilyClientId() {
         return mFamilyClientId;
     }
     
-    final void setFamilyClientId (final String familyClientId)
-    {
+    final void setFamilyClientId (final String familyClientId) {
         mFamilyClientId = familyClientId;
     }
 }
