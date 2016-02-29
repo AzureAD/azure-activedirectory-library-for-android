@@ -127,7 +127,7 @@ public class StorageHelper {
 
     private static String sBlobVersion;
 
-    private static SecretKey sKey = null, sMacKey = null;
+    private SecretKey sKey = null, sMacKey = null;
 
     private static SecretKey sSecretKeyFromAndroidKeyStore = null;
 
@@ -148,6 +148,9 @@ public class StorageHelper {
             InvalidKeySpecException {
         // Loading key only once for performance. If API is upgraded, it will
         // restart the device anyway. It will load the correct key for new API.
+        // Remove the static class variable sKey and sMacKey. Static variables are 
+        // shared across instances. Once issue identified related to this is when two
+        // broker apps are involved. 
         if (sKey != null && sMacKey != null)
             return;
 
