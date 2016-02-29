@@ -21,6 +21,7 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -93,7 +94,7 @@ class BrokerProxy implements IBrokerProxy {
      * does not direct call if the caller is from Authenticator itself.
      */
     @Override
-    public boolean canSwitchToBroker() {
+    public boolean canSwitchToBroker() throws DeveloperAuthenticationException {
         String packageName = mContext.getPackageName();
 
         // ADAL switches broker for following conditions:
@@ -122,7 +123,18 @@ class BrokerProxy implements IBrokerProxy {
 
     @Override
     public boolean canUseLocalCache() {
-        boolean brokerSwitch = canSwitchToBroker();
+        boolean brokerSwitch;
+        try
+        {
+            brokerSwitch = canSwitchToBroker();
+        }
+        catch (DeveloperAuthenticationException e){
+            Logger.w(
+                    TAG,
+                    e.getMessage(),
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+            brokerSwitch = false;
+        }
         if (!brokerSwitch) {
             Logger.v(TAG, "It does not use broker");
             return true;
@@ -136,27 +148,67 @@ class BrokerProxy implements IBrokerProxy {
 
         return false;
     }
-
+        
     /**
-     * App needs to give permission to AccountManager to use broker.
+     * To verify if App gives permissions to AccountManager to use broker.
+     * 
+     * @throws DeveloperAuthenticationException
+     * @return boolean If the GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS permissions are granted in the Manifest.xml
      */
     private boolean verifyManifestPermissions() {
-        PackageManager pm = mContext.getPackageManager();
-        boolean permission = PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                "android.permission.GET_ACCOUNTS", mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                        "android.permission.USE_CREDENTIALS", mContext.getPackageName());
-        if (!permission) {
+        final String methodName = ":verifyManifestPermissions";
+        final PackageManager packageManager = mContext.getPackageManager();
+        List<String> permerssionMissing = new ArrayList<String>();
+        Logger.v(
+                TAG + methodName,
+                "Broker related permissions checking starts.");       
+               
+        if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
+                "android.permission.GET_ACCOUNTS", mContext.getPackageName()))
+        {
+            permerssionMissing.add("GET_ACCOUNTS");
             Logger.w(
-                    TAG,
-                    "Broker related permissions are missing for GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS",
+                    TAG + methodName,
+                    "Broker related permissions are missing for GET_ACCOUNTS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
         }
-
-        return permission;
+        
+        if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
+                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName()))
+        {
+            permerssionMissing.add("MANAGE_ACCOUNTS");
+            Logger.w(
+                    TAG + methodName,
+                    "Broker related permissions are missing for MANAGE_ACCOUNTS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+        }
+        
+        if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
+                        "android.permission.USE_CREDENTIALS", mContext.getPackageName()))
+        {
+            permerssionMissing.add("USE_CREDENTIALS");
+            Logger.w(
+                    TAG + methodName,
+                    "Broker related permissions are missing for USE_CREDENTIALS",
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+        }
+        
+        Logger.v(
+                TAG + methodName,
+                "Broker related permissions are verified");
+        
+        if(permerssionMissing.isEmpty())
+        {
+            return true;
+        }
+        else
+        {
+            throw new DeveloperAuthenticationException(
+                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, "Broker related permissions are missing for " + permerssionMissing.toString());
+        }
     }
+
+    
 
     private void verifyNotOnMainThread() {
         final Looper looper = Looper.myLooper();
@@ -306,13 +358,13 @@ class BrokerProxy implements IBrokerProxy {
             
             final Date expires;
             if (bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE) == 0) {
-            	Logger.v(TAG, "Broker doesn't return expire date, set it current date plus one hour");
-            	final Calendar currentTime = new GregorianCalendar();
-            	currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);;
-            	expires = currentTime.getTime(); 
+                Logger.v(TAG, "Broker doesn't return expire date, set it current date plus one hour");
+                final Calendar currentTime = new GregorianCalendar();
+                currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);;
+                expires = currentTime.getTime(); 
             }
             else {
-            	expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
+                expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
             
             AuthenticationResult result = new AuthenticationResult(

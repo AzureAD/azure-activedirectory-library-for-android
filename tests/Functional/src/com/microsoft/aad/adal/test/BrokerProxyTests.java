@@ -36,9 +36,18 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.UUID;
 
-import junit.framework.Assert;
+import javax.crypto.NoSuchPaddingException;
 
 import org.mockito.Mockito;
+
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationException;
+import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.DeveloperAuthenticationException;
+import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UserInfo;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -59,20 +68,16 @@ import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.Handler;
 import android.test.AndroidTestCase;
+import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 import android.util.Log;
-
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.PromptBehavior;
-import com.microsoft.aad.adal.UserInfo;
+import junit.framework.Assert;
 
 public class BrokerProxyTests extends AndroidTestCase {
 
     private static final String TAG = "BrokerProxyTests";
+    
+    private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
     private byte[] testSignature;
 
@@ -211,6 +216,169 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertFalse("This should skip broker", result);
     }
 
+    @SmallTest
+    public void testVerifyManifestPermission_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
+        //mock Brokerproxy
+        FileMockContext mockContext = new FileMockContext(getContext());
+        Boolean actual;
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.MANAGE_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.USE_CREDENTIALS",PackageManager.PERMISSION_GRANTED);
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        Account[] accts = getAccountList("currentUserName", authenticatorType);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
+                signature, true, accts);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        
+        //set the access to private method
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "verifyManifestPermissions");
+        
+        //test@case all permissions are granted
+        actual = (Boolean)m.invoke(brokerProxy);
+        assertTrue(actual);
+    }
+    
+    public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
+        //mock Brokerproxy
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.USE_CREDENTIALS",PackageManager.PERMISSION_GRANTED);
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        Account[] accts = getAccountList("currentUserName", authenticatorType);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
+                signature, true, accts);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        
+        //set the access to private method
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "verifyManifestPermissions");
+        
+        //test@case permission MANAGE_ACCOUNTS is missing
+        try
+        {
+            m.invoke(brokerProxy);
+            Assert.fail();
+        }
+        catch(InvocationTargetException e)
+        {
+            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
+            assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().contains("[MANAGE_ACCOUNTS]"));
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((DeveloperAuthenticationException)e.getCause()).getCode());
+        }
+    }
+    
+    public void testVerifyManifestPermission_missingPermission_USE_CREDENTIALS() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
+        //mock Brokerproxy
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.MANAGE_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        Account[] accts = getAccountList("currentUserName", authenticatorType);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
+                signature, true, accts);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        
+        //set the access to private method
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "verifyManifestPermissions");
+        
+        //test@case permission USE_CREDENTIALS is missing
+        try
+        {
+            m.invoke(brokerProxy);
+            Assert.fail();
+        }
+        catch(InvocationTargetException e)
+        {
+            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
+            assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().contains("[USE_CREDENTIALS]"));
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((DeveloperAuthenticationException)e.getCause()).getCode());
+        }
+    }
+    
+    public void testVerifyManifestPermission_missingPermission_GET_ACCOUNT() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
+        //mock Brokerproxy
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.MANAGE_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.USE_CREDENTIALS",PackageManager.PERMISSION_GRANTED);
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        Account[] accts = getAccountList("currentUserName", authenticatorType);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
+                signature, true, accts);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        
+        //set the access to private method
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "verifyManifestPermissions");
+        
+        //test@case permission GET_ACCOUNTS is missing
+        try
+        {
+            m.invoke(brokerProxy);
+            Assert.fail("It is expected to return an exception here.");
+        }
+        catch(InvocationTargetException e)
+        {
+            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
+            assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().toString().contains("[GET_ACCOUNTS]"));
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((DeveloperAuthenticationException)e.getCause()).getCode());
+        }
+    }
+    
+    public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS_USE_CREDENTIALS() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
+        //mock Brokerproxy
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
+        mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(testSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        Account[] accts = getAccountList("currentUserName", authenticatorType);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
+                signature, true, accts);
+        ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
+        
+        //set the access to private method
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "verifyManifestPermissions");
+        
+        //test@case permissions USE_CREDENTIALS and MANAGE_ACCOUNTS are missing
+        try
+        {
+            m.invoke(brokerProxy);
+            Assert.fail();
+        }
+        catch(InvocationTargetException e)
+        {
+            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
+            assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().contains("[MANAGE_ACCOUNTS, USE_CREDENTIALS]"));
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((DeveloperAuthenticationException)e.getCause()).getCode());
+        }
+    }
+    
     public void testGetCurrentUser() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, NoSuchFieldException, NameNotFoundException {
@@ -486,9 +654,9 @@ public class BrokerProxyTests extends AndroidTestCase {
     IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
     NoSuchMethodException, InstantiationException, OperationCanceledException,
     AuthenticatorException, IOException, NoSuchFieldException {
-    	Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
-    	String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-    	String acctName = "testAcct123";
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/authtest",
                 "resource", "client", "redirect", acctName.toLowerCase(Locale.US),
                 PromptBehavior.Auto, "", UUID.randomUUID());
@@ -544,9 +712,9 @@ public class BrokerProxyTests extends AndroidTestCase {
     IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
     NoSuchMethodException, InstantiationException, OperationCanceledException,
     AuthenticatorException, IOException, NoSuchFieldException {
-    	Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
-    	String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-    	String acctName = "testAcct123";
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/authtest",
                 "resource", "client", "redirect", acctName.toLowerCase(Locale.US),
                 PromptBehavior.Auto, "", UUID.randomUUID());
