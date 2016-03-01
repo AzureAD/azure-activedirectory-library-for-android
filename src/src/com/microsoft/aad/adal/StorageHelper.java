@@ -127,7 +127,7 @@ public class StorageHelper {
 
     private static String sBlobVersion;
 
-    private SecretKey sKey = null, sMacKey = null;
+    private SecretKey mKey = null, mMacKey = null;
 
     private static SecretKey sSecretKeyFromAndroidKeyStore = null;
 
@@ -148,7 +148,7 @@ public class StorageHelper {
             InvalidKeySpecException {
         // Loading key only once for performance. If API is upgraded, it will
         // restart the device anyway. It will load the correct key for new API. 
-        if (sKey != null && sMacKey != null)
+        if (mKey != null && mMacKey != null)
             return;
 
         synchronized (LOCK_OBJ) {
@@ -160,8 +160,8 @@ public class StorageHelper {
                     // key for Encryption and HMac.
                     // If user specifies secret key, it will use the provided
                     // key.
-                    sKey = getSecretKeyFromAndroidKeyStore();
-                    sMacKey = getMacKey(sKey);
+                    mKey = getSecretKeyFromAndroidKeyStore();
+                    mMacKey = getMacKey(mKey);
                     sBlobVersion = VERSION_ANDROID_KEY_STORE;
                     return;
                 } catch (Exception e) {
@@ -171,8 +171,8 @@ public class StorageHelper {
             }
 
             Logger.v(TAG, "Encryption will use secret key from Settings");
-            sKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
-            sMacKey = getMacKey(sKey);
+            mKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
+            mMacKey = getMacKey(mKey);
             sBlobVersion = VERSION_USER_DEFINED;
         }
     }
@@ -285,13 +285,13 @@ public class StorageHelper {
         // Set to encrypt mode
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
         Mac mac = Mac.getInstance(MAC_ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, sKey, ivSpec);
+        cipher.init(Cipher.ENCRYPT_MODE, mKey, ivSpec);
 
         byte[] encrypted = cipher.doFinal(bytes);
 
         // Mac output to sign encryptedData+IV. Keyversion is not included
         // in the digest. It defines what to use for Mac Key.
-        mac.init(sMacKey);
+        mac.init(mMacKey);
         mac.update(blobVersion);
         mac.update(encrypted);
         mac.update(iv);
