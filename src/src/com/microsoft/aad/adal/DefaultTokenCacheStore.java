@@ -18,6 +18,8 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -105,7 +107,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     private String encrypt(String value) {
         try {
             return sHelper.encrypt(value);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException | IOException e) {
             Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
         }
 
@@ -115,7 +117,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     private String decrypt(String value) {
         try {
             return sHelper.decrypt(value);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException | IOException e) {
             Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
             if (!StringExtensions.IsNullOrBlank(value)) {
                 Logger.v(TAG, String.format("Decryption error for key: '%s'. Item will be removed",

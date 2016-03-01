@@ -20,6 +20,7 @@ package com.microsoft.aad.adal;
 
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
@@ -184,7 +185,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 view.loadUrl(loadUrl, headers);
                             }
                         });
-                    } catch (IllegalArgumentException e) {
+                    } catch (AuthenticationServerProtocolException e) {
                         Logger.e(TAG, "Argument exception", e.getMessage(),
                                 ADALError.ARGUMENT_EXCEPTION, e);
                         // It should return error code and finish the
@@ -192,8 +193,8 @@ abstract class BasicWebViewClient extends WebViewClient {
                         // returns errors to callback.
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra(
-                                        AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
-                                        e);
+                                AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
+                                e);
                         if (mRequest != null) {
                             resultIntent.putExtra(
                                     AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
@@ -220,20 +221,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                         sendResponse(
                                 AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
                                 resultIntent);
-                    } catch (Exception e) {
-                        Intent resultIntent = new Intent();
-                        resultIntent.putExtra(
-                                        AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
-                                        e);
-                        if (mRequest != null) {
-                            resultIntent.putExtra(
-                                    AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                                    mRequest);
                         }
-                        sendResponse(
-                                AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                                resultIntent);
-                    }
                 }
             }).start();
 
@@ -282,18 +270,13 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
     
     private boolean hasCancelError(String redirectUrl) {
-        try {
-            HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
-            String error = parameters.get("error");
-            String errorDescription = parameters.get("error_description");
+        Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
+        String error = parameters.get("error");
+        String errorDescription = parameters.get("error_description");
 
-            if (!StringExtensions.IsNullOrBlank(error)) {
-                Logger.v(TAG, "Cancel error:" + error + " " + errorDescription);
-                return true;
-            }
-        } catch (Exception exc) {
-            Logger.e(TAG, "Error in processing url parameters", "Url:" + redirectUrl,
-                    ADALError.ERROR_WEBVIEW);
+        if (!StringExtensions.IsNullOrBlank(error)) {
+            Logger.w(TAG, "Cancel error:" + error, errorDescription, null);
+            return true;
         }
 
         return false;

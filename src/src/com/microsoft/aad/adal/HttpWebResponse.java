@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class HttpWebResponse {
     private int mStatusCode;
     private byte[] mResponseBody;
     private Map<String, List<String>> mResponseHeaders;
-    private Exception mResponseException = null;
+    private IOException mResponseException = null;
 
     public HttpWebResponse() {
         mStatusCode = HttpURLConnection.HTTP_OK;
@@ -43,11 +44,11 @@ public class HttpWebResponse {
         mResponseHeaders = responseHeaders;
     }
 
-    public Exception getResponseException() {
+    public IOException getResponseException() {
         return mResponseException;
     }
 
-    public void setResponseException(Exception responseException) {
+    public void setResponseException(IOException responseException) {
         this.mResponseException = responseException;
     }
 
