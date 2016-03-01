@@ -1697,7 +1697,16 @@ public class AuthenticationContext {
                 // remove item from cache to avoid same usage of
                 // refresh token in next acquireToken call
                 removeItemFromCache(refreshItem);
-                return acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
+                if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
+                    return acquireTokenLocalCall(callbackHandle, activity, useDialog, request);
+                } else {
+                    // cause exception added to indicate that refresh token was wiped
+                    callbackHandle.onError(new AuthenticationException(
+                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
+                            request.getLogInfo() + errLogInfo,
+                            new AuthenticationException(ADALError.AUTH_FAILED_SERVER_ERROR)));
+                    return null;
+                }
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
                 if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
