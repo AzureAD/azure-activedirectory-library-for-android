@@ -23,9 +23,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -1145,7 +1143,7 @@ public class AuthenticationContext {
 
         // BROKER flow intercepts here
         // cache and refresh call happens through the authenticator service
-        try{
+        try {
             if (mBrokerProxy.canSwitchToBroker()
                     && mBrokerProxy.verifyUser(request.getLoginHint(),
                             request.getUserId())) {
@@ -1242,13 +1240,11 @@ public class AuthenticationContext {
             } else {
                 return localFlow(callbackHandle, activity, useDialog, request);
             }
-        }
-        catch(DeveloperAuthenticationException e)
-        {
+        } catch(final DeveloperAuthenticationException e) {
             Logger.w(TAG,
                     e.getMessage(),
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
-            callbackHandle.onError((AuthenticationException)e);
+            callbackHandle.onError(e);
             return null;
         }
     

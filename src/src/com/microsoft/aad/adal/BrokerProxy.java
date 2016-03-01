@@ -99,19 +99,19 @@ class BrokerProxy implements IBrokerProxy {
 
         // ADAL switches broker for following conditions:
         // 1- app is not skipping the broker
-        // 2- permissions are set in the manifest,
-        // 3- if package is not broker itself for both company portal and azure
+        // 2- if package is not broker itself for both company portal and azure
         // authenticator
-        // 4- signature of the broker is valid
-        // 5- account exists
+        // 3- signature of the broker is valid
+        // 4- account exists
+        // 5- permissions are set in the manifest
         return !AuthenticationSettings.INSTANCE.getSkipBroker()
-                && verifyManifestPermissions()
                 && checkAccount(mAcctManager, "", "")
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
                         .getBrokerPackageName())
                 && !packageName
                         .equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
-                && verifyAuthenticator(mAcctManager);
+                && verifyAuthenticator(mAcctManager)
+                && verifyManifestPermissions();
     }
     
     /**
@@ -124,11 +124,9 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public boolean canUseLocalCache() {
         boolean brokerSwitch;
-        try
-        {
+        try {
             brokerSwitch = canSwitchToBroker();
-        }
-        catch (DeveloperAuthenticationException e){
+        } catch (final DeveloperAuthenticationException e) {
             Logger.w(
                     TAG,
                     e.getMessage(),
@@ -155,7 +153,7 @@ class BrokerProxy implements IBrokerProxy {
      * @throws DeveloperAuthenticationException
      * @return boolean If the GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS permissions are granted in the Manifest.xml
      */
-    private boolean verifyManifestPermissions() {
+    private boolean verifyManifestPermissions() throws DeveloperAuthenticationException {
         final String methodName = ":verifyManifestPermissions";
         final PackageManager packageManager = mContext.getPackageManager();
         List<String> permerssionMissing = new ArrayList<String>();
@@ -164,8 +162,7 @@ class BrokerProxy implements IBrokerProxy {
                 "Broker related permissions checking starts.");       
                
         if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
-                "android.permission.GET_ACCOUNTS", mContext.getPackageName()))
-        {
+            "android.permission.GET_ACCOUNTS", mContext.getPackageName())) {
             permerssionMissing.add("GET_ACCOUNTS");
             Logger.w(
                     TAG + methodName,
@@ -174,8 +171,7 @@ class BrokerProxy implements IBrokerProxy {
         }
         
         if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
-                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName()))
-        {
+            "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName())) {
             permerssionMissing.add("MANAGE_ACCOUNTS");
             Logger.w(
                     TAG + methodName,
@@ -184,8 +180,7 @@ class BrokerProxy implements IBrokerProxy {
         }
         
         if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
-                        "android.permission.USE_CREDENTIALS", mContext.getPackageName()))
-        {
+            "android.permission.USE_CREDENTIALS", mContext.getPackageName())) {
             permerssionMissing.add("USE_CREDENTIALS");
             Logger.w(
                     TAG + methodName,
@@ -197,18 +192,15 @@ class BrokerProxy implements IBrokerProxy {
                 TAG + methodName,
                 "Broker related permissions are verified");
         
-        if(permerssionMissing.isEmpty())
-        {
+        if(permerssionMissing.isEmpty()) {
             return true;
-        }
-        else
-        {
+        } else {
             throw new DeveloperAuthenticationException(
-                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, "Broker related permissions are missing for " + permerssionMissing.toString());
+                      ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, 
+                      "Broker related permissions are missing for " + 
+                      permerssionMissing.toString());
         }
     }
-
-    
 
     private void verifyNotOnMainThread() {
         final Looper looper = Looper.myLooper();

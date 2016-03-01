@@ -217,7 +217,9 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyManifestPermission_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
+    public void testVerifyManifestPermission_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+            IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+            IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
         //mock Brokerproxy
         FileMockContext mockContext = new FileMockContext(getContext());
         Boolean actual;
@@ -244,7 +246,10 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertTrue(actual);
     }
     
-    public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
+    public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS() throws NoSuchAlgorithmException, 
+            NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, 
+            InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, 
+            NoSuchFieldException {
         //mock Brokerproxy
         FileMockContext mockContext = new FileMockContext(getContext());
         mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
@@ -265,20 +270,21 @@ public class BrokerProxyTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "verifyManifestPermissions");
         
         //test@case permission MANAGE_ACCOUNTS is missing
-        try
-        {
+        try {
             m.invoke(brokerProxy);
             Assert.fail();
-        }
-        catch(InvocationTargetException e)
-        {
+        } catch(InvocationTargetException e) {
             assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
             assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().contains("[MANAGE_ACCOUNTS]"));
-            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                    ((DeveloperAuthenticationException)e.getCause()).getCode());
         }
     }
     
-    public void testVerifyManifestPermission_missingPermission_USE_CREDENTIALS() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
+    public void testVerifyManifestPermission_missingPermission_USE_CREDENTIALS() throws NoSuchAlgorithmException, 
+            NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, 
+            InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, 
+            NoSuchFieldException {
         //mock Brokerproxy
         FileMockContext mockContext = new FileMockContext(getContext());
         mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
@@ -299,20 +305,21 @@ public class BrokerProxyTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "verifyManifestPermissions");
         
         //test@case permission USE_CREDENTIALS is missing
-        try
-        {
+        try {
             m.invoke(brokerProxy);
             Assert.fail();
-        }
-        catch(InvocationTargetException e)
-        {
+        } catch(InvocationTargetException e) {
             assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
             assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().contains("[USE_CREDENTIALS]"));
-            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                    ((DeveloperAuthenticationException)e.getCause()).getCode());
         }
     }
     
-    public void testVerifyManifestPermission_missingPermission_GET_ACCOUNT() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
+    public void testVerifyManifestPermission_missingPermission_GET_ACCOUNT() throws NoSuchAlgorithmException, 
+            NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, 
+            InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, 
+            NoSuchFieldException {
         //mock Brokerproxy
         FileMockContext mockContext = new FileMockContext(getContext());
         mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
@@ -333,20 +340,21 @@ public class BrokerProxyTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "verifyManifestPermissions");
         
         //test@case permission GET_ACCOUNTS is missing
-        try
-        {
+        try {
             m.invoke(brokerProxy);
             Assert.fail("It is expected to return an exception here.");
-        }
-        catch(InvocationTargetException e)
-        {
+        } catch(InvocationTargetException e) {
             assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
             assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().toString().contains("[GET_ACCOUNTS]"));
-            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                    ((DeveloperAuthenticationException)e.getCause()).getCode());
         }
     }
     
-    public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS_USE_CREDENTIALS() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
+    public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS_USE_CREDENTIALS() throws 
+            NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, 
+            NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, 
+            NoSuchFieldException, NameNotFoundException {
         //mock Brokerproxy
         FileMockContext mockContext = new FileMockContext(getContext());
         mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_GRANTED);
@@ -366,16 +374,14 @@ public class BrokerProxyTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "verifyManifestPermissions");
         
         //test@case permissions USE_CREDENTIALS and MANAGE_ACCOUNTS are missing
-        try
-        {
+        try {
             m.invoke(brokerProxy);
             Assert.fail();
-        }
-        catch(InvocationTargetException e)
-        {
+        } catch(InvocationTargetException e) {
             assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
             assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().contains("[MANAGE_ACCOUNTS, USE_CREDENTIALS]"));
-            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                    ((DeveloperAuthenticationException)e.getCause()).getCode());
         }
     }
     
