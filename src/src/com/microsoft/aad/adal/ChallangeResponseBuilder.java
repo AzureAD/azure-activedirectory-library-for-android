@@ -85,13 +85,14 @@ class ChallangeResponseBuilder {
      *            client must convey back>
      * @return Return Device challange response
      */
-    public ChallangeResponse getChallangeResponseFromUri(final String redirectUri) {
+    public ChallangeResponse getChallangeResponseFromUri(final String redirectUri)
+            throws AuthenticationServerProtocolException {
         ChallangeRequest request = getChallangeRequest(redirectUri);
         return getDeviceCertResponse(request);
     }
 
     public ChallangeResponse getChallangeResponseFromHeader(final String challangeHeaderValue,
-            final String endpoint) throws UnsupportedEncodingException {
+            final String endpoint) throws UnsupportedEncodingException, AuthenticationServerProtocolException {
         ChallangeRequest request = getChallangeRequestFromHeader(challangeHeaderValue);
         request.mSubmitUrl = endpoint;
         return getDeviceCertResponse(request);
@@ -130,6 +131,18 @@ class ChallangeResponseBuilder {
 
         return response;
     }
+    
+    private boolean isWorkplaceJoined()
+    {
+        @SuppressWarnings("unchecked")
+        Class<IDeviceCertificate> certClass = (Class<IDeviceCertificate>)AuthenticationSettings.INSTANCE.getDeviceCertificateProxy();
+        if (certClass == null)
+        {
+            return false;
+        }
+        
+        return true;
+    }
 
     private IDeviceCertificate getWPJAPIInstance(Class<IDeviceCertificate> certClazz) {
         IDeviceCertificate deviceCertProxy = null;
@@ -166,14 +179,17 @@ class ChallangeResponseBuilder {
     }
 
     private ChallangeRequest getChallangeRequestFromHeader(final String headerValue)
-            throws UnsupportedEncodingException {
+            throws UnsupportedEncodingException, AuthenticationServerProtocolException {
+        final String methodName = ":getChallangeRequestFromHeader";
+        
         if (StringExtensions.IsNullOrBlank(headerValue)) {
-            throw new IllegalArgumentException("headerValue");
+            throw new AuthenticationServerProtocolException("headerValue");
         }
 
         // Header value should start with correct challenge type
         if (!StringExtensions.hasPrefixInHeader(headerValue,
-                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)) {
+                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)) 
+        {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
                     headerValue);
         }
@@ -184,7 +200,8 @@ class ChallangeResponseBuilder {
         ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader, ',');
         HashMap<String, String> headerItems = new HashMap<String, String>();
 
-        for (String queryPair : queryPairs) {
+        for (String queryPair : queryPairs) 
+        {
             ArrayList<String> pair = StringExtensions.splitWithQuotes(queryPair, '=');
             if (pair.size() == 2 && !StringExtensions.IsNullOrBlank(pair.get(0))
                     && !StringExtensions.IsNullOrBlank(pair.get(1))) {
@@ -195,8 +212,9 @@ class ChallangeResponseBuilder {
                 key = key.trim();
                 value = StringExtensions.removeQuoteInHeaderValue(value.trim());
                 headerItems.put(key, value);
-            } else {
-
+            } 
+            else 
+            {
                 // invalid format
                 throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
                         authenticateHeader);
@@ -209,17 +227,30 @@ class ChallangeResponseBuilder {
             challange.mNonce = headerItems.get(RequestField.Nonce.name().toLowerCase(Locale.US));
         }
         
-        if (!StringExtensions.IsNullOrBlank(headerItems.get(RequestField.CertThumbprint.name()))){
-        	challange.mThumbprint = headerItems.get(RequestField.CertThumbprint.name());
+        // When pkeyauth header is present, ADFS is always trying to device auth. When hitting token endpoint(device
+        // challenge will be returned via 401 challenge), ADFS is sending back an empty cert thumbprint when they found
+        // the device is not managed. To account for the behavior of how ADFS performs device auth, below code is checking 
+        // if it's already workplace joined before checking the existence of cert thumprint or authority from returned challenge. 
+        if (!isWorkplaceJoined())
+        {
+            Logger.v(TAG + methodName, "Device is not workplace joined. ");
         }
-        else if (headerItems.containsKey(RequestField.CertAuthorities.name())) {
-        	String authorities = headerItems.get(RequestField.CertAuthorities.name());
-        	challange.mCertAuthorities = StringExtensions.getStringTokens(authorities, 
-    				AuthenticationConstants.Broker.CHALLANGE_REQUEST_CERT_AUTH_DELIMETER);
+        else if (!StringExtensions.IsNullOrBlank(headerItems.get(RequestField.CertThumbprint.name())))
+        {
+            Logger.v(TAG + methodName, "CertThumbprint exists in the device auth challenge.");
+            challange.mThumbprint = headerItems.get(RequestField.CertThumbprint.name());
         }
-        else {
-        	throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, 
-        			"Both certThumbprint and certauthorities are not present");
+        else if (headerItems.containsKey(RequestField.CertAuthorities.name())) 
+        {
+            Logger.v(TAG + methodName, "CertAuthorities exists in the device auth challenge.");
+            String authorities = headerItems.get(RequestField.CertAuthorities.name());
+            challange.mCertAuthorities = StringExtensions.getStringTokens(authorities, 
+                AuthenticationConstants.Broker.CHALLANGE_REQUEST_CERT_AUTH_DELIMETER);
+        }
+        else 
+        {
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, 
+                "Both certThumbprint and certauthorities are not present");
         }
         
         challange.mVersion = headerItems.get(RequestField.Version.name());
@@ -251,9 +282,9 @@ class ChallangeResponseBuilder {
         }
     }
 
-    private ChallangeRequest getChallangeRequest(final String redirectUri) {
+    private ChallangeRequest getChallangeRequest(final String redirectUri) throws AuthenticationServerProtocolException {
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
-            throw new IllegalArgumentException("redirectUri");
+            throw new AuthenticationServerProtocolException("redirectUri");
         }
 
         ChallangeRequest challange = new ChallangeRequest();

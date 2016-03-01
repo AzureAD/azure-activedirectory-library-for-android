@@ -1,3 +1,9 @@
+Version 1.1.12
+--------------
+Update cert prompt for TLS request(not responding to TLS request for device authentication)
+Update Travis to compile Android 21
+Remove warnings for unused code
+
 Version 1.1.11
 --------------
 Fix for reading tenant id, and expiration data from broker return
