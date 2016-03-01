@@ -43,7 +43,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
 
     static final String TAG = "ClientCertHandlerTests";
 
-    private static final String CERT_REDIRECT = AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT;
+    private static final String CERT_REDIRECT = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT;
 
     private static final String CERT_AUTH_TYPE = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE;
 
@@ -121,31 +121,89 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
     }
     
     /**
-     * Test for verifying correct error thrown out when challenge header doesn't contain both thumbprint and cert authorities.
+     * Verify no error thrown out if device is not workplace joined even neither cert thumbprint nor cert authority is returned from 
+     * pkeyauth challenge. 
+     */
+    public void testGetChallengeFromHeader_NotWorkPlaceJoined_NoCertThumbprint_NoCertAuthority() throws ClassNotFoundException,
+            InstantiationException, IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
+            NoSuchAlgorithmException 
+    {
+        final String submitUrl = "http://fs.contoso.com/adfs/services/trust";
+        final String nonce = "123123-123213-123";
+        final String context = "ABcdeded";
+        
+        Object handler = getInstance(null);
+        Field f = AuthenticationSettings.INSTANCE.getClass().getDeclaredField(
+                "mClazzDeviceCertProxy");
+        f.setAccessible(true);
+        f.set(AuthenticationSettings.INSTANCE, null);
+        
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromHeader", String.class, String.class);
+        
+        String authorizationHeader =  AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE + " Nonce=\""
+                + nonce + "\",Version=\"1.0\",Context=\"" + context + "\"";
+        
+        Object response = null;
+        try
+        {
+             response = m.invoke(handler, authorizationHeader, submitUrl);
+        }
+        catch (final Exception exception)
+        {
+            fail("No exception should be thrown ." + exception.getCause().getMessage());
+        }
+        
+        assertNotNull(response);
+
+        final String authHeaderValue = (String)ReflectionUtils.getFieldValue(response,
+                "mAuthorizationHeaderValue");
+        assertTrue(authHeaderValue.contains(String.format("%s Context=\"%s\"",
+                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, context)));
+        
+    }
+    /**
+     * Test for verifying correct error thrown out when challenge header doesn't contain both thumbprint and cert authorities 
+     * if device is already workplace joined.
      */
     public void testGetChallangeResponseFromHeader_BothThumbprintCertAuthorityNotPresent() throws ClassNotFoundException,
-		InstantiationException, IllegalAccessException, IllegalArgumentException, 
-		InvocationTargetException, NoSuchMethodException, NoSuchFieldException, 
-		NoSuchAlgorithmException 
+        InstantiationException, IllegalAccessException, IllegalArgumentException, 
+        InvocationTargetException, NoSuchMethodException, NoSuchFieldException, 
+        NoSuchAlgorithmException 
     {
-    	String nonce = "123123-123213-123";
-    	String context = "ABcdeded";
+        final KeyPair keyPair = getKeyPair();
+        final RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
+        final RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
+
+        X509Certificate mockCert = mock(X509Certificate.class);
+        MockDeviceCertProxy.reset();
+        MockDeviceCertProxy.sValidIssuer = true;
+        MockDeviceCertProxy.sPrivateKey = privateKey;
+        MockDeviceCertProxy.sPublicKey = publicKey;
+        MockDeviceCertProxy.sCertificate = mockCert;
+        
+        final String nonce = "123123-123213-123";
+        final String context = "ABcdeded";
     
-    	Object handler = getInstance(null);
-    	Method m = ReflectionUtils.getTestMethod(handler, "getChallangeRequestFromHeader", String.class);
-	
-    	String authorizationHeader = CERT_AUTH_TYPE + " Nonce=\""
+        Object handler = getInstance(null);
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeRequestFromHeader", String.class);
+        
+        final String authorizationHeader = CERT_AUTH_TYPE + " Nonce=\""
             + nonce + "\",Version=\"1.0\",Context=\"" + context + "\"";
 
-    	try {
-    		m.invoke(handler, authorizationHeader);
-    		Assert.fail("expected exception");
-    	} catch (Exception ex) {
-    		assertEquals("Error code check", ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, 
-				((AuthenticationException)ex.getCause()).getCode());
-    		assertEquals("Error mesage check", "Both certThumbprint and certauthorities are not present", 
-				((AuthenticationException)ex.getCause()).getMessage());
-    	}   
+        Object response = null;
+        try 
+        {
+            response = m.invoke(handler, authorizationHeader);
+            Assert.fail("expected exception");
+        } 
+        catch (Exception ex) 
+        {
+            assertEquals("Error code check", ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, 
+                    ((AuthenticationException)ex.getCause()).getCode());
+            assertEquals("Error mesage check", "Both certThumbprint and certauthorities are not present", 
+                    ((AuthenticationException)ex.getCause()).getMessage());
+        }
     }
 
     public void testGetChallangeResponseFromHeader_Negative() throws ClassNotFoundException,

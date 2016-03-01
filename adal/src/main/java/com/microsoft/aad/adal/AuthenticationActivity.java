@@ -28,9 +28,13 @@ import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.Principal;
+import java.security.PrivateKey;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -41,6 +45,7 @@ import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.app.Service;
@@ -48,13 +53,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.security.KeyChain;
+import android.security.KeyChainAliasCallback;
+import android.security.KeyChainException;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
@@ -144,7 +154,9 @@ public class AuthenticationActivity extends Activity {
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) 
+    {
+        final String methodName = ":onCreate";
         super.onCreate(savedInstanceState);
         setContentView(this.getResources().getIdentifier("activity_authentication", "layout",
                 this.getPackageName()));
@@ -225,7 +237,8 @@ public class AuthenticationActivity extends Activity {
         userAgent = mWebView.getSettings().getUserAgentString();
         Logger.v(TAG, "UserAgent:" + userAgent);
 
-        if (isBrokerRequest(getIntent())) {
+        if (isBrokerRequest(getIntent())) 
+        {
             // This activity is started from calling app and running in
             // Authenticator's process
             mCallingPackage = getCallingPackage();
@@ -261,6 +274,11 @@ public class AuthenticationActivity extends Activity {
                     + " calling package:" + mCallingPackage + " signatureDigest:" + signatureDigest
                     + " current Context Package: " + getPackageName());
         }
+        else
+        {
+            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage());
+        }
+        
         mRegisterReceiver = false;
         final String postUrl = mStartUrl;
         Logger.i(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage,
@@ -441,11 +459,8 @@ public class AuthenticationActivity extends Activity {
         return loadUrl;
     }
 
-    private boolean isBrokerRequest(Intent callingIntent) {
-        Logger.v(TAG, "Packagename:" + getPackageName() + " Broker packagename:"
-                + AuthenticationSettings.INSTANCE.getBrokerPackageName() + " Calling packagename:"
-                + getCallingPackage());
-
+    private boolean isBrokerRequest(Intent callingIntent) 
+    {
         // Intent should have a flag and activity is hosted inside broker
         return callingIntent != null
                 && !StringExtensions.IsNullOrBlank(callingIntent
@@ -594,13 +609,27 @@ public class AuthenticationActivity extends Activity {
         }
         
         public boolean processInvalidUrl(final WebView view, String url) {
+        	final String methodName = ":processInvalidUrl";
             if (isBrokerRequest(getIntent())
-                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) {
+                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) 
+            {
+            	Logger.e(TAG + methodName, String.format(
+                        "The RedirectUri is not as expected. Received %s and expected %s", url,
+                        mRedirectUrl), "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
                 returnError(ADALError.DEVELOPER_REDIRECTURI_INVALID, String.format(
                         "The RedirectUri is not as expected. Received %s and expected %s", url,
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
+            }
+            
+            //check if the redirect URL is under SSL protected
+            if(!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX))
+            {
+            	Logger.e(TAG + methodName, "The webview was redirected to an unsafe URL.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
+            	returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, "The webview was redirected to an unsafe URL.");
+            	view.stopLoading();
+            	return true;
             }
 
             return false;
@@ -628,6 +657,61 @@ public class AuthenticationActivity extends Activity {
         @Override
         public void postRunnable(Runnable item) {
             mWebView.post(item);            
+        }
+        
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @Override
+        public void onReceivedClientCertRequest (WebView view, final ClientCertRequest request)
+        {
+            final String methodName = ":onReceivedClientCertRequest";
+            Logger.v(TAG + methodName, "Webview receives client TLS request.");
+            
+            final Principal[] acceptableCertIssuers = request.getPrincipals();
+            
+            // When ADFS server sends null or empty issuers, we'll continue with cert prompt.
+            if (acceptableCertIssuers != null)
+            {
+                for (Principal issuer : acceptableCertIssuers)
+                {
+                    if (issuer.getName().contains("CN=MS-Organization-Access"))
+                    {
+                        //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
+                        Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
+                        request.cancel();
+                        return;
+                    }
+                }
+            }
+            
+            KeyChain.choosePrivateKeyAlias(AuthenticationActivity.this, new KeyChainAliasCallback() {
+
+                @Override
+                public void alias(String alias) 
+                {
+                    if (alias == null)
+                    {
+                        Logger.v(TAG + methodName, "No certificate chosen by user, cancelling the TLS request.");
+                        request.cancel();
+                        return;
+                    }
+                    
+                    try {
+                        final X509Certificate[] certChain = KeyChain.getCertificateChain(
+                                getApplicationContext(), alias);
+                        final PrivateKey privateKey = KeyChain.getPrivateKey(mCallingContext, alias);
+                        
+                        Logger.v(TAG + methodName, "Certificate is chosen by user, proceed with TLS request.");
+                        request.proceed(privateKey, certChain);
+                        return;
+                    } catch (KeyChainException e) {
+                        Log.e(TAG, "KeyChain exception", e);
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "InterruptedException exception", e);
+                    }
+                    
+                    request.cancel();
+                }
+            }, request.getKeyTypes(), request.getPrincipals(), request.getHost(), request.getPort(), null);
         }
     }
 
