@@ -164,7 +164,7 @@ public class StorageHelper {
                     sMacKey = getMacKey(sKey);
                     sBlobVersion = VERSION_ANDROID_KEY_STORE;
                     return;
-                } catch (Exception e) {
+                } catch (IOException | GeneralSecurityException e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
                             ADALError.ANDROIDKEYSTORE_FAILED, e);
                 }
@@ -207,7 +207,7 @@ public class StorageHelper {
                     // key
                     // used for Encryption and HMac
                     return getSecretKeyFromAndroidKeyStore();
-                } catch (Exception e) {
+                } catch (IOException | GeneralSecurityException e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
                             ADALError.ANDROIDKEYSTORE_FAILED, e);
                 }
@@ -466,10 +466,10 @@ public class StorageHelper {
             final byte[] encryptedKey = readKeyData(keyFile);
             sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
             Logger.v(TAG, "Finished reading SecretKey");
-        } catch (Exception ex) {
+        } catch (GeneralSecurityException | IOException ex) {
             // Reset KeyPair info so that new request will generate correct KeyPairs.
             // All tokens with previous SecretKey are not possible to decrypt.
-            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED);
+            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED, ex);
             mKeyPair = null;
             sSecretKeyFromAndroidKeyStore = null;
             deleteKeyFile();
