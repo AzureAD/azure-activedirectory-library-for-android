@@ -125,7 +125,7 @@ public class StorageHelper {
 
     private static final Object LOCK_OBJ = new Object();
 
-    private static String sBlobVersion;
+    private String mBlobVersion;
 
     private SecretKey mKey = null, mMacKey = null;
 
@@ -162,7 +162,7 @@ public class StorageHelper {
                     // key.
                     mKey = getSecretKeyFromAndroidKeyStore();
                     mMacKey = getMacKey(mKey);
-                    sBlobVersion = VERSION_ANDROID_KEY_STORE;
+                    mBlobVersion = VERSION_ANDROID_KEY_STORE;
                     return;
                 } catch (Exception e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
@@ -173,7 +173,7 @@ public class StorageHelper {
             Logger.v(TAG, "Encryption will use secret key from Settings");
             mKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
             mMacKey = getMacKey(mKey);
-            sBlobVersion = VERSION_USER_DEFINED;
+            mBlobVersion = VERSION_USER_DEFINED;
         }
     }
 
@@ -273,8 +273,8 @@ public class StorageHelper {
 
         // load key for encryption if not loaded
         loadSecretKeyForAPI();
-        Logger.v(TAG, "Encrypt version:" + sBlobVersion);
-        final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
+        Logger.v(TAG, "Encrypt version:" + mBlobVersion);
+        final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
         // IV: Initialization vector that is needed to start CBC
