@@ -91,7 +91,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     public void testFileCacheWriteError() {
         final FileMockContext mockContext = new FileMockContext(targetContex);
         assertThrowsException(IllegalStateException.class,
-                "it could not access the authorization cache directory", new ThrowableRunnable() {
+                "it could not access the authorization cache directory", new Runnable() {
                     @Override
                     public void run() {
                         ITokenCacheStore store = new FileTokenCacheStore(mockContext,

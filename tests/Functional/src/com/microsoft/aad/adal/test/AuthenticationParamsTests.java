@@ -278,7 +278,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     public void testcreateFromResourceUrlNoCallback() throws MalformedURLException {
 
         final URL url = new URL("https://www.something.com");
-        assertThrowsException(IllegalArgumentException.class, "callback", new ThrowableRunnable() {
+        assertThrowsException(IllegalArgumentException.class, "callback", new Runnable() {
 
             @Override
             public void run() {
