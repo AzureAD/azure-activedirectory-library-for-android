@@ -113,7 +113,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return null;
     }
 
-    private String decrypt(final String key, String value) {
+    private String decrypt(final String key, final String value) {
         try {
             return sHelper.decrypt(value);
         } catch (Exception e) {
