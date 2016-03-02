@@ -115,7 +115,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private String decrypt(final String key, final String value) {
         if (StringExtensions.IsNullOrBlank(key)) {
-            throw new IllegalArgumentException("key is null");
+            throw new IllegalArgumentException("key is null or blank");
         }
         
         try {
