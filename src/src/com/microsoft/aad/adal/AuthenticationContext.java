@@ -1127,9 +1127,6 @@ public class AuthenticationContext {
         return prompt == PromptBehavior.Always || prompt == PromptBehavior.REFRESH_SESSION;
     }
     
-<<<<<<< HEAD
-    
-=======
     /**
      * check the redirectUri before sending the request
      * if the redirectUri from the client does not match the valid redirectUri
@@ -1195,7 +1192,6 @@ public class AuthenticationContext {
         Logger.v(TAG + methodName, "The broker redirect URI is valid: " + inputUri);
         return true;
     }
->>>>>>> dev
 
     private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
@@ -1205,7 +1201,6 @@ public class AuthenticationContext {
 
         // BROKER flow intercepts here
         // cache and refresh call happens through the authenticator service
-<<<<<<< HEAD
         try {
             if (mBrokerProxy.canSwitchToBroker()
                     && mBrokerProxy.verifyUser(request.getLoginHint(),
@@ -1232,44 +1227,6 @@ public class AuthenticationContext {
                         } else {
                             throw ex;
                         }
-=======
-        if (mBrokerProxy.canSwitchToBroker()
-                && mBrokerProxy.verifyUser(request.getLoginHint(),
-                        request.getUserId())) {
-            Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
-            AuthenticationResult result = null;
-            request.setVersion(getVersionName());
-            request.setBrokerAccountName(request.getLoginHint());
-            
-            //check if the redirectUri is valid
-            try
-            {
-                verifyBrokerRedirectUri(request);
-            }
-            catch(AuthenticationException exception)
-            {
-                Logger.v(TAG + methodName, "Did not pass the verification of the broker redirect URI");
-                callbackHandle.onError(exception);
-                return result;
-            }
-            
-            // Don't send background request, if prompt flag is always or
-            // refresh_session
-            if (!promptUser(request.getPrompt())
-                    && (!StringExtensions.IsNullOrBlank(request.getBrokerAccountName()) || !StringExtensions
-                            .IsNullOrBlank(request.getUserId()))) {
-                try {
-                    Logger.v(TAG, "User is specified for background token request");
-                    result = mBrokerProxy.getAuthTokenInBackground(request);
-                } catch (AuthenticationException ex) {
-                    // pass back to caller for known exceptions such as failure
-                    // to encrypt
-                    if (callbackHandle.callback != null) {
-                        callbackHandle.onError(ex);
-                        return null;
-                    } else {
-                        throw ex;
->>>>>>> dev
                     }
                 } else {
                     Logger.v(TAG, "User is not specified for background token request");
