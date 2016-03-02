@@ -334,11 +334,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private void argumentCheck() {
         if (mContext == null) {
-            throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
+            throw new IllegalArgumentException("context", new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
         }
 
         if (mPrefs == null) {
-            throw new AuthenticationException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE);
+            throw new IllegalArgumentException("prefs", new AuthenticationException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE));
         }
     }
 

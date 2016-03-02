@@ -449,7 +449,7 @@ public class OauthTests extends AndroidTestCase {
     public void testRefreshTokenWebResponse_DeviceChallenge_Positive()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException,
-            NoSuchAlgorithmException, MalformedURLException {
+            NoSuchAlgorithmException, MalformedURLException, AuthenticationException {
         IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         KeyPair keyPair = getKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();

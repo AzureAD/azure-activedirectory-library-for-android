@@ -50,7 +50,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
     public void testGetChallangeResponseFromHeader_Positive() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, AuthenticationException {
         KeyPair keyPair = getKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
@@ -90,7 +90,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
     public void testGetChallangeResponseFromHeader_CertAuthorityPresent() throws ClassNotFoundException,
     InstantiationException, IllegalAccessException, IllegalArgumentException,
     InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
-    NoSuchAlgorithmException {
+    NoSuchAlgorithmException, AuthenticationException {
         KeyPair keyPair = getKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
@@ -352,7 +352,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
     public void testGetChallangeResponse_Positive() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, AuthenticationException {
         KeyPair keyPair = getKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
