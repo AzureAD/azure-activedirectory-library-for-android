@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -324,7 +325,7 @@ class Oauth2 {
                     return idtokenInfo;
                 }
             }
-        } catch (Exception ex) {
+        } catch (JSONException | UnsupportedEncodingException ex) {
             Logger.e(TAG, "Error in parsing user id token", null,
                     ADALError.IDTOKEN_PARSING_FAILURE, ex);
         }
@@ -343,7 +344,7 @@ class Oauth2 {
         }
     }
 
-    public AuthenticationResult refreshToken(String refreshToken) throws Exception {
+    public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationServerProtocolException {
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
@@ -377,7 +378,7 @@ class Oauth2 {
      *         not have protocol error.
      * @throws Exception
      */
-    public AuthenticationResult getToken(String authorizationUrl) throws Exception {
+    public AuthenticationResult getToken(String authorizationUrl) throws IOException, AuthenticationServerProtocolException {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
             throw new IllegalArgumentException("authorizationUrl");
@@ -426,7 +427,7 @@ class Oauth2 {
      * @return Token in the AuthenticationResult
      * @throws Exception
      */
-    public AuthenticationResult getTokenForCode(String code) throws Exception {
+    public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationServerProtocolException {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -446,7 +447,7 @@ class Oauth2 {
     }
 
     private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
-            throws Exception {
+            throws IOException, AuthenticationServerProtocolException {
         URL authority = null;
         AuthenticationResult result = null;
         authority = StringExtensions.getUrl(getTokenEndpoint());
@@ -530,15 +531,11 @@ class Oauth2 {
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
-        } catch (IllegalArgumentException e) {
-            ClientMetrics.INSTANCE.setLastError(null);
-            Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
-            throw e;
         } catch (UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             throw e;
-        } catch (Exception e) {
+        } catch (IOException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
@@ -593,15 +590,15 @@ class Oauth2 {
             }
         }
 
-        if (webResponse.getBody() != null && webResponse.getBody().length > 0) {
-
+        if (webResponse.getStatusCode() == HttpURLConnection.HTTP_OK
+                && webResponse.getBody() != null && webResponse.getBody().length > 0) {
             // invalid refresh token calls has error related items in the body.
             // Status is 400 for those.
             try {
                 String jsonStr = new String(webResponse.getBody());
                 extractJsonObjects(responseItems, jsonStr);
                 result = processUIResponseParams(responseItems);
-            } catch (final Exception ex) {
+            } catch (final JSONException ex) {
                 // There is no recovery possible here, so
                 // catch the
                 // generic Exception
@@ -631,7 +628,7 @@ class Oauth2 {
                 }
 
                 Logger.v(TAG, "Response correlationId:" + correlationIdInHeader);
-            } catch (Exception ex) {
+            } catch (IllegalArgumentException ex) {
                 Logger.e(TAG, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
                         ADALError.CORRELATION_ID_FORMAT, ex);
             }

@@ -36,6 +36,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.SecureRandom;
@@ -101,7 +102,7 @@ final class PRNGFixes {
                 throw new IOException("Unexpected number of bytes read from Linux PRNG: "
                         + bytesRead);
             }
-        } catch (Exception e) {
+        } catch (IOException | ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             Logger.e(TAG, "Failed to seed OpenSSL PRNG", "", ADALError.DEVICE_PRNG_FIX_ERROR, e);
             throw new SecurityException("Failed to seed OpenSSL PRNG", e);
         }

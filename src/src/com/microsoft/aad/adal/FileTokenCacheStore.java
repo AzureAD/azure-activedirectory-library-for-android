@@ -21,6 +21,7 @@ package com.microsoft.aad.adal;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Iterator;
@@ -103,7 +104,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                 Logger.v(TAG, "There is not any previous cache file to load cache.");
                 mInMemoryCache = new MemoryTokenCacheStore();
             }
-        } catch (Exception ex) {
+        } catch (IOException | ClassNotFoundException ex) {
             Logger.e(TAG, "Exception during cache load",
                     ExceptionExtensions.getExceptionMessage(ex),
                     ADALError.DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE);
@@ -157,7 +158,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                     objectStream.close();
                     outputStream.close();
 
-                } catch (Exception ex) {
+                } catch (IOException ex) {
                     Logger.e(TAG, "Exception during cache flush",
                             ExceptionExtensions.getExceptionMessage(ex),
                             ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE);

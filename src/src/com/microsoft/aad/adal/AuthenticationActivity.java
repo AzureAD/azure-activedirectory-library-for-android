@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.DigestException;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
@@ -34,6 +35,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
@@ -128,24 +130,18 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG, "ActivityBroadcastReceiver onReceive");
 
             if (intent.getAction().equalsIgnoreCase(AuthenticationConstants.Browser.ACTION_CANCEL)) {
-                try {
-                    Logger.v(TAG,
-                            "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
+                Logger.v(TAG,
+                        "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity");
 
-                    int cancelRequestId = intent.getIntExtra(
-                            AuthenticationConstants.Browser.REQUEST_ID, 0);
+                int cancelRequestId = intent.getIntExtra(
+                        AuthenticationConstants.Browser.REQUEST_ID, 0);
 
-                    if (cancelRequestId == mWaitingRequestId) {
-                        Logger.v(TAG, "Waiting requestId is same and cancelling this activity");
-                        AuthenticationActivity.this.finish();
-                        // no need to send result back to activity. It is
-                        // cancelled
-                        // and callback will be called after this request.
-                    }
-                } catch (Exception ex) {
-                    Logger.e(TAG, "ActivityBroadcastReceiver onReceive exception",
-                            ExceptionExtensions.getExceptionMessage(ex),
-                            ADALError.BROADCAST_RECEIVER_ERROR);
+                if (cancelRequestId == mWaitingRequestId) {
+                    Logger.v(TAG, "Waiting requestId is same and cancelling this activity");
+                    AuthenticationActivity.this.finish();
+                    // no need to send result back to activity. It is
+                    // cancelled
+                    // and callback will be called after this request.
                 }
             }
         }
@@ -608,13 +604,27 @@ public class AuthenticationActivity extends Activity {
         }
         
         public boolean processInvalidUrl(final WebView view, String url) {
+        	final String methodName = ":processInvalidUrl";
             if (isBrokerRequest(getIntent())
-                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) {
+                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) 
+            {
+            	Logger.e(TAG + methodName, String.format(
+                        "The RedirectUri is not as expected. Received %s and expected %s", url,
+                        mRedirectUrl), "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
                 returnError(ADALError.DEVELOPER_REDIRECTURI_INVALID, String.format(
                         "The RedirectUri is not as expected. Received %s and expected %s", url,
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
+            }
+            
+            //check if the redirect URL is under SSL protected
+            if(!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX))
+            {
+            	Logger.e(TAG + methodName, "The webview was redirected to an unsafe URL.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
+            	returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, "The webview was redirected to an unsafe URL.");
+            	view.stopLoading();
+            	return true;
             }
 
             return false;
@@ -652,14 +662,19 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG + methodName, "Webview receives client TLS request.");
             
             final Principal[] acceptableCertIssuers = request.getPrincipals();
-            for (Principal issuer : acceptableCertIssuers)
+            
+            // When ADFS server sends null or empty issuers, we'll continue with cert prompt.
+            if (acceptableCertIssuers != null)
             {
-                if (issuer.getName().contains("CN=MS-Organization-Access"))
+                for (Principal issuer : acceptableCertIssuers)
                 {
-                    //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
-                    Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
-                    request.cancel();
-                    return;
+                    if (issuer.getName().contains("CN=MS-Organization-Access"))
+                    {
+                        //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
+                        Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
+                        request.cancel();
+                        return;
+                    }
                 }
             }
             
@@ -799,7 +814,7 @@ public class AuthenticationActivity extends Activity {
             try {
                 result.taskResult = oauthRequest.getToken(urlItems[0]);
                 Logger.v(TAG, "TokenTask processed the result. " + mRequest.getLogInfo());
-            } catch (Exception exc) {
+            } catch (IOException | AuthenticationServerProtocolException exc) {
                 Logger.e(TAG, "Error in processing code to get a token. " + mRequest.getLogInfo(),
                         "Request url:" + urlItems[0],
                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
@@ -813,7 +828,7 @@ public class AuthenticationActivity extends Activity {
                 // Record account in the AccountManager service
                 try {
                     setAccount(result);
-                } catch (Exception exc) {
+                } catch (GeneralSecurityException | IOException exc) {
                     Logger.e(TAG, "Error in setting the account" + mRequest.getLogInfo(), "",
                             ADALError.BROKER_ACCOUNT_SAVE_FAILED, exc);
                     result.taskException = exc;
@@ -849,7 +864,7 @@ public class AuthenticationActivity extends Activity {
             } else {
                 try {
                     appIdList = cryptoHelper.decrypt(appIdList);
-                } catch (Exception ex) {
+                } catch (GeneralSecurityException | IOException ex) {
                     Logger.e(TAG, "appUIDList failed to decrypt", "appIdList:" + appIdList,
                             ADALError.ENCRYPTION_FAILED, ex);
                     appIdList = "";

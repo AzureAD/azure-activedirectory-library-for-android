@@ -320,6 +320,8 @@ public class AuthenticationConstants {
         public static final String BROWSER_EXT_INSTALL_PREFIX = "msauth://";
 
         public static final String CALLER_INFO_PACKAGE = "caller.info.package";
+        
+        public static final String REDIRECT_SSL_PREFIX = "https://";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";

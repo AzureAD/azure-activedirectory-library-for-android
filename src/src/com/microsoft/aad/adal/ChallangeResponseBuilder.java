@@ -85,13 +85,14 @@ class ChallangeResponseBuilder {
      *            client must convey back>
      * @return Return Device challange response
      */
-    public ChallangeResponse getChallangeResponseFromUri(final String redirectUri) {
+    public ChallangeResponse getChallangeResponseFromUri(final String redirectUri)
+            throws AuthenticationServerProtocolException {
         ChallangeRequest request = getChallangeRequest(redirectUri);
         return getDeviceCertResponse(request);
     }
 
     public ChallangeResponse getChallangeResponseFromHeader(final String challangeHeaderValue,
-            final String endpoint) throws UnsupportedEncodingException {
+            final String endpoint) throws UnsupportedEncodingException, AuthenticationServerProtocolException {
         ChallangeRequest request = getChallangeRequestFromHeader(challangeHeaderValue);
         request.mSubmitUrl = endpoint;
         return getDeviceCertResponse(request);
@@ -178,13 +179,11 @@ class ChallangeResponseBuilder {
     }
 
     private ChallangeRequest getChallangeRequestFromHeader(final String headerValue)
-            throws UnsupportedEncodingException 
-    {
+            throws UnsupportedEncodingException, AuthenticationServerProtocolException {
         final String methodName = ":getChallangeRequestFromHeader";
         
-        if (StringExtensions.IsNullOrBlank(headerValue)) 
-        {
-            throw new IllegalArgumentException("headerValue");
+        if (StringExtensions.IsNullOrBlank(headerValue)) {
+            throw new AuthenticationServerProtocolException("headerValue");
         }
 
         // Header value should start with correct challenge type
@@ -283,9 +282,9 @@ class ChallangeResponseBuilder {
         }
     }
 
-    private ChallangeRequest getChallangeRequest(final String redirectUri) {
+    private ChallangeRequest getChallangeRequest(final String redirectUri) throws AuthenticationServerProtocolException {
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
-            throw new IllegalArgumentException("redirectUri");
+            throw new AuthenticationServerProtocolException("redirectUri");
         }
 
         ChallangeRequest challange = new ChallangeRequest();

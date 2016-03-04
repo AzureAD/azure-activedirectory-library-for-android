@@ -125,9 +125,9 @@ public class StorageHelper {
 
     private static final Object LOCK_OBJ = new Object();
 
-    private static String sBlobVersion;
+    private String mBlobVersion;
 
-    private static SecretKey sKey = null, sMacKey = null;
+    private SecretKey mKey = null, mMacKey = null;
 
     private static SecretKey sSecretKeyFromAndroidKeyStore = null;
 
@@ -147,8 +147,8 @@ public class StorageHelper {
     final private void loadSecretKeyForAPI() throws NoSuchAlgorithmException,
             InvalidKeySpecException {
         // Loading key only once for performance. If API is upgraded, it will
-        // restart the device anyway. It will load the correct key for new API.
-        if (sKey != null && sMacKey != null)
+        // restart the device anyway. It will load the correct key for new API. 
+        if (mKey != null && mMacKey != null)
             return;
 
         synchronized (LOCK_OBJ) {
@@ -160,20 +160,20 @@ public class StorageHelper {
                     // key for Encryption and HMac.
                     // If user specifies secret key, it will use the provided
                     // key.
-                    sKey = getSecretKeyFromAndroidKeyStore();
-                    sMacKey = getMacKey(sKey);
-                    sBlobVersion = VERSION_ANDROID_KEY_STORE;
+                    mKey = getSecretKeyFromAndroidKeyStore();
+                    mMacKey = getMacKey(mKey);
+                    mBlobVersion = VERSION_ANDROID_KEY_STORE;
                     return;
-                } catch (Exception e) {
+                } catch (IOException | GeneralSecurityException e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
                             ADALError.ANDROIDKEYSTORE_FAILED, e);
                 }
             }
 
             Logger.v(TAG, "Encryption will use secret key from Settings");
-            sKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
-            sMacKey = getMacKey(sKey);
-            sBlobVersion = VERSION_USER_DEFINED;
+            mKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
+            mMacKey = getMacKey(mKey);
+            mBlobVersion = VERSION_USER_DEFINED;
         }
     }
 
@@ -207,7 +207,7 @@ public class StorageHelper {
                     // key
                     // used for Encryption and HMac
                     return getSecretKeyFromAndroidKeyStore();
-                } catch (Exception e) {
+                } catch (IOException | GeneralSecurityException e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
                             ADALError.ANDROIDKEYSTORE_FAILED, e);
                 }
@@ -273,8 +273,8 @@ public class StorageHelper {
 
         // load key for encryption if not loaded
         loadSecretKeyForAPI();
-        Logger.v(TAG, "Encrypt version:" + sBlobVersion);
-        final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
+        Logger.v(TAG, "Encrypt version:" + mBlobVersion);
+        final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
         // IV: Initialization vector that is needed to start CBC
@@ -285,13 +285,13 @@ public class StorageHelper {
         // Set to encrypt mode
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
         Mac mac = Mac.getInstance(MAC_ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, sKey, ivSpec);
+        cipher.init(Cipher.ENCRYPT_MODE, mKey, ivSpec);
 
         byte[] encrypted = cipher.doFinal(bytes);
 
         // Mac output to sign encryptedData+IV. Keyversion is not included
         // in the digest. It defines what to use for Mac Key.
-        mac.init(sMacKey);
+        mac.init(mMacKey);
         mac.update(blobVersion);
         mac.update(encrypted);
         mac.update(iv);
@@ -466,10 +466,10 @@ public class StorageHelper {
             final byte[] encryptedKey = readKeyData(keyFile);
             sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
             Logger.v(TAG, "Finished reading SecretKey");
-        } catch (Exception ex) {
+        } catch (GeneralSecurityException | IOException ex) {
             // Reset KeyPair info so that new request will generate correct KeyPairs.
             // All tokens with previous SecretKey are not possible to decrypt.
-            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED);
+            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED, ex);
             mKeyPair = null;
             sSecretKeyFromAndroidKeyStore = null;
             deleteKeyFile();

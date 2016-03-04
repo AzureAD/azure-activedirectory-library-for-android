@@ -190,7 +190,7 @@ public class Logger {
             Log.e(tag, getLogMessage(message, additionalMessage, errorCode), err);
         }
 
-        logCommon(tag, message, additionalMessage, LogLevel.Error, errorCode);
+        logCommon(tag, message, additionalMessage, LogLevel.Error, errorCode, err);
     }
 
     private void logCommon(String tag, String message, String additionalMessage, LogLevel level,
@@ -206,6 +206,19 @@ public class Logger {
             }
         }
     }
+
+    private void logCommon(String tag, String message, String additionalMessage, LogLevel level,
+                           ADALError errorCode, Throwable throwable) {
+        StringBuilder msg = new StringBuilder();
+        if (additionalMessage != null) {
+            msg.append(additionalMessage);
+        }
+        if (throwable != null) {
+            msg.append(" ").append(Log.getStackTraceString(throwable));
+        }
+        logCommon(tag, message, msg.toString(), level, errorCode);
+    }
+
 
     private static String getLogMessage(String message, String additionalMessage,
             ADALError errorCode) {
