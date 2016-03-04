@@ -1280,7 +1280,9 @@ public class AuthenticationContext {
             //check if the redirectUri is valid
             try
             {
-                verifyBrokerRedirectUri(request);
+                if(!request.isSilent()){
+                    verifyBrokerRedirectUri(request);
+                }
             }
             catch(AuthenticationException exception)
             {

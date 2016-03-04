@@ -43,7 +43,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import android.test.suitebuilder.annotation.Suppress;
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationCallback;
@@ -1985,7 +1984,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         //test@case broker redirect uri with invalid signature
         try
         {
-        String testRedirectUri = "msauth://com.microsoft.aad.adal.testapp/falsesignH070%3D";
+        String testRedirectUri = "msauth://" + getContext().getPackageName() + "/falsesignH070%3D";
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                 "resource", "clientid", testRedirectUri, "loginHint");
         m.invoke(authContext, authRequest);
