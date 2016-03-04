@@ -22,9 +22,7 @@ import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import android.accounts.AccountManager;
 import android.content.Context;
@@ -99,40 +97,34 @@ class FileMockContext extends MockContext {
         return new TestPackageManager();
     }
     
-    public void setPermission(String permissionName, int permissionFlag){
-        Set set = permissionMap.entrySet();
-        Iterator i = set.iterator();
+    public void setPermission(String permissionName, int permissionFlag) {
         permissionMap.put(permissionName, permissionFlag);
     }
     
-    public boolean removePermission(String permissionName){
-    	if(permissionMap.containsKey(permissionName))
-    	{
-        	permissionMap.remove(permissionName);
-        	return true;
-        }
-    	else
-    	{
-        	return false;
+    public boolean removePermission(String permissionName) {
+        if(permissionMap.containsKey(permissionName)) {
+            permissionMap.remove(permissionName);
+            return true;
+        } else {
+            return false;
         }
     }
 
     class TestPackageManager extends MockPackageManager {
         @Override
         public ResolveInfo resolveActivity(Intent intent, int flags) {
-            if (resolveIntent)
+            if (resolveIntent) {
                 return new ResolveInfo();
-
+            }
             return null;
         }
 
         @Override
         public int checkPermission(String permName, String pkgName) {
-        	if (permissionMap.containsKey(permName)) 
-        	{
-        		return permissionMap.get(permName);
-        	}
-        	return PackageManager.PERMISSION_DENIED;
+            if (permissionMap.containsKey(permName)) {
+                return permissionMap.get(permName);
+            }
+            return PackageManager.PERMISSION_DENIED;
         }
 
         @Override

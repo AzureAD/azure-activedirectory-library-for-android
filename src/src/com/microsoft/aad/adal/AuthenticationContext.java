@@ -1305,7 +1305,6 @@ public class AuthenticationContext {
             callbackHandle.onError(e);
             return null;
         }
-    
     }
 
     private AuthenticationResult localFlow(CallbackHandler callbackHandle,
