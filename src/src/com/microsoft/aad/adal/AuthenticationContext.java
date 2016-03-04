@@ -2104,7 +2104,6 @@ public class AuthenticationContext {
                     }
 
                     acquireTokenSilentAsync(authenticationRequest.getResource(), authenticationRequest.getClientId(), userId, waitingRequest.mDelagete);
-                    removeWaitingRequest(receivedWaitingRequestId);
                 } else {
                     Logger.v(TAG + methodName, "Broker doesn't send back error nor the completion notification.");
                     waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, "Broker doesn't send back error nor the completion notification."));
