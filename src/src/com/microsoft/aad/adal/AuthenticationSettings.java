@@ -44,7 +44,8 @@ public enum AuthenticationSettings {
      */
     private String mSharedPrefPackageName;
 
-    private boolean mSkipBroker = false;
+    @Deprecated private boolean mSkipBroker = false;
+    private boolean mUseBroker = true;
 
     /**
      * Expiration buffer in seconds.
@@ -175,6 +176,24 @@ public enum AuthenticationSettings {
         mSkipBroker = skip;
     }
 
+    /**
+     * Get broker usage.
+     * 
+     * @return true if broker is used.
+     */
+    public boolean getUseBroker() {
+        return mUseBroker;
+    }
+
+    /**
+     * Set flag to use or skip broker.
+     * 
+     * @param useBroker False to not use broker
+     */
+    public void setUseBroker(boolean useBroker) {
+        this.mUseBroker = useBroker;
+    }
+    
     /**
      * Sets package name to use {@link DefaultTokenCacheStore} with sharedUserId
      * apps.
