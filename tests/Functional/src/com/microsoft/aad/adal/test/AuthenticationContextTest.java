@@ -53,6 +53,7 @@ import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
+import com.microsoft.aad.adal.DeveloperAuthenticationException;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.IConnectionService;
 import com.microsoft.aad.adal.IDiscovery;
@@ -1942,9 +1943,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
         }
         catch(InvocationTargetException e)
         {
-            assertTrue(e.getCause() instanceof AuthenticationException);
-            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((AuthenticationException)e.getCause()).getCode());
-            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("prefix"));
+            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertTrue((e.getCause()).getMessage().toString().contains("prefix"));
         }
     }
 
@@ -1967,9 +1968,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
         }
         catch(InvocationTargetException e)
         {
-            assertTrue(e.getCause() instanceof AuthenticationException);
-            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((AuthenticationException)e.getCause()).getCode());
-            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("package name"));
+            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertTrue((e.getCause()).getMessage().toString().contains("package name"));
         }
     }
 
@@ -1992,9 +1993,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
         }
         catch(InvocationTargetException e)
         {
-            assertTrue(e.getCause() instanceof AuthenticationException);
-            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((AuthenticationException)e.getCause()).getCode());
-            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("signature"));
+            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertTrue((e.getCause()).getMessage().toString().contains("signature"));
         }
     }
 
