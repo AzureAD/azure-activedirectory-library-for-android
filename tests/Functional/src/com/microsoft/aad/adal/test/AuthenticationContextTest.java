@@ -53,7 +53,6 @@ import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
-import com.microsoft.aad.adal.DeveloperAuthenticationException;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.IConnectionService;
 import com.microsoft.aad.adal.IDiscovery;
@@ -61,6 +60,7 @@ import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.UserInfo;
 
 import android.annotation.SuppressLint;
@@ -1944,8 +1944,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
             m.invoke(authContext, authRequest);
             Assert.fail("It is expected to return an exception here.");
         } catch(InvocationTargetException e) {
-            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
-            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
             assertTrue((e.getCause()).getMessage().toString().contains("prefix"));
         }
     }
@@ -1968,8 +1968,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
              m.invoke(authContext, authRequest);
              Assert.fail("It is expected to return an exception here.");
         } catch(InvocationTargetException e) {
-            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
-            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
             assertTrue((e.getCause()).getMessage().toString().contains("package name"));
         }
     }
@@ -1992,8 +1992,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         m.invoke(authContext, authRequest);
         Assert.fail("It is expected to return an exception here.");
         } catch(InvocationTargetException e) {
-            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
-            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((DeveloperAuthenticationException)e.getCause()).getCode());
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
             assertTrue((e.getCause()).getMessage().toString().contains("signature"));
         }
     }
