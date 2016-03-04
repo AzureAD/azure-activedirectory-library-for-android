@@ -24,8 +24,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -1652,7 +1656,7 @@ public class AuthenticationContext {
             return null;
         }
 
-        Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
+        Iterator<TokenCacheItem> allItems = getAllTokensWithFamilyFlag().iterator();
         if (allItems == null || !allItems.hasNext()) {
             Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
         }
@@ -1662,14 +1666,9 @@ public class AuthenticationContext {
             while (allItems.hasNext()) {
                 final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo!= null 
-                    && tokenUserInfo.getUserId() != null 
-                    && tokenUserInfo.getUserId().equalsIgnoreCase(userId)) {
-                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
-                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
-                        Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
-                        return tokenCacheItem;
-                    }
+                if (userId.equalsIgnoreCase(tokenUserInfo.getUserId())) {
+                    Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
+                    return tokenCacheItem;
                 }
             }
         } else if (userIdentifierType == UserIdentifierType.LoginHint) {
@@ -1677,18 +1676,47 @@ public class AuthenticationContext {
             while (allItems.hasNext()) {
                 final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo != null && tokenUserInfo.getDisplayableId() != null
-                    && tokenUserInfo.getDisplayableId().equalsIgnoreCase(userId)) {
-                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
-                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
-                        Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
-                        return tokenCacheItem;
-                    }
+                if (userId.equalsIgnoreCase(tokenUserInfo.getDisplayableId())) {
+                    Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
+                    return tokenCacheItem;
                 }
             }
         }
 
         return null;
+    }
+    
+    private List<TokenCacheItem> getAllTokensWithFamilyFlag () {
+        final String methodName = ":getAllTokensWithFamilyFlag";
+        
+        final List<TokenCacheItem> tokensWithFamilyFlag = new ArrayList<TokenCacheItem>();
+        
+        Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
+        if (allItems == null || !allItems.hasNext()) {
+            Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
+            return tokensWithFamilyFlag;
+        }
+        
+        while (allItems.hasNext()) {
+            final TokenCacheItem tokenCacheItem = allItems.next();
+            if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId()) 
+                    && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
+                tokensWithFamilyFlag.add(tokenCacheItem);
+            }
+        }
+        
+        if (!tokensWithFamilyFlag.isEmpty()) {
+            // Sort in descending order
+            Collections.sort(tokensWithFamilyFlag, new Comparator<TokenCacheItem>() {
+  
+                @Override
+                public int compare(TokenCacheItem thisTokenCacheItem, TokenCacheItem anotherTokenCacheItem) {
+                    return anotherTokenCacheItem.getTokenUpdateTime().compareTo(thisTokenCacheItem.getTokenUpdateTime());
+                }
+            });
+        }
+        
+        return tokensWithFamilyFlag;
     }
     
     private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
