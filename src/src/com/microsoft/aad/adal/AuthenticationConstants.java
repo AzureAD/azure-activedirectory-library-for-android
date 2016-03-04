@@ -135,6 +135,8 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_PASSWORD_EXPIRATION = "pwd_exp";
 
         static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
+        
+        static final String ADAL_CLIENT_FAMILY_ID = "foci";
     }
 
     public static final class AAD {
