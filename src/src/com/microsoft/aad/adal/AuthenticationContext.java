@@ -2103,23 +2103,8 @@ public class AuthenticationContext {
                         userId = authenticationRequest.getUserId();
                     }
 
-                    try {
-                        AuthenticationResult authResult = acquireTokenSilentSync(authenticationRequest.getResource(), authenticationRequest.getClientId(), userId);
-                        
-                        if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken())) {
-                            Logger.v(TAG + methodName, "Token received from acquireTokenSilentSync.");
-                            waitingRequest.mDelagete.onSuccess(authResult);
-                        } else {
-                            Logger.v(TAG + methodName, "acquireTokenSilentSync completes successfully, but token is not returned.");
-                            waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, 
-                                    "acquireTokenSilentSync completes successfully, but token is not returned." + getCorrelationInfoFromWaitingRequest(waitingRequest)));
-                        }
-                    } catch (AuthenticationException authenticationException) {
-                        waitingRequestOnError(waitingRequest, receivedWaitingRequestId, authenticationException);
-                    } catch (InterruptedException e) {
-                        waitingRequestOnError(waitingRequest, receivedWaitingRequestId, 
-                                new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getMessage(), e));
-                    }
+                    acquireTokenSilentAsync(authenticationRequest.getResource(), authenticationRequest.getClientId(), userId, waitingRequest.mDelagete);
+                    removeWaitingRequest(receivedWaitingRequestId);
                 } else {
                     Logger.v(TAG + methodName, "Broker doesn't send back error nor the completion notification.");
                     waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, "Broker doesn't send back error nor the completion notification."));

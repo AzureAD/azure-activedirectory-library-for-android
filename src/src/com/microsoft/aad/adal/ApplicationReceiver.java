@@ -187,15 +187,6 @@ public class ApplicationReceiver extends BroadcastReceiver {
                 boolean isIntentSafe = activities.size() > 0;
 
                 if (isIntentSafe) {
-                    if (!isRunningInForeground(context, installedPackageName)) {
-                        Logger.v(TAG + methodName, "Broker " + installedPackageName + " is not running in foreground yet. "
-                            + "Thread will be sleeping for 2 seconds to wait for broker package going foreground.");
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                            Logger.v(TAG + methodName, "Receiving InterruptedException for thread sleep: " + e.getMessage());
-                        }
-                    }
                     Logger.v(TAG + methodName, "It's safe to start .ui.AccountChooserActivity.");
                     resumeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                     context.startActivity(resumeIntent);
