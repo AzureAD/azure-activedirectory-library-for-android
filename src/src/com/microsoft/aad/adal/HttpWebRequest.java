@@ -68,7 +68,7 @@ class HttpWebRequest {
 
     int mTimeOut = CONNECT_TIME_OUT;
 
-    Exception mException = null;
+    private IOException mException = null;
 
     HashMap<String, String> mRequestHeaders = null;
 
@@ -182,8 +182,10 @@ class HttpWebRequest {
                 Logger.v(TAG, "Response is received");
                 response.setBody(responseBody);
                 response.setResponseHeaders(mConnection.getHeaderFields());
-            } catch (Exception e) {
-                Logger.e(TAG, "Exception:" + e.getMessage(), " Method:" + mRequestMethod,
+            } catch (InterruptedException e) {
+                Logger.v(TAG, "Thread.sleep got interrupted exception " + e);
+            } catch (IOException e ) {
+                Logger.e(TAG, "IOException:" + e.getMessage(), " Method:" + mRequestMethod,
                         ADALError.SERVER_ERROR, e);
                 mException = e;
             } finally {

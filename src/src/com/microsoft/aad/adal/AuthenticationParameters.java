@@ -161,19 +161,17 @@ public class AuthenticationParameters {
             public void run() {
                 HashMap<String, String> headers = new HashMap<String, String>();
                 headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
+                HttpWebResponse webResponse = sWebRequest.sendGet(resourceUrl, headers);
 
-                try {
-                    HttpWebResponse webResponse = sWebRequest.sendGet(resourceUrl, headers);
-
-                    if (webResponse != null) {
-                        try {
-                            onCompleted(null, parseResponse(webResponse));
-                        } catch (IllegalArgumentException exc) {
-                            onCompleted(exc, null);
-                        }
+                if (webResponse != null) {
+                    if(webResponse.getResponseException() != null) {
+                        onCompleted(webResponse.getResponseException(), null);
                     }
-                } catch (Exception exception) {
-                    onCompleted(exception, null);
+                    try {
+                        onCompleted(null, parseResponse(webResponse));
+                    } catch (ResourceAuthenticationChallengeException exc) {
+                        onCompleted(exc, null);
+                    }
                 }
             }
 
@@ -196,11 +194,11 @@ public class AuthenticationParameters {
      * @return {@link AuthenticationParameters}
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
-            String authenticateHeader) {
+            String authenticateHeader) throws ResourceAuthenticationChallengeException {
         AuthenticationParameters authParams = null;
 
         if (StringExtensions.IsNullOrBlank(authenticateHeader)) {
-            throw new IllegalArgumentException(AUTH_HEADER_MISSING);
+            throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
         } else {
             Pattern p = Pattern.compile(REGEX);
             Matcher m = p.matcher(authenticateHeader);
@@ -244,7 +242,7 @@ public class AuthenticationParameters {
                         headerItems.put(key, value);
                     } else {
                         // invalid format
-                        throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
+                        throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
                     }
                 }
 
@@ -255,17 +253,17 @@ public class AuthenticationParameters {
                             StringExtensions.removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));
                 } else {
                     // invalid format
-                    throw new IllegalArgumentException(AUTH_HEADER_MISSING_AUTHORITY);
+                    throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING_AUTHORITY);
                 }
             } else {
-                throw new IllegalArgumentException(AUTH_HEADER_INVALID_FORMAT);
+                throw new ResourceAuthenticationChallengeException(AUTH_HEADER_INVALID_FORMAT);
             }
         }
 
         return authParams;
     }
 
-    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) {
+    private static AuthenticationParameters parseResponse(HttpWebResponse webResponse) throws ResourceAuthenticationChallengeException {
         // Depending on the service side implementation for this resource
         if (webResponse.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
             Map<String, List<String>> responseHeaders = webResponse.getResponseHeaders();
@@ -278,8 +276,8 @@ public class AuthenticationParameters {
                 }
             }
 
-            throw new IllegalArgumentException(AUTH_HEADER_MISSING);
+            throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
         }
-        throw new IllegalArgumentException(AUTH_HEADER_WRONG_STATUS);
+        throw new ResourceAuthenticationChallengeException(AUTH_HEADER_WRONG_STATUS);
     }
 }

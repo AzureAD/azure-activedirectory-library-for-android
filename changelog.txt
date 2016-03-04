@@ -1,3 +1,10 @@
+Version 1.1.13
+--------------
+Remove catching generic exceptions and catch only expected ones
+Add broker redirect uri verify before talking to broker
+Fix for default token cache removing token when there is decryption failure
+Remove static class variable for solving decryption problem when two both broker apps are involved
+
 Version 1.1.12
 --------------
 Update cert prompt for TLS request(not responding to TLS request for device authentication)

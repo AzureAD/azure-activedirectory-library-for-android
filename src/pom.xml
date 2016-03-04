@@ -4,13 +4,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.microsoft.aad</groupId>
   <artifactId>adal</artifactId>
-  <version>1.1.12</version>
+  <version>1.1.13</version>
   <packaging>aar</packaging>
   <name>adal</name>
   <properties>
     <scm.branch>master</scm.branch>
     <maven.version>3.1.1</maven.version>
-    <adal.version>1.1.12</adal.version>
+    <adal.version>1.1.13</adal.version>
     <android.platform.maven.plugin>21</android.platform.maven.plugin>
     <android.version>[4.1.1.4,)</android.version>
     <android.support.version>[21,)</android.support.version>
@@ -179,8 +179,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
         <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
+          <source>1.7</source>
+          <target>1.7</target>
         </configuration>
       </plugin>
       <plugin>

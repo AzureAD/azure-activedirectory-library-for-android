@@ -586,7 +586,6 @@ public class OauthTests extends AndroidTestCase {
 
         // send call with mocks
         m.invoke(oauth, mockResponse);
-
         // verify same token
         assertTrue("Log response has message",
                 logResponse2.errorCode.equals(ADALError.CORRELATION_ID_FORMAT));

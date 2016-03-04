@@ -43,24 +43,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import junit.framework.Assert;
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.os.Build;
-import android.os.Bundle;
-import android.test.AndroidTestCase;
-import android.test.UiThreadTest;
-import android.test.suitebuilder.annotation.MediumTest;
-import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Base64;
-import android.util.Log;
-import android.util.SparseArray;
-
+import android.test.suitebuilder.annotation.Suppress;
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationCallback;
@@ -79,6 +62,24 @@ import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.os.Build;
+import android.os.Bundle;
+import android.test.AndroidTestCase;
+import android.test.UiThreadTest;
+import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Base64;
+import android.util.Log;
+import android.util.SparseArray;
+import junit.framework.Assert;
 
 public class AuthenticationContextTest extends AndroidTestCase {
 
@@ -278,7 +279,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
-        context.acquireTokenSilent(expectedResource, expectedClientId, expectedUser, callback);
+        context.acquireTokenSilentAsync(expectedResource, expectedClientId, expectedUser, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that web request send correct headers
@@ -978,7 +979,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final TestLogResponse response = new TestLogResponse();
         response.listenLogForMessageSegments(signal, "Refresh token did not return accesstoken");
 
-        context.acquireTokenSilent("resource", "clientid", TEST_IDTOKEN_USERID, callback);
+        context.acquireTokenSilentAsync("resource", "clientid", TEST_IDTOKEN_USERID, callback);
 
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -1430,7 +1431,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         // Acquire token call will return from cache
-        context.acquireTokenSilent(resource, clientId, "user1", callback);
+        context.acquireTokenSilentAsync(resource, clientId, "user1", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
@@ -1463,7 +1464,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         // Acquire token call will return from cache
-        context.acquireTokenSilent(resource, clientId, "userid1", callback);
+        context.acquireTokenSilentAsync(resource, clientId, "userid1", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
@@ -1477,7 +1478,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback2 = new MockAuthenticationCallback(signal2);
 
         // Acquire token call will return from cache
-        context.acquireTokenSilent(resource, clientId, "userid2", callback2);
+        context.acquireTokenSilentAsync(resource, clientId, "userid2", callback2);
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
@@ -1906,6 +1907,97 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         return context;
     }
+    
+    @SmallTest
+    public void testVerifyBrokerRedirectUri_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+                VALID_AUTHORITY, false, cache);
+        Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
+        Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
+
+        //test@case valid redirect uri
+        String testRedirectUri = authContext.getRedirectUriForBroker();
+        Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
+                "resource", "clientid", testRedirectUri, "loginHint");
+        Boolean testResult = (Boolean)m.invoke(authContext, authRequest);
+        assertTrue(testResult);
+    }
+
+    @SmallTest
+    public void testVerifyBrokerRedirectUri_invalidPrefix() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+                VALID_AUTHORITY, false, cache);
+        Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
+        Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
+
+        //test@case broker redirect uri with invalid prefix
+        try
+        {
+            String testRedirectUri = "http://helloApp";
+            Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
+                    "resource", "clientid", testRedirectUri, "loginHint");
+            m.invoke(authContext, authRequest);
+            Assert.fail("It is expected to return an exception here.");
+        }
+        catch(InvocationTargetException e)
+        {
+            assertTrue(e.getCause() instanceof AuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((AuthenticationException)e.getCause()).getCode());
+            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("prefix"));
+        }
+    }
+
+    @SmallTest
+    public void testVerifyBrokerRedirectUri_invalidPackageName() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+                VALID_AUTHORITY, false, cache);
+        Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
+        Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
+
+        //test@case broker redirect uri with invalid packageName
+        try
+        {
+             String testRedirectUri = "msauth://testapp/gwdiktUBDmQq%2BfbWiJoa%2B%2FYH070%3D";
+             Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
+                     "resource", "clientid", testRedirectUri, "loginHint");
+             m.invoke(authContext, authRequest);
+             Assert.fail("It is expected to return an exception here.");
+        }
+        catch(InvocationTargetException e)
+        {
+            assertTrue(e.getCause() instanceof AuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((AuthenticationException)e.getCause()).getCode());
+            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("package name"));
+        }
+    }
+
+    @SmallTest
+    public void testVerifyBrokerRedirectUri_invalidSignature() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+                VALID_AUTHORITY, false, cache);
+        Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
+        Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
+
+        //test@case broker redirect uri with invalid signature
+        try
+        {
+        String testRedirectUri = "msauth://com.microsoft.aad.adal.testapp/falsesignH070%3D";
+        Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
+                "resource", "clientid", testRedirectUri, "loginHint");
+        m.invoke(authContext, authRequest);
+        Assert.fail("It is expected to return an exception here.");
+        }
+        catch(InvocationTargetException e)
+        {
+            assertTrue(e.getCause() instanceof AuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((AuthenticationException)e.getCause()).getCode());
+            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("signature"));
+        }
+    }
 
     private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) throws NoSuchAlgorithmException,
             NoSuchPaddingException {
@@ -1947,6 +2039,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         refreshItem.setAccessToken(token);
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(timeAhead.getTime());
+        refreshItem.setUserInfo(new UserInfo(user, "", "", "", user));
         cache.setItem(
                 CacheKey.createCacheKey(VALID_AUTHORITY, resource, client, isMultiResource, user),
                 refreshItem);
