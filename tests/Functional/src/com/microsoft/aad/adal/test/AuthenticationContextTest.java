@@ -1909,7 +1909,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
     
     @SmallTest
-    public void testVerifyBrokerRedirectUri_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+    public void testVerifyBrokerRedirectUri_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+           IllegalAccessException, InvocationTargetException {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
         final AuthenticationContext authContext = new AuthenticationContext(getContext(),
                 VALID_AUTHORITY, false, cache);
@@ -1919,13 +1921,15 @@ public class AuthenticationContextTest extends AndroidTestCase {
         //test@case valid redirect uri
         String testRedirectUri = authContext.getRedirectUriForBroker();
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
-                "resource", "clientid", testRedirectUri, "loginHint");
+            "resource", "clientid", testRedirectUri, "loginHint");
         Boolean testResult = (Boolean)m.invoke(authContext, authRequest);
         assertTrue(testResult);
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_invalidPrefix() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+    public void testVerifyBrokerRedirectUri_invalidPrefix() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+           IllegalAccessException, InvocationTargetException {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
         final AuthenticationContext authContext = new AuthenticationContext(getContext(),
                 VALID_AUTHORITY, false, cache);
@@ -1933,16 +1937,13 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
         //test@case broker redirect uri with invalid prefix
-        try
-        {
+        try {
             String testRedirectUri = "http://helloApp";
             Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                     "resource", "clientid", testRedirectUri, "loginHint");
             m.invoke(authContext, authRequest);
             Assert.fail("It is expected to return an exception here.");
-        }
-        catch(InvocationTargetException e)
-        {
+        } catch(InvocationTargetException e) {
             assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
             assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((DeveloperAuthenticationException)e.getCause()).getCode());
             assertTrue((e.getCause()).getMessage().toString().contains("prefix"));
@@ -1950,7 +1951,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_invalidPackageName() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+    public void testVerifyBrokerRedirectUri_invalidPackageName() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+           IllegalAccessException, InvocationTargetException {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
         final AuthenticationContext authContext = new AuthenticationContext(getContext(),
                 VALID_AUTHORITY, false, cache);
@@ -1958,16 +1961,13 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
         //test@case broker redirect uri with invalid packageName
-        try
-        {
+        try {
              String testRedirectUri = "msauth://testapp/gwdiktUBDmQq%2BfbWiJoa%2B%2FYH070%3D";
              Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                      "resource", "clientid", testRedirectUri, "loginHint");
              m.invoke(authContext, authRequest);
              Assert.fail("It is expected to return an exception here.");
-        }
-        catch(InvocationTargetException e)
-        {
+        } catch(InvocationTargetException e) {
             assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
             assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((DeveloperAuthenticationException)e.getCause()).getCode());
             assertTrue((e.getCause()).getMessage().toString().contains("package name"));
@@ -1975,7 +1975,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_invalidSignature() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+    public void testVerifyBrokerRedirectUri_invalidSignature() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+        IllegalAccessException, InvocationTargetException {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
         final AuthenticationContext authContext = new AuthenticationContext(getContext(),
                 VALID_AUTHORITY, false, cache);
@@ -1983,16 +1985,13 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
         //test@case broker redirect uri with invalid signature
-        try
-        {
+        try {
         String testRedirectUri = "msauth://" + getContext().getPackageName() + "/falsesignH070%3D";
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                 "resource", "clientid", testRedirectUri, "loginHint");
         m.invoke(authContext, authRequest);
         Assert.fail("It is expected to return an exception here.");
-        }
-        catch(InvocationTargetException e)
-        {
+        } catch(InvocationTargetException e) {
             assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
             assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((DeveloperAuthenticationException)e.getCause()).getCode());
             assertTrue((e.getCause()).getMessage().toString().contains("signature"));
