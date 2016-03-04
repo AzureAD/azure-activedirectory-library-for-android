@@ -44,6 +44,9 @@ public enum AuthenticationSettings {
      */
     private String mSharedPrefPackageName;
 
+    /**
+     * @deprecated As of release 1.1.14, replaced by {@link #mUseBroker}
+     */
     @Deprecated private boolean mSkipBroker = false;
     private boolean mUseBroker = true;
 
@@ -159,20 +162,16 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * Skip broker usage.
-     * 
-     * @return true if broker is not used.
+     * @deprecated As of release 1.1.14, replaced by {@link #getUseBroker()}
      */
-    public boolean getSkipBroker() {
+    @Deprecated public boolean getSkipBroker() {
         return mSkipBroker;
     }
 
     /**
-     * Sets flag to skip broker.
-     * 
-     * @param skip True to not use broker
+     * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker()}
      */
-    public void setSkipBroker(boolean skip) {
+    @Deprecated public void setSkipBroker(boolean skip) {
         mSkipBroker = skip;
     }
 
