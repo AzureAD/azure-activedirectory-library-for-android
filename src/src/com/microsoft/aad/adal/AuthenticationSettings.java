@@ -44,7 +44,12 @@ public enum AuthenticationSettings {
      */
     private String mSharedPrefPackageName;
 
-    private boolean mUseBroker = true;
+    /**
+     * set to be false in default 
+     * if user want to use broker
+     * the mUseBroker should be set explicitly by calling {@link #setUseBroker()} 
+     */
+    private boolean mUseBroker = false;
 
     /**
      * Expiration buffer in seconds.
