@@ -1711,7 +1711,12 @@ public class AuthenticationContext {
   
                 @Override
                 public int compare(TokenCacheItem thisTokenCacheItem, TokenCacheItem anotherTokenCacheItem) {
-                    return anotherTokenCacheItem.getTokenUpdateTime().compareTo(thisTokenCacheItem.getTokenUpdateTime());
+                    if (thisTokenCacheItem.getTokenUpdateTime() != null && anotherTokenCacheItem.getTokenUpdateTime() != null)
+                    {
+                        return anotherTokenCacheItem.getTokenUpdateTime().compareTo(thisTokenCacheItem.getTokenUpdateTime());
+                    }
+                    
+                    return 0;
                 }
             });
         }
