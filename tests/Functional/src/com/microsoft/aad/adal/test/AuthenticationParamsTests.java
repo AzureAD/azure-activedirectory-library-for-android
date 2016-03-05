@@ -32,9 +32,14 @@ import junit.framework.Assert;
 import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationParameters;
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
+import com.microsoft.aad.adal.HttpWebResponse;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
+import com.microsoft.aad.adal.ResourceAuthenticationChallengeException;
 
 public class AuthenticationParamsTests extends AndroidTestHelper {
 
@@ -278,7 +283,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     public void testcreateFromResourceUrlNoCallback() throws MalformedURLException {
 
         final URL url = new URL("https://www.something.com");
-        assertThrowsException(IllegalArgumentException.class, "callback", new ThrowableRunnable() {
+        assertThrowsException(IllegalArgumentException.class, "callback", new Runnable() {
 
             @Override
             public void run() {

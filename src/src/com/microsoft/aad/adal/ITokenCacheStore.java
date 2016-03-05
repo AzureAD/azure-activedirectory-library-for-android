@@ -19,6 +19,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * Minimal interface needed by ADAL for cache.
@@ -32,6 +33,12 @@ public interface ITokenCacheStore extends Serializable {
      * @return Token cache item
      */
     TokenCacheItem getItem(String key);
+    
+    /**
+     * Get all cached token items. 
+     * @return {@link Iterator} of {@link TokenCacheItem}s in the cache. 
+     */
+    Iterator<TokenCacheItem> getAll();
 
     /**
      * Checks if cache key exists.
