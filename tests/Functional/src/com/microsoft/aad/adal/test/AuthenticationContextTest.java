@@ -127,7 +127,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
-        AuthenticationSettings.INSTANCE.setSkipBroker(true);
+        AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
         PackageInfo info = mContext.getPackageManager().getPackageInfo(TEST_PACKAGE_NAME,
                 PackageManager.GET_SIGNATURES);
