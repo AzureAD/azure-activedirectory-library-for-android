@@ -64,6 +64,7 @@ import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.UserInfo;
 
 import android.annotation.SuppressLint;
@@ -129,7 +130,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
-        AuthenticationSettings.INSTANCE.setSkipBroker(true);
+        AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
         PackageInfo info = mContext.getPackageManager().getPackageInfo(TEST_PACKAGE_NAME,
                 PackageManager.GET_SIGNATURES);
@@ -2162,7 +2163,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
     
     @SmallTest
-    public void testVerifyBrokerRedirectUri_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+    public void testVerifyBrokerRedirectUri_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+           IllegalAccessException, InvocationTargetException {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
         final AuthenticationContext authContext = new AuthenticationContext(getContext(),
                 VALID_AUTHORITY, false, cache);
@@ -2172,13 +2175,15 @@ public class AuthenticationContextTest extends AndroidTestCase {
         //test@case valid redirect uri
         String testRedirectUri = authContext.getRedirectUriForBroker();
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
-                "resource", "clientid", testRedirectUri, "loginHint");
+            "resource", "clientid", testRedirectUri, "loginHint");
         Boolean testResult = (Boolean)m.invoke(authContext, authRequest);
         assertTrue(testResult);
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_invalidPrefix() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+    public void testVerifyBrokerRedirectUri_invalidPrefix() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+           IllegalAccessException, InvocationTargetException {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
         final AuthenticationContext authContext = new AuthenticationContext(getContext(),
                 VALID_AUTHORITY, false, cache);
@@ -2186,24 +2191,23 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
         //test@case broker redirect uri with invalid prefix
-        try
-        {
+        try {
             String testRedirectUri = "http://helloApp";
             Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                     "resource", "clientid", testRedirectUri, "loginHint");
             m.invoke(authContext, authRequest);
             Assert.fail("It is expected to return an exception here.");
-        }
-        catch(InvocationTargetException e)
-        {
-            assertTrue(e.getCause() instanceof AuthenticationException);
-            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((AuthenticationException)e.getCause()).getCode());
-            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("prefix"));
+        } catch(InvocationTargetException e) {
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
+            assertTrue((e.getCause()).getMessage().toString().contains("prefix"));
         }
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_invalidPackageName() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+    public void testVerifyBrokerRedirectUri_invalidPackageName() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+           IllegalAccessException, InvocationTargetException {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
         final AuthenticationContext authContext = new AuthenticationContext(getContext(),
                 VALID_AUTHORITY, false, cache);
@@ -2211,24 +2215,23 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
         //test@case broker redirect uri with invalid packageName
-        try
-        {
+        try {
              String testRedirectUri = "msauth://testapp/gwdiktUBDmQq%2BfbWiJoa%2B%2FYH070%3D";
              Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                      "resource", "clientid", testRedirectUri, "loginHint");
              m.invoke(authContext, authRequest);
              Assert.fail("It is expected to return an exception here.");
-        }
-        catch(InvocationTargetException e)
-        {
-            assertTrue(e.getCause() instanceof AuthenticationException);
-            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((AuthenticationException)e.getCause()).getCode());
-            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("package name"));
+        } catch(InvocationTargetException e) {
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
+            assertTrue((e.getCause()).getMessage().toString().contains("package name"));
         }
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_invalidSignature() throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
+    public void testVerifyBrokerRedirectUri_invalidSignature() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+        IllegalAccessException, InvocationTargetException {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
         final AuthenticationContext authContext = new AuthenticationContext(getContext(),
                 VALID_AUTHORITY, false, cache);
@@ -2236,19 +2239,16 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
         //test@case broker redirect uri with invalid signature
-        try
-        {
-        String testRedirectUri = "msauth://com.microsoft.aad.adal.testapp/falsesignH070%3D";
+        try {
+        String testRedirectUri = "msauth://" + getContext().getPackageName() + "/falsesignH070%3D";
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                 "resource", "clientid", testRedirectUri, "loginHint");
         m.invoke(authContext, authRequest);
         Assert.fail("It is expected to return an exception here.");
-        }
-        catch(InvocationTargetException e)
-        {
-            assertTrue(e.getCause() instanceof AuthenticationException);
-            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((AuthenticationException)e.getCause()).getCode());
-            assertTrue(((AuthenticationException)e.getCause()).getMessage().toString().contains("signature"));
+        } catch(InvocationTargetException e) {
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
+            assertTrue((e.getCause()).getMessage().toString().contains("signature"));
         }
     }
 
