@@ -31,6 +31,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.ConnectivityManager;
 import android.os.Looper;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
@@ -81,8 +82,10 @@ class FileMockContext extends MockContext {
 
     @Override
     public Object getSystemService(String name) {
-        if (name.equals("account")) {
+        if (name.equalsIgnoreCase("account")) {
             return mock(AccountManager.class);
+        } else if(name.equalsIgnoreCase("connectivity")) {
+            return mock(ConnectivityManager.class);
         }
         return new Object();
     }

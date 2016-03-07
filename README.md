@@ -10,7 +10,7 @@ A Work Account is an identity you use to get work done no matter if at your busi
 ## ADAL for Android 1.0 Released!
 
 Thanks to all your great feedback over the preview period, we have released 1.0 (GA) of the Microsoft Azure Active Directory Library for Android! 
-Recent version is 1.1.12
+Recent version is 1.1.14
 
 ## Features
 * Industry standard Oauth2 protocol support.
@@ -251,10 +251,10 @@ You can call **acquireTokenSilent** to handle caching, and token refresh. It pro
 mContext.acquireTokenSilent(resource, clientid, userId, callback );
 ```
 11. Broker:
-  Microsoft Intune's Company portal app will provide the broker component. Adal will use the broker account, if there is one user account is created at this authenticator and Developer choose not to skip it. Developer can skip the broker user with:
+  Microsoft Intune's Company portal app will provide the broker component. ADAL will use the broker account, if there is one user account is created at this authenticator and Developer choose to use it. The previous API setSkipBroker() is deprecated. ADAL will not talk to broker by default. And developer can use the broker with:
 
     ```java
-    AuthenticationSettings.Instance.setSkipBroker(true);
+    AuthenticationSettings.Instance.setUseBroker(true);
     ```
  Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
  

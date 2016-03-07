@@ -45,8 +45,8 @@ import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.DeveloperAuthenticationException;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.UserInfo;
 
 import android.accounts.Account;
@@ -180,7 +180,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
-        AuthenticationSettings.INSTANCE.setSkipBroker(false);
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
         Account[] accts = getAccountList("valid", authenticatorType);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
                 signature, true, accts);
@@ -206,7 +206,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Account[] accts = getAccountList("valid", authenticatorType);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
                 signature, true, accts);
-        AuthenticationSettings.INSTANCE.setSkipBroker(true);
+        AuthenticationSettings.INSTANCE.setUseBroker(false);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -274,10 +274,10 @@ public class BrokerProxyTests extends AndroidTestCase {
             m.invoke(brokerProxy);
             Assert.fail();
         } catch(InvocationTargetException e) {
-            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
-            assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().contains("[MANAGE_ACCOUNTS]"));
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertTrue(((UsageAuthenticationException)e.getCause()).getMessage().contains("[MANAGE_ACCOUNTS]"));
             assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
-                    ((DeveloperAuthenticationException)e.getCause()).getCode());
+                    ((UsageAuthenticationException)e.getCause()).getCode());
         }
     }
     
@@ -309,10 +309,10 @@ public class BrokerProxyTests extends AndroidTestCase {
             m.invoke(brokerProxy);
             Assert.fail();
         } catch(InvocationTargetException e) {
-            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
-            assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().contains("[USE_CREDENTIALS]"));
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertTrue(((UsageAuthenticationException)e.getCause()).getMessage().contains("[USE_CREDENTIALS]"));
             assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
-                    ((DeveloperAuthenticationException)e.getCause()).getCode());
+                    ((UsageAuthenticationException)e.getCause()).getCode());
         }
     }
     
@@ -344,10 +344,10 @@ public class BrokerProxyTests extends AndroidTestCase {
             m.invoke(brokerProxy);
             Assert.fail("It is expected to return an exception here.");
         } catch(InvocationTargetException e) {
-            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
-            assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().toString().contains("[GET_ACCOUNTS]"));
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertTrue(((UsageAuthenticationException)e.getCause()).getMessage().toString().contains("[GET_ACCOUNTS]"));
             assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
-                    ((DeveloperAuthenticationException)e.getCause()).getCode());
+                    ((UsageAuthenticationException)e.getCause()).getCode());
         }
     }
     
@@ -378,10 +378,10 @@ public class BrokerProxyTests extends AndroidTestCase {
             m.invoke(brokerProxy);
             Assert.fail();
         } catch(InvocationTargetException e) {
-            assertTrue(e.getCause() instanceof DeveloperAuthenticationException);
-            assertTrue(((DeveloperAuthenticationException)e.getCause()).getMessage().contains("[MANAGE_ACCOUNTS, USE_CREDENTIALS]"));
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertTrue(((UsageAuthenticationException)e.getCause()).getMessage().contains("[MANAGE_ACCOUNTS, USE_CREDENTIALS]"));
             assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
-                    ((DeveloperAuthenticationException)e.getCause()).getCode());
+                    ((UsageAuthenticationException)e.getCause()).getCode());
         }
     }
     

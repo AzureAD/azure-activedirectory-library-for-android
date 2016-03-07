@@ -19,15 +19,15 @@
 package com.microsoft.aad.adal;
 
 /**
- * Developer authentication error.
+ * usage authentication error.
  */
-public class DeveloperAuthenticationException extends AuthenticationException {
+public class UsageAuthenticationException extends AuthenticationException {
     static final long serialVersionUID = 1;
 
     /**
      * Constructs a new AuthenticationCancelError.
      */
-    public DeveloperAuthenticationException() {
+    public UsageAuthenticationException() {
         super();
     }
 
@@ -36,7 +36,20 @@ public class DeveloperAuthenticationException extends AuthenticationException {
      * 
      * @param msg Message for cancel request
      */
-    public DeveloperAuthenticationException(ADALError code, String msg) {
+    public UsageAuthenticationException(ADALError code, String msg) {
         super(code, msg);
+    }
+    
+    /**
+     * Constructs a new AuthenticationCancelError with message and the cause exception
+     * 
+     * @param code Resource file related error code. Message will be derived
+     *            from resource with using app context
+     * @param details Details related to the error such as query string, request
+     *            info
+     * @param throwable {@link Throwable}
+     */
+    public UsageAuthenticationException(ADALError code, String msg, Throwable throwable) {
+        super(code, msg, throwable);
     }
 }

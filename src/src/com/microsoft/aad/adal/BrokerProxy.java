@@ -94,7 +94,7 @@ class BrokerProxy implements IBrokerProxy {
      * does not direct call if the caller is from Authenticator itself.
      */
     @Override
-    public boolean canSwitchToBroker() throws DeveloperAuthenticationException {
+    public boolean canSwitchToBroker() throws UsageAuthenticationException {
         String packageName = mContext.getPackageName();
 
         // ADAL switches broker for following conditions:
@@ -104,7 +104,7 @@ class BrokerProxy implements IBrokerProxy {
         // 3- signature of the broker is valid
         // 4- account exists
         // 5- permissions are set in the manifest
-        return !AuthenticationSettings.INSTANCE.getSkipBroker()
+        return AuthenticationSettings.INSTANCE.getUseBroker()
                 && checkAccount(mAcctManager, "", "")
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
                         .getBrokerPackageName())
@@ -126,7 +126,7 @@ class BrokerProxy implements IBrokerProxy {
         boolean brokerSwitch;
         try {
             brokerSwitch = canSwitchToBroker();
-        } catch (final DeveloperAuthenticationException e) {
+        } catch (final UsageAuthenticationException e) {
             Logger.w(
                     TAG,
                     e.getMessage(),
@@ -150,10 +150,10 @@ class BrokerProxy implements IBrokerProxy {
     /**
      * To verify if App gives permissions to AccountManager to use broker.
      * 
-     * @throws DeveloperAuthenticationException
+     * @throws UsageAuthenticationException
      * @return boolean If the GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS permissions are granted in the Manifest.xml
      */
-    private boolean verifyManifestPermissions() throws DeveloperAuthenticationException {
+    private boolean verifyManifestPermissions() throws UsageAuthenticationException {
         final String methodName = ":verifyManifestPermissions";
         final PackageManager packageManager = mContext.getPackageManager();
         List<String> permerssionMissing = new ArrayList<String>();
@@ -195,7 +195,7 @@ class BrokerProxy implements IBrokerProxy {
         if(permerssionMissing.isEmpty()) {
             return true;
         } else {
-            throw new DeveloperAuthenticationException(
+            throw new UsageAuthenticationException(
                       ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, 
                       "Broker related permissions are missing for " + 
                       permerssionMissing.toString());
