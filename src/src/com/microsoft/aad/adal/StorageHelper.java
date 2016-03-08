@@ -190,10 +190,7 @@ public class StorageHelper {
      * @throws UnrecoverableEntryException
      * @throws IOException
      */
-    private SecretKey getKeyForVersion(String keyVersion) throws NoSuchAlgorithmException,
-            InvalidKeySpecException, NoSuchPaddingException, KeyStoreException,
-            CertificateException, NoSuchProviderException, InvalidAlgorithmParameterException,
-            UnrecoverableEntryException, IOException {
+    private SecretKey getKeyForVersion(String keyVersion) throws GeneralSecurityException, IOException {
 
         if (keyVersion.equals(VERSION_USER_DEFINED)) {
             return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
@@ -210,6 +207,7 @@ public class StorageHelper {
                 } catch (IOException | GeneralSecurityException e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
                             ADALError.ANDROIDKEYSTORE_FAILED, e);
+                    throw e;
                 }
             } else {
                 throw new IllegalArgumentException(
@@ -316,11 +314,7 @@ public class StorageHelper {
         return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
     }
 
-    public String decrypt(String value) throws NoSuchAlgorithmException, InvalidKeySpecException,
-            NoSuchPaddingException, KeyStoreException, CertificateException,
-            NoSuchProviderException, InvalidAlgorithmParameterException,
-            UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,
-            IllegalBlockSizeException, BadPaddingException {
+    public String decrypt(String value) throws GeneralSecurityException, IOException {
 
         Logger.v(TAG, "Starting decryption");
 
@@ -475,6 +469,7 @@ public class StorageHelper {
             deleteKeyFile();
             resetKeyPairFromAndroidKeyStore();
             Logger.v(TAG, "Removed previous key pair info.");
+            throw ex;
         }
         return sSecretKeyFromAndroidKeyStore;
     }
@@ -502,9 +497,7 @@ public class StorageHelper {
      * @throws UnrecoverableEntryException
      */
     @TargetApi(18)
-    private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws KeyStoreException,
-            NoSuchAlgorithmException, CertificateException, IOException, NoSuchProviderException,
-            InvalidAlgorithmParameterException, UnrecoverableEntryException {
+    private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws GeneralSecurityException, IOException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
