@@ -534,12 +534,20 @@ public class AuthenticationContext {
     }
 
     private IWindowComponent wrapActivity(final Activity activity) {
+        if (activity == null) {
+            throw new IllegalArgumentException("activity");
+        }
+
         return new IWindowComponent() {
             Activity refActivity = activity;
 
             @Override
             public void startActivityForResult(Intent intent, int requestCode) {
-                refActivity.startActivityForResult(intent, requestCode);
+                // if user closed an app or switched to another activity
+                // refActivity can die before this method got invoked
+                if(refActivity != null) {
+                    refActivity.startActivityForResult(intent, requestCode);
+                }
             }
         };
     }
