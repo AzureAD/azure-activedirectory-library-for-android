@@ -32,7 +32,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -1159,7 +1158,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         // Same call with correct upn will return from cache
         final CountDownLatch signalCallback2 = new CountDownLatch(1);
         callback.mSignal = signalCallback2;
-        context.acquireToken(null, "resource", "clientid", "redirectUri", idtoken.upn, callback);
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", idtoken.upn, callback);
         signalCallback2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         verifyTokenResult(idtoken, callback.mResult);
 
@@ -1649,7 +1648,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal3 = new CountDownLatch(1);
         MockAuthenticationCallback callback3 = new MockAuthenticationCallback(signal3);
 
-        context.acquireToken(null, resource, clientId, "http://redirectUri", "userName1", callback3);
+        final MockActivity testActivity = new MockActivity();
+        testActivity.mSignal = signal3;
+        context.acquireToken(testActivity, resource, clientId, "http://redirectUri", "userName1", callback3);
         signal3.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         
         // Check response in callback
@@ -2310,7 +2311,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         }
 
         @Override
-        public Iterator<TokenCacheItem> getAll() {
+        public Iterable<TokenCacheItem> getAll() {
             // TODO Auto-generated method stub
             return null;
         }

@@ -118,10 +118,10 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
     }
 
     @Override
-    public Iterator<TokenCacheItem> getAll() {
+    public Iterable<TokenCacheItem> getAll() {
         Logger.v(TAG, "Retrieving all items from cache. ");
         synchronized (mCacheLock) {
-            return mCache.values().iterator();
+            return mCache.values();
         }
     }
 }

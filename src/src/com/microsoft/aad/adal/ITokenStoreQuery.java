@@ -20,11 +20,10 @@ package com.microsoft.aad.adal;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 
 public interface ITokenStoreQuery {
 
-    Iterator<TokenCacheItem> getAll();
+    Iterable<TokenCacheItem> getAll();
 
     HashSet<String> getUniqueUsersWithTokenCache();
 

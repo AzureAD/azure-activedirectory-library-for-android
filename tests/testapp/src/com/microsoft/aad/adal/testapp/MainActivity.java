@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 import java.util.UUID;
 
 import javax.crypto.NoSuchPaddingException;
@@ -47,6 +46,20 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationCallback;
+import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationException;
+import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.CacheKey;
+import com.microsoft.aad.adal.DefaultTokenCacheStore;
+import com.microsoft.aad.adal.ITokenCacheStore;
+import com.microsoft.aad.adal.Logger;
+import com.microsoft.aad.adal.Logger.ILogger;
+import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.TokenCacheItem;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -64,20 +77,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationCallback;
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.CacheKey;
-import com.microsoft.aad.adal.DefaultTokenCacheStore;
-import com.microsoft.aad.adal.ITokenCacheStore;
-import com.microsoft.aad.adal.Logger;
-import com.microsoft.aad.adal.Logger.ILogger;
-import com.microsoft.aad.adal.PromptBehavior;
-import com.microsoft.aad.adal.TokenCacheItem;
 
 public class MainActivity extends Activity {
 
@@ -507,11 +506,12 @@ public class MainActivity extends Activity {
         Log.d(TAG, "Setting item to expire...");
         ArrayList<TokenCacheItem> items = new ArrayList<TokenCacheItem>();
         DefaultTokenCacheStore cache = (DefaultTokenCacheStore)mContext.getCache();
-        Iterator<TokenCacheItem> iterator = cache.getAll();
-        while (iterator.hasNext()) {
-            TokenCacheItem item = iterator.next();
-            if (item != null) {
-                items.add(item);
+        final Iterable<TokenCacheItem> allItems = cache.getAll();
+        if (allItems != null) {
+            for (final TokenCacheItem tokenCacheItem : allItems) {
+                if (tokenCacheItem != null) {
+                    items.add(tokenCacheItem);
+                }
             }
         }
 

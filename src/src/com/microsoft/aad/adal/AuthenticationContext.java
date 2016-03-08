@@ -241,7 +241,7 @@ public class AuthenticationContext {
                 }
 
                 @Override
-                public Iterator<TokenCacheItem> getAll() {
+                public Iterable<TokenCacheItem> getAll() {
                     throw new UnsupportedOperationException(
                             "Broker cache does not support direct getAll operation");
                 }
@@ -1639,19 +1639,17 @@ public class AuthenticationContext {
             return null;
         }
 
-        Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
-        if (allItems == null || !allItems.hasNext()) {
+        Iterable<TokenCacheItem> allItems = mTokenCacheStore.getAll();
+        if (allItems == null || !allItems.iterator().hasNext()) {
             Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
+            return null;
         }
         
         if (userIdentifierType == UserIdentifierType.UniqueId) {
             Logger.v(TAG + methodName, "UserIdentifier type is unique id, will look for the family item based on unique id.");
-            while (allItems.hasNext()) {
-                final TokenCacheItem tokenCacheItem = allItems.next();
+            for (final TokenCacheItem tokenCacheItem : allItems) {
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo!= null 
-                    && tokenUserInfo.getUserId() != null 
-                    && tokenUserInfo.getUserId().equalsIgnoreCase(userId)) {
+                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getUserId())) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                             && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
                         Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
@@ -1661,11 +1659,9 @@ public class AuthenticationContext {
             }
         } else if (userIdentifierType == UserIdentifierType.LoginHint) {
             Logger.v(TAG + methodName, "UserIdentifier type is loginhint, will look for the family item based on login hint.");
-            while (allItems.hasNext()) {
-                final TokenCacheItem tokenCacheItem = allItems.next();
+            for (final TokenCacheItem tokenCacheItem : allItems) {
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo != null && tokenUserInfo.getDisplayableId() != null
-                    && tokenUserInfo.getDisplayableId().equalsIgnoreCase(userId)) {
+                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getDisplayableId())) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                             && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
                         Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
@@ -1675,6 +1671,7 @@ public class AuthenticationContext {
             }
         }
 
+        Logger.v(TAG + methodName, "No family items found in the cache.");
         return null;
     }
     

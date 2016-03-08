@@ -31,14 +31,14 @@ import java.util.Map.Entry;
 
 import javax.crypto.NoSuchPaddingException;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager.NameNotFoundException;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * Store/Retrieve TokenCacheItem from private SharedPreferences.
@@ -210,7 +210,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * User can query over iterator values.
      */
     @Override
-    public Iterator<TokenCacheItem> getAll() {
+    public Iterable<TokenCacheItem> getAll() {
 
         argumentCheck();
 
@@ -235,7 +235,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             }
         }
 
-        return tokens.iterator();
+        return tokens;
     }
 
     /**
@@ -245,13 +245,15 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public HashSet<String> getUniqueUsersWithTokenCache() {
-        Iterator<TokenCacheItem> results = this.getAll();
+        Iterable<TokenCacheItem> results = this.getAll();
         HashSet<String> users = new HashSet<String>();
-
-        while (results.hasNext()) {
-            TokenCacheItem item = results.next();
-            if (item.getUserInfo() != null && !users.contains(item.getUserInfo().getUserId())) {
-                users.add(item.getUserInfo().getUserId());
+        
+        if (results != null) {
+            for (final TokenCacheItem tokenCacheItem: results) {
+                if (tokenCacheItem.getUserInfo() != null 
+                        && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
+                    users.add(tokenCacheItem.getUserInfo().getUserId());
+                }
             }
         }
 
@@ -266,13 +268,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public ArrayList<TokenCacheItem> getTokensForResource(String resource) {
-        Iterator<TokenCacheItem> results = this.getAll();
+        Iterable<TokenCacheItem> results = this.getAll();
         ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
 
-        while (results.hasNext()) {
-            TokenCacheItem item = results.next();
-            if (item.getResource().equals(resource)) {
-                tokenItems.add(item);
+        if (results != null) {
+            for (final TokenCacheItem tokenCacheItem : results) {
+                if (tokenCacheItem.getResource().equals(resource)) {
+                    tokenItems.add(tokenCacheItem);
+                }
             }
         }
 
@@ -287,14 +290,15 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public ArrayList<TokenCacheItem> getTokensForUser(String userid) {
-        Iterator<TokenCacheItem> results = this.getAll();
+        Iterable<TokenCacheItem> results = this.getAll();
         ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
-
-        while (results.hasNext()) {
-            TokenCacheItem item = results.next();
-            if (item.getUserInfo() != null
-                    && item.getUserInfo().getUserId().equalsIgnoreCase(userid)) {
-                tokenItems.add(item);
+        
+        if (results != null) {
+            for (final TokenCacheItem tokenCacheItem : results) {
+                if (tokenCacheItem.getUserInfo() != null 
+                        && tokenCacheItem.getUserInfo().getUserId().equalsIgnoreCase(userid)) {
+                    tokenItems.add(tokenCacheItem);
+                }
             }
         }
 
@@ -325,13 +329,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public ArrayList<TokenCacheItem> getTokensAboutToExpire() {
-        Iterator<TokenCacheItem> results = this.getAll();
+        Iterable<TokenCacheItem> results = this.getAll();
         ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
 
-        while (results.hasNext()) {
-            TokenCacheItem item = results.next();
-            if (isAboutToExpire(item.getExpiresOn())) {
-                tokenItems.add(item);
+        if (results != null) {
+            for (final TokenCacheItem tokenCacheItem : results) {
+                if (isAboutToExpire(tokenCacheItem.getExpiresOn())) {
+                    tokenItems.add(tokenCacheItem);
+                }
             }
         }
 

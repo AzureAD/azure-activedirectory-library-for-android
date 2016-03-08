@@ -203,7 +203,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         setupCache(file);
         ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
 
-        final Iterator<TokenCacheItem> allItems = store.getAll();
+        final Iterator<TokenCacheItem> allItems = store.getAll().iterator();
         
         assertTrue(allItems.hasNext());
         final TokenCacheItem tokenCacheItem1 = allItems.next();
