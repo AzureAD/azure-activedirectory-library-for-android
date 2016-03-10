@@ -211,8 +211,8 @@ public class StorageHelperTests extends AndroidTestCase {
 
         String value = "anvaERSgvhdfgkhrebgagagfdgadfgaadfgadfgadfg435gerhawdeADFGb #$%#gf3$%1234";
         Object storageHelper = getStorageHelper();
-        ReflectionUtils.setFieldValue(storageHelper, "sKey", null);
-        ReflectionUtils.setFieldValue(storageHelper, "sMacKey", null);
+        ReflectionUtils.setFieldValue(storageHelper, "mKey", null);
+        ReflectionUtils.setFieldValue(storageHelper, "mMacKey", null);
         Method m = ReflectionUtils.getTestMethod(storageHelper, "encrypt", String.class);
         String encrypted = (String)m.invoke(storageHelper, value);
         String encodeVersion = encrypted.substring(1, 3);

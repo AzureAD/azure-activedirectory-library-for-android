@@ -77,6 +77,8 @@ public class AuthenticationResult implements Serializable {
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
     private boolean mInitialRequest;
+    
+    private String mFamilyClientId;
 
     AuthenticationResult() {
         mCode = null;
@@ -305,5 +307,13 @@ public class AuthenticationResult implements Serializable {
     
     void setRefreshToken(String refreshToken){
         mRefreshToken = refreshToken;
+    }
+    
+    final String getFamilyClientId() {
+        return mFamilyClientId;
+    }
+    
+    final void setFamilyClientId (final String familyClientId) {
+        mFamilyClientId = familyClientId;
     }
 }
