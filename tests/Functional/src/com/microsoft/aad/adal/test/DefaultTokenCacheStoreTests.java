@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.security.DigestException;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
@@ -76,12 +77,8 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         super.tearDown();
     }
 
-    public void testSharedCache() throws NoSuchAlgorithmException, NoSuchPaddingException,
-            InvalidKeyException, InvalidKeySpecException, KeyStoreException, CertificateException,
-            NoSuchProviderException, InvalidAlgorithmParameterException,
-            UnrecoverableEntryException, DigestException, IllegalBlockSizeException,
-            BadPaddingException, IOException, NameNotFoundException, NoSuchFieldException,
-            IllegalArgumentException, IllegalAccessException {
+    public void testSharedCache() throws GeneralSecurityException, IOException, NameNotFoundException,
+            NoSuchFieldException, IllegalAccessException {
         AuthenticationSettings.INSTANCE.setSharedPrefPackageName("mockpackage");
         StorageHelper mockSecure = mock(StorageHelper.class);
         Context mockContext = mock(Context.class);
@@ -123,12 +120,8 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals(2, users.size());
     }
 
-    public void testDateTimeFormatterOldFormat() throws NoSuchAlgorithmException,
-            NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException,
-            KeyStoreException, CertificateException, NoSuchProviderException,
-            InvalidAlgorithmParameterException, UnrecoverableEntryException, DigestException,
-            IllegalBlockSizeException, BadPaddingException, IOException, NameNotFoundException,
-            NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+    public void testDateTimeFormatterOldFormat() throws GeneralSecurityException, IOException, NameNotFoundException,
+            NoSuchFieldException, IllegalAccessException {
         StorageHelper mockSecure = mock(StorageHelper.class);
         Context mockContext = mock(Context.class);
         SharedPreferences prefs = mock(SharedPreferences.class);
