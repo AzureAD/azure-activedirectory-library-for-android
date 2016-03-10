@@ -252,11 +252,11 @@ abstract class BasicWebViewClient extends WebViewClient {
             HashMap<String, String> parameters = StringExtensions
                     .getUrlParameters(url);
             prepareForBrokerResumeRequest();
+            // Wait for the calling activity to receive the result from prepareForBrokerResumeRequest
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                Logger.v(TAG + ":shouldOverrideUrlLoading", "Error occure when having thread sleeping for 1 second");
             }
             openLinkInBrowser(parameters.get(ApplicationReceiver.INSTALL_URL_KEY));
             view.stopLoading();
