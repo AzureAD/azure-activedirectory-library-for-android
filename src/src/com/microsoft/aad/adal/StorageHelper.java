@@ -125,9 +125,9 @@ public class StorageHelper {
 
     private static final Object LOCK_OBJ = new Object();
 
-    private static String sBlobVersion;
+    private String mBlobVersion;
 
-    private static SecretKey sKey = null, sMacKey = null;
+    private SecretKey mKey = null, mMacKey = null;
 
     private static SecretKey sSecretKeyFromAndroidKeyStore = null;
 
@@ -147,8 +147,8 @@ public class StorageHelper {
     final private void loadSecretKeyForAPI() throws NoSuchAlgorithmException,
             InvalidKeySpecException {
         // Loading key only once for performance. If API is upgraded, it will
-        // restart the device anyway. It will load the correct key for new API.
-        if (sKey != null && sMacKey != null)
+        // restart the device anyway. It will load the correct key for new API. 
+        if (mKey != null && mMacKey != null)
             return;
 
         synchronized (LOCK_OBJ) {
@@ -160,9 +160,9 @@ public class StorageHelper {
                     // key for Encryption and HMac.
                     // If user specifies secret key, it will use the provided
                     // key.
-                    sKey = getSecretKeyFromAndroidKeyStore();
-                    sMacKey = getMacKey(sKey);
-                    sBlobVersion = VERSION_ANDROID_KEY_STORE;
+                    mKey = getSecretKeyFromAndroidKeyStore();
+                    mMacKey = getMacKey(mKey);
+                    mBlobVersion = VERSION_ANDROID_KEY_STORE;
                     return;
                 } catch (IOException | GeneralSecurityException e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
@@ -171,9 +171,9 @@ public class StorageHelper {
             }
 
             Logger.v(TAG, "Encryption will use secret key from Settings");
-            sKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
-            sMacKey = getMacKey(sKey);
-            sBlobVersion = VERSION_USER_DEFINED;
+            mKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
+            mMacKey = getMacKey(mKey);
+            mBlobVersion = VERSION_USER_DEFINED;
         }
     }
 
@@ -190,10 +190,7 @@ public class StorageHelper {
      * @throws UnrecoverableEntryException
      * @throws IOException
      */
-    private SecretKey getKeyForVersion(String keyVersion) throws NoSuchAlgorithmException,
-            InvalidKeySpecException, NoSuchPaddingException, KeyStoreException,
-            CertificateException, NoSuchProviderException, InvalidAlgorithmParameterException,
-            UnrecoverableEntryException, IOException {
+    private SecretKey getKeyForVersion(String keyVersion) throws GeneralSecurityException, IOException {
 
         if (keyVersion.equals(VERSION_USER_DEFINED)) {
             return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
@@ -210,6 +207,7 @@ public class StorageHelper {
                 } catch (IOException | GeneralSecurityException e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
                             ADALError.ANDROIDKEYSTORE_FAILED, e);
+                    throw e;
                 }
             } else {
                 throw new IllegalArgumentException(
@@ -273,8 +271,8 @@ public class StorageHelper {
 
         // load key for encryption if not loaded
         loadSecretKeyForAPI();
-        Logger.v(TAG, "Encrypt version:" + sBlobVersion);
-        final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
+        Logger.v(TAG, "Encrypt version:" + mBlobVersion);
+        final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
         // IV: Initialization vector that is needed to start CBC
@@ -285,13 +283,13 @@ public class StorageHelper {
         // Set to encrypt mode
         Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
         Mac mac = Mac.getInstance(MAC_ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, sKey, ivSpec);
+        cipher.init(Cipher.ENCRYPT_MODE, mKey, ivSpec);
 
         byte[] encrypted = cipher.doFinal(bytes);
 
         // Mac output to sign encryptedData+IV. Keyversion is not included
         // in the digest. It defines what to use for Mac Key.
-        mac.init(sMacKey);
+        mac.init(mMacKey);
         mac.update(blobVersion);
         mac.update(encrypted);
         mac.update(iv);
@@ -316,11 +314,7 @@ public class StorageHelper {
         return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
     }
 
-    public String decrypt(String value) throws NoSuchAlgorithmException, InvalidKeySpecException,
-            NoSuchPaddingException, KeyStoreException, CertificateException,
-            NoSuchProviderException, InvalidAlgorithmParameterException,
-            UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,
-            IllegalBlockSizeException, BadPaddingException {
+    public String decrypt(String value) throws GeneralSecurityException, IOException {
 
         Logger.v(TAG, "Starting decryption");
 
@@ -475,6 +469,7 @@ public class StorageHelper {
             deleteKeyFile();
             resetKeyPairFromAndroidKeyStore();
             Logger.v(TAG, "Removed previous key pair info.");
+            throw ex;
         }
         return sSecretKeyFromAndroidKeyStore;
     }
@@ -502,9 +497,7 @@ public class StorageHelper {
      * @throws UnrecoverableEntryException
      */
     @TargetApi(18)
-    private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws KeyStoreException,
-            NoSuchAlgorithmException, CertificateException, IOException, NoSuchProviderException,
-            InvalidAlgorithmParameterException, UnrecoverableEntryException {
+    private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws GeneralSecurityException, IOException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {

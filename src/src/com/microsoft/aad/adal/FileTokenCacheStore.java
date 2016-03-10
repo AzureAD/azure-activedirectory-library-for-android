@@ -24,6 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Iterator;
 
 import android.content.Context;
 
@@ -164,5 +165,10 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                 }
             }
         }
+    }
+
+    @Override
+    public Iterator<TokenCacheItem> getAll() {
+        return mInMemoryCache.getAll();
     }
 }
