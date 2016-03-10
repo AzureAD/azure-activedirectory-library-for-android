@@ -251,9 +251,15 @@ abstract class BasicWebViewClient extends WebViewClient {
             ApplicationReceiver.saveRequest(mCallingContext, mRequest, url);
             HashMap<String, String> parameters = StringExtensions
                     .getUrlParameters(url);
+            prepareForBrokerResumeRequest();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             openLinkInBrowser(parameters.get(ApplicationReceiver.INSTALL_URL_KEY));
             view.stopLoading();
-            prepareForBrokerResumeRequest();
             return true;
         }
 

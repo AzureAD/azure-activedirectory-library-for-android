@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -56,7 +55,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.ResultReceiver;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.SparseArray;
 
@@ -818,6 +816,10 @@ public class AuthenticationContext {
                 {
                     Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker installation. Once "
                             + "broker is installed, request will be resumed and result will be received");
+                    
+                    //Register the broker resume result receiver with intent filter as broker_request_resume and specific app package name
+                    (new ContextWrapper(mContext)).registerReceiver(brokerResumeResultReceiver, 
+                            new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME + mContext.getPackageName()), null, mHandler);
                 }
                 else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
@@ -1280,10 +1282,6 @@ public class AuthenticationContext {
             final AuthenticationRequest request) {
         final String methodName = ":acquireTokenAfterValidation";
         Logger.v(TAG, "Token request started");
-
-        //Register the broker resume result receiver with intent filter as broker_request_resume and specific app package name
-        (new ContextWrapper(mContext)).registerReceiver(brokerResumeResultReceiver, 
-                new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME + mContext.getPackageName()), null, mHandler);
         
         // BROKER flow intercepts here
         // cache and refresh call happens through the authenticator service
