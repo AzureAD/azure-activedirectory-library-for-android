@@ -2157,8 +2157,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         }
     }
 
-    private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) throws NoSuchAlgorithmException,
-            NoSuchPaddingException {
+    private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         cache.removeAll();
         Calendar expiredTime = new GregorianCalendar();

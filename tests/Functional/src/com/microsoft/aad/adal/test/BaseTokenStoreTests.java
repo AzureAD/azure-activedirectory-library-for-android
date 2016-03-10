@@ -60,7 +60,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         super.tearDown();
     }
 
-    protected ITokenCacheStore setupItems() throws NoSuchAlgorithmException, NoSuchPaddingException {
+    protected ITokenCacheStore setupItems() {
         ITokenCacheStore store = getTokenCacheStore();
         store.removeAll();
         // set items for user1
@@ -107,9 +107,9 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         return store;
     }
 
-    protected abstract ITokenCacheStore getTokenCacheStore() throws NoSuchAlgorithmException, NoSuchPaddingException;
+    protected abstract ITokenCacheStore getTokenCacheStore();
 
-    public void testGetRemoveItem() throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public void testGetRemoveItem() {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
@@ -176,7 +176,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertNull("Token cache item is expected to be null", item);
     }
 
-    public void testContains() throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public void testContains() {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
@@ -188,7 +188,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertTrue("Item is expected to be there", actual);
     }
 
-    public void testRemoveAll() throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public void testRemoveAll() {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
