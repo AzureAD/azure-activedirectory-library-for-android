@@ -248,12 +248,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         Iterable<TokenCacheItem> results = this.getAll();
         HashSet<String> users = new HashSet<String>();
         
-        if (results != null) {
-            for (final TokenCacheItem tokenCacheItem: results) {
-                if (tokenCacheItem.getUserInfo() != null 
-                        && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
-                    users.add(tokenCacheItem.getUserInfo().getUserId());
-                }
+        for (final TokenCacheItem tokenCacheItem : results) {
+            if (tokenCacheItem.getUserInfo() != null && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
+                users.add(tokenCacheItem.getUserInfo().getUserId());
             }
         }
 
