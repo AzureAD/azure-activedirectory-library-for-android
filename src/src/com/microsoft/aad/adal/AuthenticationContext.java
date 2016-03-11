@@ -554,7 +554,7 @@ public class AuthenticationContext {
     private String checkInputParameters(String resource, String clientId, String redirectUri,
             PromptBehavior behavior, AuthenticationCallback<AuthenticationResult> callback) {
         if (mContext == null) {
-            throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
+            throw new IllegalArgumentException("context", new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
         }
 
         if (StringExtensions.IsNullOrBlank(resource)) {
@@ -879,7 +879,7 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                } catch (IOException | AuthenticationServerProtocolException exc) {
+                                } catch (IOException | AuthenticationException exc) {
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo() + correlationInfo;
                                     Logger.e(TAG, msg,
@@ -1127,8 +1127,6 @@ public class AuthenticationContext {
                         return;
                     }
                 });
-            } else {
-                throw e;
             }
         }
 
@@ -1676,7 +1674,7 @@ public class AuthenticationContext {
     }
     
     private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
-            boolean afterPrompt) throws AuthenticationException {
+            boolean afterPrompt) {
         if (mTokenCacheStore != null) {
 
             // User can ask for token without login hint. Next call from same
@@ -1747,8 +1745,7 @@ public class AuthenticationContext {
     }
 
     private void setItemToCacheFromRefresh(final RefreshItem refreshItem,
-            final AuthenticationRequest request, AuthenticationResult result)
-            throws AuthenticationException {
+            final AuthenticationRequest request, AuthenticationResult result) {
         if (mTokenCacheStore != null) {
             // Use same key to store refreshed result. This key may belong to
             // normal token or MRRT token.
@@ -1763,7 +1760,7 @@ public class AuthenticationContext {
         }
     }
 
-    private void removeItemFromCache(final RefreshItem refreshItem) throws AuthenticationException {
+    private void removeItemFromCache(final RefreshItem refreshItem) {
         if (mTokenCacheStore != null) {
             Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey);
             mTokenCacheStore.removeItem(refreshItem.mKey);
@@ -1814,7 +1811,7 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Refresh token is not returned or empty");
                 result.setRefreshToken(refreshItem.mRefreshToken);
             }
-        } catch (IOException | AuthenticationServerProtocolException exc) {
+        } catch (IOException | AuthenticationException exc) {
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
@@ -2093,7 +2090,7 @@ public class AuthenticationContext {
         PackageManager pm = mContext.getPackageManager();
         if (PackageManager.PERMISSION_GRANTED != pm.checkPermission("android.permission.INTERNET",
                 mContext.getPackageName())) {
-            throw new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING);
+            throw new IllegalStateException(new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING));
         }
     }
 

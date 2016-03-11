@@ -111,7 +111,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
             // if it is not possible to load the cache because of permissions or
             // similar, it will not work again. File cache is not working and
             // not make sense to use it.
-            throw new AuthenticationException(ADALError.DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE);
+            throw new IllegalStateException(ex);
 
         }
     }

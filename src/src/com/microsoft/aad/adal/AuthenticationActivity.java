@@ -800,7 +800,7 @@ public class AuthenticationActivity extends Activity {
             try {
                 result.taskResult = oauthRequest.getToken(urlItems[0]);
                 Logger.v(TAG, "TokenTask processed the result. " + mRequest.getLogInfo());
-            } catch (IOException | AuthenticationServerProtocolException exc) {
+            } catch (IOException | AuthenticationException exc) {
                 Logger.e(TAG, "Error in processing code to get a token. " + mRequest.getLogInfo(),
                         "Request url:" + urlItems[0],
                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);

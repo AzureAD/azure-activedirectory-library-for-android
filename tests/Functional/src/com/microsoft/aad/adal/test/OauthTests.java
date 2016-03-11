@@ -450,8 +450,7 @@ public class OauthTests extends AndroidTestCase {
     public void testRefreshTokenWebResponse_DeviceChallenge_Positive()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException,
-            NoSuchAlgorithmException, MalformedURLException 
-    {
+            NoSuchAlgorithmException, MalformedURLException, AuthenticationException {
         getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
         
