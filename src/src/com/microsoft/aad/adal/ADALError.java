@@ -500,7 +500,17 @@ public enum ADALError {
     /**
      * The redirectUri for broker is invalid.
      */
-    DEVELOPER_REDIRECTURI_INVALID("The redirectUri for broker is invalid");
+    DEVELOPER_REDIRECTURI_INVALID("The redirectUri for broker is invalid"),
+
+    /**
+     * Device challenge failure
+     */
+    DEVICE_CHALLENGE_FAILURE("Device challenge failure"),
+
+    /**
+     * Resource authentication challenge failure
+     */
+    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure");
 
     private String mDescription;
 

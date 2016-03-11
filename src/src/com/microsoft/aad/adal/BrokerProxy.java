@@ -201,7 +201,9 @@ class BrokerProxy implements IBrokerProxy {
      * Gets accessToken from Broker component.
      */
     @Override
-    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request) {
+    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request)
+            throws AuthenticationException
+    {
 
         AuthenticationResult authResult = null;
         verifyNotOnMainThread();
@@ -269,7 +271,7 @@ class BrokerProxy implements IBrokerProxy {
         return null;
     }
 
-    private AuthenticationResult getResultFromBrokerResponse(Bundle bundleResult) {
+    private AuthenticationResult getResultFromBrokerResponse(Bundle bundleResult) throws AuthenticationException {
         if (bundleResult == null) {
             throw new IllegalArgumentException("bundleResult");
         }
