@@ -133,7 +133,7 @@ class JWSBuilder implements IJWSBuilder {
             // redundant but current ADFS code base is looking for
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
-            Logger.v(TAG, "Client certificate challange response JWS Header:" + headerJsonString);
+            Logger.v(TAG, "Client certificate challenge response JWS Header:" + headerJsonString);
             signingInput = StringExtensions.encodeBase64URLSafeString(headerJsonString
                     .getBytes(AuthenticationConstants.ENCODING_UTF8))
                     + "."
