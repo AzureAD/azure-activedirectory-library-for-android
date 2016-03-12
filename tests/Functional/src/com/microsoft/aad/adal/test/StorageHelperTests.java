@@ -231,7 +231,7 @@ public class StorageHelperTests extends AndroidTestCase {
     }
 
     @TargetApi(18)
-    public void testMigration() throws IllegalArgumentException, ClassNotFoundException,
+    public void testMigration() throws ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, KeyStoreException, NoSuchAlgorithmException,
             CertificateException, IOException {
@@ -248,7 +248,7 @@ public class StorageHelperTests extends AndroidTestCase {
     }
 
     @TargetApi(18)
-    public void testKeyPair() throws IllegalArgumentException, ClassNotFoundException,
+    public void testKeyPair() throws ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, KeyStoreException, NoSuchAlgorithmException,
             CertificateException, IOException {

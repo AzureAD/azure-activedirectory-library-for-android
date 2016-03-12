@@ -70,8 +70,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * @throws NoSuchAlgorithmException
      * @throws NoSuchPaddingException
      */
-    public DefaultTokenCacheStore(Context context) throws NoSuchAlgorithmException,
-            NoSuchPaddingException {
+    public DefaultTokenCacheStore(Context context) {
         mContext = context;
         if (context != null) {
 
@@ -92,6 +91,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                 }
             }
             mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
+            if (mPrefs == null) {
+                throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
+            }
+
         } else {
             throw new IllegalArgumentException("Context is null");
         }
@@ -133,9 +136,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public TokenCacheItem getItem(String key) {
-
-        argumentCheck();
-
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
@@ -153,9 +153,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public void removeItem(String key) {
-
-        argumentCheck();
-
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
@@ -170,9 +167,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public void setItem(String key, TokenCacheItem item) {
-
-        argumentCheck();
-
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
@@ -196,8 +190,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public void removeAll() {
-
-        argumentCheck();
         Editor prefsEditor = mPrefs.edit();
         prefsEditor.clear();
         // apply will do Async disk write operation.
@@ -211,9 +203,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public Iterator<TokenCacheItem> getAll() {
-
-        argumentCheck();
-
         @SuppressWarnings("unchecked")
         Map<String, String> results = (Map<String, String>)mPrefs.getAll();
 
@@ -338,16 +327,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return tokenItems;
     }
 
-    private void argumentCheck() {
-        if (mContext == null) {
-            throw new IllegalArgumentException("context", new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
-        }
-
-        if (mPrefs == null) {
-            throw new IllegalArgumentException("prefs", new AuthenticationException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE));
-        }
-    }
-
     private boolean isAboutToExpire(Date expires) {
         Date validity = getTokenValidityTime().getTime();
 
@@ -368,8 +347,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public boolean contains(String key) {
-        argumentCheck();
-
         if (key == null) {
             throw new IllegalArgumentException("key");
         }

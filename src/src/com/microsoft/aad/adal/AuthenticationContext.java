@@ -135,8 +135,7 @@ public class AuthenticationContext {
      * @throws NoSuchAlgorithmException Encryption Algorithm does not exist in
      *             the device. Please see the log record for details.
      */
-    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
-            throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
         // Fixes are required for SDK 16-18
         // The fixes need to be applied before any use of Java Cryptography
         // Architecture primitives. Default cache uses encryption
@@ -1168,8 +1167,6 @@ public class AuthenticationContext {
      * 
      * @param activity
      * @param request
-     * @param prompt
-     * @param callback
      * @return
      */
     private AuthenticationResult acquireTokenLocalCall(final CallbackHandler callbackHandle,
@@ -1777,7 +1774,6 @@ public class AuthenticationContext {
      * refresh token if possible. if it fails, it calls acquire token after
      * removing refresh token from cache.
      * 
-     * @param callbackHandle
      * @param activity Activity to use in case refresh token does not succeed
      *            and prompt is not set to never.
      * @param request incoming request
@@ -1785,7 +1781,6 @@ public class AuthenticationContext {
      *            cache
      * @param useCache refresh request can be explicit without cache usage.
      *            Error message should return without trying prompt.
-     * @param externalCallback
      * @return
      */
     private AuthenticationResult getTokenWithRefreshToken(final IWindowComponent activity, final boolean useDialog,
@@ -1973,7 +1968,7 @@ public class AuthenticationContext {
     /**
      * set CorrelationId to requests.
      * 
-     * @param mRequestCorrelationId
+     * @param requestCorrelationId
      */
     public void setRequestCorrelationId(UUID requestCorrelationId) {
         this.mRequestCorrelationId = requestCorrelationId;
