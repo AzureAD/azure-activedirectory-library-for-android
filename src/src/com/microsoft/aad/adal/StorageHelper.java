@@ -26,9 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.DigestException;
 import java.security.GeneralSecurityException;
@@ -55,6 +52,9 @@ import javax.security.auth.x500.X500Principal;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.security.KeyPairGeneratorSpec;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import android.util.Base64;
 
 /**
@@ -383,7 +383,6 @@ public class StorageHelper {
      * 
      * @return
      * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
      */
     final private SecretKey generateSecretKey() throws NoSuchAlgorithmException {
         KeyGenerator keygen = KeyGenerator.getInstance(KEYSPEC_ALGORITHM);
@@ -478,15 +477,11 @@ public class StorageHelper {
 
             // self signed cert stored in AndroidKeyStore to asym. encrypt key
             // to a file
-            String certInfo = String.format("CN=%s, OU=%s", KEY_STORE_CERT_ALIAS,
-                    mContext.getPackageName());
-            final AlgorithmParameterSpec spec = (AlgorithmParameterSpec)getKeyPairGeneratorSpec(
-                    new X500Principal(certInfo), start.getTime(), end.getTime());
             final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
                     "AndroidKeyStore");
-            generator.initialize(spec);
+            generator.initialize(getKeyPairGeneratorSpec(start.getTime(), end.getTime()));
             generator.generateKeyPair();
-            Logger.v(TAG, "Key entry is generated for cert " + certInfo);
+            Logger.v(TAG, "Key entry is generated");
         } else {
             Logger.v(TAG, "Key entry is available");
         }
@@ -497,53 +492,31 @@ public class StorageHelper {
                 KEY_STORE_CERT_ALIAS, null);
         return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
     }
-    
+
     @TargetApi(18)
-    private Object getKeyPairGeneratorSpec(X500Principal subj, Date start, Date end) {
-        // TODO: use real Spec.Builder instead of reflective methods
-        Class<?> clazz;
-        try {
-            clazz = Class.forName("android.security.KeyPairGeneratorSpec$Builder");
-
-            Constructor<?> constructor = clazz.getDeclaredConstructor(Context.class);
-            constructor.setAccessible(true);
-            Object builder = constructor.newInstance(mContext);
-            Method setAlias = clazz.getDeclaredMethod("setAlias", String.class);
-            Method setSubject = clazz.getDeclaredMethod("setSubject", X500Principal.class);
-            Method setSerialNumber = clazz.getDeclaredMethod("setSerialNumber", BigInteger.class);
-            Method setStartDate = clazz.getDeclaredMethod("setStartDate", Date.class);
-            Method setEndDate = clazz.getDeclaredMethod("setEndDate", Date.class);
-            Method build = clazz.getDeclaredMethod("build");
-            builder = setAlias.invoke(builder, KEY_STORE_CERT_ALIAS);
-            builder = setSubject.invoke(builder, subj);
-            builder = setSerialNumber.invoke(builder, BigInteger.ONE);
-            builder = setStartDate.invoke(builder, start);
-            builder = setEndDate.invoke(builder, end);
-            return build.invoke(builder);
-        } catch (ClassNotFoundException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder is not found", "",
-                    ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-        } catch (IllegalArgumentException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder argument is not valid",
-                    "", ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-        } catch (InstantiationException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder is not instantiated", "",
-                    ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-        } catch (IllegalAccessException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder is not accessible", "",
-                    ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-        } catch (InvocationTargetException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder's method invoke failed",
-                    "", ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-            if (e.getCause() instanceof RuntimeException) {
-                throw (RuntimeException) e.getCause();
-            }
-        } catch (NoSuchMethodException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder is not found", "",
-                    ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
+    private AlgorithmParameterSpec getKeyPairGeneratorSpec(Date start, Date end) {
+        AlgorithmParameterSpec spec;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M){
+            // Api level 23
+            spec = new  KeyGenParameterSpec.Builder(
+                    KEY_STORE_CERT_ALIAS,
+                    KeyProperties.PURPOSE_DECRYPT | KeyProperties.PURPOSE_ENCRYPT )
+                    .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
+                    .build();
+        } else {
+            String certInfo = String.format("CN=%s, OU=%s", KEY_STORE_CERT_ALIAS,
+                    mContext.getPackageName());
+            // api level 17+ 4.4.3
+            spec = new KeyPairGeneratorSpec.Builder(mContext)
+                    .setAlias(KEY_STORE_CERT_ALIAS)
+                    .setSubject(new X500Principal(certInfo))
+                    .setSerialNumber(BigInteger.ONE)
+                    .setStartDate(start)
+                    .setEndDate(end)
+                    .build();
         }
-
-        return null;
+        return spec;
     }
 
     @TargetApi(18)

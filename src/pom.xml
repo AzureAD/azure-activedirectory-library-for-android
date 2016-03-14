@@ -11,9 +11,9 @@
     <scm.branch>master</scm.branch>
     <maven.version>3.1.1</maven.version>
     <adal.version>1.1.14</adal.version>
-    <android.platform.maven.plugin>21</android.platform.maven.plugin>
+    <android.platform.maven.plugin>23</android.platform.maven.plugin>
     <android.version>[4.1.1.4,)</android.version>
-    <android.support.version>[21,)</android.support.version>
+    <android.support.version>[23,)</android.support.version>
     <android.support.name>support-v4</android.support.name>
     <gson.name>gson</gson.name>
     <gson.version>2.3.1</gson.version>
@@ -167,7 +167,7 @@
           <resourceDirectory>${project.basedir}/res</resourceDirectory>
           <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
           <sdk>
-            <platform>21</platform>
+            <platform>23</platform>
           </sdk>
           <dexCoreLibrary>true</dexCoreLibrary>
           <deleteConflictingFiles>true</deleteConflictingFiles>
