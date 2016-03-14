@@ -27,17 +27,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-class ChallengeResponseBuilder {
+class ChallangeResponseBuilder {
 
-    private static final String TAG = "ChallengeResponseBuilder";
+    private static final String TAG = "ChallangeResponseBuilder";
 
     private IJWSBuilder mJWSBuilder;
 
-    ChallengeResponseBuilder(IJWSBuilder jwsBuilder) {
+    ChallangeResponseBuilder(IJWSBuilder jwsBuilder) {
         mJWSBuilder = jwsBuilder;
     }
 
-    class ChallengeResponse {
+    class ChallangeResponse {
         String mSubmitUrl;
 
         String mAuthorizationHeaderValue;
@@ -55,7 +55,7 @@ class ChallengeResponseBuilder {
         Nonce, CertAuthorities, Version, SubmitUrl, Context, CertThumbprint
     }
 
-    class ChallengeRequest {
+    class ChallangeRequest {
         String mNonce = "";
 
         String mContext = "";
@@ -83,23 +83,23 @@ class ChallengeResponseBuilder {
      *            &CertAuthorities=<distinguished names of CAs>&Version=1.0
      *            &SubmitUrl=<URL to submit response>&Context=<server state that
      *            client must convey back>
-     * @return Return Device challenge response
+     * @return Return Device challange response
      */
-    public ChallengeResponse getChallengeResponseFromUri(final String redirectUri)
+    public ChallangeResponse getChallangeResponseFromUri(final String redirectUri)
             throws AuthenticationServerProtocolException, AuthenticationException  {
-        ChallengeRequest request = getChallengeRequest(redirectUri);
+        ChallangeRequest request = getChallangeRequest(redirectUri);
         return getDeviceCertResponse(request);
     }
 
-    public ChallengeResponse getChallengeResponseFromHeader(final String challengeHeaderValue,
+    public ChallangeResponse getChallangeResponseFromHeader(final String challangeHeaderValue,
             final String endpoint) throws UnsupportedEncodingException, AuthenticationServerProtocolException, AuthenticationException {
-        ChallengeRequest request = getChallengeRequestFromHeader(challengeHeaderValue);
+        ChallangeRequest request = getChallangeRequestFromHeader(challangeHeaderValue);
         request.mSubmitUrl = endpoint;
         return getDeviceCertResponse(request);
     }
 
-    private ChallengeResponse getDeviceCertResponse(ChallengeRequest request) throws AuthenticationException {
-        ChallengeResponse response = getNoDeviceCertResponse(request);
+    private ChallangeResponse getDeviceCertResponse(ChallangeRequest request) throws AuthenticationException {
+        ChallangeResponse response = getNoDeviceCertResponse(request);
         response.mSubmitUrl = request.mSubmitUrl;
 
         // If not device cert exists, alias or privatekey will not exist on the
@@ -120,9 +120,9 @@ class ChallengeResponseBuilder {
                             deviceCertProxy.getCertificate());
                     response.mAuthorizationHeaderValue = String.format(
                             "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
-                            AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, jwt,
+                            AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, jwt,
                             request.mContext, request.mVersion);
-                    Logger.v(TAG, "Challenge response:" + response.mAuthorizationHeaderValue);
+                    Logger.v(TAG, "Challange response:" + response.mAuthorizationHeaderValue);
                 } else {
                     throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
                 }
@@ -170,18 +170,18 @@ class ChallengeResponseBuilder {
         return deviceCertProxy;
     }
 
-    private ChallengeResponse getNoDeviceCertResponse(final ChallengeRequest request) {
-        ChallengeResponse response = new ChallengeResponse();
+    private ChallangeResponse getNoDeviceCertResponse(final ChallangeRequest request) {
+        ChallangeResponse response = new ChallangeResponse();
         response.mSubmitUrl = request.mSubmitUrl;
         response.mAuthorizationHeaderValue = String.format("%s Context=\"%s\",Version=\"%s\"",
-                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, request.mContext,
+                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, request.mContext,
                 request.mVersion);
         return response;
     }
 
-    private ChallengeRequest getChallengeRequestFromHeader(final String headerValue)
+    private ChallangeRequest getChallangeRequestFromHeader(final String headerValue)
             throws UnsupportedEncodingException, AuthenticationException {
-        final String methodName = ":getChallengeRequestFromHeader";
+        final String methodName = ":getChallangeRequestFromHeader";
         
         if (StringExtensions.IsNullOrBlank(headerValue)) {
             throw new AuthenticationServerProtocolException("headerValue");
@@ -189,15 +189,15 @@ class ChallengeResponseBuilder {
 
         // Header value should start with correct challenge type
         if (!StringExtensions.hasPrefixInHeader(headerValue,
-                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) 
+                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)) 
         {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
                     headerValue);
         }
 
-        ChallengeRequest challenge = new ChallengeRequest();
+        ChallangeRequest challange = new ChallangeRequest();
         String authenticateHeader = headerValue
-                .substring(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE.length());
+                .substring(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE.length());
         ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader, ',');
         HashMap<String, String> headerItems = new HashMap<String, String>();
 
@@ -222,10 +222,10 @@ class ChallengeResponseBuilder {
             }
         }
 
-        validateChallengeRequest(headerItems, false);
-        challenge.mNonce = headerItems.get(RequestField.Nonce.name());
-        if (StringExtensions.IsNullOrBlank(challenge.mNonce)) {
-            challenge.mNonce = headerItems.get(RequestField.Nonce.name().toLowerCase(Locale.US));
+        validateChallangeRequest(headerItems, false);
+        challange.mNonce = headerItems.get(RequestField.Nonce.name());
+        if (StringExtensions.IsNullOrBlank(challange.mNonce)) {
+            challange.mNonce = headerItems.get(RequestField.Nonce.name().toLowerCase(Locale.US));
         }
         
         // When pkeyauth header is present, ADFS is always trying to device auth. When hitting token endpoint(device
@@ -239,14 +239,14 @@ class ChallengeResponseBuilder {
         else if (!StringExtensions.IsNullOrBlank(headerItems.get(RequestField.CertThumbprint.name())))
         {
             Logger.v(TAG + methodName, "CertThumbprint exists in the device auth challenge.");
-            challenge.mThumbprint = headerItems.get(RequestField.CertThumbprint.name());
+            challange.mThumbprint = headerItems.get(RequestField.CertThumbprint.name());
         }
         else if (headerItems.containsKey(RequestField.CertAuthorities.name())) 
         {
             Logger.v(TAG + methodName, "CertAuthorities exists in the device auth challenge.");
             String authorities = headerItems.get(RequestField.CertAuthorities.name());
-            challenge.mCertAuthorities = StringExtensions.getStringTokens(authorities, 
-                AuthenticationConstants.Broker.CHALLENGE_REQUEST_CERT_AUTH_DELIMETER);
+            challange.mCertAuthorities = StringExtensions.getStringTokens(authorities, 
+                AuthenticationConstants.Broker.CHALLANGE_REQUEST_CERT_AUTH_DELIMETER);
         }
         else 
         {
@@ -254,12 +254,12 @@ class ChallengeResponseBuilder {
                 "Both certThumbprint and certauthorities are not present");
         }
         
-        challenge.mVersion = headerItems.get(RequestField.Version.name());
-        challenge.mContext = headerItems.get(RequestField.Context.name());
-        return challenge;
+        challange.mVersion = headerItems.get(RequestField.Version.name());
+        challange.mContext = headerItems.get(RequestField.Context.name());
+        return challange;
     }
 
-    private void validateChallengeRequest(HashMap<String, String> headerItems,
+    private void validateChallangeRequest(HashMap<String, String> headerItems,
             boolean redirectFormat) throws AuthenticationException{
         if (!(headerItems.containsKey(RequestField.Nonce.name()) || headerItems
                 .containsKey(RequestField.Nonce.name().toLowerCase(Locale.US)))) {
@@ -283,26 +283,26 @@ class ChallengeResponseBuilder {
         }
     }
 
-    private ChallengeRequest getChallengeRequest(final String redirectUri)
+    private ChallangeRequest getChallangeRequest(final String redirectUri)
             throws AuthenticationException {
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
             throw new AuthenticationServerProtocolException("redirectUri");
         }
 
-        ChallengeRequest challenge = new ChallengeRequest();
+        ChallangeRequest challange = new ChallangeRequest();
         HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUri);
-        validateChallengeRequest(parameters, true);
-        challenge.mNonce = parameters.get(RequestField.Nonce.name());
-        if (StringExtensions.IsNullOrBlank(challenge.mNonce)) {
-            challenge.mNonce = parameters.get(RequestField.Nonce.name().toLowerCase(Locale.US));
+        validateChallangeRequest(parameters, true);
+        challange.mNonce = parameters.get(RequestField.Nonce.name());
+        if (StringExtensions.IsNullOrBlank(challange.mNonce)) {
+            challange.mNonce = parameters.get(RequestField.Nonce.name().toLowerCase(Locale.US));
         }
         String authorities = parameters.get(RequestField.CertAuthorities.name());
         Logger.v(TAG, "Cert authorities:" + authorities);
-        challenge.mCertAuthorities = StringExtensions.getStringTokens(authorities,
-                AuthenticationConstants.Broker.CHALLENGE_REQUEST_CERT_AUTH_DELIMETER);
-        challenge.mVersion = parameters.get(RequestField.Version.name());
-        challenge.mSubmitUrl = parameters.get(RequestField.SubmitUrl.name());
-        challenge.mContext = parameters.get(RequestField.Context.name());
-        return challenge;
+        challange.mCertAuthorities = StringExtensions.getStringTokens(authorities,
+                AuthenticationConstants.Broker.CHALLANGE_REQUEST_CERT_AUTH_DELIMETER);
+        challange.mVersion = parameters.get(RequestField.Version.name());
+        challange.mSubmitUrl = parameters.get(RequestField.SubmitUrl.name());
+        challange.mContext = parameters.get(RequestField.Context.name());
+        return challange;
     }
 }

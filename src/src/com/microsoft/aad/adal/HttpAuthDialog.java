@@ -30,7 +30,7 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
 /**
- * Http auth dialog for ntlm challenge on webview.
+ * Http auth dialog for ntlm challange on webview.
  */
 class HttpAuthDialog {
 

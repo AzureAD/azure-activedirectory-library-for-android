@@ -25,7 +25,7 @@ import java.util.HashMap;
 import android.content.Intent;
 import android.text.TextUtils;
 
-import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 /**
  * Wrapper class to handle internals for request intent and response for custom
@@ -139,21 +139,21 @@ public class WebviewHelper {
             throws UnsupportedEncodingException, AuthenticationException {
         IJWSBuilder jwsBuilder = new JWSBuilder();
 
-        ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(jwsBuilder);
+        ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(jwsBuilder);
 
-        final ChallengeResponse challengeResponse = certHandler
-                .getChallengeResponseFromUri(challengeUrl);
+        final ChallangeResponse challangeResponse = certHandler
+                .getChallangeResponseFromUri(challengeUrl);
 
         final HashMap<String, String> headers = new HashMap<String, String>();
-        headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
-                challengeResponse.mAuthorizationHeaderValue);
+        headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
+                challangeResponse.mAuthorizationHeaderValue);
 
-        String loadUrl = challengeResponse.mSubmitUrl;
+        String loadUrl = challangeResponse.mSubmitUrl;
 
         HashMap<String, String> parameters = StringExtensions
-                .getUrlParameters(challengeResponse.mSubmitUrl);
+                .getUrlParameters(challangeResponse.mSubmitUrl);
 
-        Logger.v(TAG, "SubmitUrl:" + challengeResponse.mSubmitUrl);
+        Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
 
         if (!parameters.containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
             loadUrl = loadUrl + "?" + mOauth.getAuthorizationEndpointQueryParameters();
