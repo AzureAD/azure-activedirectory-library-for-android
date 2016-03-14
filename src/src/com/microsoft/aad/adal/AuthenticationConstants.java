@@ -270,20 +270,20 @@ public class AuthenticationConstants {
 
         public static final String CLIENT_TLS_NOT_SUPPORTED = " PKeyAuth/1.0";
 
-        public static final String CHALLENGE_REQUEST_HEADER = "WWW-Authenticate";
+        public static final String CHALLANGE_REQUEST_HEADER = "WWW-Authenticate";
 
-        public static final String CHALLENGE_RESPONSE_HEADER = "Authorization";
+        public static final String CHALLANGE_RESPONSE_HEADER = "Authorization";
 
-        public static final String CHALLENGE_RESPONSE_TYPE = "PKeyAuth";
+        public static final String CHALLANGE_RESPONSE_TYPE = "PKeyAuth";
 
-        public static final String CHALLENGE_RESPONSE_TOKEN = "AuthToken";
+        public static final String CHALLANGE_RESPONSE_TOKEN = "AuthToken";
 
-        public static final String CHALLENGE_RESPONSE_CONTEXT = "Context";
+        public static final String CHALLANGE_RESPONSE_CONTEXT = "Context";
 
         /**
          * Certificate authorities are passed with delimiter.
          */
-        public static final String CHALLENGE_REQUEST_CERT_AUTH_DELIMETER = ";";
+        public static final String CHALLANGE_REQUEST_CERT_AUTH_DELIMETER = ";";
 
         /**
          * Apk packagename that will install AD-Authenticator. It is used to
@@ -307,9 +307,9 @@ public class AuthenticationConstants {
 
         public static final String PKEYAUTH_REDIRECT = "urn:http-auth:PKeyAuth";
 
-        public static final String CHALLENGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
+        public static final String CHALLANGE_TLS_INCAPABLE = "x-ms-PKeyAuth";
 
-        public static final String CHALLENGE_TLS_INCAPABLE_VERSION = "1.0";
+        public static final String CHALLANGE_TLS_INCAPABLE_VERSION = "1.0";
 
         public static final String REDIRECT_PREFIX = "msauth";
 
