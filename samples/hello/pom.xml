@@ -14,7 +14,7 @@
   <packaging>apk</packaging>
   <name>Hello App for Demo</name>
   <properties>
-    <android.support.version>[21,)</android.support.version>
+    <android.support.version>[23,)</android.support.version>
   </properties>
   <dependencies>
     <dependency>
