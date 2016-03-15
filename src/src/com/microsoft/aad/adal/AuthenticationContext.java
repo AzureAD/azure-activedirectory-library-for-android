@@ -135,8 +135,7 @@ public class AuthenticationContext {
      * @throws NoSuchAlgorithmException Encryption Algorithm does not exist in
      *             the device. Please see the log record for details.
      */
-    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
-            throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
         // Fixes are required for SDK 16-18
         // The fixes need to be applied before any use of Java Cryptography
         // Architecture primitives. Default cache uses encryption
@@ -534,12 +533,20 @@ public class AuthenticationContext {
     }
 
     private IWindowComponent wrapActivity(final Activity activity) {
+        if (activity == null) {
+            throw new IllegalArgumentException("activity");
+        }
+
         return new IWindowComponent() {
             Activity refActivity = activity;
 
             @Override
             public void startActivityForResult(Intent intent, int requestCode) {
-                refActivity.startActivityForResult(intent, requestCode);
+                // if user closed an app or switched to another activity
+                // refActivity can die before this method got invoked
+                if(refActivity != null) {
+                    refActivity.startActivityForResult(intent, requestCode);
+                }
             }
         };
     }
@@ -547,7 +554,7 @@ public class AuthenticationContext {
     private String checkInputParameters(String resource, String clientId, String redirectUri,
             PromptBehavior behavior, AuthenticationCallback<AuthenticationResult> callback) {
         if (mContext == null) {
-            throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
+            throw new IllegalArgumentException("context", new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
         }
 
         if (StringExtensions.IsNullOrBlank(resource)) {
@@ -872,7 +879,7 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                } catch (IOException | AuthenticationServerProtocolException exc) {
+                                } catch (IOException | AuthenticationException exc) {
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo() + correlationInfo;
                                     Logger.e(TAG, msg,
@@ -1101,7 +1108,7 @@ public class AuthenticationContext {
 
     private Handler mHandler;
 
-    class CallbackHandler {
+    private static class CallbackHandler {
         private Handler mRefHandler;
 
         private AuthenticationCallback<AuthenticationResult> callback;
@@ -1120,8 +1127,6 @@ public class AuthenticationContext {
                         return;
                     }
                 });
-            } else {
-                throw e;
             }
         }
 
@@ -1162,8 +1167,6 @@ public class AuthenticationContext {
      * 
      * @param activity
      * @param request
-     * @param prompt
-     * @param callback
      * @return
      */
     private AuthenticationResult acquireTokenLocalCall(final CallbackHandler callbackHandle,
@@ -1299,12 +1302,8 @@ public class AuthenticationContext {
                 } catch (AuthenticationException ex) {
                     // pass back to caller for known exceptions such as failure
                     // to encrypt
-                    if (callbackHandle.callback != null) {
-                        callbackHandle.onError(ex);
-                        return null;
-                    } else {
-                        throw ex;
-                    }
+                    callbackHandle.onError(ex);
+                    return null;
                 }
             } else {
                 Logger.v(TAG, "User is not specified for background token request");
@@ -1313,9 +1312,7 @@ public class AuthenticationContext {
             if (result != null && result.getAccessToken() != null
                     && !result.getAccessToken().isEmpty()) {
                 Logger.v(TAG, "Token is returned from background call ");
-                if (callbackHandle.callback != null) {
-                    callbackHandle.onSuccess(result);
-                }
+                callbackHandle.onSuccess(result);
                 return result;
             }
 
@@ -1325,7 +1322,7 @@ public class AuthenticationContext {
             // record calling uid for the account. This happens for Prompt auto
             // or always behavior.
             Logger.v(TAG, "Token is not returned from backgroud call");
-            if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
+            if (!request.isSilent() && activity != null) {
 
                 // Only happens with callback since silent call does not show UI
                 Logger.v(TAG, "Launch activity for Authenticator");
@@ -1384,20 +1381,14 @@ public class AuthenticationContext {
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
         if (cachedItem != null && isUserMisMatch(request, cachedItem)) {
-            if (callbackHandle.callback != null) {
-                callbackHandle.onError(new AuthenticationException(
-                        ADALError.AUTH_FAILED_USER_MISMATCH));
-                return null;
-            } else {
-                throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH);
-            }
+            callbackHandle.onError(new AuthenticationException(
+                    ADALError.AUTH_FAILED_USER_MISMATCH));
+            return null;
         }
 
         if (!promptUser(request.getPrompt()) && isValidCache(cachedItem)) {
             Logger.v(TAG, "Token is returned from cache");
-            if (callbackHandle.callback != null) {
-                callbackHandle.onSuccess(cachedItem);
-            }
+            callbackHandle.onSuccess(cachedItem);
             return cachedItem;
         }
 
@@ -1427,8 +1418,7 @@ public class AuthenticationContext {
         if (refreshItem == null || authResult == null 
                 || (authResult != null && StringExtensions.IsNullOrBlank(authResult.getAccessToken()))) {
             Logger.v(TAG, "Refresh token is not available or refresh token request failed to return token.");
-            if (!request.isSilent() && callbackHandle.callback != null
-                    && (activity != null || useDialog)) {
+            if (!request.isSilent() && (activity != null || useDialog)) {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
                 final String errorInfo = authResult == null? "" : authResult.getErrorLogInfo();
@@ -1684,7 +1674,7 @@ public class AuthenticationContext {
     }
     
     private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
-            boolean afterPrompt) throws AuthenticationException {
+            boolean afterPrompt) {
         if (mTokenCacheStore != null) {
 
             // User can ask for token without login hint. Next call from same
@@ -1755,8 +1745,7 @@ public class AuthenticationContext {
     }
 
     private void setItemToCacheFromRefresh(final RefreshItem refreshItem,
-            final AuthenticationRequest request, AuthenticationResult result)
-            throws AuthenticationException {
+            final AuthenticationRequest request, AuthenticationResult result) {
         if (mTokenCacheStore != null) {
             // Use same key to store refreshed result. This key may belong to
             // normal token or MRRT token.
@@ -1771,7 +1760,7 @@ public class AuthenticationContext {
         }
     }
 
-    private void removeItemFromCache(final RefreshItem refreshItem) throws AuthenticationException {
+    private void removeItemFromCache(final RefreshItem refreshItem) {
         if (mTokenCacheStore != null) {
             Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey);
             mTokenCacheStore.removeItem(refreshItem.mKey);
@@ -1785,7 +1774,6 @@ public class AuthenticationContext {
      * refresh token if possible. if it fails, it calls acquire token after
      * removing refresh token from cache.
      * 
-     * @param callbackHandle
      * @param activity Activity to use in case refresh token does not succeed
      *            and prompt is not set to never.
      * @param request incoming request
@@ -1793,7 +1781,6 @@ public class AuthenticationContext {
      *            cache
      * @param useCache refresh request can be explicit without cache usage.
      *            Error message should return without trying prompt.
-     * @param externalCallback
      * @return
      */
     private AuthenticationResult getTokenWithRefreshToken(final IWindowComponent activity, final boolean useDialog,
@@ -1824,7 +1811,7 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Refresh token is not returned or empty");
                 result.setRefreshToken(refreshItem.mRefreshToken);
             }
-        } catch (IOException | AuthenticationServerProtocolException exc) {
+        } catch (IOException | AuthenticationException exc) {
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
@@ -1981,7 +1968,7 @@ public class AuthenticationContext {
     /**
      * set CorrelationId to requests.
      * 
-     * @param mRequestCorrelationId
+     * @param requestCorrelationId
      */
     public void setRequestCorrelationId(UUID requestCorrelationId) {
         this.mRequestCorrelationId = requestCorrelationId;
@@ -2103,7 +2090,7 @@ public class AuthenticationContext {
         PackageManager pm = mContext.getPackageManager();
         if (PackageManager.PERMISSION_GRANTED != pm.checkPermission("android.permission.INTERNET",
                 mContext.getPackageName())) {
-            throw new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING);
+            throw new IllegalStateException(new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING));
         }
     }
 
@@ -2133,7 +2120,7 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.14";
+        return "1.1.15";
     }
 
     /**
