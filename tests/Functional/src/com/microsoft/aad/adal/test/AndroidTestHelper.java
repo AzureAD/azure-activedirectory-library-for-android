@@ -26,13 +26,13 @@ import java.util.concurrent.TimeUnit;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationSettings;
 
-import junit.framework.Assert;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.test.InstrumentationTestCase;
 import android.util.Base64;
 import android.util.Log;
+import junit.framework.Assert;
 
 public class AndroidTestHelper extends InstrumentationTestCase {
 
@@ -51,8 +51,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         getInstrumentation().getTargetContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
-                .getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
@@ -66,13 +65,13 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.PACKAGE_NAME);
+                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME);
         // AuthenticationSettings.INSTANCE.setDeviceCertificateProxy();
         Log.d(TAG, "testSignature is set");
     }
 
     public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
-                                      final ThrowableRunnable testCode) {
+            final ThrowableRunnable testCode) {
         try {
             testCode.run();
             Assert.fail("This is expecting an exception, but it was not thrown.");
@@ -82,8 +81,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
             }
 
             if (hasMessage != null && !hasMessage.isEmpty()) {
-                assertTrue("Message has the text",
-                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
+                assertTrue("Message has the text", (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
             }
         }
     }
@@ -99,8 +97,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
             }
 
             if (hasMessage != null && !hasMessage.isEmpty()) {
-                assertTrue("Message has the text",
-                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
+                assertTrue("Message has the text", (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
             }
         }
     }
@@ -112,8 +109,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
      * @param testCode
      * @param runOnUI
      */
-    public void testAsyncNoExceptionUIOption(final CountDownLatch signal, final Runnable testCode,
-            boolean runOnUI) {
+    public void testAsyncNoExceptionUIOption(final CountDownLatch signal, final Runnable testCode, boolean runOnUI) {
 
         Log.d(getName(), "thread:" + android.os.Process.myTid());
 
@@ -139,8 +135,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
     }
 
-    public void testMultiThread(int activeThreads, final CountDownLatch signal,
-            final Runnable runnable) {
+    public void testMultiThread(int activeThreads, final CountDownLatch signal, final Runnable runnable) {
 
         Log.d(getName(), "thread:" + android.os.Process.myTid());
 
@@ -159,8 +154,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
     }
 
-    interface ThrowableRunnable
-    {
-        void run( ) throws Exception;
+    interface ThrowableRunnable {
+        void run() throws Exception;
     }
 }
