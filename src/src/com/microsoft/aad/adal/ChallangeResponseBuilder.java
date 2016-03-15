@@ -86,19 +86,19 @@ class ChallangeResponseBuilder {
      * @return Return Device challange response
      */
     public ChallangeResponse getChallangeResponseFromUri(final String redirectUri)
-            throws AuthenticationServerProtocolException {
+            throws AuthenticationServerProtocolException, AuthenticationException  {
         ChallangeRequest request = getChallangeRequest(redirectUri);
         return getDeviceCertResponse(request);
     }
 
     public ChallangeResponse getChallangeResponseFromHeader(final String challangeHeaderValue,
-            final String endpoint) throws UnsupportedEncodingException, AuthenticationServerProtocolException {
+            final String endpoint) throws UnsupportedEncodingException, AuthenticationServerProtocolException, AuthenticationException {
         ChallangeRequest request = getChallangeRequestFromHeader(challangeHeaderValue);
         request.mSubmitUrl = endpoint;
         return getDeviceCertResponse(request);
     }
 
-    private ChallangeResponse getDeviceCertResponse(ChallangeRequest request) {
+    private ChallangeResponse getDeviceCertResponse(ChallangeRequest request) throws AuthenticationException {
         ChallangeResponse response = getNoDeviceCertResponse(request);
         response.mSubmitUrl = request.mSubmitUrl;
 
@@ -144,7 +144,8 @@ class ChallangeResponseBuilder {
         return true;
     }
 
-    private IDeviceCertificate getWPJAPIInstance(Class<IDeviceCertificate> certClazz) {
+    private IDeviceCertificate getWPJAPIInstance(Class<IDeviceCertificate> certClazz) 
+    	throws AuthenticationException {
         IDeviceCertificate deviceCertProxy = null;
         Constructor<?> constructor;
         try {
@@ -179,7 +180,7 @@ class ChallangeResponseBuilder {
     }
 
     private ChallangeRequest getChallangeRequestFromHeader(final String headerValue)
-            throws UnsupportedEncodingException, AuthenticationServerProtocolException {
+            throws UnsupportedEncodingException, AuthenticationException {
         final String methodName = ":getChallangeRequestFromHeader";
         
         if (StringExtensions.IsNullOrBlank(headerValue)) {
@@ -259,7 +260,7 @@ class ChallangeResponseBuilder {
     }
 
     private void validateChallangeRequest(HashMap<String, String> headerItems,
-            boolean redirectFormat) {
+            boolean redirectFormat) throws AuthenticationException{
         if (!(headerItems.containsKey(RequestField.Nonce.name()) || headerItems
                 .containsKey(RequestField.Nonce.name().toLowerCase(Locale.US)))) {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, "Nonce");
@@ -282,7 +283,8 @@ class ChallangeResponseBuilder {
         }
     }
 
-    private ChallangeRequest getChallangeRequest(final String redirectUri) throws AuthenticationServerProtocolException {
+    private ChallangeRequest getChallangeRequest(final String redirectUri)
+            throws AuthenticationException {
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
             throw new AuthenticationServerProtocolException("redirectUri");
         }
