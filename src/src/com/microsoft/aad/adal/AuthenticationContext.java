@@ -2141,7 +2141,10 @@ public class AuthenticationContext {
             if (receivedWaitingRequestId == 0) {
                 Logger.v(TAG + methodName, "Received waiting request is 0, error will be thrown, cannot find correct "
                     + "callback to send back the result.");
-                throw new AuthenticationException(ADALError.AUTH_FAILED_NO_STATE, "Received waiting request id is 0.");
+                // Cannot throw AuthenticationException which no longer
+                // extending from RuntimeException. Will log the error
+                // and return back to caller.
+                return;
             }
           
             final AuthenticationRequestState waitingRequest = getWaitingRequest(receivedWaitingRequestId);
