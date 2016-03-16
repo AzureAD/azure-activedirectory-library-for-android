@@ -36,9 +36,15 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.UUID;
 
-import junit.framework.Assert;
-
 import org.mockito.Mockito;
+
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationConstants;
+import com.microsoft.aad.adal.AuthenticationException;
+import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UserInfo;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -61,14 +67,7 @@ import android.os.Handler;
 import android.test.AndroidTestCase;
 import android.util.Base64;
 import android.util.Log;
-
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.PromptBehavior;
-import com.microsoft.aad.adal.UserInfo;
+import junit.framework.Assert;
 
 public class BrokerProxyTests extends AndroidTestCase {
 
@@ -175,7 +174,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
-        AuthenticationSettings.INSTANCE.setSkipBroker(false);
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
         Account[] accts = getAccountList("valid", authenticatorType);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
                 signature, true, accts);
@@ -201,7 +200,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Account[] accts = getAccountList("valid", authenticatorType);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage,
                 signature, true, accts);
-        AuthenticationSettings.INSTANCE.setSkipBroker(true);
+        AuthenticationSettings.INSTANCE.setUseBroker(false);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
@@ -486,9 +485,9 @@ public class BrokerProxyTests extends AndroidTestCase {
     IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
     NoSuchMethodException, InstantiationException, OperationCanceledException,
     AuthenticatorException, IOException, NoSuchFieldException {
-    	Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
-    	String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-    	String acctName = "testAcct123";
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/authtest",
                 "resource", "client", "redirect", acctName.toLowerCase(Locale.US),
                 PromptBehavior.Auto, "", UUID.randomUUID());
@@ -544,9 +543,9 @@ public class BrokerProxyTests extends AndroidTestCase {
     IllegalArgumentException, InvocationTargetException, ClassNotFoundException,
     NoSuchMethodException, InstantiationException, OperationCanceledException,
     AuthenticatorException, IOException, NoSuchFieldException {
-    	Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
-    	String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-    	String acctName = "testAcct123";
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/authtest",
                 "resource", "client", "redirect", acctName.toLowerCase(Locale.US),
                 PromptBehavior.Auto, "", UUID.randomUUID());

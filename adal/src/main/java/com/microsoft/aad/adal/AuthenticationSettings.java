@@ -44,7 +44,12 @@ public enum AuthenticationSettings {
      */
     private String mSharedPrefPackageName;
 
-    private boolean mSkipBroker = false;
+    /**
+     * set to be false in default 
+     * if user want to use broker
+     * the mUseBroker should be set explicitly by calling {@link #setUseBroker()} 
+     */
+    private boolean mUseBroker = false;
 
     /**
      * Expiration buffer in seconds.
@@ -158,23 +163,38 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * Skip broker usage.
-     * 
-     * @return true if broker is not used.
+     * @deprecated As of release 1.1.14, replaced by {@link #getUseBroker()}
      */
-    public boolean getSkipBroker() {
-        return mSkipBroker;
+    @Deprecated public boolean getSkipBroker() {
+        return !mUseBroker;
     }
 
     /**
-     * Sets flag to skip broker.
-     * 
-     * @param skip True to not use broker
+     * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker()}
      */
-    public void setSkipBroker(boolean skip) {
-        mSkipBroker = skip;
+    @Deprecated public void setSkipBroker(boolean skip) {
+        mUseBroker = !skip;
     }
 
+    /**
+     * Get broker usage.
+     * 
+     * @return true if broker is used.
+     */
+    public boolean getUseBroker() {
+        return mUseBroker;
+    }
+
+    /**
+     * Set flag to use or skip broker.
+     * By default, the flag value is false and ADAL will not talk to broker.
+     * 
+     * @param useBroker True to use broker
+     */
+    public void setUseBroker(boolean useBroker) {
+        this.mUseBroker = useBroker;
+    }
+    
     /**
      * Sets package name to use {@link DefaultTokenCacheStore} with sharedUserId
      * apps.

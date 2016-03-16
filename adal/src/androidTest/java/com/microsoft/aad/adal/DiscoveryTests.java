@@ -173,8 +173,8 @@ public class DiscoveryTests extends AndroidTestHelper {
         callIsValidAuthority(discovery, endpointAdfs, responseAdfs, true);
 
         assertNotNull("response should not be null", responseAdfs);
-        assertNotNull("It should have exception", responseAdfs.exception.getCause().getMessage()
-                .equals(ADALError.DISCOVERY_NOT_SUPPORTED.getDescription()));
+        assertFalse("Instance should be invalid", responseFragment.result);
+        assertNull("It should not have exception", responseFragment.exception);
 
         final TestResponse responseInvalidPath = new TestResponse();
         final URL endpointInvalidPath = new URL("https://login.windows.net/common/test/test");

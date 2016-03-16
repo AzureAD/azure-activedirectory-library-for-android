@@ -25,35 +25,28 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.DigestException;
 import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
-import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Date;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -125,13 +118,13 @@ public class StorageHelper {
 
     private static final Object LOCK_OBJ = new Object();
 
-    private static String sBlobVersion;
+    private String mBlobVersion;
 
-    private static SecretKey sKey = null, sMacKey = null;
+    private SecretKey mKey = null, mMacKey = null;
 
     private static SecretKey sSecretKeyFromAndroidKeyStore = null;
 
-    public StorageHelper(Context ctx) throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public StorageHelper(Context ctx) {
         mContext = ctx;
         mRandom = new SecureRandom();
     }
@@ -142,13 +135,11 @@ public class StorageHelper {
      * 
      * @return
      * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
      */
-    final private void loadSecretKeyForAPI() throws NoSuchAlgorithmException,
-            InvalidKeySpecException {
+    final private void loadSecretKeyForAPI() throws NoSuchAlgorithmException {
         // Loading key only once for performance. If API is upgraded, it will
-        // restart the device anyway. It will load the correct key for new API.
-        if (sKey != null && sMacKey != null)
+        // restart the device anyway. It will load the correct key for new API. 
+        if (mKey != null && mMacKey != null)
             return;
 
         synchronized (LOCK_OBJ) {
@@ -160,40 +151,30 @@ public class StorageHelper {
                     // key for Encryption and HMac.
                     // If user specifies secret key, it will use the provided
                     // key.
-                    sKey = getSecretKeyFromAndroidKeyStore();
-                    sMacKey = getMacKey(sKey);
-                    sBlobVersion = VERSION_ANDROID_KEY_STORE;
+                    mKey = getSecretKeyFromAndroidKeyStore();
+                    mMacKey = getMacKey(mKey);
+                    mBlobVersion = VERSION_ANDROID_KEY_STORE;
                     return;
-                } catch (Exception e) {
+                } catch (IOException | GeneralSecurityException e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
                             ADALError.ANDROIDKEYSTORE_FAILED, e);
                 }
             }
 
             Logger.v(TAG, "Encryption will use secret key from Settings");
-            sKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
-            sMacKey = getMacKey(sKey);
-            sBlobVersion = VERSION_USER_DEFINED;
+            mKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
+            mMacKey = getMacKey(mKey);
+            mBlobVersion = VERSION_USER_DEFINED;
         }
     }
 
     /**
      * load key based on version for migration
      * 
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
-     * @throws NoSuchPaddingException
-     * @throws KeyStoreException
-     * @throws CertificateException
-     * @throws NoSuchProviderException
-     * @throws InvalidAlgorithmParameterException
-     * @throws UnrecoverableEntryException
+     * @throws GeneralSecurityException
      * @throws IOException
      */
-    private SecretKey getKeyForVersion(String keyVersion) throws NoSuchAlgorithmException,
-            InvalidKeySpecException, NoSuchPaddingException, KeyStoreException,
-            CertificateException, NoSuchProviderException, InvalidAlgorithmParameterException,
-            UnrecoverableEntryException, IOException {
+    private SecretKey getKeyForVersion(String keyVersion) throws GeneralSecurityException, IOException {
 
         if (keyVersion.equals(VERSION_USER_DEFINED)) {
             return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
@@ -207,9 +188,10 @@ public class StorageHelper {
                     // key
                     // used for Encryption and HMac
                     return getSecretKeyFromAndroidKeyStore();
-                } catch (Exception e) {
+                } catch (IOException | GeneralSecurityException e) {
                     Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
                             ADALError.ANDROIDKEYSTORE_FAILED, e);
+                    throw e;
                 }
             } else {
                 throw new IllegalArgumentException(
@@ -235,7 +217,6 @@ public class StorageHelper {
      * @param key
      * @return
      * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
      */
     private SecretKey getMacKey(SecretKey key) throws NoSuchAlgorithmException {
         // Some keys may not produce byte[] with getEncoded
@@ -247,80 +228,7 @@ public class StorageHelper {
         return key;
     }
 
-    /**
-     * encrypt text with current key based on API level
-     * 
-     * @param clearText
-     * @return
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
-     * @throws InvalidKeyException
-     * @throws InvalidAlgorithmParameterException
-     * @throws IllegalBlockSizeException
-     * @throws BadPaddingException
-     * @throws IOException
-     * @throws NoSuchPaddingException
-     */
-    public String encrypt(String clearText) throws NoSuchAlgorithmException,
-            InvalidKeySpecException, InvalidKeyException, InvalidAlgorithmParameterException,
-            IllegalBlockSizeException, BadPaddingException, IOException, NoSuchPaddingException {
-
-        Logger.v(TAG, "Starting encryption");
-
-        if (StringExtensions.IsNullOrBlank(clearText)) {
-            throw new IllegalArgumentException("Input is empty or null");
-        }
-
-        // load key for encryption if not loaded
-        loadSecretKeyForAPI();
-        Logger.v(TAG, "Encrypt version:" + sBlobVersion);
-        final byte[] blobVersion = sBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
-        final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
-
-        // IV: Initialization vector that is needed to start CBC
-        byte[] iv = new byte[DATA_KEY_LENGTH];
-        mRandom.nextBytes(iv);
-        IvParameterSpec ivSpec = new IvParameterSpec(iv);
-
-        // Set to encrypt mode
-        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
-        Mac mac = Mac.getInstance(MAC_ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, sKey, ivSpec);
-
-        byte[] encrypted = cipher.doFinal(bytes);
-
-        // Mac output to sign encryptedData+IV. Keyversion is not included
-        // in the digest. It defines what to use for Mac Key.
-        mac.init(sMacKey);
-        mac.update(blobVersion);
-        mac.update(encrypted);
-        mac.update(iv);
-        byte[] macDigest = mac.doFinal();
-
-        // Init array to store blobVersion, encrypted data, iv, macdigest
-        byte[] blobVerAndEncryptedDataAndIVAndMacDigest = new byte[blobVersion.length
-                + encrypted.length + iv.length + macDigest.length];
-        System.arraycopy(blobVersion, 0, blobVerAndEncryptedDataAndIVAndMacDigest, 0,
-                blobVersion.length);
-        System.arraycopy(encrypted, 0, blobVerAndEncryptedDataAndIVAndMacDigest,
-                blobVersion.length, encrypted.length);
-        System.arraycopy(iv, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
-                + encrypted.length, iv.length);
-        System.arraycopy(macDigest, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
-                + encrypted.length + iv.length, macDigest.length);
-
-        String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
-                Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
-        Logger.v(TAG, "Finished encryption");
-
-        return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
-    }
-
-    public String decrypt(String value) throws NoSuchAlgorithmException, InvalidKeySpecException,
-            NoSuchPaddingException, KeyStoreException, CertificateException,
-            NoSuchProviderException, InvalidAlgorithmParameterException,
-            UnrecoverableEntryException, IOException, InvalidKeyException, DigestException,
-            IllegalBlockSizeException, BadPaddingException {
+    public String decrypt(String value) throws GeneralSecurityException, IOException {
 
         Logger.v(TAG, "Starting decryption");
 
@@ -390,6 +298,68 @@ public class StorageHelper {
         return (char)('a' + ENCODE_VERSION.length());
     }
 
+    /**
+     * encrypt text with current key based on API level
+     *
+     * @param clearText
+     * @return
+     * @throws GeneralSecurityException
+     * @throws UnsupportedEncodingException
+     */
+    public String encrypt(String clearText)
+            throws GeneralSecurityException, UnsupportedEncodingException {
+
+        Logger.v(TAG, "Starting encryption");
+
+        if (StringExtensions.IsNullOrBlank(clearText)) {
+            throw new IllegalArgumentException("Input is empty or null");
+        }
+
+        // load key for encryption if not loaded
+        loadSecretKeyForAPI();
+        Logger.v(TAG, "Encrypt version:" + mBlobVersion);
+        final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
+        final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
+
+        // IV: Initialization vector that is needed to start CBC
+        byte[] iv = new byte[DATA_KEY_LENGTH];
+        mRandom.nextBytes(iv);
+        IvParameterSpec ivSpec = new IvParameterSpec(iv);
+
+        // Set to encrypt mode
+        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        Mac mac = Mac.getInstance(MAC_ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, mKey, ivSpec);
+
+        byte[] encrypted = cipher.doFinal(bytes);
+
+        // Mac output to sign encryptedData+IV. Keyversion is not included
+        // in the digest. It defines what to use for Mac Key.
+        mac.init(mMacKey);
+        mac.update(blobVersion);
+        mac.update(encrypted);
+        mac.update(iv);
+        byte[] macDigest = mac.doFinal();
+
+        // Init array to store blobVersion, encrypted data, iv, macdigest
+        byte[] blobVerAndEncryptedDataAndIVAndMacDigest = new byte[blobVersion.length
+                + encrypted.length + iv.length + macDigest.length];
+        System.arraycopy(blobVersion, 0, blobVerAndEncryptedDataAndIVAndMacDigest, 0,
+                blobVersion.length);
+        System.arraycopy(encrypted, 0, blobVerAndEncryptedDataAndIVAndMacDigest,
+                blobVersion.length, encrypted.length);
+        System.arraycopy(iv, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
+                + encrypted.length, iv.length);
+        System.arraycopy(macDigest, 0, blobVerAndEncryptedDataAndIVAndMacDigest, blobVersion.length
+                + encrypted.length + iv.length, macDigest.length);
+
+        String encryptedText = new String(Base64.encode(blobVerAndEncryptedDataAndIVAndMacDigest,
+                Base64.NO_WRAP), AuthenticationConstants.ENCODING_UTF8);
+        Logger.v(TAG, "Finished encryption");
+
+        return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
+    }
+
     private void assertMac(byte[] digest, int start, int end, byte[] calculated)
             throws DigestException {
         if (calculated.length != (end - start)) {
@@ -415,8 +385,7 @@ public class StorageHelper {
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      */
-    final private SecretKey generateSecretKey() throws NoSuchAlgorithmException,
-            InvalidKeySpecException {
+    final private SecretKey generateSecretKey() throws NoSuchAlgorithmException {
         KeyGenerator keygen = KeyGenerator.getInstance(KEYSPEC_ALGORITHM);
         keygen.init(KEY_SIZE, mRandom);
         return keygen.generateKey();
@@ -466,15 +435,16 @@ public class StorageHelper {
             final byte[] encryptedKey = readKeyData(keyFile);
             sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
             Logger.v(TAG, "Finished reading SecretKey");
-        } catch (Exception ex) {
+        } catch (GeneralSecurityException | IOException ex) {
             // Reset KeyPair info so that new request will generate correct KeyPairs.
             // All tokens with previous SecretKey are not possible to decrypt.
-            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED);
+            Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED, ex);
             mKeyPair = null;
             sSecretKeyFromAndroidKeyStore = null;
             deleteKeyFile();
             resetKeyPairFromAndroidKeyStore();
             Logger.v(TAG, "Removed previous key pair info.");
+            throw ex;
         }
         return sSecretKeyFromAndroidKeyStore;
     }
@@ -493,18 +463,11 @@ public class StorageHelper {
      * Get key pair from AndroidKeyStore.
      * 
      * @return
-     * @throws KeyStoreException
+     * @throws GeneralSecurityException
      * @throws IOException
-     * @throws CertificateException
-     * @throws NoSuchAlgorithmException
-     * @throws NoSuchProviderException
-     * @throws InvalidAlgorithmParameterException
-     * @throws UnrecoverableEntryException
      */
     @TargetApi(18)
-    private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws KeyStoreException,
-            NoSuchAlgorithmException, CertificateException, IOException, NoSuchProviderException,
-            InvalidAlgorithmParameterException, UnrecoverableEntryException {
+    private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws GeneralSecurityException, IOException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
@@ -537,6 +500,7 @@ public class StorageHelper {
     
     @TargetApi(18)
     private Object getKeyPairGeneratorSpec(X500Principal subj, Date start, Date end) {
+        // TODO: use real Spec.Builder instead of reflective methods
         Class<?> clazz;
         try {
             clazz = Class.forName("android.security.KeyPairGeneratorSpec$Builder");
@@ -571,6 +535,9 @@ public class StorageHelper {
         } catch (InvocationTargetException e) {
             Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder's method invoke failed",
                     "", ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
+            if (e.getCause() instanceof RuntimeException) {
+                throw (RuntimeException) e.getCause();
+            }
         } catch (NoSuchMethodException e) {
             Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder is not found", "",
                     ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
