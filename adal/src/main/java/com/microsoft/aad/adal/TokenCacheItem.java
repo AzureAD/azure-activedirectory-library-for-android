@@ -57,6 +57,8 @@ public class TokenCacheItem implements Serializable {
     private boolean mIsMultiResourceRefreshToken;
 
     private String mTenantId;
+    
+    private String mFamilyClientId;
 
     /**
      * Construct default cache item.
@@ -89,6 +91,8 @@ public class TokenCacheItem implements Serializable {
                 // Resource Refresh Token
                 mAccessToken = result.getAccessToken();
             }
+            
+            mFamilyClientId = result.getFamilyClientId();
         }
     }
 
@@ -170,6 +174,14 @@ public class TokenCacheItem implements Serializable {
 
     public void setRawIdToken(String rawIdToken) {
         this.mRawIdToken = rawIdToken;
+    }
+    
+    public final String getFamilyClientId() {
+        return mFamilyClientId;
+    }
+    
+    public final void setFamilyClientId(final String familyClientId) {
+        this.mFamilyClientId = familyClientId;
     }
 
     /**

@@ -42,5 +42,5 @@ public interface IJWSBuilder {
      * @return Signed JWT
      */
     public String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
-            RSAPublicKey pubKey, X509Certificate x509Certificate);
+            RSAPublicKey pubKey, X509Certificate x509Certificate) throws AuthenticationException;
 }

@@ -25,7 +25,7 @@ import java.util.HashMap;
 import android.content.Intent;
 import android.text.TextUtils;
 
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
 /**
  * Wrapper class to handle internals for request intent and response for custom
@@ -136,24 +136,24 @@ public class WebviewHelper {
     }
 
     public PreKeyAuthInfo getPreKeyAuthInfo(String challengeUrl)
-            throws UnsupportedEncodingException {
+            throws UnsupportedEncodingException, AuthenticationException {
         IJWSBuilder jwsBuilder = new JWSBuilder();
 
-        ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(jwsBuilder);
+        ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(jwsBuilder);
 
-        final ChallangeResponse challangeResponse = certHandler
-                .getChallangeResponseFromUri(challengeUrl);
+        final ChallengeResponse challengeResponse = certHandler
+                .getChallengeResponseFromUri(challengeUrl);
 
         final HashMap<String, String> headers = new HashMap<String, String>();
-        headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
-                challangeResponse.mAuthorizationHeaderValue);
+        headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
+                challengeResponse.mAuthorizationHeaderValue);
 
-        String loadUrl = challangeResponse.mSubmitUrl;
+        String loadUrl = challengeResponse.mSubmitUrl;
 
         HashMap<String, String> parameters = StringExtensions
-                .getUrlParameters(challangeResponse.mSubmitUrl);
+                .getUrlParameters(challengeResponse.mSubmitUrl);
 
-        Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
+        Logger.v(TAG, "SubmitUrl:" + challengeResponse.mSubmitUrl);
 
         if (!parameters.containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
             loadUrl = loadUrl + "?" + mOauth.getAuthorizationEndpointQueryParameters();

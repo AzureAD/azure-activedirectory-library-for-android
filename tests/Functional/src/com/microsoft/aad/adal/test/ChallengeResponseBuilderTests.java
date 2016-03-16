@@ -16,7 +16,7 @@
 // See the Apache License, Version 2.0 for the specific language
 // governing permissions and limitations under the License.
 
-package com.microsoft.aad.adal;
+package com.microsoft.aad.adal.test;
 
 import static org.mockito.Mockito.*;
 
@@ -39,18 +39,18 @@ import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IJWSBuilder;
 
-public class ChallangeResponseBuilderTests extends AndroidTestHelper {
+public class ChallengeResponseBuilderTests extends AndroidTestHelper {
 
     static final String TAG = "ClientCertHandlerTests";
 
-    private static final String CERT_REDIRECT = AuthenticationConstants.Broker.CLIENT_TLS_REDIRECT;
+    private static final String CERT_REDIRECT = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT;
 
-    private static final String CERT_AUTH_TYPE = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE;
+    private static final String CERT_AUTH_TYPE = AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE;
 
-    public void testGetChallangeResponseFromHeader_Positive() throws ClassNotFoundException,
+    public void testGetChallengeResponseFromHeader_Positive() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, AuthenticationException {
         KeyPair keyPair = getKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
@@ -69,9 +69,9 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, mockCert))
                 .thenReturn("signedJwtHere");
         Object handler = getInstance(mockJwsBuilder);
-        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromHeader",
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromHeader",
                 String.class, String.class);
-        String redirectURI = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE + " Nonce=\""
+        String redirectURI = AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE + " Nonce=\""
                 + nonce + "\",CertThumbprint=\"ABC\",Version=\"1.0\",Context=\"" + context + "\"";
 
         // act
@@ -81,16 +81,16 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         String authHeaderValue = (String)ReflectionUtils.getFieldValue(response,
                 "mAuthorizationHeaderValue");
         assertTrue(authHeaderValue.contains(String.format("%s AuthToken=\"%s\",Context=\"%s\"",
-                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, "signedJwtHere", context)));
+                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, "signedJwtHere", context)));
     }
     
     /**
      * Test for verifying cert authorities could be used to pick up right certificate. 
      */
-    public void testGetChallangeResponseFromHeader_CertAuthorityPresent() throws ClassNotFoundException,
+    public void testGetChallengeResponseFromHeader_CertAuthorityPresent() throws ClassNotFoundException,
     InstantiationException, IllegalAccessException, IllegalArgumentException,
     InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
-    NoSuchAlgorithmException {
+    NoSuchAlgorithmException, AuthenticationException {
         KeyPair keyPair = getKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
@@ -107,9 +107,9 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, mockCert))
                 .thenReturn("signedJwtHere");
         Object handler = getInstance(mockJwsBuilder);
-        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromHeader",
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromHeader",
                 String.class, String.class);
-        String authorizationHeader = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE + " Nonce=\""
+        String authorizationHeader = AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE + " Nonce=\""
                 + nonce + "\",CertAuthorities=\"ABC\",Version=\"1.0\",Context=\"" + context + "\"";
 
         Object response = m.invoke(handler, authorizationHeader, submitUrl);
@@ -117,43 +117,101 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         String authHeaderValue = (String)ReflectionUtils.getFieldValue(response,
                 "mAuthorizationHeaderValue");
         assertTrue(authHeaderValue.contains(String.format("%s AuthToken=\"%s\",Context=\"%s\"",
-                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, "signedJwtHere", context)));
+                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, "signedJwtHere", context)));
     }
     
     /**
-     * Test for verifying correct error thrown out when challenge header doesn't contain both thumbprint and cert authorities.
+     * Verify no error thrown out if device is not workplace joined even neither cert thumbprint nor cert authority is returned from 
+     * pkeyauth challenge. 
      */
-    public void testGetChallangeResponseFromHeader_BothThumbprintCertAuthorityNotPresent() throws ClassNotFoundException,
-		InstantiationException, IllegalAccessException, IllegalArgumentException, 
-		InvocationTargetException, NoSuchMethodException, NoSuchFieldException, 
-		NoSuchAlgorithmException 
+    public void testGetChallengeFromHeader_NotWorkPlaceJoined_NoCertThumbprint_NoCertAuthority() throws ClassNotFoundException,
+            InstantiationException, IllegalAccessException, IllegalArgumentException,
+            InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
+            NoSuchAlgorithmException 
     {
-    	String nonce = "123123-123213-123";
-    	String context = "ABcdeded";
+        final String submitUrl = "http://fs.contoso.com/adfs/services/trust";
+        final String nonce = "123123-123213-123";
+        final String context = "ABcdeded";
+        
+        Object handler = getInstance(null);
+        Field f = AuthenticationSettings.INSTANCE.getClass().getDeclaredField(
+                "mClazzDeviceCertProxy");
+        f.setAccessible(true);
+        f.set(AuthenticationSettings.INSTANCE, null);
+        
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromHeader", String.class, String.class);
+        
+        String authorizationHeader =  AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE + " Nonce=\""
+                + nonce + "\",Version=\"1.0\",Context=\"" + context + "\"";
+        
+        Object response = null;
+        try
+        {
+             response = m.invoke(handler, authorizationHeader, submitUrl);
+        }
+        catch (final Exception exception)
+        {
+            fail("No exception should be thrown ." + exception.getCause().getMessage());
+        }
+        
+        assertNotNull(response);
+
+        final String authHeaderValue = (String)ReflectionUtils.getFieldValue(response,
+                "mAuthorizationHeaderValue");
+        assertTrue(authHeaderValue.contains(String.format("%s Context=\"%s\"",
+                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, context)));
+        
+    }
+    /**
+     * Test for verifying correct error thrown out when challenge header doesn't contain both thumbprint and cert authorities 
+     * if device is already workplace joined.
+     */
+    public void testGetChallengeResponseFromHeader_BothThumbprintCertAuthorityNotPresent() throws ClassNotFoundException,
+        InstantiationException, IllegalAccessException, IllegalArgumentException, 
+        InvocationTargetException, NoSuchMethodException, NoSuchFieldException, 
+        NoSuchAlgorithmException 
+    {
+        final KeyPair keyPair = getKeyPair();
+        final RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
+        final RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
+
+        X509Certificate mockCert = mock(X509Certificate.class);
+        MockDeviceCertProxy.reset();
+        MockDeviceCertProxy.sValidIssuer = true;
+        MockDeviceCertProxy.sPrivateKey = privateKey;
+        MockDeviceCertProxy.sPublicKey = publicKey;
+        MockDeviceCertProxy.sCertificate = mockCert;
+        
+        final String nonce = "123123-123213-123";
+        final String context = "ABcdeded";
     
-    	Object handler = getInstance(null);
-    	Method m = ReflectionUtils.getTestMethod(handler, "getChallangeRequestFromHeader", String.class);
-	
-    	String authorizationHeader = CERT_AUTH_TYPE + " Nonce=\""
+        Object handler = getInstance(null);
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeRequestFromHeader", String.class);
+        
+        final String authorizationHeader = CERT_AUTH_TYPE + " Nonce=\""
             + nonce + "\",Version=\"1.0\",Context=\"" + context + "\"";
 
-    	try {
-    		m.invoke(handler, authorizationHeader);
-    		Assert.fail("expected exception");
-    	} catch (Exception ex) {
-    		assertEquals("Error code check", ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, 
-				((AuthenticationException)ex.getCause()).getCode());
-    		assertEquals("Error mesage check", "Both certThumbprint and certauthorities are not present", 
-				((AuthenticationException)ex.getCause()).getMessage());
-    	}   
+        Object response = null;
+        try 
+        {
+            response = m.invoke(handler, authorizationHeader);
+            Assert.fail("expected exception");
+        } 
+        catch (Exception ex) 
+        {
+            assertEquals("Error code check", ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, 
+                    ((AuthenticationException)ex.getCause()).getCode());
+            assertEquals("Error mesage check", "Both certThumbprint and certauthorities are not present", 
+                    ((AuthenticationException)ex.getCause()).getMessage());
+        }
     }
 
-    public void testGetChallangeResponseFromHeader_Negative() throws ClassNotFoundException,
+    public void testGetChallengeResponseFromHeader_Negative() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
             NoSuchAlgorithmException {
         Object handler = getInstance(null);
-        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeRequestFromHeader",
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeRequestFromHeader",
                 String.class);
         String redirectURI = CERT_AUTH_TYPE + " Nonce = a =b, Pair = c =invalidFormat";
 
@@ -167,14 +225,14 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         }
     }
 
-    public void testGetChallangeResponse_InvalidIssuer() throws ClassNotFoundException,
+    public void testGetChallengeResponse_InvalidIssuer() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
         Object mockJwsBuilder = mock(IJWSBuilder.class);
         Object handler = getInstance(mockJwsBuilder);
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.sValidIssuer = false;
-        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromUri",
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromUri",
                 String.class);
         String submitUrl = "http://fs.contoso.com/adfs/services/trust";
         String nonce = "123123-123213-123";
@@ -184,10 +242,10 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
 
         Object response = m.invoke(handler, redirectURI);
 
-        verifyChallangeResponse(response, null, context, submitUrl);
+        verifyChallengeResponse(response, null, context, submitUrl);
     }
 
-    public void testGetChallangeResponse_NoDeviceCertProxy() throws ClassNotFoundException,
+    public void testGetChallengeResponse_NoDeviceCertProxy() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
         Object mockJwsBuilder = mock(IJWSBuilder.class);
@@ -196,7 +254,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
                 "mClazzDeviceCertProxy");
         f.setAccessible(true);
         f.set(AuthenticationSettings.INSTANCE, null);
-        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromUri",
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromUri",
                 String.class);
 
         Object response = m.invoke(handler, CERT_REDIRECT
@@ -207,17 +265,17 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
                 "mAuthorizationHeaderValue");
 
         assertTrue(authHeaderValue.contains(String.format("%s Context=\"%s\",Version=\"1.0\"",
-                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE, "1")));
+                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, "1")));
     }
 
-    public void testGetChallangeResponse_InvalidRedirect() throws ClassNotFoundException,
+    public void testGetChallengeResponse_InvalidRedirect() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
         Object mockJwsBuilder = mock(IJWSBuilder.class);
         Object handler = getInstance(mockJwsBuilder);
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.sValidIssuer = false;
-        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromUri",
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromUri",
                 String.class);
 
         try {
@@ -268,14 +326,14 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         }
     }
 
-    public void testGetChallangeResponse_ValidIssuer_NullKey() throws ClassNotFoundException,
+    public void testGetChallengeResponse_ValidIssuer_NullKey() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
         Object mockJwsBuilder = mock(IJWSBuilder.class);
         Object handler = getInstance(mockJwsBuilder);
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.sValidIssuer = true;
-        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromUri",
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromUri",
                 String.class);
         String submitUrl = "http://fs.contoso.com/adfs/services/trust";
         String nonce = "123123-123213-123";
@@ -291,10 +349,10 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         }
     }
 
-    public void testGetChallangeResponse_Positive() throws ClassNotFoundException,
+    public void testGetChallengeResponse_Positive() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, AuthenticationException {
         KeyPair keyPair = getKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey)keyPair.getPrivate();
@@ -311,14 +369,14 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, mockCert))
                 .thenReturn("signedJwtHere");
         Object handler = getInstance(mockJwsBuilder);
-        Method m = ReflectionUtils.getTestMethod(handler, "getChallangeResponseFromUri",
+        Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromUri",
                 String.class);
         String redirectURI = CERT_REDIRECT + "?Nonce=" + nonce
                 + "&CertAuthorities=ABC&Version=1.0&SubmitUrl=" + submitUrl + "&Context=" + context;
 
         Object response = m.invoke(handler, redirectURI);
 
-        verifyChallangeResponse(response, "signedJwtHere", context, submitUrl);
+        verifyChallengeResponse(response, "signedJwtHere", context, submitUrl);
     }
 
     private KeyPair getKeyPair() throws NoSuchAlgorithmException {
@@ -328,7 +386,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
         return keyPair;
     }
 
-    private void verifyChallangeResponse(Object response, String auth, String context, String url)
+    private void verifyChallengeResponse(Object response, String auth, String context, String url)
             throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         String submitUrl = (String)ReflectionUtils.getFieldValue(response, "mSubmitUrl");
         String authHeaderValue = (String)ReflectionUtils.getFieldValue(response,
@@ -344,7 +402,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
     }
 
     /**
-     * Gets instance of ChallangeResponseHandler and sets deviceCertificateProxy
+     * Gets instance of ChallengeResponseHandler and sets deviceCertificateProxy
      * class to load
      * 
      * @param mockJwsBuilder Mock JWS builder with predefined behavior
@@ -361,7 +419,7 @@ public class ChallangeResponseBuilderTests extends AndroidTestHelper {
             InvocationTargetException, NoSuchMethodException {
         // mock JWSBuilder and pass here
         AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
-        Class clazz = Class.forName("com.microsoft.aad.adal.ChallangeResponseBuilder");
+        Class clazz = Class.forName("com.microsoft.aad.adal.ChallengeResponseBuilder");
         Constructor<?> constructorParams = clazz.getDeclaredConstructor(Class
                 .forName("com.microsoft.aad.adal.IJWSBuilder"));
         constructorParams.setAccessible(true);

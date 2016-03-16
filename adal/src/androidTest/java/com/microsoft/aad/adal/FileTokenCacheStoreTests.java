@@ -21,6 +21,7 @@ package com.microsoft.aad.adal;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
 import android.content.Context;
@@ -197,6 +198,24 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
         TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
         assertNull("Token cache item is expected to be null", item);
+    }
+    
+    public void testGetAll() {
+        String file = FILE_DEFAULT_NAME + "testGetItem";
+        setupCache(file);
+        ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
+
+        final Iterator<TokenCacheItem> allItems = store.getAll();
+        
+        assertTrue(allItems.hasNext());
+        final TokenCacheItem tokenCacheItem1 = allItems.next();
+        assertNotNull(tokenCacheItem1);
+        
+        assertTrue(allItems.hasNext());
+        final TokenCacheItem tokenCacheItem2 = allItems.next();
+        assertNotNull(tokenCacheItem2);
+        
+        assertFalse(allItems.hasNext());
     }
 
     /**

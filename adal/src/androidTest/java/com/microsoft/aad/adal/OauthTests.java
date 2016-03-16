@@ -47,6 +47,7 @@ import android.annotation.SuppressLint;
 import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
+import android.util.Log;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationConstants;
@@ -460,7 +461,7 @@ public class OauthTests extends InstrumentationTestCase {
     public void testRefreshTokenWebResponse_DeviceChallenge_Positive()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException,
-            NoSuchAlgorithmException, MalformedURLException {
+            NoSuchAlgorithmException, MalformedURLException, AuthenticationException {
         IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         KeyPair keyPair = getKeyPair();
         RSAPublicKey publicKey = (RSAPublicKey)keyPair.getPublic();
@@ -479,20 +480,20 @@ public class OauthTests extends InstrumentationTestCase {
         when(
                 mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
                         eq(publicKey), eq(mockCert))).thenReturn("signedJwtHere");
-        String challangeHeaderValue = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE
+        String challengeHeaderValue = AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE
                 + " Nonce=\"" + nonce + "\",  Version=\"1.0\", CertThumbprint=\"" + thumbPrint
                 + "\",  Context=\"" + context + "\"";
-        String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallange\",\"scope\":\"*\"}";
+        String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallenge\",\"scope\":\"*\"}";
         HashMap<String, List<String>> headers = getHeader(
-                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER, challangeHeaderValue);
-        HttpWebResponse responeChallange = new HttpWebResponse(401, null, headers);
+                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, challengeHeaderValue);
+        HttpWebResponse responeChallenge = new HttpWebResponse(401, null, headers);
         HttpWebResponse responseValid = new HttpWebResponse(200,
                 tokenPositiveResponse.getBytes(Charset.defaultCharset()), null);
         // first call returns 401 and second call returns token
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
                         any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange)
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallenge)
                 .thenReturn(responseValid);
 
         // send request
@@ -503,7 +504,7 @@ public class OauthTests extends InstrumentationTestCase {
         assertNull("callback doesnot have error", testResult.mException);
         assertNotNull("Result is not null", testResult.mResult);
         assertEquals("Same access token", "accessTokenHere", testResult.mResult.getAccessToken());
-        assertEquals("Same refresh token", "refreshWithDeviceChallange",
+        assertEquals("Same refresh token", "refreshWithDeviceChallenge",
                 testResult.mResult.getRefreshToken());
     }
 
@@ -515,12 +516,12 @@ public class OauthTests extends InstrumentationTestCase {
             NoSuchAlgorithmException, MalformedURLException {
         IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         HashMap<String, List<String>> headers = getHeader(
-                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER, " ");
-        HttpWebResponse responeChallange = new HttpWebResponse(401, null, headers);
+                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");
+        HttpWebResponse responeChallenge = new HttpWebResponse(401, null, headers);
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
                         any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange);
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallenge);
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -528,7 +529,7 @@ public class OauthTests extends InstrumentationTestCase {
 
         // Verify that callback can receive this error
         assertNotNull("Callback has error", testResult.mException);
-        assertEquals("Check error message", "Challange header is empty",
+        assertEquals("Check error message", "Challenge header is empty",
                 ((AuthenticationException)testResult.mException.getCause()).getMessage());
     }
 
@@ -597,7 +598,6 @@ public class OauthTests extends InstrumentationTestCase {
 
         // send call with mocks
         m.invoke(oauth, mockResponse);
-
         // verify same token
         assertTrue("Log response has message",
                 logResponse2.errorCode.equals(ADALError.CORRELATION_ID_FORMAT));

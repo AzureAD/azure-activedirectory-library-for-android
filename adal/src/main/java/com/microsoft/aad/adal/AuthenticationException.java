@@ -23,7 +23,7 @@ import android.content.Context;
 /**
  * ADAL exception.
  */
-public class AuthenticationException extends RuntimeException {
+public class AuthenticationException extends Exception {
     static final long serialVersionUID = 1;
 
     protected ADALError mCode;
