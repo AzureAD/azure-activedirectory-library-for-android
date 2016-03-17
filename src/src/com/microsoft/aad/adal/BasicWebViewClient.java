@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
 import android.content.Context;
 import android.content.Intent;
@@ -157,26 +157,26 @@ abstract class BasicWebViewClient extends WebViewClient {
             Logger.v(TAG, "Webview detected request for pkeyauth challenge.");
             view.stopLoading();
             setPKeyAuthStatus(true);
-            final String challangeUrl = url;
+            final String challengeUrl = url;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                        ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                 new JWSBuilder());
-                        final ChallangeResponse challangeResponse = certHandler
-                                .getChallangeResponseFromUri(challangeUrl);
+                        final ChallengeResponse challengeResponse = certHandler
+                                .getChallengeResponseFromUri(challengeUrl);
                         final HashMap<String, String> headers = new HashMap<String, String>();
-                        headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
-                                challangeResponse.mAuthorizationHeaderValue);
+                        headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
+                                challengeResponse.mAuthorizationHeaderValue);
                         postRunnable(new Runnable() {
 
                             @Override
                             public void run() {
-                                String loadUrl = challangeResponse.mSubmitUrl;
+                                String loadUrl = challengeResponse.mSubmitUrl;
                                 HashMap<String, String> parameters = StringExtensions
-                                        .getUrlParameters(challangeResponse.mSubmitUrl);
-                                Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
+                                        .getUrlParameters(challengeResponse.mSubmitUrl);
+                                Logger.v(TAG, "SubmitUrl:" + challengeResponse.mSubmitUrl);
                                 if (!parameters
                                         .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
                                     loadUrl = loadUrl + "?" + mQueryParam;

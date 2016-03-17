@@ -1,4 +1,4 @@
-﻿// Copyright © Microsoft Open Technologies, Inc.
+// Copyright © Microsoft Open Technologies, Inc.
 //
 // All Rights Reserved
 //
@@ -256,7 +256,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         if (Build.VERSION.SDK_INT <= 15) {
             Log.v(TAG,
-                    "Server is returning 401 status code without challange. HttpUrlConnection does not return error stream for that in SDK 15. Without error stream, this test is useless.");
+                    "Server is returning 401 status code without challenge. HttpUrlConnection does not return error stream for that in SDK 15. Without error stream, this test is useless.");
             return;
         }
 

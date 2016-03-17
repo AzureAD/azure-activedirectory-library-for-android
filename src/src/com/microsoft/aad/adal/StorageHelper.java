@@ -493,9 +493,19 @@ public class StorageHelper {
 
         // Read key pair again
         Logger.v(TAG, "Reading Key entry");
-        final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
-                KEY_STORE_CERT_ALIAS, null);
-        return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
+        try {
+            final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
+                    KEY_STORE_CERT_ALIAS, null);
+            return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
+        } catch (RuntimeException e) {
+            // There is an issue in android keystore that resets keystore
+            // Issue 61989:  AndroidKeyStore deleted after changing screen lock type
+            // https://code.google.com/p/android/issues/detail?id=61989
+            // in this case getEntry throws
+            // java.lang.RuntimeException: error:0D07207B:asn1 encoding routines:ASN1_get_object:header too long
+            // handle it as regular KeyStoreException
+            throw new KeyStoreException(e);
+        }
     }
     
     @TargetApi(18)
