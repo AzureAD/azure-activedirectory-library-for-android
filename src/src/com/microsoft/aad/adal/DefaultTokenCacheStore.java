@@ -53,52 +53,57 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private static final String TAG = "DefaultTokenCacheStore";
 
-    SharedPreferences mPrefs;
-
+    private SharedPreferences mPrefs;
     private Context mContext;
 
     private Gson mGson = new GsonBuilder()
     .registerTypeAdapter(Date.class, new DateTimeAdapter())
     .create();
-
     private static StorageHelper sHelper;
-
     private static Object sLock = new Object();
-    
     /**
      * @param context {@link Context}
      * @throws NoSuchAlgorithmException
      * @throws NoSuchPaddingException
      */
     public DefaultTokenCacheStore(Context context) {
-        mContext = context;
-        if (context != null) {
-
-            if (!StringExtensions.IsNullOrBlank(AuthenticationSettings.INSTANCE
-                    .getSharedPrefPackageName())) {
-                try {
-                    // Context is created from specified packagename in order to
-                    // use same file. Reading private data is only allowed if apps specify same
-                    // sharedUserId. Android OS will assign same UID, if they
-                    // are signed with same certificates.
-                    mContext = context.createPackageContext(
-                            AuthenticationSettings.INSTANCE.getSharedPrefPackageName(),
-                            Context.MODE_PRIVATE);
-                } catch (NameNotFoundException e) {
-                    throw new IllegalArgumentException("Package name:"
-                            + AuthenticationSettings.INSTANCE.getSharedPrefPackageName()
-                            + " is not found");
-                }
-            }
-            mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
-            if (mPrefs == null) {
-                throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
-            }
-
-        } else {
+        if (context == null) {
             throw new IllegalArgumentException("Context is null");
         }
+        mContext = context;
+        if (!StringExtensions.IsNullOrBlank(AuthenticationSettings.INSTANCE
+                .getSharedPrefPackageName())) {
+            try {
+                // Context is created from specified packagename in order to
+                // use same file. Reading private data is only allowed if apps specify same
+                // sharedUserId. Android OS will assign same UID, if they
+                // are signed with same certificates.
+                mContext = context.createPackageContext(
+                        AuthenticationSettings.INSTANCE.getSharedPrefPackageName(),
+                        Context.MODE_PRIVATE);
+            } catch (NameNotFoundException e) {
+                throw new IllegalArgumentException("Package name:"
+                        + AuthenticationSettings.INSTANCE.getSharedPrefPackageName()
+                        + " is not found");
+            }
+        }
+        mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
+        if (mPrefs == null) {
+            throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
+        }
 
+        try {
+            getStorageHelper().loadSecretKeyForAPI();
+        } catch (IOException | GeneralSecurityException e) {
+            throw new IllegalStateException("Failed to get private key from AndroidKeyStore", e);
+        }
+    }
+
+    /**
+     * Method that allows to mock StorageHelper class and use custom encryption in UTs
+     * @return
+     */
+    protected StorageHelper getStorageHelper() {
         synchronized (sLock) {
             if (sHelper == null) {
                 Logger.v(TAG, "Started to initialize storage helper");
@@ -106,11 +111,12 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                 Logger.v(TAG, "Finished to initialize storage helper");
             }
         }
+        return sHelper;
     }
 
     private String encrypt(String value) {
         try {
-            return sHelper.encrypt(value);
+            return getStorageHelper().encrypt(value);
         } catch (GeneralSecurityException | IOException e) {
             Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
         }
@@ -124,7 +130,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
         
         try {
-            return sHelper.decrypt(value);
+            return getStorageHelper().decrypt(value);
         } catch (GeneralSecurityException | IOException e) {
             Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
             removeItem(key);

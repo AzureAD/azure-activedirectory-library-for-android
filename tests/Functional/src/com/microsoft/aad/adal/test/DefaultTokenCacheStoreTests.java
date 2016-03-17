@@ -49,6 +49,8 @@ import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.StorageHelper;
 import com.microsoft.aad.adal.TokenCacheItem;
 
+import org.mockito.Mockito;
+
 public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
     private static final String TAG = "DefaultTokenCacheStoreTests";
@@ -67,31 +69,11 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         super.tearDown();
     }
 
-    public void testSharedCache() throws GeneralSecurityException, IOException, NameNotFoundException,
-            NoSuchFieldException, IllegalAccessException {
-        AuthenticationSettings.INSTANCE.setSharedPrefPackageName("mockpackage");
-        StorageHelper mockSecure = mock(StorageHelper.class);
-        Context mockContext = mock(Context.class);
-        Context packageContext = mock(Context.class);
-        SharedPreferences prefs = mock(SharedPreferences.class);
-        when(prefs.contains("testkey")).thenReturn(true);
-        when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
-        when(mockSecure.decrypt("test_encrypted")).thenReturn("{\"mClientId\":\"clientId23\"}");
-        when(mockContext.createPackageContext("mockpackage", Context.MODE_PRIVATE)).thenReturn(
-                packageContext);
-        when(
-                packageContext.getSharedPreferences("com.microsoft.aad.adal.cache",
-                        Activity.MODE_PRIVATE)).thenReturn(prefs);
-        Class<?> c = DefaultTokenCacheStore.class;
-        Field encryptHelper = c.getDeclaredField("sHelper");
-        encryptHelper.setAccessible(true);
-        encryptHelper.set(null, mockSecure);
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(mockContext);
-        TokenCacheItem item = cache.getItem("testkey");
+    public void testSharedCache() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
 
         // Verify returned item
         assertEquals("Same item as mock", "clientId23", item.getClientId());
-        encryptHelper.set(null, null);
     }
 
     public void testGetAll() {
@@ -110,29 +92,34 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals(2, users.size());
     }
 
-    public void testDateTimeFormatterOldFormat() throws GeneralSecurityException, IOException, NameNotFoundException,
-            NoSuchFieldException, IllegalAccessException {
-        StorageHelper mockSecure = mock(StorageHelper.class);
-        Context mockContext = mock(Context.class);
-        SharedPreferences prefs = mock(SharedPreferences.class);
-        when(prefs.contains("testkey")).thenReturn(true);
-        when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
-        when(mockSecure.decrypt("test_encrypted")).thenReturn(
-                "{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"Apr 28, 2015 1:09:57 PM\"}");
-        when(
-                mockContext.getSharedPreferences("com.microsoft.aad.adal.cache",
-                        Activity.MODE_PRIVATE)).thenReturn(prefs);
-        Class<?> c = DefaultTokenCacheStore.class;
-        Field encryptHelper = c.getDeclaredField("sHelper");
-        encryptHelper.setAccessible(true);
-        encryptHelper.set(null, mockSecure);
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(mockContext);
-        TokenCacheItem item = cache.getItem("testkey");
+    public void testDateTimeFormatterOldFormat() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
 
         // Verify returned item
         assertNotNull(item.getExpiresOn());
         assertNotNull(item.getExpiresOn().after(new Date()));
-        encryptHelper.set(null, null);
+    }
+
+    private DefaultTokenCacheStore mockDefaultCacheStore() throws GeneralSecurityException, IOException {
+        final StorageHelper mockSecure = Mockito.mock(StorageHelper.class);
+        Context mockContext = mock(Context.class);
+        SharedPreferences prefs = mock(SharedPreferences.class);
+        when(prefs.contains("testkey")).thenReturn(true);
+        when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
+        when(mockSecure.loadSecretKeyForAPI()).thenReturn(null);
+        when(mockSecure.decrypt("test_encrypted"))
+                .thenReturn("{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"Apr 28, 2015 1:09:57 PM\"}");
+        when(
+                mockContext.getSharedPreferences("com.microsoft.aad.adal.cache",
+                        Activity.MODE_PRIVATE)).thenReturn(prefs);
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(mockContext) {
+            @Override
+            protected StorageHelper getStorageHelper() {
+                return mockSecure;
+            }
+        };
+        return cache;
+
     }
 
     public void testDateTimeFormatterLocaleChange() {

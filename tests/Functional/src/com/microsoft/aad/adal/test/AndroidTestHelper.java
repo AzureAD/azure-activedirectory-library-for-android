@@ -82,8 +82,8 @@ public class AndroidTestHelper extends InstrumentationTestCase {
             }
 
             if (hasMessage != null && !hasMessage.isEmpty()) {
-                assertTrue("Message has the text",
-                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
+                assertTrue("Message has the text " + result.getMessage(),
+                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage.toLowerCase())));
             }
         }
     }
