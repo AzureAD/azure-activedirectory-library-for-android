@@ -65,7 +65,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME);
+                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         // AuthenticationSettings.INSTANCE.setDeviceCertificateProxy();
         Log.d(TAG, "testSignature is set");
     }

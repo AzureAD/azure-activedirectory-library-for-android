@@ -472,7 +472,7 @@ class BrokerProxy implements IBrokerProxy {
                 if (authenticator.packageName
                         .equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
                         || authenticator.packageName
-                                .equalsIgnoreCase(AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME)
+                                .equalsIgnoreCase(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME)
                         || authenticator.packageName
                                 .equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
                     // Existing broker logic only connects to broker for token

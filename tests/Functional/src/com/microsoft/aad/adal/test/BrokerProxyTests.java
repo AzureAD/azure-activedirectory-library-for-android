@@ -99,7 +99,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME);
+                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Log.d(TAG, "testSignature is set");
     }
 
@@ -127,7 +127,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = "invalid";
-        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature(testSignature);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null);
 
@@ -145,7 +145,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature("74657374696e67");
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null);
 
@@ -163,7 +163,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
@@ -184,7 +184,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
@@ -205,7 +205,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
@@ -225,7 +225,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             NameNotFoundException, OperationCanceledException, AuthenticatorException, IOException {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
@@ -265,7 +265,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, false, null);
@@ -284,7 +284,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature(testSignature);
         AccountManager mockAcctManager = mock(AccountManager.class);
         AuthenticatorDescription[] descriptions = getAuthenticator(authenticatorType, brokerPackage);
