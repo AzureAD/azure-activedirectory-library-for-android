@@ -18,20 +18,20 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public interface ITokenStoreQuery {
 
     Iterable<TokenCacheItem> getAll();
 
-    HashSet<String> getUniqueUsersWithTokenCache();
+    Set<String> getUniqueUsersWithTokenCache();
 
-    ArrayList<TokenCacheItem> getTokensForResource(String resource);
+    List<TokenCacheItem> getTokensForResource(String resource);
 
-    ArrayList<TokenCacheItem> getTokensForUser(String userid);
+    List<TokenCacheItem> getTokensForUser(String userid);
 
     void clearTokensForUser(String userid);
 
-    ArrayList<TokenCacheItem> getTokensAboutToExpire();
+    List<TokenCacheItem> getTokensAboutToExpire();
 }

@@ -26,8 +26,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.crypto.NoSuchPaddingException;
 
@@ -244,9 +246,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * @return unique users
      */
     @Override
-    public HashSet<String> getUniqueUsersWithTokenCache() {
+    public Set<String> getUniqueUsersWithTokenCache() {
         Iterable<TokenCacheItem> results = this.getAll();
-        HashSet<String> users = new HashSet<String>();
+        Set<String> users = new HashSet<String>();
         
         for (final TokenCacheItem tokenCacheItem : results) {
             if (tokenCacheItem.getUserInfo() != null && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
@@ -264,9 +266,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * @return list of {@link TokenCacheItem}
      */
     @Override
-    public ArrayList<TokenCacheItem> getTokensForResource(String resource) {
+    public List<TokenCacheItem> getTokensForResource(String resource) {
         Iterable<TokenCacheItem> results = this.getAll();
-        ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
+        List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
 
         if (results != null) {
             for (final TokenCacheItem tokenCacheItem : results) {
@@ -282,18 +284,18 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     /**
      * Get tokens for user.
      * 
-     * @param userid Userid
+     * @param userid userId
      * @return list of {@link TokenCacheItem}
      */
     @Override
-    public ArrayList<TokenCacheItem> getTokensForUser(String userid) {
+    public List<TokenCacheItem> getTokensForUser(String userId) {
         Iterable<TokenCacheItem> results = this.getAll();
-        ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
+        List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
         
         if (results != null) {
             for (final TokenCacheItem tokenCacheItem : results) {
                 if (tokenCacheItem.getUserInfo() != null 
-                        && tokenCacheItem.getUserInfo().getUserId().equalsIgnoreCase(userid)) {
+                        && tokenCacheItem.getUserInfo().getUserId().equalsIgnoreCase(userId)) {
                     tokenItems.add(tokenCacheItem);
                 }
             }
@@ -309,7 +311,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public void clearTokensForUser(String userid) {
-        ArrayList<TokenCacheItem> results = this.getTokensForUser(userid);
+        List<TokenCacheItem> results = this.getTokensForUser(userid);
 
         for (TokenCacheItem item : results) {
             if (item.getUserInfo() != null
@@ -325,9 +327,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * @return list of {@link TokenCacheItem}
      */
     @Override
-    public ArrayList<TokenCacheItem> getTokensAboutToExpire() {
+    public List<TokenCacheItem> getTokensAboutToExpire() {
         Iterable<TokenCacheItem> results = this.getAll();
-        ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
+        List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
 
         if (results != null) {
             for (final TokenCacheItem tokenCacheItem : results) {
