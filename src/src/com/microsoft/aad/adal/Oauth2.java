@@ -33,7 +33,7 @@ import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
 import android.net.Uri;
 import android.os.Build;
@@ -344,7 +344,7 @@ class Oauth2 {
         }
     }
 
-    public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationServerProtocolException {
+    public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationException {
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
@@ -363,8 +363,8 @@ class Oauth2 {
 
         // Refresh token endpoint needs to send header field for device
         // challenge
-        headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE,
-                AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE_VERSION);
+        headers.put(AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE,
+                AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE_VERSION);
         return postMessage(requestMessage, headers);
     }
 
@@ -378,7 +378,8 @@ class Oauth2 {
      *         not have protocol error.
      * @throws Exception
      */
-    public AuthenticationResult getToken(String authorizationUrl) throws IOException, AuthenticationServerProtocolException {
+    public AuthenticationResult getToken(String authorizationUrl)
+            throws IOException, AuthenticationServerProtocolException, AuthenticationException {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
             throw new IllegalArgumentException("authorizationUrl");
@@ -427,7 +428,7 @@ class Oauth2 {
      * @return Token in the AuthenticationResult
      * @throws Exception
      */
-    public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationServerProtocolException {
+    public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationException {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -447,7 +448,7 @@ class Oauth2 {
     }
 
     private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
-            throws IOException, AuthenticationServerProtocolException {
+            throws IOException, AuthenticationException {
         URL authority = null;
         AuthenticationResult result = null;
         authority = StringExtensions.getUrl(getTokenEndpoint());
@@ -466,27 +467,27 @@ class Oauth2 {
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 if (response.getResponseHeaders() != null
                         && response.getResponseHeaders().containsKey(
-                                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER)) {
+                                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
-                    String challangeHeader = response.getResponseHeaders()
-                            .get(AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER).get(0);
-                    Logger.v(TAG, "Device certificate challange request:" + challangeHeader);
-                    if (!StringExtensions.IsNullOrBlank(challangeHeader)) {
+                    String challengeHeader = response.getResponseHeaders()
+                            .get(AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER).get(0);
+                    Logger.v(TAG, "Device certificate challenge request:" + challengeHeader);
+                    if (!StringExtensions.IsNullOrBlank(challengeHeader)) {
 
                         // Handle each specific challenge header
-                        if (StringExtensions.hasPrefixInHeader(challangeHeader,
-                                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)) {
-                            Logger.v(TAG, "Challange is related to device certificate");
-                            ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                        if (StringExtensions.hasPrefixInHeader(challengeHeader,
+                                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) {
+                            Logger.v(TAG, "Challenge is related to device certificate");
+                            ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                     mJWSBuilder);
-                            Logger.v(TAG, "Processing device challange");
-                            final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponseFromHeader(challangeHeader,
+                            Logger.v(TAG, "Processing device challenge");
+                            final ChallengeResponse challengeResponse = certHandler
+                                    .getChallengeResponseFromHeader(challengeHeader,
                                             authority.toString());
-                            headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
-                                    challangeResponse.mAuthorizationHeaderValue);
+                            headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
+                                    challengeResponse.mAuthorizationHeaderValue);
                             Logger.v(TAG, "Sending request with challenge response");
                             response = mWebRequestHandler.sendPost(authority, headers,
                                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
@@ -495,7 +496,7 @@ class Oauth2 {
                     } else {
                         throw new AuthenticationException(
                                 ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                                "Challange header is empty");
+                                "Challenge header is empty");
                     }
                 } else {
 
