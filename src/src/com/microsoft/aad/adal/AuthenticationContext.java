@@ -25,6 +25,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -239,7 +240,7 @@ public class AuthenticationContext {
                 }
 
                 @Override
-                public Iterable<TokenCacheItem> getAll() {
+                public Iterator<TokenCacheItem> getAll() {
                     throw new UnsupportedOperationException(
                             "Broker cache does not support direct getAll operation");
                 }
@@ -1637,15 +1638,16 @@ public class AuthenticationContext {
             return null;
         }
 
-        Iterable<TokenCacheItem> allItems = mTokenCacheStore.getAll();
-        if (allItems == null || !allItems.iterator().hasNext()) {
+        Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
+        if (allItems == null || !allItems.hasNext()) {
             Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
             return null;
         }
         
         if (userIdentifierType == UserIdentifierType.UniqueId) {
             Logger.v(TAG + methodName, "UserIdentifier type is unique id, will look for the family item based on unique id.");
-            for (final TokenCacheItem tokenCacheItem : allItems) {
+            while (allItems.hasNext()) {
+                final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
                 if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getUserId())) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
@@ -1657,7 +1659,8 @@ public class AuthenticationContext {
             }
         } else if (userIdentifierType == UserIdentifierType.LoginHint) {
             Logger.v(TAG + methodName, "UserIdentifier type is loginhint, will look for the family item based on login hint.");
-            for (final TokenCacheItem tokenCacheItem : allItems) {
+            while (allItems.hasNext()) {
+                final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
                 if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getDisplayableId())) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())

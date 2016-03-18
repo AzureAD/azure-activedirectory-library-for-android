@@ -38,7 +38,7 @@ public interface ITokenCacheStore extends Serializable {
      * Get all cached token items. 
      * @return {@link Iterator} of {@link TokenCacheItem}s in the cache. 
      */
-    Iterable<TokenCacheItem> getAll();
+    Iterator<TokenCacheItem> getAll();
 
     /**
      * Checks if cache key exists.

@@ -168,7 +168,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
     }
 
     @Override
-    public Iterable<TokenCacheItem> getAll() {
+    public Iterator<TokenCacheItem> getAll() {
         return mInMemoryCache.getAll();
     }
 }

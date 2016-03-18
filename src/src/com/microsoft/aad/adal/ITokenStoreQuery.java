@@ -18,12 +18,13 @@
 
 package com.microsoft.aad.adal;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 public interface ITokenStoreQuery {
 
-    Iterable<TokenCacheItem> getAll();
+    Iterator<TokenCacheItem> getAll();
 
     Set<String> getUniqueUsersWithTokenCache();
 
@@ -31,7 +32,7 @@ public interface ITokenStoreQuery {
 
     List<TokenCacheItem> getTokensForUser(String userid);
 
-    void clearTokensForUser(String userid);
+    void clearTokensForUser(String userId);
 
     List<TokenCacheItem> getTokensAboutToExpire();
 }

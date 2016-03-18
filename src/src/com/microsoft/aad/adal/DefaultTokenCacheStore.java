@@ -212,7 +212,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * User can query over iterator values.
      */
     @Override
-    public Iterable<TokenCacheItem> getAll() {
+    public Iterator<TokenCacheItem> getAll() {
 
         argumentCheck();
 
@@ -237,7 +237,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             }
         }
 
-        return tokens;
+        return tokens.iterator();
     }
 
     /**
@@ -247,10 +247,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public Set<String> getUniqueUsersWithTokenCache() {
-        Iterable<TokenCacheItem> results = this.getAll();
+        Iterator<TokenCacheItem> results = this.getAll();
         Set<String> users = new HashSet<String>();
         
-        for (final TokenCacheItem tokenCacheItem : results) {
+        while (results.hasNext()) {
+            final TokenCacheItem tokenCacheItem = results.next();
             if (tokenCacheItem.getUserInfo() != null && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
                 users.add(tokenCacheItem.getUserInfo().getUserId());
             }
@@ -267,14 +268,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public List<TokenCacheItem> getTokensForResource(String resource) {
-        Iterable<TokenCacheItem> results = this.getAll();
+        Iterator<TokenCacheItem> results = this.getAll();
         List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
 
-        if (results != null) {
-            for (final TokenCacheItem tokenCacheItem : results) {
-                if (tokenCacheItem.getResource().equals(resource)) {
-                    tokenItems.add(tokenCacheItem);
-                }
+        while (results.hasNext()) {
+            final TokenCacheItem tokenCacheItem = results.next();
+            if (tokenCacheItem.getResource().equals(resource)) {
+                tokenItems.add(tokenCacheItem);
             }
         }
 
@@ -289,15 +289,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public List<TokenCacheItem> getTokensForUser(String userId) {
-        Iterable<TokenCacheItem> results = this.getAll();
+        Iterator<TokenCacheItem> results = this.getAll();
         List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
         
-        if (results != null) {
-            for (final TokenCacheItem tokenCacheItem : results) {
-                if (tokenCacheItem.getUserInfo() != null 
-                        && tokenCacheItem.getUserInfo().getUserId().equalsIgnoreCase(userId)) {
-                    tokenItems.add(tokenCacheItem);
-                }
+        while (results.hasNext()) {
+            final TokenCacheItem tokenCacheItem = results.next();
+            if (tokenCacheItem.getUserInfo() != null
+                    && tokenCacheItem.getUserInfo().getUserId().equalsIgnoreCase(userId)) {
+                tokenItems.add(tokenCacheItem);
             }
         }
 
@@ -328,16 +327,16 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public List<TokenCacheItem> getTokensAboutToExpire() {
-        Iterable<TokenCacheItem> results = this.getAll();
+        Iterator<TokenCacheItem> results = this.getAll();
         List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
 
-        if (results != null) {
-            for (final TokenCacheItem tokenCacheItem : results) {
+        while (results.hasNext()) {
+            final TokenCacheItem tokenCacheItem = results.next();
                 if (isAboutToExpire(tokenCacheItem.getExpiresOn())) {
                     tokenItems.add(tokenCacheItem);
                 }
             }
-        }
+
 
         return tokenItems;
     }
