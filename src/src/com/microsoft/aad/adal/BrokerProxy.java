@@ -467,8 +467,8 @@ class BrokerProxy implements IBrokerProxy {
                 Account[] accountList = mAcctManager
                         .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
-                // Authenticator installed from Company portal
-                // This supports only one account
+                // For new broker with PRT support, both company portal and
+                // azure authenticator will be able to support multi-user.
                 if (authenticator.packageName
                         .equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
                         || authenticator.packageName
