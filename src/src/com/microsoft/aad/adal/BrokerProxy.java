@@ -103,7 +103,8 @@ class BrokerProxy implements IBrokerProxy {
         // authenticator
         // 4- signature of the broker is valid
         // 5- account exists
-        return AuthenticationSettings.INSTANCE.getUseBroker() && verifyManifestPermissions()
+        return AuthenticationSettings.INSTANCE.getUseBroker() 
+                && verifyManifestPermissions()
                 && checkAccount(mAcctManager, "", "")
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
                 && !packageName.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
@@ -299,7 +300,6 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.v(TAG, "Broker doesn't return expire date, set it current date plus one hour");
                 final Calendar currentTime = new GregorianCalendar();
                 currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);
-                ;
                 expires = currentTime.getTime();
             } else {
                 expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
