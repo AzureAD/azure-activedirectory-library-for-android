@@ -105,7 +105,7 @@ public class AuthenticationActivity extends Activity {
     private String mQueryParameters;
 
     private boolean mPkeyAuthRedirect = false;
-    private StorageHelper mHelper;
+    private StorageHelper mStorageHelper;
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
@@ -269,6 +269,7 @@ public class AuthenticationActivity extends Activity {
                 " device:" + android.os.Build.VERSION.RELEASE + " " + android.os.Build.MANUFACTURER
                         + android.os.Build.MODEL);
 
+        mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView(mRedirectUrl, mQueryParameters, mAuthRequest);
         
         if (savedInstanceState == null) {
@@ -283,8 +284,6 @@ public class AuthenticationActivity extends Activity {
         } else {
             Logger.v(TAG, "Reuse webview");
         }
-
-        mHelper = new StorageHelper(getApplicationContext());
     }
 
     private boolean isCallerBrokerInstaller() {
@@ -847,7 +846,7 @@ public class AuthenticationActivity extends Activity {
                 appIdList = "";
             } else {
                 try {
-                    appIdList = mHelper.decrypt(appIdList);
+                    appIdList = mStorageHelper.decrypt(appIdList);
                 } catch (GeneralSecurityException | IOException ex) {
                     Logger.e(TAG, "appUIDList failed to decrypt", "appIdList:" + appIdList,
                             ADALError.ENCRYPTION_FAILED, ex);
@@ -860,7 +859,7 @@ public class AuthenticationActivity extends Activity {
             if (!appIdList.contains(AuthenticationConstants.Broker.USERDATA_UID_KEY
                     + mAppCallingUID)) {
                 Logger.i(TAG, "Account has new calling UID:" + mAppCallingUID, "");
-                String encryptedValue = mHelper.encrypt(appIdList
+                String encryptedValue = mStorageHelper.encrypt(appIdList
                         + AuthenticationConstants.Broker.USERDATA_UID_KEY
                         + mAppCallingUID);
                 mAccountManager
@@ -937,7 +936,7 @@ public class AuthenticationActivity extends Activity {
 
             TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
             String json = gson.toJson(item);
-            String encrypted = mHelper.encrypt(json);
+            String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
             String key = CacheKey.createCacheKey(mRequest, null);
@@ -951,7 +950,7 @@ public class AuthenticationActivity extends Activity {
                 // ADAL stores MRRT refresh token separately
                 TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
                 json = gson.toJson(itemMRRT);
-                encrypted = mHelper.encrypt(json);
+                encrypted = mStorageHelper.encrypt(json);
                 key = CacheKey.createMultiResourceRefreshTokenKey(mRequest, null);
                 saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(
