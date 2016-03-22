@@ -44,6 +44,7 @@ import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.InvalidKeySpecException;
@@ -261,6 +262,7 @@ public class StorageHelper {
         // API level, data needs to be updated
         String keyVersionCheck = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
                 AuthenticationConstants.ENCODING_UTF8);
+        Logger.v(TAG, "Encrypt version:" + keyVersionCheck);
 
         SecretKey versionKey = getKeyForVersion(keyVersionCheck);
         SecretKey versionMacKey = getMacKey(versionKey);
@@ -439,6 +441,9 @@ public class StorageHelper {
         Logger.v(TAG, "Reading SecretKey");
         try {
             final byte[] encryptedKey = readKeyData(keyFile);
+            if (encryptedKey == null || encryptedKey.length == 0) {
+                throw new UnrecoverableKeyException("Couldn't find encrypted key in file");
+            }
             sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
             Logger.v(TAG, "Finished reading SecretKey");
         } catch (GeneralSecurityException | IOException ex) {
