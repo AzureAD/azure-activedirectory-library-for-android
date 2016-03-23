@@ -144,12 +144,12 @@ class BrokerProxy implements IBrokerProxy {
      */
     private boolean verifyManifestPermissions() {
         PackageManager pm = mContext.getPackageManager();
-        boolean permission = PackageManager.PERMISSION_GRANTED == pm.checkPermission("android.permission.GET_ACCOUNTS",
-                mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission("android.permission.MANAGE_ACCOUNTS",
-                        mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission("android.permission.USE_CREDENTIALS",
-                        mContext.getPackageName());
+        boolean permission = PackageManager.PERMISSION_GRANTED == pm.checkPermission(
+                "android.permission.GET_ACCOUNTS", mContext.getPackageName())
+                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
+                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName())
+                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
+                        "android.permission.USE_CREDENTIALS", mContext.getPackageName());
         if (!permission) {
             Logger.w(TAG, "Broker related permissions are missing for GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS",
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
