@@ -409,10 +409,10 @@ class BrokerProxy implements IBrokerProxy {
             //
             // TODO add retry logic since authenticator is not responding to
             // the request
-            Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+            Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, e);
         } catch (IOException e) {
             // Authenticator gets problem from webrequest or file read/write
-            Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
+            Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
         }
 
         return intent;
