@@ -110,6 +110,7 @@ public class AuthenticationActivity extends Activity {
     private String mQueryParameters;
 
     private boolean mPkeyAuthRedirect = false;
+    private StorageHelper mStorageHelper;
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
@@ -273,6 +274,7 @@ public class AuthenticationActivity extends Activity {
                 " device:" + android.os.Build.VERSION.RELEASE + " " + android.os.Build.MANUFACTURER
                         + android.os.Build.MODEL);
 
+        mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView(mRedirectUrl, mQueryParameters, mAuthRequest);
         
         if (savedInstanceState == null) {
@@ -819,7 +821,7 @@ public class AuthenticationActivity extends Activity {
                 // Record account in the AccountManager service
                 try {
                     setAccount(result);
-                } catch (GeneralSecurityException | UnsupportedEncodingException exc) {
+                } catch (GeneralSecurityException | IOException exc) {
                     Logger.e(TAG, "Error in setting the account" + mRequest.getLogInfo(), "",
                             ADALError.BROKER_ACCOUNT_SAVE_FAILED, exc);
                     result.taskException = exc;
@@ -829,7 +831,7 @@ public class AuthenticationActivity extends Activity {
             return result;
         }
 
-        private String getBrokerAppCacheKey(StorageHelper cryptoHelper, String cacheKey)
+        private String getBrokerAppCacheKey(String cacheKey)
             throws NoSuchAlgorithmException, UnsupportedEncodingException {
             // include UID in the key for broker to store caches for different
             // apps under same account entry
@@ -841,15 +843,15 @@ public class AuthenticationActivity extends Activity {
             return digestKey;
         }
 
-        private void appendAppUIDToAccount(StorageHelper cryptoHelper, Account account)
-            throws GeneralSecurityException, UnsupportedEncodingException {
+        private void appendAppUIDToAccount(Account account)
+            throws GeneralSecurityException, IOException {
             String appIdList = mAccountManager.getUserData(account,
                     AuthenticationConstants.Broker.ACCOUNT_UID_CACHES);
             if (appIdList == null) {
                 appIdList = "";
             } else {
                 try {
-                    appIdList = cryptoHelper.decrypt(appIdList);
+                    appIdList = mStorageHelper.decrypt(appIdList);
                 } catch (GeneralSecurityException | IOException ex) {
                     Logger.e(TAG, "appUIDList failed to decrypt", "appIdList:" + appIdList,
                             ADALError.ENCRYPTION_FAILED, ex);
@@ -862,18 +864,19 @@ public class AuthenticationActivity extends Activity {
             if (!appIdList.contains(AuthenticationConstants.Broker.USERDATA_UID_KEY
                     + mAppCallingUID)) {
                 Logger.i(TAG, "Account has new calling UID:" + mAppCallingUID, "");
+                String encryptedValue = mStorageHelper.encrypt(appIdList
+                        + AuthenticationConstants.Broker.USERDATA_UID_KEY
+                        + mAppCallingUID);
                 mAccountManager
                         .setUserData(
-                                account,
-                                AuthenticationConstants.Broker.ACCOUNT_UID_CACHES,
-                                cryptoHelper.encrypt(appIdList
-                                        + AuthenticationConstants.Broker.USERDATA_UID_KEY
-                                        + mAppCallingUID));
+                        account,
+                        AuthenticationConstants.Broker.ACCOUNT_UID_CACHES,
+                        encryptedValue);
             }
         }
 
         private void setAccount(final TokenTaskResult result)
-                throws GeneralSecurityException, UnsupportedEncodingException {
+                throws GeneralSecurityException, IOException {
             // TODO Add token logging
             // TODO update for new cache logic
 
@@ -932,38 +935,40 @@ public class AuthenticationActivity extends Activity {
             Logger.i(TAG, "app context:" + getApplicationContext().getPackageName()
                     + " context:" + AuthenticationActivity.this.getPackageName()
                     + " calling packagename:" + getCallingPackage(), "");
-            StorageHelper cryptoHelper = new StorageHelper(getApplicationContext());
-
             if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
                 Logger.i(TAG, "setAccount: user key is null", "");
             }
 
             TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
             String json = gson.toJson(item);
-            String encrypted = cryptoHelper.encrypt(json);
+            String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
             String key = CacheKey.createCacheKey(mRequest, null);
             saveCacheKey(key, newaccount, mAppCallingUID);
-            mAccountManager.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
+            mAccountManager.setUserData(
+                    newaccount,
+                    getBrokerAppCacheKey(key),
                     encrypted);
 
             if (result.taskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
                 TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
                 json = gson.toJson(itemMRRT);
-                encrypted = cryptoHelper.encrypt(json);
+                encrypted = mStorageHelper.encrypt(json);
                 key = CacheKey.createMultiResourceRefreshTokenKey(mRequest, null);
                 saveCacheKey(key, newaccount, mAppCallingUID);
-                mAccountManager.setUserData(newaccount,
-                        getBrokerAppCacheKey(cryptoHelper, key), encrypted);
+                mAccountManager.setUserData(
+                        newaccount,
+                        getBrokerAppCacheKey(key),
+                        encrypted);
             }
 
             // Record calling UID for this account so that app can get token
             // in the background call without requiring server side
             // validation
             Logger.i(TAG, "Set calling uid:" + mAppCallingUID, "");
-            appendAppUIDToAccount(cryptoHelper, newaccount);
+            appendAppUIDToAccount(newaccount);
         }
 
         private void saveCacheKey(String key, Account cacheAccount, int callingUID) {
