@@ -38,8 +38,6 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.UUID;
 
-import javax.crypto.NoSuchPaddingException;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
@@ -321,16 +319,7 @@ public class MainActivity extends Activity {
             authority = AUTHORITY_URL;
         }
 
-        try {
-            mContext = new AuthenticationContext(MainActivity.this, authority,
-                    mValidate.isChecked());
-        } catch (NoSuchAlgorithmException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        mContext = new AuthenticationContext(MainActivity.this, authority, mValidate.isChecked());
     }
 
     public void acquireTokenByRefreshToken(String refreshToken) {

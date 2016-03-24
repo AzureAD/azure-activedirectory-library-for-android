@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -134,8 +139,7 @@ public class AuthenticationContext {
      * @throws NoSuchAlgorithmException Encryption Algorithm does not exist in
      *             the device. Please see the log record for details.
      */
-    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority)
-            throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
         // Fixes are required for SDK 16-18
         // The fixes need to be applied before any use of Java Cryptography
         // Architecture primitives. Default cache uses encryption
@@ -554,7 +558,7 @@ public class AuthenticationContext {
     private String checkInputParameters(String resource, String clientId, String redirectUri,
             PromptBehavior behavior, AuthenticationCallback<AuthenticationResult> callback) {
         if (mContext == null) {
-            throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
+            throw new IllegalArgumentException("context", new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
         }
 
         if (StringExtensions.IsNullOrBlank(resource)) {
@@ -879,7 +883,7 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                } catch (IOException | AuthenticationServerProtocolException exc) {
+                                } catch (IOException | AuthenticationException exc) {
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo() + correlationInfo;
                                     Logger.e(TAG, msg,
@@ -1127,8 +1131,6 @@ public class AuthenticationContext {
                         return;
                     }
                 });
-            } else {
-                throw e;
             }
         }
 
@@ -1169,8 +1171,6 @@ public class AuthenticationContext {
      * 
      * @param activity
      * @param request
-     * @param prompt
-     * @param callback
      * @return
      */
     private AuthenticationResult acquireTokenLocalCall(final CallbackHandler callbackHandle,
@@ -1677,7 +1677,7 @@ public class AuthenticationContext {
     }
     
     private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
-            boolean afterPrompt) throws AuthenticationException {
+            boolean afterPrompt) {
         if (mTokenCacheStore != null) {
 
             // User can ask for token without login hint. Next call from same
@@ -1748,8 +1748,7 @@ public class AuthenticationContext {
     }
 
     private void setItemToCacheFromRefresh(final RefreshItem refreshItem,
-            final AuthenticationRequest request, AuthenticationResult result)
-            throws AuthenticationException {
+            final AuthenticationRequest request, AuthenticationResult result) {
         if (mTokenCacheStore != null) {
             // Use same key to store refreshed result. This key may belong to
             // normal token or MRRT token.
@@ -1764,7 +1763,7 @@ public class AuthenticationContext {
         }
     }
 
-    private void removeItemFromCache(final RefreshItem refreshItem) throws AuthenticationException {
+    private void removeItemFromCache(final RefreshItem refreshItem) {
         if (mTokenCacheStore != null) {
             Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey);
             mTokenCacheStore.removeItem(refreshItem.mKey);
@@ -1778,7 +1777,6 @@ public class AuthenticationContext {
      * refresh token if possible. if it fails, it calls acquire token after
      * removing refresh token from cache.
      * 
-     * @param callbackHandle
      * @param activity Activity to use in case refresh token does not succeed
      *            and prompt is not set to never.
      * @param request incoming request
@@ -1786,7 +1784,6 @@ public class AuthenticationContext {
      *            cache
      * @param useCache refresh request can be explicit without cache usage.
      *            Error message should return without trying prompt.
-     * @param externalCallback
      * @return
      */
     private AuthenticationResult getTokenWithRefreshToken(final IWindowComponent activity, final boolean useDialog,
@@ -1817,7 +1814,7 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Refresh token is not returned or empty");
                 result.setRefreshToken(refreshItem.mRefreshToken);
             }
-        } catch (IOException | AuthenticationServerProtocolException exc) {
+        } catch (IOException | AuthenticationException exc) {
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
@@ -1974,7 +1971,7 @@ public class AuthenticationContext {
     /**
      * set CorrelationId to requests.
      * 
-     * @param mRequestCorrelationId
+     * @param requestCorrelationId
      */
     public void setRequestCorrelationId(UUID requestCorrelationId) {
         this.mRequestCorrelationId = requestCorrelationId;
@@ -2096,7 +2093,7 @@ public class AuthenticationContext {
         PackageManager pm = mContext.getPackageManager();
         if (PackageManager.PERMISSION_GRANTED != pm.checkPermission("android.permission.INTERNET",
                 mContext.getPackageName())) {
-            throw new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING);
+            throw new IllegalStateException(new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING));
         }
     }
 
@@ -2126,7 +2123,7 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.14";
+        return "1.1.16";
     }
 
     /**

@@ -1,3 +1,14 @@
+Version 1.1.16
+--------------
+Hot fix for catching RuntimeException thrown due to AndroidKeyStore bug, so App won't crash due to keystore got reset
+
+Version 1.1.15
+--------------
+Update check for null to prevent null pointer exception
+Update AuthenticationException to extend from Exception instead of RuntimeException
+Update for PoliCheck result
+Type update for Challenge
+
 Version 1.1.14 (hot fix)
 --------------
 Add the support for FamilyClientID
