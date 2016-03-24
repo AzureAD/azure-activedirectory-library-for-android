@@ -38,9 +38,9 @@ public enum AuthenticationSettings {
 
     private AtomicReference<byte[]> mSecretKeyData = new AtomicReference<>();
 
-    private String mBrokerPackageName = AuthenticationConstants.Broker.PACKAGE_NAME;
+    private String mBrokerPackageName = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 
-    private String mBrokerSignature = AuthenticationConstants.Broker.SIGNATURE;
+    private String mBrokerSignature = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE;
 
     private Class<?> mClazzDeviceCertProxy;
 

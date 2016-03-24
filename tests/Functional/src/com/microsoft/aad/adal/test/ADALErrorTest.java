@@ -52,8 +52,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         getInstrumentation().getTargetContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
-                .getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
@@ -67,7 +66,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.PACKAGE_NAME);
+                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Log.d(TAG, "testSignature is set");
     }
 
@@ -75,33 +74,25 @@ public class ADALErrorTest extends InstrumentationTestCase {
     public void testResourceOverwrite() {
         ADALError err = ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED;
         String msg = err.getDescription();
-        Log.v(TAG, "Test context packagename:"
-                + getInstrumentation().getTargetContext().getPackageName());
+        Log.v(TAG, "Test context packagename:" + getInstrumentation().getTargetContext().getPackageName());
         Locale locale2 = new Locale("de");
         Locale.setDefault(locale2);
         Configuration config = new Configuration();
         config.setLocale(locale2);
-        getInstrumentation()
-                .getContext()
-                .getResources()
-                .updateConfiguration(config,
-                        getInstrumentation().getContext().getResources().getDisplayMetrics());
+        getInstrumentation().getContext().getResources().updateConfiguration(config,
+                getInstrumentation().getContext().getResources().getDisplayMetrics());
         String localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
-        
+
         assertFalse("Error decription is different in resource", msg.equalsIgnoreCase(localizedMsg));
 
         Locale localefr = new Locale("fr");
         Locale.setDefault(localefr);
         config.setLocale(localefr);
-        getInstrumentation()
-                .getContext()
-                .getResources()
-                .updateConfiguration(config,
-                        getInstrumentation().getContext().getResources().getDisplayMetrics());
+        getInstrumentation().getContext().getResources().updateConfiguration(config,
+                getInstrumentation().getContext().getResources().getDisplayMetrics());
         localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
-        
+
         assertFalse("Same as english", msg.equalsIgnoreCase(localizedMsg));
-        assertTrue("in default",
-                localizedMsg.contains("Authority validation returned an error"));
+        assertTrue("in default", localizedMsg.contains("Authority validation returned an error"));
     }
 }

@@ -294,13 +294,13 @@ public class AuthenticationConstants {
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager.
          */
-        public static final String PACKAGE_NAME = "com.microsoft.windowsintune.companyportal";
+        public static final String COMPANY_PORTAL_APP_PACKAGE_NAME = "com.microsoft.windowsintune.companyportal";
 
         /**
          * Signature info for Intune Company portal app that installs authenticator
          * component.
          */
-        public static final String SIGNATURE = "1L4Z9FJCgn5c0VLhyAxC5O9LdlE=";
+        public static final String COMPANY_PORTAL_APP_SIGNATURE = "1L4Z9FJCgn5c0VLhyAxC5O9LdlE=";
         
         /**
          * Signature info for Azure authenticator app that installs authenticator

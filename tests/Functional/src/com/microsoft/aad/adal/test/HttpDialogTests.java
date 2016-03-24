@@ -53,8 +53,8 @@ public class HttpDialogTests extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
-        PackageInfo info = mContext.getPackageManager().getPackageInfo(
-                "com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
+        PackageInfo info = mContext.getPackageManager().getPackageInfo("com.microsoft.aad.adal.testapp",
+                PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
@@ -68,26 +68,24 @@ public class HttpDialogTests extends AndroidTestCase {
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.PACKAGE_NAME);
+                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Log.d(TAG, "testSignature is set");
     }
 
-    public void testCreateDialogTest() throws NoSuchMethodException, ClassNotFoundException,
-            IllegalArgumentException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, NoSuchFieldException {
+    public void testCreateDialogTest() throws NoSuchMethodException, ClassNotFoundException, IllegalArgumentException,
+            InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchFieldException {
         String testHost = "http://test.host.com";
         String testRealm = "testRealm";
 
         Class<?> c = Class.forName("com.microsoft.aad.adal.HttpAuthDialog");
-        Constructor<?> constructor = c.getDeclaredConstructor(Context.class, String.class,
-                String.class);
+        Constructor<?> constructor = c.getDeclaredConstructor(Context.class, String.class, String.class);
         constructor.setAccessible(true);
         Object o = constructor.newInstance(getContext(), testHost, testRealm);
 
         Object dialog = ReflectionUtils.getFieldValue(o, "mDialog");
         assertNotNull(dialog);
 
-        String host = (String)ReflectionUtils.getFieldValue(o, "mHost");
+        String host = (String) ReflectionUtils.getFieldValue(o, "mHost");
         assertEquals(host, testHost);
     }
 }
