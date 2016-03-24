@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -39,10 +44,13 @@ import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -55,6 +63,7 @@ import javax.security.auth.x500.X500Principal;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.security.KeyPairGeneratorSpec;
 import android.util.Base64;
 
 /**
@@ -132,40 +141,45 @@ public class StorageHelper {
     /**
      * Get Secret Key based on API level to use in encryption. Decryption key
      * depends on version# since user can migrate to new Android.OS
-     * 
+     *
      * @return
      * @throws NoSuchAlgorithmException
      */
-    final private void loadSecretKeyForAPI() throws NoSuchAlgorithmException {
+    public synchronized SecretKey loadSecretKeyForAPI() throws IOException, GeneralSecurityException {
         // Loading key only once for performance. If API is upgraded, it will
-        // restart the device anyway. It will load the correct key for new API. 
+        // restart the device anyway. It will load the correct key for new API.
         if (mKey != null && mMacKey != null)
-            return;
+            return mKey;
 
-        synchronized (LOCK_OBJ) {
-            if (Build.VERSION.SDK_INT >= 18
-                    && AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
-                try {
-                    // androidKeyStore can store app specific self signed cert.
-                    // Asymmetric cryptography is used to protect the session
-                    // key for Encryption and HMac.
-                    // If user specifies secret key, it will use the provided
-                    // key.
-                    mKey = getSecretKeyFromAndroidKeyStore();
-                    mMacKey = getMacKey(mKey);
-                    mBlobVersion = VERSION_ANDROID_KEY_STORE;
-                    return;
-                } catch (IOException | GeneralSecurityException e) {
-                    Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
-                            ADALError.ANDROIDKEYSTORE_FAILED, e);
-                }
-            }
+        final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
+        if(secretKeyData == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            throw new IllegalStateException("Secret key must be provided for API < 18. " +
+                    "Use AuthenticationSettings.INSTANCE.setSecretKey()");
+        }
 
+        if (secretKeyData != null) {
             Logger.v(TAG, "Encryption will use secret key from Settings");
-            mKey = getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
+            mKey = getSecretKey(secretKeyData);
             mMacKey = getMacKey(mKey);
             mBlobVersion = VERSION_USER_DEFINED;
+        } else {
+            try {
+                // androidKeyStore can store app specific self signed cert.
+                // Asymmetric cryptography is used to protect the session
+                // key for Encryption and HMac.
+                // If user specifies secret key, it will use the provided
+                // key.
+                mKey = getSecretKeyFromAndroidKeyStore();
+                mMacKey = getMacKey(mKey);
+                mBlobVersion = VERSION_ANDROID_KEY_STORE;
+            } catch (IOException | GeneralSecurityException e) {
+                Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
+                        ADALError.ANDROIDKEYSTORE_FAILED, e);
+                throw e;
+            }
         }
+
+        return mKey;
     }
 
     /**
@@ -201,7 +215,7 @@ public class StorageHelper {
             }
         }
 
-        throw new IllegalArgumentException("keyVersion");
+        throw new IllegalArgumentException("keyVersion = " + keyVersion);
     }
 
     private SecretKey getSecretKey(byte[] rawBytes) {
@@ -255,6 +269,7 @@ public class StorageHelper {
         // API level, data needs to be updated
         String keyVersionCheck = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
                 AuthenticationConstants.ENCODING_UTF8);
+        Logger.v(TAG, "Encrypt version:" + keyVersionCheck);
 
         SecretKey versionKey = getKeyForVersion(keyVersionCheck);
         SecretKey versionMacKey = getMacKey(versionKey);
@@ -307,7 +322,7 @@ public class StorageHelper {
      * @throws UnsupportedEncodingException
      */
     public String encrypt(String clearText)
-            throws GeneralSecurityException, UnsupportedEncodingException {
+            throws GeneralSecurityException, IOException {
 
         Logger.v(TAG, "Starting encryption");
 
@@ -383,7 +398,6 @@ public class StorageHelper {
      * 
      * @return
      * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
      */
     final private SecretKey generateSecretKey() throws NoSuchAlgorithmException {
         KeyGenerator keygen = KeyGenerator.getInstance(KEYSPEC_ALGORITHM);
@@ -399,7 +413,7 @@ public class StorageHelper {
      * @throws IOException
      * @throws GeneralSecurityException
      */
-    @TargetApi(18)
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     final synchronized private SecretKey getSecretKeyFromAndroidKeyStore() throws IOException,
             GeneralSecurityException {
 
@@ -433,6 +447,9 @@ public class StorageHelper {
         Logger.v(TAG, "Reading SecretKey");
         try {
             final byte[] encryptedKey = readKeyData(keyFile);
+            if (encryptedKey == null || encryptedKey.length == 0) {
+                throw new UnrecoverableKeyException("Couldn't find encrypted key in file");
+            }
             sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
             Logger.v(TAG, "Finished reading SecretKey");
         } catch (GeneralSecurityException | IOException ex) {
@@ -466,7 +483,7 @@ public class StorageHelper {
      * @throws GeneralSecurityException
      * @throws IOException
      */
-    @TargetApi(18)
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws GeneralSecurityException, IOException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
@@ -478,75 +495,47 @@ public class StorageHelper {
 
             // self signed cert stored in AndroidKeyStore to asym. encrypt key
             // to a file
-            String certInfo = String.format("CN=%s, OU=%s", KEY_STORE_CERT_ALIAS,
-                    mContext.getPackageName());
-            final AlgorithmParameterSpec spec = (AlgorithmParameterSpec)getKeyPairGeneratorSpec(
-                    new X500Principal(certInfo), start.getTime(), end.getTime());
             final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
                     "AndroidKeyStore");
-            generator.initialize(spec);
+            generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
             generator.generateKeyPair();
-            Logger.v(TAG, "Key entry is generated for cert " + certInfo);
+            Logger.v(TAG, "Key entry is generated");
         } else {
             Logger.v(TAG, "Key entry is available");
         }
 
         // Read key pair again
         Logger.v(TAG, "Reading Key entry");
-        final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
-                KEY_STORE_CERT_ALIAS, null);
-        return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
-    }
-    
-    @TargetApi(18)
-    private Object getKeyPairGeneratorSpec(X500Principal subj, Date start, Date end) {
-        // TODO: use real Spec.Builder instead of reflective methods
-        Class<?> clazz;
         try {
-            clazz = Class.forName("android.security.KeyPairGeneratorSpec$Builder");
-
-            Constructor<?> constructor = clazz.getDeclaredConstructor(Context.class);
-            constructor.setAccessible(true);
-            Object builder = constructor.newInstance(mContext);
-            Method setAlias = clazz.getDeclaredMethod("setAlias", String.class);
-            Method setSubject = clazz.getDeclaredMethod("setSubject", X500Principal.class);
-            Method setSerialNumber = clazz.getDeclaredMethod("setSerialNumber", BigInteger.class);
-            Method setStartDate = clazz.getDeclaredMethod("setStartDate", Date.class);
-            Method setEndDate = clazz.getDeclaredMethod("setEndDate", Date.class);
-            Method build = clazz.getDeclaredMethod("build");
-            builder = setAlias.invoke(builder, KEY_STORE_CERT_ALIAS);
-            builder = setSubject.invoke(builder, subj);
-            builder = setSerialNumber.invoke(builder, BigInteger.ONE);
-            builder = setStartDate.invoke(builder, start);
-            builder = setEndDate.invoke(builder, end);
-            return build.invoke(builder);
-        } catch (ClassNotFoundException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder is not found", "",
-                    ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-        } catch (IllegalArgumentException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder argument is not valid",
-                    "", ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-        } catch (InstantiationException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder is not instantiated", "",
-                    ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-        } catch (IllegalAccessException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder is not accessible", "",
-                    ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-        } catch (InvocationTargetException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder's method invoke failed",
-                    "", ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
-            if (e.getCause() instanceof RuntimeException) {
-                throw (RuntimeException) e.getCause();
-            }
-        } catch (NoSuchMethodException e) {
-            Logger.e(TAG, "android.security.KeyPairGeneratorSpec.Builder is not found", "",
-                    ADALError.ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED, e);
+            final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
+                    KEY_STORE_CERT_ALIAS, null);
+            return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
+        } catch (RuntimeException e) {
+            // There is an issue in android keystore that resets keystore
+            // Issue 61989:  AndroidKeyStore deleted after changing screen lock type
+            // https://code.google.com/p/android/issues/detail?id=61989
+            // in this case getEntry throws
+            // java.lang.RuntimeException: error:0D07207B:asn1 encoding routines:ASN1_get_object:header too long
+            // handle it as regular KeyStoreException
+            throw new KeyStoreException(e);
         }
-
-        return null;
     }
 
-    @TargetApi(18)
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private AlgorithmParameterSpec getKeyPairGeneratorSpec(Context context, Date start, Date end) {
+        String certInfo = String.format(Locale.ROOT, "CN=%s, OU=%s", KEY_STORE_CERT_ALIAS,
+                context.getPackageName());
+        return new KeyPairGeneratorSpec.Builder(context)
+                .setAlias(KEY_STORE_CERT_ALIAS)
+                .setSubject(new X500Principal(certInfo))
+                .setSerialNumber(BigInteger.ONE)
+                .setStartDate(start)
+                .setEndDate(end)
+                .build();
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized void resetKeyPairFromAndroidKeyStore() throws KeyStoreException,
             NoSuchAlgorithmException, CertificateException, IOException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -554,13 +543,13 @@ public class StorageHelper {
         keyStore.deleteEntry(KEY_STORE_CERT_ALIAS);
     }
 
-    @TargetApi(18)
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private byte[] wrap(Cipher wrapCipher, SecretKey key) throws GeneralSecurityException {
         wrapCipher.init(Cipher.WRAP_MODE, mKeyPair.getPublic());
         return wrapCipher.wrap(key);
     }
 
-    @TargetApi(18)
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private SecretKey unwrap(Cipher wrapCipher, byte[] keyBlob) throws GeneralSecurityException {
         wrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());
         return (SecretKey)wrapCipher.unwrap(keyBlob, KEYSPEC_ALGORITHM, Cipher.SECRET_KEY);

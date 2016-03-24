@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -1437,7 +1442,7 @@ public class AuthenticationContext {
             if (!request.isSilent() && (activity != null || useDialog)) {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
-                final String errorInfo = authResult == null? "" : authResult.getErrorLogInfo();
+                final String errorInfo = authResult == null ? "" : authResult.getErrorLogInfo();
                 // User does not want to launch activity
                 Logger.e(TAG, "Prompt is not allowed and failed to get token:", request.getLogInfo() + " " + errorInfo,
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -1653,6 +1658,7 @@ public class AuthenticationContext {
         Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
         if (allItems == null || !allItems.hasNext()) {
             Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
+            return null;
         }
         
         if (userIdentifierType == UserIdentifierType.UniqueId) {
@@ -1660,9 +1666,7 @@ public class AuthenticationContext {
             while (allItems.hasNext()) {
                 final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo!= null 
-                    && tokenUserInfo.getUserId() != null 
-                    && tokenUserInfo.getUserId().equalsIgnoreCase(userId)) {
+                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getUserId())) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                             && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
                         Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
@@ -1675,8 +1679,7 @@ public class AuthenticationContext {
             while (allItems.hasNext()) {
                 final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo != null && tokenUserInfo.getDisplayableId() != null
-                    && tokenUserInfo.getDisplayableId().equalsIgnoreCase(userId)) {
+                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getDisplayableId())) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                             && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
                         Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
@@ -1686,6 +1689,7 @@ public class AuthenticationContext {
             }
         }
 
+        Logger.v(TAG + methodName, "No family items found in the cache.");
         return null;
     }
     
@@ -2186,7 +2190,7 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.14";
+        return "1.1.16";
     }
 
     /**

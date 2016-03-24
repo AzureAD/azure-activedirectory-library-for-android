@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -33,7 +38,7 @@ import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
 import android.net.Uri;
 import android.os.Build;
@@ -363,8 +368,8 @@ class Oauth2 {
 
         // Refresh token endpoint needs to send header field for device
         // challenge
-        headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE,
-                AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE_VERSION);
+        headers.put(AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE,
+                AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE_VERSION);
         return postMessage(requestMessage, headers);
     }
 
@@ -467,27 +472,27 @@ class Oauth2 {
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 if (response.getResponseHeaders() != null
                         && response.getResponseHeaders().containsKey(
-                                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER)) {
+                                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
-                    String challangeHeader = response.getResponseHeaders()
-                            .get(AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER).get(0);
-                    Logger.v(TAG, "Device certificate challange request:" + challangeHeader);
-                    if (!StringExtensions.IsNullOrBlank(challangeHeader)) {
+                    String challengeHeader = response.getResponseHeaders()
+                            .get(AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER).get(0);
+                    Logger.v(TAG, "Device certificate challenge request:" + challengeHeader);
+                    if (!StringExtensions.IsNullOrBlank(challengeHeader)) {
 
                         // Handle each specific challenge header
-                        if (StringExtensions.hasPrefixInHeader(challangeHeader,
-                                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)) {
-                            Logger.v(TAG, "Challange is related to device certificate");
-                            ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                        if (StringExtensions.hasPrefixInHeader(challengeHeader,
+                                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) {
+                            Logger.v(TAG, "Challenge is related to device certificate");
+                            ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                     mJWSBuilder);
-                            Logger.v(TAG, "Processing device challange");
-                            final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponseFromHeader(challangeHeader,
+                            Logger.v(TAG, "Processing device challenge");
+                            final ChallengeResponse challengeResponse = certHandler
+                                    .getChallengeResponseFromHeader(challengeHeader,
                                             authority.toString());
-                            headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
-                                    challangeResponse.mAuthorizationHeaderValue);
+                            headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
+                                    challengeResponse.mAuthorizationHeaderValue);
                             Logger.v(TAG, "Sending request with challenge response");
                             response = mWebRequestHandler.sendPost(authority, headers,
                                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
@@ -496,7 +501,7 @@ class Oauth2 {
                     } else {
                         throw new AuthenticationException(
                                 ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                                "Challange header is empty");
+                                "Challenge header is empty");
                     }
                 } else {
 
