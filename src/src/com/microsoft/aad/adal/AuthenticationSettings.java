@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Settings to be used in AuthenticationContext.
  */
@@ -34,7 +36,7 @@ public enum AuthenticationSettings {
 
     private static final int SECRET_RAW_KEY_LENGTH = 32;
 
-    private byte[] mSecretKeyData = null;
+    private AtomicReference<byte[]> mSecretKeyData = new AtomicReference<>();
 
     private String mBrokerPackageName = AuthenticationConstants.Broker.PACKAGE_NAME;
 
@@ -71,7 +73,7 @@ public enum AuthenticationSettings {
      * @return byte[] secret data
      */
     public byte[] getSecretKeyData() {
-        return mSecretKeyData;
+        return mSecretKeyData.get();
     }
 
     /**
@@ -85,7 +87,7 @@ public enum AuthenticationSettings {
             throw new IllegalArgumentException("rawKey");
         }
 
-        mSecretKeyData = rawKey;
+        mSecretKeyData.set(rawKey);
     }
 
     /**
