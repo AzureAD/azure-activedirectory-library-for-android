@@ -67,6 +67,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     .registerTypeAdapter(Date.class, new DateTimeAdapter())
     .create();
     private static StorageHelper sHelper;
+    private static Object sLock = new Object();
     /**
      * @param context {@link Context}
      * @throws NoSuchAlgorithmException
@@ -109,11 +110,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * Method that allows to mock StorageHelper class and use custom encryption in UTs
      * @return
      */
-    protected synchronized StorageHelper getStorageHelper() {
-        if (sHelper == null) {
-            Logger.v(TAG, "Started to initialize storage helper");
-            sHelper = new StorageHelper(mContext);
-            Logger.v(TAG, "Finished to initialize storage helper");
+    protected StorageHelper getStorageHelper() {
+        synchronized (sLock) {
+            if (sHelper == null) {
+                Logger.v(TAG, "Started to initialize storage helper");
+                sHelper = new StorageHelper(mContext);
+                Logger.v(TAG, "Finished to initialize storage helper");
+            }
         }
         return sHelper;
     }
