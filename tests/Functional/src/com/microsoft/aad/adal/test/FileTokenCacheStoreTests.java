@@ -24,8 +24,6 @@ import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
-import android.content.Context;
-
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationSettings;
@@ -37,6 +35,8 @@ import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
+
+import android.content.Context;
 
 public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
@@ -203,7 +203,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         setupCache(file);
         ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
 
-        final Iterator<TokenCacheItem> allItems = store.getAll().iterator();
+        final Iterator<TokenCacheItem> allItems = store.getAll();
         
         assertTrue(allItems.hasNext());
         final TokenCacheItem tokenCacheItem1 = allItems.next();

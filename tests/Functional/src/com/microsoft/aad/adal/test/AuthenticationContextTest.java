@@ -32,6 +32,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -2311,7 +2312,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         }
 
         @Override
-        public Iterable<TokenCacheItem> getAll() {
+        public Iterator<TokenCacheItem> getAll() {
             // TODO Auto-generated method stub
             return null;
         }

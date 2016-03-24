@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.UUID;
 
 import javax.crypto.NoSuchPaddingException;
@@ -506,12 +507,11 @@ public class MainActivity extends Activity {
         Log.d(TAG, "Setting item to expire...");
         ArrayList<TokenCacheItem> items = new ArrayList<TokenCacheItem>();
         DefaultTokenCacheStore cache = (DefaultTokenCacheStore)mContext.getCache();
-        final Iterable<TokenCacheItem> allItems = cache.getAll();
-        if (allItems != null) {
-            for (final TokenCacheItem tokenCacheItem : allItems) {
-                if (tokenCacheItem != null) {
-                    items.add(tokenCacheItem);
-                }
+        final Iterator<TokenCacheItem> allItems = cache.getAll();
+        while (allItems.hasNext()) {
+            TokenCacheItem tokenCacheItem = allItems.next();
+            if (tokenCacheItem != null) {
+                items.add(tokenCacheItem);
             }
         }
 
