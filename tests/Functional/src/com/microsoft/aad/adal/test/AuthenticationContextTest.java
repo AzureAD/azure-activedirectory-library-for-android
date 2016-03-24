@@ -1658,7 +1658,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal3 = new CountDownLatch(1);
         MockAuthenticationCallback callback3 = new MockAuthenticationCallback(signal3);
 
-        context.acquireToken(new MockActivity(null), resource, clientId, "http://redirectUri", "userName1", callback3);
+        final MockActivity testActivity = new MockActivity();
+        testActivity.mSignal = signal3;
+        context.acquireToken(testActivity, resource, clientId, "http://redirectUri", "userName1", callback3);
         signal3.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         
         // Check response in callback

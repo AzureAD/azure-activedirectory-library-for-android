@@ -496,11 +496,11 @@ public class MainActivity extends Activity {
         Log.d(TAG, "Setting item to expire...");
         ArrayList<TokenCacheItem> items = new ArrayList<TokenCacheItem>();
         DefaultTokenCacheStore cache = (DefaultTokenCacheStore)mContext.getCache();
-        Iterator<TokenCacheItem> iterator = cache.getAll();
-        while (iterator.hasNext()) {
-            TokenCacheItem item = iterator.next();
-            if (item != null) {
-                items.add(item);
+        final Iterator<TokenCacheItem> allItems = cache.getAll();
+        while (allItems.hasNext()) {
+            TokenCacheItem tokenCacheItem = allItems.next();
+            if (tokenCacheItem != null) {
+                items.add(tokenCacheItem);
             }
         }
 

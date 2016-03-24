@@ -1425,7 +1425,7 @@ public class AuthenticationContext {
             if (!request.isSilent() && (activity != null || useDialog)) {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
-                final String errorInfo = authResult == null? "" : authResult.getErrorLogInfo();
+                final String errorInfo = authResult == null ? "" : authResult.getErrorLogInfo();
                 // User does not want to launch activity
                 Logger.e(TAG, "Prompt is not allowed and failed to get token:", request.getLogInfo() + " " + errorInfo,
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -1641,6 +1641,7 @@ public class AuthenticationContext {
         Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
         if (allItems == null || !allItems.hasNext()) {
             Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
+            return null;
         }
         
         if (userIdentifierType == UserIdentifierType.UniqueId) {
@@ -1648,9 +1649,7 @@ public class AuthenticationContext {
             while (allItems.hasNext()) {
                 final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo!= null 
-                    && tokenUserInfo.getUserId() != null 
-                    && tokenUserInfo.getUserId().equalsIgnoreCase(userId)) {
+                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getUserId())) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                             && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
                         Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
@@ -1663,8 +1662,7 @@ public class AuthenticationContext {
             while (allItems.hasNext()) {
                 final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo != null && tokenUserInfo.getDisplayableId() != null
-                    && tokenUserInfo.getDisplayableId().equalsIgnoreCase(userId)) {
+                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getDisplayableId())) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                             && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
                         Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
@@ -1674,6 +1672,7 @@ public class AuthenticationContext {
             }
         }
 
+        Logger.v(TAG + methodName, "No family items found in the cache.");
         return null;
     }
     
