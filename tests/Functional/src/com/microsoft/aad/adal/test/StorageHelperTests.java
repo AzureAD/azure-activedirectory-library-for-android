@@ -26,16 +26,10 @@ package com.microsoft.aad.adal.test;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.DigestException;
 import java.security.GeneralSecurityException;
-import java.security.KeyPair;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -43,14 +37,13 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.StorageHelper;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import android.test.AndroidTestCase;
 import android.util.Base64;
 import android.util.Log;
-import junit.framework.Assert;
 
 public class StorageHelperTests extends AndroidTestHelper {
 
