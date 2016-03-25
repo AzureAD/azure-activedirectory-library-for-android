@@ -128,7 +128,7 @@ public class AuthenticationContext {
      */
     private UUID mRequestCorrelationId = null;
     
-    private final BrokerResumeResultReceiver brokerResumeResultReceiver = new BrokerResumeResultReceiver();
+    private BrokerResumeResultReceiver mBrokerResumeResultReceiver = null;
 
     /**
      * Constructs context to use with known authority to get the token. It uses
@@ -830,17 +830,32 @@ public class AuthenticationContext {
                             + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
-                }
-                else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME)
-                {
+                } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
                     Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker installation. Once "
                             + "broker is installed, request will be resumed and result will be received");
                     
                     //Register the broker resume result receiver with intent filter as broker_request_resume and specific app package name
-                    (new ContextWrapper(mContext)).registerReceiver(brokerResumeResultReceiver, 
-                            new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME + mContext.getPackageName()), null, mHandler);
-                }
-                else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
+                    mBrokerResumeResultReceiver = new BrokerResumeResultReceiver();
+                    (new ContextWrapper(mContext)).registerReceiver(mBrokerResumeResultReceiver, 
+                            new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME 
+                                    + mContext.getPackageName()), null, mHandler);
+                    
+                    // Send cancel result back to caller if doesn't receive result from broker within 5 minuites
+                    mHandler.postDelayed(new Runnable() {
+                        
+                        @Override
+                        public void run() {
+                            if (!mBrokerResumeResultReceiver.isResultReceivedFromBroker()) {
+                                Logger.v(TAG + "onActivityResult", "BrokerResumeResultReceiver doesn't receive result from "
+                                        + "broker within 10 minuites, unregister the receiver and cancelling the request");
+                                
+                                (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
+                                waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError("Broker doesn't "
+                                        + "return back the result within 5 minuites"));
+                            }
+                        }
+                    }, 10 * 60 * 1000);
+                } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
                     if (authException != null && authException instanceof AuthenticationException) {
@@ -2136,12 +2151,15 @@ public class AuthenticationContext {
      */
     protected class BrokerResumeResultReceiver extends BroadcastReceiver {
         public BrokerResumeResultReceiver() {}
+        
+        private boolean receivedResultFromBroker = false;
 
         @Override
         public void onReceive(Context context, Intent intent) {
             final String methodName = ":BrokerResumeResultReceiver:onReceive";
             Logger.d(TAG + methodName, "Received result from broker.");
             final int receivedWaitingRequestId = intent.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0);
+            
             if (receivedWaitingRequestId == 0) {
                 Logger.v(TAG + methodName, "Received waiting request is 0, error will be thrown, cannot find correct "
                     + "callback to send back the result.");
@@ -2150,7 +2168,9 @@ public class AuthenticationContext {
                 // and return back to caller.
                 return;
             }
-          
+            
+            // Setting flag to show that receiver already receive result from broker
+            receivedResultFromBroker = true;
             final AuthenticationRequestState waitingRequest = getWaitingRequest(receivedWaitingRequestId);
             
             final String errorCode = intent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
@@ -2177,7 +2197,11 @@ public class AuthenticationContext {
                     waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, "Broker doesn't send back error nor the completion notification."));
                 }
             }
-            (new ContextWrapper(mContext)).unregisterReceiver(brokerResumeResultReceiver);
+            (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
+        }
+        
+        public boolean isResultReceivedFromBroker() {
+            return receivedResultFromBroker;
         }
     }
     

@@ -23,17 +23,18 @@
 
 package com.microsoft.aad.adal;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.google.gson.Gson;
-import com.google.gson.Gson;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -49,15 +50,20 @@ import android.content.pm.ResolveInfo;
  */
 public class ApplicationReceiver extends BroadcastReceiver {
 
-    private static final String TAG = "ApplicationReceiver";
+    private static final String TAG = ApplicationReceiver.class.getSimpleName() + ":";
 
     public static final String INSTALL_REQUEST_TRACK_FILE = "adal.broker.install.track";
 
     public static final String INSTALL_REQUEST_KEY = "adal.broker.install.request";
+    
+    public static final String INSTALL_REQUEST_TIMESTAMP_KEY = "adal.broker.install.request.timestamp";
 
     private static final String INSTALL_UPN_KEY = "username";
 
     public static final String INSTALL_URL_KEY = "app_link";
+    
+    // Allow 5 mins for broker app to be installed
+    private static final int BROKER_APP_INSTALLATION_TIME_OUT = 5;
     
     private String installedPackageName = null;
     
@@ -70,7 +76,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         // Check if the application is install and belongs to the broker package
-        final String methodName = ":onReceive";
+        final String methodName = "onReceive";
         if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
             Logger.v(TAG + methodName, "Application install message is received");
             if (intent != null && intent.getData() != null) {
@@ -78,17 +84,25 @@ public class ApplicationReceiver extends BroadcastReceiver {
                 final String receivedInstalledPackageName = intent.getData().toString();
                 if (receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME) ||
                         receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
-                    Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
                     
                     installedPackageName = receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)? 
                             AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME : AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
                     
                     String request = getInstallRequestInthisApp(context);
                     brokerProxy = new BrokerProxy(context);
-                    if (!StringExtensions.IsNullOrBlank(request) && brokerProxy.canSwitchToBroker()) {
+                    final Date dateTimeForSavedRequest = new Date(getInstallRequestTimeStamp(context));
+                    
+                    // Broker request will be resumed if 
+                    // 1) there is saved request in sharedPreference
+                    // 2) app has the correct configuration to get token from broker
+                    // 3) the saved request is not timeout
+                    if (!StringExtensions.IsNullOrBlank(request) && brokerProxy.canSwitchToBroker() 
+                            && isRequestTimestampValidForResume(dateTimeForSavedRequest)) {
+                        Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
                         resumeRequestInBroker(context, request);
                     } else {
-                        Logger.v(TAG + methodName, "No request saved in sharedpreferences, cannot resume broker request.");
+                        Logger.v(TAG + methodName, "No request saved in sharedpreferences or request already timeout"
+                                + ", cannot resume broker request.");
                     }
                 }
             }
@@ -96,7 +110,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
     }
 
     public static void saveRequest(final Context ctx, final AuthenticationRequest request, final String url) {
-        final String methodName = ":saveRequest";
+        final String methodName = "saveRequest";
         
         Logger.v(TAG + methodName, "ApplicationReceiver starts to save the request in shared preference.");
         SharedPreferences prefs = ctx.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
@@ -113,6 +127,11 @@ public class ApplicationReceiver extends BroadcastReceiver {
             Gson gson = new Gson();
             String jsonRequest = gson.toJson(request);
             prefsEditor.putString(INSTALL_REQUEST_KEY, jsonRequest);
+            
+            // Also saving the timestamp
+            final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+            prefsEditor.putLong(INSTALL_REQUEST_TIMESTAMP_KEY, calendar.getTimeInMillis());
+            
             prefsEditor.apply();
         }
         else {
@@ -140,6 +159,22 @@ public class ApplicationReceiver extends BroadcastReceiver {
 
         return null;
     }
+    
+    public static String getInstallRequestInthisApp(final Context context) {
+        final String methodName = "getInstallRequestInthisApp";
+        
+        Logger.v(TAG + methodName, "Retrieve saved request from shared preference.");
+        SharedPreferences prefs = context.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
+                Activity.MODE_PRIVATE);
+        if (prefs != null && prefs.contains(INSTALL_REQUEST_KEY)) {
+            String request = prefs.getString(INSTALL_REQUEST_KEY, "");
+            Logger.d(TAG + methodName, "Install request:" + request);
+            return request;
+        }
+
+        Logger.v(TAG + methodName, "Unable to retrieve saved request from shared preference.");
+        return "";
+    }
 
     /**
      * Clear the username after resuming login.
@@ -156,9 +191,24 @@ public class ApplicationReceiver extends BroadcastReceiver {
             prefsEditor.apply();
         }
     }
+    
+    private boolean isRequestTimestampValidForResume(final Date savedRequestTimestamp) {
+        final String methodName = "isRequestTimestampValidForResume";
+        
+        // Get current UTC time
+        final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        calendar.add(Calendar.MINUTE, BROKER_APP_INSTALLATION_TIME_OUT * (-1));
+        if (savedRequestTimestamp.compareTo(calendar.getTime()) >= 0) {
+            Logger.v(TAG + methodName, "Saved request is valid, not timeout yet.");
+            return true;
+        }
+        
+        Logger.v(TAG + methodName, "Saved request is already timeout");
+        return false;
+    }
 
     private void resumeRequestInBroker(final Context context, final String request) {
-        final String methodName = ":resumeRequestInBroker";
+        final String methodName = "resumeRequestInBroker";
         Logger.v(TAG + methodName, "Start resuming request in broker");
         Gson gson = new Gson();
         final AuthenticationRequest pendingRequest = gson.fromJson(request, AuthenticationRequest.class);
@@ -201,31 +251,18 @@ public class ApplicationReceiver extends BroadcastReceiver {
         });
     }
     
-    protected boolean isRunningInForeground(final Context context, final String packageName) {
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        List<RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
-        for(RunningAppProcessInfo appProcess : appProcesses) {
-            if(appProcess.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
-                return appProcess.processName.equalsIgnoreCase(packageName);
-            }
-        }
+    private long getInstallRequestTimeStamp(final Context context) {
+        final String methodName = "getInstallRequestTimeStamp";
         
-        return false;
-    }
-
-    public static String getInstallRequestInthisApp(final Context context) {
-        final String methodName = ":getInstallRequestInthisApp";
-        
-        Logger.v(TAG + methodName, "Retrieve saved request from shared preference.");
+        Logger.v(TAG + methodName, "Retrieve timestamp for saved request from shared preference.");
         SharedPreferences prefs = context.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
                 Activity.MODE_PRIVATE);
-        if (prefs != null && prefs.contains(INSTALL_REQUEST_KEY)) {
-            String request = prefs.getString(INSTALL_REQUEST_KEY, "");
-            Logger.d(TAG + methodName, "Install request:" + request);
-            return request;
+        if (prefs != null && prefs.contains(INSTALL_REQUEST_TIMESTAMP_KEY)) {
+            final long savedRequestTimeStamp = prefs.getLong(INSTALL_REQUEST_TIMESTAMP_KEY, 0);
+            Logger.v(TAG + methodName, "Timestamp for saved request is: " + savedRequestTimeStamp);
+            return savedRequestTimeStamp;
         }
-
-        Logger.v(TAG + methodName, "Unable to retrieve saved request from shared preference.");
-        return "";
+        
+        return 0;
     }
 }
