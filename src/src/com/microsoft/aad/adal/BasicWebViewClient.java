@@ -256,11 +256,15 @@ abstract class BasicWebViewClient extends WebViewClient {
             HashMap<String, String> parameters = StringExtensions
                     .getUrlParameters(url);
             prepareForBrokerResumeRequest();
-            // Wait for the calling activity to receive the result from prepareForBrokerResumeRequest
+            // Having thread sleep for 1 second for calling activity to receive the result from 
+            // prepareForBrokerResumeRequest, thus the receiver for listening broker result return
+            // can be registered. openLinkInBrowser will launch activity for going to
+            // playstore and broker app download page which brought the calling activity down 
+            // in the activity stack.
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                Logger.v(TAG + ":shouldOverrideUrlLoading", "Error occure when having thread sleeping for 1 second");
+                Logger.v(TAG + ":shouldOverrideUrlLoading", "Error occured when having thread sleeping for 1 second");
             }
             openLinkInBrowser(parameters.get(ApplicationReceiver.INSTALL_URL_KEY));
             view.stopLoading();

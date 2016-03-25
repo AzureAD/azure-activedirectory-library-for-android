@@ -851,7 +851,7 @@ public class AuthenticationContext {
                                 
                                 (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
                                 waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError("Broker doesn't "
-                                        + "return back the result within 5 minuites"));
+                                        + "return back the result within 10 minuites"));
                             }
                         }
                     }, 10 * 60 * 1000);
