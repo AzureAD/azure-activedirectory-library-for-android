@@ -253,5 +253,10 @@ class AuthenticationDialog {
         public boolean processInvalidUrl(WebView view, String url) {
             return false;
         }
+
+        @Override
+        public void prepareForBrokerResumeRequest() 
+        {
+        }
     }
 }

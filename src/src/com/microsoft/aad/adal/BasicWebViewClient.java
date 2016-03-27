@@ -71,6 +71,8 @@ abstract class BasicWebViewClient extends WebViewClient {
     
     public abstract void cancelWebViewRequest();
     
+    public abstract void prepareForBrokerResumeRequest();
+    
     public abstract void setPKeyAuthStatus(boolean status);
     
     public abstract void postRunnable(Runnable item);    
@@ -253,9 +255,19 @@ abstract class BasicWebViewClient extends WebViewClient {
             ApplicationReceiver.saveRequest(mCallingContext, mRequest, url);
             HashMap<String, String> parameters = StringExtensions
                     .getUrlParameters(url);
+            prepareForBrokerResumeRequest();
+            // Having thread sleep for 1 second for calling activity to receive the result from 
+            // prepareForBrokerResumeRequest, thus the receiver for listening broker result return
+            // can be registered. openLinkInBrowser will launch activity for going to
+            // playstore and broker app download page which brought the calling activity down 
+            // in the activity stack.
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Logger.v(TAG + ":shouldOverrideUrlLoading", "Error occured when having thread sleeping for 1 second");
+            }
             openLinkInBrowser(parameters.get(ApplicationReceiver.INSTALL_URL_KEY));
             view.stopLoading();
-            cancelWebViewRequest();
             return true;
         }
 
