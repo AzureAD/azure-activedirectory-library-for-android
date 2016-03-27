@@ -1590,10 +1590,9 @@ public class AuthenticationContext {
         
         String mTenantId;
 
-        public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item,
-                boolean multiResource) {
+        public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item) {
             mKey = keyInCache;
-            mMultiResource = multiResource;
+            mMultiResource = item.getIsMultiResourceRefreshToken();
 
             if (item != null) {
                 mRefreshToken = item.getRefreshToken();
@@ -1619,35 +1618,34 @@ public class AuthenticationContext {
         final String methodName = ":getRefreshToken";
         RefreshItem refreshItem = null;
         if (mTokenCacheStore != null) {
-            boolean multiResource = false;
-            // target refreshToken for this resource first. CacheKey will
-            // include the resourceId in the cachekey
-            Logger.v(TAG, "Looking for regular refresh token");
             String userId = request.getUserId();
             if (StringExtensions.IsNullOrBlank(userId)) {
                 // acquireTokenSilent expects userid field from UserInfo
                 userId = request.getLoginHint();
             }
-            String keyUsed = CacheKey.createCacheKey(request, userId);
+
+            // Target multiResource item in cache first because it's the most recent one.
+            // Cache key will not include resourceId.
+            Logger.v(TAG, "Looking for Multi Resource Refresh token");
+            String keyUsed  = CacheKey.createMultiResourceRefreshTokenKey(request, userId);
             TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
+
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
-                // if not present, check multiResource item in cache. Cache key
-                // will not include resourceId in the cache key string.
-                Logger.v(TAG, "Looking for Multi Resource Refresh token");
-                keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request, userId);
+                // if not present, check refreshToken for specified resource.
+                // CacheKey will include the resourceId
+                Logger.v(TAG, "Looking for regular refresh token");
+                keyUsed = CacheKey.createCacheKey(request, userId);
                 item = mTokenCacheStore.getItem(keyUsed);
-                multiResource = true;
             }
             
-            // If still cannot find an item, try with family clientid
-            // Disable this feature for ADFS authority
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
+                // If still cannot find an item, try with family clientid
+                // Disable this feature for ADFS authority
                 if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority))) {
                     Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
                     item = findFamilyItemForUser(request.getUserIdentifierType(), userId, request.getClientId());
                     if (item != null) {
                         keyUsed = CacheKey.createCacheKey(item);
-                        multiResource = item.getIsMultiResourceRefreshToken();
                     }
                 } else {
                     Logger.v(TAG + methodName, "No refresh token found, skip the family client id item lookup for ADFS authority.");
@@ -1656,10 +1654,9 @@ public class AuthenticationContext {
 
             if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 String refreshTokenHash = getTokenHash(item.getRefreshToken());
-
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed);
-                refreshItem = new RefreshItem(keyUsed, request, item, multiResource);
+                refreshItem = new RefreshItem(keyUsed, request, item);
             }
         }
 
