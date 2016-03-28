@@ -103,7 +103,7 @@ class BrokerProxy implements IBrokerProxy {
         // authenticator
         // 4- signature of the broker is valid
         // 5- account exists
-        return !AuthenticationSettings.INSTANCE.getSkipBroker()
+        return AuthenticationSettings.INSTANCE.getUseBroker()
                 && verifyManifestPermissions()
                 && checkAccount(mAcctManager, "", "")
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE
@@ -201,7 +201,9 @@ class BrokerProxy implements IBrokerProxy {
      * Gets accessToken from Broker component.
      */
     @Override
-    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request) {
+    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request)
+            throws AuthenticationException
+    {
 
         AuthenticationResult authResult = null;
         verifyNotOnMainThread();
@@ -220,7 +222,7 @@ class BrokerProxy implements IBrokerProxy {
                 if (matchingUser != null) {
                     targetAccount = findAccount(matchingUser.getDisplayableId(), accountList);
                 }
-            } catch (Exception e) {
+            } catch (IOException | AuthenticatorException | OperationCanceledException e) {
                 Logger.e(TAG, e.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
             }
         }
@@ -269,7 +271,7 @@ class BrokerProxy implements IBrokerProxy {
         return null;
     }
 
-    private AuthenticationResult getResultFromBrokerResponse(Bundle bundleResult) {
+    private AuthenticationResult getResultFromBrokerResponse(Bundle bundleResult) throws AuthenticationException {
         if (bundleResult == null) {
             throw new IllegalArgumentException("bundleResult");
         }
@@ -306,13 +308,13 @@ class BrokerProxy implements IBrokerProxy {
             
             final Date expires;
             if (bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE) == 0) {
-            	Logger.v(TAG, "Broker doesn't return expire date, set it current date plus one hour");
-            	final Calendar currentTime = new GregorianCalendar();
-            	currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);;
-            	expires = currentTime.getTime(); 
+                Logger.v(TAG, "Broker doesn't return expire date, set it current date plus one hour");
+                final Calendar currentTime = new GregorianCalendar();
+                currentTime.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);;
+                expires = currentTime.getTime(); 
             }
             else {
-            	expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
+                expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
             
             AuthenticationResult result = new AuthenticationResult(
@@ -539,7 +541,7 @@ class BrokerProxy implements IBrokerProxy {
                 users = getBrokerUsers();
                 UserInfo matchingUser = findUserInfo(uniqueId, users);
                 return matchingUser != null;
-            } catch (Exception e) {
+            } catch (IOException | AuthenticatorException | OperationCanceledException e) {
                 Logger.e(TAG, "VerifyAccount:" + e.getMessage(), "",
                         ADALError.BROKER_AUTHENTICATOR_EXCEPTION, e);
             }
@@ -592,11 +594,7 @@ class BrokerProxy implements IBrokerProxy {
         } catch (NoSuchAlgorithmException e) {
             Logger.e(TAG, "Digest SHA algorithm does not exists", "",
                     ADALError.DEVICE_NO_SUCH_ALGORITHM);
-        } catch (Exception e) {
-            Logger.e(TAG, "Error in verifying signature", "", ADALError.BROKER_VERIFICATION_FAILED,
-                    e);
         }
-
         return false;
     }
 

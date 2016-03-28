@@ -29,10 +29,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
-import com.microsoft.aad.adal.R;
-
 /**
- * Http auth dialog for ntlm challange on webview.
+ * Http auth dialog for ntlm challenge on webview.
  */
 class HttpAuthDialog {
 
