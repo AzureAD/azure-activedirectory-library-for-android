@@ -1794,16 +1794,6 @@ public class AuthenticationContext {
         }
     }
 
-    private void removeItemFromCache(final RefreshItem refreshItem) {
-        if (mTokenCacheStore != null) {
-            Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey);
-            mTokenCacheStore.removeItem(refreshItem.mKey);
-            // clean up keys related to userid/displayableid for same request
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithUserId);
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithDisplayableId);
-        }
-    }
-
     /**
      * refresh token if possible. if it fails, it calls acquire token after
      * removing refresh token from cache.
@@ -1862,12 +1852,8 @@ public class AuthenticationContext {
         if (useCache) {
             if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                 String errLogInfo = result == null ? "" : result.getErrorLogInfo();
-                Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
+                Logger.e(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
                         + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
-
-                // remove item from cache to avoid same usage of
-                // refresh token in next acquireToken call
-                removeItemFromCache(refreshItem);
                 return result;
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());

@@ -1491,8 +1491,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         try {
             context.acquireTokenSilentSync("resource", "clientid", TEST_IDTOKEN_UPN);
         } catch (AuthenticationException e) {
-            assertEquals("Token is not exchanged",
-                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
+            assertEquals("Token is not exchanged, use only unique id for token silent request",
+                    ADALError.AUTH_FAILED_USER_MISMATCH, e.getCode());
         }
         
         clearCache(context);
