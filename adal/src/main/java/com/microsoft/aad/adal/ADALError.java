@@ -466,6 +466,11 @@ public enum ADALError {
      * WebView returned empty redirect url.
      */
     WEBVIEW_RETURNED_EMPTY_REDIRECT_URL("Webview returned empty redirect url"),
+    
+    /**
+     * WebView  redirect url is not SSL protected.
+     */
+    WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED("The webview was redirected to an unsafe URL"),
 
     /**
      * Device certificate API has exception.
@@ -495,7 +500,17 @@ public enum ADALError {
     /**
      * The redirectUri for broker is invalid.
      */
-    DEVELOPER_REDIRECTURI_INVALID("The redirectUri for broker is invalid");
+    DEVELOPER_REDIRECTURI_INVALID("The redirectUri for broker is invalid"),
+
+    /**
+     * Device challenge failure
+     */
+    DEVICE_CHALLENGE_FAILURE("Device challenge failure"),
+
+    /**
+     * Resource authentication challenge failure
+     */
+    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure");
 
     private String mDescription;
 

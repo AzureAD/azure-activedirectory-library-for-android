@@ -38,8 +38,6 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.UUID;
 
-import javax.crypto.NoSuchPaddingException;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
@@ -47,6 +45,20 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationCallback;
+import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationException;
+import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.CacheKey;
+import com.microsoft.aad.adal.DefaultTokenCacheStore;
+import com.microsoft.aad.adal.ITokenCacheStore;
+import com.microsoft.aad.adal.Logger;
+import com.microsoft.aad.adal.Logger.ILogger;
+import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.TokenCacheItem;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -64,22 +76,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationCallback;
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.CacheKey;
-import com.microsoft.aad.adal.DefaultTokenCacheStore;
-import com.microsoft.aad.adal.ITokenCacheStore;
-import com.microsoft.aad.adal.Logger;
-import com.microsoft.aad.adal.Logger.ILogger;
-import com.microsoft.aad.adal.PromptBehavior;
-import com.microsoft.aad.adal.TokenCacheItem;
-
-import com.microsoft.aad.testapp.R;
 
 public class MainActivity extends Activity {
 
@@ -323,16 +319,7 @@ public class MainActivity extends Activity {
             authority = AUTHORITY_URL;
         }
 
-        try {
-            mContext = new AuthenticationContext(MainActivity.this, authority,
-                    mValidate.isChecked());
-        } catch (NoSuchAlgorithmException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        mContext = new AuthenticationContext(MainActivity.this, authority, mValidate.isChecked());
     }
 
     public void acquireTokenByRefreshToken(String refreshToken) {

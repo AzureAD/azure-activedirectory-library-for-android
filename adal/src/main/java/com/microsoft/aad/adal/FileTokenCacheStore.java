@@ -21,8 +21,10 @@ package com.microsoft.aad.adal;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Iterator;
 
 import android.content.Context;
 
@@ -102,14 +104,14 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                 Logger.v(TAG, "There is not any previous cache file to load cache.");
                 mInMemoryCache = new MemoryTokenCacheStore();
             }
-        } catch (Exception ex) {
+        } catch (IOException | ClassNotFoundException ex) {
             Logger.e(TAG, "Exception during cache load",
                     ExceptionExtensions.getExceptionMessage(ex),
                     ADALError.DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE);
             // if it is not possible to load the cache because of permissions or
             // similar, it will not work again. File cache is not working and
             // not make sense to use it.
-            throw new AuthenticationException(ADALError.DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE);
+            throw new IllegalStateException(ex);
 
         }
     }
@@ -156,12 +158,17 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                     objectStream.close();
                     outputStream.close();
 
-                } catch (Exception ex) {
+                } catch (IOException ex) {
                     Logger.e(TAG, "Exception during cache flush",
                             ExceptionExtensions.getExceptionMessage(ex),
                             ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE);
                 }
             }
         }
+    }
+
+    @Override
+    public Iterator<TokenCacheItem> getAll() {
+        return mInMemoryCache.getAll();
     }
 }

@@ -82,7 +82,7 @@ class JWSBuilder implements IJWSBuilder {
      * 
      */
     public String generateSignedJWT(String nonce, String audience, RSAPrivateKey privateKey,
-            RSAPublicKey pubKey, X509Certificate cert) {
+            RSAPublicKey pubKey, X509Certificate cert) throws AuthenticationException {
         // http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-25
         // In the JWS Compact Serialization, a JWS object is represented as the
         // combination of these three string values,
@@ -133,7 +133,7 @@ class JWSBuilder implements IJWSBuilder {
             // redundant but current ADFS code base is looking for
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
-            Logger.v(TAG, "Client certificate challange response JWS Header:" + headerJsonString);
+            Logger.v(TAG, "Client certificate challenge response JWS Header:" + headerJsonString);
             signingInput = StringExtensions.encodeBase64URLSafeString(headerJsonString
                     .getBytes(AuthenticationConstants.ENCODING_UTF8))
                     + "."
@@ -157,7 +157,7 @@ class JWSBuilder implements IJWSBuilder {
      * @param input
      * @return
      */
-    private static String sign(RSAPrivateKey privateKey, final byte[] input) {
+    private static String sign(RSAPrivateKey privateKey, final byte[] input) throws AuthenticationException {
         Signature signer = null;
         try {
             signer = Signature.getInstance(JWS_ALGORITHM);
