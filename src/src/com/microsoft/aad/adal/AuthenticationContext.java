@@ -1590,10 +1590,9 @@ public class AuthenticationContext {
         
         String mTenantId;
 
-        public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item,
-                boolean multiResource) {
+        public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item) {
             mKey = keyInCache;
-            mMultiResource = multiResource;
+            mMultiResource = item.getIsMultiResourceRefreshToken();
 
             if (item != null) {
                 mRefreshToken = item.getRefreshToken();
@@ -1619,32 +1618,35 @@ public class AuthenticationContext {
         final String methodName = ":getRefreshToken";
         RefreshItem refreshItem = null;
         if (mTokenCacheStore != null) {
-            boolean multiResource = false;
-            // target refreshToken for this resource first. CacheKey will
-            // include the resourceId in the cachekey
-            Logger.v(TAG, "Looking for regular refresh token");
             String userId = request.getUserId();
             if (StringExtensions.IsNullOrBlank(userId)) {
                 // acquireTokenSilent expects userid field from UserInfo
                 userId = request.getLoginHint();
             }
-            String keyUsed = CacheKey.createCacheKey(request, userId);
+
+            // Target multiResource item in cache first because it's the most recent one.
+            // Cache key will not include resourceId.
+            Logger.v(TAG, "Looking for Multi Resource Refresh token");
+            String keyUsed  = CacheKey.createMultiResourceRefreshTokenKey(request, userId);
             TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
+
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
-                // if not present, check multiResource item in cache. Cache key
-                // will not include resourceId in the cache key string.
-                Logger.v(TAG, "Looking for Multi Resource Refresh token");
-                keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request, userId);
+                // if not present, check refreshToken for specified resource.
+                // CacheKey will include the resourceId
+                Logger.v(TAG, "Looking for regular refresh token");
+                keyUsed = CacheKey.createCacheKey(request, userId);
                 item = mTokenCacheStore.getItem(keyUsed);
-                multiResource = true;
             }
             
-            // If still cannot find an item, try with family clientid
-            // Disable this feature for ADFS authority
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
+                // If still cannot find an item, try with family clientid
+                // Disable this feature for ADFS authority
                 if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority))) {
                     Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
-                    item = findFamilyItemForUser(request.getUserIdentifierType(), userId);
+                    item = findFamilyItemForUser(request.getUserIdentifierType(), userId, request.getClientId());
+                    if (item != null) {
+                        keyUsed = CacheKey.createCacheKey(item);
+                    }
                 } else {
                     Logger.v(TAG + methodName, "No refresh token found, skip the family client id item lookup for ADFS authority.");
                 }
@@ -1652,17 +1654,16 @@ public class AuthenticationContext {
 
             if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 String refreshTokenHash = getTokenHash(item.getRefreshToken());
-
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed);
-                refreshItem = new RefreshItem(keyUsed, request, item, multiResource);
+                refreshItem = new RefreshItem(keyUsed, request, item);
             }
         }
 
         return refreshItem;
     }
 
-    private TokenCacheItem findFamilyItemForUser(final UserIdentifierType userIdentifierType, final String userId) {
+    private TokenCacheItem findFamilyItemForUser(final UserIdentifierType userIdentifierType, final String userId, String clientId) {
         final String methodName = ":findFamilyItemForUser";
             
         if (StringExtensions.IsNullOrBlank(userId)) {
@@ -1675,37 +1676,35 @@ public class AuthenticationContext {
             Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
             return null;
         }
-        
-        if (userIdentifierType == UserIdentifierType.UniqueId) {
-            Logger.v(TAG + methodName, "UserIdentifier type is unique id, will look for the family item based on unique id.");
-            while (allItems.hasNext()) {
-                final TokenCacheItem tokenCacheItem = allItems.next();
-                final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getUserId())) {
-                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
-                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
-                        Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
-                        return tokenCacheItem;
-                    }
-                }
+
+        while (allItems.hasNext()) {
+            final TokenCacheItem tokenCacheItem = allItems.next();
+            if (tokenCacheItem.getClientId() == clientId) {
+                continue;
             }
-        } else if (userIdentifierType == UserIdentifierType.LoginHint) {
-            Logger.v(TAG + methodName, "UserIdentifier type is loginhint, will look for the family item based on login hint.");
-            while (allItems.hasNext()) {
-                final TokenCacheItem tokenCacheItem = allItems.next();
-                final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getDisplayableId())) {
-                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
-                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
-                        Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
-                        return tokenCacheItem;
-                    }
+            final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
+            if (tokenUserInfo != null && isRefreshTokenForFamily(tokenCacheItem)) {
+                if (userIdentifierType == UserIdentifierType.UniqueId
+                        && userId.equalsIgnoreCase(tokenUserInfo.getUserId())) {
+                    Logger.v(TAG + methodName, "Found family item matching the given unique id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
+                    return tokenCacheItem;
+                }
+
+                if (userIdentifierType == UserIdentifierType.LoginHint
+                        && userId.equalsIgnoreCase(tokenUserInfo.getDisplayableId())) {
+                    Logger.v(TAG + methodName, "Found family item matching the given login hint, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
+                    return tokenCacheItem;
                 }
             }
         }
 
         Logger.v(TAG + methodName, "No family items found in the cache.");
         return null;
+    }
+
+    private boolean isRefreshTokenForFamily(TokenCacheItem tokenCacheItem) {
+        return (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
+                && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken()));
     }
     
     private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
@@ -1795,16 +1794,6 @@ public class AuthenticationContext {
         }
     }
 
-    private void removeItemFromCache(final RefreshItem refreshItem) {
-        if (mTokenCacheStore != null) {
-            Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey);
-            mTokenCacheStore.removeItem(refreshItem.mKey);
-            // clean up keys related to userid/displayableid for same request
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithUserId);
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithDisplayableId);
-        }
-    }
-
     /**
      * refresh token if possible. if it fails, it calls acquire token after
      * removing refresh token from cache.
@@ -1863,12 +1852,8 @@ public class AuthenticationContext {
         if (useCache) {
             if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                 String errLogInfo = result == null ? "" : result.getErrorLogInfo();
-                Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
+                Logger.e(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
                         + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
-
-                // remove item from cache to avoid same usage of
-                // refresh token in next acquireToken call
-                removeItemFromCache(refreshItem);
                 return result;
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
