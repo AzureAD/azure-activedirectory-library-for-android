@@ -1648,7 +1648,7 @@ public class AuthenticationContext {
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority))) {
                     Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
-                    item = findFamilyItemForUser(request.getUserIdentifierType(), userId);
+                    item = findFamilyItemForUser(request.getUserIdentifierType(), userId, request.getClientId());
                 } else {
                     Logger.v(TAG + methodName, "No refresh token found, skip the family client id item lookup for ADFS authority.");
                 }
@@ -1666,7 +1666,8 @@ public class AuthenticationContext {
         return refreshItem;
     }
 
-    private TokenCacheItem findFamilyItemForUser(final UserIdentifierType userIdentifierType, final String userId) {
+    private TokenCacheItem findFamilyItemForUser(final UserIdentifierType userIdentifierType, final String userId, 
+            final String currentRequestClientId) {
         final String methodName = ":findFamilyItemForUser";
             
         if (StringExtensions.IsNullOrBlank(userId)) {
@@ -1674,7 +1675,7 @@ public class AuthenticationContext {
             return null;
         }
 
-        Iterator<TokenCacheItem> allItems = getAllTokensWithFamilyFlag().iterator();
+        Iterator<TokenCacheItem> allItems = getAllTokensWithFamilyFlag(currentRequestClientId).iterator();
         if (allItems == null || !allItems.hasNext()) {
             Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
             return null;
@@ -1706,7 +1707,7 @@ public class AuthenticationContext {
         return null;
     }
     
-    private List<TokenCacheItem> getAllTokensWithFamilyFlag () {
+    private List<TokenCacheItem> getAllTokensWithFamilyFlag (final String currentRequestClientId) {
         final String methodName = ":getAllTokensWithFamilyFlag";
         
         final List<TokenCacheItem> tokensWithFamilyFlag = new ArrayList<TokenCacheItem>();
@@ -1719,8 +1720,11 @@ public class AuthenticationContext {
         
         while (allItems.hasNext()) {
             final TokenCacheItem tokenCacheItem = allItems.next();
+            
+            // Skip the cache item with same client id. 
             if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId()) 
-                    && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
+                    && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())
+                    && !currentRequestClientId.equals(tokenCacheItem.getClientId())) {
                 tokensWithFamilyFlag.add(tokenCacheItem);
             }
         }
@@ -1731,8 +1735,7 @@ public class AuthenticationContext {
   
                 @Override
                 public int compare(TokenCacheItem thisTokenCacheItem, TokenCacheItem anotherTokenCacheItem) {
-                    if (thisTokenCacheItem.getTokenUpdateTime() != null && anotherTokenCacheItem.getTokenUpdateTime() != null)
-                    {
+                    if (thisTokenCacheItem.getTokenUpdateTime() != null && anotherTokenCacheItem.getTokenUpdateTime() != null) {
                         return anotherTokenCacheItem.getTokenUpdateTime().compareTo(thisTokenCacheItem.getTokenUpdateTime());
                     }
                     
