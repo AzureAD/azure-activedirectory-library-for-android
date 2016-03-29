@@ -49,6 +49,9 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.json.JSONException;
+
+import android.test.suitebuilder.annotation.Suppress;
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationCallback;
@@ -1363,6 +1366,98 @@ public class AuthenticationContextTest extends AndroidTestCase {
         
         clearCache(context);
     }
+    
+    public void testMultipleFamilyItemsInCache_LatestOneWillBePicked() throws NoSuchAlgorithmException, NoSuchPaddingException,       
+             NoSuchFieldException, IllegalAccessException, JSONException, InterruptedException {
+         FileMockContext mockContext = new FileMockContext(getContext());
+         ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
+         
+         // add more items in the token cache
+         // token cache item 1 with FoCI flag, set token updated time to be 1 month later
+         final TokenCacheItem tokenItem1 = createTokenCacheItemWithFoCIFlag("authority1", "clientid1", "accessToken1", "refreshToken1", 
+                 TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+         final Calendar tokenUpdatedTime1 = new GregorianCalendar();
+         tokenUpdatedTime1.add(Calendar.MONTH, 1);
+         tokenItem1.setTokenUpdateTime(tokenUpdatedTime1.getTime());
+         addTokenCacheItemInCache(tokenItem1, mockCache);
+         
+         //token cache item 2 with FoCI flag, set token upated time to be 2 months later
+         final TokenCacheItem tokenItem2 = createTokenCacheItemWithFoCIFlag("authority2", "clientid2", "accessToken2", "refreshToken2",
+                 TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+         final Calendar tokenUpatedTime2 = new GregorianCalendar();
+         tokenUpatedTime2.add(Calendar.MONTH, 2);
+         tokenItem2.setTokenUpdateTime(tokenUpatedTime2.getTime());
+         addTokenCacheItemInCache(tokenItem2, mockCache);
+         
+         // token cache item 3 with FoCI flag
+         final TokenCacheItem tokenItem3 = createTokenCacheItemWithFoCIFlag("authority3", "clientid3", "accessToken3", "refreshToken3", 
+                 TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+         addTokenCacheItemInCache(tokenItem3, mockCache);
+         
+         // also add a reglar token cache item with no FoCI flag, but with timestamp
+         final TokenCacheItem tokenItem4 = createTokenCacheItemWithFoCIFlag("authority4", "clientid4", "accessToken4", "refreshToken4", 
+                 TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+         tokenItem4.setFamilyClientId(null);
+         final Calendar tokenUpdatedTime4 = new GregorianCalendar();
+         tokenUpdatedTime4.add(Calendar.MONTH, 3);
+         addTokenCacheItemInCache(tokenItem4, mockCache);
+         
+         final AuthenticationContext context = getAuthenticationContext(mockContext,
+                 VALID_AUTHORITY, false, mockCache);
+         
+         setConnectionAvailable(context, true);
+         MockWebRequestHandler webrequest = new MockWebRequestHandler();
+         
+         // Do silent token request and return idtoken in the result
+         final String responseBody = "{\"id_token\":\""
+                 + TEST_IDTOKEN
+                 + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"I am a new refresh token\",\"scope\":\"*\"}";
+         webrequest.setReturnResponse(new HttpWebResponse(400, responseBody.getBytes(), null));
+         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+         
+         final String anotherClientId = "anotherClientId";
+         try {
+             context.acquireTokenSilentSync("resource", anotherClientId,
+                     TEST_IDTOKEN_USERID);
+         } catch (AuthenticationException authException) {
+             assertEquals("Error code is not as expected", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
+         }
+         
+         // Token cache item 2 is the one with latest timestamp, make sure refreshToken2 is used for making the request 
+         final String silentRequestPostMessage = webrequest.getRequestContent();
+         assertTrue(silentRequestPostMessage.contains("refresh_token=refreshToken2"));
+         assertFalse(silentRequestPostMessage.contains("refresh_token=refreshToken1"));
+         assertFalse(silentRequestPostMessage.contains("refresh_token=refreshToken3"));
+         assertFalse(silentRequestPostMessage.contains("refresh_token=refreshToken4"));
+         
+         clearCache(context);
+     }
+    
+    private TokenCacheItem createTokenCacheItemWithFoCIFlag(final String authority, final String clientId, final String accessToken, 
+        final String refreshToken, final String userId, final String displayableId) {
+        Calendar expiredTime = new GregorianCalendar();
+        Log.d("Test", "Time now:" + expiredTime.toString());
+        expiredTime.add(Calendar.MINUTE, -60);
+        TokenCacheItem tokenCacheItem = new TokenCacheItem();
+        tokenCacheItem.setAuthority(authority);
+        tokenCacheItem.setResource("resource");
+        tokenCacheItem.setClientId(clientId);
+        tokenCacheItem.setAccessToken(accessToken);
+        tokenCacheItem.setRefreshToken(refreshToken);
+        tokenCacheItem.setExpiresOn(expiredTime.getTime());
+        tokenCacheItem.setUserInfo(new UserInfo(userId, "givenName", "familyName",
+                "identityProvider", displayableId));
+        tokenCacheItem.setFamilyClientId("familyClientId");
+        tokenCacheItem.setTokenUpdateTime(new GregorianCalendar().getTime());
+        return tokenCacheItem;
+    }
+    
+    private void addTokenCacheItemInCache(final TokenCacheItem tokenCacheItem, final ITokenCacheStore tokenCacheStore) {
+        tokenCacheStore.setItem(CacheKey.createCacheKey(tokenCacheItem.getAuthority(), tokenCacheItem.getResource(), 
+                tokenCacheItem.getClientId(), false, tokenCacheItem.getUserInfo().getUserId()), tokenCacheItem);
+        tokenCacheStore.setItem(CacheKey.createCacheKey(tokenCacheItem.getAuthority(), tokenCacheItem.getResource(), 
+                tokenCacheItem.getResource(), false, tokenCacheItem.getUserInfo().getDisplayableId()), tokenCacheItem);
+   }
     
     private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey, 
             final String expectedFamilyClientId) {

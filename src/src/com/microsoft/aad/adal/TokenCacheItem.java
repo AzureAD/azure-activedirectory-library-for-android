@@ -26,6 +26,8 @@ package com.microsoft.aad.adal;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 /**
  * Extended result to store more info Queries will be performed over this item
@@ -64,6 +66,8 @@ public class TokenCacheItem implements Serializable {
     private String mTenantId;
     
     private String mFamilyClientId;
+    
+    private Date mTokenUpdatedTime;
 
     /**
      * Construct default cache item.
@@ -98,6 +102,9 @@ public class TokenCacheItem implements Serializable {
             }
             
             mFamilyClientId = result.getFamilyClientId();
+            
+            final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+            mTokenUpdatedTime = calendar.getTime();
         }
     }
 
@@ -188,7 +195,15 @@ public class TokenCacheItem implements Serializable {
     public final void setFamilyClientId(final String familyClientId) {
         this.mFamilyClientId = familyClientId;
     }
+    
+    protected final Date getTokenUpdateTime() {
+        return this.mTokenUpdatedTime;
+    }
 
+    public final void setTokenUpdateTime(final Date tokenUpateTime) {
+        this.mTokenUpdatedTime = tokenUpateTime;
+    }
+    
     /**
      * Checks expiration time.
      * 
