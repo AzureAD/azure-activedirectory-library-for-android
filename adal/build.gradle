@@ -1,7 +1,6 @@
 apply plugin: 'com.android.library'
 // This plugin publishes adal in to the local maven repo
 apply plugin: 'com.github.dcendents.android-maven'
-
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -11,8 +10,7 @@ group = 'com.microsoft.aad'
 
 buildscript {
     repositories {
-        //jcenter()
-        mavenCentral()
+        jcenter()
     }
     dependencies {
             classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
@@ -30,7 +28,6 @@ android {
         versionName "1.1.16"
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
-        //setProperty("archivesBaseName", "${archivesBaseName}-$versionName")
     }
     buildTypes {
         release {
@@ -67,7 +64,6 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
     compile 'com.android.support:appcompat-v7:21.0.3'
-    compile 'com.android.support:recyclerview-v7:21.0.3'
     compile 'com.google.code.gson:gson:2.2.4'
     //testCompile 'junit:junit:4.12'
     //testCompile 'org.mockito:mockito-core:1.10.19'
@@ -82,8 +78,6 @@ task sourcesJar(type: Jar) {
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath = configurations.compile
-    //source = android.sourceSets.main.java.srcDirs
-    //classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
 }
 
@@ -154,10 +148,5 @@ task checkstyle(type: Checkstyle) {
     exclude '**/gen/**'
     classpath = files()
 }
-
-/*check.doLast {
-    project.tasks.getByName("findbugs").execute()
-    project.tasks.getByName("pmd").execute()
-}*/
 
 assembleDebug.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint'

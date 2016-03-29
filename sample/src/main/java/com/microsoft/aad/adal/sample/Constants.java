@@ -32,7 +32,7 @@ public class Constants {
     
     // AAD PARAMETERS
     // https://login.windows.net/tenantInfo
-    static final String AUTHORITY_URL = "https://your.authority.url.here";
+    static final String AUTHORITY_URL = "https://login.windows.net/common";
 
     // Clientid is given from AAD page when you register your Android app
     static final String CLIENT_ID = "the_client_ID";
@@ -44,7 +44,7 @@ public class Constants {
     static final String RESOURCE_ID = "your_resource_ID";
 
     // Endpoint we are targeting for the deployed WebAPI service
-    static final String SERVICE_URL = "https://your.serive.url.here";
+    static final String SERVICE_URL = "https://your.service.url.here";
 
     // ------------------------------------------------------------------------------------------
 
