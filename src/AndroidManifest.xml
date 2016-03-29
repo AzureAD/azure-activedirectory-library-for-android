@@ -8,8 +8,7 @@
         android:minSdkVersion="14"
         android:targetSdkVersion="21" />
 
-    <application
-        android:allowBackup="true">
+    <application>
         <activity android:name="com.microsoft.aad.adal.AuthenticationActivity" >
         </activity>
         
