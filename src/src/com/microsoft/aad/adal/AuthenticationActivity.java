@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -29,6 +34,9 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Locale;
 import java.util.UUID;
+
+import com.google.gson.Gson;
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
@@ -57,9 +65,6 @@ import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
-
-import com.google.gson.Gson;
-import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
@@ -105,6 +110,7 @@ public class AuthenticationActivity extends Activity {
     private String mQueryParameters;
 
     private boolean mPkeyAuthRedirect = false;
+    private StorageHelper mStorageHelper;
 
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
@@ -268,6 +274,7 @@ public class AuthenticationActivity extends Activity {
                 " device:" + android.os.Build.VERSION.RELEASE + " " + android.os.Build.MANUFACTURER
                         + android.os.Build.MODEL);
 
+        mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView(mRedirectUrl, mQueryParameters, mAuthRequest);
         
         if (savedInstanceState == null) {
@@ -549,6 +556,15 @@ public class AuthenticationActivity extends Activity {
         Intent resultIntent = new Intent();
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
+    
+    private void prepareForBrokerResume ()
+    {
+        final String methodName = ":prepareForBrokerResume";
+        Logger.v(TAG + methodName, "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");
+        
+        final Intent resultIntent = new Intent();
+        returnToCaller(AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME, resultIntent);
+    }
 
     private void hideKeyBoard() {
         if (mWebView != null) {
@@ -630,6 +646,12 @@ public class AuthenticationActivity extends Activity {
         @Override
         public void cancelWebViewRequest() {
             cancelRequest();            
+        }
+        
+        @Override
+        public void prepareForBrokerResumeRequest ()
+        {
+            prepareForBrokerResume();
         }
 
         @Override
@@ -814,7 +836,7 @@ public class AuthenticationActivity extends Activity {
                 // Record account in the AccountManager service
                 try {
                     setAccount(result);
-                } catch (GeneralSecurityException | UnsupportedEncodingException exc) {
+                } catch (GeneralSecurityException | IOException exc) {
                     Logger.e(TAG, "Error in setting the account" + mRequest.getLogInfo(), "",
                             ADALError.BROKER_ACCOUNT_SAVE_FAILED, exc);
                     result.taskException = exc;
@@ -824,7 +846,7 @@ public class AuthenticationActivity extends Activity {
             return result;
         }
 
-        private String getBrokerAppCacheKey(StorageHelper cryptoHelper, String cacheKey)
+        private String getBrokerAppCacheKey(String cacheKey)
             throws NoSuchAlgorithmException, UnsupportedEncodingException {
             // include UID in the key for broker to store caches for different
             // apps under same account entry
@@ -836,15 +858,15 @@ public class AuthenticationActivity extends Activity {
             return digestKey;
         }
 
-        private void appendAppUIDToAccount(StorageHelper cryptoHelper, Account account)
-            throws GeneralSecurityException, UnsupportedEncodingException {
+        private void appendAppUIDToAccount(Account account)
+            throws GeneralSecurityException, IOException {
             String appIdList = mAccountManager.getUserData(account,
                     AuthenticationConstants.Broker.ACCOUNT_UID_CACHES);
             if (appIdList == null) {
                 appIdList = "";
             } else {
                 try {
-                    appIdList = cryptoHelper.decrypt(appIdList);
+                    appIdList = mStorageHelper.decrypt(appIdList);
                 } catch (GeneralSecurityException | IOException ex) {
                     Logger.e(TAG, "appUIDList failed to decrypt", "appIdList:" + appIdList,
                             ADALError.ENCRYPTION_FAILED, ex);
@@ -857,18 +879,19 @@ public class AuthenticationActivity extends Activity {
             if (!appIdList.contains(AuthenticationConstants.Broker.USERDATA_UID_KEY
                     + mAppCallingUID)) {
                 Logger.i(TAG, "Account has new calling UID:" + mAppCallingUID, "");
+                String encryptedValue = mStorageHelper.encrypt(appIdList
+                        + AuthenticationConstants.Broker.USERDATA_UID_KEY
+                        + mAppCallingUID);
                 mAccountManager
                         .setUserData(
-                                account,
-                                AuthenticationConstants.Broker.ACCOUNT_UID_CACHES,
-                                cryptoHelper.encrypt(appIdList
-                                        + AuthenticationConstants.Broker.USERDATA_UID_KEY
-                                        + mAppCallingUID));
+                        account,
+                        AuthenticationConstants.Broker.ACCOUNT_UID_CACHES,
+                        encryptedValue);
             }
         }
 
         private void setAccount(final TokenTaskResult result)
-                throws GeneralSecurityException, UnsupportedEncodingException {
+                throws GeneralSecurityException, IOException {
             // TODO Add token logging
             // TODO update for new cache logic
 
@@ -927,38 +950,40 @@ public class AuthenticationActivity extends Activity {
             Logger.i(TAG, "app context:" + getApplicationContext().getPackageName()
                     + " context:" + AuthenticationActivity.this.getPackageName()
                     + " calling packagename:" + getCallingPackage(), "");
-            StorageHelper cryptoHelper = new StorageHelper(getApplicationContext());
-
             if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
                 Logger.i(TAG, "setAccount: user key is null", "");
             }
 
             TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
             String json = gson.toJson(item);
-            String encrypted = cryptoHelper.encrypt(json);
+            String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
             String key = CacheKey.createCacheKey(mRequest, null);
             saveCacheKey(key, newaccount, mAppCallingUID);
-            mAccountManager.setUserData(newaccount, getBrokerAppCacheKey(cryptoHelper, key),
+            mAccountManager.setUserData(
+                    newaccount,
+                    getBrokerAppCacheKey(key),
                     encrypted);
 
             if (result.taskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
                 TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
                 json = gson.toJson(itemMRRT);
-                encrypted = cryptoHelper.encrypt(json);
+                encrypted = mStorageHelper.encrypt(json);
                 key = CacheKey.createMultiResourceRefreshTokenKey(mRequest, null);
                 saveCacheKey(key, newaccount, mAppCallingUID);
-                mAccountManager.setUserData(newaccount,
-                        getBrokerAppCacheKey(cryptoHelper, key), encrypted);
+                mAccountManager.setUserData(
+                        newaccount,
+                        getBrokerAppCacheKey(key),
+                        encrypted);
             }
 
             // Record calling UID for this account so that app can get token
             // in the background call without requiring server side
             // validation
             Logger.i(TAG, "Set calling uid:" + mAppCallingUID, "");
-            appendAppUIDToAccount(cryptoHelper, newaccount);
+            appendAppUIDToAccount(newaccount);
         }
 
         private void saveCacheKey(String key, Account cacheAccount, int callingUID) {

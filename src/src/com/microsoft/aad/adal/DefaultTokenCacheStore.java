@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+/// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -26,19 +31,21 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.crypto.NoSuchPaddingException;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager.NameNotFoundException;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * Store/Retrieve TokenCacheItem from private SharedPreferences.
@@ -53,52 +60,57 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private static final String TAG = "DefaultTokenCacheStore";
 
-    SharedPreferences mPrefs;
-
+    private SharedPreferences mPrefs;
     private Context mContext;
 
     private Gson mGson = new GsonBuilder()
     .registerTypeAdapter(Date.class, new DateTimeAdapter())
     .create();
-
     private static StorageHelper sHelper;
-
     private static Object sLock = new Object();
-    
     /**
      * @param context {@link Context}
      * @throws NoSuchAlgorithmException
      * @throws NoSuchPaddingException
      */
     public DefaultTokenCacheStore(Context context) {
-        mContext = context;
-        if (context != null) {
-
-            if (!StringExtensions.IsNullOrBlank(AuthenticationSettings.INSTANCE
-                    .getSharedPrefPackageName())) {
-                try {
-                    // Context is created from specified packagename in order to
-                    // use same file. Reading private data is only allowed if apps specify same
-                    // sharedUserId. Android OS will assign same UID, if they
-                    // are signed with same certificates.
-                    mContext = context.createPackageContext(
-                            AuthenticationSettings.INSTANCE.getSharedPrefPackageName(),
-                            Context.MODE_PRIVATE);
-                } catch (NameNotFoundException e) {
-                    throw new IllegalArgumentException("Package name:"
-                            + AuthenticationSettings.INSTANCE.getSharedPrefPackageName()
-                            + " is not found");
-                }
-            }
-            mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
-            if (mPrefs == null) {
-                throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
-            }
-
-        } else {
+        if (context == null) {
             throw new IllegalArgumentException("Context is null");
         }
+        mContext = context;
+        if (!StringExtensions.IsNullOrBlank(AuthenticationSettings.INSTANCE
+                .getSharedPrefPackageName())) {
+            try {
+                // Context is created from specified packagename in order to
+                // use same file. Reading private data is only allowed if apps specify same
+                // sharedUserId. Android OS will assign same UID, if they
+                // are signed with same certificates.
+                mContext = context.createPackageContext(
+                        AuthenticationSettings.INSTANCE.getSharedPrefPackageName(),
+                        Context.MODE_PRIVATE);
+            } catch (NameNotFoundException e) {
+                throw new IllegalArgumentException("Package name:"
+                        + AuthenticationSettings.INSTANCE.getSharedPrefPackageName()
+                        + " is not found");
+            }
+        }
+        mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
+        if (mPrefs == null) {
+            throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
+        }
 
+        try {
+            getStorageHelper().loadSecretKeyForAPI();
+        } catch (IOException | GeneralSecurityException e) {
+            throw new IllegalStateException("Failed to get private key from AndroidKeyStore", e);
+        }
+    }
+
+    /**
+     * Method that allows to mock StorageHelper class and use custom encryption in UTs
+     * @return
+     */
+    protected StorageHelper getStorageHelper() {
         synchronized (sLock) {
             if (sHelper == null) {
                 Logger.v(TAG, "Started to initialize storage helper");
@@ -106,11 +118,12 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                 Logger.v(TAG, "Finished to initialize storage helper");
             }
         }
+        return sHelper;
     }
 
     private String encrypt(String value) {
         try {
-            return sHelper.encrypt(value);
+            return getStorageHelper().encrypt(value);
         } catch (GeneralSecurityException | IOException e) {
             Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
         }
@@ -124,7 +137,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
         
         try {
-            return sHelper.decrypt(value);
+            return getStorageHelper().decrypt(value);
         } catch (GeneralSecurityException | IOException e) {
             Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
             removeItem(key);
@@ -233,14 +246,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * @return unique users
      */
     @Override
-    public HashSet<String> getUniqueUsersWithTokenCache() {
+    public Set<String> getUniqueUsersWithTokenCache() {
         Iterator<TokenCacheItem> results = this.getAll();
-        HashSet<String> users = new HashSet<String>();
-
+        Set<String> users = new HashSet<String>();
+        
         while (results.hasNext()) {
-            TokenCacheItem item = results.next();
-            if (item.getUserInfo() != null && !users.contains(item.getUserInfo().getUserId())) {
-                users.add(item.getUserInfo().getUserId());
+            final TokenCacheItem tokenCacheItem = results.next();
+            if (tokenCacheItem.getUserInfo() != null && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
+                users.add(tokenCacheItem.getUserInfo().getUserId());
             }
         }
 
@@ -254,14 +267,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * @return list of {@link TokenCacheItem}
      */
     @Override
-    public ArrayList<TokenCacheItem> getTokensForResource(String resource) {
+    public List<TokenCacheItem> getTokensForResource(String resource) {
         Iterator<TokenCacheItem> results = this.getAll();
-        ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
+        List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
 
         while (results.hasNext()) {
-            TokenCacheItem item = results.next();
-            if (item.getResource().equals(resource)) {
-                tokenItems.add(item);
+            final TokenCacheItem tokenCacheItem = results.next();
+            if (tokenCacheItem.getResource().equals(resource)) {
+                tokenItems.add(tokenCacheItem);
             }
         }
 
@@ -271,19 +284,19 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     /**
      * Get tokens for user.
      * 
-     * @param userid Userid
+     * @param userid userId
      * @return list of {@link TokenCacheItem}
      */
     @Override
-    public ArrayList<TokenCacheItem> getTokensForUser(String userid) {
+    public List<TokenCacheItem> getTokensForUser(String userId) {
         Iterator<TokenCacheItem> results = this.getAll();
-        ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
-
+        List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
+        
         while (results.hasNext()) {
-            TokenCacheItem item = results.next();
-            if (item.getUserInfo() != null
-                    && item.getUserInfo().getUserId().equalsIgnoreCase(userid)) {
-                tokenItems.add(item);
+            final TokenCacheItem tokenCacheItem = results.next();
+            if (tokenCacheItem.getUserInfo() != null
+                    && tokenCacheItem.getUserInfo().getUserId().equalsIgnoreCase(userId)) {
+                tokenItems.add(tokenCacheItem);
             }
         }
 
@@ -297,7 +310,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public void clearTokensForUser(String userid) {
-        ArrayList<TokenCacheItem> results = this.getTokensForUser(userid);
+        List<TokenCacheItem> results = this.getTokensForUser(userid);
 
         for (TokenCacheItem item : results) {
             if (item.getUserInfo() != null
@@ -313,16 +326,17 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * @return list of {@link TokenCacheItem}
      */
     @Override
-    public ArrayList<TokenCacheItem> getTokensAboutToExpire() {
+    public List<TokenCacheItem> getTokensAboutToExpire() {
         Iterator<TokenCacheItem> results = this.getAll();
-        ArrayList<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
+        List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
 
         while (results.hasNext()) {
-            TokenCacheItem item = results.next();
-            if (isAboutToExpire(item.getExpiresOn())) {
-                tokenItems.add(item);
+            final TokenCacheItem tokenCacheItem = results.next();
+                if (isAboutToExpire(tokenCacheItem.getExpiresOn())) {
+                    tokenItems.add(tokenCacheItem);
+                }
             }
-        }
+
 
         return tokenItems;
     }

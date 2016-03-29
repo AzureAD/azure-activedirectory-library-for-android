@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal.test;
 
@@ -25,22 +30,16 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TimeZone;
 
 import javax.crypto.NoSuchPaddingException;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager.NameNotFoundException;
-
-import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
@@ -48,6 +47,13 @@ import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.StorageHelper;
 import com.microsoft.aad.adal.TokenCacheItem;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager.NameNotFoundException;
+
+import org.mockito.Mockito;
 
 public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
@@ -67,31 +73,11 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         super.tearDown();
     }
 
-    public void testSharedCache() throws GeneralSecurityException, IOException, NameNotFoundException,
-            NoSuchFieldException, IllegalAccessException {
-        AuthenticationSettings.INSTANCE.setSharedPrefPackageName("mockpackage");
-        StorageHelper mockSecure = mock(StorageHelper.class);
-        Context mockContext = mock(Context.class);
-        Context packageContext = mock(Context.class);
-        SharedPreferences prefs = mock(SharedPreferences.class);
-        when(prefs.contains("testkey")).thenReturn(true);
-        when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
-        when(mockSecure.decrypt("test_encrypted")).thenReturn("{\"mClientId\":\"clientId23\"}");
-        when(mockContext.createPackageContext("mockpackage", Context.MODE_PRIVATE)).thenReturn(
-                packageContext);
-        when(
-                packageContext.getSharedPreferences("com.microsoft.aad.adal.cache",
-                        Activity.MODE_PRIVATE)).thenReturn(prefs);
-        Class<?> c = DefaultTokenCacheStore.class;
-        Field encryptHelper = c.getDeclaredField("sHelper");
-        encryptHelper.setAccessible(true);
-        encryptHelper.set(null, mockSecure);
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(mockContext);
-        TokenCacheItem item = cache.getItem("testkey");
+    public void testSharedCache() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
 
         // Verify returned item
         assertEquals("Same item as mock", "clientId23", item.getClientId());
-        encryptHelper.set(null, null);
     }
 
     public void testGetAll() {
@@ -105,39 +91,44 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
     public void testGetUniqueUsers() {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
-        HashSet<String> users = store.getUniqueUsersWithTokenCache();
+        Set<String> users = store.getUniqueUsersWithTokenCache();
         assertNotNull(users);
         assertEquals(2, users.size());
     }
 
-    public void testDateTimeFormatterOldFormat() throws GeneralSecurityException, IOException, NameNotFoundException,
-            NoSuchFieldException, IllegalAccessException {
-        StorageHelper mockSecure = mock(StorageHelper.class);
-        Context mockContext = mock(Context.class);
-        SharedPreferences prefs = mock(SharedPreferences.class);
-        when(prefs.contains("testkey")).thenReturn(true);
-        when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
-        when(mockSecure.decrypt("test_encrypted")).thenReturn(
-                "{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"Apr 28, 2015 1:09:57 PM\"}");
-        when(
-                mockContext.getSharedPreferences("com.microsoft.aad.adal.cache",
-                        Activity.MODE_PRIVATE)).thenReturn(prefs);
-        Class<?> c = DefaultTokenCacheStore.class;
-        Field encryptHelper = c.getDeclaredField("sHelper");
-        encryptHelper.setAccessible(true);
-        encryptHelper.set(null, mockSecure);
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(mockContext);
-        TokenCacheItem item = cache.getItem("testkey");
+    public void testDateTimeFormatterOldFormat() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
 
         // Verify returned item
         assertNotNull(item.getExpiresOn());
         assertNotNull(item.getExpiresOn().after(new Date()));
-        encryptHelper.set(null, null);
+    }
+
+    private DefaultTokenCacheStore mockDefaultCacheStore() throws GeneralSecurityException, IOException {
+        final StorageHelper mockSecure = Mockito.mock(StorageHelper.class);
+        Context mockContext = mock(Context.class);
+        SharedPreferences prefs = mock(SharedPreferences.class);
+        when(prefs.contains("testkey")).thenReturn(true);
+        when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
+        when(mockSecure.loadSecretKeyForAPI()).thenReturn(null);
+        when(mockSecure.decrypt("test_encrypted"))
+                .thenReturn("{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"Apr 28, 2015 1:09:57 PM\"}");
+        when(
+                mockContext.getSharedPreferences("com.microsoft.aad.adal.cache",
+                        Activity.MODE_PRIVATE)).thenReturn(prefs);
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(mockContext) {
+            @Override
+            protected StorageHelper getStorageHelper() {
+                return mockSecure;
+            }
+        };
+        return cache;
+
     }
 
     public void testDateTimeFormatterLocaleChange() {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
-        ArrayList<TokenCacheItem> tokens = store.getTokensForResource("resource");
+        List<TokenCacheItem> tokens = store.getTokensForResource("resource");
         // Serializing without miliseconds
         long precision = 1000;
         TokenCacheItem item = tokens.get(0);
@@ -171,7 +162,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     public void testGetTokensForResource() {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
-        ArrayList<TokenCacheItem> tokens = store.getTokensForResource("resource");
+        List<TokenCacheItem> tokens = store.getTokensForResource("resource");
         assertEquals("token size", 1, tokens.size());
         assertEquals("token content", "token", tokens.get(0).getAccessToken());
 
@@ -182,7 +173,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     public void testGetTokensForUser() {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
-        ArrayList<TokenCacheItem> tokens = store.getTokensForUser("userid1");
+        List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
         assertEquals("token size", 2, tokens.size());
 
         tokens = store.getTokensForUser("userid2");
@@ -192,8 +183,8 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     public void testExpiringTokens() throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
-        ArrayList<TokenCacheItem> tokens = store.getTokensForUser("userid1");
-        ArrayList<TokenCacheItem> expireTokenList = store.getTokensAboutToExpire();
+        List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
+        List<TokenCacheItem> expireTokenList = store.getTokensAboutToExpire();
         assertEquals("token size", 0, expireTokenList.size());
         assertEquals("token size", 2, tokens.size());
 
@@ -214,7 +205,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
         store.clearTokensForUser("userid");
 
-        ArrayList<TokenCacheItem> tokens = store.getTokensForUser("userid");
+        List<TokenCacheItem> tokens = store.getTokensForUser("userid");
         assertEquals("token size", 0, tokens.size());
 
         store.clearTokensForUser("userid2");
@@ -226,7 +217,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     public void testExpireBuffer() {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
-        ArrayList<TokenCacheItem> tokens = store.getTokensForUser("userid1");
+        List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
         Calendar expireTime = Calendar.getInstance();
         Logger.d(TAG, "Time now: " + expireTime.getTime());
         expireTime.add(Calendar.SECOND, 240);
