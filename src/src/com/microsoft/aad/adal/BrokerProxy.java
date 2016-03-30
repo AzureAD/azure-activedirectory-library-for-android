@@ -417,6 +417,18 @@ class BrokerProxy implements IBrokerProxy {
 
         return intent;
     }
+    
+    @Override
+    public String getCurrentActiveBrokerPackageName() {
+        AuthenticatorDescription[] authenticators = mAcctManager.getAuthenticatorTypes();
+        for (AuthenticatorDescription authenticator : authenticators) {
+            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
+                return authenticator.packageName;
+            }
+        }
+
+        return null;
+    }
 
     private Bundle getBrokerOptions(final AuthenticationRequest request) {
         Bundle brokerOptions = new Bundle();

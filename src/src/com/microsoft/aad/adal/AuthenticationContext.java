@@ -1231,6 +1231,8 @@ public class AuthenticationContext {
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
                 return null;
             }
+        } else {
+            Logger.i(TAG , "Authority validation is turned off", "");
         }
 
         // Validated the authority or skipped the validation
@@ -1300,14 +1302,19 @@ public class AuthenticationContext {
             final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request) {
         final String methodName = ":acquireTokenAfterValidation";
-        Logger.v(TAG, "Token request started");
+        Logger.v(TAG + methodName, "Token request started");
         
         // BROKER flow intercepts here
         // cache and refresh call happens through the authenticator service
         if (mBrokerProxy.canSwitchToBroker()
                 && mBrokerProxy.verifyUser(request.getLoginHint(),
                         request.getUserId())) {
-            Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
+            Logger.v(TAG + methodName, "It switched to broker for calling package: " + mContext.getPackageName());
+            final String currentActiveBrokerPackageName = mBrokerProxy.getCurrentActiveBrokerPackageName();
+            if (!StringExtensions.IsNullOrBlank(currentActiveBrokerPackageName)) {
+                Logger.v(TAG + methodName, "The active broker is:" + currentActiveBrokerPackageName);
+            }
+            
             AuthenticationResult result = null;
             request.setVersion(getVersionName());
             request.setBrokerAccountName(request.getLoginHint());

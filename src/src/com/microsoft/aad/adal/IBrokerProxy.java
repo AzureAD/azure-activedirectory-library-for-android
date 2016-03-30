@@ -76,4 +76,10 @@ interface IBrokerProxy {
      */
     UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
             IOException;
+    
+    /**
+     * @return The package name for the active broker. Should be either Azure Authenticator 
+     * or Company Portal. 
+     */
+    String getCurrentActiveBrokerPackageName();
 }
