@@ -62,6 +62,7 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.SparseArray;
 
 /**
@@ -256,6 +257,22 @@ public class AuthenticationContext {
             };
         }
         return mTokenCacheStore;
+    }
+
+    public String getFamilyRefreshTokenFromCache(String userId, String clientId) {
+        if (mBrokerProxy.canSwitchToBroker()) {
+            // don't return token from broker app
+            return null;
+        }
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, null,
+                clientId, userId, getRequestCorrelationId());
+        RefreshItem refreshItem = getRefreshToken(request);
+        String refreshToken = null;
+        if (refreshItem != null && refreshItem.mIsFamilyToken) {
+            refreshToken = refreshItem.mRefreshToken;
+        }
+
+        return refreshToken;
     }
 
     /**
@@ -1436,7 +1453,7 @@ public class AuthenticationContext {
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
             Logger.v(TAG, "Refresh token is available and it will attempt to refresh token");
             try {
-                authResult = getTokenWithRefreshToken(activity, useDialog, request, refreshItem, true);
+                authResult = getTokenWithRefreshTokenAndUpdateCache(request, refreshItem);
             } catch (AuthenticationException authenticationException) {
                 callbackHandle.onError(authenticationException);
                 return null;
@@ -1574,44 +1591,34 @@ public class AuthenticationContext {
      * second attempt.
      */
     private class RefreshItem {
-        String mRefreshToken;
-
-        String mKey;
-
-        boolean mMultiResource;
-
-        UserInfo mUserInfo;
-
-        String mRawIdToken;
-
+        final String mRefreshToken;
+        final String mKey;
+        final boolean mMultiResource;
+        final UserInfo mUserInfo;
+        final String mRawIdToken;
+        final String mTenantId;
+        final boolean mIsFamilyToken;
         String mKeyWithUserId;
-
         String mKeyWithDisplayableId;
-        
-        String mTenantId;
 
         public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item,
                 boolean multiResource) {
+            if (item == null) {
+                throw new IllegalArgumentException("item");
+            }
             mKey = keyInCache;
             mMultiResource = multiResource;
-
-            if (item != null) {
-                mRefreshToken = item.getRefreshToken();
-                mUserInfo = item.getUserInfo();
-                mRawIdToken = item.getRawIdToken();
-                mTenantId = item.getTenantId();
-                if (item.getUserInfo() != null) {
-                    mKeyWithUserId = CacheKey.createCacheKey(request, item.getUserInfo()
-                            .getUserId());
-                    mKeyWithDisplayableId = CacheKey.createCacheKey(request, item.getUserInfo()
-                            .getDisplayableId());
-                }
+            mIsFamilyToken = !TextUtils.isEmpty(item.getFamilyClientId());
+            mRefreshToken = item.getRefreshToken();
+            mUserInfo = item.getUserInfo();
+            mRawIdToken = item.getRawIdToken();
+            mTenantId = item.getTenantId();
+            if (item.getUserInfo() != null) {
+                mKeyWithUserId = CacheKey.createCacheKey(request, item.getUserInfo()
+                        .getUserId());
+                mKeyWithDisplayableId = CacheKey.createCacheKey(request, item.getUserInfo()
+                        .getDisplayableId());
             }
-        }
-
-        public RefreshItem(String refreshToken) {
-            mMultiResource = false;
-            mRefreshToken = refreshToken;
         }
     }
 
@@ -1806,23 +1813,60 @@ public class AuthenticationContext {
     }
 
     /**
-     * refresh token if possible. if it fails, it calls acquire token after
-     * removing refresh token from cache.
-     * 
-     * @param activity Activity to use in case refresh token does not succeed
-     *            and prompt is not set to never.
+     * refresh token if possible and update cache with new token value
+     *
      * @param request incoming request
      * @param refreshItem refresh item info to remove this refresh token from
      *            cache
-     * @param useCache refresh request can be explicit without cache usage.
-     *            Error message should return without trying prompt.
      * @return
      */
-    private AuthenticationResult getTokenWithRefreshToken(final IWindowComponent activity, final boolean useDialog,
-            final AuthenticationRequest request, final RefreshItem refreshItem, final boolean useCache) 
+    private AuthenticationResult getTokenWithRefreshTokenAndUpdateCache(
+            final AuthenticationRequest request, final RefreshItem refreshItem)
+            throws AuthenticationException {
+        AuthenticationResult result = getTokenWithRefreshToken(request, refreshItem.mRefreshToken);
+
+        if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+            String errLogInfo = result == null ? "" : result.getErrorLogInfo();
+            Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
+                    + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
+            // remove item from cache to avoid same usage of
+            // refresh token in next acquireToken call
+            removeItemFromCache(refreshItem);
+            return result;
+        } else {
+            Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
+            if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
+                Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());
+                result.setUserInfo(refreshItem.mUserInfo);
+                result.setIdToken(refreshItem.mRawIdToken);
+                result.setTenantId(refreshItem.mTenantId);
+            }
+
+            // it replaces multi resource refresh token as
+            // well with the new one since it is not stored
+            // with resource.
+            Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
+            setItemToCacheFromRefresh(refreshItem, request, result);
+
+            // return result obj which has error code and
+            // error description that is returned from
+            // server response
+            return result;
+        }
+    }
+
+    /**
+     * refresh token if possible.
+     * 
+     * @param request incoming request
+     * @param refreshToken refresh token
+     * @return
+     */
+    private AuthenticationResult getTokenWithRefreshToken(
+            final AuthenticationRequest request, final String refreshToken)
             throws AuthenticationException {
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
-                + getTokenHash(refreshItem.mRefreshToken));
+                + getTokenHash(refreshToken));
 
         // Removes refresh token from cache, when this call is complete. Request
         // may be interrupted, if app is shutdown by user. Detect connection
@@ -1841,10 +1885,10 @@ public class AuthenticationContext {
         AuthenticationResult result = null;
         try {
             Oauth2 oauthRequest = new Oauth2(request, mWebRequest, mJWSBuilder);
-            result = oauthRequest.refreshToken(refreshItem.mRefreshToken);
+            result = oauthRequest.refreshToken(refreshToken);
             if (result != null && StringExtensions.IsNullOrBlank(result.getRefreshToken())) {
                 Logger.v(TAG, "Refresh token is not returned or empty");
-                result.setRefreshToken(refreshItem.mRefreshToken);
+                result.setRefreshToken(refreshToken);
             }
         } catch (IOException | AuthenticationException exc) {
             // Server side error or similar
@@ -1857,47 +1901,7 @@ public class AuthenticationContext {
                     exc);
             throw authException;
         }
-
-        // useCache will be false when calling from acquireTokenUsingRefreshToken, and if false, need to return
-        // the error through callback. If true, just return the result back to localflow. 
-        if (useCache) {
-            if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                String errLogInfo = result == null ? "" : result.getErrorLogInfo();
-                Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
-                        + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
-
-                // remove item from cache to avoid same usage of
-                // refresh token in next acquireToken call
-                removeItemFromCache(refreshItem);
-                return result;
-            } else {
-                Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
-                if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
-                    Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());
-                    result.setUserInfo(refreshItem.mUserInfo);
-                    result.setIdToken(refreshItem.mRawIdToken);
-                    result.setTenantId(refreshItem.mTenantId);
-                }
-
-                // it replaces multi resource refresh token as
-                // well with the new one since it is not stored
-                // with resource.
-                Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
-                setItemToCacheFromRefresh(refreshItem, request, result);
-
-                // return result obj which has error code and
-                // error description that is returned from
-                // server response
-                return result;
-            }
-        } else {
-            // User is not using cache and explicitly
-            // calling with refresh token. User should received
-            // error code and error description in
-            // Authentication result for Oauth errors
-            Logger.v(TAG, "Cache is not used for Request:" + request.getLogInfo());
-            return result;
-        }
+        return result;
     }
 
     private boolean validateAuthority(final URL authorityUrl) {
@@ -2054,8 +2058,6 @@ public class AuthenticationContext {
                 // It is not using cache and refresh is not expected to
                 // show authentication activity.
                 request.setSilent(true);
-                final RefreshItem refreshItem = new RefreshItem(refreshToken);
-
                 if (mValidateAuthority) {
                     Logger.v(TAG, "Validating authority");
 
@@ -2077,7 +2079,7 @@ public class AuthenticationContext {
                 final AuthenticationResult authResult;
                 try
                 {
-                    authResult = getTokenWithRefreshToken(null, false, request, refreshItem, false);
+                    authResult = getTokenWithRefreshToken(request, refreshToken);
                 }
                 catch (final AuthenticationException authException)
                 {
