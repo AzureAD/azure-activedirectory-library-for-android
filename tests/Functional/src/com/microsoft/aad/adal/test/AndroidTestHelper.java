@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal.test;
 
@@ -26,13 +31,13 @@ import java.util.concurrent.TimeUnit;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationSettings;
 
-import junit.framework.Assert;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.test.InstrumentationTestCase;
 import android.util.Base64;
 import android.util.Log;
+import junit.framework.Assert;
 
 public class AndroidTestHelper extends InstrumentationTestCase {
 
@@ -51,8 +56,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         getInstrumentation().getTargetContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
-                .getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
@@ -66,7 +70,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.PACKAGE_NAME);
+                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         // AuthenticationSettings.INSTANCE.setDeviceCertificateProxy();
         Log.d(TAG, "testSignature is set");
     }
@@ -99,8 +103,24 @@ public class AndroidTestHelper extends InstrumentationTestCase {
             }
 
             if (hasMessage != null && !hasMessage.isEmpty()) {
-                assertTrue("Message has the text",
-                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
+                assertTrue("Message has the text " + result.getMessage(),
+                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage.toLowerCase())));
+            }
+        }
+    }
+
+    public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
+            final Runnable testCode) {
+        try {
+            testCode.run();
+            Assert.fail("This is expecting an exception, but it was not thrown.");
+        } catch (final Throwable result) {
+            if (!expected.isInstance(result)) {
+                Assert.fail("Exception was not correct");
+            }
+
+            if (hasMessage != null && !hasMessage.isEmpty()) {
+                assertTrue("Message has the text", (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
             }
         }
     }
@@ -112,8 +132,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
      * @param testCode
      * @param runOnUI
      */
-    public void testAsyncNoExceptionUIOption(final CountDownLatch signal, final Runnable testCode,
-            boolean runOnUI) {
+    public void testAsyncNoExceptionUIOption(final CountDownLatch signal, final Runnable testCode, boolean runOnUI) {
 
         Log.d(getName(), "thread:" + android.os.Process.myTid());
 
@@ -139,8 +158,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
     }
 
-    public void testMultiThread(int activeThreads, final CountDownLatch signal,
-            final Runnable runnable) {
+    public void testMultiThread(int activeThreads, final CountDownLatch signal, final Runnable runnable) {
 
         Log.d(getName(), "thread:" + android.os.Process.myTid());
 
@@ -159,8 +177,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
     }
 
-    interface ThrowableRunnable
-    {
-        void run( ) throws Exception;
+    interface ThrowableRunnable {
+        void run() throws Exception;
     }
 }

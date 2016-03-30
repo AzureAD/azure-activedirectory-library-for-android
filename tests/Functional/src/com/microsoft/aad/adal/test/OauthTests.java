@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal.test;
 
@@ -43,12 +48,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
-import android.annotation.SuppressLint;
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Base64;
-import android.util.Log;
-
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
@@ -61,6 +60,11 @@ import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.IJWSBuilder;
 import com.microsoft.aad.adal.IWebRequestHandler;
 import com.microsoft.aad.adal.PromptBehavior;
+
+import android.annotation.SuppressLint;
+import android.test.AndroidTestCase;
+import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Base64;
 
 @SuppressLint("TrulyRandom")
 public class OauthTests extends AndroidTestCase {
@@ -450,8 +454,7 @@ public class OauthTests extends AndroidTestCase {
     public void testRefreshTokenWebResponse_DeviceChallenge_Positive()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException,
-            NoSuchAlgorithmException, MalformedURLException 
-    {
+            NoSuchAlgorithmException, MalformedURLException, AuthenticationException {
         getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
         
@@ -473,20 +476,20 @@ public class OauthTests extends AndroidTestCase {
         when(
                 mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
                         eq(publicKey), eq(mockCert))).thenReturn("signedJwtHere");
-        String challangeHeaderValue = AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE
+        String challengeHeaderValue = AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE
                 + " Nonce=\"" + nonce + "\",  Version=\"1.0\", CertThumbprint=\"" + thumbPrint
                 + "\",  Context=\"" + context + "\"";
-        String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallange\",\"scope\":\"*\"}";
+        String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallenge\",\"scope\":\"*\"}";
         HashMap<String, List<String>> headers = getHeader(
-                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER, challangeHeaderValue);
-        HttpWebResponse responeChallange = new HttpWebResponse(401, null, headers);
+                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, challengeHeaderValue);
+        HttpWebResponse responeChallenge = new HttpWebResponse(401, null, headers);
         HttpWebResponse responseValid = new HttpWebResponse(200,
                 tokenPositiveResponse.getBytes(Charset.defaultCharset()), null);
         // first call returns 401 and second call returns token
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
                         any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange)
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallenge)
                 .thenReturn(responseValid);
 
         // send request
@@ -497,7 +500,7 @@ public class OauthTests extends AndroidTestCase {
         assertNull("callback doesnot have error", testResult.mException);
         assertNotNull("Result is not null", testResult.mResult);
         assertEquals("Same access token", "accessTokenHere", testResult.mResult.getAccessToken());
-        assertEquals("Same refresh token", "refreshWithDeviceChallange",
+        assertEquals("Same refresh token", "refreshWithDeviceChallenge",
                 testResult.mResult.getRefreshToken());
     }
 
@@ -509,12 +512,12 @@ public class OauthTests extends AndroidTestCase {
             NoSuchAlgorithmException, MalformedURLException {
         IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         HashMap<String, List<String>> headers = getHeader(
-                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER, " ");
-        HttpWebResponse responeChallange = new HttpWebResponse(401, null, headers);
+                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");
+        HttpWebResponse responeChallenge = new HttpWebResponse(401, null, headers);
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
                         any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallange);
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallenge);
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -522,7 +525,7 @@ public class OauthTests extends AndroidTestCase {
 
         // Verify that callback can receive this error
         assertNotNull("Callback has error", testResult.mException);
-        assertEquals("Check error message", "Challange header is empty",
+        assertEquals("Check error message", "Challenge header is empty",
                 ((AuthenticationException)testResult.mException.getCause()).getMessage());
     }
 
