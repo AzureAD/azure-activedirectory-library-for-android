@@ -52,7 +52,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
 
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
-                .getPackageInfo("com.microsoft.aad.testapp", PackageManager.GET_SIGNATURES);
+                .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
         for (Signature signature : info.signatures) {
             testSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
@@ -82,7 +82,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
                 .updateConfiguration(config,
                         getInstrumentation().getContext().getResources().getDisplayMetrics());
         String localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
-
+        
         assertFalse("Error decription is different in resource", msg.equalsIgnoreCase(localizedMsg));
 
         Locale localefr = new Locale("fr");
@@ -94,7 +94,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
                 .updateConfiguration(config,
                         getInstrumentation().getContext().getResources().getDisplayMetrics());
         localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
-
+        
         assertFalse("Same as english", msg.equalsIgnoreCase(localizedMsg));
         assertTrue("in default",
                 localizedMsg.contains("Authority validation returned an error"));

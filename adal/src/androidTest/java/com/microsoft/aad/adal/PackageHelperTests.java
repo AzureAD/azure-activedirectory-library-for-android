@@ -48,7 +48,7 @@ import com.microsoft.aad.adal.Logger;
 
 public class PackageHelperTests extends AndroidTestCase {
 
-    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.testapp";
+    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
 
     private byte[] testSignature;
 

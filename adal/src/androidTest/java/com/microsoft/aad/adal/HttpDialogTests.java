@@ -3,9 +3,7 @@ package com.microsoft.aad.adal;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.MessageDigest;
-import java.util.UUID;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -16,9 +14,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.PromptBehavior;
 
 public class HttpDialogTests extends AndroidTestCase {
 
@@ -36,7 +32,7 @@ public class HttpDialogTests extends AndroidTestCase {
 
         // ADAL is set to this signature for now
         PackageInfo info = mContext.getPackageManager().getPackageInfo(
-                "com.microsoft.aad.testapp", PackageManager.GET_SIGNATURES);
+                "com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them

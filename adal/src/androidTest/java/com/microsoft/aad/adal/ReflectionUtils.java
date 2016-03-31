@@ -30,7 +30,7 @@ public class ReflectionUtils {
     /**
      * get non public method from class
      * 
-     * @param foo
+     * @param object
      * @param methodName
      * @return
      * @throws IllegalArgumentException
@@ -40,10 +40,10 @@ public class ReflectionUtils {
      * @throws IllegalAccessException
      * @throws InvocationTargetException
      */
-    public static Method getTestMethod(Object foo, final String methodName, Class<?>... paramtypes)
+    public static Method getTestMethod(Object object, final String methodName, Class<?>... paramtypes)
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
-        Class<?> c = foo.getClass();
+        Class<?> c = object.getClass();
         Method m = c.getDeclaredMethod(methodName, paramtypes);
         m.setAccessible(true);
         return m;
@@ -80,7 +80,7 @@ public class ReflectionUtils {
         Constructor<?> constructor = c.getDeclaredConstructor();
 
         constructor.setAccessible(true);
-        return constructor.newInstance(); //null);
+        return constructor.newInstance(null);
     }
 
     public static Object getFieldValue(Object object, String fieldName)

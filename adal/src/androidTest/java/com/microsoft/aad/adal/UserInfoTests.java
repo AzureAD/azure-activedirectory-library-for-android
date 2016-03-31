@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -25,7 +26,7 @@ import java.util.GregorianCalendar;
 import junit.framework.TestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 
-// TODO: Likely Unit Test
+import com.microsoft.aad.adal.UserInfo;
 
 public class UserInfoTests extends TestCase {
 
@@ -40,41 +41,49 @@ public class UserInfoTests extends TestCase {
     }
 
     @SmallTest
-    public void testTestIdTokenParam_upn() {
-        IdToken idToken = setTestIdTokenFields("objectid", "upnid", "email", "subj");
-        UserInfo info = new UserInfo(idToken);
+    public void testIdTokenParam_upn() throws IllegalArgumentException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, IllegalAccessException,
+            InvocationTargetException, NoSuchFieldException {
+        Object obj = setIdTokenFields("objectid", "upnid", "email", "subj");
+        UserInfo info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
+                + ".UserInfo", obj);
         assertEquals("same userid", "objectid", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
 
-        idToken = setTestIdTokenFields("", "upnid", "email", "subj");
-        info = new UserInfo(idToken);
+        obj = setIdTokenFields("", "upnid", "email", "subj");
+        info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
+                + ".UserInfo", obj);
         assertEquals("same userid", "subj", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
 
-        idToken = setTestIdTokenFields("", "upnid", "email", "");
-        info = new UserInfo(idToken);
+        obj = setIdTokenFields("", "upnid", "email", "");
+        info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
+                + ".UserInfo", obj);
         assertNull("null userid", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
 
-        idToken = setTestIdTokenFields("", "", "email", "");
-        info = new UserInfo(idToken);
+        obj = setIdTokenFields("", "", "email", "");
+        info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
+                + ".UserInfo", obj);
         assertNull("null userid", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
         assertEquals("same idenity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "email", info.getDisplayableId());
 
-        idToken = setTestIdTokenFields("", "", "", "");
-        info = new UserInfo(idToken);
+        obj = setIdTokenFields("", "", "", "");
+        info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
+                + ".UserInfo", obj);
+
         assertNull("null userid", info.getUserId());
         assertNull("check displayable", info.getDisplayableId());
         assertEquals("same name", "givenName", info.getGivenName());
@@ -83,16 +92,19 @@ public class UserInfoTests extends TestCase {
     }
 
     @SmallTest
-    public void testTestIdTokenParam_password() {
-        IdToken idToken = setTestIdTokenFields("objectid", "upnid", "email", "subj");
+    public void testIdTokenParam_password() throws IllegalArgumentException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException {
+        Object obj = setIdTokenFields("objectid", "upnid", "email", "subj");
         Calendar calendar = new GregorianCalendar();
         int seconds = 1000;
-        idToken.mPasswordExpiration = seconds;
-        idToken.mPasswordChangeUrl = "https://github.com/MSOpenTech/azure-activedirectory-library";
-        UserInfo info = new UserInfo(idToken);
+        ReflectionUtils.setFieldValue(obj, "mPasswordExpiration", seconds);
+        ReflectionUtils.setFieldValue(obj, "mPasswordChangeUrl",
+                "https://github.com/MSOpenTech/azure-activedirectory-library");
+        UserInfo info = (UserInfo)ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
+                + ".UserInfo", obj);
         calendar.add(Calendar.SECOND, seconds);
         Date passwordExpiresOn = calendar.getTime();
-
         assertEquals("same userid", "objectid", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
@@ -104,16 +116,18 @@ public class UserInfoTests extends TestCase {
                 info.getPasswordChangeUrl().toString());
     }
 
-    private IdToken setTestIdTokenFields(String objId, String upn, String email, String subject) {
-        IdToken idToken = new IdToken();
-        idToken.mObjectId = objId;
-        idToken.mSubject = subject;
-        idToken.mTenantId = "tenantid";
-        idToken.mUpn = upn;
-        idToken.mGivenName = "givenName";
-        idToken.mFamilyName = "familyName";
-        idToken.mEmail = email;
-        idToken.mIdentityProvider = "provider";
-        return idToken;
+    private Object setIdTokenFields(String objId, String upn, String email, String subject)
+            throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException {
+        Object obj = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME + ".IdToken");
+        ReflectionUtils.setFieldValue(obj, "mObjectId", objId);
+        ReflectionUtils.setFieldValue(obj, "mSubject", subject);
+        ReflectionUtils.setFieldValue(obj, "mTenantId", "tenantid");
+        ReflectionUtils.setFieldValue(obj, "mUpn", upn);
+        ReflectionUtils.setFieldValue(obj, "mGivenName", "givenName");
+        ReflectionUtils.setFieldValue(obj, "mFamilyName", "familyName");
+        ReflectionUtils.setFieldValue(obj, "mEmail", email);
+        ReflectionUtils.setFieldValue(obj, "mIdentityProvider", "provider");
+        return obj;
     }
 }

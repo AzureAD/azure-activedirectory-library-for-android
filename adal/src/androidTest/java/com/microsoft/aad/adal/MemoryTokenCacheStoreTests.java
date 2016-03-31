@@ -16,7 +16,7 @@
 // See the Apache License, Version 2.0 for the specific language
 // governing permissions and limitations under the License.
 
-package com.microsoft.aad.adal;
+packagecom.microsoft.aad.adal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

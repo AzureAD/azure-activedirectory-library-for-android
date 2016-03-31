@@ -18,13 +18,9 @@
 
 package com.microsoft.aad.adal;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import junit.framework.Assert;
-
-import android.test.AndroidTestCase;
 import android.util.Log;
 
 /**
@@ -97,7 +93,7 @@ public class StringExtensionTests extends AndroidTestHelper {
 
         } catch (Exception ex) {
             Log.e(getName(), ex.getMessage());
-            Assert.fail("Dont expect exception");
+            fail("Dont expect exception");
         }
     }
 }

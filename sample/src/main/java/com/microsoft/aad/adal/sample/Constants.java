@@ -35,16 +35,16 @@ public class Constants {
     static final String AUTHORITY_URL = "https://login.windows.net/common";
 
     // Clientid is given from AAD page when you register your Android app
-    static final String CLIENT_ID = "a4063e37-07c9-471d-b935-fd38d60dcb7d";
+    static final String CLIENT_ID = "the_client_ID";
 
     // RedirectUri
-    static final String REDIRECT_URL = "http://helloapp";
+    static final String REDIRECT_URL = "http://your.redirect.url.here";
 
     // URI for the resource. You need to setup this resource at AAD
-    static final String RESOURCE_ID = "2720df1b-a913-4b2d-be8c-e759a4aaa36a";
+    static final String RESOURCE_ID = "your_resource_ID";
 
     // Endpoint we are targeting for the deployed WebAPI service
-    static final String SERVICE_URL = "https://android.azurewebsites.net/api/values";
+    static final String SERVICE_URL = "https://your.service.url.here";
 
     // ------------------------------------------------------------------------------------------
 

@@ -32,6 +32,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -42,24 +43,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import junit.framework.Assert;
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.os.Build;
-import android.os.Bundle;
-import android.test.AndroidTestCase;
-import android.test.UiThreadTest;
-import android.test.suitebuilder.annotation.MediumTest;
-import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Base64;
-import android.util.Log;
-import android.util.SparseArray;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
@@ -78,7 +61,26 @@ import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.UserInfo;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.os.Build;
+import android.os.Bundle;
+import android.test.AndroidTestCase;
+import android.test.UiThreadTest;
+import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Base64;
+import android.util.Log;
+import android.util.SparseArray;
+import junit.framework.Assert;
 
 public class AuthenticationContextTest extends AndroidTestCase {
 
@@ -87,23 +89,23 @@ public class AuthenticationContextTest extends AndroidTestCase {
      */
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
-    protected final static int CONTEXT_REQUEST_TIME_OUT = 3000;
+    protected final static int CONTEXT_REQUEST_TIME_OUT = 20000;
 
     protected final static int ACTIVITY_TIME_OUT = 1000;
 
     private final static String TEST_AUTHORITY = "https://login.windows.net/ComMon/";
 
-    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.test";
+    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
 
     static final String testClientId = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
 
     static final String testResource = "https://omercantest.onmicrosoft.com/spacemonkey";
-
-    static final String TEST_TestIdToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
-
-    static final String TEST_TestIdToken_USERID = "4f859989-a2ff-411e-9048-c322247ac62c";
-
-    static final String TEST_TestIdToken_UPN = "admin@aaltests.onmicrosoft.com";
+    
+    static final String TEST_IDTOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
+    
+    static final String TEST_IDTOKEN_USERID = "4f859989-a2ff-411e-9048-c322247ac62c";
+    
+    static final String TEST_IDTOKEN_UPN = "admin@aaltests.onmicrosoft.com";
 
     private byte[] testSignature;
 
@@ -125,7 +127,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
-        AuthenticationSettings.INSTANCE.setSkipBroker(true);
+        AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
         PackageInfo info = mContext.getPackageManager().getPackageInfo(TEST_PACKAGE_NAME,
                 PackageManager.GET_SIGNATURES);
@@ -149,7 +151,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * test constructor to make sure authority parameter is set
-     *
+     * 
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
      */
@@ -209,7 +211,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
             assertEquals("Permission related message",
                     ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING,
-                    ((AuthenticationException)e).getCode());
+                    ((AuthenticationException)e.getCause()).getCode());
         }
     }
 
@@ -239,7 +241,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
      * External call to Service to get real error response. Add expired item in
      * cache to try refresh token request. Web Request should have correlationId
      * in the header.
-     *
+     * 
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      * @throws InterruptedException
@@ -254,7 +256,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         if (Build.VERSION.SDK_INT <= 15) {
             Log.v(TAG,
-                    "Server is returning 401 status code without challange. HttpUrlConnection does not return error stream for that in SDK 15. Without error stream, this test is useless.");
+                    "Server is returning 401 status code without challenge. HttpUrlConnection does not return error stream for that in SDK 15. Without error stream, this test is useless.");
             return;
         }
 
@@ -278,18 +280,19 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Call acquire token with prompt never to prevent activity launch
         context.setRequestCorrelationId(requestCorrelationId);
-        context.acquireTokenSilent(expectedResource, expectedClientId, expectedUser, callback);
+        context.acquireTokenSilentAsync(expectedResource, expectedClientId, expectedUser, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that web request send correct headers
         Log.v(TAG, "Response msg:" + response.message);
+        assertNotNull("Server response isn't null ", response.message);
         assertTrue("Server response has same correlationId",
                 response.message.contains(requestCorrelationId.toString()));
     }
 
     /**
      * if package does not have declaration for activity, it should return false
-     *
+     * 
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      * @throws IllegalArgumentException
@@ -320,7 +323,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * Test throws for different missing arguments
-     *
+     * 
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
      */
@@ -433,7 +436,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("AuthenticationRequest inside the intent", request.getClass(),
                 Class.forName("com.microsoft.aad.adal.AuthenticationRequest"));
         String redirect = (String)ReflectionUtils.getFieldValue(request, "mRedirectUri");
-        assertEquals("Redirect uri is same as package", "com.microsoft.aad.adal.test", redirect);
+        assertEquals("Redirect uri is same as package", "com.microsoft.aad.adal.testapp", redirect);
     }
 
     @SmallTest
@@ -548,7 +551,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * Test throws for different missing arguments
-     *
+     * 
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
      */
@@ -655,7 +658,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * Test throws for different missing arguments
-     *
+     * 
      * @throws IllegalAccessException
      * @throws NoSuchFieldException
      * @throws IllegalArgumentException
@@ -673,7 +676,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
             NoSuchMethodException, InstantiationException, InvocationTargetException,
             NoSuchAlgorithmException, NoSuchPaddingException, InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
-        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_TestIdToken_USERID, TEST_TestIdToken_UPN);
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
@@ -711,8 +714,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 .contains(expectedClientId));
         assertTrue("Content has resource in the message", mockWebRequest.getRequestContent()
                 .contains(exptedResource));
-        assertNotNull("Result has user info from TestIdToken", callback.mResult.getUserInfo());
-        assertEquals("Result has user info from TestIdToken", "admin@aaltests.onmicrosoft.com",
+        assertNotNull("Result has user info from idtoken", callback.mResult.getUserInfo());
+        assertEquals("Result has user info from idtoken", "admin@aaltests.onmicrosoft.com",
                 callback.mResult.getUserInfo().getDisplayableId());
     }
 
@@ -722,7 +725,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
             InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
             InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
-        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_TestIdToken_USERID, TEST_TestIdToken_UPN);
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         setConnectionAvailable(context, true);
@@ -752,7 +755,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         String json = "{\"access_token\":\"accessToken"
                 + id
                 + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\",\"refresh_token\":\""
-                + refreshToken + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_TestIdToken + "\"}";
+                + refreshToken + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\"}";
         mockWebRequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
                 .defaultCharset()), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", mockWebRequest);
@@ -766,7 +769,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * authority is malformed and error should come back in callback
-     *
+     * 
      * @throws InterruptedException
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
@@ -794,7 +797,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * authority is validated and intent start request is sent
-     *
+     * 
      * @throws InterruptedException
      * @throws IllegalArgumentException
      * @throws NoSuchFieldException
@@ -863,7 +866,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * Invalid authority returns
-     *
+     * 
      * @throws InterruptedException
      * @throws IllegalArgumentException
      * @throws NoSuchFieldException
@@ -911,7 +914,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * acquire token without validation
-     *
+     * 
      * @throws InterruptedException
      * @throws IllegalArgumentException
      * @throws NoSuchFieldException
@@ -947,7 +950,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * acquire token uses refresh token, but web request returns error
-     *
+     * 
      * @throws InterruptedException
      * @throws IllegalArgumentException
      * @throws NoSuchFieldException
@@ -966,7 +969,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
             InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException {
 
         FileMockContext mockContext = new FileMockContext(getContext());
-        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_TestIdToken_USERID, TEST_TestIdToken_UPN);
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         setConnectionAvailable(context, true);
@@ -978,21 +981,21 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final TestLogResponse response = new TestLogResponse();
         response.listenLogForMessageSegments(signal, "Refresh token did not return accesstoken");
 
-        context.acquireTokenSilent("resource", "clientid", TEST_TestIdToken_USERID, callback);
+        context.acquireTokenSilentAsync("resource", "clientid", TEST_IDTOKEN_USERID, callback);
 
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result
         assertTrue("Log message has same webstatus code", response.errorCode.equals(ADALError.AUTH_FAILED_NO_TOKEN));
         assertNotNull("Cache item is not removed for this item", mockCache.getItem(CacheKey.createCacheKey(
-                VALID_AUTHORITY, "resource", "clientId", false, TEST_TestIdToken_USERID)));
+                VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
         clearCache(context);
     }
 
     /**
      * acquire token using refresh token. All web calls are mocked. Refresh
      * token response must match to result and cache.
-     *
+     * 
      * @throws InterruptedException
      * @throws IllegalArgumentException
      * @throws NoSuchFieldException
@@ -1008,10 +1011,10 @@ public class AuthenticationContextTest extends AndroidTestCase {
     public void testRefreshTokenPositive() throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException,
-            NoSuchAlgorithmException, NoSuchPaddingException {
+            NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
 
         FileMockContext mockContext = new FileMockContext(getContext());
-        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_TestIdToken_USERID, TEST_TestIdToken_UPN);
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         setConnectionAvailable(context, true);
@@ -1021,7 +1024,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         String json = "{\"id_token\":\""
-                + TEST_TestIdToken
+                + TEST_IDTOKEN
                 + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
         webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
                 .defaultCharset()), null));
@@ -1029,41 +1032,42 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Call acquire token which will try refresh token based on cache
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
-                TEST_TestIdToken_UPN, callback);
+                TEST_IDTOKEN_UPN, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
         verifyRefreshTokenResponse(mockCache, callback.mException, callback.mResult);
 
-        // Do silent token request and return TestIdToken in the result
+        // Do silent token request and return idtoken in the result
         json = "{\"id_token\":\""
-                + TEST_TestIdToken
-                + "\",\"access_token\":\"TokenReturnsWithTestIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\"}";
+                + TEST_IDTOKEN
+                + "\",\"access_token\":\"TokenReturnsWithIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\"}";
         webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
                 .defaultCharset()), null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
-                TEST_TestIdToken_USERID);
-        assertEquals("Access Token", "TokenReturnsWithTestIdToken", result.getAccessToken());
+                TEST_IDTOKEN_USERID);
+        assertEquals("Access Token", "TokenReturnsWithIdToken", result.getAccessToken());
         assertEquals("Refresh Token", "refreshABC", result.getRefreshToken());
-        assertEquals("TestIdToken", TEST_TestIdToken, result.getIdToken());
+        assertEquals("IdToken", TEST_IDTOKEN, result.getIdToken());
         clearCache(context);
     }
-
+       
     @SmallTest
     public void testScenario_UserId_LoginHint_Use() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
-            UnsupportedEncodingException {
+            UnsupportedEncodingException, AuthenticationException {
         scenario_UserId_LoginHint("test@user.com", "test@user.com", "test@user.com");
     }
 
-    private void scenario_UserId_LoginHint(String TestIdTokenUpn, String responseIntentHint,
+    private void scenario_UserId_LoginHint(String idTokenUpn, String responseIntentHint,
             String acquireTokenHint) throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException,
-            NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
+            NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException,
+            AuthenticationException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
@@ -1074,11 +1078,11 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        TestIdToken TestIdToken = new TestIdToken();
-        TestIdToken.upn = TestIdTokenUpn;
-        TestIdToken.oid = "userid123";
+        IdToken idtoken = new IdToken();
+        idtoken.upn = idTokenUpn;
+        idtoken.oid = "userid123";
         String json = "{\"id_token\":\""
-                + TestIdToken.getTestIdToken()
+                + idtoken.getIdToken()
                 + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
         webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
                 .defaultCharset()), null));
@@ -1090,8 +1094,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         tokenWithAuthenticationActivity(context, testActivity, signal, signalCallback, intent,
                 "resource", "clientid", "redirectUri", acquireTokenHint, callback);
 
-        // Token will return to callback with TestIdToken
-        verifyTokenResult(TestIdToken, callback.mResult);
+        // Token will return to callback with idToken
+        verifyTokenResult(idtoken, callback.mResult);
 
         // Same call should get token from cache
         final CountDownLatch signalCallback2 = new CountDownLatch(1);
@@ -1099,31 +1103,31 @@ public class AuthenticationContextTest extends AndroidTestCase {
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", acquireTokenHint,
                 callback);
         signalCallback2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        verifyTokenResult(TestIdToken, callback.mResult);
+        verifyTokenResult(idtoken, callback.mResult);
 
         // Call with userId should return from cache as well
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
-                TestIdToken.oid);
-        verifyTokenResult(TestIdToken, result);
+                idtoken.oid);
+        verifyTokenResult(idtoken, result);
 
         clearCache(context);
     }
 
     @SmallTest
-    public void testScenario_NullUser_TestIdToken() throws InterruptedException,
+    public void testScenario_NullUser_IdToken() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
-            UnsupportedEncodingException {
+            UnsupportedEncodingException, AuthenticationException {
         scenario_UserId_LoginHint("test@user.com", "", "");
     }
 
     @SmallTest
-    public void testScenario_LoginHint_TestIdToken_Different() throws InterruptedException,
+    public void testScenario_LoginHint_IdToken_Different() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
-            UnsupportedEncodingException {
+            UnsupportedEncodingException, AuthenticationException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
@@ -1134,12 +1138,12 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        TestIdToken TestIdToken = new TestIdToken();
-        TestIdToken.upn = "admin@user.com";
-        TestIdToken.oid = "admin123";
+        IdToken idtoken = new IdToken();
+        idtoken.upn = "admin@user.com";
+        idtoken.oid = "admin123";
         String loginHint = "user1@user.com";
         String json = "{\"id_token\":\""
-                + TestIdToken.getTestIdToken()
+                + idtoken.getIdToken()
                 + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
         webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
                 .defaultCharset()), null));
@@ -1151,29 +1155,30 @@ public class AuthenticationContextTest extends AndroidTestCase {
         tokenWithAuthenticationActivity(context, testActivity, signal, signalCallback, intent,
                 "resource", "clientid", "redirectUri", loginHint, callback);
 
-        // Token will return to callback with TestIdToken
-        verifyTokenResult(TestIdToken, callback.mResult);
+        // Token will return to callback with idToken
+        verifyTokenResult(idtoken, callback.mResult);
 
         // Same call with correct upn will return from cache
         final CountDownLatch signalCallback2 = new CountDownLatch(1);
         callback.mSignal = signalCallback2;
-        context.acquireToken(null, "resource", "clientid", "redirectUri", TestIdToken.upn, callback);
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", idtoken.upn, callback);
         signalCallback2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        verifyTokenResult(TestIdToken, callback.mResult);
+        verifyTokenResult(idtoken, callback.mResult);
 
         // Call with userId should return from cache as well
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
-                TestIdToken.oid);
-        verifyTokenResult(TestIdToken, result);
+                idtoken.oid);
+        verifyTokenResult(idtoken, result);
 
         clearCache(context);
     }
 
     @SmallTest
-    public void testScenario_Empty_TestIdToken() throws InterruptedException, IllegalArgumentException,
+    public void testScenario_Empty_IdToken() throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException,
-            NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException {
+            NoSuchAlgorithmException, NoSuchPaddingException, UnsupportedEncodingException,
+            AuthenticationException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
@@ -1194,7 +1199,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         tokenWithAuthenticationActivity(context, testActivity, signal, signalCallback, intent,
                 "resource", "clientid", "redirectUri", null, callback);
 
-        // Token will return to callback with TestIdToken
+        // Token will return to callback with idToken
         verifyTokenResult(null, callback.mResult);
 
         // Call with userId should return from cache as well
@@ -1202,6 +1207,164 @@ public class AuthenticationContextTest extends AndroidTestCase {
         verifyTokenResult(null, result);
 
         clearCache(context);
+    }
+    
+    /**
+     * Make sure we cache the family id correctly when we get family id from server. 
+     * @throws InterruptedException
+     * @throws IllegalArgumentException
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     * @throws ClassNotFoundException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws InvocationTargetException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     */
+    @SmallTest
+    public void testFamilyClientIdCorrectlyStoredInCache() throws InterruptedException, IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, InvocationTargetException,
+            NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
+
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        String json = "{\"id_token\":\""
+                + TEST_IDTOKEN
+                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\",\"foci\":\"familyClientId\"}";
+        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+
+        // Call acquire token which will try refresh token based on cache
+        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
+                TEST_IDTOKEN_UPN, callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // Check response in callback
+        verifyRefreshTokenResponse(mockCache, callback.mException, callback.mResult);
+        verifyFamilyIdStoredInTokenCacheItem(mockCache, CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
+                        false, TEST_IDTOKEN_UPN), "familyClientId");
+
+        // Do silent token request and return idtoken in the result
+        json = "{\"id_token\":\""
+                + TEST_IDTOKEN
+                + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"I am a new refresh token\",\"scope\":\"*\",\"foci\":\"familyClientId\"}";
+        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
+                TEST_IDTOKEN_USERID);
+        assertEquals("Returned assess token is not as expected.", "I am a new access token", result.getAccessToken());
+        assertEquals("Returned refresh token is not as expected.", "I am a new refresh token", result.getRefreshToken());
+        assertEquals("Returned id token is not as expected.", TEST_IDTOKEN, result.getIdToken());
+        verifyFamilyIdStoredInTokenCacheItem(mockCache, CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
+                        false, TEST_IDTOKEN_UPN), "familyClientId");
+        clearCache(context);
+    }
+    
+    /**
+     * Make sure if we acquire token for a client id, and if we already have a family item in cache, we use that refresh token.
+     * @throws InterruptedException
+     * @throws IllegalArgumentException
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     * @throws ClassNotFoundException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws InvocationTargetException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     */
+    @SmallTest
+    public void testRefreshTokenRequestWithFamilyIdSuccess() throws InterruptedException, IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, InvocationTargetException,
+            NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
+        
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheWithFamilyIdForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        
+        setConnectionAvailable(context, true);
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        
+        // Do silent token request and return idtoken in the result
+        final String json = "{\"id_token\":\""
+                + TEST_IDTOKEN
+                + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"I am a new refresh token\",\"scope\":\"*\"}";
+        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
+                .defaultCharset()), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        
+        final String anotherClientId = "clientId2";
+        AuthenticationResult result = context.acquireTokenSilentSync("resource", anotherClientId,
+                TEST_IDTOKEN_USERID);
+        assertEquals("Returned assess token is not as expected.", "I am a new access token", result.getAccessToken());
+        assertEquals("Returned refresh token is not as expected", "I am a new refresh token", result.getRefreshToken());
+        assertEquals("Returned id token is not as expected.", TEST_IDTOKEN, result.getIdToken());
+        clearCache(context);
+    }
+    
+    /**
+     * Make sure if we have a family token in the cache and we fail to get a token using it, we correctly fail out. 
+     * @throws InterruptedException
+     * @throws IllegalArgumentException
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     * @throws ClassNotFoundException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws InvocationTargetException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchPaddingException
+     */
+    @SmallTest
+    public void testRefreshTokenRequestWithFamilyIdFailed() throws InterruptedException, IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
+            NoSuchMethodException, InstantiationException, InvocationTargetException,
+            NoSuchAlgorithmException, NoSuchPaddingException {
+        
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheWithFamilyIdForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        
+        setConnectionAvailable(context, true);
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        
+        // Do silent token request and return idtoken in the result
+        String responseBody = "{\"error\":\"invalid_grant\",\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null}";
+        webrequest.setReturnResponse(new HttpWebResponse(400, responseBody.getBytes(), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        
+        final String anotherClientId = "clientId2";
+        try {
+            context.acquireTokenSilentSync("resource", anotherClientId,
+                    TEST_IDTOKEN_USERID);
+        } catch (AuthenticationException authException) {
+            assertEquals("Error code is not as expected", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
+        }
+        
+        clearCache(context);
+    }
+    
+    private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey, 
+            final String expectedFamilyClientId) {
+        
+        final TokenCacheItem tokenCacheItem = cacheStore.getItem(cacheKey);
+        assertNotNull(tokenCacheItem);
+        assertEquals(expectedFamilyClientId, tokenCacheItem.getFamilyClientId());
     }
 
     private Intent getResponseIntent(MockAuthenticationCallback callback, String resource,
@@ -1245,21 +1408,21 @@ public class AuthenticationContextTest extends AndroidTestCase {
         return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
-    private void verifyTokenResult(TestIdToken TestIdToken, AuthenticationResult result) {
+    private void verifyTokenResult(IdToken idtoken, AuthenticationResult result) {
         assertEquals("Check access token", "TokenUserIdTest", result.getAccessToken());
         assertEquals("Check refresh token", "refresh112", result.getRefreshToken());
-        if (TestIdToken != null) {
-            assertEquals("Result has userid", TestIdToken.oid, result.getUserInfo().getUserId());
-            assertEquals("Result has username", TestIdToken.upn, result.getUserInfo()
+        if (idtoken != null) {
+            assertEquals("Result has userid", idtoken.oid, result.getUserInfo().getUserId());
+            assertEquals("Result has username", idtoken.upn, result.getUserInfo()
                     .getDisplayableId());
         }
     }
 
     public void testAcquireTokenSilentSync_Positive() throws NoSuchAlgorithmException,
             NoSuchPaddingException, NoSuchFieldException, IllegalAccessException,
-            InterruptedException, ExecutionException {
+            InterruptedException, ExecutionException, AuthenticationException {
         FileMockContext mockContext = new FileMockContext(getContext());
-        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_TestIdToken_USERID, TEST_TestIdToken_UPN);
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         setConnectionAvailable(context, true);
@@ -1274,7 +1437,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Call refresh token in silent API method
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
-                TEST_TestIdToken_USERID);
+                TEST_IDTOKEN_USERID);
         verifyRefreshTokenResponse(mockCache, null, result);
 
         clearCache(context);
@@ -1282,9 +1445,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     public void testAcquireTokenSilentSync_Negative() throws NoSuchAlgorithmException,
             NoSuchPaddingException, NoSuchFieldException, IllegalAccessException,
-            InterruptedException, ExecutionException {
+            InterruptedException, ExecutionException, AuthenticationException {
         FileMockContext mockContext = new FileMockContext(getContext());
-        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_TestIdToken_USERID, TEST_TestIdToken_UPN);
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
         setConnectionAvailable(context, true);
@@ -1297,22 +1460,23 @@ public class AuthenticationContextTest extends AndroidTestCase {
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
 
         // Call refresh token in silent API method
+
         try {
-            context.acquireTokenSilentSync(null, "clientid", TEST_TestIdToken_USERID);
+            context.acquireTokenSilentSync(null, "clientid", TEST_IDTOKEN_USERID);
             Assert.fail("Expected argument exception");
         } catch (IllegalArgumentException e) {
             assertTrue("Resource is missin", e.getMessage().contains("resource"));
         }
 
         try {
-            context.acquireTokenSilentSync("resource", null, TEST_TestIdToken_USERID);
+            context.acquireTokenSilentSync("resource", null, TEST_IDTOKEN_USERID);
             Assert.fail("Expected argument exception");
         } catch (IllegalArgumentException e) {
             assertTrue("Resource is missin", e.getMessage().contains("clientId"));
         }
 
         try {
-            context.acquireTokenSilentSync("resource", "clientid", TEST_TestIdToken_USERID);
+            context.acquireTokenSilentSync("resource", "clientid", TEST_IDTOKEN_USERID);
         } catch (AuthenticationException e) {
             assertEquals("Token is not exchanged",
                     ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
@@ -1320,12 +1484,12 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Verify call with displayableid also fails
         try {
-            context.acquireTokenSilentSync("resource", "clientid", TEST_TestIdToken_UPN);
+            context.acquireTokenSilentSync("resource", "clientid", TEST_IDTOKEN_UPN);
         } catch (AuthenticationException e) {
             assertEquals("Token is not exchanged",
                     ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
         }
-
+        
         clearCache(context);
     }
 
@@ -1335,20 +1499,20 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("Token is same", "TokenFortestRefreshTokenPositive", result.getAccessToken());
         assertNotNull("Cache is NOT empty for this userid for regular token",
                 mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
-                        false, TEST_TestIdToken_USERID)));
+                        false, TEST_IDTOKEN_USERID)));
         assertNull("Cache is empty for multiresource token", mockCache.getItem(CacheKey
-                .createCacheKey(VALID_AUTHORITY, "resource", "clientId", true, TEST_TestIdToken_USERID)));
+                .createCacheKey(VALID_AUTHORITY, "resource", "clientId", true, TEST_IDTOKEN_USERID)));
         assertNotNull("Cache is NOT empty for this userid for regular token",
                 mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
-                        false, TEST_TestIdToken_USERID)));
+                        false, TEST_IDTOKEN_USERID)));
         assertTrue("Refresh token has userinfo",
-                result.getUserInfo().getUserId().equalsIgnoreCase(TEST_TestIdToken_USERID));
+                result.getUserInfo().getUserId().equalsIgnoreCase(TEST_IDTOKEN_USERID));
     }
 
     /**
      * authority and resource are case insensitive. Cache lookup will return
      * item from cache.
-     *
+     * 
      * @throws InterruptedException
      * @throws IllegalArgumentException
      * @throws NoSuchFieldException
@@ -1430,7 +1594,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         // Acquire token call will return from cache
-        context.acquireTokenSilent(resource, clientId, "user1", callback);
+        context.acquireTokenSilentAsync(resource, clientId, "user1", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
@@ -1447,60 +1611,60 @@ public class AuthenticationContextTest extends AndroidTestCase {
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException {
         FileMockContext mockContext = new FileMockContext(getContext());
-
+        
         String resource = "Resource" + UUID.randomUUID();
         String clientId = "clientid" + UUID.randomUUID();
         ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
         addItemToCache(mockCache, "token1", "refresh1", VALID_AUTHORITY, resource, clientId, "userid1", "userAname", "userAfamily" , "userName1", "tenant", false);
         addItemToCache(mockCache, "token2", "refresh2", VALID_AUTHORITY, resource, clientId, "userid2", "userBname", "userBfamily" , "userName2", "tenant", false);
-
+        
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
-
+        
         // User1
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         // Acquire token call will return from cache
-        context.acquireTokenSilent(resource, clientId, "userid1", callback);
+        context.acquireTokenSilentAsync(resource, clientId, "userid1", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
         assertNull("Error is null", callback.mException);
         assertEquals("token for user1", "token1" , callback.mResult.getAccessToken());
-        assertEquals("TestIdToken for user1", "userName1" , callback.mResult.getUserInfo().getDisplayableId());
-        assertEquals("TestIdToken for user1", "userAname" , callback.mResult.getUserInfo().getGivenName());
-
+        assertEquals("idtoken for user1", "userName1" , callback.mResult.getUserInfo().getDisplayableId());
+        assertEquals("idtoken for user1", "userAname" , callback.mResult.getUserInfo().getGivenName());
+        
         // User2 with userid call
         final CountDownLatch signal2 = new CountDownLatch(1);
         MockAuthenticationCallback callback2 = new MockAuthenticationCallback(signal2);
 
         // Acquire token call will return from cache
-        context.acquireTokenSilent(resource, clientId, "userid2", callback2);
+        context.acquireTokenSilentAsync(resource, clientId, "userid2", callback2);
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
         assertNull("Error is null", callback2.mException);
         assertEquals("token for user1", "token2" , callback2.mResult.getAccessToken());
-        assertEquals("TestIdToken for user1", "userName2" , callback2.mResult.getUserInfo().getDisplayableId());
+        assertEquals("idtoken for user1", "userName2" , callback2.mResult.getUserInfo().getDisplayableId());
 
         // User2 with loginHint call
         final CountDownLatch signal3 = new CountDownLatch(1);
         MockAuthenticationCallback callback3 = new MockAuthenticationCallback(signal3);
 
-        context.acquireToken(null, resource, clientId, "http://redirectUri", "userName1", callback3);
+        context.acquireToken(new MockActivity(null), resource, clientId, "http://redirectUri", "userName1", callback3);
         signal3.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-
+        
         // Check response in callback
         assertNull("Error is null", callback3.mException);
         assertEquals("token for user1", "token1" , callback3.mResult.getAccessToken());
-        assertEquals("TestIdToken for user1", "userName1" , callback3.mResult.getUserInfo().getDisplayableId());
-
+        assertEquals("idtoken for user1", "userName1" , callback3.mResult.getUserInfo().getDisplayableId());
+        
         clearCache(context);
     }
-
-
+    
+    
     @SmallTest
     public void testOnActivityResult_MissingIntentData() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
@@ -1707,7 +1871,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
     /**
      * setup cache with userid for normal token and multiresource refresh token
      * bound to one userid. test calls for different resources and users.
-     *
+     * 
      * @throws InterruptedException
      * @throws IllegalArgumentException
      * @throws NoSuchFieldException
@@ -1727,9 +1891,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
         ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
         addItemToCache(mockCache, tokenToTest, "refreshTokenNormal", VALID_AUTHORITY, resource,
-                "ClienTid", TEST_TestIdToken_USERID, "name", "familyName", TEST_TestIdToken_UPN, "tenantId", false);
+                "ClienTid", TEST_IDTOKEN_USERID, "name", "familyName", TEST_IDTOKEN_UPN, "tenantId", false);
         addItemToCache(mockCache, "", "refreshTokenMultiResource", VALID_AUTHORITY, resource,
-                "ClienTid", TEST_TestIdToken_USERID, "name", "familyName", TEST_TestIdToken_UPN, "tenantId", true);
+                "ClienTid", TEST_IDTOKEN_USERID, "name", "familyName", TEST_IDTOKEN_UPN, "tenantId", true);
         // only one MRRT for same user, client, authority
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
@@ -1742,7 +1906,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         // Acquire token call will return from cache
-        context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", TEST_TestIdToken_UPN, callback);
+        context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", TEST_IDTOKEN_UPN, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         assertNull("Error is null", callback.mException);
@@ -1754,7 +1918,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         // refresh token
         signal = new CountDownLatch(1);
         callback = new MockAuthenticationCallback(signal);
-        context.acquireToken(testActivity, "dummyResource2", "ClienTid", "redirectUri", TEST_TestIdToken_UPN,
+        context.acquireToken(testActivity, "dummyResource2", "ClienTid", "redirectUri", TEST_IDTOKEN_UPN,
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -1766,7 +1930,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         signal = new CountDownLatch(1);
         testActivity = new MockActivity(signal);
         callback = new MockAuthenticationCallback(signal);
-        context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri", TEST_TestIdToken_UPN,
+        context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri", TEST_IDTOKEN_UPN,
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -1782,7 +1946,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         callback = new MockAuthenticationCallback(signal);
         callback.mResult = null;
         removeMockWebRequest(context);
-        context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri", TEST_TestIdToken_UPN,
+        context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri", TEST_IDTOKEN_UPN,
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -1805,7 +1969,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         clearCache(context);
     }
-
+ 
     @SmallTest
     public void testAcquireTokenMultiResource_ADFSIssue() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
@@ -1906,9 +2070,98 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         return context;
     }
+    
+    @SmallTest
+    public void testVerifyBrokerRedirectUri_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+           IllegalAccessException, InvocationTargetException {
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+                VALID_AUTHORITY, false, cache);
+        Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
+        Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
-    private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) throws NoSuchAlgorithmException,
-            NoSuchPaddingException {
+        //test@case valid redirect uri
+        String testRedirectUri = authContext.getRedirectUriForBroker();
+        Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
+            "resource", "clientid", testRedirectUri, "loginHint");
+        Boolean testResult = (Boolean)m.invoke(authContext, authRequest);
+        assertTrue(testResult);
+    }
+
+    @SmallTest
+    public void testVerifyBrokerRedirectUri_invalidPrefix() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+           IllegalAccessException, InvocationTargetException {
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+                VALID_AUTHORITY, false, cache);
+        Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
+        Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
+
+        //test@case broker redirect uri with invalid prefix
+        try {
+            String testRedirectUri = "http://helloApp";
+            Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
+                    "resource", "clientid", testRedirectUri, "loginHint");
+            m.invoke(authContext, authRequest);
+            Assert.fail("It is expected to return an exception here.");
+        } catch(InvocationTargetException e) {
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
+            assertTrue((e.getCause()).getMessage().toString().contains("prefix"));
+        }
+    }
+
+    @SmallTest
+    public void testVerifyBrokerRedirectUri_invalidPackageName() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+           IllegalAccessException, InvocationTargetException {
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+                VALID_AUTHORITY, false, cache);
+        Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
+        Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
+
+        //test@case broker redirect uri with invalid packageName
+        try {
+             String testRedirectUri = "msauth://testapp/gwdiktUBDmQq%2BfbWiJoa%2B%2FYH070%3D";
+             Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
+                     "resource", "clientid", testRedirectUri, "loginHint");
+             m.invoke(authContext, authRequest);
+             Assert.fail("It is expected to return an exception here.");
+        } catch(InvocationTargetException e) {
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
+            assertTrue((e.getCause()).getMessage().toString().contains("package name"));
+        }
+    }
+
+    @SmallTest
+    public void testVerifyBrokerRedirectUri_invalidSignature() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+           IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
+        IllegalAccessException, InvocationTargetException {
+        ITokenCacheStore cache = mock(ITokenCacheStore.class);
+        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+                VALID_AUTHORITY, false, cache);
+        Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
+        Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
+
+        //test@case broker redirect uri with invalid signature
+        try {
+        String testRedirectUri = "msauth://" + getContext().getPackageName() + "/falsesignH070%3D";
+        Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
+                "resource", "clientid", testRedirectUri, "loginHint");
+        m.invoke(authContext, authRequest);
+        Assert.fail("It is expected to return an exception here.");
+        } catch(InvocationTargetException e) {
+            assertTrue(e.getCause() instanceof UsageAuthenticationException);
+            assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
+            assertTrue((e.getCause()).getMessage().toString().contains("signature"));
+        }
+    }
+
+    private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         cache.removeAll();
         Calendar expiredTime = new GregorianCalendar();
@@ -1931,6 +2184,32 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 refreshItem);
         return cache;
     }
+    
+    private ITokenCacheStore getCacheWithFamilyIdForRefreshToken(String userId, String displayableId) 
+            throws NoSuchAlgorithmException, NoSuchPaddingException {
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
+        cache.removeAll();
+        Calendar expiredTime = new GregorianCalendar();
+        Log.d("Test", "Time now:" + expiredTime.toString());
+        expiredTime.add(Calendar.MINUTE, -60);
+        TokenCacheItem refreshItem = new TokenCacheItem();
+        refreshItem.setAuthority(VALID_AUTHORITY);
+        refreshItem.setResource("resource");
+        refreshItem.setClientId("clientId");
+        refreshItem.setAccessToken("accessToken");
+        refreshItem.setRefreshToken("refreshToken=");
+        refreshItem.setExpiresOn(expiredTime.getTime());
+        refreshItem.setUserInfo(new UserInfo(userId, "givenName", "familyName",
+            "identityProvider", displayableId));
+        refreshItem.setFamilyClientId("familyClientId");
+        cache.setItem(
+            CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, userId),
+            refreshItem);
+        cache.setItem(
+            CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, displayableId),
+            refreshItem);
+        return cache;
+    }
 
     private ITokenCacheStore getMockCache(int minutes, String token, String resource,
             String client, String user, boolean isMultiResource) throws NoSuchAlgorithmException,
@@ -1947,6 +2226,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         refreshItem.setAccessToken(token);
         refreshItem.setRefreshToken("refreshToken=");
         refreshItem.setExpiresOn(timeAhead.getTime());
+        refreshItem.setUserInfo(new UserInfo(user, "", "", "", user));
         cache.setItem(
                 CacheKey.createCacheKey(VALID_AUTHORITY, resource, client, isMultiResource, user),
                 refreshItem);
@@ -2030,6 +2310,12 @@ public class AuthenticationContextTest extends AndroidTestCase {
         @Override
         public void removeAll() {
             // TODO Auto-generated method stub
+        }
+
+        @Override
+        public Iterator<TokenCacheItem> getAll() {
+            // TODO Auto-generated method stub
+            return null;
         }
     }
 

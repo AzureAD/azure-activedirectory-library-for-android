@@ -56,7 +56,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
 
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
-                .getPackageInfo("com.microsoft.aad.testapp", PackageManager.GET_SIGNATURES);
+                .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
         for (Signature signature : info.signatures) {
             testSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
@@ -69,6 +69,23 @@ public class AndroidTestHelper extends InstrumentationTestCase {
                 .setBrokerPackageName(AuthenticationConstants.Broker.PACKAGE_NAME);
         // AuthenticationSettings.INSTANCE.setDeviceCertificateProxy();
         Log.d(TAG, "testSignature is set");
+    }
+
+    public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
+                                      final ThrowableRunnable testCode) {
+        try {
+            testCode.run();
+            Assert.fail("This is expecting an exception, but it was not thrown.");
+        } catch (final Throwable result) {
+            if (!expected.isInstance(result)) {
+                Assert.fail("Exception was not correct");
+            }
+
+            if (hasMessage != null && !hasMessage.isEmpty()) {
+                assertTrue("Message has the text",
+                        (result.getMessage().toLowerCase(Locale.US).contains(hasMessage)));
+            }
+        }
     }
 
     public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
@@ -90,7 +107,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
 
     /**
      * just run tests and wait until finished
-     *
+     * 
      * @param signal
      * @param testCode
      * @param runOnUI
@@ -142,4 +159,8 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         }
     }
 
+    interface ThrowableRunnable
+    {
+        void run( ) throws Exception;
+    }
 }
