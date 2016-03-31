@@ -157,6 +157,8 @@ class Oauth2 {
     }
 
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
+        Logger.v(TAG, "Building request message for redeeming token with auth code.");
+        
         String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
@@ -173,6 +175,8 @@ class Oauth2 {
 
     public String buildRefreshTokenRequestMessage(String refreshToken)
             throws UnsupportedEncodingException {
+        Logger.v(TAG, "Building request message for redeeming token with refresh token.");
+        
         String message = String.format("%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
@@ -370,6 +374,7 @@ class Oauth2 {
         // challenge
         headers.put(AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE,
                 AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE_VERSION);
+        Logger.v(TAG, "Sending request to redeem token with refresh token.");
         return postMessage(requestMessage, headers);
     }
 
@@ -449,6 +454,8 @@ class Oauth2 {
         }
 
         HashMap<String, String> headers = getRequestHeaders();
+        
+        Logger.v(TAG, "Sending request to redeem token with auth code.");
         return postMessage(requestMessage, headers);
     }
 
@@ -570,6 +577,7 @@ class Oauth2 {
     }
 
     private HashMap<String, String> getRequestHeaders() {
+        Logger.v(TAG, "Setting request headers.");
         HashMap<String, String> headers = new HashMap<String, String>();
         headers.put("Accept", "application/json");
         return headers;
