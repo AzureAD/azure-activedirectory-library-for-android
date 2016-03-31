@@ -418,6 +418,9 @@ class BrokerProxy implements IBrokerProxy {
         return intent;
     }
     
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getCurrentActiveBrokerPackageName() {
         AuthenticatorDescription[] authenticators = mAcctManager.getAuthenticatorTypes();
@@ -428,6 +431,14 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         return null;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isBrokerWithPRTSupport(final String brokerPackageName) {
+        return hasSupportToAddUserThroughBroker(brokerPackageName);
     }
 
     private Bundle getBrokerOptions(final AuthenticationRequest request) {

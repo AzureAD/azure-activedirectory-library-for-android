@@ -137,7 +137,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-        Logger.v(TAG, "Page finished:" + url);
+        Logger.v(TAG, "Page finished loading, host is: " + Uri.parse(url).getHost());
 
         /*
          * Once web view is fully loaded,set to visible
@@ -150,7 +150,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
-    	Logger.v(TAG + "onPageStarted", "page is started with the url " + url);
+        Logger.v(TAG + "onPageStarted", "Page is started loading, host is: " + Uri.parse(url).getHost());
         super.onPageStarted(view, url, favicon);
         showSpinner(true);
     }
@@ -187,7 +187,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                                         .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
                                     loadUrl = loadUrl + "?" + mQueryParam;
                                 }
-                                Logger.v(TAG, "Loadurl:" + loadUrl);
+                                Logger.v(TAG, "Challenge submit url:" + challengeResponse.mSubmitUrl);
                                 view.loadUrl(loadUrl, headers);
                             }
                         });
@@ -233,7 +233,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
-            
+            Logger.v(TAG, "Navigation starts with the redirect uri.");
             if (hasCancelError(url)) {
                 // Catch WEB-UI cancel request
                 Logger.i(TAG, "Sending intent to cancel authentication activity", "");

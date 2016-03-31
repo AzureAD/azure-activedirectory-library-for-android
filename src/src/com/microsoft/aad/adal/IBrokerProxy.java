@@ -82,4 +82,10 @@ interface IBrokerProxy {
      * or Company Portal. 
      */
     String getCurrentActiveBrokerPackageName();
+    
+    /**
+     * @param String currentBrokerPackageName Package name for currently active broker. 
+     * @return True if the current active broker is on the new protocol with PRT support, false otherwise.
+     */
+    boolean isBrokerWithPRTSupport(final String currentBrokerPackageName);
 }

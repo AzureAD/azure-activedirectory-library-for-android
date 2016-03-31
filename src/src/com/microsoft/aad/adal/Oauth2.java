@@ -484,7 +484,7 @@ class Oauth2 {
                         // Handle each specific challenge header
                         if (StringExtensions.hasPrefixInHeader(challengeHeader,
                                 AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) {
-                            Logger.v(TAG, "Challenge is related to device certificate");
+                            Logger.v(TAG, "Received pkeyAuth device challenge.");
                             ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                     mJWSBuilder);
                             Logger.v(TAG, "Processing device challenge");

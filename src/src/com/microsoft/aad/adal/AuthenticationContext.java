@@ -1302,17 +1302,30 @@ public class AuthenticationContext {
             final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request) {
         final String methodName = ":acquireTokenAfterValidation";
-        Logger.v(TAG + methodName, "Token request started");
+        Logger.v(TAG + methodName, "Starting token acquisition.");
         
         // BROKER flow intercepts here
         // cache and refresh call happens through the authenticator service
         if (mBrokerProxy.canSwitchToBroker()
                 && mBrokerProxy.verifyUser(request.getLoginHint(),
                         request.getUserId())) {
-            Logger.v(TAG + methodName, "It switched to broker for calling package: " + mContext.getPackageName());
+            Logger.v(TAG + methodName, "Switched to broker for authentication for calling app: " + mContext.getPackageName());
+            
+            // Also log the current active broker name and broker protocol version. 
             final String currentActiveBrokerPackageName = mBrokerProxy.getCurrentActiveBrokerPackageName();
             if (!StringExtensions.IsNullOrBlank(currentActiveBrokerPackageName)) {
-                Logger.v(TAG + methodName, "The active broker is:" + currentActiveBrokerPackageName);
+                final StringBuilder brokerRelatedInfoLogging = new StringBuilder("The active broker is: " 
+                            + currentActiveBrokerPackageName);
+                if (mBrokerProxy.isBrokerWithPRTSupport(currentActiveBrokerPackageName)) {
+                    brokerRelatedInfoLogging.append(" The active broker version is : " 
+                            + AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION_WITH_PRT_SUPPORT 
+                            + ". It contains PRT support.");
+                } else {
+                    brokerRelatedInfoLogging.append(" The active broker version is: v1. It doesn't contain "
+                            + "PRT support");
+                }
+                
+                Logger.v(TAG + methodName, brokerRelatedInfoLogging.toString());
             }
             
             AuthenticationResult result = null;
@@ -1326,6 +1339,7 @@ public class AuthenticationContext {
                 //otherwise the acquiretokensilent might be interrupted 
                 //by DeveloperAuthenticationException
                 if(!request.isSilent()) {
+                    Logger.v(TAG + methodName, "Non-silent request, start broker redirect uri validation.");
                     verifyBrokerRedirectUri(request);
                 }
             } catch(UsageAuthenticationException exception) {
@@ -1340,7 +1354,8 @@ public class AuthenticationContext {
                     && (!StringExtensions.IsNullOrBlank(request.getBrokerAccountName()) || !StringExtensions
                             .IsNullOrBlank(request.getUserId()))) {
                 try {
-                    Logger.v(TAG, "User is specified for background token request");
+                    Logger.v(TAG + methodName, "User is specified for background(silent) token request, trying to acquire "
+                            + "token silently.");
                     result = mBrokerProxy.getAuthTokenInBackground(request);
                 } catch (AuthenticationException ex) {
                     // pass back to caller for known exceptions such as failure
@@ -1349,12 +1364,12 @@ public class AuthenticationContext {
                     return null;
                 }
             } else {
-                Logger.v(TAG, "User is not specified for background token request");
+                Logger.v(TAG + methodName, "User is not specified for background(silent) token request");
             }
 
             if (result != null && result.getAccessToken() != null
                     && !result.getAccessToken().isEmpty()) {
-                Logger.v(TAG, "Token is returned from background call ");
+                Logger.v(TAG, "Token is returned from background(silent) request.");
                 callbackHandle.onSuccess(result);
                 return result;
             }
@@ -1364,11 +1379,11 @@ public class AuthenticationContext {
             // Initial request to authenticator needs to launch activity to
             // record calling uid for the account. This happens for Prompt auto
             // or always behavior.
-            Logger.v(TAG, "Token is not returned from backgroud call");
+            Logger.v(TAG, "Token is not returned from backgroud(silent) request.");
             if (!request.isSilent() && activity != null) {
 
                 // Only happens with callback since silent call does not show UI
-                Logger.v(TAG, "Launch activity for Authenticator");
+                Logger.v(TAG, "Launch activity for interactive authentication via broker.");
                 mAuthorizationCallback = callbackHandle.callback;
                 request.setRequestId(callbackHandle.callback.hashCode());
                 Logger.v(TAG, "Starting Authentication Activity with callback:"
@@ -1414,6 +1429,7 @@ public class AuthenticationContext {
             // It will start activity if callback is provided. Return null here.
             return null;
         } else {
+            Logger.v(TAG + methodName, "Start token acquisition with local flow.");
             return localFlow(callbackHandle, activity, useDialog, request);
         }
     }
