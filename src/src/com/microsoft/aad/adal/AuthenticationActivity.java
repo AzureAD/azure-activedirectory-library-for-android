@@ -259,10 +259,10 @@ public class AuthenticationActivity extends Activity {
 
             Logger.v(TAG, "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage 
                     + " Signature hash for calling package is: " + signatureDigest + " Current context package: " 
-                    + getPackageName(), "Start url: " + mStartUrl, null);
+                    + getPackageName(), " Start url: " + mStartUrl, null);
         } else {
             Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(), 
-                    "Start url: " + mStartUrl, null);
+                    " Start url: " + mStartUrl, null);
         }
         
         mRegisterReceiver = false;
