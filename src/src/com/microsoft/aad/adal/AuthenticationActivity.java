@@ -273,6 +273,8 @@ public class AuthenticationActivity extends Activity {
         mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView(mRedirectUrl, mQueryParameters, mAuthRequest);
         
+        // Also log correlation id
+        Logger.v(TAG, "Correlation id for request sent is:" + mAuthRequest.getCorrelationId().toString());
         if (savedInstanceState == null) {
             mWebView.post(new Runnable() {
                 @Override
@@ -930,7 +932,7 @@ public class AuthenticationActivity extends Activity {
             }
             result.accountName = name;
             Logger.i(TAG, "Setting account in account manager. Package: " + mCallingPackage 
-                    + " calling app UID:" + mAppCallingUID, "Account name: " + name);
+                    + " calling app UID:" + mAppCallingUID, " Account name: " + name);
 
 
             // Cache logic will be changed based on latest logic
@@ -995,7 +997,7 @@ public class AuthenticationActivity extends Activity {
                 mAccountManager.setUserData(cacheAccount,
                         AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + callingUID,
                         keylist);
-                Logger.v(TAG, "", "keylist:" + keylist, null);
+                Logger.v(TAG, "Cache key saved into key list for the caller.", "keylist:" + keylist, null);
             }
         }
 

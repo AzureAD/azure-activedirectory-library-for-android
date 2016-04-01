@@ -1465,7 +1465,7 @@ public class AuthenticationContext {
             callbackHandle.onSuccess(cachedItem);
             return cachedItem;
         }
-        Logger.v(TAG, "Acess token does not exist or is already expired.");
+        Logger.v(TAG, "Access token does not exist or is already expired.");
 
         // Trying to find refresh token first, if existed, will try to use the refresh token. 
         Logger.v(TAG, "Checking refresh tokens");
