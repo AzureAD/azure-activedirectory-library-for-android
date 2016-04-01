@@ -254,13 +254,14 @@ class Oauth2 {
                 // response. ADFS does not return that.
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
+                    Logger.v(TAG, "Id token is returned, parsing id token.");
                     IdToken tokenParsed = parseIdToken(rawIdToken);
                     if (tokenParsed != null) {
                         tenantId = tokenParsed.mTenantId;
                         userinfo = new UserInfo(tokenParsed);
                     }
                 } else {
-                    Logger.v(TAG, "IdToken is not provided");
+                    Logger.v(TAG, "IdToken is not returned from token request.");
                 }
             }
             

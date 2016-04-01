@@ -59,6 +59,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
@@ -310,6 +311,7 @@ public class AuthenticationContext {
         PackageHelper packageHelper = new PackageHelper(mContext);
         String packageName = mContext.getPackageName();
 
+        Logger.v(TAG, "Get expected broker redirect uri for:" + packageName);
         // First available signature. Applications can be signed with multiple
         // signatures.
         String signatureDigest = packageHelper.getCurrentSignatureForPackage(packageName);
@@ -775,9 +777,10 @@ public class AuthenticationContext {
      * @param resultCode Result code set from the activity.
      * @param data {@link Intent}
      */
-    public void onActivityResult(int requestCode, int resultCode, Intent data) 
-    {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         final String methodName = ":onActivityResult";
+        Logger.v(TAG + methodName, "Activity returned back with requestCode:" + requestCode 
+                + "; resultCode" + resultCode);
         // This is called at UI thread when Activity sets result back.
         // ResultCode is set back from AuthenticationActivity. RequestCode is
         // set when we start the activity for result.
@@ -787,16 +790,16 @@ public class AuthenticationContext {
             if (data == null) {
                 // If data is null, RequestId is unknown. It could not find
                 // callback to respond to this request.
-                Logger.e(TAG, "onActivityResult BROWSER_FLOW data is null.", "",
+                Logger.e(TAG + methodName, "onActivityResult BROWSER_FLOW data is null.", "",
                         ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
             } else {
                 Bundle extras = data.getExtras();
                 final int requestId = extras.getInt(AuthenticationConstants.Browser.REQUEST_ID);
                 final AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
                 if (waitingRequest != null) {
-                    Logger.v(TAG, "onActivityResult RequestId:" + requestId);
+                    Logger.v(TAG + methodName, "Received requestId:" + requestId);
                 } else {
-                    Logger.e(TAG, "onActivityResult did not find waiting request for RequestId:"
+                    Logger.e(TAG + methodName, "Did not find received waiting request for RequestId:"
                             + requestId, "", ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
                     // There is no matching callback to send error
                     return;
@@ -806,6 +809,7 @@ public class AuthenticationContext {
                 // out original correlationId send with request.
                 final String correlationInfo = getCorrelationInfoFromWaitingRequest(waitingRequest);
                 if (resultCode == AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE) {
+                    Logger.v(TAG + methodName, "Receive token response from broker.");
                     String accessToken = data
                             .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN);
                     String accountName = data
@@ -820,6 +824,7 @@ public class AuthenticationContext {
                     AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken);
                     if (brokerResult != null && brokerResult.getAccessToken() != null) {
+                        Logger.v(TAG + methodName, "Access token returned, sending token result back via callback.");
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                         return;
                     }
@@ -892,6 +897,7 @@ public class AuthenticationContext {
                         Logger.e(TAG, e.getMessage(), "", e.getCode());
                         waitingRequestOnError(waitingRequest, requestId, e);
                     } else {
+                        Logger.v(TAG, "Auth code is returned successfully.");
                         // Browser has the url and it will exchange auth code
                         // for token
                         final CallbackHandler callbackHandle = new CallbackHandler(mHandler,
@@ -905,16 +911,14 @@ public class AuthenticationContext {
 
                             @Override
                             public void run() {
-                                Logger.v(
-                                        TAG,
-                                        "Processing url for token. "
-                                                + authenticationRequest.getLogInfo());
+                                Logger.v(TAG, "Processing url containing auth code for token acquisition."
+                                                ,authenticationRequest.getLogInfo(), null);
                                 Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
                                 AuthenticationResult result = null;
                                 try {
                                     result = oauthRequest.getToken(endingUrl);
-                                    Logger.v(TAG, "OnActivityResult processed the result. "
-                                            + authenticationRequest.getLogInfo());
+                                    Logger.v(TAG, "Process returned authentication result from token acquisition "
+                                            + "with auth code.", authenticationRequest.getLogInfo(), null);
                                 } catch (IOException | AuthenticationException exc) {
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo() + correlationInfo;
@@ -942,21 +946,24 @@ public class AuthenticationContext {
                                                     result.getErrorLogInfo()));
                                             return;
                                         }
-                                        Logger.v(TAG,
-                                                "OnActivityResult is setting the token to cache. "
-                                                        + authenticationRequest.getLogInfo());
 
                                         if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+                                            Logger.v(TAG, "Access token returned, setting token into cache.", 
+                                                    authenticationRequest.getLogInfo(), null);
                                             setItemToCache(authenticationRequest, result, true);
+                                        } else {
+                                            Logger.v(TAG, "Access token is not returned", 
+                                                    authenticationRequest.getLogInfo(), null);
                                         }
 
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
-                                            Logger.v(TAG, "Sending result to callback. "
-                                                    + authenticationRequest.getLogInfo());
+                                            Logger.v(TAG, "Sending authentication result back to callback."
+                                                    ,authenticationRequest.getLogInfo(), null);
                                             callbackHandle.onSuccess(result);
                                         }
                                     } else {
+                                        Logger.v(TAG, "Returned authentication is null.");
                                         callbackHandle
                                                 .onError(new AuthenticationException(
                                                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, correlationInfo));
@@ -1232,7 +1239,7 @@ public class AuthenticationContext {
                 return null;
             }
         } else {
-            Logger.i(TAG , "Authority validation is turned off", "");
+            Logger.i(TAG , "Authority validation is turned off:" + authorityUrl.getHost(), "");
         }
 
         // Validated the authority or skipped the validation
@@ -1317,7 +1324,7 @@ public class AuthenticationContext {
                 final StringBuilder brokerRelatedInfoLogging = new StringBuilder("The active broker is: " 
                             + currentActiveBrokerPackageName);
                 if (mBrokerProxy.isBrokerWithPRTSupport(currentActiveBrokerPackageName)) {
-                    brokerRelatedInfoLogging.append(" The active broker version is : " 
+                    brokerRelatedInfoLogging.append(" The active broker version is: " 
                             + AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION_WITH_PRT_SUPPORT 
                             + ". It contains PRT support.");
                 } else {
@@ -1364,14 +1371,17 @@ public class AuthenticationContext {
                     return null;
                 }
             } else {
-                Logger.v(TAG + methodName, "User is not specified for background(silent) token request");
+                Logger.v(TAG + methodName, "User is not specified, skipping background(silent) token request");
             }
 
             if (result != null && result.getAccessToken() != null
                     && !result.getAccessToken().isEmpty()) {
-                Logger.v(TAG, "Token is returned from background(silent) request.");
+                Logger.v(TAG, "Token is returned from background(silent) request, sending token "
+                        + "result back via callback.");
                 callbackHandle.onSuccess(result);
                 return result;
+            } else {
+                Logger.v(TAG, "Returned result from broker doesn't contain access token.");
             }
 
             // Launch broker activity
@@ -1379,7 +1389,6 @@ public class AuthenticationContext {
             // Initial request to authenticator needs to launch activity to
             // record calling uid for the account. This happens for Prompt auto
             // or always behavior.
-            Logger.v(TAG, "Token is not returned from backgroud(silent) request.");
             if (!request.isSilent() && activity != null) {
 
                 // Only happens with callback since silent call does not show UI
@@ -1418,7 +1427,7 @@ public class AuthenticationContext {
                             ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
                 }
             } else {
-
+                Logger.v(TAG, "Token is not returned from backgroud(silent) request.");
                 // User does not want to launch activity
                 String msg = "Prompt is not allowed and failed to get token:";
                 Logger.e(TAG, msg, "", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -1429,7 +1438,6 @@ public class AuthenticationContext {
             // It will start activity if callback is provided. Return null here.
             return null;
         } else {
-            Logger.v(TAG + methodName, "Start token acquisition with local flow.");
             return localFlow(callbackHandle, activity, useDialog, request);
         }
     }
@@ -1437,7 +1445,14 @@ public class AuthenticationContext {
     private AuthenticationResult localFlow(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request) {
+        Logger.v(TAG, "Start token acquisition with local flow.");
+        //Also log the request info, authority will be logged in additional message(since it contains tenant)
+        Logger.v(TAG, "Resource " + request.getResource() + " Client id: " 
+                + request.getClientId() + " Authority host: " + Uri.parse(request.getAuthority()).getHost(), 
+                "Authority: " + request.getAuthority(), null);
+        
         // Lookup access token from cache
+        Logger.v(TAG, "Checking for access token in the cache.");
         AuthenticationResult cachedItem = getItemFromCache(request);
         if (cachedItem != null && isUserMisMatch(request, cachedItem)) {
             callbackHandle.onError(new AuthenticationException(
@@ -1450,6 +1465,7 @@ public class AuthenticationContext {
             callbackHandle.onSuccess(cachedItem);
             return cachedItem;
         }
+        Logger.v(TAG, "Acess token does not exist or is already expired.");
 
         // Trying to find refresh token first, if existed, will try to use the refresh token. 
         Logger.v(TAG, "Checking refresh tokens");
@@ -1457,7 +1473,7 @@ public class AuthenticationContext {
         AuthenticationResult authResult = null;
         if (!promptUser(request.getPrompt()) && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
-            Logger.v(TAG, "Refresh token is available and it will attempt to refresh token");
+            Logger.v(TAG, "Refresh token is available and will try to redeem token with refresh token");
             try {
                 authResult = getTokenWithRefreshToken(activity, useDialog, request, refreshItem, true);
             } catch (AuthenticationException authenticationException) {
@@ -1511,7 +1527,7 @@ public class AuthenticationContext {
         // change or similar at client app.
         mAuthorizationCallback = callbackHandle.callback;
         request.setRequestId(callbackHandle.callback.hashCode());
-        Logger.v(TAG, "Starting Authentication Activity with callback:"
+        Logger.v(TAG, "Starting Authentication Activity for interactively acquiring token. Callback is:"
                 + callbackHandle.callback.hashCode());
         putWaitingRequest(callbackHandle.callback.hashCode(),
                 new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
@@ -1676,8 +1692,8 @@ public class AuthenticationContext {
             if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 String refreshTokenHash = getTokenHash(item.getRefreshToken());
 
-                Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
-                        + " Key used:" + keyUsed);
+                Logger.v(TAG, "Refresh token is available and refresh token hash is:" + refreshTokenHash,
+                        " Key used:" + keyUsed, null);
                 refreshItem = new RefreshItem(keyUsed, request, item, multiResource);
             }
         }
@@ -1737,7 +1753,7 @@ public class AuthenticationContext {
 
             // User can ask for token without login hint. Next call from same
             // method should use token from cache.
-            Logger.v(TAG, "Setting item to cache");
+            Logger.v(TAG, "Saving token result into cache");
 
             // Calculate token hashcode
             logReturnedToken(request, result);
@@ -1751,8 +1767,8 @@ public class AuthenticationContext {
                 // prompt.
                 if (result.getUserInfo() != null
                         && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
-                    Logger.v(TAG, "Updating cache for username:"
-                            + result.getUserInfo().getDisplayableId());
+                    Logger.v(TAG, "Updating cache for user displayableId.", "User displayable id: " + 
+                        result.getUserInfo().getDisplayableId(), null);
                     setItemToCacheForUser(request, result, result.getUserInfo().getDisplayableId());
                 }
             } else if (StringExtensions.IsNullOrBlank(userKey)) {
@@ -1760,12 +1776,15 @@ public class AuthenticationContext {
             }
 
             // It will store in the cache for empty idtokens as well
+            Logger.v(TAG, "Updating cache with user id provided in request, could be empty.", 
+                    "User id: " + userKey, null);
             setItemToCacheForUser(request, result, userKey);
 
             // Set item with userid if idtoken is present.
             if (result.getUserInfo() != null
                     && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
-                Logger.v(TAG, "Updating userId:" + result.getUserInfo().getUserId());
+                Logger.v(TAG, "Updating cache for user uniqueId.", "User unique id: " + result.getUserInfo().getUserId(), 
+                        null);
                 setItemToCacheForUser(request, result, result.getUserInfo().getUserId());
             }
         }
@@ -1773,6 +1792,7 @@ public class AuthenticationContext {
 
     private void setItemToCacheForUser(final AuthenticationRequest request,
             AuthenticationResult result, String userId) {
+        Logger.v(TAG, "Setting token item with resource specific cache key into cache.");
         mTokenCacheStore.setItem(CacheKey.createCacheKey(request, userId), new TokenCacheItem(
                 request, result, false));
 
@@ -1807,7 +1827,7 @@ public class AuthenticationContext {
         if (mTokenCacheStore != null) {
             // Use same key to store refreshed result. This key may belong to
             // normal token or MRRT token.
-            Logger.v(TAG, "Setting refresh item to cache for key:" + refreshItem.mKey);
+            Logger.v(TAG, "Setting refresh item to cache.", " Key is: " + refreshItem.mKey, null);
             logReturnedToken(request, result);
 
             // Update for cache key
@@ -1844,8 +1864,8 @@ public class AuthenticationContext {
     private AuthenticationResult getTokenWithRefreshToken(final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request, final RefreshItem refreshItem, final boolean useCache) 
             throws AuthenticationException {
-        Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
-                + getTokenHash(refreshItem.mRefreshToken));
+        Logger.v(TAG, "Process refreshToken with refreshToken hash:" + getTokenHash(refreshItem.mRefreshToken), 
+                " For " + request.getLogInfo(), null);
 
         // Removes refresh token from cache, when this call is complete. Request
         // may be interrupted, if app is shutdown by user. Detect connection
@@ -1894,9 +1914,10 @@ public class AuthenticationContext {
                 removeItemFromCache(refreshItem);
                 return result;
             } else {
-                Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
+                Logger.v(TAG, "Refresh token request returns the token back.", request.getLogInfo(), null);
                 if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
-                    Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());
+                    Logger.v(TAG, "UserInfo is not returned, update returned result with userInfo for cached item.", 
+                            request.getLogInfo(), null);
                     result.setUserInfo(refreshItem.mUserInfo);
                     result.setIdToken(refreshItem.mRawIdToken);
                     result.setTenantId(refreshItem.mTenantId);
@@ -1905,7 +1926,8 @@ public class AuthenticationContext {
                 // it replaces multi resource refresh token as
                 // well with the new one since it is not stored
                 // with resource.
-                Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
+                Logger.v(TAG, "Cache is used, setting returned token result into cache.", 
+                        request.getLogInfo(), null);
                 setItemToCacheFromRefresh(refreshItem, request, result);
 
                 // return result obj which has error code and
@@ -1918,7 +1940,7 @@ public class AuthenticationContext {
             // calling with refresh token. User should received
             // error code and error description in
             // Authentication result for Oauth errors
-            Logger.v(TAG, "Cache is not used for Request:" + request.getLogInfo());
+            Logger.v(TAG, "Cache is not used, returning refresh token result back.", request.getLogInfo(), null);
             return result;
         }
     }
@@ -1933,7 +1955,7 @@ public class AuthenticationContext {
             // Set CorrelationId for Instance Discovery
             mDiscovery.setCorrelationId(getRequestCorrelationId());
             boolean result = mDiscovery.isValidAuthority(authorityUrl);
-            Logger.v(TAG, "Finish validating authority:" + authorityUrl + " result:" + result);
+            Logger.v(TAG, "Finish validating authority:" + authorityUrl.getHost() + " result:" + result);
             return result;
         }
         return false;

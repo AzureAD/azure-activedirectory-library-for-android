@@ -241,7 +241,7 @@ class BrokerProxy implements IBrokerProxy {
                               */, mHandler);
 
                 // Making blocking request here
-                Logger.v(TAG, "Received result from Authenticator");
+                Logger.v(TAG, "Received result from broker");
                 Bundle bundleResult = result.getResult();
                 // Authenticator should throw OperationCanceledException if
                 // token is not available
@@ -255,7 +255,7 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
             }
 
-            Logger.v(TAG, "Returning result from Authenticator");
+            Logger.v(TAG, "Returning result from broker");
             return authResult;
         } else {
             Logger.v(TAG, "Target account is not found");
@@ -506,7 +506,6 @@ class BrokerProxy implements IBrokerProxy {
                     // requests if account exists. New version can allow to
                     // add accounts through Adal.
                     if (hasSupportToAddUserThroughBroker(authenticator.packageName)) {
-                        Logger.v(TAG, "Broker supports to add user through app");
                         return true;
                     } else if (accountList != null && accountList.length > 0) {
                         return verifyAccount(accountList, username, uniqueId);

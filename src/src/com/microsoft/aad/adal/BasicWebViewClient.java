@@ -137,7 +137,8 @@ abstract class BasicWebViewClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-        Logger.v(TAG, "Page finished loading, host is: " + Uri.parse(url).getHost());
+        final Uri uri = Uri.parse(url);
+        Logger.v(TAG, "Page finished loading: " + uri.getHost() + uri.getPath());
 
         /*
          * Once web view is fully loaded,set to visible
@@ -150,7 +151,8 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
-        Logger.v(TAG + "onPageStarted", "Page is started loading, host is: " + Uri.parse(url).getHost());
+        final Uri uri = Uri.parse(url);
+        Logger.v(TAG + "onPageStarted", "Page is started loading: " + uri.getHost() + uri.getPath());
         super.onPageStarted(view, url, favicon);
         showSpinner(true);
     }

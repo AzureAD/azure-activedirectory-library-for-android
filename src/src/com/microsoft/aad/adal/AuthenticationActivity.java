@@ -143,8 +143,7 @@ public class AuthenticationActivity extends Activity {
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
-    protected void onCreate(Bundle savedInstanceState) 
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         final String methodName = ":onCreate";
         super.onCreate(savedInstanceState);
         setContentView(this.getResources().getIdentifier("activity_authentication", "layout",
@@ -154,6 +153,7 @@ public class AuthenticationActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
 
+        Logger.v(TAG + methodName, "AuthenticationActivity is created.");
         // Get the message from the intent
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
@@ -192,11 +192,9 @@ public class AuthenticationActivity extends Activity {
         }
 
         mRedirectUrl = mAuthRequest.getRedirectUri();
-        Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
-        Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
         mStartUrl = "about:blank";
 
         try {
@@ -261,9 +259,10 @@ public class AuthenticationActivity extends Activity {
 
             Logger.v(TAG, "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage 
                     + " Signature hash for calling package is: " + signatureDigest + " Current context package: " 
-                    + getPackageName());
+                    + getPackageName(), "Start url: " + mStartUrl, null);
         } else {
-            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage());
+            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(), 
+                    "Start url: " + mStartUrl, null);
         }
         
         mRegisterReceiver = false;
@@ -279,6 +278,7 @@ public class AuthenticationActivity extends Activity {
                 @Override
                 public void run() {
                     // load blank first to avoid error for not loading webview
+                    Logger.v(TAG + methodName, "Lauching webview for acquiring auth code.");
                     mWebView.loadUrl("about:blank");
                     mWebView.loadUrl(postUrl);
                 }
@@ -470,7 +470,7 @@ public class AuthenticationActivity extends Activity {
 
         if (mAuthRequest != null) {
             // set request id related to this response to send the delegateId
-            Logger.v(TAG, "Return To Caller REQUEST_ID:" + mAuthRequest.getRequestId());
+            Logger.v(TAG, "REQUEST_ID for caller returned to:" + mAuthRequest.getRequestId());
             data.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthRequest.getRequestId());
         } else {
             Logger.w(TAG, "Request object is null", "",
@@ -554,8 +554,7 @@ public class AuthenticationActivity extends Activity {
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
     
-    private void prepareForBrokerResume ()
-    {
+    private void prepareForBrokerResume () {
         final String methodName = ":prepareForBrokerResume";
         Logger.v(TAG + methodName, "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");
         
@@ -721,7 +720,6 @@ public class AuthenticationActivity extends Activity {
     private void displaySpinner(boolean show) {
         if (!AuthenticationActivity.this.isFinishing()
                 && !AuthenticationActivity.this.isChangingConfigurations() && mSpinner != null) {
-            Logger.v(TAG, "displaySpinner:" + show + " showing:" + mSpinner.isShowing());
             if (show && !mSpinner.isShowing()) {
                 mSpinner.show();
             }
