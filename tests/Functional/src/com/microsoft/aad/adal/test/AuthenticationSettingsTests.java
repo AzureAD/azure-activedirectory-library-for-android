@@ -94,12 +94,12 @@ public class AuthenticationSettingsTests extends AndroidTestCase {
     public void testHardwareAcceleration() {
         // verify setter/getter for WebView hardwareAcceleration
         //By default it should be enable
-        assertEquals("isWebViewHardwareAccelerated", true, AuthenticationSettings.INSTANCE.isWebViewHardwareAccelerated());
+        assertEquals("isWebViewHardwareAccelerated", true, AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
 
         // Modify
-        AuthenticationSettings.INSTANCE.setWebViewHardwareAcceleration(false);
+        AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(false);
 
         // Now it should be disable
-        assertEquals("isWebViewHardwareAccelerated", false, AuthenticationSettings.INSTANCE.isWebViewHardwareAccelerated());
+        assertEquals("isWebViewHardwareAccelerated", false, AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
     }
 }

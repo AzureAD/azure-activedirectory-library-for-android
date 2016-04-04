@@ -285,9 +285,9 @@ public enum AuthenticationSettings {
      *             if true, WebView would be hardwareAccelerated else it 
      *             would be disable.
      *             
-     * @see #isWebViewHardwareAccelerated()
+     * @see #getDisableWebViewHardwareAcceleration()
      */
-    public void setWebViewHardwareAcceleration(boolean enable) {
+    public void setDisableWebViewHardwareAcceleration(boolean enable) {
         this.mEnableHardwareAcceleration = enable;
     }
 
@@ -297,9 +297,9 @@ public enum AuthenticationSettings {
      * 
      * @return true if WebView is hardwareAccelerated otherwise false
      * 
-     * @see #setWebViewHardwareAcceleration(boolean)
+     * @see #setDisableWebViewHardwareAcceleration(boolean)
      */
-    public boolean isWebViewHardwareAccelerated() {
+    public boolean getDisableWebViewHardwareAcceleration() {
         return this.mEnableHardwareAcceleration;
     }
 }

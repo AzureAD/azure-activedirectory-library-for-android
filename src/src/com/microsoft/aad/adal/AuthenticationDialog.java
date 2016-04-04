@@ -109,7 +109,7 @@ class AuthenticationDialog {
                 }
 
                 // Disable hardware acceleration in WebView if needed
-                if (!AuthenticationSettings.INSTANCE.isWebViewHardwareAccelerated()) {
+                if (!AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration()) {
                     mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
                     Log.d(TAG, "Hardware acceleration is disabled in WebView");
                 }

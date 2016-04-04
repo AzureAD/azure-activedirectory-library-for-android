@@ -585,10 +585,10 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
            NoSuchFieldException, IllegalAccessException {
         
         //By default hardware acceleration should be enable.
-        assertTrue(AuthenticationSettings.INSTANCE.isWebViewHardwareAccelerated());
+        assertTrue(AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
         
         // Disable webview hardware acceleration
-        AuthenticationSettings.INSTANCE.setWebViewHardwareAcceleration(false);
+        AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(false);
         
         startActivity(intentToStartActivity, null, null);
 
@@ -604,7 +604,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         assertEquals("LayerType", WebView.LAYER_TYPE_SOFTWARE, webView.getLayerType());
         
         // Reset hardware acceleration to default value.
-        AuthenticationSettings.INSTANCE.setWebViewHardwareAcceleration(true);
+        AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(true);
     }
 
     @SmallTest
