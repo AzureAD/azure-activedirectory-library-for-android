@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -32,7 +33,7 @@ import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
 import android.net.Uri;
 import android.os.Build;
@@ -219,7 +220,8 @@ class Oauth2 {
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
-        } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
+        } 
+        else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
             boolean isMultiResourcetoken = false;
             String expires_in = response.get("expires_in");
@@ -252,11 +254,19 @@ class Oauth2 {
                     Logger.v(TAG, "IdToken is not provided");
                 }
             }
+            
+            String familyClientId = null;
+            if (response.containsKey(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID)) {
+                familyClientId = response.get(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID);
+            }
 
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
                     isMultiResourcetoken, userinfo, tenantId, rawIdToken);
+            
+            //Set family client id on authentication result for TokenCacheItem to pick up
+            result.setFamilyClientId(familyClientId);
         }
 
         return result;
@@ -315,7 +325,7 @@ class Oauth2 {
                     return idtokenInfo;
                 }
             }
-        } catch (Exception ex) {
+        } catch (JSONException | UnsupportedEncodingException ex) {
             Logger.e(TAG, "Error in parsing user id token", null,
                     ADALError.IDTOKEN_PARSING_FAILURE, ex);
         }
@@ -334,11 +344,11 @@ class Oauth2 {
         }
     }
 
-    public AuthenticationResult refreshToken(String refreshToken) throws Exception {
+    public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationException {
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
-            throw new IllegalArgumentException("webRequestHandler");
+            throw new IllegalArgumentException("webRequestHandler is null.");
         }
 
         // Token request message
@@ -353,8 +363,8 @@ class Oauth2 {
 
         // Refresh token endpoint needs to send header field for device
         // challenge
-        headers.put(AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE,
-                AuthenticationConstants.Broker.CHALLANGE_TLS_INCAPABLE_VERSION);
+        headers.put(AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE,
+                AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE_VERSION);
         return postMessage(requestMessage, headers);
     }
 
@@ -368,7 +378,8 @@ class Oauth2 {
      *         not have protocol error.
      * @throws Exception
      */
-    public AuthenticationResult getToken(String authorizationUrl) throws Exception {
+    public AuthenticationResult getToken(String authorizationUrl)
+            throws IOException, AuthenticationServerProtocolException, AuthenticationException {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
             throw new IllegalArgumentException("authorizationUrl");
@@ -417,7 +428,7 @@ class Oauth2 {
      * @return Token in the AuthenticationResult
      * @throws Exception
      */
-    public AuthenticationResult getTokenForCode(String code) throws Exception {
+    public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationException {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -437,7 +448,7 @@ class Oauth2 {
     }
 
     private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
-            throws Exception {
+            throws IOException, AuthenticationException {
         URL authority = null;
         AuthenticationResult result = null;
         authority = StringExtensions.getUrl(getTokenEndpoint());
@@ -456,27 +467,27 @@ class Oauth2 {
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 if (response.getResponseHeaders() != null
                         && response.getResponseHeaders().containsKey(
-                                AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER)) {
+                                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
-                    String challangeHeader = response.getResponseHeaders()
-                            .get(AuthenticationConstants.Broker.CHALLANGE_REQUEST_HEADER).get(0);
-                    Logger.v(TAG, "Device certificate challange request:" + challangeHeader);
-                    if (!StringExtensions.IsNullOrBlank(challangeHeader)) {
+                    String challengeHeader = response.getResponseHeaders()
+                            .get(AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER).get(0);
+                    Logger.v(TAG, "Device certificate challenge request:" + challengeHeader);
+                    if (!StringExtensions.IsNullOrBlank(challengeHeader)) {
 
                         // Handle each specific challenge header
-                        if (StringExtensions.hasPrefixInHeader(challangeHeader,
-                                AuthenticationConstants.Broker.CHALLANGE_RESPONSE_TYPE)) {
-                            Logger.v(TAG, "Challange is related to device certificate");
-                            ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                        if (StringExtensions.hasPrefixInHeader(challengeHeader,
+                                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) {
+                            Logger.v(TAG, "Challenge is related to device certificate");
+                            ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                     mJWSBuilder);
-                            Logger.v(TAG, "Processing device challange");
-                            final ChallangeResponse challangeResponse = certHandler
-                                    .getChallangeResponseFromHeader(challangeHeader,
+                            Logger.v(TAG, "Processing device challenge");
+                            final ChallengeResponse challengeResponse = certHandler
+                                    .getChallengeResponseFromHeader(challengeHeader,
                                             authority.toString());
-                            headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
-                                    challangeResponse.mAuthorizationHeaderValue);
+                            headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
+                                    challengeResponse.mAuthorizationHeaderValue);
                             Logger.v(TAG, "Sending request with challenge response");
                             response = mWebRequestHandler.sendPost(authority, headers,
                                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
@@ -485,7 +496,7 @@ class Oauth2 {
                     } else {
                         throw new AuthenticationException(
                                 ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
-                                "Challange header is empty");
+                                "Challenge header is empty");
                     }
                 } else {
 
@@ -521,15 +532,11 @@ class Oauth2 {
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
-        } catch (IllegalArgumentException e) {
-            ClientMetrics.INSTANCE.setLastError(null);
-            Logger.e(TAG, e.getMessage(), "", ADALError.ARGUMENT_EXCEPTION, e);
-            throw e;
         } catch (UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             throw e;
-        } catch (Exception e) {
+        } catch (IOException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
@@ -584,15 +591,15 @@ class Oauth2 {
             }
         }
 
-        if (webResponse.getBody() != null && webResponse.getBody().length > 0) {
-
+        if (webResponse.getStatusCode() == HttpURLConnection.HTTP_OK
+                && webResponse.getBody() != null && webResponse.getBody().length > 0) {
             // invalid refresh token calls has error related items in the body.
             // Status is 400 for those.
             try {
                 String jsonStr = new String(webResponse.getBody());
                 extractJsonObjects(responseItems, jsonStr);
                 result = processUIResponseParams(responseItems);
-            } catch (final Exception ex) {
+            } catch (final JSONException ex) {
                 // There is no recovery possible here, so
                 // catch the
                 // generic Exception
@@ -622,7 +629,7 @@ class Oauth2 {
                 }
 
                 Logger.v(TAG, "Response correlationId:" + correlationIdInHeader);
-            } catch (Exception ex) {
+            } catch (IllegalArgumentException ex) {
                 Logger.e(TAG, "Wrong format of the correlation ID:" + correlationIdInHeader, "",
                         ADALError.CORRELATION_ID_FORMAT, ex);
             }

@@ -20,8 +20,9 @@ package com.microsoft.aad.adal;
 
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
 import android.content.Context;
 import android.content.Intent;
@@ -147,34 +148,35 @@ abstract class BasicWebViewClient extends WebViewClient {
         super.onPageStarted(view, url, favicon);
         showSpinner(true);
     }
-    
+
     @Override
+    //Give the host application a chance to take over the control when a new url is about to be loaded in the current WebView.
     public boolean shouldOverrideUrlLoading(final WebView view, String url) {
         Logger.v(TAG, "Navigation is detected");
         if (url.startsWith(AuthenticationConstants.Broker.PKEYAUTH_REDIRECT)) {
             Logger.v(TAG, "Webview detected request for pkeyauth challenge.");
             view.stopLoading();
             setPKeyAuthStatus(true);
-            final String challangeUrl = url;
+            final String challengeUrl = url;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        ChallangeResponseBuilder certHandler = new ChallangeResponseBuilder(
+                        ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                 new JWSBuilder());
-                        final ChallangeResponse challangeResponse = certHandler
-                                .getChallangeResponseFromUri(challangeUrl);
+                        final ChallengeResponse challengeResponse = certHandler
+                                .getChallengeResponseFromUri(challengeUrl);
                         final HashMap<String, String> headers = new HashMap<String, String>();
-                        headers.put(AuthenticationConstants.Broker.CHALLANGE_RESPONSE_HEADER,
-                                challangeResponse.mAuthorizationHeaderValue);
+                        headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
+                                challengeResponse.mAuthorizationHeaderValue);
                         postRunnable(new Runnable() {
 
                             @Override
                             public void run() {
-                                String loadUrl = challangeResponse.mSubmitUrl;
+                                String loadUrl = challengeResponse.mSubmitUrl;
                                 HashMap<String, String> parameters = StringExtensions
-                                        .getUrlParameters(challangeResponse.mSubmitUrl);
-                                Logger.v(TAG, "SubmitUrl:" + challangeResponse.mSubmitUrl);
+                                        .getUrlParameters(challengeResponse.mSubmitUrl);
+                                Logger.v(TAG, "SubmitUrl:" + challengeResponse.mSubmitUrl);
                                 if (!parameters
                                         .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
                                     loadUrl = loadUrl + "?" + mQueryParam;
@@ -183,7 +185,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 view.loadUrl(loadUrl, headers);
                             }
                         });
-                    } catch (IllegalArgumentException e) {
+                    } catch (AuthenticationServerProtocolException e) {
                         Logger.e(TAG, "Argument exception", e.getMessage(),
                                 ADALError.ARGUMENT_EXCEPTION, e);
                         // It should return error code and finish the
@@ -191,8 +193,8 @@ abstract class BasicWebViewClient extends WebViewClient {
                         // returns errors to callback.
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra(
-                                        AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
-                                        e);
+                                AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
+                                e);
                         if (mRequest != null) {
                             resultIntent.putExtra(
                                     AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
@@ -219,20 +221,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                         sendResponse(
                                 AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
                                 resultIntent);
-                    } catch (Exception e) {
-                        Intent resultIntent = new Intent();
-                        resultIntent.putExtra(
-                                        AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION,
-                                        e);
-                        if (mRequest != null) {
-                            resultIntent.putExtra(
-                                    AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                                    mRequest);
                         }
-                        sendResponse(
-                                AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
-                                resultIntent);
-                    }
                 }
             }).start();
 
@@ -281,18 +270,13 @@ abstract class BasicWebViewClient extends WebViewClient {
     }
     
     private boolean hasCancelError(String redirectUrl) {
-        try {
-            HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
-            String error = parameters.get("error");
-            String errorDescription = parameters.get("error_description");
+        Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
+        String error = parameters.get("error");
+        String errorDescription = parameters.get("error_description");
 
-            if (!StringExtensions.IsNullOrBlank(error)) {
-                Logger.v(TAG, "Cancel error:" + error + " " + errorDescription);
-                return true;
-            }
-        } catch (Exception exc) {
-            Logger.e(TAG, "Error in processing url parameters", "Url:" + redirectUrl,
-                    ADALError.ERROR_WEBVIEW);
+        if (!StringExtensions.IsNullOrBlank(error)) {
+            Logger.w(TAG, "Cancel error:" + error, errorDescription, null);
+            return true;
         }
 
         return false;

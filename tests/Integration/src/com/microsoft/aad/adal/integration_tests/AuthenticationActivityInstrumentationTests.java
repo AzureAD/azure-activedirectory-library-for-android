@@ -221,12 +221,12 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     @MediumTest
-    public void testDeviceChallange() throws Exception {
+    public void testDeviceChallenge() throws Exception {
         TenantInfo tenant = new TenantInfo(TenantType.AAD,
-                "https://clientcert.azurewebsites.net/WebRequest", "device-challange", "resource2",
+                "https://clientcert.azurewebsites.net/WebRequest", "device-challenge", "resource2",
                 "short-live-token", "https://clientcert.azurewebsites.net/", null, null, null,
                 null, null);
-        Log.v(TAG, "testDeviceChallange starts for authority:" + tenant.getAuthority());
+        Log.v(TAG, "testDeviceChallenge starts for authority:" + tenant.getAuthority());
 
         // Activity runs at main thread. Test runs on different thread
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
@@ -240,12 +240,12 @@ public class AuthenticationActivityInstrumentationTests extends
     }
 
     @MediumTest
-    public void testDeviceChallangeRefreshToken() throws Exception {
+    public void testDeviceChallengeRefreshToken() throws Exception {
         TenantInfo tenant = new TenantInfo(TenantType.AAD,
-                "https://clientcert.azurewebsites.net/WebRequest", "device-challange", "resource2",
+                "https://clientcert.azurewebsites.net/WebRequest", "device-challenge", "resource2",
                 "short-live-token", "https://clientcert.azurewebsites.net/", null, null, null,
                 null, null);
-        Log.v(TAG, "testDeviceChallange starts for authority:" + tenant.getAuthority());
+        Log.v(TAG, "testDeviceChallenge starts for authority:" + tenant.getAuthority());
 
         // Activity runs at main thread. Test runs on different thread
         final TextView textViewStatus = (TextView)activity.findViewById(R.id.textViewStatus);
@@ -256,7 +256,7 @@ public class AuthenticationActivityInstrumentationTests extends
         setAuthenticationRequest(tenant, tenant.getResource(), "admin@aaltests.onmicrosoft.com",
                 PromptBehavior.Auto, null, false);
         setupDeviceCertificateMock();
-        acquireTokenByRefreshToken("DEVICE_CERT_CHALLANGE");
+        acquireTokenByRefreshToken("DEVICE_CERT_CHALLENGE");
     }
 
     private void verifyTokenFlow(final TextView textViewStatus, final ActivityMonitor monitor)

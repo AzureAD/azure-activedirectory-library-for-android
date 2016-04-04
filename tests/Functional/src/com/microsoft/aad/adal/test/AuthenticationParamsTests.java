@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import junit.framework.Assert;
+
+import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
 import com.microsoft.aad.adal.ADALError;
@@ -37,6 +39,7 @@ import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
+import com.microsoft.aad.adal.ResourceAuthenticationChallengeException;
 
 public class AuthenticationParamsTests extends AndroidTestHelper {
 
@@ -66,21 +69,21 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     }
 
     public void testCreateFromResponseAuthenticateHeader() {
-        assertThrowsException(IllegalArgumentException.class,
-                AuthenticationParameters.AUTH_HEADER_MISSING.toLowerCase(), new Runnable() {
+        assertThrowsException(ResourceAuthenticationChallengeException.class,
+                AuthenticationParameters.AUTH_HEADER_MISSING.toLowerCase(), new ThrowableRunnable() {
 
                     @Override
-                    public void run() {
+                    public void run() throws ResourceAuthenticationChallengeException {
                         AuthenticationParameters.createFromResponseAuthenticateHeader(null);
                     }
                 });
 
         // empty value inside the authorization_uri will throw exception
-        assertThrowsException(IllegalArgumentException.class,
-                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT.toLowerCase(), new Runnable() {
+        assertThrowsException(ResourceAuthenticationChallengeException.class,
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT.toLowerCase(), new ThrowableRunnable() {
 
                     @Override
-                    public void run() {
+                    public void run() throws ResourceAuthenticationChallengeException {
                         AuthenticationParameters
                                 .createFromResponseAuthenticateHeader("Bearer\t resource=\"is=outer, space=ornot\",\t\t  authorization_uri=\"\"");
                     }
@@ -90,6 +93,8 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     /**
      * test external service deployed at Azure
      */
+    @Suppress
+    // Test doesn't work because external service is down
     public void testCreateFromResourceUrlPositive() {
         Log.d(TAG, "test:" + getName() + "thread:" + android.os.Process.myTid());
 
@@ -191,7 +196,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer foo ")),
+                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer test ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(

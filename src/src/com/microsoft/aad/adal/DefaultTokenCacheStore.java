@@ -18,6 +18,8 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -25,6 +27,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.crypto.NoSuchPaddingException;
 
@@ -67,8 +70,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * @throws NoSuchAlgorithmException
      * @throws NoSuchPaddingException
      */
-    public DefaultTokenCacheStore(Context context) throws NoSuchAlgorithmException,
-            NoSuchPaddingException {
+    public DefaultTokenCacheStore(Context context) {
         mContext = context;
         if (context != null) {
 
@@ -89,6 +91,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                 }
             }
             mPrefs = mContext.getSharedPreferences(SHARED_PREFERENCE_NAME, Activity.MODE_PRIVATE);
+            if (mPrefs == null) {
+                throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
+            }
+
         } else {
             throw new IllegalArgumentException("Context is null");
         }
@@ -105,24 +111,24 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     private String encrypt(String value) {
         try {
             return sHelper.encrypt(value);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException | IOException e) {
             Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
         }
 
         return null;
     }
 
-    private String decrypt(String value) {
+    private String decrypt(final String key, final String value) {
+        if (StringExtensions.IsNullOrBlank(key)) {
+            throw new IllegalArgumentException("key is null or blank");
+        }
+        
         try {
             return sHelper.decrypt(value);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException | IOException e) {
             Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
-            if (!StringExtensions.IsNullOrBlank(value)) {
-                Logger.v(TAG, String.format("Decryption error for key: '%s'. Item will be removed",
-                        value));
-                removeItem(value);
-                Logger.v(TAG, String.format("Item removed for key: '%s'", value));
-            }
+            removeItem(key);
+            Logger.v(TAG, String.format("Decryption error, item removed for key: '%s'", key));
         }
 
         return null;
@@ -130,16 +136,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public TokenCacheItem getItem(String key) {
-
-        argumentCheck();
-
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
 
         if (mPrefs.contains(key)) {
             String json = mPrefs.getString(key, "");
-            String decrypted = decrypt(json);
+            String decrypted = decrypt(key, json);
             if (decrypted != null) {
                 return mGson.fromJson(decrypted, TokenCacheItem.class);
             }
@@ -150,9 +153,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public void removeItem(String key) {
-
-        argumentCheck();
-
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
@@ -167,9 +167,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public void setItem(String key, TokenCacheItem item) {
-
-        argumentCheck();
-
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
@@ -193,8 +190,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public void removeAll() {
-
-        argumentCheck();
         Editor prefsEditor = mPrefs.edit();
         prefsEditor.clear();
         // apply will do Async disk write operation.
@@ -208,22 +203,24 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public Iterator<TokenCacheItem> getAll() {
-
-        argumentCheck();
-
         @SuppressWarnings("unchecked")
         Map<String, String> results = (Map<String, String>)mPrefs.getAll();
-        Iterator<String> values = results.values().iterator();
 
         // create objects
         ArrayList<TokenCacheItem> tokens = new ArrayList<TokenCacheItem>(results.values().size());
-
-        while (values.hasNext()) {
-            String json = values.next();
-            String decrypted = decrypt(json);
-            if (decrypted != null) {
-                TokenCacheItem cacheItem = mGson.fromJson(decrypted, TokenCacheItem.class);
-                tokens.add(cacheItem);
+        
+        Iterator<Entry<String, String>> tokenResultEntrySet = results.entrySet().iterator();
+        while (tokenResultEntrySet.hasNext())
+        {
+            final Entry<String, String> tokenEntry = tokenResultEntrySet.next();
+            final String tokenKey = tokenEntry.getKey();
+            final String tokenValue = tokenEntry.getValue();
+            
+            final String decryptedValue = decrypt(tokenKey, tokenValue);
+            if (decryptedValue != null)
+            {
+                final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
+                tokens.add(tokenCacheItem);
             }
         }
 
@@ -330,16 +327,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return tokenItems;
     }
 
-    private void argumentCheck() {
-        if (mContext == null) {
-            throw new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED);
-        }
-
-        if (mPrefs == null) {
-            throw new AuthenticationException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE);
-        }
-    }
-
     private boolean isAboutToExpire(Date expires) {
         Date validity = getTokenValidityTime().getTime();
 
@@ -360,8 +347,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     @Override
     public boolean contains(String key) {
-        argumentCheck();
-
         if (key == null) {
             throw new IllegalArgumentException("key");
         }
