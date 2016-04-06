@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Com.microsoft.adal.testsTest</string>
+    <string name="title_activity_mock">MockActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED">Test:Authority validation returned an error</string>
+
+</resources>

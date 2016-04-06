@@ -1,3 +1,0 @@
-This directory should contain the following JARs:
-	- gson-2.3.1.jar
-        - support-v4.jar (Android support jar that you can include from eclipse)
