@@ -91,4 +91,16 @@ public class AuthenticationSettingsTests extends AndroidTestCase {
 
         AuthenticationSettings.INSTANCE.setReadTimeOut(30000);
     }
+
+    public void testHardwareAcceleration() {
+        // verify setter/getter for WebView hardwareAcceleration
+        //By default it should be enable
+        assertEquals("isWebViewHardwareAccelerated", true, AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
+
+        // Modify
+        AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(false);
+
+        // Now it should be disable
+        assertEquals("isWebViewHardwareAccelerated", false, AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
+    }
 }
