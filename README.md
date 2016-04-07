@@ -233,7 +233,7 @@ If you're implementing your authentication logic in a Fragment, you'll need to w
     }
     ```
 
-	Explanation of the parameters:
+	Explanation of the parameters(Example of those parameters could be found at [Android Native Client Sample](https://github.com/AzureADSamples/NativeClient-Android)):
     
 	* Resource is required and is the resource you are trying to access.
 	* Clientid is required and comes from the AzureAD Portal.
@@ -243,13 +243,18 @@ If you're implementing your authentication logic in a Fragment, you'll need to w
   
 	The Callback will have an object of AuthenticationResult which has accesstoken, date expired, and idtoken info. 
 	
-	Optional:  **acquireTokenSilent**
+	**acquireTokenSilentSync**
 
-	You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well. It accepts userid as paremeter.
+	In order to get token back without prompt, you can call **acquireTokenSilentSync** which handles caching, and token refresh without UI prompt. It provides async version as well. **note** userId required in silent call is the one you get back from the interactive call) as parameter.
  
 	```java
-	mContext.acquireTokenSilent(resource, clientid, userId, callback );
+	mContext.acquireTokenSilentSync(String resource, String clientId, String userId);
 	```
+	or 
+	```java
+	mContext.acquireTokenSilent(String resource, String clientId, String userId, final AuthenticationCallback<AuthenticationResult> callback);
+	```
+	
 11. Broker:
 
 	Microsoft Intune's Company portal App and Azure Authenticator App will provide the broker component. 
@@ -263,8 +268,8 @@ If you're implementing your authentication logic in a Fragment, you'll need to w
 		* GET_ACCOUNTS
 		* USE_CREDENTIALS
 		* MANAGE_ACOUNTS
-	* If target version is 23, USE_CREDENTIALS and MANAGE_ACCOUNTS are already deprecated. But GET_ACCOUNTS is under protection level "dangerous", calling app is responsible for requesting the run-time permisson. 
-	* If spoke to the broker version on V1 protocol, broker will only support single user. To talk to this version of broker, there has to be an account existed. 
+	* If target version is 23, USE_CREDENTIALS and MANAGE_ACCOUNTS are already deprecated. But GET_ACCOUNTS is under protection level "dangerous", calling app is responsible for requesting the run-time permisson. You can      reference [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
+	* There must be an account existed and registered via one of the two broker apps.
 	
 	AuthenticationContext provides API method to get the broker user. 
 
@@ -394,17 +399,17 @@ acquireToken method without activity supports dialog prompt.
 
 ### Encryption
 
-ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details. Android introduced AndroidKeyStore for 4.3(API18) secure storage of private keys. ADAL uses that for API18 and above. If you want to use ADAL for lower SDK versions, you need to **provide secret key at AuthenticationSettings.INSTANCE.setSecretKey**
+ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details. ADAL uses AndroidKeyStore for 4.3(API18) and above for secure storage of private keys. If you want to use ADAL for lower SDK versions, you need to **provide secret key at AuthenticationSettings.INSTANCE.setSecretKey**
 
+Following example is using the password based encryption key(which takes the specified password and salt). And then create the provider-independent secret key with the generated password based encryption key. ADAL requires the key to be 256 bits. You can use other key generation algorithm.
 ```Java
 	SecretKeyFactory keyFactory = SecretKeyFactory
 		.getInstance("PBEWithSHA256And256BitAES-CBC-BC");
-    SecretKey generatedSecretKe = keyFactory.generateSecret(new PBEKeySpec("your_password".toCharArray(),
+    SecretKey generatedSecretKey = keyFactory.generateSecret(new PBEKeySpec(your_password,
 		byte-code-for-your-salt, 100, 256));
-    SecretKey secretKey = new SecretKeySpec(generatedSecretKe.getEncoded(), "AES");
+    SecretKey secretKey = new SecretKeySpec(generatedSecretKey.getEncoded(), "AES");
     AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
 ```
-For API version lower than 18, ADAL requires the secret key to be 256 bits. 
 
 ### Oauth2 Bearer challange
 
