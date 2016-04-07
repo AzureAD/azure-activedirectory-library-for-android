@@ -85,7 +85,7 @@ public class ReflectionUtils {
         Constructor<?> constructor = c.getDeclaredConstructor();
 
         constructor.setAccessible(true);
-        return constructor.newInstance(null);
+        return constructor.newInstance((Object[]) null);
     }
 
     public static Object getFieldValue(Object object, String fieldName)
