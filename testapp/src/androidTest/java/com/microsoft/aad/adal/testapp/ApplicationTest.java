@@ -1,4 +1,4 @@
-package aad.microsoft.com.testapp;
+package com.microsoft.aad.adal.testapp;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

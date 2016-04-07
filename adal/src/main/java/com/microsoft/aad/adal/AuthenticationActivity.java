@@ -608,11 +608,11 @@ public class AuthenticationActivity extends Activity {
         }
         
         public boolean processInvalidUrl(final WebView view, String url) {
-        	final String methodName = ":processInvalidUrl";
+            final String methodName = ":processInvalidUrl";
             if (isBrokerRequest(getIntent())
                     && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) 
             {
-            	Logger.e(TAG + methodName, String.format(
+                Logger.e(TAG + methodName, String.format(
                         "The RedirectUri is not as expected. Received %s and expected %s", url,
                         mRedirectUrl), "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
                 returnError(ADALError.DEVELOPER_REDIRECTURI_INVALID, String.format(
@@ -625,10 +625,10 @@ public class AuthenticationActivity extends Activity {
             //check if the redirect URL is under SSL protected
             if(!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX))
             {
-            	Logger.e(TAG + methodName, "The webview was redirected to an unsafe URL.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
-            	returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, "The webview was redirected to an unsafe URL.");
-            	view.stopLoading();
-            	return true;
+                Logger.e(TAG + methodName, "The webview was redirected to an unsafe URL.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
+                returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, "The webview was redirected to an unsafe URL.");
+                view.stopLoading();
+                return true;
             }
 
             return false;
@@ -1027,8 +1027,8 @@ public class AuthenticationActivity extends Activity {
                     }
                     
                     if (result.taskResult.getTenantId() != null) {
-                    	intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID, 
-                    			result.taskResult.getTenantId());
+                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID,
+                                result.taskResult.getTenantId());
                     }
 
                     UserInfo userinfo = result.taskResult.getUserInfo();

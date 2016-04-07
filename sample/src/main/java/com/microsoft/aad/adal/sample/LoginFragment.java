@@ -1,5 +1,5 @@
 
-package com.microsoft.aad.adal.hello;
+package com.microsoft.aad.adal.sample;
 
 import android.content.Intent;
 import android.os.Build;

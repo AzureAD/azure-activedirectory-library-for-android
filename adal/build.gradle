@@ -30,6 +30,7 @@ android {
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -59,7 +60,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile 'org.mockito:mockito-core:1.10.19'
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
@@ -68,6 +68,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+//tasks to generate the jar files
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
@@ -90,6 +91,7 @@ artifacts {
     archives sourcesJar
 }
 
+// tasks for the code quality checking
 findbugs {
     ignoreFailures = true
     reportsDir = file("$project.buildDir/outputs/")
@@ -100,13 +102,10 @@ findbugs {
 task findbugs(type: FindBugs) {
     description 'Run findbugs'
     group 'verification'
-
     classes = fileTree("build/intermediates/classes/debug/")
     source = fileTree('src/main/java')
     classpath = files()
-
     effort = 'max'
-
     excludeFilter = file("../config/findbugs/exclude.xml")
 
     reports {
@@ -114,7 +113,6 @@ task findbugs(type: FindBugs) {
         html.enabled = true
     }
 }
-
 
 pmd {
     ignoreFailures = true
@@ -124,7 +122,6 @@ pmd {
 task pmd(type: Pmd) {
     description 'Run pmd'
     group 'verification'
-
     ruleSets = ["java-basic", "java-braces", "java-strings", "java-design", "java-unusedcode"]
     source = fileTree('src/main/java')
 
@@ -148,4 +145,5 @@ task checkstyle(type: Checkstyle) {
     classpath = files()
 }
 
+// assemble the code quality checking tasks with assembleDebug
 assembleDebug.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint'
