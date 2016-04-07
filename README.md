@@ -245,7 +245,7 @@ If you're implementing your authentication logic in a Fragment, you'll need to w
 	
 	**acquireTokenSilentSync**
 
-	In order to get token back without prompt, you can call **acquireTokenSilentSync** which handles caching, and token refresh without UI prompt. It provides async version as well. **note** userId required in silent call is the one you get back from the interactive call) as parameter.
+	In order to get token back without prompt, you can call **acquireTokenSilentSync** which handles caching, and token refresh without UI prompt. It provides async version as well. **Note:** userId required in silent call is the one you get back from the interactive call) as parameter.
  
 	```java
 	mContext.acquireTokenSilentSync(String resource, String clientId, String userId);
