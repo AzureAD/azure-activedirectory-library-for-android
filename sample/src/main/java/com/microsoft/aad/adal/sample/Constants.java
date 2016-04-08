@@ -16,7 +16,7 @@
 // See the Apache License, Version 2.0 for the specific language
 // governing permissions and limitations under the License.
 
-package com.microsoft.aad.adal.hello;
+package com.microsoft.aad.adal.sample;
 
 public class Constants {
     public static final String SDK_VERSION = "1.0";
