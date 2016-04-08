@@ -584,6 +584,54 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 response2.message.contains(broadcastCancelMsg2));
     }
 
+    @SmallTest
+    @UiThreadTest
+    public void testWebview_HardwareAccelerationDisable() throws IllegalArgumentException, 
+           NoSuchFieldException, IllegalAccessException {
+        
+        //By default hardware acceleration should be enable.
+        assertTrue(AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
+        
+        // Disable webview hardware acceleration
+        AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(false);
+        
+        startActivity(intentToStartActivity, null, null);
+
+        activity = getActivity();
+
+        // get field value to check
+        WebView webView = (WebView) ReflectionUtils.getFieldValue(activity,"mWebView");
+
+        // Assert WebView is not null
+        assertNotNull("WebView:: ", webView);
+
+        // If LayerType is LAYER_TYPE_SOFTWARE then HardwareAcceleration would be disabled
+        assertEquals("LayerType", WebView.LAYER_TYPE_SOFTWARE, webView.getLayerType());
+        
+        // Reset hardware acceleration to default value.
+        AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(true);
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testWebview_HardwareAccelerationEnable() throws IllegalArgumentException, 
+           NoSuchFieldException, IllegalAccessException {
+
+        startActivity(intentToStartActivity, null, null);
+
+        activity = getActivity();
+
+        // get field value to check
+        WebView webView = (WebView) ReflectionUtils.getFieldValue(activity, "mWebView");
+
+        // Assert WebView is not null
+        assertNotNull("WebView:: ", webView);
+
+        // In case if webview is hardware accelerated then 
+        // its layer type should not be LAYER_TYPE_SOFTWARE
+        assertNotSame("LayerType", WebView.LAYER_TYPE_SOFTWARE, webView.getLayerType());
+    }
+
     @Override
     protected void tearDown() throws Exception {
 
