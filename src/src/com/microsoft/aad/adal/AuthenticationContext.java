@@ -1678,14 +1678,18 @@ public class AuthenticationContext {
                 multiResource = true;
             }
             
-            // If still cannot find an item, try with family clientid
-            // Disable this feature for ADFS authority
-            if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
-                if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority))) {
-                    Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
-                    item = findFamilyItemForUser(request.getUserIdentifierType(), userId);
-                } else {
-                    Logger.v(TAG + methodName, "No refresh token found, skip the family client id item lookup for ADFS authority.");
+            // Temporarily disable the family client id feature. 
+            final boolean isFamilyClientIdFeatureEnabled = false;
+            if (isFamilyClientIdFeatureEnabled) {
+                // If still cannot find an item, try with family clientid
+                // Disable this feature for ADFS authority
+                if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
+                    if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority))) {
+                        Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
+                        item = findFamilyItemForUser(request.getUserIdentifierType(), userId);
+                    } else {
+                        Logger.v(TAG + methodName, "No refresh token found, skip the family client id item lookup for ADFS authority.");
+                    }
                 }
             }
 

@@ -190,13 +190,19 @@ public class AuthenticationActivity extends Activity {
                     AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
             return;
         }
-
         mRedirectUrl = mAuthRequest.getRedirectUri();
+        
         // Create the Web View to show the page
         mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
+        
+        // Disable hardware acceleration in WebView if needed
+        if (!AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration()) {
+            mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
+            Log.d(TAG, "Hardware acceleration is disabled in WebView");
+        }
+        
         mStartUrl = "about:blank";
-
         try {
             Oauth2 oauth = new Oauth2(mAuthRequest);
             mStartUrl = oauth.getCodeRequestUrl();

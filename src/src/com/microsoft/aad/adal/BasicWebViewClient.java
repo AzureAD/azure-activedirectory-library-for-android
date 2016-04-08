@@ -137,8 +137,15 @@ abstract class BasicWebViewClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
+        
         final Uri uri = Uri.parse(url);
-        Logger.v(TAG, "Page finished loading: " + uri.getHost() + uri.getPath());
+        if (doesLoadingUrlContainAuthCode(url)) {
+            Logger.v(TAG, "Webview finished loading: " + uri.getHost() + uri.getPath() 
+                + " Auth code is returned for the loading url.");
+        } else {
+            Logger.v(TAG, "Webview finished loading: " + uri.getHost() + uri.getPath(), 
+                "Full loading url is: " + url, null);
+        }
 
         /*
          * Once web view is fully loaded,set to visible
@@ -152,9 +159,21 @@ abstract class BasicWebViewClient extends WebViewClient {
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
         final Uri uri = Uri.parse(url);
-        Logger.v(TAG + "onPageStarted", "Page is started loading: " + uri.getHost() + uri.getPath());
+        if (doesLoadingUrlContainAuthCode(url)) {
+            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath() 
+                + " Auth code is returned for the loading url.");
+        } else {
+            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath(), 
+                "Full loading url is: " + url, null);
+        }
+        
         super.onPageStarted(view, url, favicon);
         showSpinner(true);
+    }
+    
+    private boolean doesLoadingUrlContainAuthCode(final String url) {
+        final Uri uri = Uri.parse(url);
+        return !StringExtensions.IsNullOrBlank(uri.getQueryParameter(AuthenticationConstants.OAuth2.CODE));
     }
 
     @Override
