@@ -1083,7 +1083,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        IdToken idtoken = new IdToken();
+        TestIdToken idtoken = new TestIdToken();
         idtoken.upn = idTokenUpn;
         idtoken.oid = "userid123";
         String json = "{\"id_token\":\""
@@ -1143,7 +1143,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        IdToken idtoken = new IdToken();
+        TestIdToken idtoken = new TestIdToken();
         idtoken.upn = "admin@user.com";
         idtoken.oid = "admin123";
         String loginHint = "user1@user.com";
@@ -1413,7 +1413,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
-    private void verifyTokenResult(IdToken idtoken, AuthenticationResult result) {
+    private void verifyTokenResult(TestIdToken idtoken, AuthenticationResult result) {
         assertEquals("Check access token", "TokenUserIdTest", result.getAccessToken());
         assertEquals("Check refresh token", "refresh112", result.getRefreshToken());
         if (idtoken != null) {
