@@ -89,7 +89,7 @@ public class ReflectionUtils {
             if (constructor.getGenericParameterTypes().length == 0)
                 break;
         }
-        
+
         constructor.setAccessible(true);
         return constructor.newInstance();
     }

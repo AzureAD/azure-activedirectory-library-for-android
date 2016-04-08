@@ -100,7 +100,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     private final static String TEST_AUTHORITY = "https://login.windows.net/ComMon/";
 
-    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
+    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.test";
 
     static final String testClientId = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
 
@@ -441,7 +441,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("AuthenticationRequest inside the intent", request.getClass(),
                 Class.forName("com.microsoft.aad.adal.AuthenticationRequest"));
         String redirect = (String)ReflectionUtils.getFieldValue(request, "mRedirectUri");
-        assertEquals("Redirect uri is same as package", "com.microsoft.aad.adal.testapp", redirect);
+        assertEquals("Redirect uri is same as package", "com.microsoft.aad.adal.test", redirect);
     }
 
     @SmallTest
