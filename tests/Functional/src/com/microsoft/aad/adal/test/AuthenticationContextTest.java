@@ -66,7 +66,6 @@ import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
-import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.UserInfo;
 
 import android.annotation.SuppressLint;
@@ -280,7 +279,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final TestLogResponse response = new TestLogResponse();
-        response.listenLogForMessageSegments(signal, "Authentication failed", "correlation_id:\"\""
+        response.listenLogForMessageSegments("Authentication failed", "correlation_id:\"\""
                 + requestCorrelationId.toString());
 
         // Call acquire token with prompt never to prevent activity launch
@@ -984,14 +983,18 @@ public class AuthenticationContextTest extends AndroidTestCase {
         webrequest.setReturnResponse(new HttpWebResponse(500, null, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         final TestLogResponse response = new TestLogResponse();
-        response.listenLogForMessageSegments(signal, "Refresh token did not return accesstoken");
+        response.listenLogForMessageSegments("Server error message");
 
         context.acquireTokenSilentAsync("resource", "clientid", TEST_IDTOKEN_USERID, callback);
 
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-
+        assertNotNull("Error is not null", callback.mException);
         // Check response in callback result
-        assertTrue("Log message has same webstatus code", response.errorCode.equals(ADALError.AUTH_FAILED_NO_TOKEN));
+        assertTrue(callback.mException instanceof AuthenticationException);
+        AuthenticationException exception = (AuthenticationException)callback.mException;
+        assertNotNull(exception);
+        assertTrue("Log message has same webstatus code", response.errorCode.equals(ADALError.SERVER_ERROR));
+        assertTrue("Unexpected error code", exception.getCode().equals(ADALError.AUTH_FAILED_NO_TOKEN));
         assertNotNull("Cache item is not removed for this item", mockCache.getItem(CacheKey.createCacheKey(
                 VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
         clearCache(context);
@@ -1682,7 +1685,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         int resultCode = AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE;
         TestLogResponse logResponse = new TestLogResponse();
         String msgToCheck = "onActivityResult BROWSER_FLOW data is null";
-        logResponse.listenLogForMessageSegments(null, msgToCheck);
+        logResponse.listenLogForMessageSegments(msgToCheck);
 
         // act
         authContext.onActivityResult(requestCode, resultCode, null);
@@ -1703,7 +1706,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         data.putExtra("Test", "value");
         TestLogResponse logResponse = new TestLogResponse();
         String msgToCheck = "onActivityResult did not find waiting request for RequestId";
-        logResponse.listenLogForMessageSegments(null, msgToCheck);
+        logResponse.listenLogForMessageSegments(msgToCheck);
 
         // act
         authContext.onActivityResult(requestCode, resultCode, data);

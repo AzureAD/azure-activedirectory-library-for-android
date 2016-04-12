@@ -511,7 +511,9 @@ class Oauth2 {
                 }
             }
 
-            if (response.getBody() != null) {
+            byte[] bodyMessage = response.getBody();
+            boolean isBodyEmpty = bodyMessage == null || bodyMessage.length == 0;
+            if (!isBodyEmpty) {
 
                 // Protocol related errors will read the error stream and report
                 // the error and error description
@@ -519,20 +521,14 @@ class Oauth2 {
                 result = processTokenResponse(response);
                 ClientMetrics.INSTANCE.setLastError(null);
             }
-
             if (result == null) {
                 // non-protocol related error
-                String errMessage = null;
-                byte[] message = response.getBody();
-                if (message != null) {
-                    errMessage = new String(message);
-                } else {
-                    errMessage = "Status code:" + String.valueOf(response.getStatusCode());
-                }
-
-                Logger.v(TAG, "Server error message:" + errMessage);
+                String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : new String(bodyMessage);
+                Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
                 if (response.getResponseException() != null) {
                     throw response.getResponseException();
+                } else {
+                    throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
                 }
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
@@ -596,8 +592,7 @@ class Oauth2 {
             }
         }
 
-        if (webResponse.getStatusCode() == HttpURLConnection.HTTP_OK
-                && webResponse.getBody() != null && webResponse.getBody().length > 0) {
+        if (webResponse.getStatusCode() == HttpURLConnection.HTTP_OK) {
             // invalid refresh token calls has error related items in the body.
             // Status is 400 for those.
             try {
@@ -612,14 +607,8 @@ class Oauth2 {
                 result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
             }
         } else {
-            String errMessage = null;
-            byte[] message = webResponse.getBody();
-            if (message != null) {
-                errMessage = new String(message);
-            } else {
-                errMessage = "Status code:" + String.valueOf(webResponse.getStatusCode());
-            }
-            Logger.v(TAG, "Server error message:" + errMessage);
+            String errMessage = new String(webResponse.getBody());
+            Logger.e(TAG, "Server response", errMessage, ADALError.SERVER_ERROR);
             result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
                     errMessage, null);
         }
