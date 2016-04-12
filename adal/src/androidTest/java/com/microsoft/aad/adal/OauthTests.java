@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.aad.adal.test;
+package com.microsoft.aad.adal;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -77,7 +77,7 @@ public class OauthTests extends AndroidTestCase {
     public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, NoSuchFieldException, UnsupportedEncodingException {
-        IdToken idtoken = new IdToken();
+        TestIdToken idtoken = new TestIdToken();
         Object actual = parseIdToken(idtoken.getIdToken());
         assertEquals("0DxnAlLi12IvGL", ReflectionUtils.getFieldValue(actual, "mSubject"));
         assertEquals("6fd1f5cd-a94c-4335-889b-6c598e6d8048",
@@ -539,7 +539,7 @@ public class OauthTests extends AndroidTestCase {
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
                 Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
-        IdToken defaultIdToken = new IdToken();
+        TestIdToken defaultIdToken = new TestIdToken();
         String idToken = defaultIdToken.getIdToken();
         String json = "{\"id_token\":\""
                 + idToken

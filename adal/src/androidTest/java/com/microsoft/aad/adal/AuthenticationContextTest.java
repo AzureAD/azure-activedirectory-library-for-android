@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.aad.adal.test;
+package com.microsoft.aad.adal;
 
 import static org.mockito.Mockito.mock;
 
@@ -100,7 +100,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     private final static String TEST_AUTHORITY = "https://login.windows.net/ComMon/";
 
-    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
+    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.test";
 
     static final String testClientId = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
 
@@ -441,7 +441,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("AuthenticationRequest inside the intent", request.getClass(),
                 Class.forName("com.microsoft.aad.adal.AuthenticationRequest"));
         String redirect = (String)ReflectionUtils.getFieldValue(request, "mRedirectUri");
-        assertEquals("Redirect uri is same as package", "com.microsoft.aad.adal.testapp", redirect);
+        assertEquals("Redirect uri is same as package", "com.microsoft.aad.adal.test", redirect);
     }
 
     @SmallTest
@@ -1083,7 +1083,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        IdToken idtoken = new IdToken();
+        TestIdToken idtoken = new TestIdToken();
         idtoken.upn = idTokenUpn;
         idtoken.oid = "userid123";
         String json = "{\"id_token\":\""
@@ -1143,7 +1143,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        IdToken idtoken = new IdToken();
+        TestIdToken idtoken = new TestIdToken();
         idtoken.upn = "admin@user.com";
         idtoken.oid = "admin123";
         String loginHint = "user1@user.com";
@@ -1413,7 +1413,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
-    private void verifyTokenResult(IdToken idtoken, AuthenticationResult result) {
+    private void verifyTokenResult(TestIdToken idtoken, AuthenticationResult result) {
         assertEquals("Check access token", "TokenUserIdTest", result.getAccessToken());
         assertEquals("Check refresh token", "refresh112", result.getRefreshToken());
         if (idtoken != null) {

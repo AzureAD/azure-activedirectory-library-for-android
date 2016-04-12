@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.aad.adal.test;
+package com.microsoft.aad.adal;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -127,6 +127,10 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         Exception exception;
     }
 
+    /*
+     * This test needs fixing see
+     * https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/579
+
     public void testGetRequest() {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
@@ -139,10 +143,11 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request header check", responseMsg.contains("testabc-value123"));
     }
-
+*/
     /**
      * WebService returns the request headers in the response
-     */
+     * This test needs fixing see
+     * https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/579
     public void testClientTraceInHeaders() {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
@@ -159,6 +164,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
                 responseMsg.contains(AAD.ADAL_ID_VERSION + "-"
                         + AuthenticationContext.getVersionName()));
     }
+     */
 
     public void testNonExistentUrl() {
         WebRequestHandler request = new WebRequestHandler();
@@ -171,6 +177,10 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
                 .toLowerCase(Locale.US).contains("unable to resolve host"));
     }
 
+        /*
+     * This test needs fixing see
+     * https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/579
+
     public void testGetWithIdRequest() {
         WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"), null);
@@ -180,6 +190,10 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check", responseMsg.contains("test get with id"));
     }
+*/
+    /*
+     * This test needs fixing see
+     * https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/579
 
     public void testPostRequest() {
         final TestMessage message = new TestMessage("messagetest", "12345");
@@ -200,7 +214,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         assertTrue("request body check",
                 responseMsg.contains(message.getAccessToken() + message.getUserName()));
     }
-
+*/
     class TestMessage {
         @com.google.gson.annotations.SerializedName("AccessToken")
         private String mAccessToken;

@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.aad.adal.test;
+package com.microsoft.aad.adal;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -90,5 +90,17 @@ public class AuthenticationSettingsTests extends AndroidTestCase {
         }
 
         AuthenticationSettings.INSTANCE.setReadTimeOut(30000);
+    }
+
+    public void testHardwareAcceleration() {
+        // verify setter/getter for WebView hardwareAcceleration
+        //By default it should be enable
+        assertEquals("isWebViewHardwareAccelerated", true, AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
+
+        // Modify
+        AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(false);
+
+        // Now it should be disable
+        assertEquals("isWebViewHardwareAccelerated", false, AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
     }
 }

@@ -45,6 +45,8 @@ public enum AuthenticationSettings {
     private Class<?> mClazzDeviceCertProxy;
 
     private String mActivityPackageName;
+    
+    private boolean mEnableHardwareAcceleration = true;
 
     /**
      * SharedPreference package name to load this file from different context.
@@ -279,5 +281,32 @@ public enum AuthenticationSettings {
         }
 
         this.mReadTimeOut = timeOutMillis;
+    }
+
+    /**
+     * Method to enable/disable WebView hardware acceleration used in
+     * {@link AuthenticationActivity} and {@link AuthenticationDialog}. 
+     * By default hardware acceleration is enable in WebView.
+     *  
+     * @param enable
+     *             if true, WebView would be hardwareAccelerated else it 
+     *             would be disable.
+     *             
+     * @see #getDisableWebViewHardwareAcceleration()
+     */
+    public void setDisableWebViewHardwareAcceleration(boolean enable) {
+        this.mEnableHardwareAcceleration = enable;
+    }
+
+    /**
+     * Method to check whether WebView used in {@link AuthenticationActivity} and
+     * {@link AuthenticationDialog} would be hardware accelerated or not.
+     * 
+     * @return true if WebView is hardwareAccelerated otherwise false
+     * 
+     * @see #setDisableWebViewHardwareAcceleration(boolean)
+     */
+    public boolean getDisableWebViewHardwareAcceleration() {
+        return this.mEnableHardwareAcceleration;
     }
 }

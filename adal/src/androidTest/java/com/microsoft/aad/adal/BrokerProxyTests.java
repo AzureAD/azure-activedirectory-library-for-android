@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.aad.adal.test;
+package com.microsoft.aad.adal;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -89,7 +89,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
-        PackageInfo info = mContext.getPackageManager().getPackageInfo("com.microsoft.aad.adal.testapp",
+        PackageInfo info = mContext.getPackageManager().getPackageInfo("com.microsoft.aad.adal.test",
                 PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look

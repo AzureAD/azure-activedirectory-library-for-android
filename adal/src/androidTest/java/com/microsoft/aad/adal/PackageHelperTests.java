@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.aad.adal.test;
+package com.microsoft.aad.adal;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -53,7 +53,7 @@ import android.util.Base64;
 
 public class PackageHelperTests extends AndroidTestCase {
 
-    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
+    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.test";
 
     private byte[] testSignature;
 

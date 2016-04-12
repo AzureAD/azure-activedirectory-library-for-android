@@ -21,7 +21,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.aad.adal.test;
+package com.microsoft.aad.adal;
 
 import java.security.MessageDigest;
 import java.util.Locale;
@@ -56,7 +56,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
 
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
-                .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
+                .getPackageInfo("com.microsoft.aad.adal.test", PackageManager.GET_SIGNATURES);
         for (Signature signature : info.signatures) {
             testSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
