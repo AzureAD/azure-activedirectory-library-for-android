@@ -26,7 +26,7 @@ android {
         minSdkVersion 18
         targetSdkVersion 21
         versionCode 1
-        versionName "1.1.16"
+        versionName version
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
     }
@@ -81,11 +81,12 @@ task sourcesJar(type: Jar) {
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath = configurations.compile
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
+    from javadoc.destinationDir
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
 }
 
