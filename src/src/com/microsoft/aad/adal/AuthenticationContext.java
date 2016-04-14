@@ -290,8 +290,7 @@ public class AuthenticationContext {
 
     /*
      * Gets user info from broker. This should not be called on main thread.
-     * @return user {@link UserInfo}
-     * 
+     * @return An array of {@link UserInfo}(Could be null).
      * @throws IOException
      * @throws AuthenticatorException
      * @throws OperationCanceledException

@@ -174,14 +174,16 @@ public enum AuthenticationSettings {
     /**
      * @deprecated As of release 1.1.14, replaced by {@link #getUseBroker()}
      */
-    @Deprecated public boolean getSkipBroker() {
+    @Deprecated 
+    public boolean getSkipBroker() {
         return !mUseBroker;
     }
 
     /**
      * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker()}
      */
-    @Deprecated public void setSkipBroker(boolean skip) {
+    @Deprecated 
+    public void setSkipBroker(boolean skip) {
         mUseBroker = !skip;
     }
 
