@@ -1875,7 +1875,6 @@ public class AuthenticationContext {
                         request.getLogInfo() + errorLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
                 
                 // check error code, only remove token from cache if receive invalid_grant from server
-                Logger.v(TAG + "tessting", "error_code:" + result.getErrorCode());
                 if (result.getErrorCode().equalsIgnoreCase(AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT)) {
                     Logger.v(TAG, "Removing token cache for invalid_grant error returned from server.");
                     removeItemFromCache(refreshItem);
