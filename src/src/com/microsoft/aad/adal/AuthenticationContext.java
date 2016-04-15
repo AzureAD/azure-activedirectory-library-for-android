@@ -1871,11 +1871,11 @@ public class AuthenticationContext {
                 return result;
             } else if (StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                 final String errorLogInfo = result.getErrorLogInfo();
-                Logger.w(TAG, "Refresh token request failed to return accesstoken.", 
+                Logger.e(TAG, "Refresh token request failed to return accesstoken.", 
                         request.getLogInfo() + errorLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
                 
                 // check error code, only remove token from cache if receive invalid_grant from server
-                if (result.getErrorCode().equalsIgnoreCase(AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT)) {
+                if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
                     Logger.v(TAG, "Removing token cache for invalid_grant error returned from server.");
                     removeItemFromCache(refreshItem);
                 }

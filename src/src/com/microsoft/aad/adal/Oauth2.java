@@ -522,7 +522,7 @@ class Oauth2 {
 
             if (result == null) {
                 // non-protocol related error
-                final String errMessage = response.getBody() == null ? 
+                final String errMessage = (response.getBody() == null || response.getBody().length == 0) ? 
                         "Status code:" + String.valueOf(response.getStatusCode()) : new String(response.getBody());
 
                 Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
@@ -608,11 +608,11 @@ class Oauth2 {
                     final String message = "Status code: " + statusCode + ". Cannot parse response as JSON " 
                             + ex.getMessage();
                     Logger.e(TAG, message, "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
-                    result = new AuthenticationResult(String.valueOf(statusCode), webResponse.getBody().toString(), null);
+                    result = new AuthenticationResult(String.valueOf(statusCode), new String(webResponse.getBody()), null);
                 }
                 break;
             default:
-                result = new AuthenticationResult(String.valueOf(statusCode), webResponse.getBody().toString(), null);
+                result = new AuthenticationResult(String.valueOf(statusCode), new String(webResponse.getBody()), null);
             }
         }
 
