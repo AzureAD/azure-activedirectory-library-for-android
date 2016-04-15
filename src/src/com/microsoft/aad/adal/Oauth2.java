@@ -635,7 +635,7 @@ class Oauth2 {
         return result;
     }
     
-    private AuthenticationResult parseJsonResponse(byte[] responseBody) throws JSONException {
+    private AuthenticationResult parseJsonResponse(final byte[] responseBody) throws JSONException {
         HashMap<String, String> responseItems = new HashMap<String, String>();
         
         final String jsonStringResult = new String(responseBody);

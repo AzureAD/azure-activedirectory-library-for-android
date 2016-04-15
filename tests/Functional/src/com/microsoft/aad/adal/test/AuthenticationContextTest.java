@@ -983,15 +983,17 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         webrequest.setReturnResponse(new HttpWebResponse(500, null, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
-        final TestLogResponse response = new TestLogResponse();
-        response.listenLogForMessageSegments(signal, "Server error message");
 
         context.acquireTokenSilentAsync("resource", "clientid", TEST_IDTOKEN_USERID, callback);
 
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
+        assertNotNull(callback.mException);
+        assertTrue(callback.mException instanceof AuthenticationException);
+        AuthenticationException authenticationException = (AuthenticationException)callback.mException;
+        assertEquals(authenticationException.getCode(), ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+
         // Check response in callback result
-        assertTrue("Log message has same webstatus code", response.errorCode.equals(ADALError.SERVER_ERROR));
         assertNotNull("Cache item is not removed for this item", mockCache.getItem(CacheKey.createCacheKey(
                 VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
         clearCache(context);
@@ -1381,6 +1383,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         
         try {
             context.acquireTokenSilentSync("resource", "clientid", TEST_IDTOKEN_USERID);
+            // Exception should be thrown for acquireTokenSilentSync, should never reach the fail check.
+            fail();
         } catch (AuthenticationException e) {
             assertEquals("Token is not exchanged",
                     ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
@@ -1410,6 +1414,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         
         try {
             context.acquireTokenSilentSync("resource", "clientid", TEST_IDTOKEN_USERID);
+            // Exception should be thrown for acquireTokenSilentSync, should never reach the fail check.
+            fail();
         } catch (AuthenticationException e) {
             assertEquals("Token is not exchanged",
                     ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
