@@ -1467,7 +1467,70 @@ public class AuthenticationContextTest extends AndroidTestCase {
         clearCache(context);
     }
     
+    @SmallTest
+    public void testAutoFlow_RefreshTokenRequestFailed_WithOauthError() throws NoSuchFieldException, IllegalAccessException, 
+            InterruptedException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, InvocationTargetException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
+
+        final CountDownLatch signal = new CountDownLatch(1);
+        final MockActivity testActivity = new MockActivity(signal);
+        final CountDownLatch signalCallback = new CountDownLatch(1);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        String responseBody = "{\"error\":\"interaction_required\",\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null}";
+        webrequest.setReturnResponse(new HttpWebResponse(400, responseBody.getBytes(), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        
+        context.acquireToken(testActivity, "resource", "clientId", "redirect", TEST_IDTOKEN_UPN,
+                callback);
+        
+        signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // Activity will start
+        assertEquals("Activity was attempted to start.",
+                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                testActivity.mStartActivityRequestCode);
+
+        context.onActivityResult(testActivity.mStartActivityRequestCode,
+                AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, getResponseIntent(callback, "resource", "clientid", "redirect", TEST_IDTOKEN_UPN));
+        signalCallback.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+    }
     
+    @SmallTest
+    public void testAutoFlow_RefreshTokenRequestFailed_WithHTTError() throws NoSuchFieldException, IllegalAccessException, 
+            InterruptedException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, InvocationTargetException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
+
+        final CountDownLatch signal = new CountDownLatch(1);
+        final MockActivity testActivity = new MockActivity(signal);
+        final CountDownLatch signalCallback = new CountDownLatch(1);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        webrequest.setReturnResponse(new HttpWebResponse(500, null, null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        
+        context.acquireToken(testActivity, "resource", "clientId", "redirect", TEST_IDTOKEN_UPN,
+                callback);
+        
+        signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // Activity will start
+        assertEquals("Activity was attempted to start.",
+                AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                testActivity.mStartActivityRequestCode);
+
+        context.onActivityResult(testActivity.mStartActivityRequestCode,
+                AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, getResponseIntent(callback, "resource", "clientid", "redirect", TEST_IDTOKEN_UPN));
+        signalCallback.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+    }
     
     private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey, 
             final String expectedFamilyClientId) {
