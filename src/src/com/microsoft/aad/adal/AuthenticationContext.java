@@ -1866,12 +1866,12 @@ public class AuthenticationContext {
         // the error through callback. If true, just return the result back to localflow. 
         if (useCache) {
             if (result == null) {
-                Logger.w(TAG, "Receive empty response from refresh token request.", request.getLogInfo(), 
+                Logger.w(TAG, "Received empty response from refresh token request.", request.getLogInfo(), 
                         ADALError.AUTH_FAILED_NO_TOKEN);
                 return result;
             } else if (StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                 final String errorLogInfo = result.getErrorLogInfo();
-                Logger.w(TAG, "Refresh token request does not successfully return accesstoken.", 
+                Logger.w(TAG, "Refresh token request failed to return accesstoken.", 
                         request.getLogInfo() + errorLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
                 
                 // check error code, only remove token from cache if receive invalid_grant from server

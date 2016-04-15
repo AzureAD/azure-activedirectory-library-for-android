@@ -590,11 +590,11 @@ class Oauth2 {
             }
         }
         
-        final boolean isResponseBodyEmpty = webResponse.getBody() == null || webResponse.getBody().length == 0;
+        final boolean isResponseBodyEmpty = (webResponse.getBody() == null) || (webResponse.getBody().length == 0);
         final int statusCode = webResponse.getStatusCode();
         if (isResponseBodyEmpty) {
             // Empty response body, return the status code as error code back
-            Logger.v(TAG, "Token request return an empty response body.");
+            Logger.v(TAG, "Token request returned an empty response body.");
             result = new AuthenticationResult(String.valueOf(statusCode), "", null);
         } else {
             switch(statusCode) {
@@ -605,7 +605,9 @@ class Oauth2 {
                     result = parseJsonResponse(webResponse.getBody());
                 } catch (final JSONException ex) {
                     // Cannot parse response as JSON, then return the raw response as error description
-                    Logger.e(TAG, "Cannot parse response as JSON" + ex.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
+                    final String message = "Status code: " + statusCode + ". Cannot parse response as JSON " 
+                            + ex.getMessage();
+                    Logger.e(TAG, message, "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
                     result = new AuthenticationResult(String.valueOf(statusCode), webResponse.getBody().toString(), null);
                 }
                 break;
