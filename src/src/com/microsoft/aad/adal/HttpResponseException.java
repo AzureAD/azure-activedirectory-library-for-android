@@ -22,27 +22,30 @@
 // THE SOFTWARE.
 
 package com.microsoft.aad.adal;
-//
+
 /**
- * Represents server returned exception. 
+ * Represents HTTP error response. 
  */
-public class AuthenticationServerProtocolException extends AuthenticationException {
+class HttpResponseException extends Exception {
 
-    static final long serialVersionUID = 1;
+    /**
+     * Default serialized version
+     */
+    private static final long serialVersionUID = 1L;
     
-    private String mProtocolCode;
-
-    protected AuthenticationServerProtocolException(final ADALError adalError, String detailMessage) {
-        super(adalError, detailMessage);
+    private String mErrorCode;
+    
+    protected HttpResponseException(final String errorCode) {
+        super();
+        this.mErrorCode = errorCode;
     }
     
-    protected AuthenticationServerProtocolException(final ADALError adalError, final String protocolErrorCode, final String detailMessage) {
-        super(adalError, detailMessage);
-        this.mProtocolCode = protocolErrorCode;
+    protected HttpResponseException(final String errorCode, final String errorMessage) {
+        super(errorMessage);
+        this.mErrorCode = errorCode;
     }
     
-    public String getProtocolErrorCode(){
-        return mProtocolCode;
+    public String getErrorCode() {
+        return mErrorCode;
     }
 }
-

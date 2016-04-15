@@ -189,7 +189,7 @@ class ChallengeResponseBuilder {
         final String methodName = ":getChallengeRequestFromHeader";
         
         if (StringExtensions.IsNullOrBlank(headerValue)) {
-            throw new AuthenticationServerProtocolException("headerValue");
+            throw new AuthenticationServerProtocolException(ADALError.DEVICE_CHALLENGE_FAILURE, "headerValue");
         }
 
         // Header value should start with correct challenge type
@@ -291,7 +291,7 @@ class ChallengeResponseBuilder {
     private ChallengeRequest getChallengeRequest(final String redirectUri)
             throws AuthenticationException {
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
-            throw new AuthenticationServerProtocolException("redirectUri");
+            throw new AuthenticationServerProtocolException(ADALError.DEVICE_CHALLENGE_FAILURE, "redirectUri");
         }
 
         ChallengeRequest challenge = new ChallengeRequest();
