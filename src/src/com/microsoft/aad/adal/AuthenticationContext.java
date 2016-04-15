@@ -1865,14 +1865,22 @@ public class AuthenticationContext {
         // useCache will be false when calling from acquireTokenUsingRefreshToken, and if false, need to return
         // the error through callback. If true, just return the result back to localflow. 
         if (useCache) {
-            if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                String errLogInfo = result == null ? "" : result.getErrorLogInfo();
-                Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
-                        + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
-
-                // remove item from cache to avoid same usage of
-                // refresh token in next acquireToken call
-                removeItemFromCache(refreshItem);
+            if (result == null) {
+                Logger.w(TAG, "Receive empty response from refresh token request.", request.getLogInfo(), 
+                        ADALError.AUTH_FAILED_NO_TOKEN);
+                return result;
+            } else if (StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+                final String errorLogInfo = result.getErrorLogInfo();
+                Logger.w(TAG, "Refresh token request does not successfully return accesstoken.", 
+                        request.getLogInfo() + errorLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
+                
+                // check error code, only remove token from cache if receive invalid_grant from server
+                Logger.v(TAG + "tessting", "error_code:" + result.getErrorCode());
+                if (result.getErrorCode().equalsIgnoreCase(AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT)) {
+                    Logger.v(TAG, "Removing token cache for invalid_grant error returned from server.");
+                    removeItemFromCache(refreshItem);
+                }
+                
                 return result;
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());

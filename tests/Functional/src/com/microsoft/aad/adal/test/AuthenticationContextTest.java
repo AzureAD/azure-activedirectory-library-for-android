@@ -984,14 +984,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
         webrequest.setReturnResponse(new HttpWebResponse(500, null, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         final TestLogResponse response = new TestLogResponse();
-        response.listenLogForMessageSegments(signal, "Refresh token did not return accesstoken");
+        response.listenLogForMessageSegments(signal, "Server error message");
 
         context.acquireTokenSilentAsync("resource", "clientid", TEST_IDTOKEN_USERID, callback);
 
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result
-        assertTrue("Log message has same webstatus code", response.errorCode.equals(ADALError.AUTH_FAILED_NO_TOKEN));
+        assertTrue("Log message has same webstatus code", response.errorCode.equals(ADALError.SERVER_ERROR));
         assertNotNull("Cache item is not removed for this item", mockCache.getItem(CacheKey.createCacheKey(
                 VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
         clearCache(context);
@@ -1360,6 +1360,64 @@ public class AuthenticationContextTest extends AndroidTestCase {
         } catch (AuthenticationException authException) {
             assertEquals("Error code is not as expected", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
         }
+        
+        clearCache(context);
+    }
+    
+    @SmallTest
+    public void testRefreshTokenWithInvalidGrantReturned_CacheCleared() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        String responseBody = "{\"error\":\"invalid_grant\",\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null}";
+        webrequest.setReturnResponse(new HttpWebResponse(400, responseBody.getBytes(), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        
+        try {
+            context.acquireTokenSilentSync("resource", "clientid", TEST_IDTOKEN_USERID);
+        } catch (AuthenticationException e) {
+            assertEquals("Token is not exchanged",
+                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
+        }
+        
+        // verify that the cache is cleared
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_UPN)));
+        
+        clearCache(context);
+    }
+    
+    @SmallTest
+    public void testRefreshTokenWithInteractionRequired_CacheNotCleared() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        String responseBody = "{\"error\":\"interaction_required\",\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null}";
+        webrequest.setReturnResponse(new HttpWebResponse(400, responseBody.getBytes(), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        
+        try {
+            context.acquireTokenSilentSync("resource", "clientid", TEST_IDTOKEN_USERID);
+        } catch (AuthenticationException e) {
+            assertEquals("Token is not exchanged",
+                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
+        }
+        
+        // verify that the cache is cleared
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_UPN)));
         
         clearCache(context);
     }
