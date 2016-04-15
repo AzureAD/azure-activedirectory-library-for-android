@@ -1501,7 +1501,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
     
     @SmallTest
-    public void testAutoFlow_RefreshTokenRequestFailed_WithHTTError() throws NoSuchFieldException, IllegalAccessException, 
+    public void testAutoFlow_RefreshTokenRequestFailed_WithHTTPError() throws NoSuchFieldException, IllegalAccessException, 
             InterruptedException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, InvocationTargetException {
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);

@@ -349,7 +349,7 @@ class Oauth2 {
         }
     }
 
-    public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationException, HttpResponseException {
+    public AuthenticationResult refreshToken(final String refreshToken) throws IOException, AuthenticationException, HttpResponseException {
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");

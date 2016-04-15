@@ -32,7 +32,7 @@ public class AuthenticationServerProtocolException extends AuthenticationExcepti
     
     private String mProtocolCode;
 
-    protected AuthenticationServerProtocolException(final ADALError adalError, String detailMessage) {
+    protected AuthenticationServerProtocolException(final ADALError adalError, final String detailMessage) {
         super(adalError, detailMessage);
     }
     

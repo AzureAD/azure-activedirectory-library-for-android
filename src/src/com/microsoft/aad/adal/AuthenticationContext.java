@@ -1472,7 +1472,7 @@ public class AuthenticationContext {
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
                 if (authResult != null && authResult.getErrorCode() != null) {
                     callbackHandle.onError(new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, 
-                            request.getLogInfo() + " " + errorInfo, new AuthenticationServerProtocolException(ADALError.OAUTH_ERROR,
+                            request.getLogInfo() + " " + errorInfo, new AuthenticationServerProtocolException(ADALError.OAUTH2_ERROR,
                                     authResult.getErrorCode(), authResult.getErrorDescription())));
                 } else {
                     callbackHandle.onError(new AuthenticationException(

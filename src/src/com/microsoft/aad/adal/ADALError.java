@@ -520,7 +520,7 @@ public enum ADALError {
     /**
      * Represents a general OAUTH Error
      */
-    OAUTH_ERROR("Oauth Error");
+    OAUTH2_ERROR("Oauth2 Error");
 
     private String mDescription;
 
