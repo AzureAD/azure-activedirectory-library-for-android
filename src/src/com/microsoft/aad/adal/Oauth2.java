@@ -515,8 +515,15 @@ class Oauth2 {
             // Protocol related errors will read the error stream and report
             // the error and error description
             result = processTokenResponse(response);
-            ClientMetrics.INSTANCE.setLastError(result.getErrorCode());
-            ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
+            
+            if (result == null) {
+                ClientMetrics.INSTANCE.setLastError(null);
+                if (response.getResponseException() != null) {
+                    throw response.getResponseException();
+                }
+            } else {
+                ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
+            }
         } catch (UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
@@ -580,7 +587,7 @@ class Oauth2 {
             Logger.v(TAG, "Token request returned an empty response body.");
             throw new HttpResponseException(String.valueOf(statusCode));
         } else {
-            Logger.v(TAG, "Token request does not have exception.");
+            Logger.v(TAG, "Start parsing response body from token request.");
             switch(statusCode) {
             case HttpURLConnection.HTTP_OK:
             case HttpURLConnection.HTTP_BAD_REQUEST:

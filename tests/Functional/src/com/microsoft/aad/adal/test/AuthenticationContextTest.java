@@ -56,6 +56,7 @@ import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.AuthenticationServerProtocolException;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
@@ -1388,11 +1389,46 @@ public class AuthenticationContextTest extends AndroidTestCase {
         } catch (AuthenticationException e) {
             assertEquals("Token is not exchanged",
                     ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
+            assertNotNull(e.getCause() instanceof AuthenticationServerProtocolException);
+            AuthenticationServerProtocolException throwable = (AuthenticationServerProtocolException)e.getCause();
+            assertTrue(throwable.getProtocolErrorCode().equals("invalid_grant"));
         }
         
         // verify that the cache is cleared
         assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
         assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_UPN)));
+        
+        clearCache(context);
+    }
+    
+    @SmallTest
+    public void testRefreshTokenRequestNotReturnErrorCode() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        setConnectionAvailable(context, true);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        String responseBody = "{\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null}";
+        webrequest.setReturnResponse(new HttpWebResponse(400, responseBody.getBytes(), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        
+        try {
+            context.acquireTokenSilentSync("resource", "clientid", TEST_IDTOKEN_USERID);
+            // Exception should be thrown for acquireTokenSilentSync, should never reach the fail check.
+            fail();
+        } catch (AuthenticationException e) {
+            assertEquals("Token is not exchanged",
+                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
+            assertNull(e.getCause());
+        }
+        
+        // verify that the cache is cleared
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_UPN)));
         
         clearCache(context);
     }
@@ -1419,6 +1455,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
         } catch (AuthenticationException e) {
             assertEquals("Token is not exchanged",
                     ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getCode());
+            assertNotNull(e.getCause() instanceof AuthenticationServerProtocolException);
+            AuthenticationServerProtocolException throwable = (AuthenticationServerProtocolException)e.getCause();
+            assertTrue(throwable.getProtocolErrorCode().equals("interaction_required"));
         }
         
         // verify that the cache is cleared
@@ -1427,6 +1466,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         
         clearCache(context);
     }
+    
+    
     
     private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey, 
             final String expectedFamilyClientId) {
