@@ -82,6 +82,7 @@ import android.test.AndroidTestCase;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.test.suitebuilder.annotation.Suppress;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
@@ -1290,6 +1291,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
      * @throws NoSuchAlgorithmException
      * @throws NoSuchPaddingException
      */
+    @Suppress
     @SmallTest
     public void testRefreshTokenRequestWithFamilyIdSuccess() throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
@@ -1334,6 +1336,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
      * @throws NoSuchAlgorithmException
      * @throws NoSuchPaddingException
      */
+    @Suppress
     @SmallTest
     public void testRefreshTokenRequestWithFamilyIdFailed() throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
