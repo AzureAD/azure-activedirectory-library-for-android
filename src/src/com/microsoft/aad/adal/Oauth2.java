@@ -592,7 +592,7 @@ class Oauth2 {
                     final String message = "Status code: " + statusCode + ". Cannot parse response as JSON " 
                             + ex.getMessage();
                     Logger.e(TAG, message, "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
-                    result = new AuthenticationResult(String.valueOf(statusCode), new String(webResponse.getBody()), null);
+                    throw new HttpResponseException(String.valueOf(statusCode), new String(webResponse.getBody()));
                 }
                 break;
             default:

@@ -1441,10 +1441,14 @@ public class AuthenticationContext {
                 callbackHandle.onError(authenticationException);
                 return null;
             } catch (HttpResponseException httpResponseException) {
-                final AuthenticationException authenticationException = new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, 
-                        httpResponseException.getMessage() + request.getLogInfo());
-                callbackHandle.onError(authenticationException);
-                return null;
+                // Return back the http error for silent request
+                // Try interactive flow for non-silent request.
+                if (request.isSilent()) {
+                    final AuthenticationException authenticationException = new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, 
+                            httpResponseException.getMessage() + request.getLogInfo());
+                    callbackHandle.onError(authenticationException);
+                    return null;
+                }
             }
             
             if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken())) {
@@ -2106,6 +2110,7 @@ public class AuthenticationContext {
                 } catch (final HttpResponseException httpResponseException) {
                     final AuthenticationException authenticationException = new AuthenticationException(
                             ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, httpResponseException.getMessage());
+                    callbackHandle.onError(authenticationException);
                     return;
                 }
                 
