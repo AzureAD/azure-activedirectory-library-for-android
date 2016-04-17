@@ -20,7 +20,7 @@ release_password="android"
 android_key_store=
 
 #---------------------------------
-# Simple func() to encode a URL. Wrote it so we don't have an external dependency
+# 
 #
 usage() {
     
@@ -33,6 +33,7 @@ usage() {
     echo "Usage:";
     echo " -d | --debug           genrates a replyURL using your debug keystore in Android Studio"
     echo " -r | --release         generates a replyURL using your production keystore in Android Studio"
+    echo " -c | --package         the package name of your application"
     echo " -p | --password        your keystore password (default for debug keychain is android)"
     echo " -a | --alias           your keystore alias (default for debug keychain is androiddebugkey)"
     echo ""
@@ -46,6 +47,9 @@ while [ "$1" != "" ]; do
         -d | --debug)           debug=1
                                 ;;
             -r | --release )    release=1
+                                ;;
+            -c | --package )   shift
+                                package_name=$1
                                 ;;
             -p | --password )   shift
                                 release_password=$1
@@ -114,6 +118,12 @@ makerelease()
     if [ -f "$release_key_store" ]; then
     
      android_key_store=$release_key_store
+     
+echo "We are using the following values"
+printf "Package Name: %s\n" $package_name
+printf "Keystore alias: %s\n" $release_alias
+printf "Keystore password: %s\n" $release_password
+printf "Keystore: %s\n" $android_key_store
 
 makeTag
 echo "Release Redirect URI is:"
@@ -134,6 +144,12 @@ makedebug()
     if [ -f "$debug_key_store" ]; then
     
     android_key_store=$debug_key_store
+    
+echo "We are using the following values"
+printf "Package Name: %s\n" $package_name
+printf "Keystore alias: %s\n" $release_alias
+printf "Keystore password: %s\n" $release_password
+printf "Keystore: %s\n" $android_key_store
 
 makeTag
 echo "Debug Redirect URI is:"
@@ -148,12 +164,16 @@ fi
 
 }
 #---------------------------------
+# main
+
+
 
 # Encoding the package name
 package_name_encoded=`rawurlencode "$package_name"`
-echo $package_name_encoded
+
 
 if [ "$debug" = "1" ]; then
+
 makedebug
 fi
 if [ "$release" = "1" ]; then
