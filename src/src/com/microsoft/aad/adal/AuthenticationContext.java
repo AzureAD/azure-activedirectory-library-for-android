@@ -915,7 +915,7 @@ public class AuthenticationContext {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
                                             + authenticationRequest.getLogInfo());
-                                } catch (IOException | AuthenticationException | HttpResponseException exc) {
+                                } catch (IOException | AuthenticationException exc) {
                                     String msg = "Error in processing code to get token. "
                                             + authenticationRequest.getLogInfo() + correlationInfo;
                                     Logger.e(TAG, msg,
@@ -1440,15 +1440,6 @@ public class AuthenticationContext {
             } catch (AuthenticationException authenticationException) {
                 callbackHandle.onError(authenticationException);
                 return null;
-            } catch (HttpResponseException httpResponseException) {
-                // Return back the http error for silent request
-                // Try interactive flow for non-silent request.
-                if (request.isSilent()) {
-                    final AuthenticationException authenticationException = new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, 
-                            httpResponseException.getMessage() + request.getLogInfo());
-                    callbackHandle.onError(authenticationException);
-                    return null;
-                }
             }
             
             if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken())) {
@@ -1470,14 +1461,8 @@ public class AuthenticationContext {
                 // User does not want to launch activity
                 Logger.e(TAG, "Prompt is not allowed and failed to get token:", request.getLogInfo() + " " + errorInfo,
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-                if (authResult != null && authResult.getErrorCode() != null) {
-                    callbackHandle.onError(new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, 
-                            request.getLogInfo() + " " + errorInfo, new AuthenticationServerProtocolException(ADALError.OAUTH2_ERROR,
-                                    authResult.getErrorCode(), authResult.getErrorDescription())));
-                } else {
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, request.getLogInfo() + " " + errorInfo));
-                }
+                callbackHandle.onError(new AuthenticationException(
+                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, request.getLogInfo() + " " + errorInfo));
             }
         }
 
@@ -1836,11 +1821,10 @@ public class AuthenticationContext {
      * @param useCache refresh request can be explicit without cache usage.
      *            Error message should return without trying prompt.
      * @return
-     * @throws HttpResponseException 
      */
     private AuthenticationResult getTokenWithRefreshToken(final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request, final RefreshItem refreshItem, final boolean useCache) 
-            throws AuthenticationException, HttpResponseException {
+            throws AuthenticationException {
         Logger.v(TAG, "Process refreshToken for " + request.getLogInfo() + " refreshTokenId:"
                 + getTokenHash(refreshItem.mRefreshToken));
 
@@ -1881,21 +1865,14 @@ public class AuthenticationContext {
         // useCache will be false when calling from acquireTokenUsingRefreshToken, and if false, need to return
         // the error through callback. If true, just return the result back to localflow. 
         if (useCache) {
-            if (result == null) {
-                Logger.w(TAG, "Received empty response from refresh token request.", request.getLogInfo(), 
-                        ADALError.AUTH_FAILED_NO_TOKEN);
-                return result;
-            } else if (StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                final String errorLogInfo = result.getErrorLogInfo();
-                Logger.e(TAG, "Refresh token request failed to return accesstoken.", 
-                        request.getLogInfo() + errorLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
-                
-                // check error code, only remove token from cache if receive invalid_grant from server
-                if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
-                    Logger.v(TAG, "Removing token cache for invalid_grant error returned from server.");
-                    removeItemFromCache(refreshItem);
-                }
-                
+            if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+                String errLogInfo = result == null ? "" : result.getErrorLogInfo();
+                Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
+                        + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
+
+                // remove item from cache to avoid same usage of
+                // refresh token in next acquireToken call
+                removeItemFromCache(refreshItem);
                 return result;
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
@@ -2102,15 +2079,13 @@ public class AuthenticationContext {
                 // Follow refresh logic now. Authority is valid or
                 // skipped validation
                 final AuthenticationResult authResult;
-                try {
+                try
+                {
                     authResult = getTokenWithRefreshToken(null, false, request, refreshItem, false);
-                } catch (final AuthenticationException authException) {
+                }
+                catch (final AuthenticationException authException)
+                {
                     callbackHandle.onError(authException);
-                    return;
-                } catch (final HttpResponseException httpResponseException) {
-                    final AuthenticationException authenticationException = new AuthenticationException(
-                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, httpResponseException.getMessage());
-                    callbackHandle.onError(authenticationException);
                     return;
                 }
                 

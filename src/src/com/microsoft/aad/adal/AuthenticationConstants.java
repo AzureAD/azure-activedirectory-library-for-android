@@ -149,13 +149,6 @@ public class AuthenticationConstants {
         
         static final String ADAL_CLIENT_FAMILY_ID = "foci";
     }
-    
-    public static final class OAuth2ErrorCode {
-        /**
-         * Oauth2 error code invalid_grant. 
-         */
-        static final String INVALID_GRANT = "invalid_grant";
-    }
 
     public static final class AAD {
 

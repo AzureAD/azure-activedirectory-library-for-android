@@ -349,7 +349,7 @@ class Oauth2 {
         }
     }
 
-    public AuthenticationResult refreshToken(final String refreshToken) throws IOException, AuthenticationException, HttpResponseException {
+    public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationException {
         String requestMessage = null;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
@@ -381,11 +381,10 @@ class Oauth2 {
      *            or token for next step
      * @return Token in the AuthenticationResult. Null result if response does
      *         not have protocol error.
-     * @throws HttpResponseException 
      * @throws Exception
      */
     public AuthenticationResult getToken(String authorizationUrl)
-            throws IOException, AuthenticationException, HttpResponseException {
+            throws IOException, AuthenticationServerProtocolException, AuthenticationException {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
             throw new IllegalArgumentException("authorizationUrl");
@@ -432,10 +431,9 @@ class Oauth2 {
      * 
      * @param code
      * @return Token in the AuthenticationResult
-     * @throws HttpResponseException 
      * @throws Exception
      */
-    public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationException, HttpResponseException {
+    public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationException {
 
         String requestMessage = null;
         if (mWebRequestHandler == null) {
@@ -455,7 +453,7 @@ class Oauth2 {
     }
 
     private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
-            throws AuthenticationException, IOException, HttpResponseException {
+            throws IOException, AuthenticationException {
         URL authority = null;
         AuthenticationResult result = null;
         authority = StringExtensions.getUrl(getTokenEndpoint());
@@ -506,18 +504,33 @@ class Oauth2 {
                                 "Challenge header is empty");
                     }
                 } else {
+
                     // AAD server returns 401 response for wrong request
                     // messages
                     Logger.v(TAG, "401 http status code is returned without authorization header");
                 }
             }
 
-            // Protocol related errors will read the error stream and report
-            // the error and error description
-            result = processTokenResponse(response);
-            
-            if (result == null) {
+            if (response.getBody() != null) {
+
+                // Protocol related errors will read the error stream and report
+                // the error and error description
+                Logger.v(TAG, "Token request does not have exception");
+                result = processTokenResponse(response);
                 ClientMetrics.INSTANCE.setLastError(null);
+            }
+
+            if (result == null) {
+                // non-protocol related error
+                String errMessage = null;
+                byte[] message = response.getBody();
+                if (message != null) {
+                    errMessage = new String(message);
+                } else {
+                    errMessage = "Status code:" + String.valueOf(response.getStatusCode());
+                }
+
+                Logger.v(TAG, "Server error message:" + errMessage);
                 if (response.getResponseException() != null) {
                     throw response.getResponseException();
                 }
@@ -527,6 +540,10 @@ class Oauth2 {
         } catch (UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+            throw e;
+        } catch (IOException e) {
+            ClientMetrics.INSTANCE.setLastError(null);
+            Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.TOKEN,
@@ -562,12 +579,11 @@ class Oauth2 {
      * extract AuthenticationResult object from response body if available
      * 
      * @param webResponse
-     * @return Non-null {@link AuthenticationResult}.
-     * @throws ServerProtocolAuthenticationException 
-     * @throws HttpResponseException 
+     * @return
      */
-    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) throws HttpResponseException {
+    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) {
         AuthenticationResult result = new AuthenticationResult();
+        HashMap<String, String> responseItems = new HashMap<String, String>();
         String correlationIdInHeader = null;
         if (webResponse.getResponseHeaders() != null
                 && webResponse.getResponseHeaders().containsKey(
@@ -579,49 +595,36 @@ class Oauth2 {
                 correlationIdInHeader = listOfHeaders.get(0);
             }
         }
-        
-        final boolean isResponseBodyEmpty = (webResponse.getBody() == null) || (webResponse.getBody().length == 0);
-        final int statusCode = webResponse.getStatusCode();
-        if (isResponseBodyEmpty) {
-            // Empty response body, return the status code as error code back
-            Logger.v(TAG, "Token request returned an empty response body.");
-            throw new HttpResponseException(String.valueOf(statusCode));
-        } else {
-            Logger.v(TAG, "Start parsing response body from token request.");
-            switch(statusCode) {
-            case HttpURLConnection.HTTP_OK:
-            case HttpURLConnection.HTTP_BAD_REQUEST:
-            case HttpURLConnection.HTTP_UNAUTHORIZED: 
-                try {
-                    result = parseJsonResponse(webResponse.getBody());
-                } catch (final JSONException ex) {
-                    // Cannot parse response as JSON, then return the raw response as error description
-                    final String message = "Status code: " + statusCode + ". Cannot parse response as JSON " 
-                            + ex.getMessage();
-                    Logger.e(TAG, message, "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
-                    throw new HttpResponseException(String.valueOf(statusCode), new String(webResponse.getBody()));
-                }
-                break;
-            default:
-                throw new HttpResponseException(String.valueOf(statusCode), new String(webResponse.getBody()));
+
+        if (webResponse.getStatusCode() == HttpURLConnection.HTTP_OK
+                && webResponse.getBody() != null && webResponse.getBody().length > 0) {
+            // invalid refresh token calls has error related items in the body.
+            // Status is 400 for those.
+            try {
+                String jsonStr = new String(webResponse.getBody());
+                extractJsonObjects(responseItems, jsonStr);
+                result = processUIResponseParams(responseItems);
+            } catch (final JSONException ex) {
+                // There is no recovery possible here, so
+                // catch the
+                // generic Exception
+                Logger.e(TAG, ex.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
+                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
             }
+        } else {
+            String errMessage = null;
+            byte[] message = webResponse.getBody();
+            if (message != null) {
+                errMessage = new String(message);
+            } else {
+                errMessage = "Status code:" + String.valueOf(webResponse.getStatusCode());
+            }
+            Logger.v(TAG, "Server error message:" + errMessage);
+            result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
+                    errMessage, null);
         }
 
         // Set correlationId in the result
-        logResponseCorrelationId(correlationIdInHeader);
-
-        return result;
-    }
-    
-    private AuthenticationResult parseJsonResponse(final byte[] responseBody) throws JSONException {
-        HashMap<String, String> responseItems = new HashMap<String, String>();
-        
-        final String jsonStringResult = new String(responseBody);
-        extractJsonObjects(responseItems, jsonStringResult);
-        return processUIResponseParams(responseItems);
-    }
-    
-    private void logResponseCorrelationId(final String correlationIdInHeader) {
         if (correlationIdInHeader != null && !correlationIdInHeader.isEmpty()) {
             try {
                 UUID correlation = UUID.fromString(correlationIdInHeader);
@@ -636,5 +639,7 @@ class Oauth2 {
                         ADALError.CORRELATION_ID_FORMAT, ex);
             }
         }
+
+        return result;
     }
 }

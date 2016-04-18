@@ -515,12 +515,7 @@ public enum ADALError {
     /**
      * Resource authentication challenge failure
      */
-    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure"),
-    
-    /**
-     * Represents a general OAUTH Error
-     */
-    OAUTH2_ERROR("Oauth2 Error");
+    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure");
 
     private String mDescription;
 
