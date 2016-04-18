@@ -22,27 +22,16 @@
 // THE SOFTWARE.
 
 package com.microsoft.aad.adal;
-//
+
 /**
- * Represents server returned exception. 
+ * ADAL exception for device challenge processing
  */
-public class AuthenticationServerProtocolException extends AuthenticationException {
+class AuthenticationServerProtocolException extends AuthenticationException {
 
     static final long serialVersionUID = 1;
-    
-    private String mProtocolCode;
 
-    protected AuthenticationServerProtocolException(final ADALError adalError, final String detailMessage) {
-        super(adalError, detailMessage);
-    }
-    
-    protected AuthenticationServerProtocolException(final ADALError adalError, final String protocolErrorCode, final String detailMessage) {
-        super(adalError, detailMessage);
-        this.mProtocolCode = protocolErrorCode;
-    }
-    
-    public String getProtocolErrorCode(){
-        return mProtocolCode;
+    public AuthenticationServerProtocolException(String detailMessage) {
+        super(ADALError.DEVICE_CHALLENGE_FAILURE, detailMessage);
     }
 }
 
