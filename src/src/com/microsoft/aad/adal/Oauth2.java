@@ -578,7 +578,7 @@ class Oauth2 {
      * @return
      */
     private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) {
-        AuthenticationResult result = new AuthenticationResult();
+        AuthenticationResult result;
         String correlationIdInHeader = null;
         if (webResponse.getResponseHeaders() != null
                 && webResponse.getResponseHeaders().containsKey(
