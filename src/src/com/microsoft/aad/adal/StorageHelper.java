@@ -40,6 +40,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
@@ -452,7 +453,8 @@ public class StorageHelper {
             // the key data is wiped, if this is the case, the retrieved keypair will
             // be empty, and when we use the private key to do unwrap, we'll encounter 
             // IllegalArgumentException
-            if (mKeyPair.getPrivate() == null || mKeyPair.getPrivate().getEncoded().length == 0) {
+            final PrivateKey privateKey = mKeyPair.getPrivate();
+            if (privateKey == null || privateKey.getEncoded() == null || privateKey.getEncoded().length == 0) {
                 throw new UnrecoverableKeyException("Retrieved private key is empty.");
             }
             
