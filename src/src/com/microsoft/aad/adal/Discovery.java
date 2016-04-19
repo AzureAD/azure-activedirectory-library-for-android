@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
@@ -189,13 +190,13 @@ final class Discovery implements IDiscovery {
         String errorCodes = "";
         try {
             ClientMetrics.INSTANCE.beginClientMetricsRecord(queryUrl, mCorrelationId, headers);
-            webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
-            if (webResponse.getResponseException() == null) {
+            try {
+                webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
                 ClientMetrics.INSTANCE.setLastError(null);
-            } else {
+            } catch (IOException e) {
                 ClientMetrics.INSTANCE.setLastError(String.valueOf(webResponse.getStatusCode()));
             }
-            
+
             // parse discovery response to find tenant info
             HashMap<String, String> discoveryResponse = parseResponse(webResponse);
             if(discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES))

@@ -28,6 +28,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -454,7 +455,7 @@ public class OauthTests extends AndroidTestCase {
     public void testRefreshTokenWebResponse_DeviceChallenge_Positive()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException,
-            NoSuchAlgorithmException, MalformedURLException, AuthenticationException {
+            NoSuchAlgorithmException, IOException, AuthenticationException {
         getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
         
@@ -509,7 +510,7 @@ public class OauthTests extends AndroidTestCase {
     public void testRefreshTokenWebResponse_DeviceChallenge_Header_Empty()
             throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException,
-            NoSuchAlgorithmException, MalformedURLException {
+            NoSuchAlgorithmException, IOException {
         IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         HashMap<String, List<String>> headers = getHeader(
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");

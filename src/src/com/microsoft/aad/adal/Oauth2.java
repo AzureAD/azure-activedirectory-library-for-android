@@ -193,7 +193,7 @@ class Oauth2 {
 
     public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) {
 
-        AuthenticationResult result = null;
+        final AuthenticationResult result;
 
         // Protocol error related
         if (response.containsKey(AuthenticationConstants.OAuth2.ERROR)) {
@@ -272,6 +272,8 @@ class Oauth2 {
             
             //Set family client id on authentication result for TokenCacheItem to pick up
             result.setFamilyClientId(familyClientId);
+        } else {
+            result = null;
         }
 
         return result;
@@ -454,9 +456,8 @@ class Oauth2 {
 
     private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
             throws IOException, AuthenticationException {
-        URL authority = null;
         AuthenticationResult result = null;
-        authority = StringExtensions.getUrl(getTokenEndpoint());
+        final URL authority = StringExtensions.getUrl(getTokenEndpoint());
         if (authority == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
@@ -504,7 +505,6 @@ class Oauth2 {
                                 "Challenge header is empty");
                     }
                 } else {
-
                     // AAD server returns 401 response for wrong request
                     // messages
                     Logger.v(TAG, "401 http status code is returned without authorization header");
@@ -514,7 +514,6 @@ class Oauth2 {
             byte[] bodyMessage = response.getBody();
             boolean isBodyEmpty = bodyMessage == null || bodyMessage.length == 0;
             if (!isBodyEmpty) {
-
                 // Protocol related errors will read the error stream and report
                 // the error and error description
                 Logger.v(TAG, "Token request does not have exception");
@@ -525,11 +524,7 @@ class Oauth2 {
                 // non-protocol related error
                 String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : new String(bodyMessage);
                 Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
-                if (response.getResponseException() != null) {
-                    throw response.getResponseException();
-                } else {
-                    throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
-                }
+                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }

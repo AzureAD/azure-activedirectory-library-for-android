@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.UUID;
@@ -60,40 +61,31 @@ public class WebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) {
+    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) throws IOException {
         Logger.v(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
-        HttpWebRequest request = new HttpWebRequest(url);
-        request.setRequestMethod(HttpWebRequest.REQUEST_METHOD_GET);
-        headers = updateHeaders(headers);
-        addHeadersToRequest(headers, request);
+        HttpWebRequest request = new HttpWebRequest(url, HttpWebRequest.REQUEST_METHOD_GET, updateHeaders(headers));
         return request.send();
     }
 
     @Override
     public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
-            String contentType) {
+            String contentType) throws IOException {
         Logger.v(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
-        HttpWebRequest request = new HttpWebRequest(url);
-        request.setRequestMethod(HttpWebRequest.REQUEST_METHOD_POST);
-        request.setRequestContentType(contentType);
-        request.setRequestContent(content);
-        headers = updateHeaders(headers);
-        addHeadersToRequest(headers, request);
+        HttpWebRequest request = new HttpWebRequest(
+                url,
+                HttpWebRequest.REQUEST_METHOD_POST,
+                updateHeaders(headers),
+                content,
+                contentType);
         return request.send();
-    }
-
-    private void addHeadersToRequest(HashMap<String, String> headers, HttpWebRequest request) {
-        if (headers != null && !headers.isEmpty()) {
-            request.getRequestHeaders().putAll(headers);
-        }
     }
 
     private HashMap<String, String> updateHeaders(HashMap<String, String> headers) {
 
         if (headers == null) {
-            headers = new HashMap<String, String>();
+            headers = new HashMap<>();
         }
 
         if (mRequestCorrelationId != null) {

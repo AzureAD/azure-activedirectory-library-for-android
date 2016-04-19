@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal.test;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.HashMap;
@@ -51,7 +52,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
     private String mReturnException;
 
     @Override
-    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) {
+    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) throws IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (mReturnException != null) {
@@ -63,7 +64,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     @Override
     public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
-            String contentType) {
+            String contentType) throws IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {

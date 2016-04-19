@@ -32,15 +32,10 @@ import java.util.Map;
  * Web response to keep status, response body, headers and related exceptions.
  */
 public class HttpWebResponse {
-    private int mStatusCode;
-    private byte[] mResponseBody;
-    private Map<String, List<String>> mResponseHeaders;
-    private IOException mResponseException = null;
-
-    public HttpWebResponse() {
-        mStatusCode = HttpURLConnection.HTTP_OK;
-        mResponseBody = null;
-    }
+    private final int mStatusCode;
+    private final byte[] mResponseBody;
+    private final Map<String, List<String>> mResponseHeaders;
+    private final IOException mResponseException = null;
 
     public HttpWebResponse(int statusCode, byte[] responseBody,
             Map<String, List<String>> responseHeaders) {
@@ -49,39 +44,15 @@ public class HttpWebResponse {
         mResponseHeaders = responseHeaders;
     }
 
-    public IOException getResponseException() {
-        return mResponseException;
-    }
-
-    public void setResponseException(IOException responseException) {
-        this.mResponseException = responseException;
-    }
-
-    HttpWebResponse(int statusCode) {
-        mStatusCode = statusCode;
-    }
-
     public int getStatusCode() {
         return mStatusCode;
-    }
-
-    public void setStatusCode(int status) {
-        mStatusCode = status;
     }
 
     public Map<String, List<String>> getResponseHeaders() {
         return mResponseHeaders;
     }
 
-    public void setResponseHeaders(Map<String, List<String>> headers) {
-        mResponseHeaders = headers;
-    }
-
     public byte[] getBody() {
         return mResponseBody;
-    }
-
-    public void setBody(byte[] body) {
-        mResponseBody = body;
     }
 }
