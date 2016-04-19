@@ -1,3 +1,14 @@
+Version 1.1.17
+--------------
+Fix for checking retrieved private key before unwrapping symmetric key, avoid the crash for InvalidArgumentException when key data is wiped by keystore but not alias
+Update the cache lookup logic for multi-resource refresh token
+Update token cache removal logic to only remove stored token when receiving invalid_grant as oauth2 error
+Disable Family of Client Id feature
+Update readme for secret key generation and update sample for token acquisition flow with broker
+Add the function to turn-off hardware acceleration in AuthenticationActivity webview
+Add the function to resume broker request after clicking on "Get the app" page and install the broker app
+Update BrokerProxy to recognize company portal for adding account during conditional access flow
+
 Version 1.1.16
 --------------
 Hot fix for catching RuntimeException thrown due to AndroidKeyStore bug, so App won't crash due to keystore got reset
