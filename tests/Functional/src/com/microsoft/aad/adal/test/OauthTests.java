@@ -62,6 +62,7 @@ import com.microsoft.aad.adal.IWebRequestHandler;
 import com.microsoft.aad.adal.PromptBehavior;
 
 import android.annotation.SuppressLint;
+import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 
