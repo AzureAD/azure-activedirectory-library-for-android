@@ -1430,8 +1430,8 @@ public class AuthenticationContext {
 
         // Trying to find refresh token first, if existed, will try to use the refresh token. 
         Logger.v(TAG, "Checking refresh tokens");
-        boolean useMultiResourceRefreshToken = cachedItem == null ? true : cachedItem.getIsMultiResourceRefreshToken();
-        RefreshItem refreshItem = getRefreshToken(request, useMultiResourceRefreshToken);
+        final boolean useMultiResourceRefreshToken = cachedItem == null || cachedItem.getIsMultiResourceRefreshToken();
+        final RefreshItem refreshItem = getRefreshToken(request, useMultiResourceRefreshToken);
         AuthenticationResult authResult = null;
         if (!promptUser(request.getPrompt()) && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
