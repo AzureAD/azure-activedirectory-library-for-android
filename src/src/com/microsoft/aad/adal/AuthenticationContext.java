@@ -1867,7 +1867,7 @@ public class AuthenticationContext {
         if (useCache) {
             if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                 String errLogInfo = result == null ? "" : result.getErrorLogInfo();
-                Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
+                Logger.e(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
                         + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
 
                 // remove item from cache to avoid same usage of

@@ -74,10 +74,9 @@ public class TestLogResponse {
 
     /**
      * Check log message for segments since some of the responses include server generated traceid, timeStamp etc.
-     * @param signal
      * @param msgs
      */
-    public void listenLogForMessageSegments(final CountDownLatch signal, final String... msgs) {
+    public void listenLogForMessageSegments(final String... msgs) {
         final TestLogResponse response = this;
 
         Logger.getInstance().setExternalLogger(new ILogger() {
@@ -85,22 +84,16 @@ public class TestLogResponse {
             @Override
             public void Log(String tag, String message, String additionalMessage, LogLevel level,
                     ADALError errorCode) {
-                boolean hasAll = true;
                 for (String msg : msgs) {
-                    if (message.contains(msg)) {
+                    if (message.contains(msg) || additionalMessage.contains(msg)) {
                         response.tag = tag;
                         response.message = message;
                         response.additionalMessage = additionalMessage;
                         response.level = level;
                         response.errorCode = errorCode;
                     } else {
-                        hasAll = false;
                         break;
                     }
-                }
-
-                if (signal != null && hasAll) {
-                    signal.countDown();
                 }
             }
         });
