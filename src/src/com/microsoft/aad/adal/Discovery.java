@@ -137,10 +137,10 @@ final class Discovery implements IDiscovery {
     private void initValidList() {
         // mValidHosts is a sync set
         if (sValidHosts.size() == 0) {
-            sValidHosts.add("login.windows.net");
-            sValidHosts.add("login.microsoftonline.com");
-            sValidHosts.add("login.chinacloudapi.cn");
-            sValidHosts.add("login.cloudgovapi.us");
+            sValidHosts.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list 
+            sValidHosts.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
+            sValidHosts.add("login.chinacloudapi.cn"); // Microsoft Azure China
+            sValidHosts.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
         }
     }
 
