@@ -1868,12 +1868,15 @@ public class AuthenticationContext {
         if (useCache) {
             if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
                 String errLogInfo = result == null ? "" : result.getErrorLogInfo();
-                Logger.w(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
+                Logger.e(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
                         + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
 
-                // remove item from cache to avoid same usage of
-                // refresh token in next acquireToken call
-                removeItemFromCache(refreshItem);
+                // Check error code, only remove token from cache if receiving invalid_grant from server
+                if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equals(result.getErrorCode())) {
+                    Logger.v(TAG, "Removing token cache for invalid_grant error returned from server.");
+                    removeItemFromCache(refreshItem);
+                }
+
                 return result;
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
