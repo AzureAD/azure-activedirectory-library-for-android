@@ -128,7 +128,7 @@ public class StorageHelper {
 
     private SecretKey mKey = null, mMacKey = null;
 
-    private static SecretKey sSecretKeyFromAndroidKeyStore = null;
+    private SecretKey mSecretKeyFromAndroidKeyStore = null;
 
     public StorageHelper(Context ctx) {
         mContext = ctx;
@@ -160,20 +160,14 @@ public class StorageHelper {
             mMacKey = getMacKey(mKey);
             mBlobVersion = VERSION_USER_DEFINED;
         } else {
-            try {
-                // androidKeyStore can store app specific self signed cert.
-                // Asymmetric cryptography is used to protect the session
-                // key for Encryption and HMac.
-                // If user specifies secret key, it will use the provided
-                // key.
-                mKey = getSecretKeyFromAndroidKeyStore();
-                mMacKey = getMacKey(mKey);
-                mBlobVersion = VERSION_ANDROID_KEY_STORE;
-            } catch (IOException | GeneralSecurityException e) {
-                Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
-                        ADALError.ANDROIDKEYSTORE_FAILED, e);
-                throw e;
-            }
+            // androidKeyStore can store app specific self signed cert.
+            // Asymmetric cryptography is used to protect the session
+            // key for Encryption and HMac.
+            // If user specifies secret key, it will use the provided
+            // key.
+            mKey = getSecretKeyFromAndroidKeyStore();
+            mMacKey = getMacKey(mKey);
+            mBlobVersion = VERSION_ANDROID_KEY_STORE;
         }
 
         return mKey;
@@ -193,17 +187,10 @@ public class StorageHelper {
 
         if (keyVersion.equals(VERSION_ANDROID_KEY_STORE)) {
             if (Build.VERSION.SDK_INT >= 18) {
-                try {
-                    // androidKeyStore can store app specific self signed cert.
-                    // Asymmetric cryptography is used to protect the session
-                    // key
-                    // used for Encryption and HMac
-                    return getSecretKeyFromAndroidKeyStore();
-                } catch (IOException | GeneralSecurityException e) {
-                    Logger.e(TAG, "Failed to get private key from AndroidKeyStore", "",
-                            ADALError.ANDROIDKEYSTORE_FAILED, e);
-                    throw e;
-                }
+                // androidKeyStore can store app specific self signed cert.
+                // Asymmetric cryptography is used to protect the session key
+                // used for Encryption and HMac
+                return getSecretKeyFromAndroidKeyStore();
             } else {
                 throw new IllegalArgumentException(
                         String.format(
@@ -415,8 +402,8 @@ public class StorageHelper {
             GeneralSecurityException {
 
         // Loading file and unwrapping this key is causing performance issue.
-        if (sSecretKeyFromAndroidKeyStore != null) {
-            return sSecretKeyFromAndroidKeyStore;
+        if (mSecretKeyFromAndroidKeyStore != null) {
+            return mSecretKeyFromAndroidKeyStore;
         }
 
         // Store secret key in a file after wrapping
@@ -424,7 +411,7 @@ public class StorageHelper {
                 ADALKS);
 
         if (mKeyPair == null) {
-            mKeyPair = getKeyPairFromAndroidKeyStore();
+            mKeyPair = getKeyPairFromAndroidKeyStoreForEncryption();
             Logger.v(TAG, "Retrived keypair from androidKeyStore");
         }
 
@@ -458,20 +445,20 @@ public class StorageHelper {
                 throw new UnrecoverableKeyException("Retrieved private key is empty.");
             }
             
-            sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
+            mSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
             Logger.v(TAG, "Finished reading SecretKey");
         } catch (GeneralSecurityException | IOException ex) {
             // Reset KeyPair info so that new request will generate correct KeyPairs.
             // All tokens with previous SecretKey are not possible to decrypt.
             Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED, ex);
             mKeyPair = null;
-            sSecretKeyFromAndroidKeyStore = null;
+            mSecretKeyFromAndroidKeyStore = null;
             deleteKeyFile();
             resetKeyPairFromAndroidKeyStore();
             Logger.v(TAG, "Removed previous key pair info.");
             throw ex;
         }
-        return sSecretKeyFromAndroidKeyStore;
+        return mSecretKeyFromAndroidKeyStore;
     }
 
     private void deleteKeyFile() {
@@ -492,7 +479,7 @@ public class StorageHelper {
      * @throws IOException
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws GeneralSecurityException, IOException {
+    private synchronized KeyPair getKeyPairFromAndroidKeyStoreForEncryption() throws GeneralSecurityException, IOException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
         if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
@@ -513,7 +500,34 @@ public class StorageHelper {
         }
 
         // Read key pair again
-        Logger.v(TAG, "Reading Key entry");
+        return readKeyPairFromKeyEntry(keyStore);
+    }
+    
+    /**
+     * Read keypair from android keystore for 
+     * @return
+     * @throws GeneralSecurityException
+     * @throws IOException
+     */
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private synchronized KeyPair readKeyPairFromAndroidKeyStoreForDecryption() throws GeneralSecurityException, IOException {
+        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
+            Logger.v(TAG, "Key store alias is not avaliable.");
+            // Due to an issue with android keystore, when user change lockscreen type, 
+            // key data and alias could be wiped. Key data will be unrecoverable if being 
+            // wiped out.
+            throw new UnrecoverableKeyException("AndroidKeyStore does not contain the alias.");
+        } else {
+            Logger.v(TAG, "Key entry is available");
+        }
+        
+        return readKeyPairFromKeyEntry(keyStore);
+    }
+    
+    private synchronized KeyPair readKeyPairFromKeyEntry(final KeyStore keyStore) throws GeneralSecurityException {
+        Logger.v(TAG, "Reading key entry persisted in AndroidKeyStore.");
         try {
             final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
                     KEY_STORE_CERT_ALIAS, null);
