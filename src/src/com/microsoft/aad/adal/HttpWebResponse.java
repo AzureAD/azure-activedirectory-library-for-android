@@ -33,12 +33,10 @@ import java.util.Map;
  */
 public class HttpWebResponse {
     private final int mStatusCode;
-    private final byte[] mResponseBody;
+    private final String mResponseBody;
     private final Map<String, List<String>> mResponseHeaders;
-    private final IOException mResponseException = null;
 
-    public HttpWebResponse(int statusCode, byte[] responseBody,
-            Map<String, List<String>> responseHeaders) {
+    public HttpWebResponse(int statusCode, String responseBody, Map<String, List<String>> responseHeaders) {
         mStatusCode = statusCode;
         mResponseBody = responseBody;
         mResponseHeaders = responseHeaders;
@@ -52,7 +50,7 @@ public class HttpWebResponse {
         return mResponseHeaders;
     }
 
-    public byte[] getBody() {
+    public String getBody() {
         return mResponseBody;
     }
 }

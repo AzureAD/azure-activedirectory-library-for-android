@@ -42,6 +42,7 @@ import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
 import android.net.Uri;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Base64;
 
 /**
@@ -511,8 +512,7 @@ class Oauth2 {
                 }
             }
 
-            byte[] bodyMessage = response.getBody();
-            boolean isBodyEmpty = bodyMessage == null || bodyMessage.length == 0;
+            boolean isBodyEmpty = TextUtils.isEmpty(response.getBody());
             if (!isBodyEmpty) {
                 // Protocol related errors will read the error stream and report
                 // the error and error description
@@ -522,7 +522,7 @@ class Oauth2 {
             }
             if (result == null) {
                 // non-protocol related error
-                String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : new String(bodyMessage);
+                String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
                 Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
                 throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
             } else {
@@ -572,7 +572,7 @@ class Oauth2 {
      * @param webResponse
      * @return
      */
-    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) {
+    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) throws AuthenticationException {
         AuthenticationResult result;
         String correlationIdInHeader = null;
         if (webResponse.getResponseHeaders() != null
@@ -593,16 +593,13 @@ class Oauth2 {
         case HttpURLConnection.HTTP_UNAUTHORIZED:
             try {
                 result = parseJsonResponse(webResponse.getBody());
-            } catch (final JSONException jsonException) {
-                Logger.e(TAG, jsonException.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, jsonException);
-                result = new AuthenticationResult(JSON_PARSING_ERROR, jsonException.getMessage(), null);
+            } catch (JSONException e) {
+                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), e);
             }
-            break;
+
+        break;
         default: 
-            final String errMessage = new String(webResponse.getBody());
-            Logger.e(TAG, "Server response", errMessage, ADALError.SERVER_ERROR);
-            result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    errMessage, null);
+            throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + webResponse.getBody());
         }
 
         // Set correlationId in the result
@@ -624,11 +621,9 @@ class Oauth2 {
         return result;
     }
     
-    private AuthenticationResult parseJsonResponse(final byte[] responseBody) throws JSONException {
+    private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException {
         HashMap<String, String> responseItems = new HashMap<String, String>();
-
-        final String jsonStringResult = new String(responseBody);
-        extractJsonObjects(responseItems, jsonStringResult);
+        extractJsonObjects(responseItems, responseBody);
         return processUIResponseParams(responseItems);
     }
 }

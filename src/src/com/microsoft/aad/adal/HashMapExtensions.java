@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 final class HashMapExtensions {
@@ -95,17 +96,13 @@ final class HashMapExtensions {
      * @throws JSONException
      */
     static final HashMap<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException{
-        HashMap<String, String> response = new HashMap<String, String>();
-        if(webResponse != null && webResponse.getBody() != null && webResponse.getBody().length != 0){
-            JSONObject jsonObject = new JSONObject(
-                    new String(webResponse.getBody()));
-
+        HashMap<String, String> response = new HashMap<>();
+        if(webResponse != null && !TextUtils.isEmpty(webResponse.getBody())) {
+            JSONObject jsonObject = new JSONObject(webResponse.getBody());
             Iterator<?> i = jsonObject.keys();
-
             while (i.hasNext()) {
                 String key = (String) i.next();
-                response.put(key,
-                        jsonObject.getString(key));
+                response.put(key, jsonObject.getString(key));
             }
         }
         return response;

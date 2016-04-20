@@ -23,9 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -124,13 +127,9 @@ class HttpWebRequest {
     public HttpWebResponse send() throws IOException {
         Logger.v(TAG, "HttpWebRequest send thread:" + Process.myTid());
         final HttpURLConnection connection = setupConnection();
-        if (connection == null) {
-            return null;
-        }
-
         final HttpWebResponse response;
+        InputStream responseStream = null;
         try {
-            InputStream responseStream = null;
             try {
                 responseStream = connection.getInputStream();
             } catch (IOException ex) {
@@ -142,24 +141,10 @@ class HttpWebRequest {
                     throw ex;
                 }
             }
-
             // GET request should read status after getInputStream to make
             // this work for different SDKs
             final int statusCode = getStatusCode(connection);
-            byte[] responseBody = null;
-            if (responseStream != null) {
-
-                ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-                byte[] buffer = new byte[4096];
-                int bytesRead = -1;
-
-                // Continue to read from stream if not cancelled and not EOF
-                while ((bytesRead = responseStream.read(buffer)) > 0) {
-                    byteStream.write(buffer, 0, bytesRead);
-                }
-
-                responseBody = byteStream.toByteArray();
-            }
+            final String responseBody = convertStreamToString(responseStream);
 
             // It will only run in debugger and set from outside for testing
             if (Debug.isDebuggerConnected() && sDebugSimulateDelay > 0) {
@@ -175,13 +160,44 @@ class HttpWebRequest {
             Logger.v(TAG, "Response is received");
             response = new HttpWebResponse(statusCode, responseBody, connection.getHeaderFields());
         } finally {
+            safeCloseStream(responseStream);
             connection.disconnect();
         }
 
         return response;
     }
 
-    private int getStatusCode(HttpURLConnection connection) throws IOException {
+    /**
+     * Convert stream into the string
+     *
+     * @param is
+     *            Input stream
+     * @return The converted string
+     * @throws IOException
+     *             Thrown when failing to access input stream.
+     */
+    private static String convertStreamToString(InputStream is) throws IOException {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (sb.length() > 0) {
+                    sb.append("\n");
+                }
+                sb.append(line);
+            }
+
+            return sb.toString();
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+        }
+    }
+
+    private static int getStatusCode(HttpURLConnection connection) throws IOException {
         int statusCode = HttpURLConnection.HTTP_BAD_REQUEST;
 
         try {
@@ -227,9 +243,29 @@ class HttpWebRequest {
                     Integer.toString(mRequestContent.length));
             connection.setFixedLengthStreamingMode(mRequestContent.length);
 
-            OutputStream out = connection.getOutputStream();
-            out.write(mRequestContent);
-            out.close();
+            OutputStream out = null;
+            try {
+                out = connection.getOutputStream();
+                out.write(mRequestContent);
+            } finally {
+                safeCloseStream(out);
+            }
+        }
+    }
+
+    /**
+     * Close the stream safely
+     *
+     * @param stream stream to be closed
+     */
+    private void safeCloseStream(Closeable stream) {
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (IOException e) {
+                // swallow error in this case
+                Logger.e(TAG, "Failed to close the stream: ", "", ADALError.IO_EXCEPTION, e);
+            }
         }
     }
 
