@@ -116,7 +116,7 @@ class HttpWebRequest {
         connection.setRequestMethod(mRequestMethod);
         connection.setDoInput(true); // it will at least read status
                                      // code. Default is true.
-        setRequestBody(connection);
+        setRequestBody(connection, mRequestContent, mRequestContentType);
 
         return connection;
     }
@@ -231,22 +231,22 @@ class HttpWebRequest {
         return statusCode;
     }
 
-    private void setRequestBody(HttpURLConnection connection) throws IOException {
-        if (null != mRequestContent) {
+    private static void setRequestBody(HttpURLConnection connection, byte[] contentRequest, String requestContentType) throws IOException {
+        if (null != contentRequest) {
             connection.setDoOutput(true);
 
-            if (null != mRequestContentType && !mRequestContentType.isEmpty()) {
-                connection.setRequestProperty("Content-Type", mRequestContentType);
+            if (null != requestContentType && !requestContentType.isEmpty()) {
+                connection.setRequestProperty("Content-Type", requestContentType);
             }
 
             connection.setRequestProperty("Content-Length",
-                    Integer.toString(mRequestContent.length));
-            connection.setFixedLengthStreamingMode(mRequestContent.length);
+                    Integer.toString(contentRequest.length));
+            connection.setFixedLengthStreamingMode(contentRequest.length);
 
             OutputStream out = null;
             try {
                 out = connection.getOutputStream();
-                out.write(mRequestContent);
+                out.write(contentRequest);
             } finally {
                 safeCloseStream(out);
             }
@@ -258,7 +258,7 @@ class HttpWebRequest {
      *
      * @param stream stream to be closed
      */
-    private void safeCloseStream(Closeable stream) {
+    private static void safeCloseStream(Closeable stream) {
         if (stream != null) {
             try {
                 stream.close();
