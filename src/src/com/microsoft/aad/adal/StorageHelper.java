@@ -31,9 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.DigestException;
 import java.security.GeneralSecurityException;
@@ -43,11 +40,11 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -450,6 +447,17 @@ public class StorageHelper {
             if (encryptedKey == null || encryptedKey.length == 0) {
                 throw new UnrecoverableKeyException("Couldn't find encrypted key in file");
             }
+            
+            // Check if the retrieved keypair is empty. With the current limitation of 
+            // AndroidKeyStore, there is possibility that the alias is not wiped but 
+            // the key data is wiped, if this is the case, the retrieved keypair will
+            // be empty, and when we use the private key to do unwrap, we'll encounter 
+            // IllegalArgumentException
+            final PrivateKey privateKey = mKeyPair.getPrivate();
+            if (privateKey == null || privateKey.getEncoded() == null || privateKey.getEncoded().length == 0) {
+                throw new UnrecoverableKeyException("Retrieved private key is empty.");
+            }
+            
             sSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
             Logger.v(TAG, "Finished reading SecretKey");
         } catch (GeneralSecurityException | IOException ex) {

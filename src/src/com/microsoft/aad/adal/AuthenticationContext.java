@@ -1430,7 +1430,8 @@ public class AuthenticationContext {
 
         // Trying to find refresh token first, if existed, will try to use the refresh token. 
         Logger.v(TAG, "Checking refresh tokens");
-        RefreshItem refreshItem = getRefreshToken(request);
+        final boolean useMultiResourceRefreshToken = cachedItem == null || cachedItem.getIsMultiResourceRefreshToken();
+        final RefreshItem refreshItem = getRefreshToken(request, useMultiResourceRefreshToken);
         AuthenticationResult authResult = null;
         if (!promptUser(request.getPrompt()) && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
@@ -1583,13 +1584,12 @@ public class AuthenticationContext {
         String mKeyWithUserId;
         String mKeyWithDisplayableId;
 
-        public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item,
-                boolean multiResource) {
+        public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item) {
             if (item == null) {
                 throw new IllegalArgumentException("item");
             }
             mKey = keyInCache;
-            mMultiResource = multiResource;
+            mMultiResource = item.getIsMultiResourceRefreshToken();
             mRefreshToken = item.getRefreshToken();
             mUserInfo = item.getUserInfo();
             mRawIdToken = item.getRawIdToken();
@@ -1603,30 +1603,31 @@ public class AuthenticationContext {
         }
     }
 
-    private RefreshItem getRefreshToken(final AuthenticationRequest request) {
+    private RefreshItem getRefreshToken(final AuthenticationRequest request, boolean useMultiResourceRefreshToken) {
         final String methodName = ":getRefreshToken";
         RefreshItem refreshItem = null;
         if (mTokenCacheStore != null) {
-            boolean multiResource = false;
-            // target refreshToken for this resource first. CacheKey will
-            // include the resourceId in the cachekey
-            Logger.v(TAG, "Looking for regular refresh token");
             String userId = request.getUserId();
             if (StringExtensions.IsNullOrBlank(userId)) {
                 // acquireTokenSilent expects userid field from UserInfo
                 userId = request.getLoginHint();
             }
-            String keyUsed = CacheKey.createCacheKey(request, userId);
-            TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
-            if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
-                // if not present, check multiResource item in cache. Cache key
+            String keyUsed;
+            TokenCacheItem item;
+            if (!useMultiResourceRefreshToken) {
+                // target refreshToken for this resource only. CacheKey will
+                // include the resourceId in the cachekey
+                Logger.v(TAG, "Looking for regular refresh token");
+                keyUsed = CacheKey.createCacheKey(request, userId);
+                item = mTokenCacheStore.getItem(keyUsed);
+            } else {
+                // check multiResource item in cache. Cache key
                 // will not include resourceId in the cache key string.
                 Logger.v(TAG, "Looking for Multi Resource Refresh token");
                 keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request, userId);
                 item = mTokenCacheStore.getItem(keyUsed);
-                multiResource = true;
             }
-            
+
             // Temporarily disable the family client id feature. 
             final boolean isFamilyClientIdFeatureEnabled = false;
             if (isFamilyClientIdFeatureEnabled) {
@@ -1647,7 +1648,7 @@ public class AuthenticationContext {
 
                 Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                         + " Key used:" + keyUsed);
-                refreshItem = new RefreshItem(keyUsed, request, item, multiResource);
+                refreshItem = new RefreshItem(keyUsed, request, item);
             }
         }
 
@@ -2208,7 +2209,7 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.16";
+        return "1.1.17";
     }
 
     /**
