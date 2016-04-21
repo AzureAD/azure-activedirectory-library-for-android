@@ -1856,7 +1856,7 @@ public class AuthenticationContext {
             }
         } catch (IOException | AuthenticationException exc) {
             ClientAnalytics.logEvent(
-                    InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
+                    InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED,
                     new InstrumentationEventBuilder(request, exc).build());
 
             // Server side error or similar
