@@ -1855,15 +1855,9 @@ public class AuthenticationContext {
                 result.setRefreshToken(refreshItem.mRefreshToken);
             }
         } catch (IOException | AuthenticationException exc) {
-            Class causeClass = exc.getCause() != null ? exc.getCause().getClass() : exc.getClass();
-            ADALError errorCode = exc instanceof AuthenticationException ? ((AuthenticationException) exc).getCode() : null;
-            List<Pair<String, String>> properties = getPropertiesForRequest(request);
-            properties.add(new Pair<>(InstrumentationIDs.ERROR_CLASS, causeClass.getSimpleName()));
-            properties.add(new Pair<>(InstrumentationIDs.ERROR_MESSAGE, exc.getMessage()));
-            if (errorCode != null) {
-                properties.add(new Pair<>(InstrumentationIDs.ERROR_CODE, errorCode.getDescription()));
-            }
-            ClientAnalytics.logEvent(InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED, properties);
+            ClientAnalytics.logEvent(
+                    InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
+                    new InstrumentationEventBuilder(request, exc).build());
 
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
@@ -1890,14 +1884,9 @@ public class AuthenticationContext {
                     removeItemFromCache(refreshItem);
                 }
 
-                List<Pair<String, String>> properties = getPropertiesForRequest(request);
-                if (result.getErrorDescription() != null) {
-                    properties.add(new Pair<>(InstrumentationIDs.ERROR_MESSAGE, result.getErrorDescription()));
-                }
-                if (result.getErrorCode() != null) {
-                    properties.add(new Pair<>(InstrumentationIDs.ERROR_CODE, result.getErrorCode()));
-                }
-                ClientAnalytics.logEvent(InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED, properties);
+                ClientAnalytics.logEvent(
+                        InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
+                        new InstrumentationEventBuilder(request, result).build());
                 return result;
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
@@ -1914,8 +1903,9 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
                 setItemToCacheFromRefresh(refreshItem, request, result);
 
-                List<Pair<String, String>> properties = getPropertiesForRequest(request);
-                ClientAnalytics.logEvent(InstrumentationIDs.REFRESH_TOKEN_REQUEST_SUCCEEDED, properties);
+                ClientAnalytics.logEvent(
+                        InstrumentationIDs.REFRESH_TOKEN_REQUEST_SUCCEEDED,
+                        new InstrumentationEventBuilder(request, result).build());
 
                 // return result obj which has error code and
                 // error description that is returned from
@@ -1930,19 +1920,6 @@ public class AuthenticationContext {
             Logger.v(TAG, "Cache is not used for Request:" + request.getLogInfo());
             return result;
         }
-    }
-
-    private List<Pair<String, String>> getPropertiesForRequest(AuthenticationRequest request) {
-        List<Pair<String, String>> properties = new LinkedList<>();
-        if (request.getUserId() != null) {
-            properties.add(new Pair<>(InstrumentationIDs.USER_ID, request.getUserId()));
-        }
-        properties.add(new Pair<>(InstrumentationIDs.RESOURCE_ID, request.getResource()));
-        properties.add(new Pair<>(InstrumentationIDs.AUTHORITY_ID, request.getAuthority()));
-        if (request.getCorrelationId() != null) {
-            properties.add(new Pair<>(InstrumentationIDs.CORRELATION_ID, request.getCorrelationId().toString()));
-        }
-        return properties;
     }
 
     private boolean validateAuthority(final URL authorityUrl) {
