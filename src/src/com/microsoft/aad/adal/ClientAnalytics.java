@@ -23,9 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.util.Pair;
-
-import java.util.List;
+import java.util.Map;
 
 /**
  * Interface that provides ability to client application
@@ -66,7 +64,7 @@ public class ClientAnalytics {
      * @param eventName
      * @param properties
      */
-    static void logEvent(final String eventName, List<Pair<String, String>> properties) {
+    static void logEvent(final String eventName, Map<String, String> properties) {
         InstanceHolder.sInstance.log(eventName, properties);
     }
 
@@ -75,7 +73,7 @@ public class ClientAnalytics {
      * @param eventName
      * @param properties
      */
-    private void log(final String eventName, List<Pair<String, String>> properties) {
+    private void log(final String eventName, Map<String, String> properties) {
         if (mEventListener != null) {
             mEventListener.logEvent(eventName, properties);
         }
@@ -91,7 +89,7 @@ public class ClientAnalytics {
          * @param eventName specified name of event that appears of server
          * @param properties set of metrics that classifies this event
          */
-        void logEvent(final String eventName, List<Pair<String, String>> properties);
+        void logEvent(final String eventName, Map<String, String> properties);
     }
 
     /**

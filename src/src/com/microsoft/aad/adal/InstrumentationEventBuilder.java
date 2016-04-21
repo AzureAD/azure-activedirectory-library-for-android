@@ -23,52 +23,50 @@
 
 package com.microsoft.aad.adal;
 
-import android.util.Pair;
-
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Builds properties for ClientAnalytics.
  */
 class InstrumentationEventBuilder {
-    final private List<Pair<String, String>> mProperties = new LinkedList<>();
+    final private Map<String, String> mProperties = new HashMap<>();
 
     InstrumentationEventBuilder(AuthenticationRequest request, Exception exc) {
         addPropertiesForRequest(request);
         final Throwable cause = exc.getCause() != null ? exc.getCause() : exc;
         final Class causeClass = cause.getClass();
         final ADALError errorCode = exc instanceof AuthenticationException ? ((AuthenticationException) exc).getCode() : null;
-        addProperty(new Pair<>(InstrumentationIDs.ERROR_CLASS, causeClass.getSimpleName()));
-        addProperty(new Pair<>(InstrumentationIDs.ERROR_MESSAGE, cause.getMessage()));
-        addProperty(new Pair<>(InstrumentationIDs.ERROR_CODE, errorCode.getDescription()));
+        addProperty(InstrumentationIDs.ERROR_CLASS, causeClass.getSimpleName());
+        addProperty(InstrumentationIDs.ERROR_MESSAGE, cause.getMessage());
+        addProperty(InstrumentationIDs.ERROR_CODE, errorCode.getDescription());
     }
 
     InstrumentationEventBuilder(AuthenticationRequest request, AuthenticationResult result) {
         addPropertiesForRequest(request);
-        addProperty(new Pair<>(InstrumentationIDs.ERROR_MESSAGE, result.getErrorDescription()));
-        addProperty(new Pair<>(InstrumentationIDs.ERROR_CODE, result.getErrorCode()));
+        addProperty(InstrumentationIDs.ERROR_MESSAGE, result.getErrorDescription());
+        addProperty(InstrumentationIDs.ERROR_CODE, result.getErrorCode());
     }
 
-    InstrumentationEventBuilder add(Pair<String, String> property) {
-        addProperty(property);
+    InstrumentationEventBuilder add(String propertyName, String propertyValue) {
+        addProperty(propertyName, propertyValue);
         return this;
     }
 
-    private void addProperty(Pair<String, String> property) {
-        if (property != null && property.second != null) {
-            mProperties.add(property);
-        }
-    }
-
-    List<Pair<String, String>> build() {
+    Map<String, String> build() {
         return mProperties;
     }
 
+    private void addProperty(String propertyName, String propertyValue) {
+        if (propertyValue != null) {
+            mProperties.put(propertyName, propertyValue);
+        }
+    }
+
     private void addPropertiesForRequest(AuthenticationRequest request) {
-        addProperty(new Pair<>(InstrumentationIDs.USER_ID, request.getUserId()));
-        addProperty(new Pair<>(InstrumentationIDs.RESOURCE_ID, request.getResource()));
-        addProperty(new Pair<>(InstrumentationIDs.AUTHORITY_ID, request.getAuthority()));
-        addProperty(new Pair<>(InstrumentationIDs.CORRELATION_ID, request.getCorrelationId().toString()));
+        addProperty(InstrumentationIDs.USER_ID, request.getUserId());
+        addProperty(InstrumentationIDs.RESOURCE_ID, request.getResource());
+        addProperty(InstrumentationIDs.AUTHORITY_ID, request.getAuthority());
+        addProperty(InstrumentationIDs.CORRELATION_ID, request.getCorrelationId().toString());
     }
 }
