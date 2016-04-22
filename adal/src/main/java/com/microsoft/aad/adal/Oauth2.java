@@ -511,7 +511,9 @@ class Oauth2 {
                 }
             }
 
-            if (response.getBody() != null) {
+            byte[] bodyMessage = response.getBody();
+            boolean isBodyEmpty = bodyMessage == null || bodyMessage.length == 0;
+            if (!isBodyEmpty) {
 
                 // Protocol related errors will read the error stream and report
                 // the error and error description
@@ -519,20 +521,14 @@ class Oauth2 {
                 result = processTokenResponse(response);
                 ClientMetrics.INSTANCE.setLastError(null);
             }
-
             if (result == null) {
                 // non-protocol related error
-                String errMessage = null;
-                byte[] message = response.getBody();
-                if (message != null) {
-                    errMessage = new String(message);
-                } else {
-                    errMessage = "Status code:" + String.valueOf(response.getStatusCode());
-                }
-
-                Logger.v(TAG, "Server error message:" + errMessage);
+                String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : new String(bodyMessage);
+                Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
                 if (response.getResponseException() != null) {
                     throw response.getResponseException();
+                } else {
+                    throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
                 }
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
@@ -582,8 +578,7 @@ class Oauth2 {
      * @return
      */
     private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) {
-        AuthenticationResult result = new AuthenticationResult();
-        HashMap<String, String> responseItems = new HashMap<String, String>();
+        AuthenticationResult result;
         String correlationIdInHeader = null;
         if (webResponse.getResponseHeaders() != null
                 && webResponse.getResponseHeaders().containsKey(
@@ -596,30 +591,21 @@ class Oauth2 {
             }
         }
 
-        if (webResponse.getStatusCode() == HttpURLConnection.HTTP_OK
-                && webResponse.getBody() != null && webResponse.getBody().length > 0) {
-            // invalid refresh token calls has error related items in the body.
-            // Status is 400 for those.
+        final int statusCode = webResponse.getStatusCode();
+        switch (statusCode) {
+        case HttpURLConnection.HTTP_OK:
+        case HttpURLConnection.HTTP_BAD_REQUEST:
+        case HttpURLConnection.HTTP_UNAUTHORIZED:
             try {
-                String jsonStr = new String(webResponse.getBody());
-                extractJsonObjects(responseItems, jsonStr);
-                result = processUIResponseParams(responseItems);
-            } catch (final JSONException ex) {
-                // There is no recovery possible here, so
-                // catch the
-                // generic Exception
-                Logger.e(TAG, ex.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
-                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
+                result = parseJsonResponse(webResponse.getBody());
+            } catch (final JSONException jsonException) {
+                Logger.e(TAG, jsonException.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, jsonException);
+                result = new AuthenticationResult(JSON_PARSING_ERROR, jsonException.getMessage(), null);
             }
-        } else {
-            String errMessage = null;
-            byte[] message = webResponse.getBody();
-            if (message != null) {
-                errMessage = new String(message);
-            } else {
-                errMessage = "Status code:" + String.valueOf(webResponse.getStatusCode());
-            }
-            Logger.v(TAG, "Server error message:" + errMessage);
+            break;
+        default: 
+            final String errMessage = new String(webResponse.getBody());
+            Logger.e(TAG, "Server response", errMessage, ADALError.SERVER_ERROR);
             result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
                     errMessage, null);
         }
@@ -641,5 +627,13 @@ class Oauth2 {
         }
 
         return result;
+    }
+    
+    private AuthenticationResult parseJsonResponse(final byte[] responseBody) throws JSONException {
+        HashMap<String, String> responseItems = new HashMap<String, String>();
+
+        final String jsonStringResult = new String(responseBody);
+        extractJsonObjects(responseItems, jsonStringResult);
+        return processUIResponseParams(responseItems);
     }
 }
