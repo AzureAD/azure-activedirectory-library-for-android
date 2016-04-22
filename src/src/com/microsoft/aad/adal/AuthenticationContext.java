@@ -31,8 +31,6 @@ import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -64,7 +62,6 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Pair;
 import android.util.SparseArray;
 
 /**
@@ -1857,7 +1854,7 @@ public class AuthenticationContext {
         } catch (IOException | AuthenticationException exc) {
             ClientAnalytics.logEvent(
                     InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED,
-                    new InstrumentationEventBuilder(request, exc).build());
+                    new InstrumentationPropertiesBuilder(request, exc).build());
 
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
@@ -1886,7 +1883,7 @@ public class AuthenticationContext {
 
                 ClientAnalytics.logEvent(
                         InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
-                        new InstrumentationEventBuilder(request, result).build());
+                        new InstrumentationPropertiesBuilder(request, result).build());
                 return result;
             } else {
                 Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
@@ -1905,7 +1902,7 @@ public class AuthenticationContext {
 
                 ClientAnalytics.logEvent(
                         InstrumentationIDs.REFRESH_TOKEN_REQUEST_SUCCEEDED,
-                        new InstrumentationEventBuilder(request, result).build());
+                        new InstrumentationPropertiesBuilder(request, result).build());
 
                 // return result obj which has error code and
                 // error description that is returned from

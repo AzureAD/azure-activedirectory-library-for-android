@@ -52,20 +52,20 @@ public class ClientAnalytics {
     }
 
     /**
-     * Set custom event listener.
-     * @param eventListener client implementation of instrumentation event logger
-     */
-    public void setEventListener(IEventListener eventListener) {
-        mEventListener = eventListener;
-    }
-
-    /**
      * send event to listener
      * @param eventName
      * @param properties
      */
     static void logEvent(final String eventName, Map<String, String> properties) {
         InstanceHolder.sInstance.log(eventName, properties);
+    }
+
+    /**
+     * Set custom event listener.
+     * @param eventListener client implementation of instrumentation event logger
+     */
+    public void setEventListener(IEventListener eventListener) {
+        mEventListener = eventListener;
     }
 
     /**
@@ -86,10 +86,10 @@ public class ClientAnalytics {
 
         /**
          * Sends event info to server
-         * @param eventName specified name of event that appears of server
+         * @param eventName specified name that defines this event on server in DB
          * @param properties set of metrics that classifies this event
          */
-        void logEvent(final String eventName, Map<String, String> properties);
+        void logEvent(final String eventName, final Map<String, String> properties);
     }
 
     /**

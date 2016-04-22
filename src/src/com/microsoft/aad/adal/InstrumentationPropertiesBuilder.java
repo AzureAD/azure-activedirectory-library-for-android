@@ -29,10 +29,15 @@ import java.util.Map;
 /**
  * Builds properties for ClientAnalytics.
  */
-class InstrumentationEventBuilder {
+class InstrumentationPropertiesBuilder {
     final private Map<String, String> mProperties = new HashMap<>();
 
-    InstrumentationEventBuilder(AuthenticationRequest request, Exception exc) {
+    /**
+     * Initializes properties for request that had exception during execution
+     * @param request
+     * @param exc
+     */
+    InstrumentationPropertiesBuilder(AuthenticationRequest request, Exception exc) {
         addPropertiesForRequest(request);
         final Throwable cause = exc.getCause() != null ? exc.getCause() : exc;
         final Class causeClass = cause.getClass();
@@ -42,27 +47,51 @@ class InstrumentationEventBuilder {
         addProperty(InstrumentationIDs.ERROR_CODE, errorCode.getDescription());
     }
 
-    InstrumentationEventBuilder(AuthenticationRequest request, AuthenticationResult result) {
+    /**
+     * Initializes properties for request that got results at the end of execution
+     * @param request
+     * @param result
+     */
+    InstrumentationPropertiesBuilder(AuthenticationRequest request, AuthenticationResult result) {
         addPropertiesForRequest(request);
         addProperty(InstrumentationIDs.ERROR_MESSAGE, result.getErrorDescription());
         addProperty(InstrumentationIDs.ERROR_CODE, result.getErrorCode());
     }
 
-    InstrumentationEventBuilder add(String propertyName, String propertyValue) {
+    /**
+     * Adds property
+     * @param propertyName
+     * @param propertyValue
+     * @return
+     */
+    InstrumentationPropertiesBuilder add(String propertyName, String propertyValue) {
         addProperty(propertyName, propertyValue);
         return this;
     }
 
+    /**
+     * Returns map of properties for event
+     * @return
+     */
     Map<String, String> build() {
         return mProperties;
     }
 
+    /**
+     * Adds property if the value isn't null
+     * @param propertyName
+     * @param propertyValue
+     */
     private void addProperty(String propertyName, String propertyValue) {
         if (propertyValue != null) {
             mProperties.put(propertyName, propertyValue);
         }
     }
 
+    /**
+     * Add basic properties for request
+     * @param request
+     */
     private void addPropertiesForRequest(AuthenticationRequest request) {
         addProperty(InstrumentationIDs.USER_ID, request.getUserId());
         addProperty(InstrumentationIDs.RESOURCE_ID, request.getResource());
