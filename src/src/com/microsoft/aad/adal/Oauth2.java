@@ -593,7 +593,7 @@ class Oauth2 {
         case HttpURLConnection.HTTP_UNAUTHORIZED:
             try {
                 result = parseJsonResponse(webResponse.getBody());
-            } catch (JSONException jsonException) {
+            } catch (final JSONException jsonException) {
                 Logger.e(TAG, jsonException.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, jsonException);
                 result = new AuthenticationResult(JSON_PARSING_ERROR, jsonException.getMessage(), null);
             }

@@ -26,11 +26,8 @@ package com.microsoft.aad.adal.test;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.IWebRequestHandler;
 
 import junit.framework.Assert;
 
@@ -45,14 +42,14 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     private UUID mCorrelationId;
 
-    private HashMap<String, String> mRequestHeaders;
+    private Map<String, String> mRequestHeaders;
 
     private HttpWebResponse mReturnResponse;
 
     private String mReturnException;
 
     @Override
-    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) throws IOException {
+    public HttpWebResponse sendGet(URL url, Map<String, String> headers) throws IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (mReturnException != null) {
@@ -63,7 +60,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
+    public HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
             String contentType) throws IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
@@ -88,7 +85,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
         return mRequestUrl;
     }
 
-    public HashMap<String, String> getRequestHeaders() {
+    public Map<String, String> getRequestHeaders() {
         return mRequestHeaders;
     }
 

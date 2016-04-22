@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -179,7 +180,7 @@ final class Discovery implements IDiscovery {
     private boolean sendRequest(final URL queryUrl) throws IOException, JSONException {
 
         Logger.v(TAG, "Sending discovery request to:" + queryUrl);
-        HashMap<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<String, String>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 
         // CorrelationId is used to track the request at the Azure services
@@ -187,7 +188,7 @@ final class Discovery implements IDiscovery {
             headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, mCorrelationId.toString());
             headers.put(AuthenticationConstants.AAD.RETURN_CLIENT_REQUEST_ID, "true");
         }
-               
+
         HttpWebResponse webResponse = null;
         String errorCodes = "";
         try {
@@ -201,7 +202,7 @@ final class Discovery implements IDiscovery {
             }
 
             // parse discovery response to find tenant info
-            HashMap<String, String> discoveryResponse = parseResponse(webResponse);
+            final Map<String, String> discoveryResponse = parseResponse(webResponse);
             if(discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES))
             {
                 errorCodes = discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
@@ -222,7 +223,7 @@ final class Discovery implements IDiscovery {
      * @return true if tenant discovery endpoint is reported. false otherwise.
      * @throws JSONException
      */
-    private HashMap<String, String> parseResponse(HttpWebResponse webResponse) throws JSONException {
+    private Map<String, String> parseResponse(HttpWebResponse webResponse) throws JSONException {
         return HashMapExtensions.getJsonResponse(webResponse);
     }
 
@@ -234,7 +235,9 @@ final class Discovery implements IDiscovery {
      * @return https://hostname/common
      */
     private String getAuthorizationCommonEndpoint(final URL authorizationEndpointUrl) {
-        return String.format("https://%s%s", authorizationEndpointUrl.getHost(), AUTHORIZATION_COMMON_ENDPOINT);
+        return new Uri.Builder().scheme("https")
+                .authority(authorizationEndpointUrl.getHost())
+                .appendPath(AUTHORIZATION_COMMON_ENDPOINT).build().toString();
     }
 
     /**

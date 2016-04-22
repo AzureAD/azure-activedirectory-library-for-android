@@ -34,6 +34,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import android.os.*;
 import android.os.Process;
@@ -56,16 +57,16 @@ class HttpWebRequest {
     private final URL mUrl;
     private final byte[] mRequestContent;
     private final String mRequestContentType;
-    private final HashMap<String, String> mRequestHeaders;
+    private final Map<String, String> mRequestHeaders;
 
-    public HttpWebRequest(URL requestURL, String requestMethod, HashMap<String, String> headers) {
+    public HttpWebRequest(URL requestURL, String requestMethod, Map<String, String> headers) {
         this(requestURL, requestMethod, headers, null, null);
     }
 
     public HttpWebRequest(
             URL requestURL,
             String requestMethod,
-            HashMap<String, String> headers,
+            Map<String, String> headers,
             byte[] requestContent,
             String requestContentType) {
         mUrl = requestURL;

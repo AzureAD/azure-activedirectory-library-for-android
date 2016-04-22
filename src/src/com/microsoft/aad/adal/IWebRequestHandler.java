@@ -25,16 +25,16 @@ package com.microsoft.aad.adal;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
  * Webrequest interface to send web requests.
  */
 public interface IWebRequestHandler {
-    HttpWebResponse sendGet(URL url, HashMap<String, String> headers) throws IOException;
+    HttpWebResponse sendGet(URL url, Map<String, String> headers) throws IOException;
 
-    HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
+    HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
             String contentType) throws IOException;
 
     public void setRequestCorrelationId(UUID mRequestCorrelationId);

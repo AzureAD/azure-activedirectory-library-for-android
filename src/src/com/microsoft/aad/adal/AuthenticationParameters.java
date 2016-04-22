@@ -168,7 +168,7 @@ public class AuthenticationParameters {
                 HashMap<String, String> headers = new HashMap<String, String>();
                 headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 
-                HttpWebResponse webResponse = null;
+                final HttpWebResponse webResponse;
                 try {
                     webResponse = sWebRequest.sendGet(resourceUrl, headers);
                     try {

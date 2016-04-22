@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.json.JSONException;
@@ -95,8 +96,8 @@ final class HashMapExtensions {
      * @return
      * @throws JSONException
      */
-    static final HashMap<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException{
-        HashMap<String, String> response = new HashMap<>();
+    static final Map<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException{
+        Map<String, String> response = new HashMap<>();
         if(webResponse != null && !TextUtils.isEmpty(webResponse.getBody())) {
             JSONObject jsonObject = new JSONObject(webResponse.getBody());
             Iterator<?> i = jsonObject.keys();

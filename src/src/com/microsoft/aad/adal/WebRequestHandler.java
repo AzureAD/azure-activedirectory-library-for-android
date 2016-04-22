@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
@@ -61,19 +62,19 @@ public class WebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) throws IOException {
+    public HttpWebResponse sendGet(URL url, Map<String, String> headers) throws IOException {
         Logger.v(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
-        HttpWebRequest request = new HttpWebRequest(url, HttpWebRequest.REQUEST_METHOD_GET, updateHeaders(headers));
+        final HttpWebRequest request = new HttpWebRequest(url, HttpWebRequest.REQUEST_METHOD_GET, updateHeaders(headers));
         return request.send();
     }
 
     @Override
-    public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
+    public HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
             String contentType) throws IOException {
         Logger.v(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
-        HttpWebRequest request = new HttpWebRequest(
+        final HttpWebRequest request = new HttpWebRequest(
                 url,
                 HttpWebRequest.REQUEST_METHOD_POST,
                 updateHeaders(headers),
@@ -82,7 +83,7 @@ public class WebRequestHandler implements IWebRequestHandler {
         return request.send();
     }
 
-    private HashMap<String, String> updateHeaders(HashMap<String, String> headers) {
+    private Map<String, String> updateHeaders(Map<String, String> headers) {
 
         if (headers == null) {
             headers = new HashMap<>();

@@ -1594,11 +1594,10 @@ public class AuthenticationContext {
             mUserInfo = item.getUserInfo();
             mRawIdToken = item.getRawIdToken();
             mTenantId = item.getTenantId();
-            if (item.getUserInfo() != null) {
-                mKeyWithUserId = CacheKey.createCacheKey(request, item.getUserInfo()
-                        .getUserId());
-                mKeyWithDisplayableId = CacheKey.createCacheKey(request, item.getUserInfo()
-                        .getDisplayableId());
+            final UserInfo userInfo = item.getUserInfo();
+            if (userInfo != null) {
+                mKeyWithUserId = CacheKey.createCacheKey(request, userInfo.getUserId());
+                mKeyWithDisplayableId = CacheKey.createCacheKey(request, userInfo.getDisplayableId());
             }
         }
     }
@@ -1809,7 +1808,7 @@ public class AuthenticationContext {
     private AuthenticationResult getTokenWithRefreshTokenAndUpdateCache(
             final AuthenticationRequest request, final RefreshItem refreshItem)
             throws AuthenticationException {
-        AuthenticationResult result = getTokenWithRefreshToken(request, refreshItem.mRefreshToken);
+        final AuthenticationResult result = getTokenWithRefreshToken(request, refreshItem.mRefreshToken);
 
         if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
             String errLogInfo = result == null ? "" : result.getErrorLogInfo();
@@ -1817,16 +1816,15 @@ public class AuthenticationContext {
                     + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
 
             // Check error code, only remove token from cache if receiving invalid_grant from server
-            if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equals(result.getErrorCode())) {
+            if (result != null &&
+                    AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
                 Logger.v(TAG, "Removing token cache for invalid_grant error returned from server.");
                 // remove item from cache to avoid same usage of
                 // refresh token in next acquireToken call
                 removeItemFromCache(refreshItem);
             }
 
-            return result;
         } else {
-            Logger.v(TAG, "It finished refresh token request:" + request.getLogInfo());
             if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
                 Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());
                 result.setUserInfo(refreshItem.mUserInfo);
@@ -1837,14 +1835,11 @@ public class AuthenticationContext {
             // it replaces multi resource refresh token as
             // well with the new one since it is not stored
             // with resource.
-            Logger.v(TAG, "Cache is used. It will set item to cache" + request.getLogInfo());
+            Logger.v(TAG, "Saving item into the cache." + request.getLogInfo());
             setItemToCacheFromRefresh(refreshItem, request, result);
-
-            // return result obj which has error code and
-            // error description that is returned from
-            // server response
-            return result;
         }
+
+        return result;
     }
 
     /**
@@ -1874,7 +1869,7 @@ public class AuthenticationContext {
             throw authenticationException;
         }
 
-        AuthenticationResult result = null;
+        final AuthenticationResult result;
         try {
             Oauth2 oauthRequest = new Oauth2(request, mWebRequest, mJWSBuilder);
             result = oauthRequest.refreshToken(refreshToken);
