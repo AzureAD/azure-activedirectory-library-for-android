@@ -8,7 +8,7 @@ jdk:
 android:
   components:
     - build-tools-21.1.2
-	- extra
+    - extra
 
 env:
     matrix:
@@ -18,4 +18,4 @@ before_install:
 	
 script:
   - cd $PWD
-  - ./gradlew clean build test
+  - ./gradlew clean build
