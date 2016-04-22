@@ -13,6 +13,9 @@ android:
 env:
     matrix:
       - ANDROID_SDKS=android-21 ANDROID_TARGET=android-21
+      
+before_install:
+  - chmod +x gradlew
 
 script:
   - cd $PWD
