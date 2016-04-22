@@ -349,4 +349,12 @@ public class AuthenticationConstants {
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
     public static final String AUTHENTICATION_FILE_DIRECTORY = "com.microsoft.aad.adal.authentication";
+    
+    protected static final class OAuth2ErrorCode {
+        /**       
+         * Oauth2 error code invalid_grant.
+         */       
+        static final String INVALID_GRANT = "invalid_grant";
+    }     
+
 }

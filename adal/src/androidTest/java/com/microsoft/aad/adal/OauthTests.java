@@ -590,7 +590,7 @@ public class OauthTests extends AndroidTestCase {
         headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, invalidHeaders);
         mockResponse = new HttpWebResponse(200, json.getBytes(Charset.defaultCharset()), headers);
         TestLogResponse logResponse2 = new TestLogResponse();
-        logResponse2.listenLogForMessageSegments(null, "Wrong format of the correlation ID:");
+        logResponse2.listenLogForMessageSegments("Wrong format of the correlation ID:");
 
         // send call with mocks
         m.invoke(oauth, mockResponse);

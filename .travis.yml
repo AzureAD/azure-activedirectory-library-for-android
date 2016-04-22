@@ -1,0 +1,22 @@
+# ./travis.yml for adal android
+
+language: android
+
+jdk: 
+  - oraclejdk7
+
+android:
+  components:
+    - build-tools-21.1.2
+    - extra
+
+env:
+    matrix:
+      - ANDROID_SDKS=android-21 ANDROID_TARGET=android-21
+      
+before_install:
+  - chmod +x gradlew
+
+script:
+  - cd $PWD
+  - ./gradlew clean build
