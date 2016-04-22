@@ -269,9 +269,6 @@ abstract class BasicWebViewClient extends WebViewClient {
             openLinkInBrowser(parameters.get(ApplicationReceiver.INSTALL_URL_KEY));
             view.stopLoading();
             return true;
-        } else if (url.startsWith("about:blank")) {
-            Logger.v(TAG, "It is an blank page request");
-            return true;
         }
 
         return processInvalidUrl(view, url);

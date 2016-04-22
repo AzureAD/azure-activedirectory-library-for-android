@@ -617,8 +617,7 @@ public class AuthenticationActivity extends Activity {
         public boolean processInvalidUrl(final WebView view, String url) {
         	final String methodName = ":processInvalidUrl";
             if (isBrokerRequest(getIntent())
-                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) 
-            {
+                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) {
             	Logger.e(TAG + methodName, String.format(
                         "The RedirectUri is not as expected. Received %s and expected %s", url,
                         mRedirectUrl), "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
@@ -627,18 +626,17 @@ public class AuthenticationActivity extends Activity {
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
-            }
-            
-            //check if the redirect URL is under SSL protected
-            if(!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX))
-            {
+            } else if (url.startsWith("about:blank")) {
+                Logger.v(TAG, "It is an blank page request");
+                return true;
+            } else if(!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX)){
             	Logger.e(TAG + methodName, "The webview was redirected to an unsafe URL.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
             	returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, "The webview was redirected to an unsafe URL.");
             	view.stopLoading();
             	return true;
+            } else {
+            	return false;
             }
-
-            return false;
         }
         
         public void showSpinner(boolean status){
