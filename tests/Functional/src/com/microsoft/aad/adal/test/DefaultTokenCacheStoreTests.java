@@ -40,6 +40,7 @@ import java.util.TimeZone;
 
 import javax.crypto.NoSuchPaddingException;
 
+import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
@@ -73,7 +74,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         super.tearDown();
     }
 
-    public void testSharedCache() throws GeneralSecurityException, IOException {
+    public void testSharedCache() throws GeneralSecurityException, IOException, AuthenticationException {
         TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
 
         // Verify returned item
@@ -96,7 +97,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals(2, users.size());
     }
 
-    public void testDateTimeFormatterOldFormat() throws GeneralSecurityException, IOException {
+    public void testDateTimeFormatterOldFormat() throws GeneralSecurityException, IOException, AuthenticationException {
         TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
 
         // Verify returned item
@@ -104,13 +105,13 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertNotNull(item.getExpiresOn().after(new Date()));
     }
 
-    private DefaultTokenCacheStore mockDefaultCacheStore() throws GeneralSecurityException, IOException {
+    private DefaultTokenCacheStore mockDefaultCacheStore() throws GeneralSecurityException, IOException, AuthenticationException {
         final StorageHelper mockSecure = Mockito.mock(StorageHelper.class);
         Context mockContext = mock(Context.class);
         SharedPreferences prefs = mock(SharedPreferences.class);
         when(prefs.contains("testkey")).thenReturn(true);
         when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
-        when(mockSecure.loadSecretKeyForAPI()).thenReturn(null);
+        when(mockSecure.loadSecretKeyForEncryption()).thenReturn(null);
         when(mockSecure.decrypt("test_encrypted"))
                 .thenReturn("{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"Apr 28, 2015 1:09:57 PM\"}");
         when(

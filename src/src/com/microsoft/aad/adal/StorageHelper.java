@@ -69,17 +69,30 @@ import android.util.Base64;
  */
 public class StorageHelper {
 
+    /**
+     * Mac key hashing alogirighm.
+     */
     private static final String MAC_KEY_HASH_ALGORITHM = "SHA256";
 
+    /**
+     * Cert alias persising the keypair in AndroidKeyStore. 
+     */
     private static final String KEY_STORE_CERT_ALIAS = "AdalKey";
 
+    /**
+     * Name of the file contains the symmetric key used for encryption/decryption
+     */
     private static final String ADALKS = "adalks";
 
+    /**
+     * Key spec algorighm.
+     */
     private static final String KEYSPEC_ALGORITHM = "AES";
 
+    /**
+     * Algorithm for key wrapping.
+     */
     private static final String WRAP_ALGORITHM = "RSA/ECB/PKCS1Padding";
-
-    private static final String TAG = "StorageHelper";
 
     /**
      * AES is 16 bytes (128 bits), thus PKCS#5 padding should not work, but in
@@ -90,7 +103,7 @@ public class StorageHelper {
 
     private static final String MAC_ALGORITHM = "HmacSHA256";
 
-    private final SecureRandom mRandom;
+    private static final String TAG = "StorageHelper";
 
     private static final int KEY_SIZE = 256;
 
@@ -104,13 +117,6 @@ public class StorageHelper {
      */
     public static final int MAC_LENGTH = 32;
 
-    /**
-     * it is needed for AndroidKeyStore.
-     */
-    private KeyPair mKeyPair;
-
-    private Context mContext;
-
     public static final String VERSION_ANDROID_KEY_STORE = "A001";
 
     public static final String VERSION_USER_DEFINED = "U001";
@@ -123,11 +129,17 @@ public class StorageHelper {
     private static final String ENCODE_VERSION = "E1";
 
     private static final Object LOCK_OBJ = new Object();
+    
+    private final Context mContext;
+    private final SecureRandom mRandom;
 
+    /**
+     * it is needed for AndroidKeyStore.
+     */
+    private KeyPair mKeyPair;
     private String mBlobVersion;
-
-    private SecretKey mKey = null, mMacKey = null;
-
+    private SecretKey mKey = null;
+    private SecretKey mMacKey = null;
     private SecretKey mSecretKeyFromAndroidKeyStore = null;
 
     public StorageHelper(Context ctx) {
@@ -136,178 +148,15 @@ public class StorageHelper {
     }
 
     /**
-     * Get Secret Key based on API level to use in encryption. Decryption key
-     * depends on version# since user can migrate to new Android.OS
-     *
-     * @return
-     * @throws NoSuchAlgorithmException
-     */
-    public synchronized SecretKey loadSecretKeyForAPI() throws IOException, GeneralSecurityException {
-        // Loading key only once for performance. If API is upgraded, it will
-        // restart the device anyway. It will load the correct key for new API.
-        if (mKey != null && mMacKey != null)
-            return mKey;
-
-        final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
-        if(secretKeyData == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            throw new IllegalStateException("Secret key must be provided for API < 18. " +
-                    "Use AuthenticationSettings.INSTANCE.setSecretKey()");
-        }
-
-        if (secretKeyData != null) {
-            Logger.v(TAG, "Encryption will use secret key from Settings");
-            mKey = getSecretKey(secretKeyData);
-            mMacKey = getMacKey(mKey);
-            mBlobVersion = VERSION_USER_DEFINED;
-        } else {
-            // androidKeyStore can store app specific self signed cert.
-            // Asymmetric cryptography is used to protect the session
-            // key for Encryption and HMac.
-            // If user specifies secret key, it will use the provided
-            // key.
-            mKey = getSecretKeyFromAndroidKeyStore();
-            mMacKey = getMacKey(mKey);
-            mBlobVersion = VERSION_ANDROID_KEY_STORE;
-        }
-
-        return mKey;
-    }
-
-    /**
-     * load key based on version for migration
-     * 
-     * @throws GeneralSecurityException
-     * @throws IOException
-     */
-    private SecretKey getKeyForVersion(String keyVersion) throws GeneralSecurityException, IOException {
-
-        if (keyVersion.equals(VERSION_USER_DEFINED)) {
-            return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
-        }
-
-        if (keyVersion.equals(VERSION_ANDROID_KEY_STORE)) {
-            if (Build.VERSION.SDK_INT >= 18) {
-                // androidKeyStore can store app specific self signed cert.
-                // Asymmetric cryptography is used to protect the session key
-                // used for Encryption and HMac
-                return getSecretKeyFromAndroidKeyStore();
-            } else {
-                throw new IllegalArgumentException(
-                        String.format(
-                                "keyVersion '%s' is not supported in this SDK. AndroidKeyStore is supported API18 and above.",
-                                keyVersion));
-            }
-        }
-
-        throw new IllegalArgumentException("keyVersion = " + keyVersion);
-    }
-
-    private SecretKey getSecretKey(byte[] rawBytes) {
-        if (rawBytes != null)
-            return new SecretKeySpec(rawBytes, KEYSPEC_ALGORITHM);
-
-        throw new IllegalArgumentException("rawBytes");
-    }
-
-    /**
-     * Derive mac key from given key
-     * 
-     * @param key
-     * @return
-     * @throws NoSuchAlgorithmException
-     */
-    private SecretKey getMacKey(SecretKey key) throws NoSuchAlgorithmException {
-        // Some keys may not produce byte[] with getEncoded
-        byte[] encodedKey = key.getEncoded();
-        if (encodedKey != null) {
-            MessageDigest digester = MessageDigest.getInstance(MAC_KEY_HASH_ALGORITHM);
-            return new SecretKeySpec(digester.digest(encodedKey), KEYSPEC_ALGORITHM);
-        }
-        return key;
-    }
-
-    public String decrypt(String value) throws GeneralSecurityException, IOException {
-
-        Logger.v(TAG, "Starting decryption");
-
-        if (StringExtensions.IsNullOrBlank(value)) {
-            throw new IllegalArgumentException("Input is empty or null");
-        }
-
-        int encodeVersionLength = value.charAt(0) - 'a';
-        if (encodeVersionLength <= 0) {
-            throw new IllegalArgumentException(String.format(
-                    "Encode version length: '%s' is not valid, it must be greater of equal to 0",
-                    encodeVersionLength));
-        }
-        if (!value.substring(1, 1 + encodeVersionLength).equals(ENCODE_VERSION)) {
-            throw new IllegalArgumentException(String.format(
-                    "Encode version received was: '%s', Encode version supported is: '%s'", value,
-                    ENCODE_VERSION));
-        }
-
-        final byte[] bytes = Base64
-                .decode(value.substring(1 + encodeVersionLength), Base64.DEFAULT);
-
-        // get key version used for this data. If user upgraded to different
-        // API level, data needs to be updated
-        String keyVersionCheck = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
-                AuthenticationConstants.ENCODING_UTF8);
-        Logger.v(TAG, "Encrypt version:" + keyVersionCheck);
-
-        SecretKey versionKey = getKeyForVersion(keyVersionCheck);
-        SecretKey versionMacKey = getMacKey(versionKey);
-
-        // byte input array: encryptedData-iv-macDigest
-        int ivIndex = bytes.length - DATA_KEY_LENGTH - MAC_LENGTH;
-        int macIndex = bytes.length - MAC_LENGTH;
-        int encryptedLength = ivIndex - KEY_VERSION_BLOB_LENGTH;
-        if (ivIndex < 0 || macIndex < 0 || encryptedLength < 0) {
-            throw new IllegalArgumentException(
-                    "Given value is smaller than the IV vector and MAC length");
-        }
-
-        // Calculate digest again and compare to the appended value
-        // incoming message: version+encryptedData+IV+Digest
-        // Digest of EncryptedData+IV excluding key Version and digest
-        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
-        Mac mac = Mac.getInstance(MAC_ALGORITHM);
-        mac.init(versionMacKey);
-        mac.update(bytes, 0, macIndex);
-        byte[] macDigest = mac.doFinal();
-
-        // Compare digest of input message and calculated digest
-        assertMac(bytes, macIndex, bytes.length, macDigest);
-
-        // Get IV related bytes from the end and set to decrypt mode with
-        // that IV.
-        // It is using same cipher for different version since version# change
-        // will mean upgrade to AndroidKeyStore and new Key.
-        cipher.init(Cipher.DECRYPT_MODE, versionKey, new IvParameterSpec(bytes, ivIndex,
-                DATA_KEY_LENGTH));
-
-        // Decrypt data bytes from 0 to ivindex
-        String decrypted = new String(cipher.doFinal(bytes, KEY_VERSION_BLOB_LENGTH,
-                encryptedLength), AuthenticationConstants.ENCODING_UTF8);
-        Logger.v(TAG, "Finished decryption");
-        return decrypted;
-    }
-
-    private char getEncodeVersionLengthPrefix() {
-        return (char)('a' + ENCODE_VERSION.length());
-    }
-
-    /**
      * encrypt text with current key based on API level
      *
-     * @param clearText
-     * @return
+     * @param clearText Clar text to encrypt. 
+     * @return Encrypted blob.
      * @throws GeneralSecurityException
      * @throws UnsupportedEncodingException
      */
     public String encrypt(String clearText)
             throws GeneralSecurityException, IOException {
-
         Logger.v(TAG, "Starting encryption");
 
         if (StringExtensions.IsNullOrBlank(clearText)) {
@@ -315,7 +164,7 @@ public class StorageHelper {
         }
 
         // load key for encryption if not loaded
-        loadSecretKeyForAPI();
+        loadSecretKeyForEncryption();
         Logger.v(TAG, "Encrypt version:" + mBlobVersion);
         final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
@@ -359,6 +208,278 @@ public class StorageHelper {
         return getEncodeVersionLengthPrefix() + ENCODE_VERSION + encryptedText;
     }
 
+    /**
+     * Decrypt then blob with either user provided key or key persisted in AndroidKeyStore. 
+     * @param value The blob to decrypt
+     * @return Decrypted clear text.
+     * @throws GeneralSecurityException
+     * @throws IOException
+     * @throws AuthenticationException
+     */
+    public String decrypt(String value) throws GeneralSecurityException, IOException {
+        Logger.v(TAG, "Starting decryption");
+
+        if (StringExtensions.IsNullOrBlank(value)) {
+            throw new IllegalArgumentException("Input is empty or null");
+        }
+
+        int encodeVersionLength = value.charAt(0) - 'a';
+        if (encodeVersionLength <= 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Encode version length: '%s' is not valid, it must be greater of equal to 0",
+                    encodeVersionLength));
+        }
+        if (!value.substring(1, 1 + encodeVersionLength).equals(ENCODE_VERSION)) {
+            throw new IllegalArgumentException(String.format(
+                    "Encode version received was: '%s', Encode version supported is: '%s'", value,
+                    ENCODE_VERSION));
+        }
+
+        final byte[] bytes = Base64
+                .decode(value.substring(1 + encodeVersionLength), Base64.DEFAULT);
+
+        // get key version used for this data. If user upgraded to different
+        // API level, data needs to be updated
+        String encryptedDataKeyVersion = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
+                AuthenticationConstants.ENCODING_UTF8);
+        Logger.v(TAG, "Encrypt version:" + encryptedDataKeyVersion);
+
+        SecretKey secretKey = loadSecretKeyForDecryption(encryptedDataKeyVersion);
+        SecretKey macKey = getMacKey(secretKey);
+
+        // byte input array: encryptedData-iv-macDigest
+        int ivIndex = bytes.length - DATA_KEY_LENGTH - MAC_LENGTH;
+        int macIndex = bytes.length - MAC_LENGTH;
+        int encryptedLength = ivIndex - KEY_VERSION_BLOB_LENGTH;
+        if (ivIndex < 0 || macIndex < 0 || encryptedLength < 0) {
+            throw new IllegalArgumentException("Invalid byte array input for decryption.");
+        }
+
+        // Calculate digest again and compare to the appended value
+        // incoming message: version+encryptedData+IV+Digest
+        // Digest of EncryptedData+IV excluding key Version and digest
+        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        Mac mac = Mac.getInstance(MAC_ALGORITHM);
+        mac.init(macKey);
+        mac.update(bytes, 0, macIndex);
+        byte[] macDigest = mac.doFinal();
+
+        // Compare digest of input message and calculated digest
+        assertMac(bytes, macIndex, bytes.length, macDigest);
+
+        // Get IV related bytes from the end and set to decrypt mode with
+        // that IV.
+        // It is using same cipher for different version since version# change
+        // will mean upgrade to AndroidKeyStore and new Key.
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(bytes, ivIndex,
+                DATA_KEY_LENGTH));
+
+        // Decrypt data bytes from 0 to ivindex
+        String decrypted = new String(cipher.doFinal(bytes, KEY_VERSION_BLOB_LENGTH,
+                encryptedLength), AuthenticationConstants.ENCODING_UTF8);
+        Logger.v(TAG, "Finished decryption");
+        return decrypted;
+    }
+    
+    /**
+     * Get Secret Key based on API level to use in encryption. Decryption key
+     * depends on version# since user can migrate to new Android.OS
+     *
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
+    public synchronized SecretKey loadSecretKeyForEncryption() throws IOException, GeneralSecurityException {
+        // Loading key only once for performance. If API is upgraded, it will
+        // restart the device anyway. It will load the correct key for new API.
+        if (mKey != null && mMacKey != null)
+            return mKey;
+
+        final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
+        if(secretKeyData == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            throw new IllegalStateException("Secret key must be provided for API < 18. " +
+                    "Use AuthenticationSettings.INSTANCE.setSecretKey()");
+        }
+
+        if (secretKeyData != null) {
+            Logger.v(TAG, "Encryption will use user provided secret key.");
+            mKey = getSecretKey(secretKeyData);
+            mMacKey = getMacKey(mKey);
+            mBlobVersion = VERSION_USER_DEFINED;
+        } else {
+            // androidKeyStore can store app specific self signed cert.
+            // Asymmetric cryptography is used to protect the session
+            // key for Encryption and HMac.
+            // If user specifies secret key, it will use the provided
+            // key.
+            Logger.v(TAG, "Encryption will use keys persisted in AndroidKeyStore.");
+            mKey = getSecretKeyFromAndroidKeyStore();
+            mMacKey = getMacKey(mKey);
+            mBlobVersion = VERSION_ANDROID_KEY_STORE;
+        }
+
+        return mKey;
+    }
+    
+    /**
+     * load key based on version for migration
+     * 
+     * @throws GeneralSecurityException
+     * @throws IOException
+     */
+    public synchronized SecretKey loadSecretKeyForDecryption(String keyVersion) throws GeneralSecurityException, IOException {
+
+        if (keyVersion.equals(VERSION_USER_DEFINED)) {
+            return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
+        }
+
+        if (keyVersion.equals(VERSION_ANDROID_KEY_STORE)) {
+            if (Build.VERSION.SDK_INT >= 18) {
+                // androidKeyStore can store app specific self signed cert.
+                // Asymmetric cryptography is used to protect the session key
+                // used for Encryption and HMac
+                return readSecretKeyFromKeyStoreForDecryption();
+            } else {
+                throw new IllegalArgumentException(
+                        String.format(
+                                "keyVersion '%s' is not supported in this SDK. AndroidKeyStore is supported API18 and above.",
+                                keyVersion));
+            }
+        }
+
+        throw new IllegalArgumentException("keyVersion = " + keyVersion);
+    }
+    
+    /**
+     * Supported API >= 18 PrivateKey is stored in AndroidKeyStore. Loads key
+     * from the file if it exists. If not exist, it will generate one.
+     * 
+     * @return
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private final synchronized SecretKey getSecretKeyFromAndroidKeyStore() throws IOException,
+            GeneralSecurityException {
+
+        // Loading file and unwrapping this key is causing performance issue.
+        if (mSecretKeyFromAndroidKeyStore != null) {
+            return mSecretKeyFromAndroidKeyStore;
+        }
+
+        if (mKeyPair == null) {
+            mKeyPair = getKeyPairFromAndroidKeyStoreForEncryption();
+            Logger.v(TAG, "Retrived keypair from androidKeyStore");
+        }
+
+        // Store secret key in a file after wrapping
+        File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
+                ADALKS);
+        Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
+        // If keyfile does not exist, it needs to generate one
+        if (!keyFile.exists()) {
+            Logger.v(TAG, "Key file does not exists");
+            final SecretKey key = generateSecretKey();
+            Logger.v(TAG, "Wrapping SecretKey");
+            final byte[] keyWrapped = wrap(wrapCipher, key);
+            Logger.v(TAG, "Writing SecretKey");
+            writeKeyData(keyFile, keyWrapped);
+            Logger.v(TAG, "Finished writing SecretKey");
+        }
+        
+        mSecretKeyFromAndroidKeyStore = getUnwrappedSecretKey(keyFile);
+        return mSecretKeyFromAndroidKeyStore;
+    }
+
+    /**
+     * Get key pair from AndroidKeyStore.
+     * 
+     * @return
+     * @throws GeneralSecurityException
+     * @throws IOException
+     */
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private synchronized KeyPair getKeyPairFromAndroidKeyStoreForEncryption() throws GeneralSecurityException, IOException {
+        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        // For encryption purpose, if alias does not exist in AndroidKeyStore, 
+        // generate a new keypair. 
+        if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
+            Logger.v(TAG, "Key entry is not available, generating new entry.");
+            Calendar start = Calendar.getInstance();
+            Calendar end = Calendar.getInstance();
+            end.add(Calendar.YEAR, 100);
+
+            // self signed cert stored in AndroidKeyStore to asym. encrypt key
+            // to a file
+            final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
+                    "AndroidKeyStore");
+            generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
+            generator.generateKeyPair();
+            Logger.v(TAG, "Key entry is generated");
+        } else {
+            Logger.v(TAG, "Key entry is available");
+        }
+
+        // Read key pair again
+        return readKeyPairFromKeyEntry(keyStore);
+    }
+    
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private final synchronized SecretKey readSecretKeyFromKeyStoreForDecryption() throws GeneralSecurityException, IOException {
+        if (mSecretKeyFromAndroidKeyStore != null) {
+            return mSecretKeyFromAndroidKeyStore;
+        }
+
+        final File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
+                ADALKS);
+        if (mKeyPair == null) {
+            final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+            if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
+                Logger.v(TAG, "Key store alias is not avaliable.");
+                // Due to an issue with android keystore, when user change lockscreen type, 
+                // key data and alias could be wiped. Key data will be unrecoverable if being 
+                // wiped out.
+                throw new UnrecoverableKeyException("AndroidKeyStore does not contain the alias.");
+            } else {
+                Logger.v(TAG, "Key entry is available");
+            }
+            
+            mKeyPair = readKeyPairFromKeyEntry(keyStore);
+        }
+        
+        mSecretKeyFromAndroidKeyStore = getUnwrappedSecretKey(keyFile);
+        return mSecretKeyFromAndroidKeyStore;
+    }
+
+    private SecretKey getSecretKey(byte[] rawBytes) {
+        if (rawBytes != null)
+            return new SecretKeySpec(rawBytes, KEYSPEC_ALGORITHM);
+
+        throw new IllegalArgumentException("rawBytes");
+    }
+
+    /**
+     * Derive mac key from given key
+     * 
+     * @param key
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
+    private SecretKey getMacKey(SecretKey key) throws NoSuchAlgorithmException {
+        // Some keys may not produce byte[] with getEncoded
+        byte[] encodedKey = key.getEncoded();
+        if (encodedKey != null) {
+            MessageDigest digester = MessageDigest.getInstance(MAC_KEY_HASH_ALGORITHM);
+            return new SecretKeySpec(digester.digest(encodedKey), KEYSPEC_ALGORITHM);
+        }
+        return key;
+    }
+
+    private char getEncodeVersionLengthPrefix() {
+        return (char)('a' + ENCODE_VERSION.length());
+    }
+
     private void assertMac(byte[] digest, int start, int end, byte[] calculated)
             throws DigestException {
         if (calculated.length != (end - start)) {
@@ -388,50 +509,19 @@ public class StorageHelper {
         keygen.init(KEY_SIZE, mRandom);
         return keygen.generateKey();
     }
-
-    /**
-     * Supported API >= 18 PrivateKey is stored in AndroidKeyStore. Loads key
-     * from the file if it exists. If not exist, it will generate one.
-     * 
-     * @return
-     * @throws IOException
-     * @throws GeneralSecurityException
-     */
+    
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    final synchronized private SecretKey getSecretKeyFromAndroidKeyStore() throws IOException,
-            GeneralSecurityException {
-
-        // Loading file and unwrapping this key is causing performance issue.
-        if (mSecretKeyFromAndroidKeyStore != null) {
-            return mSecretKeyFromAndroidKeyStore;
-        }
-
-        // Store secret key in a file after wrapping
-        File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
-                ADALKS);
-
-        if (mKeyPair == null) {
-            mKeyPair = getKeyPairFromAndroidKeyStoreForEncryption();
-            Logger.v(TAG, "Retrived keypair from androidKeyStore");
-        }
-
-        Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
-        // If keyfile does not exist, it needs to generate one
-        if (!keyFile.exists()) {
-            Logger.v(TAG, "Key file does not exists");
-            final SecretKey key = generateSecretKey();
-            Logger.v(TAG, "Wrapping SecretKey");
-            final byte[] keyWrapped = wrap(wrapCipher, key);
-            Logger.v(TAG, "Writing SecretKey");
-            writeKeyData(keyFile, keyWrapped);
-            Logger.v(TAG, "Finished writing SecretKey");
-        }
-
-        // Read from file again
+    private synchronized SecretKey getUnwrappedSecretKey(final File keyFile) throws GeneralSecurityException, IOException {
         Logger.v(TAG, "Reading SecretKey");
+        SecretKey unwrappedSecretKey = null;
+        
+        if (!keyFile.exists()) {
+            throw new IOException("Key file to read does not exist");
+        }
+        
         try {
-            final byte[] encryptedKey = readKeyData(keyFile);
-            if (encryptedKey == null || encryptedKey.length == 0) {
+            final byte[] wrappedSecretKey = readKeyData(keyFile);
+            if (wrappedSecretKey == null || wrappedSecretKey.length == 0) {
                 throw new UnrecoverableKeyException("Couldn't find encrypted key in file");
             }
             
@@ -441,26 +531,28 @@ public class StorageHelper {
             // be empty, and when we use the private key to do unwrap, we'll encounter 
             // IllegalArgumentException
             final PrivateKey privateKey = mKeyPair.getPrivate();
-            if (privateKey == null || privateKey.getEncoded() == null || privateKey.getEncoded().length == 0) {
+            if (privateKey == null) {
                 throw new UnrecoverableKeyException("Retrieved private key is empty.");
             }
             
-            mSecretKeyFromAndroidKeyStore = unwrap(wrapCipher, encryptedKey);
+            Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
+            unwrappedSecretKey = unwrap(wrapCipher, wrappedSecretKey);
             Logger.v(TAG, "Finished reading SecretKey");
         } catch (GeneralSecurityException | IOException ex) {
             // Reset KeyPair info so that new request will generate correct KeyPairs.
             // All tokens with previous SecretKey are not possible to decrypt.
             Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED, ex);
             mKeyPair = null;
-            mSecretKeyFromAndroidKeyStore = null;
+            unwrappedSecretKey = null;
             deleteKeyFile();
             resetKeyPairFromAndroidKeyStore();
             Logger.v(TAG, "Removed previous key pair info.");
             throw ex;
         }
-        return mSecretKeyFromAndroidKeyStore;
+        
+        return unwrappedSecretKey;
     }
-
+    
     private void deleteKeyFile() {
         // Store secret key in a file after wrapping
         File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
@@ -471,61 +563,7 @@ public class StorageHelper {
         }
     }
 
-    /**
-     * Get key pair from AndroidKeyStore.
-     * 
-     * @return
-     * @throws GeneralSecurityException
-     * @throws IOException
-     */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private synchronized KeyPair getKeyPairFromAndroidKeyStoreForEncryption() throws GeneralSecurityException, IOException {
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-        if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
-            Logger.v(TAG, "Key entry is not available");
-            Calendar start = Calendar.getInstance();
-            Calendar end = Calendar.getInstance();
-            end.add(Calendar.YEAR, 100);
-
-            // self signed cert stored in AndroidKeyStore to asym. encrypt key
-            // to a file
-            final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
-                    "AndroidKeyStore");
-            generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
-            generator.generateKeyPair();
-            Logger.v(TAG, "Key entry is generated");
-        } else {
-            Logger.v(TAG, "Key entry is available");
-        }
-
-        // Read key pair again
-        return readKeyPairFromKeyEntry(keyStore);
-    }
-    
-    /**
-     * Read keypair from android keystore for 
-     * @return
-     * @throws GeneralSecurityException
-     * @throws IOException
-     */
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private synchronized KeyPair readKeyPairFromAndroidKeyStoreForDecryption() throws GeneralSecurityException, IOException {
-        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-        if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
-            Logger.v(TAG, "Key store alias is not avaliable.");
-            // Due to an issue with android keystore, when user change lockscreen type, 
-            // key data and alias could be wiped. Key data will be unrecoverable if being 
-            // wiped out.
-            throw new UnrecoverableKeyException("AndroidKeyStore does not contain the alias.");
-        } else {
-            Logger.v(TAG, "Key entry is available");
-        }
-        
-        return readKeyPairFromKeyEntry(keyStore);
-    }
-    
     private synchronized KeyPair readKeyPairFromKeyEntry(final KeyStore keyStore) throws GeneralSecurityException {
         Logger.v(TAG, "Reading key entry persisted in AndroidKeyStore.");
         try {
@@ -545,7 +583,7 @@ public class StorageHelper {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private AlgorithmParameterSpec getKeyPairGeneratorSpec(Context context, Date start, Date end) {
-        String certInfo = String.format(Locale.ROOT, "CN=%s, OU=%s", KEY_STORE_CERT_ALIAS,
+        final String certInfo = String.format(Locale.ROOT, "CN=%s, OU=%s", KEY_STORE_CERT_ALIAS,
                 context.getPackageName());
         return new KeyPairGeneratorSpec.Builder(context)
                 .setAlias(KEY_STORE_CERT_ALIAS)

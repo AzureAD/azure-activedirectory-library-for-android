@@ -98,12 +98,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         if (mPrefs == null) {
             throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
         }
-
-        try {
-            getStorageHelper().loadSecretKeyForAPI();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new IllegalStateException("Failed to get private key from AndroidKeyStore", e);
-        }
     }
 
     /**
@@ -139,7 +133,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         try {
             return getStorageHelper().decrypt(value);
         } catch (GeneralSecurityException | IOException e) {
-            Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
+            Logger.e(TAG, "Decryption failure", "", ADALError.DECRYPTION_FAILED, e);
             removeItem(key);
             Logger.v(TAG, String.format("Decryption error, item removed for key: '%s'", key));
         }
