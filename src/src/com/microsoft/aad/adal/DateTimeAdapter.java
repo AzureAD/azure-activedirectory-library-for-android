@@ -50,11 +50,30 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
             DateFormat.DEFAULT);
 
     private final DateFormat iso8601Format = buildIso8601Format();
+    private final DateFormat enUs24HourFormat = buildEnUs24HourDateFormat();
+    private final DateFormat local24HourFormat = buildLocal24HourDateFormat();
 
     private static DateFormat buildIso8601Format() {
         DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
         iso8601Format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return iso8601Format;
+    }
+    
+    /**
+     * Add new en-us date format for parsing date string if it doesn't contain AM/PM.
+     */
+    private static DateFormat buildEnUs24HourDateFormat() {
+        DateFormat newformat = new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.US);
+        return newformat;
+    }
+    
+    /**
+     * Add new local date format when parsing date string if it doesn't contain AM/PM.
+     * @return
+     */
+    private static DateFormat buildLocal24HourDateFormat() {
+        DateFormat newformat = new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault());
+        return newformat;
     }
 
     public DateTimeAdapter() {
@@ -67,12 +86,22 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
 
         try {
             return localFormat.parse(jsonString);
-        } catch (ParseException ignored) {
+        } catch (final ParseException ignored) {
+        }
+        
+        try {
+            return local24HourFormat.parse(jsonString);
+        } catch (final ParseException ignored) {
         }
 
         try {
             return enUsFormat.parse(jsonString);
-        } catch (ParseException ignored) {
+        } catch (final ParseException ignored) {
+        }
+
+        try {
+            return enUs24HourFormat.parse(jsonString);
+        } catch (final ParseException ignored) {
         }
 
         try {

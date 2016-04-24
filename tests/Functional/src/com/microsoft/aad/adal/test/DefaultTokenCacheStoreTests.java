@@ -74,7 +74,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testSharedCache() throws GeneralSecurityException, IOException {
-        TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
+        TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 1:09:57 PM").getItem("testkey");
 
         // Verify returned item
         assertEquals("Same item as mock", "clientId23", item.getClientId());
@@ -96,15 +96,23 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals(2, users.size());
     }
 
-    public void testDateTimeFormatterOldFormat() throws GeneralSecurityException, IOException {
-        TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
+    public void testDateTimeFormatterOldFormatWithAMOrPM() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 1:09:57 PM").getItem("testkey");
+
+        // Verify returned item
+        assertNotNull(item.getExpiresOn());
+        assertNotNull(item.getExpiresOn().after(new Date()));
+    }
+    
+    public void testDateTimeFormatterOldFormatWithoutAMOrPm() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 13:09:57").getItem("testkey");
 
         // Verify returned item
         assertNotNull(item.getExpiresOn());
         assertNotNull(item.getExpiresOn().after(new Date()));
     }
 
-    private DefaultTokenCacheStore mockDefaultCacheStore() throws GeneralSecurityException, IOException {
+    private DefaultTokenCacheStore mockDefaultCacheStore(final String dateTimeString) throws GeneralSecurityException, IOException {
         final StorageHelper mockSecure = Mockito.mock(StorageHelper.class);
         Context mockContext = mock(Context.class);
         SharedPreferences prefs = mock(SharedPreferences.class);
@@ -112,7 +120,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
         when(mockSecure.loadSecretKeyForAPI()).thenReturn(null);
         when(mockSecure.decrypt("test_encrypted"))
-                .thenReturn("{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"Apr 28, 2015 1:09:57 PM\"}");
+                .thenReturn("{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"" + dateTimeString + "\"}");
         when(
                 mockContext.getSharedPreferences("com.microsoft.aad.adal.cache",
                         Activity.MODE_PRIVATE)).thenReturn(prefs);
@@ -123,9 +131,9 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
             }
         };
         return cache;
-
     }
 
+    
     public void testDateTimeFormatterLocaleChange() {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");

@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal.test;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -61,20 +62,19 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
      * @throws NoSuchMethodException
      * @throws ClassNotFoundException
      * @throws IllegalArgumentException
-     * @throws UnsupportedEncodingException
+     * @throws IOException 
      */
     @SmallTest
     public void testCorrelationIdInRequest() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException, UnsupportedEncodingException {
+            IllegalAccessException, InvocationTargetException, IOException {
         final String testUrl = "https://login.windows.net/omercantest.onmicrosoft.com/oauth2/token";
         final UUID testID = UUID.randomUUID();
         Log.d(TAG, "Test correlationid:" + testID.toString());
         final HttpWebResponse testResponse = sendCorrelationIdRequest(testUrl, testID, false);
 
         assertEquals("400 error code", 400, testResponse.getStatusCode());
-        String responseBody = new String(testResponse.getBody(),
-                AuthenticationConstants.ENCODING_UTF8);
+        String responseBody = testResponse.getBody();
         Log.v(TAG, "Test response:" + responseBody);
         assertNotNull("webresponse is not null", testResponse);
         assertEquals("same correlationid", testID.toString(), testResponse.getResponseHeaders()
@@ -88,7 +88,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
     }
 
     private HttpWebResponse sendCorrelationIdRequest(final String message, final UUID testID,
-            final boolean withoutHeader) {
+            final boolean withoutHeader) throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
         WebRequestHandler request = new WebRequestHandler();
@@ -106,7 +106,11 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         assertThrowsException(IllegalArgumentException.class, "url", new Runnable() {
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
-                request.sendGet(null, null);
+                try {
+                    request.sendGet(null, null);
+                } catch (IOException e) {
+                    fail();
+                }
             }
         });
     }
@@ -116,7 +120,11 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         assertThrowsException(IllegalArgumentException.class, "url", new Runnable() {
             public void run() {
                 WebRequestHandler request = new WebRequestHandler();
-                request.sendGet(getUrl("ftp://test.com"), null);
+                try {
+                    request.sendGet(getUrl("ftp://test.com"), null);
+                } catch (IOException e) {
+                    fail();
+                }
             }
         });
     }
@@ -127,7 +135,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         Exception exception;
     }
 
-    public void testGetRequest() {
+    public void testGetRequest() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
         WebRequestHandler request = new WebRequestHandler();
@@ -142,8 +150,9 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
 
     /**
      * WebService returns the request headers in the response
+     * @throws IOException 
      */
-    public void testClientTraceInHeaders() {
+    public void testClientTraceInHeaders() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
         WebRequestHandler request = new WebRequestHandler();
@@ -162,26 +171,25 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
 
     public void testNonExistentUrl() {
         WebRequestHandler request = new WebRequestHandler();
-        HttpWebResponse httpResponse = request.sendGet(
-                getUrl("http://www.somethingabcddnotexists.com"), null);
-        assertNotNull(httpResponse.getResponseException());
-        assertTrue("Unknown host exception",
-                httpResponse.getResponseException() instanceof UnknownHostException);
-        assertTrue("Unable to resolve host", httpResponse.getResponseException().getMessage()
-                .toLowerCase(Locale.US).contains("unable to resolve host"));
+        try {
+            request.sendGet(
+                    getUrl("http://www.somethingabcddnotexists.com"), null);
+        } catch (IOException e) {
+            assertTrue(e instanceof UnknownHostException);
+            assertTrue(e.getMessage().toLowerCase(Locale.US).contains("unable to resolve host"));
+        }
     }
 
-    public void testGetWithIdRequest() {
+    public void testGetWithIdRequest() throws IOException {
         WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"), null);
 
-        assertNull(httpResponse.getResponseException());
         assertTrue("status is 200", httpResponse.getStatusCode() == 200);
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check", responseMsg.contains("test get with id"));
     }
 
-    public void testPostRequest() {
+    public void testPostRequest() throws IOException {
         final TestMessage message = new TestMessage("messagetest", "12345");
         HttpWebResponse httpResponse = null;
         WebRequestHandler request = new WebRequestHandler();
@@ -194,7 +202,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             Assert.fail("Encoding exception is not expected");
         }
 
-        assertNull(httpResponse.getResponseException());
         assertTrue("status is 200", httpResponse.getStatusCode() == 200);
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check",
