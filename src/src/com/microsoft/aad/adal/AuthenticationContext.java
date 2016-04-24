@@ -1439,12 +1439,18 @@ public class AuthenticationContext {
             try {
                 authResult = getTokenWithRefreshTokenAndUpdateCache(request, refreshItem);
             } catch (AuthenticationException authenticationException) {
+                ClientAnalytics.logEvent(
+                        InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED,
+                        new InstrumentationPropertiesBuilder(request, authenticationException).build());
                 callbackHandle.onError(authenticationException);
                 return null;
             }
             
             if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken())) {
                 callbackHandle.onSuccess(authResult);
+                ClientAnalytics.logEvent(
+                        InstrumentationIDs.REFRESH_TOKEN_REQUEST_SUCCEEDED,
+                        new InstrumentationPropertiesBuilder(request, authResult).build());
                 return authResult;
             }
         } 
@@ -1455,6 +1461,9 @@ public class AuthenticationContext {
         if (refreshItem == null || authResult == null 
                 || (authResult != null && StringExtensions.IsNullOrBlank(authResult.getAccessToken()))) {
             Logger.v(TAG, "Refresh token is not available or refresh token request failed to return token.");
+            ClientAnalytics.logEvent(
+                    InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
+                    new InstrumentationPropertiesBuilder(request, authResult).build());
             if (!request.isSilent() && (activity != null || useDialog)) {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
@@ -1878,10 +1887,6 @@ public class AuthenticationContext {
                 result.setRefreshToken(refreshToken);
             }
         } catch (IOException | AuthenticationException exc) {
-            ClientAnalytics.logEvent(
-                    InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED,
-                    new InstrumentationPropertiesBuilder(request, exc).build());
-
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + request.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
@@ -1893,13 +1898,6 @@ public class AuthenticationContext {
             throw authException;
         }
 
-                ClientAnalytics.logEvent(
-                        InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
-                        new InstrumentationPropertiesBuilder(request, result).build());
-
-                ClientAnalytics.logEvent(
-                        InstrumentationIDs.REFRESH_TOKEN_REQUEST_SUCCEEDED,
-                        new InstrumentationPropertiesBuilder(request, result).build());
         return result;
     }
 

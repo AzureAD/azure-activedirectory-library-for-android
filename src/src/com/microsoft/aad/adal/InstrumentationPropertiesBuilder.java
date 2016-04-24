@@ -54,8 +54,10 @@ class InstrumentationPropertiesBuilder {
      */
     InstrumentationPropertiesBuilder(AuthenticationRequest request, AuthenticationResult result) {
         addPropertiesForRequest(request);
-        addProperty(InstrumentationIDs.ERROR_MESSAGE, result.getErrorDescription());
-        addProperty(InstrumentationIDs.ERROR_CODE, result.getErrorCode());
+        if (result != null) {
+            addProperty(InstrumentationIDs.ERROR_MESSAGE, result.getErrorDescription());
+            addProperty(InstrumentationIDs.ERROR_CODE, result.getErrorCode());
+        }
     }
 
     /**
