@@ -120,8 +120,7 @@ public class DiscoveryTests extends AndroidTestHelper {
     private IWebRequestHandler getMockRequest(String json, int statusCode) {
         MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
 
-        mockWebRequest.setReturnResponse(new HttpWebResponse(statusCode, json.getBytes(Charset
-                .defaultCharset()), null));
+        mockWebRequest.setReturnResponse(new HttpWebResponse(statusCode, json, null));
         return mockWebRequest;
     }
 

@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -166,17 +167,17 @@ public class AuthenticationParameters {
             public void run() {
                 HashMap<String, String> headers = new HashMap<String, String>();
                 headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
-                HttpWebResponse webResponse = sWebRequest.sendGet(resourceUrl, headers);
 
-                if (webResponse != null) {
-                    if(webResponse.getResponseException() != null) {
-                        onCompleted(webResponse.getResponseException(), null);
-                    }
+                final HttpWebResponse webResponse;
+                try {
+                    webResponse = sWebRequest.sendGet(resourceUrl, headers);
                     try {
                         onCompleted(null, parseResponse(webResponse));
                     } catch (ResourceAuthenticationChallengeException exc) {
                         onCompleted(exc, null);
                     }
+                } catch (IOException e) {
+                    onCompleted(e, null);
                 }
             }
 

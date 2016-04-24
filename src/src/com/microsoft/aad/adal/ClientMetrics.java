@@ -25,6 +25,7 @@ package com.microsoft.aad.adal;
 
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 class ClientMetricsEndpointType {
@@ -63,7 +64,7 @@ enum ClientMetrics {
     private URL mQueryUrl;
 
     public void beginClientMetricsRecord(URL queryUrl, UUID correlationId,
-            HashMap<String, String> headers) {
+            Map<String, String> headers) {
         if (UrlExtensions.isADFSAuthority(queryUrl)) {
             // Don't add for ADFS endpoint
             return;
@@ -104,7 +105,7 @@ enum ClientMetrics {
         mLastError = (errorCodes != null) ? android.text.TextUtils.join(",", errorCodes) : null;
     }
 
-    private void addClientMetricsHeadersToRequest(HashMap<String, String> headers) {
+    private void addClientMetricsHeadersToRequest(Map<String, String> headers) {
 
         if (mLastError != null) {
             headers.put(CLIENT_METRICS_HEADER_LAST_ERROR, mLastError);

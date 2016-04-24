@@ -459,9 +459,8 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         String json = "{\"id_token\":"
                 + idToken
                 + ",\"access_token\":\"TokentestBroker\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
-        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
-                .defaultCharset()), null));
         ReflectionUtils.setFieldValue(activity, "mWebRequestHandler", webrequest);
+        webrequest.setReturnResponse(new HttpWebResponse(200, json, null));
         return webrequest;
     }
 
