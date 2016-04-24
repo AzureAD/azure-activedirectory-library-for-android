@@ -1458,6 +1458,9 @@ public class AuthenticationContext {
             if (!request.isSilent() && (activity != null || useDialog)) {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
+                // TODO: investigate which server response actually should force user to sign in again
+                // and which error actually should just notify user that some resource require extra steps
+
                 final String errorInfo = authResult == null ? "" : authResult.getErrorLogInfo();
                 // User does not want to launch activity
                 Logger.e(TAG, "Prompt is not allowed and failed to get token:", request.getLogInfo() + " " + errorInfo,

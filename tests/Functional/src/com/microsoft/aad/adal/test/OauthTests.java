@@ -614,12 +614,15 @@ public class OauthTests extends AndroidTestCase {
         HttpWebResponse mockResponse = new HttpWebResponse(200, json, null);
 
         // send call with mocks
-        AuthenticationResult result = (AuthenticationResult)m.invoke(oauth, mockResponse);
-
-        // verify same token
-        assertEquals("Same token in parsed result", "It failed to parse response as json",
-                result.getErrorCode());
-
+        try {
+            AuthenticationResult result = (AuthenticationResult)m.invoke(oauth, mockResponse);
+            fail("must throw exception");
+        } catch (InvocationTargetException e) {
+            assertNotNull(e.getCause());
+            assertTrue(e.getCause() instanceof AuthenticationException);
+            AuthenticationException cause = (AuthenticationException)e.getCause();
+            assertEquals(cause.getCode(), ADALError.SERVER_INVALID_JSON_RESPONSE);
+        }
     }
 
     @SmallTest
