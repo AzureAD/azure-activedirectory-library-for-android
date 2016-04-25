@@ -525,6 +525,7 @@ public class StorageHelper {
                 throw new UnrecoverableKeyException("Couldn't find encrypted key in file");
             }
             
+            final PrivateKey privateKey = mKeyPair.getPrivate();
             if (privateKey == null) {
                 throw new UnrecoverableKeyException("Retrieved private key is empty.");
             }
