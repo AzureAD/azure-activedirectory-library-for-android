@@ -19,9 +19,6 @@ release_key_store=$HOME/.android/release.keystore
 release_password="android"
 android_key_store=
 
-#---------------------------------
-# 
-#
 usage() {
     
     echo ""
@@ -98,70 +95,65 @@ rawurlencode() {
 
 #---------------------------------
 # Simple Func() to generate the hash from the certificate provided by the android keystore.
-makeTag()
-{
+makeTag() {
    tag=`$keytool -storepass $release_password -exportcert -alias $release_alias -keystore $android_key_store | openssl sha1 -binary |  openssl base64`
 }
 #---------------------------------
 
 #---------------------------------
-makeReplyURL()
-{
+makeReplyURL() {
    printf "msauth://%s/%s\n" $package_name_encoded $tag
 }
 #---------------------------------
 
 # Simple Func() to do release
-makerelease()
-{
+makerelease() {
     
     if [ -f "$release_key_store" ]; then
     
-     android_key_store=$release_key_store
+        android_key_store=$release_key_store
      
-echo "We are using the following values"
-printf "Package Name: %s\n" $package_name
-printf "Keystore alias: %s\n" $release_alias
-printf "Keystore password: %s\n" $release_password
-printf "Keystore: %s\n" $android_key_store
+        echo "We are using the following values"
+        printf "Package Name: %s\n" $package_name
+        printf "Keystore alias: %s\n" $release_alias
+        printf "Keystore password: %s\n" $release_password
+        printf "Keystore: %s\n" $android_key_store
 
-makeTag
-echo "Release Redirect URI is:"
-makeReplyURL
+        makeTag
+        echo "Release Redirect URI is:"
+        makeReplyURL
 
 
-else 
-printf "ERROR: The Release Android Key Store location %s was not found. Have you set up Android Studio for Google Play?\n" $android_key_store
+    else 
+    printf "ERROR: The Release Android Key Store location %s was not found. Have you set up Android Studio for Google Play?\n" $android_key_store
   
-fi
+    fi
 }
 #---------------------------------
 
 # Simple Func() to do debug
-makedebug()
-{
+makedebug() {
     
     if [ -f "$debug_key_store" ]; then
     
     android_key_store=$debug_key_store
     
-echo "We are using the following values"
-printf "Package Name: %s\n" $package_name
-printf "Keystore alias: %s\n" $release_alias
-printf "Keystore password: %s\n" $release_password
-printf "Keystore: %s\n" $android_key_store
+    echo "We are using the following values"
+    printf "Package Name: %s\n" $package_name
+    printf "Keystore alias: %s\n" $release_alias
+    printf "Keystore password: %s\n" $release_password
+    printf "Keystore: %s\n" $android_key_store
 
-makeTag
-echo "Debug Redirect URI is:"
-makeReplyURL
+    makeTag
+    echo "Debug Redirect URI is:"
+    makeReplyURL
 
 
 
-else 
-printf "ERROR: The Debug Android Key Store location %s was not found. Try deploying your app in debug mode first to generate keys.\n" $android_key_store
+    else 
+    printf "ERROR: The Debug Android Key Store location %s was not found. Try deploying your app in debug mode first to generate keys.\n" $android_key_store
   
-fi
-
+    fi
 }
 #---------------------------------
 # main
@@ -174,10 +166,10 @@ package_name_encoded=`rawurlencode "$package_name"`
 
 if [ "$debug" = "1" ]; then
 
-makedebug
+    makedebug
 fi
 if [ "$release" = "1" ]; then
-makerelease
+    makerelease
 fi
 
 
