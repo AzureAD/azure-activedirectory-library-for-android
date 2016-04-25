@@ -1,3 +1,7 @@
+Version 1.1.18
+--------------
+(Hotfix) Revert the checking for private key before unwrapping
+
 Version 1.1.17
 --------------
 Fix for checking retrieved private key before unwrapping symmetric key, avoid the crash for InvalidArgumentException when key data is wiped by keystore but not alias
