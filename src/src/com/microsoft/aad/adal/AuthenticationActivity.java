@@ -626,7 +626,7 @@ public class AuthenticationActivity extends Activity {
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
-            } else if (url.startsWith("about:blank")) {
+            } else if (url.toLowerCase(Locale.US).equals("about:blank")) {
                 Logger.v(TAG, "It is an blank page request");
                 return true;
             } else if(!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX)){
