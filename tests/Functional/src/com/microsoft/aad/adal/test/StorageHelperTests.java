@@ -54,7 +54,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         super.setUp();
 
         Log.d(TAG, "setup key at settings");
-        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
+        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null && Build.VERSION.SDK_INT < 18) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
                     .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
@@ -264,7 +264,6 @@ public class StorageHelperTests extends AndroidTestHelper {
         if (Build.VERSION.SDK_INT < 18) {
             return;
         }
-
         final Context context = getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
