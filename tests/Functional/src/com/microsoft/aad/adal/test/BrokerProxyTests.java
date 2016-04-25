@@ -49,6 +49,7 @@ import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.UserInfo;
 
 import android.accounts.Account;
@@ -209,7 +210,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyManifestPermission_valid() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+    public void testVerifyManifestPermission_valid() throws NoSuchAlgorithmException, 
             IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, 
             IllegalAccessException, InvocationTargetException, NameNotFoundException, NoSuchFieldException {
         //mock Brokerproxy
@@ -221,7 +222,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         mockContext.setPermission("android.permission.USE_CREDENTIALS",PackageManager.PERMISSION_GRANTED);
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
@@ -239,7 +240,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
     
     public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS() throws NoSuchAlgorithmException, 
-            NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, 
+            IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, 
             InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, 
             NoSuchFieldException {
         //mock Brokerproxy
@@ -249,7 +250,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         mockContext.setPermission("android.permission.USE_CREDENTIALS",PackageManager.PERMISSION_GRANTED);
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
@@ -274,7 +275,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
     
     public void testVerifyManifestPermission_missingPermission_USE_CREDENTIALS() throws NoSuchAlgorithmException, 
-            NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, 
+            IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, 
             InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, 
             NoSuchFieldException {
         //mock Brokerproxy
@@ -284,7 +285,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         mockContext.setPermission("android.permission.MANAGE_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
@@ -309,7 +310,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
     
     public void testVerifyManifestPermission_missingPermission_GET_ACCOUNT() throws NoSuchAlgorithmException, 
-            NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, 
+            IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, 
             InstantiationException, IllegalAccessException, InvocationTargetException, NameNotFoundException, 
             NoSuchFieldException {
         //mock Brokerproxy
@@ -319,7 +320,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         mockContext.setPermission("android.permission.USE_CREDENTIALS",PackageManager.PERMISSION_GRANTED);
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
@@ -344,7 +345,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
     
     public void testVerifyManifestPermission_missingPermission_MANAGE_ACCOUNTS_USE_CREDENTIALS() throws 
-            NoSuchAlgorithmException, NoSuchPaddingException, IllegalArgumentException, ClassNotFoundException, 
+            NoSuchAlgorithmException, IllegalArgumentException, ClassNotFoundException, 
             NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, 
             NoSuchFieldException, NameNotFoundException {
         //mock Brokerproxy
@@ -353,7 +354,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         mockContext.setPermission("android.permission.GET_ACCOUNTS",PackageManager.PERMISSION_GRANTED);
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
-        String brokerPackage = AuthenticationConstants.Broker.PACKAGE_NAME;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(testSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);

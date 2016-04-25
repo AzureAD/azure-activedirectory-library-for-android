@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">userappwithbroker</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="info_line">Update UserName</string>
+    <string name="AcquireTokenInteractiveForR1">AcquireToken For Resource1</string>
+    <string name="AcquireTokenSilentForR1">AcquireToken Silent For Resource1</string>
+    <string name="AcquireTokenInteractiveForR2">AcquireToken For Resource2</string>
+    <string name="AcquireTokenSilentForR2">AcquireToken Silent For Resource2</string>
+    <string name="clear_tokens">Clear Tokens</string>
+    <string name="login_hint">someone@contoso.com</string>
+</resources>

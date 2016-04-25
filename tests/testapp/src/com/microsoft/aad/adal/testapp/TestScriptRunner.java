@@ -18,6 +18,7 @@
 
 package com.microsoft.aad.adal.testapp;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,6 +39,7 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.WebRequestHandler;
 
 public class TestScriptRunner {
@@ -382,7 +384,12 @@ public class TestScriptRunner {
                 data.mErrorMessage = "Context is not initialized";
                 data.mErrorInRun = true;
             } else {
-                data.mContext.getCache().removeAll();
+                try {
+					data.mContext.getCache().removeAll();
+				} catch (UsageAuthenticationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         }
     }
@@ -566,15 +573,18 @@ public class TestScriptRunner {
             headers.put("Accept", "application/json");
             HttpWebResponse response = null;
             try {
-                response = request.sendPost(new URL(mUrl), headers, mData.getBytes("UTF-8"),
-                        "application/json");
+            		response = request.sendPost(new URL(mUrl), headers, mData.getBytes("UTF-8"),
+					        "application/json");
             } catch (MalformedURLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             } catch (UnsupportedEncodingException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-            }
+            } catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
             Log.v(TAG, "Send data status:" + response.getStatusCode());
             return null;
@@ -607,7 +617,7 @@ public class TestScriptRunner {
             HttpWebResponse response = null;
             try {
                 response = request.sendGet(new URL(mUrl), headers);
-                String body = new String(response.getBody(), "UTF-8");
+                String body = new String(response.getBody());
                 Log.v(TAG, "testScript:" + body);
                 ScriptInfo scriptInfo = gson.fromJson(body, ScriptInfo.class);
                 return scriptInfo;
@@ -617,7 +627,10 @@ public class TestScriptRunner {
             } catch (UnsupportedEncodingException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-            }
+            } catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
             Log.v(TAG, "Send data status:" + response.getStatusCode());
             return null;

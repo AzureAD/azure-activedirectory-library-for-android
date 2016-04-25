@@ -42,6 +42,7 @@ import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
 import android.net.Uri;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Base64;
 
 /**
@@ -193,7 +194,7 @@ class Oauth2 {
 
     public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) {
 
-        AuthenticationResult result = null;
+        final AuthenticationResult result;
 
         // Protocol error related
         if (response.containsKey(AuthenticationConstants.OAuth2.ERROR)) {
@@ -272,6 +273,8 @@ class Oauth2 {
             
             //Set family client id on authentication result for TokenCacheItem to pick up
             result.setFamilyClientId(familyClientId);
+        } else {
+            result = null;
         }
 
         return result;
@@ -454,9 +457,8 @@ class Oauth2 {
 
     private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
             throws IOException, AuthenticationException {
-        URL authority = null;
         AuthenticationResult result = null;
-        authority = StringExtensions.getUrl(getTokenEndpoint());
+        final URL authority = StringExtensions.getUrl(getTokenEndpoint());
         if (authority == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
@@ -504,36 +506,25 @@ class Oauth2 {
                                 "Challenge header is empty");
                     }
                 } else {
-
                     // AAD server returns 401 response for wrong request
                     // messages
                     Logger.v(TAG, "401 http status code is returned without authorization header");
                 }
             }
 
-            if (response.getBody() != null) {
-
+            boolean isBodyEmpty = TextUtils.isEmpty(response.getBody());
+            if (!isBodyEmpty) {
                 // Protocol related errors will read the error stream and report
                 // the error and error description
                 Logger.v(TAG, "Token request does not have exception");
                 result = processTokenResponse(response);
                 ClientMetrics.INSTANCE.setLastError(null);
             }
-
             if (result == null) {
                 // non-protocol related error
-                String errMessage = null;
-                byte[] message = response.getBody();
-                if (message != null) {
-                    errMessage = new String(message);
-                } else {
-                    errMessage = "Status code:" + String.valueOf(response.getStatusCode());
-                }
-
-                Logger.v(TAG, "Server error message:" + errMessage);
-                if (response.getResponseException() != null) {
-                    throw response.getResponseException();
-                }
+                String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
+                Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
+                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
@@ -581,9 +572,8 @@ class Oauth2 {
      * @param webResponse
      * @return
      */
-    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) {
-        AuthenticationResult result = new AuthenticationResult();
-        HashMap<String, String> responseItems = new HashMap<String, String>();
+    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse){
+        AuthenticationResult result;
         String correlationIdInHeader = null;
         if (webResponse.getResponseHeaders() != null
                 && webResponse.getResponseHeaders().containsKey(
@@ -596,32 +586,23 @@ class Oauth2 {
             }
         }
 
-        if (webResponse.getStatusCode() == HttpURLConnection.HTTP_OK
-                && webResponse.getBody() != null && webResponse.getBody().length > 0) {
-            // invalid refresh token calls has error related items in the body.
-            // Status is 400 for those.
+        final int statusCode = webResponse.getStatusCode();
+        switch (statusCode) {
+        case HttpURLConnection.HTTP_OK:
+        case HttpURLConnection.HTTP_BAD_REQUEST:
+        case HttpURLConnection.HTTP_UNAUTHORIZED:
             try {
-                String jsonStr = new String(webResponse.getBody());
-                extractJsonObjects(responseItems, jsonStr);
-                result = processUIResponseParams(responseItems);
-            } catch (final JSONException ex) {
-                // There is no recovery possible here, so
-                // catch the
-                // generic Exception
-                Logger.e(TAG, ex.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, ex);
-                result = new AuthenticationResult(JSON_PARSING_ERROR, ex.getMessage(), null);
+                result = parseJsonResponse(webResponse.getBody());
+            } catch (final JSONException jsonException) {
+                Logger.e(TAG, jsonException.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, jsonException);
+                result = new AuthenticationResult(JSON_PARSING_ERROR, jsonException.getMessage(), null);
             }
-        } else {
-            String errMessage = null;
-            byte[] message = webResponse.getBody();
-            if (message != null) {
-                errMessage = new String(message);
-            } else {
-                errMessage = "Status code:" + String.valueOf(webResponse.getStatusCode());
-            }
-            Logger.v(TAG, "Server error message:" + errMessage);
+
+        break;
+        default:
+            Logger.e(TAG, "Server response", webResponse.getBody(), ADALError.SERVER_ERROR);
             result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    errMessage, null);
+                    webResponse.getBody(), null);
         }
 
         // Set correlationId in the result
@@ -641,5 +622,11 @@ class Oauth2 {
         }
 
         return result;
+    }
+    
+    private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException {
+        HashMap<String, String> responseItems = new HashMap<String, String>();
+        extractJsonObjects(responseItems, responseBody);
+        return processUIResponseParams(responseItems);
     }
 }

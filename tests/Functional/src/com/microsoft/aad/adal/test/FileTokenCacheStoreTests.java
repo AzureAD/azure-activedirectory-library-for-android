@@ -39,6 +39,7 @@ import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 import com.microsoft.aad.adal.TokenCacheItem;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.UserInfo;
 
 import android.content.Context;
@@ -260,8 +261,9 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
     /**
      * memory cache is shared between context
+     * @throws UsageAuthenticationException 
      */
-    public void testMemoryCacheMultipleContext() {
+    public void testMemoryCacheMultipleContext() throws UsageAuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         ITokenCacheStore tokenCacheA = new FileTokenCacheStore(targetContex, file);

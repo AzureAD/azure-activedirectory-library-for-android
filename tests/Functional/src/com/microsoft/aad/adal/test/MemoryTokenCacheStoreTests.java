@@ -38,6 +38,7 @@ import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.ITokenCacheStore;
 import com.microsoft.aad.adal.MemoryTokenCacheStore;
 import com.microsoft.aad.adal.TokenCacheItem;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 
 public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
@@ -135,9 +136,10 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
      * 
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
+     * @throws UsageAuthenticationException 
      */
     public void testMemoryCacheMultipleContext() throws NoSuchAlgorithmException,
-            NoSuchPaddingException {
+            NoSuchPaddingException, UsageAuthenticationException {
         ITokenCacheStore tokenCacheA = setupItems();
         AuthenticationContext contextA = new AuthenticationContext(getInstrumentation()
                 .getContext(), VALID_AUTHORITY, false, tokenCacheA);

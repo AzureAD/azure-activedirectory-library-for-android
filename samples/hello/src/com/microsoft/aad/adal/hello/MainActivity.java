@@ -51,6 +51,7 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 
 public class MainActivity extends Activity {
 
@@ -281,12 +282,17 @@ public class MainActivity extends Activity {
     }
 
     public void onClickClearTokens(View view) {
-        if (mAuthContext != null && mAuthContext.getCache() != null) {
-            displayMessage("Clearing tokens");
-            mAuthContext.getCache().removeAll();
-        } else {
-            textView1.setText("Cache is null");
-        }
+        try {
+			if (mAuthContext != null && mAuthContext.getCache() != null) {
+			    displayMessage("Clearing tokens");
+			    mAuthContext.getCache().removeAll();
+			} else {
+			    textView1.setText("Cache is null");
+			}
+		} catch (UsageAuthenticationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     public void onClickClearCookies(View view) {
