@@ -23,12 +23,14 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -97,8 +99,10 @@ final class Discovery implements IDiscovery {
                 && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())) {
 
             if (UrlExtensions.isADFSAuthority(authorizationEndpoint)) {
-                Logger.e(TAG, "Instance validation returned error", "",
-                        ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
+                Logger.e(TAG,
+                        "Instance validation returned error", "",
+                        ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
+                        new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
                 return false;
             } else if (sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
                 // host can be the instance or inside the validated list.
@@ -114,8 +118,6 @@ final class Discovery implements IDiscovery {
 
         return false;
     }
-
-    
 
     /**
      * add this host as valid to skip another query to server.
@@ -137,10 +139,11 @@ final class Discovery implements IDiscovery {
     private void initValidList() {
         // mValidHosts is a sync set
         if (sValidHosts.size() == 0) {
-            sValidHosts.add("login.windows.net");
-            sValidHosts.add("login.microsoftonline.com");
-            sValidHosts.add("login.chinacloudapi.cn");
-            sValidHosts.add("login.cloudgovapi.us");
+            sValidHosts.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list 
+            sValidHosts.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
+            sValidHosts.add("login.chinacloudapi.cn"); // Microsoft Azure China
+            sValidHosts.add("login.microsoftonline.de"); // Microsoft Azure Germany
+            sValidHosts.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
         }
     }
 
@@ -151,12 +154,14 @@ final class Discovery implements IDiscovery {
         URL queryUrl;
         boolean result = false;       
         try {
-            queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE,
-                    getAuthorizationCommonEndpoint(authorizationEndpointUrl));
-
+            queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE, getAuthorizationCommonEndpoint(authorizationEndpointUrl));
             result = sendRequest(queryUrl);
         } catch (MalformedURLException e) {
             Logger.e(TAG, "Invalid authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
+                    e);
+            result = false;
+        } catch (IOException e) {
+            Logger.e(TAG, "Network error", "", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
                     e);
             result = false;
         } catch (JSONException e) {
@@ -173,10 +178,10 @@ final class Discovery implements IDiscovery {
         return result;
     }
 
-    private boolean sendRequest(final URL queryUrl) throws MalformedURLException, JSONException {
+    private boolean sendRequest(final URL queryUrl) throws IOException, JSONException {
 
         Logger.v(TAG, "Sending discovery request to:" + queryUrl);
-        HashMap<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<String, String>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 
         // CorrelationId is used to track the request at the Azure services
@@ -184,20 +189,21 @@ final class Discovery implements IDiscovery {
             headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, mCorrelationId.toString());
             headers.put(AuthenticationConstants.AAD.RETURN_CLIENT_REQUEST_ID, "true");
         }
-               
+
         HttpWebResponse webResponse = null;
         String errorCodes = "";
         try {
             ClientMetrics.INSTANCE.beginClientMetricsRecord(queryUrl, mCorrelationId, headers);
-            webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
-            if (webResponse.getResponseException() == null) {
+            try {
+                webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
                 ClientMetrics.INSTANCE.setLastError(null);
-            } else {
+            } catch (IOException e) {
                 ClientMetrics.INSTANCE.setLastError(String.valueOf(webResponse.getStatusCode()));
+                throw e;
             }
-            
+
             // parse discovery response to find tenant info
-            HashMap<String, String> discoveryResponse = parseResponse(webResponse);
+            final Map<String, String> discoveryResponse = parseResponse(webResponse);
             if(discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES))
             {
                 errorCodes = discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
@@ -205,16 +211,7 @@ final class Discovery implements IDiscovery {
             }
             
             return (discoveryResponse != null && discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT));
-        } catch (IllegalArgumentException exc) {
-            Logger.e(TAG, exc.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
-                    exc);
-            throw exc;
-        } catch (JSONException e) {
-            Logger.e(TAG, "Json parsing error", "",
-                    ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, e);
-            throw e;
-        }
-        finally {
+        } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);                
         }
     }
@@ -227,8 +224,7 @@ final class Discovery implements IDiscovery {
      * @return true if tenant discovery endpoint is reported. false otherwise.
      * @throws JSONException
      */
-    private HashMap<String, String> parseResponse(HttpWebResponse webResponse) throws JSONException {
-
+    private Map<String, String> parseResponse(HttpWebResponse webResponse) throws JSONException {
         return HashMapExtensions.getJsonResponse(webResponse);
     }
 
@@ -238,12 +234,11 @@ final class Discovery implements IDiscovery {
      * 
      * @param authorizationEndpointUrl
      * @return https://hostname/common
-     * @throws MalformedURLException
      */
-    private String getAuthorizationCommonEndpoint(final URL authorizationEndpointUrl)
-            throws MalformedURLException {
-        return String.format("https://%s%s", authorizationEndpointUrl.getHost(),
-                AUTHORIZATION_COMMON_ENDPOINT);
+    private String getAuthorizationCommonEndpoint(final URL authorizationEndpointUrl) {
+        return new Uri.Builder().scheme("https")
+                .authority(authorizationEndpointUrl.getHost())
+                .appendPath(AUTHORIZATION_COMMON_ENDPOINT).build().toString();
     }
 
     /**
@@ -261,9 +256,9 @@ final class Discovery implements IDiscovery {
         builder.scheme("https").authority(instance);
         // replacing tenant to common since instance validation does not check
         // tenant name
-        builder.appendEncodedPath(INSTANCE_DISCOVERY_SUFFIX);
-        builder.appendQueryParameter(API_VERSION_KEY, API_VERSION_VALUE);
-        builder.appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);
+        builder.appendEncodedPath(INSTANCE_DISCOVERY_SUFFIX)
+                .appendQueryParameter(API_VERSION_KEY, API_VERSION_VALUE)
+                .appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);
         return new URL(builder.build().toString());
     }
 

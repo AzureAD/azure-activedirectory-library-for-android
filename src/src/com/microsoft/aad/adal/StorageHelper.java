@@ -525,12 +525,6 @@ public class StorageHelper {
                 throw new UnrecoverableKeyException("Couldn't find encrypted key in file");
             }
             
-            // Check if the retrieved keypair is empty. With the current limitation of 
-            // AndroidKeyStore, there is possibility that the alias is not wiped but 
-            // the key data is wiped, if this is the case, the retrieved keypair will
-            // be empty, and when we use the private key to do unwrap, we'll encounter 
-            // IllegalArgumentException
-            final PrivateKey privateKey = mKeyPair.getPrivate();
             if (privateKey == null) {
                 throw new UnrecoverableKeyException("Retrieved private key is empty.");
             }
