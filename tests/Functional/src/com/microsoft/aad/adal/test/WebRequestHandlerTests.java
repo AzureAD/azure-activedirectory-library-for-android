@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal.test;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -98,33 +97,25 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             headers = new HashMap<String, String>();
             headers.put("Accept", "application/json");
         }
-        return request
-                .sendPost(getUrl(message), headers, null, "application/x-www-form-urlencoded");
+        return request.sendPost(getUrl(message), headers, null, 
+                "application/x-www-form-urlencoded");
     }
 
     public void testNullUrl() {
-        assertThrowsException(IllegalArgumentException.class, "url", new Runnable() {
-            public void run() {
+        assertThrowsException(IllegalArgumentException.class, "url", new ThrowableRunnable() {
+            public void run() throws IOException {
                 WebRequestHandler request = new WebRequestHandler();
-                try {
-                    request.sendGet(null, null);
-                } catch (IOException e) {
-                    fail();
-                }
+                request.sendGet(null, null);
             }
         });
     }
 
     public void testWrongSchemeUrl() {
 
-        assertThrowsException(IllegalArgumentException.class, "url", new Runnable() {
-            public void run() {
+        assertThrowsException(IllegalArgumentException.class, "url", new ThrowableRunnable() {
+            public void run() throws IOException {
                 WebRequestHandler request = new WebRequestHandler();
-                try {
-                    request.sendGet(getUrl("ftp://test.com"), null);
-                } catch (IOException e) {
-                    fail();
-                }
+                request.sendGet(getUrl("ftp://test.com"), null);
             }
         });
     }
@@ -161,7 +152,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
 
         assertNotNull(httpResponse != null);
         assertTrue("status is 200", httpResponse.getStatusCode() == 200);
-        String responseMsg = new String(httpResponse.getBody());
+        String responseMsg = httpResponse.getBody();
         assertTrue("request header check", responseMsg.contains(AAD.ADAL_ID_PLATFORM + "-Android"));
         assertTrue(
                 "request header check",
@@ -174,7 +165,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         try {
             request.sendGet(
                     getUrl("http://www.somethingabcddnotexists.com"), null);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             assertTrue(e instanceof UnknownHostException);
             assertTrue(e.getMessage().toLowerCase(Locale.US).contains("unable to resolve host"));
         }
@@ -198,8 +189,8 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         try {
             httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
                     json.getBytes(ENCODING_UTF8), "application/json");
-        } catch (UnsupportedEncodingException e) {
-            Assert.fail("Encoding exception is not expected");
+        } catch (final IOException e) {
+            Assert.fail("Encounter unexpected IOException.");
         }
 
         assertTrue("status is 200", httpResponse.getStatusCode() == 200);
