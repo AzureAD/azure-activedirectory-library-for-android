@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
@@ -40,6 +39,8 @@ import java.util.TimeZone;
 
 import javax.crypto.NoSuchPaddingException;
 
+import org.mockito.Mockito;
+
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
@@ -51,9 +52,6 @@ import com.microsoft.aad.adal.TokenCacheItem;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager.NameNotFoundException;
-
-import org.mockito.Mockito;
 
 public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
@@ -73,7 +71,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         super.tearDown();
     }
 
-    public void testSharedCache() throws GeneralSecurityException, IOException {
+    public void testCacheItemRetrieval() throws GeneralSecurityException, IOException {
         TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 1:09:57 PM").getItem("testkey");
 
         // Verify returned item
@@ -104,7 +102,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertNotNull(item.getExpiresOn().after(new Date()));
     }
     
-    public void testDateTimeFormatterOldFormatWithoutAMOrPm() throws GeneralSecurityException, IOException {
+    public void testDateTimeFormatterOldFormat24hourFormat() throws GeneralSecurityException, IOException {
         TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 13:09:57").getItem("testkey");
 
         // Verify returned item

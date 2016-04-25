@@ -41,7 +41,6 @@ import com.microsoft.aad.adal.WebRequestHandler;
 
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
-import junit.framework.Assert;
 
 /**
  * webrequest tests related to get, put, post, delete requests
@@ -165,6 +164,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         try {
             request.sendGet(
                     getUrl("http://www.somethingabcddnotexists.com"), null);
+            fail("Unreachable host, should throw IOException");
         } catch (final IOException e) {
             assertTrue(e instanceof UnknownHostException);
             assertTrue(e.getMessage().toLowerCase(Locale.US).contains("unable to resolve host"));
@@ -186,12 +186,8 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         WebRequestHandler request = new WebRequestHandler();
         String json = new Gson().toJson(message);
 
-        try {
-            httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
-                    json.getBytes(ENCODING_UTF8), "application/json");
-        } catch (final IOException e) {
-            Assert.fail("Encounter unexpected IOException.");
-        }
+        httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
+                json.getBytes(ENCODING_UTF8), "application/json");
 
         assertTrue("status is 200", httpResponse.getStatusCode() == 200);
         String responseMsg = new String(httpResponse.getBody());
