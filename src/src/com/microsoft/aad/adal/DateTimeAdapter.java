@@ -84,6 +84,16 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
             JsonDeserializationContext context) throws JsonParseException {
         String jsonString = json.getAsString();
 
+        // Datetime string is serialized with iso8601 format by default, should
+        // always try to deserialize with iso8601. But to support the backward
+        // compatibility, we also need to deserialize with old format if failing
+        // with iso8601. 
+        try {
+            return iso8601Format.parse(jsonString);
+        } catch (final ParseException ignored) {
+        }
+        
+        // fallback logic for old date format parsing. 
         try {
             return localFormat.parse(jsonString);
         } catch (final ParseException ignored) {
@@ -101,12 +111,7 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
 
         try {
             return enUs24HourFormat.parse(jsonString);
-        } catch (final ParseException ignored) {
-        }
-
-        try {
-            return iso8601Format.parse(jsonString);
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             Logger.e(TAG, "Could not parse date: " + e.getMessage(), "",
                     ADALError.DATE_PARSING_FAILURE, e);
         }
