@@ -515,8 +515,28 @@ public enum ADALError {
     /**
      * Resource authentication challenge failure
      */
-    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure");
+    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure"),
 
+    /**
+     * Export of FID failure
+     */
+    FAIL_TO_EXPORT("Fail to export"),
+    
+    /**
+     * Import of FID failure
+     */
+    FAIL_TO_IMPORT("Fail to import"),
+        
+    /**
+     * Deserialization of FID failure
+     */
+    FAIL_TO_DESERIALIZE("Fail to deserialize"), 
+    
+    /**
+     * Fail to get the family refresh token from the cache item
+     */
+    FAMILY_REFRESH_TOKEN_NOT_FOUND("Family fresh token is not found");
+    
     private String mDescription;
 
     private ADALError(String message) {
