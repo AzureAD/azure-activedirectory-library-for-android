@@ -370,13 +370,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return mPrefs.contains(key);
     }
     
-    public TokenCacheItem getFamilyRefreshTokenItemForUser(String userId) {
-        Iterator<TokenCacheItem> results = this.getAll();
-        TokenCacheItem tokenItem = new TokenCacheItem();
+    private TokenCacheItem getFamilyRefreshTokenItemForUser(String userId) {   	
+    	
+        Iterator<TokenCacheItem> results = this.getTokensForUser(userId).iterator();
+        TokenCacheItem tokenItem = new TokenCacheItem();   
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
             if(tokenCacheItem.getUserInfo() != null
-                    && tokenCacheItem.getUserInfo().getUserId().equalsIgnoreCase(userId)
                     && !StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                     && tokenCacheItem.getFamilyClientId().equalsIgnoreCase("1")){
                 tokenItem = tokenCacheItem;
@@ -389,7 +389,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return null;
     }
     
-    public String serialize(String uniqueUserId) throws AuthenticationException{
+    protected String serialize(String uniqueUserId) throws AuthenticationException{
         if (StringExtensions.IsNullOrBlank(uniqueUserId)) {
             throw new IllegalArgumentException("uniqueUserId");
         }
@@ -421,7 +421,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }      
     }
     
-    public void deserialize(String serializedBlob) throws AuthenticationException{
+    protected void deserialize(String serializedBlob) throws AuthenticationException{
         if (StringExtensions.IsNullOrBlank(serializedBlob)) {
             throw new IllegalArgumentException("serializedBlob");
         }
@@ -438,8 +438,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                 throw new AuthenticationException(ADALError.FAIL_TO_IMPORT,
                         exp.getMessage());
             }
-            //@Heidi
-            //Q. how to compare the SerialVersionUID?
+            
             long serialVersionID_act = ObjectStreamClass.lookup(blobContainer.getClass()).getSerialVersionUID();
             long serialVersionID_exp = ObjectStreamClass.lookup(BlobContainer.class).getSerialVersionUID();
             if(serialVersionID_act != serialVersionID_exp){

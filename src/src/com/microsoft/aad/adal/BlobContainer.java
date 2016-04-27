@@ -23,9 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.Serializable;
-
-public class BlobContainer implements Serializable {
+class BlobContainer {
 
     /**
      * universal version identifier for BlobContainer class
@@ -38,12 +36,10 @@ public class BlobContainer implements Serializable {
      */
     private TokenCacheItem tokenItem;
     
-    private String familyRefreshToken;
-    
     /**
      * Construct default blob container.
      */
-    public BlobContainer() {
+    BlobContainer() {
         tokenItem = new TokenCacheItem();
     }
     
@@ -53,21 +49,19 @@ public class BlobContainer implements Serializable {
      * @param item
      * @throws AuthenticationException 
      */
-    public BlobContainer(TokenCacheItem tokenItem) throws AuthenticationException {
+    BlobContainer(TokenCacheItem tokenItem) throws AuthenticationException {
         //only FRT is stored here 
         if(tokenItem == null) {
             throw new IllegalArgumentException("invalid input TokenCacheItem");
-        } else if (tokenItem != null 
-                && StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
+        }
+        
+        if (StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
             throw new AuthenticationException(
                     ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND, 
-                    "No family refresh token is found from the cache item"
+                    "Invalid constructor input, the input TokenCacheItem should contains family refresh token."
                     );
-        } else if (tokenItem != null 
-                && !StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())
-                && tokenItem.getFamilyClientId().equalsIgnoreCase("1")) {
+        } else {
             this.tokenItem = tokenItem;
-            this.familyRefreshToken = tokenItem.getRefreshToken();
         }
     }
     
@@ -75,8 +69,16 @@ public class BlobContainer implements Serializable {
         return tokenItem;
     }
 
-    public void setTokenItem(TokenCacheItem tokenItem) {
-        this.tokenItem = tokenItem;
+    public void setTokenItem(TokenCacheItem tokenItem) throws AuthenticationException {
+    	if(tokenItem != null
+    			&& !StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
+    		this.tokenItem = tokenItem;
+    	} else {
+    		throw new AuthenticationException(
+                    ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND, 
+                    "Invalid constructor input, the input TokenCacheItem should contains family refresh token."
+                    );
+    	}
     }    
     
     /**
@@ -85,22 +87,10 @@ public class BlobContainer implements Serializable {
      * @throws AuthenticationException 
      */
     public String getFamilyRefreshToken() throws AuthenticationException {
-        return this.familyRefreshToken;
-    }
-    
-    public void setFamilyRefreshToken(String familyRefreshToken) {
-        this.familyRefreshToken = familyRefreshToken;
-    }
-    
-    public void setFamilyRefreshToken(TokenCacheItem tokenItem) throws AuthenticationException {
-        if(tokenItem == null) {
-            throw new IllegalArgumentException("invalid input TokenCacheItem");
-        } else if (tokenItem != null 
-                && !StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())
-                && tokenItem.getFamilyClientId().equalsIgnoreCase("1")) {
-            this.familyRefreshToken = tokenItem.getRefreshToken();
+        if(tokenItem!=null){
+        	return tokenItem.getRefreshToken();
         } else {
-            throw new AuthenticationException(
+        	throw new AuthenticationException(
                     ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND, 
                     "No family refresh token is found from the cache item"
                     );
