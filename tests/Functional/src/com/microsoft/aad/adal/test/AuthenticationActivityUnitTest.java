@@ -275,7 +275,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         WebViewClient client = getCustomWebViewClient();
         WebView mockview = new WebView(getActivity().getApplicationContext());
         ReflectionUtils.setFieldValue(activity, "mSpinner", null);
-        //shouldOverrideUrlLoading should prevent non https redirects in the web view
         assertEquals(false,client.shouldOverrideUrlLoading(mockview, url));
     }
     
@@ -294,7 +293,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         WebViewClient client = getCustomWebViewClient();
         WebView mockview = new WebView(getActivity().getApplicationContext());
         ReflectionUtils.setFieldValue(activity, "mSpinner", null);
-        //shouldOverrideUrlLoading should prevent non https redirects in the web view
         assertEquals(true,client.shouldOverrideUrlLoading(mockview, url));
     }
     
