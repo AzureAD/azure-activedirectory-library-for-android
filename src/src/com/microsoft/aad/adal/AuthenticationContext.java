@@ -206,9 +206,10 @@ public class AuthenticationContext {
      * Returns referenced cache. You can use default cache, which uses
      * SharedPreferences and handles synchronization by itself.
      * 
+     * @throws UsageAuthenticationException
      * @return ITokenCacheStore Current cache used
      */
-    public ITokenCacheStore getCache() {
+    public ITokenCacheStore getCache() throws UsageAuthenticationException {
         if (mBrokerProxy.canSwitchToBroker()) {
             // return cache implementation related to broker so that app can
             // clear tokens for related accounts
@@ -1304,111 +1305,139 @@ public class AuthenticationContext {
         
         // BROKER flow intercepts here
         // cache and refresh call happens through the authenticator service
-        if (mBrokerProxy.canSwitchToBroker()
-                && mBrokerProxy.verifyUser(request.getLoginHint(),
-                        request.getUserId())) {
-            Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
-            AuthenticationResult result = null;
-            request.setVersion(getVersionName());
-            request.setBrokerAccountName(request.getLoginHint());
-            
-            //check if the redirectUri is valid
-            try {
-                //the broker redirectUri will be checked only if 
-                //the request from client App is not silent
-                //otherwise the acquiretokensilent might be interrupted 
-                //by DeveloperAuthenticationException
-                if(!request.isSilent()) {
-                    verifyBrokerRedirectUri(request);
-                }
-            } catch(UsageAuthenticationException exception) {
-                Logger.v(TAG + methodName, "Did not pass the verification of the broker redirect URI");
-                callbackHandle.onError(exception);
-                return result;
-            }
-            
-            // Don't send background request, if prompt flag is always or
-            // refresh_session
-            if (!promptUser(request.getPrompt())
-                    && (!StringExtensions.IsNullOrBlank(request.getBrokerAccountName()) || !StringExtensions
-                            .IsNullOrBlank(request.getUserId()))) {
-                try {
-                    Logger.v(TAG, "User is specified for background token request");
-                    result = mBrokerProxy.getAuthTokenInBackground(request);
-                } catch (AuthenticationException ex) {
-                    // pass back to caller for known exceptions such as failure
-                    // to encrypt
-                    callbackHandle.onError(ex);
-                    return null;
-                }
-            } else {
-                Logger.v(TAG, "User is not specified for background token request");
-            }
+        try {
+			if (mBrokerProxy.canSwitchToBroker()
+			        && mBrokerProxy.verifyUser(request.getLoginHint(),
+			                request.getUserId())) {
+			    Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
+			    AuthenticationResult result = null;
+			    request.setVersion(getVersionName());
+			    request.setBrokerAccountName(request.getLoginHint());
+			    
+			    //check if the redirectUri is valid
+			    try {
+			        //the broker redirectUri will be checked only if 
+			        //the request from client App is not silent
+			        //otherwise the acquiretokensilent might be interrupted 
+			        //by DeveloperAuthenticationException
+			        if(!request.isSilent()) {
+			            verifyBrokerRedirectUri(request);
+			        }
+			    } catch(UsageAuthenticationException exception) {
+			        Logger.v(TAG + methodName, "Did not pass the verification of the broker redirect URI");
+			        callbackHandle.onError(exception);
+			        return result;
+			    }
+			    
+			    // Don't send background request, if prompt flag is always or
+			    // refresh_session
+			    if (!promptUser(request.getPrompt())
+			            && (!StringExtensions.IsNullOrBlank(request.getBrokerAccountName()) || !StringExtensions
+			                    .IsNullOrBlank(request.getUserId()))) {
+			        try {
+			            Logger.v(TAG, "User is specified for background token request");
+			            result = mBrokerProxy.getAuthTokenInBackground(request);
+			        } catch (AuthenticationException ex) {
+			            // pass back to caller for known exceptions such as failure
+			            // to encrypt
+			            callbackHandle.onError(ex);
+			            return null;
+			        }
+			    } else {
+			        Logger.v(TAG, "User is not specified for background token request");
+			    }
 
-            if (result != null && result.getAccessToken() != null
-                    && !result.getAccessToken().isEmpty()) {
-                Logger.v(TAG, "Token is returned from background call ");
-                callbackHandle.onSuccess(result);
-                return result;
-            }
+			    if (result != null && result.getAccessToken() != null
+			            && !result.getAccessToken().isEmpty()) {
+			        Logger.v(TAG, "Token is returned from background call ");
+			        callbackHandle.onSuccess(result);
+			        return result;
+			    }
 
-            // Launch broker activity
-            // if cache and refresh request is not handled.
-            // Initial request to authenticator needs to launch activity to
-            // record calling uid for the account. This happens for Prompt auto
-            // or always behavior.
-            Logger.v(TAG, "Token is not returned from backgroud call");
-            if (!request.isSilent() && activity != null) {
+			    // Launch broker activity
+			    // if cache and refresh request is not handled.
+			    // Initial request to authenticator needs to launch activity to
+			    // record calling uid for the account. This happens for Prompt auto
+			    // or always behavior.
+			    Logger.v(TAG, "Token is not returned from backgroud call");
+			    if (!request.isSilent() && activity != null) {
 
-                // Only happens with callback since silent call does not show UI
-                Logger.v(TAG, "Launch activity for Authenticator");
-                mAuthorizationCallback = callbackHandle.callback;
-                request.setRequestId(callbackHandle.callback.hashCode());
-                Logger.v(TAG, "Starting Authentication Activity with callback:"
-                        + callbackHandle.callback.hashCode());
-                putWaitingRequest(callbackHandle.callback.hashCode(),
-                        new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
-                                callbackHandle.callback));
-                if (result != null && result.isInitialRequest()) {
-                    Logger.v(TAG, "Initial request to authenticator");
-                    // Log the initial request but not force a prompt
-                }
+			        // Only happens with callback since silent call does not show UI
+			        Logger.v(TAG, "Launch activity for Authenticator");
+			        mAuthorizationCallback = callbackHandle.callback;
+			        request.setRequestId(callbackHandle.callback.hashCode());
+			        Logger.v(TAG, "Starting Authentication Activity with callback:"
+			                + callbackHandle.callback.hashCode());
+			        putWaitingRequest(callbackHandle.callback.hashCode(),
+			                new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
+			                        callbackHandle.callback));
+			        if (result != null && result.isInitialRequest()) {
+			            Logger.v(TAG, "Initial request to authenticator");
+			            // Log the initial request but not force a prompt
+			        }
+   
+			        // Launch broker activity
+			        // if cache and refresh request is not handled.
+			        // Initial request to authenticator needs to launch activity to
+			        // record calling uid for the account. This happens for Prompt auto
+			        // or always behavior.
+			        Logger.v(TAG, "Token is not returned from backgroud call");
+			        if (!request.isSilent() && callbackHandle.callback != null && activity != null) {
+			            // Only happens with callback since silent call does not show UI
+			            Logger.v(TAG, "Launch activity for Authenticator");
+			            mAuthorizationCallback = callbackHandle.callback;
+			            request.setRequestId(callbackHandle.callback.hashCode());
+			            Logger.v(TAG, "Starting Authentication Activity with callback:"
+			                    + callbackHandle.callback.hashCode());
+			            putWaitingRequest(callbackHandle.callback.hashCode(),
+			                    new AuthenticationRequestState(callbackHandle.callback.hashCode(), request,
+			                            callbackHandle.callback));
+			            if (result != null && result.isInitialRequest()) {
+			                Logger.v(TAG, "Initial request to authenticator");
+			                // Log the initial request but not force a prompt
+			            }
 
-                // onActivityResult will receive the response
-                // Activity needs to launch to record calling app for this
-                // account
-                Intent brokerIntent = mBrokerProxy.getIntentForBrokerActivity(request);
-                if (brokerIntent != null) {
-                    try {
-                        Logger.v(TAG, "Calling activity pid:" + android.os.Process.myPid()
-                                + " tid:" + android.os.Process.myTid() + "uid:"
-                                + android.os.Process.myUid());
-                        activity.startActivityForResult(brokerIntent,
-                                AuthenticationConstants.UIRequest.BROWSER_FLOW);
-                    } catch (ActivityNotFoundException e) {
-                        Logger.e(TAG, "Activity login is not found after resolving intent", "",
-                                ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED, e);
-                        callbackHandle.onError(new AuthenticationException(
-                                ADALError.BROKER_ACTIVITY_IS_NOT_RESOLVED));
-                    }
-                } else {
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
-                }
-            } else {
-
-                // User does not want to launch activity
-                String msg = "Prompt is not allowed and failed to get token:";
-                Logger.e(TAG, msg, "", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
-                callbackHandle.onError(new AuthenticationException(
-                        ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, msg));
-            }
-
-            // It will start activity if callback is provided. Return null here.
+			            // onActivityResult will receive the response
+			            // Activity needs to launch to record calling app for this
+			            // account
+			            Intent brokerIntent = mBrokerProxy.getIntentForBrokerActivity(request);
+			            if (brokerIntent != null) {
+			                try {
+			                    Logger.v(TAG, "Calling activity pid:" + android.os.Process.myPid()
+			                            + " tid:" + android.os.Process.myTid() + "uid:"
+			                            + android.os.Process.myUid());
+			                    activity.startActivityForResult(brokerIntent,
+			                            AuthenticationConstants.UIRequest.BROWSER_FLOW);
+			                } catch (ActivityNotFoundException e) {
+			                    Logger.e(TAG, "Activity login is not found after resolving intent", "",
+			                            ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED, e);
+			                    callbackHandle.onError(new AuthenticationException(
+			                            ADALError.BROKER_ACTIVITY_IS_NOT_RESOLVED));
+			                }
+			            } else {
+			                callbackHandle.onError(new AuthenticationException(
+			                        ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
+			            }
+			        } else {
+			            // User does not want to launch activity
+			            String msg = "Prompt is not allowed and failed to get token:";
+			            Logger.e(TAG, msg, "", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+			            callbackHandle.onError(new AuthenticationException(
+			                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, msg));
+			        }
+   
+			        // It will start activity if callback is provided. Return null here.
+			        return null;
+			    } else {
+			        return localFlow(callbackHandle, activity, useDialog, request);
+			    }
+			}
+		} catch (final UsageAuthenticationException e) {
+			Logger.v(TAG + methodName, e.getMessage());
+            callbackHandle.onError(e);
             return null;
-        } else {
-            return localFlow(callbackHandle, activity, useDialog, request);
-        }
+		}
+        return null;
     }
 
     private AuthenticationResult localFlow(CallbackHandler callbackHandle,
@@ -1698,6 +1727,7 @@ public class AuthenticationContext {
             while (allItems.hasNext()) {
                 final TokenCacheItem tokenCacheItem = allItems.next();
                 final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
+
                 if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getDisplayableId())) {
                     if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
                             && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {

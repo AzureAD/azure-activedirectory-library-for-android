@@ -26,6 +26,8 @@ package com.microsoft.aad.adal.test;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import android.accounts.AccountManager;
 import android.content.Context;
@@ -51,15 +53,14 @@ class FileMockContext extends MockContext {
 
     int fileWriteMode;
 
-    String requestedPermissionName;
-
-    int responsePermissionFlag;
+    Map<String, Integer> permissionMap = new HashMap<String, Integer>();
 
     public FileMockContext(Context context) {
         mContext = context;
         // default
-        requestedPermissionName = "android.permission.INTERNET";
-        responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+        String requestedPermissionName = "android.permission.INTERNET";
+        int responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+        permissionMap.put(requestedPermissionName,responsePermissionFlag);
     }
 
     @Override
@@ -103,20 +104,33 @@ class FileMockContext extends MockContext {
     public PackageManager getPackageManager() {
         return new TestPackageManager();
     }
+    
+    public void setPermission(String permissionName, int permissionFlag) {
+        permissionMap.put(permissionName, permissionFlag);
+    }
+    
+    public boolean removePermission(String permissionName) {
+        if(permissionMap.containsKey(permissionName)) {
+            permissionMap.remove(permissionName);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     class TestPackageManager extends MockPackageManager {
         @Override
         public ResolveInfo resolveActivity(Intent intent, int flags) {
-            if (resolveIntent)
+            if (resolveIntent) {
                 return new ResolveInfo();
-
+            }
             return null;
         }
 
         @Override
         public int checkPermission(String permName, String pkgName) {
-            if (permName.equals(requestedPermissionName)) {
-                return responsePermissionFlag;
+            if (permissionMap.containsKey(permName)) {
+                return permissionMap.get(permName);
             }
             return PackageManager.PERMISSION_DENIED;
         }

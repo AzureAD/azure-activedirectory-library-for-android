@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationParameters;
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;

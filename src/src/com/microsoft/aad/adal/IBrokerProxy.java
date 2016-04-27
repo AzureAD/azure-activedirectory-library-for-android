@@ -35,8 +35,9 @@ interface IBrokerProxy {
      * 
      * @return True package is available and authenticator is installed at
      *         Account manager
+     * @throws UsageAuthenticationException 
      */
-    boolean canSwitchToBroker();
+    boolean canSwitchToBroker() throws UsageAuthenticationException;
     
     boolean verifyUser(String username, String uniqueid);
 

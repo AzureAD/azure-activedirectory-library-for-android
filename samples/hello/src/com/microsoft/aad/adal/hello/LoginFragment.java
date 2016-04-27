@@ -20,6 +20,7 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.IWindowComponent;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 
 public class LoginFragment extends Fragment {
 
@@ -79,7 +80,12 @@ public class LoginFragment extends Fragment {
             CookieManager cookieManager = CookieManager.getInstance();
             cookieManager.removeAllCookie();
             CookieSyncManager.getInstance().sync();
-            mAuthContext.getCache().removeAll();
+            try {
+				mAuthContext.getCache().removeAll();
+			} catch (UsageAuthenticationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         } else {
             // login
             mAuthContext.acquireToken(wrapFragment(LoginFragment.this), Constants.RESOURCE_ID,
