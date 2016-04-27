@@ -572,7 +572,7 @@ class Oauth2 {
      * @param webResponse
      * @return
      */
-    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse){
+    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) throws AuthenticationException {
         AuthenticationResult result;
         String correlationIdInHeader = null;
         if (webResponse.getResponseHeaders() != null
@@ -594,15 +594,12 @@ class Oauth2 {
             try {
                 result = parseJsonResponse(webResponse.getBody());
             } catch (final JSONException jsonException) {
-                Logger.e(TAG, jsonException.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, jsonException);
-                result = new AuthenticationResult(JSON_PARSING_ERROR, jsonException.getMessage(), null);
+                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
             }
 
         break;
-        default:
-            Logger.e(TAG, "Server response", webResponse.getBody(), ADALError.SERVER_ERROR);
-            result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    webResponse.getBody(), null);
+        default: 
+            throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + webResponse.getBody());
         }
 
         // Set correlationId in the result

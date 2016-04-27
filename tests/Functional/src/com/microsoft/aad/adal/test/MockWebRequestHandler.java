@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal.test;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
@@ -70,10 +69,8 @@ class MockWebRequestHandler implements IWebRequestHandler {
         if (content != null) {
             try {
                 mRequestContent = new String(content, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                Assert.fail("Encoding");                
+            } catch (final IOException e) {
+                Assert.fail("IOException");
             }
         }
 
