@@ -1430,20 +1430,28 @@ public class AuthenticationContext {
 
         // Trying to find refresh token first, if existed, will try to use the refresh token. 
         Logger.v(TAG, "Checking refresh tokens");
-        final boolean useMultiResourceRefreshToken = cachedItem == null || cachedItem.getIsMultiResourceRefreshToken();
-        final RefreshItem refreshItem = getRefreshToken(request, useMultiResourceRefreshToken);
+        final RefreshItem refreshItem = getRefreshToken(request);
         AuthenticationResult authResult = null;
         if (!promptUser(request.getPrompt()) && refreshItem != null
                 && !StringExtensions.IsNullOrBlank(refreshItem.mRefreshToken)) {
-            Logger.v(TAG, "Refresh token is available and it will attempt to refresh token");
+            Logger.v(TAG, "Refresh token is available and it will attempt to redeem access token.");
             try {
                 authResult = getTokenWithRefreshTokenAndUpdateCache(request, refreshItem);
             } catch (AuthenticationException authenticationException) {
-                ClientAnalytics.logEvent(
-                        InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED,
-                        new InstrumentationPropertiesBuilder(request, authenticationException).build());
+                addLogEventForRequestFailureWithCause(InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED, request, authenticationException);
                 callbackHandle.onError(authenticationException);
                 return null;
+            }
+            
+            // retry with MRRT if the refresh token request was done with FRT
+            if (!isAccessTokenReturned(authResult) && refreshItem != null) {
+                try {
+                    authResult = retryWithMRRTIfFRTFail(request, refreshItem);
+                } catch (final AuthenticationException authenticationException) {
+                    addLogEventForRequestFailureWithCause(InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED, request, authenticationException);
+                    callbackHandle.onError(authenticationException);
+                    return null;
+                }
             }
             
             if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken())) {
@@ -1480,6 +1488,42 @@ public class AuthenticationContext {
         }
 
         return null;
+    }
+    
+    /**
+     * Add log event for request failure with a cause. 
+     */
+    private void addLogEventForRequestFailureWithCause(final String eventName, final AuthenticationRequest request, 
+            final AuthenticationException authenticationException) {
+        ClientAnalytics.logEvent(
+                eventName,
+                new InstrumentationPropertiesBuilder(request, authenticationException).build());
+    }
+    
+    /**
+     * @return True if access token is returned from result, false otherwise. 
+     */
+    private boolean isAccessTokenReturned(final AuthenticationResult authResult) {
+        return authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken());
+    }
+    
+    /**
+     * If access token redeem with family refresh token fails, should fall back to MRRT if existed. 
+     */
+    private AuthenticationResult retryWithMRRTIfFRTFail(final AuthenticationRequest authRequest, final RefreshItem refreshItem) 
+            throws AuthenticationException {
+        AuthenticationResult authenticationResult = null;
+        if (tokenRefreshedWithFRT(authRequest, refreshItem)) {
+            final RefreshItem retryRefreshItem = findMultiResourceRefreshToken(authRequest);
+            if (retryRefreshItem != null) {
+                Logger.v(TAG, "Token request with FRT fails, retry with MRRT.");
+                authenticationResult = getTokenWithRefreshTokenAndUpdateCache(authRequest, retryRefreshItem);   
+            } else {
+                Logger.v(TAG, "Token request with FRT fails, but no MRRT eixsts, cannot retry.");
+            }
+        }
+        
+        return authenticationResult;
     }
 
     private void acquireTokenInteractively(final CallbackHandler callbackHandle, final IWindowComponent activity, 
@@ -1590,11 +1634,10 @@ public class AuthenticationContext {
         final String mRefreshToken;
         final String mKey;
         final boolean mMultiResource;
+        final boolean mFamilyToken;
         final UserInfo mUserInfo;
         final String mRawIdToken;
         final String mTenantId;
-        String mKeyWithUserId;
-        String mKeyWithDisplayableId;
 
         public RefreshItem(String keyInCache, AuthenticationRequest request, TokenCacheItem item) {
             if (item == null) {
@@ -1603,112 +1646,98 @@ public class AuthenticationContext {
             mKey = keyInCache;
             mMultiResource = item.getIsMultiResourceRefreshToken();
             mRefreshToken = item.getRefreshToken();
+            mFamilyToken = !StringExtensions.IsNullOrBlank(item.getFamilyClientId());
             mUserInfo = item.getUserInfo();
             mRawIdToken = item.getRawIdToken();
             mTenantId = item.getTenantId();
-            final UserInfo userInfo = item.getUserInfo();
-            if (userInfo != null) {
-                mKeyWithUserId = CacheKey.createCacheKey(request, userInfo.getUserId());
-                mKeyWithDisplayableId = CacheKey.createCacheKey(request, userInfo.getDisplayableId());
-            }
         }
     }
 
-    private RefreshItem getRefreshToken(final AuthenticationRequest request, boolean useMultiResourceRefreshToken) {
+    private RefreshItem getRefreshToken(final AuthenticationRequest request) {
         final String methodName = ":getRefreshToken";
         RefreshItem refreshItem = null;
         if (mTokenCacheStore != null) {
-            String userId = request.getUserId();
-            if (StringExtensions.IsNullOrBlank(userId)) {
-                // acquireTokenSilent expects userid field from UserInfo
-                userId = request.getLoginHint();
-            }
-            String keyUsed;
-            TokenCacheItem item;
-            if (!useMultiResourceRefreshToken) {
-                // target refreshToken for this resource only. CacheKey will
-                // include the resourceId in the cachekey
-                Logger.v(TAG, "Looking for regular refresh token");
-                keyUsed = CacheKey.createCacheKey(request, userId);
-                item = mTokenCacheStore.getItem(keyUsed);
-            } else {
-                // check multiResource item in cache. Cache key
-                // will not include resourceId in the cache key string.
-                Logger.v(TAG, "Looking for Multi Resource Refresh token");
-                keyUsed = CacheKey.createMultiResourceRefreshTokenKey(request, userId);
-                item = mTokenCacheStore.getItem(keyUsed);
-            }
-
-            // Temporarily disable the family client id feature. 
-            final boolean isFamilyClientIdFeatureEnabled = false;
-            if (isFamilyClientIdFeatureEnabled) {
-                // If still cannot find an item, try with family clientid
-                // Disable this feature for ADFS authority
-                if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
-                    if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority))) {
-                        Logger.v(TAG + methodName, "No refresh token found, trying to find family client id item.");
-                        item = findFamilyItemForUser(request.getUserIdentifierType(), userId);
-                    } else {
-                        Logger.v(TAG + methodName, "No refresh token found, skip the family client id item lookup for ADFS authority.");
+            Logger.v(TAG + methodName, "Look for resource specific refresh token in the cache.");
+            refreshItem = findResourceSpecificRefreshToken(request);
+            
+            // If regular RT is found, but it's not MRRT, shouldn't bother trying with FRT. 
+            // All the token issued by EvoSts is MRRT. If regular RT is not MRRT, it basically means
+            // it's not issued by EvoSts. FoCI feature is only visible to RT issued by evoSTS. 
+            if (refreshItem == null || refreshItem.mMultiResource == true) {
+                Logger.v(TAG + methodName, "Resource specific RT does not exist or it is also a MRRT, "
+                        + "look for MRRT.");
+                refreshItem = findMultiResourceRefreshToken(request);
+                
+                if (refreshItem == null || refreshItem.mFamilyToken == true) {
+                    Logger.v(TAG + methodName, "MRRT does not exist or MRRT is also a FRT, "
+                            + "look for FRT.");
+                    refreshItem = findFamilyRefreshToken(request);
+                    
+                    if (refreshItem == null) {
+                        Logger.v(TAG + methodName, "FRT does not exist, fall back to MRRT if exists.");
+                        refreshItem = findMultiResourceRefreshToken(request);
                     }
                 }
-            }
-
-            if (item != null && !StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
-                String refreshTokenHash = getTokenHash(item.getRefreshToken());
-
-                Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
-                        + " Key used:" + keyUsed);
-                refreshItem = new RefreshItem(keyUsed, request, item);
             }
         }
 
         return refreshItem;
     }
-
-    private TokenCacheItem findFamilyItemForUser(final UserIdentifierType userIdentifierType, final String userId) {
-        final String methodName = ":findFamilyItemForUser";
-            
+    
+    private RefreshItem findResourceSpecificRefreshToken(final AuthenticationRequest authRequest) {
+        final String userId = getUserFromAuthenticationRequest(authRequest);
+        final String keyUsed = CacheKey.createCacheKey(authRequest, userId);
+        final TokenCacheItem resourceSpecificTokenCacheItem = mTokenCacheStore.getItem(keyUsed);
+        
+        return createRefreshItem(keyUsed, authRequest, resourceSpecificTokenCacheItem);
+    }
+    
+    private RefreshItem findMultiResourceRefreshToken(final AuthenticationRequest authRequest) {
+        final String userId = getUserFromAuthenticationRequest(authRequest);
+        final String keyUsed = CacheKey.createMultiResourceRefreshTokenKey(authRequest, userId);
+        final TokenCacheItem multiResourceRefreshTokenCacheItem = mTokenCacheStore.getItem(keyUsed);
+        
+        return createRefreshItem(keyUsed, authRequest, multiResourceRefreshTokenCacheItem);
+    }
+    
+    private RefreshItem findFamilyRefreshToken(final AuthenticationRequest authRequest) {
+        final String userId = getUserFromAuthenticationRequest(authRequest);
         if (StringExtensions.IsNullOrBlank(userId)) {
-            Logger.v(TAG + methodName, "User id is not provided, cannot continue with finding family item.");
-            return null;
-        }
-
-        Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
-        if (allItems == null || !allItems.hasNext()) {
-            Logger.v(TAG + methodName, "No items in the cache, cannot continue with finding family item.");
+            Logger.v(TAG, "User is not provided, no need to look for FRT.");
             return null;
         }
         
-        if (userIdentifierType == UserIdentifierType.UniqueId) {
-            Logger.v(TAG + methodName, "UserIdentifier type is unique id, will look for the family item based on unique id.");
-            while (allItems.hasNext()) {
-                final TokenCacheItem tokenCacheItem = allItems.next();
-                final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getUserId())) {
-                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
-                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
-                        Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
-                        return tokenCacheItem;
-                    }
-                }
-            }
-        } else if (userIdentifierType == UserIdentifierType.LoginHint) {
-            Logger.v(TAG + methodName, "UserIdentifier type is loginhint, will look for the family item based on login hint.");
-            while (allItems.hasNext()) {
-                final TokenCacheItem tokenCacheItem = allItems.next();
-                final UserInfo tokenUserInfo = tokenCacheItem.getUserInfo();
-                if (tokenUserInfo != null && userId.equalsIgnoreCase(tokenUserInfo.getDisplayableId())) {
-                    if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getFamilyClientId())
-                            && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
-                        Logger.v(TAG + methodName, "Found family item matching the given user id, and the clientId selected for FoCI is: " + tokenCacheItem.getClientId());
-                        return tokenCacheItem;
-                    }
-                }
-            }
+        final String keyUsed = CacheKey.createFamilyRefreshTokenKey(authRequest, userId);
+        final TokenCacheItem familyTokenCacheItem = mTokenCacheStore.getItem(keyUsed);
+        
+        return createRefreshItem(keyUsed, authRequest, familyTokenCacheItem);
+    }
+    
+    /**
+     * @return Either unique user id or displayable id if provided in the request.
+     */
+    private String getUserFromAuthenticationRequest(final AuthenticationRequest authRequest) {
+        String userId = authRequest.getUserId();
+        if (StringExtensions.IsNullOrBlank(userId)) {
+            userId = authRequest.getLoginHint();
         }
+        
+        return userId;
+    }
+    
+    /**
+     * @return {@link RefreshItem}.
+     */
+    private RefreshItem createRefreshItem(final String keyUsed, final AuthenticationRequest authRequest, 
+            final TokenCacheItem tokenCacheItem) {
+        if (tokenCacheItem != null && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
+            final String refreshTokenHash = getTokenHash(tokenCacheItem.getRefreshToken());
 
-        Logger.v(TAG + methodName, "No family items found in the cache.");
+            Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
+                    + " Key used:" + keyUsed);
+            return new RefreshItem(keyUsed, authRequest, tokenCacheItem);
+        }
+        
         return null;
     }
     
@@ -1763,6 +1792,14 @@ public class AuthenticationContext {
             mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request, userId),
                     new TokenCacheItem(request, result, true));
         }
+        
+        if (!StringExtensions.IsNullOrBlank(result.getFamilyClientId()) && !StringExtensions.IsNullOrBlank(userId)) {
+            Logger.v(TAG, "Set Family Refresh token into cache");
+            final TokenCacheItem familyTokenCacheItem = new TokenCacheItem(request, result, true);
+            // For family token cache item, don't store client id. 
+            familyTokenCacheItem.setClientId(null);
+            mTokenCacheStore.setItem(CacheKey.createFamilyRefreshTokenKey(request, userId), familyTokenCacheItem);
+        }
     }
     
 
@@ -1792,20 +1829,112 @@ public class AuthenticationContext {
             logReturnedToken(request, result);
 
             // Update for cache key
+            // If token is refreshed with Family token, make sure the tokenCacheItem doesn't
+            // contain the client id. 
+            final TokenCacheItem tokenCacheItem = new TokenCacheItem(request, result, refreshItem.mMultiResource);
+            if (tokenRefreshedWithFRT(request, refreshItem)) {
+                tokenCacheItem.setClientId(null);
+            } 
+            
             mTokenCacheStore.setItem(refreshItem.mKey, new TokenCacheItem(request, result,
                     refreshItem.mMultiResource));
-
             setItemToCache(request, result, false);
         }
     }
 
-    private void removeItemFromCache(final RefreshItem refreshItem) {
+    /**
+     * Remove token from cache. 
+     */
+    private void removeItemFromCache(final AuthenticationRequest authenticationRequest, final RefreshItem refreshItem) {
+        // Token removal logic:
+        // 1) If refresh with resource specific token cache entry, clear RT with key(R,C,U,A)
+        // 2) If refresh with MRRT, clear RT with (R,C,U,A) and (C,U,A)
+        // 3) if refresh with FRT, clear RT with (U,A)
+        if (tokenRefreshedWithRegularRT(authenticationRequest, refreshItem)) {
+            removeResourceSpecificTokenEntry(authenticationRequest, refreshItem);
+        } else if (tokenRefreshedWithMRRT(authenticationRequest, refreshItem)) {
+            removeMRRTokenEntry(authenticationRequest, refreshItem);
+            removeResourceSpecificTokenEntry(authenticationRequest, refreshItem);
+        } else if (tokenRefreshedWithFRT(authenticationRequest, refreshItem)) {
+            removeFamilyTokenEntry(authenticationRequest, refreshItem);
+        }
+    }
+    
+    /**
+     * @return True if access token redeem with RT is done through regular RT. 
+     */
+    private boolean tokenRefreshedWithRegularRT(final AuthenticationRequest authRequest, final RefreshItem refreshItem) {
+        return refreshItem != null && refreshItem.mKey.equalsIgnoreCase(CacheKey.createCacheKey(authRequest, 
+                getUserFromAuthenticationRequest(authRequest)));
+    }
+    
+    /**
+     * @return True if access token redeem with RT is done through MRRT token cache entry.
+     */
+    private boolean tokenRefreshedWithMRRT(final AuthenticationRequest authRequest, final RefreshItem refreshItem) {
+        return refreshItem != null && refreshItem.mKey.equalsIgnoreCase(CacheKey.createMultiResourceRefreshTokenKey(authRequest, 
+                getUserFromAuthenticationRequest(authRequest)));
+    }
+    
+    /**
+     * @return True if access token redeem with RT is done through FRT token cache entry. 
+     */
+    private boolean tokenRefreshedWithFRT(final AuthenticationRequest authRequest, final RefreshItem refreshItem) {
+        return refreshItem != null && refreshItem.mKey.equalsIgnoreCase(CacheKey.createFamilyRefreshTokenKey(authRequest, 
+                getUserFromAuthenticationRequest(authRequest)));
+    }
+
+    /**
+     * Remove resource specific token cache entry.
+     */
+    private void removeResourceSpecificTokenEntry(final AuthenticationRequest authRequest, final RefreshItem refreshItem) {
         if (mTokenCacheStore != null) {
-            Logger.v(TAG, "Remove refresh item from cache:" + refreshItem.mKey);
-            mTokenCacheStore.removeItem(refreshItem.mKey);
-            // clean up keys related to userid/displayableid for same request
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithUserId);
-            mTokenCacheStore.removeItem(refreshItem.mKeyWithDisplayableId);
+            Logger.v(TAG, "Remove token cache entry with resource in the cache key");
+            
+            final String cacheKeyUsed = CacheKey.createCacheKey(authRequest, getUserFromAuthenticationRequest(authRequest));
+            mTokenCacheStore.removeItem(cacheKeyUsed);
+            
+            final String cacheKeyWithDisplayableId = CacheKey.createCacheKey(authRequest, refreshItem.mUserInfo.getDisplayableId());
+            mTokenCacheStore.removeItem(cacheKeyWithDisplayableId);
+            
+            final String cacheKeyWithUniqueUserId = CacheKey.createCacheKey(authRequest, refreshItem.mUserInfo.getUserId());
+            mTokenCacheStore.removeItem(cacheKeyWithUniqueUserId);
+        }
+    }
+    
+    /**
+     * Remove MRRT specific token cache entry.
+     */
+    private void removeMRRTokenEntry(final AuthenticationRequest authRequest, final RefreshItem refreshItem) {
+        if (mTokenCacheStore != null) {
+            Logger.v(TAG, "Remove MRRT token cache entry.");
+            
+            final String cacheKeyUsed = CacheKey.createMultiResourceRefreshTokenKey(authRequest, getUserFromAuthenticationRequest(authRequest));
+            mTokenCacheStore.removeItem(cacheKeyUsed);
+            
+            final String cacheKeyWithDisplayableId = CacheKey.createMultiResourceRefreshTokenKey(authRequest, refreshItem.mUserInfo.getDisplayableId());
+            mTokenCacheStore.removeItem(cacheKeyWithDisplayableId);
+            
+            final String cacheKeyWithUniqueUserId = CacheKey.createMultiResourceRefreshTokenKey(authRequest, refreshItem.mUserInfo.getUserId());
+            mTokenCacheStore.removeItem(cacheKeyWithUniqueUserId);
+        }
+    }
+    
+    /**
+     * Remove FRT token cache entry.
+     */
+    private void removeFamilyTokenEntry(final AuthenticationRequest authRequest, final RefreshItem refreshItem) {
+        if (mTokenCacheStore != null) {
+            Logger.v(TAG, "Remove family token cache entry.");
+            
+            final String cacheKeyUsed = CacheKey.createFamilyRefreshTokenKey(authRequest, getUserFromAuthenticationRequest(authRequest));
+            mTokenCacheStore.removeItem(cacheKeyUsed);
+            
+            final String cacheKeyWithDisplayableId = CacheKey.createFamilyRefreshTokenKey(authRequest, refreshItem.mUserInfo.getDisplayableId());
+            mTokenCacheStore.removeItem(cacheKeyWithDisplayableId);
+            
+            final String cacheKeyWithUniqueUserId = CacheKey.createFamilyRefreshTokenKey(authRequest, refreshItem.mUserInfo.getUserId());
+            mTokenCacheStore.removeItem(cacheKeyWithUniqueUserId);
         }
     }
 
@@ -1827,15 +1956,14 @@ public class AuthenticationContext {
             Logger.e(TAG, "Refresh token did not return accesstoken.", request.getLogInfo()
                     + errLogInfo, ADALError.AUTH_FAILED_NO_TOKEN);
 
-            // Check error code, only remove token from cache if receiving invalid_grant from server
+            // Only remove token if receiving oauth2 error code as invalid_grant
             if (result != null &&
                     AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
                 Logger.v(TAG, "Removing token cache for invalid_grant error returned from server.");
                 // remove item from cache to avoid same usage of
                 // refresh token in next acquireToken call
-                removeItemFromCache(refreshItem);
+                removeItemFromCache(request, refreshItem);
             }
-
         } else {
             if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {
                 Logger.v(TAG, "UserInfo is updated from cached result:" + request.getLogInfo());

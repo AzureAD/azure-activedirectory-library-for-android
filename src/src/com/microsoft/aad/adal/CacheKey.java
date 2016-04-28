@@ -73,10 +73,6 @@ public final class CacheKey implements Serializable {
             throw new IllegalArgumentException("authority");
         }
 
-        if (clientId == null) {
-            throw new IllegalArgumentException("clientId");
-        }
-
         CacheKey key = new CacheKey();
 
         if (!isMultiResourceRefreshToken) {
@@ -94,7 +90,11 @@ public final class CacheKey implements Serializable {
             key.mAuthority = (String)key.mAuthority.subSequence(0, key.mAuthority.length() - 1);
         }
 
-        key.mClientId = clientId.toLowerCase(Locale.US);
+        // Client Id is optional, for FRT token cache entry, don't store client Id as key.
+        if (clientId != null) {
+            key.mClientId = clientId.toLowerCase(Locale.US);
+        }
+        
         key.mIsMultipleResourceRefreshToken = isMultiResourceRefreshToken;
 
         // optional
@@ -154,6 +154,14 @@ public final class CacheKey implements Serializable {
 
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
                 cacheUserId);
+    }
+    
+    public static String createFamilyRefreshTokenKey(final AuthenticationRequest authRequest, final String userId) {
+        if (authRequest == null) {
+            throw new IllegalArgumentException("authentication request is null");
+        }
+        
+        return createCacheKey(authRequest.getAuthority(), null, null, true, userId);
     }
 
     /**

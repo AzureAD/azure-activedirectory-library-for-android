@@ -25,6 +25,7 @@ package com.microsoft.aad.adal.test;
 
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
@@ -32,9 +33,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
@@ -48,6 +49,10 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import org.mockito.AdditionalMatchers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
@@ -68,6 +73,7 @@ import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.UserInfo;
+import com.microsoft.aad.adal.WebRequestHandler;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -82,7 +88,6 @@ import android.test.AndroidTestCase;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
-import android.test.suitebuilder.annotation.Suppress;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
@@ -1255,9 +1260,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
                         false, TEST_IDTOKEN_UPN), "familyClientId");
 
         // Do silent token request and return idtoken in the result
-        json = "{\"id_token\":\""
-                + TEST_IDTOKEN
-                + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"I am a new refresh token\",\"scope\":\"*\",\"foci\":\"familyClientId\"}";
+        json = getSuccessTokenResponse(true);
         webrequest.setReturnResponse(new HttpWebResponse(200, json, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
@@ -1272,18 +1275,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
     
     /**
      * Make sure if we acquire token for a client id, and if we already have a family item in cache, we use that refresh token.
-     * @throws InterruptedException
-     * @throws IllegalArgumentException
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
-     * @throws ClassNotFoundException
-     * @throws NoSuchMethodException
-     * @throws InstantiationException
-     * @throws InvocationTargetException
-     * @throws NoSuchAlgorithmException
-     * @throws NoSuchPaddingException
      */
-    @Suppress
     @SmallTest
     public void testRefreshTokenRequestWithFamilyIdSuccess() throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
@@ -1299,9 +1291,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         
         // Do silent token request and return idtoken in the result
-        final String json = "{\"id_token\":\""
-                + TEST_IDTOKEN
-                + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"I am a new refresh token\",\"scope\":\"*\"}";
+        final String json = getSuccessTokenResponse(false);
         webrequest.setReturnResponse(new HttpWebResponse(200, json, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
         
@@ -1315,24 +1305,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
     
     /**
-     * Make sure if we have a family token in the cache and we fail to get a token using it, we correctly fail out. 
-     * @throws InterruptedException
-     * @throws IllegalArgumentException
-     * @throws NoSuchFieldException
-     * @throws IllegalAccessException
-     * @throws ClassNotFoundException
-     * @throws NoSuchMethodException
-     * @throws InstantiationException
-     * @throws InvocationTargetException
-     * @throws NoSuchAlgorithmException
-     * @throws NoSuchPaddingException
+     * Make sure if we have a family token in the cache and we fail to redeem access token with FRT, we correctly fail. 
+     * Also make sure only FRT token entry is deleted.  
      */
-    @Suppress
     @SmallTest
-    public void testRefreshTokenRequestWithFamilyIdFailed() throws InterruptedException, IllegalArgumentException,
+    public void testFamilyRefreshTokenRequestFailedWithInvalidGrant() throws InterruptedException, IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InvocationTargetException,
-            NoSuchAlgorithmException, NoSuchPaddingException {
+            NoSuchAlgorithmException, NoSuchPaddingException, IOException {
         
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheWithFamilyIdForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -1340,24 +1320,396 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 VALID_AUTHORITY, false, mockCache);
         
         setConnectionAvailable(context, true);
-        MockWebRequestHandler webrequest = new MockWebRequestHandler();
+        WebRequestHandler webRequestHandler = Mockito.mock(WebRequestHandler.class);
+        Mockito.when(webRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), Mockito.anyString().getBytes(), Mockito.anyString()))
+            .thenReturn(new HttpWebResponse(400, getErrorResponseBody("invalid_grant"), null));
         
         // Do silent token request and return idtoken in the result
-        String responseBody = "{\"error\":\"invalid_grant\",\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null}";
-        webrequest.setReturnResponse(new HttpWebResponse(400, responseBody, null));
-        ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webRequestHandler);
         
         final String anotherClientId = "clientId2";
         try {
             context.acquireTokenSilentSync("resource", anotherClientId,
                     TEST_IDTOKEN_USERID);
+            fail();
         } catch (AuthenticationException authException) {
+            // Token cache contains both FRT cache entry, and MRRT cache entry, when FRT fails, should retry again with MRRT. 
             assertEquals("Error code is not as expected", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
         }
+        
+        // Verify Cache entry
+        // Token request with FRT should delete token cache entry with FRT
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_USERID)));
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_UPN)));
+        
+        // Verify resource specific token cache entry still exists
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_UPN)));
+        
+        // Verify MRRT token cache entry still exists
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "clientId", true, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "clientId", true, TEST_IDTOKEN_UPN)));
         
         clearCache(context);
     }
     
+    @SmallTest
+    public void testFamilyRefreshTokenRequestFailedWithInvalidRequest() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+            NoSuchFieldException, IllegalAccessException, InterruptedException, IOException {
+        
+        FileMockContext mockContext = new FileMockContext(getContext());
+        ITokenCacheStore mockCache = getCacheWithFamilyIdForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        
+        setConnectionAvailable(context, true);
+        WebRequestHandler webRequestHandler = Mockito.mock(WebRequestHandler.class);
+        Mockito.when(webRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), Mockito.anyString().getBytes(), Mockito.anyString()))
+            .thenReturn(new HttpWebResponse(400, getErrorResponseBody("invalid_request"), null));
+        
+        // Do silent token request and return idtoken in the result
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webRequestHandler);
+        
+        final String anotherClientId = "clientId2";
+        try {
+            context.acquireTokenSilentSync("resource", anotherClientId,
+                    TEST_IDTOKEN_USERID);
+            fail("Expect exceptions thrown.");
+        } catch (AuthenticationException authException) {
+            // Token cache contains both FRT cache entry, and MRRT cache entry, when FRT fails, should retry again with MRRT. 
+            assertEquals("Error code is not as expected", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
+        }
+        
+        // Verify Cache entry
+        // Token request with FRT should delete token cache entry with FRT
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_UPN)));
+        
+        // Verify resource specific token cache entry still exists
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_UPN)));
+        
+        // Verify MRRT token cache entry still exists
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "clientId", true, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "clientId", true, TEST_IDTOKEN_UPN)));
+        
+        clearCache(context);
+    }
+    
+    // Verify if regular RT exists, if the RT is not MRRT, we only redeem token with the regular RT. 
+    @SmallTest
+    public void testRegularRTExists() throws NoSuchFieldException, IllegalAccessException, IOException, InterruptedException{
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        final String resource = "resource";
+        final String clientId = "clientId";
+        mockedCache.removeAll();
+        
+        // Add regular RT in the cache, RT is not MRRT
+        final TokenCacheItem regularTokenCacheItem = getTokenCacheItem(resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final String regularRT = "Regular RT";
+        regularTokenCacheItem.setRefreshToken(regularRT);
+        mockedCache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, TEST_IDTOKEN_USERID), regularTokenCacheItem);
+        mockedCache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, TEST_IDTOKEN_UPN), regularTokenCacheItem);
+        
+        // Add MRRT in the cache
+        final TokenCacheItem mrrtTokenCacheItem = getTokenCacheItem(resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final String mrrt = "MRRT Refresh Token";
+        mrrtTokenCacheItem.setRefreshToken(mrrt);
+        mrrtTokenCacheItem.setFamilyClientId("familyClientId");
+        mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        setMRRTTokenCacheEntry(mockedCache, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN, mrrtTokenCacheItem);
+        
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockedCache);
+        setConnectionAvailable(context, true);
+        
+        WebRequestHandler webRequestHandler = Mockito.mock(WebRequestHandler.class);
+        // Token redeem with MRRT fail with invalid_grant.
+        final byte[] postMessage = getPoseMessage(regularRT, clientId, resource);
+        Mockito.when(webRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), AdditionalMatchers.aryEq(postMessage), Mockito.anyString()))
+            .thenReturn(new HttpWebResponse(400, getErrorResponseBody("invalid_grant"), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webRequestHandler);
+        
+        try {
+            context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_USERID);
+            fail("Expect exceptions thrown.");
+        } catch (AuthenticationException authException) {
+            // Token cache contains both FRT cache entry, and MRRT cache entry, when FRT fails, should retry again with MRRT. 
+            assertEquals("Error code is not as expected", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
+        }
+        
+        ArgumentCaptor<byte[]> webRequestHandlerArgument = ArgumentCaptor.forClass(byte[].class);
+        Mockito.verify(webRequestHandler).sendPost(Mockito.any(URL.class), Mockito.anyMap(), webRequestHandlerArgument.capture(), Mockito.anyString());
+        assertTrue(Arrays.equals(postMessage, webRequestHandlerArgument.getValue()));
+        
+        // verify regular token entry not existed
+        assertNull(mockedCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, TEST_IDTOKEN_USERID)));
+        assertNull(mockedCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, TEST_IDTOKEN_UPN)));
+        
+        // verify MRRT entry exist
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, clientId, true, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, clientId, true, TEST_IDTOKEN_UPN)));
+        
+        clearCache(context);
+    }
+    
+    @SmallTest
+    public void testRefreshTokenRequestWithMRRTFailWithInvalidGrant() throws NoSuchFieldException, IllegalAccessException, 
+            IOException, InterruptedException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        final String resource = "resource";
+        final String clientId = "clientId";
+        
+        // Add regular RT in the cache
+        final TokenCacheItem regularTokenCacheItem = getTokenCacheItem(resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        regularTokenCacheItem.setRefreshToken("Regular RT");
+        regularTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        mockedCache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, TEST_IDTOKEN_USERID), regularTokenCacheItem);
+        mockedCache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, TEST_IDTOKEN_UPN), regularTokenCacheItem);
+        
+        // Add MRRT in the cache
+        final TokenCacheItem mrrtTokenCacheItem = getTokenCacheItem(resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final String mrrt = "MRRT Refresh Token";
+        mrrtTokenCacheItem.setRefreshToken(mrrt);
+        mrrtTokenCacheItem.setFamilyClientId("familyClientId");
+        mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        setMRRTTokenCacheEntry(mockedCache, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN, mrrtTokenCacheItem);
+        
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockedCache);
+        setConnectionAvailable(context, true);
+        WebRequestHandler webRequestHandler = Mockito.mock(WebRequestHandler.class);
+        
+        // Token redeem with MRRT fail with invalid_grant.
+        final byte[] postMessage = getPoseMessage(mrrt, clientId, resource);
+        Mockito.when(webRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), AdditionalMatchers.aryEq(postMessage), Mockito.anyString()))
+            .thenReturn(new HttpWebResponse(400, getErrorResponseBody("invalid_grant"), null));
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webRequestHandler);
+        
+        try {
+            context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_USERID);
+            fail("Expect exceptions thrown.");
+        } catch (AuthenticationException authException) {
+            // Token cache contains both FRT cache entry, and MRRT cache entry, when FRT fails, should retry again with MRRT. 
+            assertEquals("Error code is not as expected", ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authException.getCode());
+        }
+        
+        ArgumentCaptor<byte[]> webRequestHandlerArgument = ArgumentCaptor.forClass(byte[].class);
+        Mockito.verify(webRequestHandler).sendPost(Mockito.any(URL.class), Mockito.anyMap(), webRequestHandlerArgument.capture(), Mockito.anyString());
+        assertTrue(Arrays.equals(postMessage, webRequestHandlerArgument.getValue()));
+        
+        // verify both regular token entry and mrrt token entry is deleted
+        // regular token cache entry
+        assertNull(mockedCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, TEST_IDTOKEN_USERID)));
+        assertNull(mockedCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, resource, clientId, false, TEST_IDTOKEN_UPN)));
+        
+        // mrrt entry
+        assertNull(mockedCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, clientId, true, TEST_IDTOKEN_USERID)));
+        assertNull(mockedCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, clientId, true, TEST_IDTOKEN_UPN)));
+        
+        clearCache(context);
+    }
+    
+    /**
+     * Verify if existing MRRT token cache item is also a FRT, MRRT token cache item can be used to redeem access token. 
+     */
+    @SmallTest
+    public void testRefreshTokenLookupFallbackToMRRT() throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchFieldException, 
+            IllegalAccessException, AuthenticationException, InterruptedException, IOException {
+       
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
+        final String clientId = "clientId";
+        final String resource = "resrouce";
+        
+        // TokenCache doesn't have FoCI token Cache entry, but the MRRT token cache entry contains the TokenCacheItem with FoCI flag
+        // adding MRRT token CacheEntry
+        final String mrrtToken = "MRRT Refresh Token";
+        final TokenCacheItem mrrtTokenCacheItem = getTokenCacheItem(resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        mrrtTokenCacheItem.setRefreshToken(mrrtToken);
+        mrrtTokenCacheItem.setFamilyClientId("familyClientId");
+        setMRRTTokenCacheEntry(mockCache, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN, mrrtTokenCacheItem);
+        
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        
+        setConnectionAvailable(context, true);
+        WebRequestHandler webRequestHandler = Mockito.mock(WebRequestHandler.class);
+
+        // MRRT is used for redeeming token.
+        final byte[] postMessage = getPoseMessage(mrrtToken, clientId, resource);
+        Mockito.when(webRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), AdditionalMatchers.aryEq(postMessage), Mockito.anyString()))
+            .thenReturn(new HttpWebResponse(200, getSuccessTokenResponse(false), null));
+        
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webRequestHandler);
+        
+        AuthenticationResult result = context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_USERID);
+        assertEquals("Returned assess token is not as expected.", "I am a new access token", result.getAccessToken());
+        assertEquals("Returned refresh token is not as expected", "I am a new refresh token", result.getRefreshToken());
+        assertEquals("Returned id token is not as expected.", TEST_IDTOKEN, result.getIdToken());
+        clearCache(context);
+    }
+    
+    /**
+     * Test if FRT request failed, retry with MRRT if exists. 
+     */
+    @SmallTest
+    public void testFRTRequestFailedFallBackMRRTRequest() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+            NoSuchFieldException, IllegalAccessException, IOException, InterruptedException {
+        
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
+        final String clientId = "clientId";
+        
+        //MRRT token Cache Item with FoCI flag
+        final String mrrtToken = "MRRT Refresh Token";
+        final TokenCacheItem mrrtTokenCacheItem = getTokenCacheItem(null, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        mrrtTokenCacheItem.setRefreshToken(mrrtToken);
+        mrrtTokenCacheItem.setFamilyClientId("familyClientId");
+        setMRRTTokenCacheEntry(mockCache, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN, mrrtTokenCacheItem);
+        
+        // FRT token cache item
+        final TokenCacheItem frtTokenCacheItem = getTokenCacheItemWithFoCI(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final String frtToken = "FRT Refresh Token";
+        frtTokenCacheItem.setRefreshToken(frtToken);
+        setFRTTokenCacheEntry(mockCache, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN, frtTokenCacheItem);
+        
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        
+        setConnectionAvailable(context, true);
+        WebRequestHandler webRequestHandler = Mockito.mock(WebRequestHandler.class);
+        
+        // FRT token request faile with invalid_grant
+        final String anotherResource = "anotherResource";
+        Mockito.when(webRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), Mockito.refEq(getPoseMessage(frtToken, clientId, anotherResource)), 
+                Mockito.anyString())).thenReturn(new HttpWebResponse(400, getErrorResponseBody("invalid_grant"), null));
+        
+        // retry request with MRRT succeeds
+        Mockito.when(webRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), Mockito.refEq(getPoseMessage(mrrtToken, clientId, anotherResource)), 
+                Mockito.anyString())).thenReturn(new HttpWebResponse(200, getSuccessTokenResponse(false), null));
+        
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webRequestHandler);
+        
+        AuthenticationResult result = null;
+        try {
+            result = context.acquireTokenSilentSync(anotherResource, clientId, TEST_IDTOKEN_USERID);
+        } catch (AuthenticationException e) {
+            fail("Unexpected exception");
+        }
+        
+        // Verify post request with FRT token is executed first, followed by post request with MRRT.. 
+        Mockito.verify(webRequestHandler, Mockito.times(1)).sendPost(Mockito.any(URL.class), Mockito.anyMap(), 
+                Mockito.refEq(getPoseMessage(frtToken, clientId, anotherResource)), Mockito.anyString());
+        Mockito.verify(webRequestHandler, Mockito.times(1)).sendPost(Mockito.any(URL.class), Mockito.anyMap(), 
+                Mockito.refEq(getPoseMessage(mrrtToken, clientId, anotherResource)), Mockito.anyString());
+        
+        assertNotNull(result);
+        assertEquals("Returned assess token is not as expected.", "I am a new access token", result.getAccessToken());
+        assertEquals("Returned refresh token is not as expected", "I am a new refresh token", result.getRefreshToken());
+        assertEquals("Returned id token is not as expected.", TEST_IDTOKEN, result.getIdToken());
+        clearCache(context);
+    }
+    
+    /**
+     * Verify if FRT request fails with invalid_grant, and retry request with MRRT failed with invalid request, 
+     * only FRT token cache entry is removed. 
+     */
+    public void testFRTRequestFail_FallBackToMRT_MRTRequestFail() throws NoSuchFieldException, IllegalAccessException, UnsupportedEncodingException, IOException, InterruptedException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
+        mockCache.removeAll();
+        final String clientId = "clientId";
+        
+        //MRRT token Cache Item with FoCI flag
+        final String mrrtToken = "MRRT Refresh Token";
+        final TokenCacheItem mrrtTokenCacheItem = getTokenCacheItem(null, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        mrrtTokenCacheItem.setRefreshToken(mrrtToken);
+        mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        mrrtTokenCacheItem.setFamilyClientId("FamilyClientId");
+        setMRRTTokenCacheEntry(mockCache, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN, mrrtTokenCacheItem);
+        
+        // FRT token cache item
+        final TokenCacheItem frtTokenCacheItem = getTokenCacheItemWithFoCI(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final String frtToken = "FRT Refresh Token";
+        frtTokenCacheItem.setRefreshToken(frtToken);
+        setFRTTokenCacheEntry(mockCache, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN, frtTokenCacheItem);
+        
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
+        
+        setConnectionAvailable(context, true);
+        WebRequestHandler webRequestHandler = Mockito.mock(WebRequestHandler.class);
+        
+        final String resource = "resource";
+        //FRT request fails with invalid_grant
+        Mockito.when(webRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), AdditionalMatchers.aryEq(getPoseMessage(frtToken, clientId, resource)), 
+                Mockito.anyString())).thenReturn(new HttpWebResponse(400, getErrorResponseBody("invalid_grant"), null));
+        
+        // MRT request also fails
+        Mockito.when(webRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), AdditionalMatchers.aryEq(getPoseMessage(mrrtToken, clientId, resource)), 
+                Mockito.anyString())).thenReturn(new HttpWebResponse(400, getErrorResponseBody("invalid_request"), null));
+        
+        ReflectionUtils.setFieldValue(context, "mWebRequest", webRequestHandler);
+        
+        try {
+            context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_USERID);
+            fail("Expect exception to be thrown.");
+        } catch (final AuthenticationException e) {
+            assertTrue(e.getCode().equals(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED));
+        }
+        
+        // Verify post request with MRRT token is executed first, followed by post request with FRT. 
+        Mockito.verify(webRequestHandler, Mockito.times(1)).sendPost(Mockito.any(URL.class), Mockito.anyMap(), 
+                AdditionalMatchers.aryEq(getPoseMessage(frtToken, clientId, resource)), Mockito.anyString());
+        Mockito.verify(webRequestHandler, Mockito.times(1)).sendPost(Mockito.any(URL.class), Mockito.anyMap(), 
+                AdditionalMatchers.aryEq(getPoseMessage(mrrtToken, clientId, resource)), Mockito.anyString());
+        
+        // Verify cache entry
+        // the First FRT request should delete the FRT entries
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_USERID)));
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_UPN)));
+        
+        // MRT request gets back invalid_request, cache entry should still exist
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, clientId, true, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, clientId, true, TEST_IDTOKEN_UPN)));
+        
+        clearCache(context);
+    }
+    
+    /**
+     * Store MRRT token cache entry into cache. 
+     */
+    private void setMRRTTokenCacheEntry(final ITokenCacheStore mockedCache, final String clientId, final String userId, final String displayableId, 
+            final TokenCacheItem token) {
+        mockedCache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, clientId, true, TEST_IDTOKEN_USERID), token);
+        mockedCache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, clientId, true, TEST_IDTOKEN_UPN), token);
+    }
+    
+    /**
+     * Store FRT token cache entry into cache. 
+     */
+    private void setFRTTokenCacheEntry(final ITokenCacheStore mockedCache, final String userId, final String displayableId, final TokenCacheItem token) {
+        setMRRTTokenCacheEntry(mockedCache, null, userId, displayableId, token);
+    }
+    
+    private String getSuccessTokenResponse(final boolean withFociFlag) {
+        final String tokenResponse = "{\"id_token\":\""
+                + TEST_IDTOKEN
+                + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"I am a new refresh token\",\"scope\":\"*\"";
+        
+        final StringBuilder tokenResponseBuilder = new StringBuilder(tokenResponse);
+        if (withFociFlag) {
+            tokenResponseBuilder.append(",\"foci\":\"familyClientId\"}");
+        } else {
+            tokenResponseBuilder.append("}");
+        }
+
+        return tokenResponseBuilder.toString();
+    }
+   
     private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey, 
             final String expectedFamilyClientId) {
         
@@ -2322,26 +2674,57 @@ public class AuthenticationContextTest extends AndroidTestCase {
             throws NoSuchAlgorithmException, NoSuchPaddingException {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         cache.removeAll();
+        TokenCacheItem tokenCacheItemWithFoCI = getTokenCacheItemWithFoCI(userId, displayableId);
+
+        //Set regular token cache entry
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, userId),tokenCacheItemWithFoCI);
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, displayableId), tokenCacheItemWithFoCI);
+        
+        // Set MRRT token cache entry
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "clientId", true, userId), tokenCacheItemWithFoCI);
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "clientId", true, displayableId), tokenCacheItemWithFoCI);
+        
+        // set FRT token cache entry
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, userId), tokenCacheItemWithFoCI);
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, displayableId), tokenCacheItemWithFoCI);
+        return cache;
+    }
+    
+    private TokenCacheItem getTokenCacheItemWithFoCI(final String userId, final String displayableId) {
+        final TokenCacheItem tokenCacheItemWithFoCI = getTokenCacheItem(null, null, userId, displayableId);
+        tokenCacheItemWithFoCI.setFamilyClientId("familyClientId");
+        
+        return tokenCacheItemWithFoCI;
+    }
+    
+    private TokenCacheItem getTokenCacheItem(final String resource, final String clientId, final String userId, final String displayableId) {
         Calendar expiredTime = new GregorianCalendar();
         Log.d("Test", "Time now:" + expiredTime.toString());
         expiredTime.add(Calendar.MINUTE, -60);
-        TokenCacheItem refreshItem = new TokenCacheItem();
-        refreshItem.setAuthority(VALID_AUTHORITY);
-        refreshItem.setResource("resource");
-        refreshItem.setClientId("clientId");
-        refreshItem.setAccessToken("accessToken");
-        refreshItem.setRefreshToken("refreshToken=");
-        refreshItem.setExpiresOn(expiredTime.getTime());
-        refreshItem.setUserInfo(new UserInfo(userId, "givenName", "familyName",
+        TokenCacheItem tokenCacheItem = new TokenCacheItem();
+        tokenCacheItem.setAuthority(VALID_AUTHORITY);
+        tokenCacheItem.setResource(resource);
+        tokenCacheItem.setClientId(clientId);
+        tokenCacheItem.setAccessToken("accessToken");
+        tokenCacheItem.setRefreshToken("refreshToken=");
+        tokenCacheItem.setExpiresOn(expiredTime.getTime());
+        tokenCacheItem.setUserInfo(new UserInfo(userId, "givenName", "familyName",
             "identityProvider", displayableId));
-        refreshItem.setFamilyClientId("familyClientId");
-        cache.setItem(
-            CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, userId),
-            refreshItem);
-        cache.setItem(
-            CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, displayableId),
-            refreshItem);
-        return cache;
+        
+        return tokenCacheItem;
+    }
+    
+    private final String urlFormEncode(String source) throws UnsupportedEncodingException {
+        return URLEncoder.encode(source, "UTF_8");
+    }
+    
+    private final byte[] getPoseMessage(final String refreshToken, final String clientId, final String resource) 
+            throws UnsupportedEncodingException {
+        return String.format("%s=%s&%s=%s&%s=%s&%s=%s",
+                AuthenticationConstants.OAuth2.GRANT_TYPE, urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
+                AuthenticationConstants.OAuth2.REFRESH_TOKEN, urlFormEncode(refreshToken),
+                AuthenticationConstants.OAuth2.CLIENT_ID, urlFormEncode(clientId), 
+                AuthenticationConstants.AAD.RESOURCE, urlFormEncode(resource)).getBytes();
     }
 
     private ITokenCacheStore getMockCache(int minutes, String token, String resource,
