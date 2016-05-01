@@ -51,6 +51,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.SparseArray;
+import android.webkit.WebViewClient;
 
 /**
  * ADAL context to get access token, refresh token, and lookup from cache.
@@ -755,8 +756,14 @@ public class AuthenticationContext {
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
                     Logger.v(TAG, "Error info:" + errCode + " " + errMessage + " for requestId: "
                             + requestId + correlationInfo);
+                    
+                    ADALError adalError = ADALError.SERVER_INVALID_REQUEST;
+                    if (errCode.equalsIgnoreCase("Code:" + String.valueOf(WebViewClient.ERROR_FAILED_SSL_HANDSHAKE))) {
+                    	adalError = ADALError.ERROR_FAILED_SSL_HANDSHAKE;
+                    }
+                    
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
-                            ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage));
+                            adalError, errCode + " " + errMessage));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
