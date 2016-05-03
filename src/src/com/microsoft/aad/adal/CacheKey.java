@@ -26,6 +26,8 @@ package com.microsoft.aad.adal;
 import java.io.Serializable;
 import java.util.Locale;
 
+import com.microsoft.aad.adal.RefreshItem.KeyEntryType;
+
 /**
  * CacheKey will be the object for key.
  */
@@ -35,6 +37,8 @@ public final class CacheKey implements Serializable {
      * Serial version id.
      */
     private static final long serialVersionUID = 8067972995583126404L;
+    
+    static final String FRT_ENTRY_PREFIX = "foci-";
 
     private String mAuthority;
 
@@ -72,6 +76,15 @@ public final class CacheKey implements Serializable {
         if (authority == null) {
             throw new IllegalArgumentException("authority");
         }
+        
+        // For family token cache entry, client id will be foci-familyId
+        // When we receive family token from server response, will use whatever
+        // server returned as familyId; for caching look up, will hardcode "1"
+        // for now since only FoCI feature is only supported for Microsoft first
+        // party apps, and server returns "1" for first party families. 
+        if (clientId == null) {
+            throw new IllegalArgumentException("clientid");
+        }
 
         CacheKey key = new CacheKey();
 
@@ -90,7 +103,6 @@ public final class CacheKey implements Serializable {
             key.mAuthority = (String)key.mAuthority.subSequence(0, key.mAuthority.length() - 1);
         }
 
-        // Client Id is optional, for FRT token cache entry, don't store client Id as key.
         if (clientId != null) {
             key.mClientId = clientId.toLowerCase(Locale.US);
         }
@@ -156,12 +168,40 @@ public final class CacheKey implements Serializable {
                 cacheUserId);
     }
     
-    public static String createFamilyRefreshTokenKey(final AuthenticationRequest authRequest, final String userId) {
+    /**
+     * Create cache key for storing family refresh token. 
+     * @note For family token entry, will store foci-familyId as the client id. 
+     */
+    public static String createFamilyRefreshTokenKey(final AuthenticationRequest authRequest, final String familyClientId, 
+            final String userId) {
         if (authRequest == null) {
             throw new IllegalArgumentException("authentication request is null");
         }
         
-        return createCacheKey(authRequest.getAuthority(), null, null, true, userId);
+        // family token cache entry will store foci-familyId as client id.
+        return createCacheKey(authRequest.getAuthority(), null, FRT_ENTRY_PREFIX + familyClientId, true, userId);
+    }
+    
+    /**
+     * Create cache key based on the {@link KeyEntryType}. 
+     */
+    public static String createCacheKey(final AuthenticationRequest authRequest, final KeyEntryType keyEntryType, final String userId) {
+        final String cacheKey;
+        switch (keyEntryType) {
+        case REGULAR_REFRESH_TOKEN_ENTRY :
+            cacheKey = createCacheKey(authRequest, userId);
+            break;
+        case MULTI_RESOURCE_REFRESH_TOKEN_ENTRY :
+            cacheKey = createMultiResourceRefreshTokenKey(authRequest, userId);
+            break;
+        case FAMILY_REFRESH_TOKEN_ENTRY :
+            cacheKey = createFamilyRefreshTokenKey(authRequest, AuthenticationConstants.FIRST_PARTY_FAMILY_ID, userId);
+            break;
+        default :
+            cacheKey = "";
+        }
+        
+        return cacheKey;
     }
 
     /**

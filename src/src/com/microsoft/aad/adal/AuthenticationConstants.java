@@ -340,6 +340,8 @@ public class AuthenticationConstants {
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";
+    
+    public static final String FIRST_PARTY_FAMILY_ID = "1";
 
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";

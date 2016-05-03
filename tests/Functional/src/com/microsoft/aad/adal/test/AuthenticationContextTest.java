@@ -1245,7 +1245,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         String json = "{\"id_token\":\""
                 + TEST_IDTOKEN
-                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\",\"foci\":\"familyClientId\"}";
+                + "\",\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\",\"expires_in\":\"-10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\",\"foci\":\"1\"}";
         webrequest.setReturnResponse(new HttpWebResponse(200, json, null));
         ReflectionUtils.setFieldValue(context, "mWebRequest", webrequest);
 
@@ -1257,7 +1257,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         // Check response in callback
         verifyRefreshTokenResponse(mockCache, callback.mException, callback.mResult);
         verifyFamilyIdStoredInTokenCacheItem(mockCache, CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
-                        false, TEST_IDTOKEN_UPN), "familyClientId");
+                        false, TEST_IDTOKEN_UPN), "1");
 
         // Do silent token request and return idtoken in the result
         json = getSuccessTokenResponse(true);
@@ -1269,7 +1269,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("Returned refresh token is not as expected.", "I am a new refresh token", result.getRefreshToken());
         assertEquals("Returned id token is not as expected.", TEST_IDTOKEN, result.getIdToken());
         verifyFamilyIdStoredInTokenCacheItem(mockCache, CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId",
-                        false, TEST_IDTOKEN_UPN), "familyClientId");
+                        false, TEST_IDTOKEN_UPN), "1");
         clearCache(context);
     }
     
@@ -1339,8 +1339,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         
         // Verify Cache entry
         // Token request with FRT should delete token cache entry with FRT
-        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_USERID)));
-        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_UPN)));
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "foci-1", true, TEST_IDTOKEN_USERID)));
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "foci-1", true, TEST_IDTOKEN_UPN)));
         
         // Verify resource specific token cache entry still exists
         assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
@@ -1382,8 +1382,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         
         // Verify Cache entry
         // Token request with FRT should delete token cache entry with FRT
-        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_USERID)));
-        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_UPN)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "foci-1", true, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "foci-1", true, TEST_IDTOKEN_UPN)));
         
         // Verify resource specific token cache entry still exists
         assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, "resource", "clientId", false, TEST_IDTOKEN_USERID)));
@@ -1403,7 +1403,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
-        mockedCache.removeAll();
         
         // Add regular RT in the cache, RT is not MRRT
         final TokenCacheItem regularTokenCacheItem = getTokenCacheItem(resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -1669,8 +1668,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         
         // Verify cache entry
         // the First FRT request should delete the FRT entries
-        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_USERID)));
-        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, TEST_IDTOKEN_UPN)));
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "foci-1", true, TEST_IDTOKEN_USERID)));
+        assertNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "foci-1", true, TEST_IDTOKEN_UPN)));
         
         // MRT request gets back invalid_request, cache entry should still exist
         assertNotNull(mockCache.getItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, clientId, true, TEST_IDTOKEN_USERID)));
@@ -1692,7 +1691,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
      * Store FRT token cache entry into cache. 
      */
     private void setFRTTokenCacheEntry(final ITokenCacheStore mockedCache, final String userId, final String displayableId, final TokenCacheItem token) {
-        setMRRTTokenCacheEntry(mockedCache, null, userId, displayableId, token);
+        setMRRTTokenCacheEntry(mockedCache, "foci-1", userId, displayableId, token);
     }
     
     private String getSuccessTokenResponse(final boolean withFociFlag) {
@@ -2685,8 +2684,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "clientId", true, displayableId), tokenCacheItemWithFoCI);
         
         // set FRT token cache entry
-        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, userId), tokenCacheItemWithFoCI);
-        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, null, true, displayableId), tokenCacheItemWithFoCI);
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "foci-1", true, userId), tokenCacheItemWithFoCI);
+        cache.setItem(CacheKey.createCacheKey(VALID_AUTHORITY, null, "foci-1", true, displayableId), tokenCacheItemWithFoCI);
         return cache;
     }
     

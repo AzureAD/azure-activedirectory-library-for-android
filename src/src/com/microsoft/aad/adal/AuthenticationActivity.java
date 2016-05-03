@@ -37,6 +37,7 @@ import java.util.UUID;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+import com.microsoft.aad.adal.RefreshItem.KeyEntryType;
 
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
@@ -961,7 +962,7 @@ public class AuthenticationActivity extends Activity {
                 Logger.i(TAG, "setAccount: user key is null", "");
             }
 
-            TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
+            TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY);
             String json = gson.toJson(item);
             String encrypted = mStorageHelper.encrypt(json);
 
@@ -975,7 +976,7 @@ public class AuthenticationActivity extends Activity {
 
             if (result.taskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
-                TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
+                TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY);
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
                 key = CacheKey.createMultiResourceRefreshTokenKey(mRequest, null);

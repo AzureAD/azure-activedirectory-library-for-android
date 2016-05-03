@@ -112,8 +112,10 @@ public class CacheKeyTests extends AndroidTestCase {
 
         try {
             CacheKey.createCacheKey("https://authority", "resource", null, false, null);
+            fail("Expect exceptions");
         } catch (Exception exc) {
-            fail();
+            assertTrue("argument exception", exc instanceof IllegalArgumentException);
+            assertEquals("contains clientid", "clientid", ((IllegalArgumentException)exc).getMessage());
         }
     }
 }

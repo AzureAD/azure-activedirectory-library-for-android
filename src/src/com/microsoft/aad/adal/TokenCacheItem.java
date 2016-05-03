@@ -27,6 +27,8 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.microsoft.aad.adal.RefreshItem.KeyEntryType;
+
 /**
  * Extended result to store more info Queries will be performed over this item
  * not the key.
@@ -73,30 +75,35 @@ public class TokenCacheItem implements Serializable {
     }
 
     TokenCacheItem(final AuthenticationRequest request, final AuthenticationResult result,
-            boolean storeMultiResourceRefreshToken) {
+            final KeyEntryType keyEntryType) {
         if (request != null) {
             mAuthority = request.getAuthority();
-            mClientId = request.getClientId();
-            if (!storeMultiResourceRefreshToken) {
-                // Cache item will not store resource info for Multi Resource
-                // Refresh Token
+           
+            // Do not store client id for token stored in family token entry
+            if (keyEntryType != KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY) {
+                mClientId = request.getClientId();
+            }
+
+            if (keyEntryType != KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY) {
+                // Cache item will not store resource info for MRRT token entry
                 mResource = request.getResource();
             }
         }
 
         if (result != null) {
-            mRefreshtoken = result.getRefreshToken();
             mExpiresOn = result.getExpiresOn();
-            mIsMultiResourceRefreshToken = storeMultiResourceRefreshToken;
+            mIsMultiResourceRefreshToken = result.getIsMultiResourceRefreshToken();
             mTenantId = result.getTenantId();
             mUserInfo = result.getUserInfo();
             mRawIdToken = result.getIdToken();
-            if (!storeMultiResourceRefreshToken) {
-                // Cache item will not store accesstoken for Multi
-                // Resource Refresh Token
+
+            if (keyEntryType == KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY) {
+                // Only store AT for regular token cache entry.
+                // Don't store AT for MRRT token cache entry or FRT entry
                 mAccessToken = result.getAccessToken();
-            }
-            
+            } 
+
+            mRefreshtoken = result.getRefreshToken();
             mFamilyClientId = result.getFamilyClientId();
         }
     }
