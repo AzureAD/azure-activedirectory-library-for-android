@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.ObjectStreamClass;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
@@ -44,10 +45,12 @@ import javax.crypto.NoSuchPaddingException;
 import org.mockito.Mockito;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.BlobContainer;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.DefaultTokenCacheStore;
 import com.microsoft.aad.adal.ITokenCacheStore;
@@ -59,6 +62,7 @@ import com.microsoft.aad.adal.UserInfo;
 import android.accounts.Account;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.Signature;
 import junit.framework.Assert;
@@ -264,7 +268,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     private void addFRTCacheItem(DefaultTokenCacheStore defaultTokenCacheStore) {
         final String TEST_AUTHORITY2 = "https://Developer.AndroiD.com/reference/android";
         UserInfo user2 = new UserInfo("userid2", "givenName", "familyName", "identity", "userid2");
-        testFamilyRefreshTokenItemUser2 = new TokenCacheItem();
+        TokenCacheItem testFamilyRefreshTokenItemUser2 = new TokenCacheItem();
         testFamilyRefreshTokenItemUser2.setAccessToken("user2token2Family");
         testFamilyRefreshTokenItemUser2.setIsMultiResourceRefreshToken(true);
         testFamilyRefreshTokenItemUser2.setAuthority(TEST_AUTHORITY2);
@@ -277,76 +281,72 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
                 testFamilyRefreshTokenItemUser2);
     }
     
-    public void testGetFamilyRefreshTokenItemForUser_withFRTCacheItem(){
+    public void testGetFamilyRefreshTokenItemForUser_withFRTCacheItem() throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         String userId = "userid2";
-        addFRTCacheItem(store);        
-        TokenCacheItem frtTokenCacheItem = store.getFamilyRefreshTokenItemForUser(userId);
+        addFRTCacheItem(store);         
+        Method m = ReflectionUtils.getTestMethod(store, "getFamilyRefreshTokenItemForUser", String.class);
+        TokenCacheItem frtTokenCacheItem =(TokenCacheItem)m.invoke(store, userId);
         assertTrue(frtTokenCacheItem != null);
     }
     
-    public void testGetFamilyRefreshTokenItemForUser_noFRTCacheItem(){
+    public void testGetFamilyRefreshTokenItemForUser_noFRTCacheItem() throws IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
         String userId = "userid2";
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
-        TokenCacheItem frtTokenCacheItem = store.getFamilyRefreshTokenItemForUser(userId);
+        Method m = ReflectionUtils.getTestMethod(store, "getFamilyRefreshTokenItemForUser", String.class);
+        TokenCacheItem frtTokenCacheItem =(TokenCacheItem)m.invoke(store, userId);
         assertTrue(frtTokenCacheItem == null);
     }    
     
-    public void testSerialize_invalidUserId(){
+    public void testSerialize_invalidUserId() throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException{
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
-        try {
-            store.serialize("");
-            Assert.fail("not expected");
-        } catch (Exception exp){
-             assertTrue("argument exception", exp instanceof IllegalArgumentException);
-        }
+        Method m = ReflectionUtils.getTestMethod(store, "serialize", String.class);
         
         try {
-            store.serialize(null);
+            String jsonString = (String)m.invoke(store, "");
             Assert.fail("not expected");
-        } catch (Exception exp){
-            assertTrue("argument exception", exp instanceof IllegalArgumentException);
+        } catch (InvocationTargetException exp){
+             assertTrue(exp.getCause() instanceof IllegalArgumentException);
+        }
+        
+        String testStr = null;
+        try {
+            String jsonString = (String)m.invoke(store, testStr);
+            Assert.fail("not expected");
+        } catch (InvocationTargetException exp){
+            assertTrue(exp.getCause() instanceof IllegalArgumentException);
         }        
     }
     
-//    public void testSerialize_useBroker(){
-//
-//    }
-    
-    public void testSerialize_nullCacheItem() throws AuthenticationException{
+    public void testSerialize_nullCacheItem() throws AuthenticationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, NoSuchMethodException, InstantiationException{
         String userId = "userid2";
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
-        assertTrue(store.serialize(userId) == null);
+        Method m = ReflectionUtils.getTestMethod(store, "serialize", String.class);        
+        assertTrue((String)m.invoke(store, userId) == null);
     }
      
-    public void testSerialize_nullFamilyRefreshToken() throws AuthenticationException{
+    public void testSerialize_valid() throws AuthenticationException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         String userId = "userid2";
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         addFRTCacheItem(store);
-        TokenCacheItem tokenCacheItem = store.getFamilyRefreshTokenItemForUser(userId);
-        store.removeItem(CacheKey.createCacheKey(tokenCacheItem));
-        tokenCacheItem.setFamilyClientId("");
-        store.setItem(CacheKey.createCacheKey(tokenCacheItem),tokenCacheItem);
-        assertTrue(store.serialize(userId) == null);
+        Method m = ReflectionUtils.getTestMethod(store, "serialize", String.class);
+        String jsonStr = (String)m.invoke(store, userId);
+        assertTrue( jsonStr != null);
     }
-    
-    public void testSerialize_valid() throws AuthenticationException {
-        String userId = "userid2";
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
-        addFRTCacheItem(store);
-        assertTrue(store.serialize(userId) != null);
-    }    
 
-    public void testDeserialize_valid() throws AuthenticationException {
+    public void testDeserialize_valid() throws AuthenticationException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         String userId = "userid2";
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         addFRTCacheItem(store);
-        String serializedBlob = store.serialize(userId);        
-        store.deserialize(serializedBlob);        
-        Gson gson = new Gson();  
-        BlobContainer blobContainer = gson.fromJson(serializedBlob, BlobContainer.class);
-        TokenCacheItem tokenCacheItem = blobContainer.getTokenItem();
-        assertTrue(store.getFamilyRefreshTokenItemForUser(tokenCacheItem.getUserInfo().getUserId())!=null);
+        Method m = ReflectionUtils.getTestMethod(store, "serialize", String.class);        
+        String serializedBlob = (String)m.invoke(store, userId); 
+        
+        Method deserializeReflect = ReflectionUtils.getTestMethod(store, "deserialize", String.class);
+        deserializeReflect.invoke(store, serializedBlob);
+        
+        Method getfrtReflect = ReflectionUtils.getTestMethod(store, "getFamilyRefreshTokenItemForUser", String.class);
+        TokenCacheItem item = (TokenCacheItem)getfrtReflect.invoke(store, userId);
+        assertTrue(getfrtReflect.invoke(store, userId)!=null);
     }    
     
     public void testDeserialize_invalidSerialVersionUID() throws AuthenticationException{
@@ -357,10 +357,11 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         String mockFalseSerializedBlob = gson.toJson(date); 
         
         try {
-            store.deserialize(mockFalseSerializedBlob);
+            Method deserializeReflect = ReflectionUtils.getTestMethod(store, "deserialize", String.class);
+            deserializeReflect.invoke(store, mockFalseSerializedBlob);
             Assert.fail("Not expected.");
         } catch (Exception exp) {
-            assertTrue("argument exception", exp instanceof AuthenticationException);
+            assertTrue(((AuthenticationException)exp.getCause()).getCode().equals(ADALError.FAIL_TO_DESERIALIZE));
         }
     }
     
@@ -369,14 +370,10 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         
         try {
-            store.deserialize(nullSerializedBlob);
+            Method deserializeReflect = ReflectionUtils.getTestMethod(store, "deserialize", String.class);
+            deserializeReflect.invoke(store, nullSerializedBlob);
         } catch (Exception exp) {
-            assertTrue("argument exception", exp instanceof IllegalArgumentException);            
+            assertTrue("argument exception", exp.getCause() instanceof IllegalArgumentException);            
         }
-    }
-    
-//  public void testDeserialize_useBroker(){
-//
-//  }  
-   
+    }   
 }

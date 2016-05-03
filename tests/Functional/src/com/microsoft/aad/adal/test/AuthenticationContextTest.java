@@ -180,14 +180,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
         }
     }
 
-    public void testConstructorNoCache() {
+    public void testConstructorNoCache() throws UsageAuthenticationException {
         String authority = "https://github.com/MSOpenTech";
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
                 null);
         assertNull(context.getCache());
     }
 
-    public void testConstructorWithCache() throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public void testConstructorWithCache() throws NoSuchAlgorithmException, NoSuchPaddingException, UsageAuthenticationException {
         String authority = "https://github.com/MSOpenTech";
         DefaultTokenCacheStore expected = new DefaultTokenCacheStore(getContext());
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
@@ -2403,8 +2403,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     private void clearCache(AuthenticationContext context) {
         if (context.getCache() != null) {
-            context.getCache().removeAll();
-        }
+		    context.getCache().removeAll();
+		}
     }
 
     class MockCache implements ITokenCacheStore {

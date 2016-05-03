@@ -24,29 +24,29 @@
 package com.microsoft.aad.adal;
 
 /**
- * usage authentication error.
+ * deserialization authentication error.
  */
-public class UsageAuthenticationException extends AuthenticationException {
+class DeserializationAuthenticationException extends AuthenticationException {
     static final long serialVersionUID = 1;
 
     /**
-     * Constructs a new UsageAuthenticationException.
+     * Constructs a new DeserializationAuthenticationException.
      */
-    public UsageAuthenticationException() {
+    public DeserializationAuthenticationException() {
         super();
     }
 
     /**
-     * Constructs a new UsageAuthenticationException with message.
+     * Constructs a new DeserializationAuthenticationException with message.
      * 
      * @param msg Message for cancel request
      */
-    public UsageAuthenticationException(ADALError code, String msg) {
+    public DeserializationAuthenticationException(ADALError code, String msg) {
         super(code, msg);
     }
     
     /**
-     * Constructs a new UsageAuthenticationException with message and the cause exception
+     * Constructs a new DeserializationAuthenticationException with message and the cause exception
      * 
      * @param code Resource file related error code. Message will be derived
      *            from resource with using app context
@@ -54,7 +54,7 @@ public class UsageAuthenticationException extends AuthenticationException {
      *            info
      * @param throwable {@link Throwable}
      */
-    public UsageAuthenticationException(ADALError code, String msg, Throwable throwable) {
+    public DeserializationAuthenticationException(ADALError code, String msg, Throwable throwable) {
         super(code, msg, throwable);
     }
 }

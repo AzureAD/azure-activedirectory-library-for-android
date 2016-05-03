@@ -29,6 +29,8 @@ class BlobContainer {
      * universal version identifier for BlobContainer class
      */
     private static final long serialVersionUID = 5722517776407773544L;
+    
+    private static final String TAG = "BlobContainer";    
 
     /**
      * the BlobContainer stores the FRT tokenCacheItem 
@@ -37,63 +39,41 @@ class BlobContainer {
     private TokenCacheItem tokenItem;
     
     /**
-     * Construct default blob container.
-     */
-    BlobContainer() {
-        tokenItem = new TokenCacheItem();
-    }
-    
-    /**
      * Check if the cache item contains family refresh token
      * if true, value the tokenItem with this cache item
      * @param item
-     * @throws AuthenticationException 
      */
-    BlobContainer(TokenCacheItem tokenItem) throws AuthenticationException {
+    BlobContainer(TokenCacheItem tokenItem) {
         //only FRT is stored here 
-        if(tokenItem == null) {
+        if(tokenItem == null || StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
+            if(tokenItem != null) {
+                Logger.e(TAG, 
+                        "Invalid constructor input, the input TokenCacheItem should contains family refresh token.", 
+                        "", 
+                        ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND);
+            }
             throw new IllegalArgumentException("invalid input TokenCacheItem");
         }
-        
-        if (StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
-            throw new AuthenticationException(
-                    ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND, 
-                    "Invalid constructor input, the input TokenCacheItem should contains family refresh token."
-                    );
-        } else {
-            this.tokenItem = tokenItem;
-        }
+        this.tokenItem = tokenItem;        
     }
     
+    /**
+     * return the token cache item in this blob container object
+     * @return tokenCacheItem
+     */
     public TokenCacheItem getTokenItem() {
         return tokenItem;
     }
-
-    public void setTokenItem(TokenCacheItem tokenItem) throws AuthenticationException {
-    	if(tokenItem != null
-    			&& !StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
-    		this.tokenItem = tokenItem;
-    	} else {
-    		throw new AuthenticationException(
-                    ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND, 
-                    "Invalid constructor input, the input TokenCacheItem should contains family refresh token."
-                    );
-    	}
-    }    
     
     /**
      * Get the family refresh token from the tokenItem
      * @return family refresh token
-     * @throws AuthenticationException 
      */
-    public String getFamilyRefreshToken() throws AuthenticationException {
-        if(tokenItem!=null){
-        	return tokenItem.getRefreshToken();
+    public String getFamilyRefreshToken() {
+        if(tokenItem!=null && !StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())){
+            return tokenItem.getRefreshToken();
         } else {
-        	throw new AuthenticationException(
-                    ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND, 
-                    "No family refresh token is found from the cache item"
-                    );
+            return null;
         }
     }
     
@@ -115,5 +95,13 @@ class BlobContainer {
                 + "TenantId = " + tokenItem.getTenantId() + ","
                 + "FamilyClientId = " + tokenItem.getFamilyClientId()
                 + " } }";
+    }
+
+    /**
+     * method to get the serialVersionUID of BlobContainer
+     * @return serialVersionUID
+     */
+    protected static long getSerialversionuid() {
+        return serialVersionUID;
     }
 }

@@ -41,6 +41,7 @@ import javax.crypto.NoSuchPaddingException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 
 import android.app.Activity;
@@ -370,8 +371,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return mPrefs.contains(key);
     }
     
-    private TokenCacheItem getFamilyRefreshTokenItemForUser(String userId) {   	
-    	
+    private TokenCacheItem getFamilyRefreshTokenItemForUser(String userId) {       
+        
         Iterator<TokenCacheItem> results = this.getTokensForUser(userId).iterator();
         TokenCacheItem tokenItem = new TokenCacheItem();   
         while (results.hasNext()) {
@@ -386,38 +387,32 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             }
         }
         //If the cache does not contain the FRT for this user return null
+        Logger.i(TAG, "Cannot find the family refresh token cache item for this user in cache", "");
         return null;
     }
     
-    protected String serialize(String uniqueUserId) throws AuthenticationException{
+    protected String serialize(String uniqueUserId) throws UsageAuthenticationException {
         if (StringExtensions.IsNullOrBlank(uniqueUserId)) {
             throw new IllegalArgumentException("uniqueUserId");
         }
         
         if((new BrokerProxy(mContext)).canSwitchToBroker()){
-            throw new AuthenticationException(ADALError.FAIL_TO_EXPORT,"Failed to export the FID because broker is enabled.");
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,"Failed to export the FID because broker is enabled.");
         } else {
             TokenCacheItem tokenItem = getFamilyRefreshTokenItemForUser(uniqueUserId);
             
-            if(tokenItem!=null) {
-                BlobContainer blobContainer = new BlobContainer(tokenItem);
-                Gson gson = new Gson();  
-                
-                if (StringExtensions.IsNullOrBlank(blobContainer.getFamilyRefreshToken())) {
-                    Logger.i(TAG, "serialization of FRT cache item: family refresh token is null", "");
-                    //throw new AuthenticationException(ADALError.FAIL_TO_EXPORT,"serialization of FRT cache item: family refresh token is null");
-                    return null;
-                }
-                
-                Logger.i(TAG, "family refresh token cache item:" + blobContainer.toString(), "");
-                String json = gson.toJson(blobContainer);
-                //should json be encrypted?
-                return json;
-                
-            } else {
-                Logger.i(TAG, "no FRT is found for this user" + uniqueUserId, "");
+            if(tokenItem == null) {
+                Logger.i(TAG, "Cannot serialize the FRT cache item: family refresh token is null", "");
                 return null;
             }
+
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(BlobContainer.class, new BlobContainerAdapter())
+                    .create();
+            BlobContainer blobContainer = new BlobContainer(tokenItem);
+            Logger.i(TAG, "family refresh token cache item:" + blobContainer.toString(), "");
+            String json = gson.toJson(blobContainer);
+            return json;                
         }      
     }
     
@@ -427,29 +422,26 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
             
         if((new BrokerProxy(mContext)).canSwitchToBroker()) {
-            throw new AuthenticationException(ADALError.FAIL_TO_IMPORT,"Failed to import the serialized blob because broker is enabled.");
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT,"Failed to import the serialized blob because broker is enabled.");
         } else {
-            Gson gson = new Gson();  
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(BlobContainer.class, new BlobContainerAdapter())
+                    .create(); 
             BlobContainer blobContainer;
             
             try {
                 blobContainer = gson.fromJson(serializedBlob, BlobContainer.class);
-            } catch (JsonSyntaxException exp) {
-                throw new AuthenticationException(ADALError.FAIL_TO_IMPORT,
+            } catch (JsonParseException exp) {
+                throw new DeserializationAuthenticationException(ADALError.FAIL_TO_DESERIALIZE,
                         exp.getMessage());
             }
             
-            long serialVersionID_act = ObjectStreamClass.lookup(blobContainer.getClass()).getSerialVersionUID();
-            long serialVersionID_exp = ObjectStreamClass.lookup(BlobContainer.class).getSerialVersionUID();
-            if(serialVersionID_act != serialVersionID_exp){
-                throw new AuthenticationException(ADALError.FAIL_TO_DESERIALIZE,
-                        "Failed to import the serialized blob because the deserialized object version UID is not supported.");
-            } 
-
-            Logger.i(TAG + "deserialize", "Json parsing for serializedBlob :" + blobContainer.toString(), "");
+            Logger.i(TAG + ".deserialize", "Json parsing for serializedBlob :" + blobContainer.toString(), "");
             TokenCacheItem tokenCacheItem = blobContainer.getTokenItem();
             String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
-            this.setItem(cacheKey, tokenCacheItem);            
+            Logger.i(TAG + ".getTokenItem", "Get the family refresh token from the deserialized object.", "");
+            this.setItem(cacheKey, tokenCacheItem);    
+            Logger.i(TAG + ".setItem", "Stored the deserialized token into the cache.", "");
         }
     }
 }
