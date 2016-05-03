@@ -76,18 +76,16 @@ public class TokenCacheItem implements Serializable {
 
     TokenCacheItem(final AuthenticationRequest request, final AuthenticationResult result,
             final KeyEntryType keyEntryType) {
-        if (request != null) {
-            mAuthority = request.getAuthority();
+        mAuthority = request.getAuthority();
            
-            // Do not store client id for token stored in family token entry
-            if (keyEntryType != KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY) {
-                mClientId = request.getClientId();
-            }
+        // Do not store client id for token stored in family token entry
+        if (keyEntryType != KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY) {
+            mClientId = request.getClientId();
+        }
 
-            if (keyEntryType != KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY) {
-                // Cache item will not store resource info for MRRT token entry
-                mResource = request.getResource();
-            }
+        if (keyEntryType != KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY) {
+            // Cache item will not store resource info for MRRT token entry
+            mResource = request.getResource();
         }
 
         if (result != null) {

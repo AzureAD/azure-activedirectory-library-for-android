@@ -1445,7 +1445,8 @@ public class AuthenticationContext {
             }
             
             // retry with MRRT if the refresh token request was done with FRT
-            if (!isAccessTokenReturned(authResult) && refreshItem != null) {
+            if (!isAccessTokenReturned(authResult) && refreshItem != null 
+                    && KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY == refreshItem.mKeyEntryType) {
                 try {
                     authResult = fallbackToMRRT(request, refreshItem);
                 } catch (final AuthenticationException authenticationException) {
@@ -1514,14 +1515,12 @@ public class AuthenticationContext {
     private AuthenticationResult fallbackToMRRT(final AuthenticationRequest authRequest, final RefreshItem refreshItem) 
             throws AuthenticationException {
         AuthenticationResult authenticationResult = null;
-        if (KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY == refreshItem.mKeyEntryType) {
-            final RefreshItem retryRefreshItem = getRefreshTokenFromCache(KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY, authRequest);
-            if (retryRefreshItem != null) {
-                Logger.v(TAG, "Token request with FRT fails, retry with MRRT.");
-                authenticationResult = getTokenWithRefreshTokenAndUpdateCache(authRequest, retryRefreshItem);   
-            } else {
-                Logger.v(TAG, "Token request with FRT fails, but no MRRT eixsts, cannot retry.");
-            }
+        final RefreshItem retryRefreshItem = getRefreshTokenFromCache(KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY, authRequest);
+        if (retryRefreshItem != null) {
+            Logger.v(TAG, "Token request with FRT fails, retry with MRRT.");
+            authenticationResult = getTokenWithRefreshTokenAndUpdateCache(authRequest, retryRefreshItem);   
+        } else {
+            Logger.v(TAG, "Token request with FRT fails, but no MRRT exists, cannot retry.");
         }
         
         return authenticationResult;
@@ -1667,7 +1666,10 @@ public class AuthenticationContext {
      */
     private RefreshItem getRefreshTokenFromCache(final KeyEntryType keyEntryType, 
             final AuthenticationRequest authRequest) {
-        final String user = getUserFromAuthenticationRequest(authRequest);
+        String user = authRequest.getUserId();
+        if (StringExtensions.IsNullOrBlank(user)) {
+            user = authRequest.getLoginHint();
+        }
         if (StringExtensions.IsNullOrBlank(user) && KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY == keyEntryType) {
             // Fmaily token should be retrieved specifically by user. If no user is passed in the request, 
             // shouldn't create the refresh item.
@@ -1675,38 +1677,16 @@ public class AuthenticationContext {
         }
         
         final String keyUsed = CacheKey.createCacheKey(authRequest, keyEntryType, user);
-        if (StringExtensions.IsNullOrBlank(keyUsed)) {
-            return null;
-        }
-
-        return createRefreshItem(authRequest, keyUsed, keyEntryType, mTokenCacheStore.getItem(keyUsed));
-    }
-    
-    /**
-     * @return {@link RefreshItem}.
-     */
-    private RefreshItem createRefreshItem(final AuthenticationRequest authenticationRequest, final String keyUsed, final KeyEntryType keyEntryType, 
-            final TokenCacheItem tokenCacheItem) {
+        final TokenCacheItem tokenCacheItem = mTokenCacheStore.getItem(keyUsed);
         if (tokenCacheItem != null && !StringExtensions.IsNullOrBlank(tokenCacheItem.getRefreshToken())) {
             final String refreshTokenHash = getTokenHash(tokenCacheItem.getRefreshToken());
 
             Logger.v(TAG, "Refresh token is available and id:" + refreshTokenHash
                     + " Key used:" + keyUsed);
-            return new RefreshItem(authenticationRequest, keyUsed, keyEntryType, tokenCacheItem);
+            return new RefreshItem(authRequest, keyUsed, keyEntryType, tokenCacheItem);
         }
         
         return null;
-    }
-    /**
-     * @return Either unique user id or displayable id if provided in the request.
-     */
-    private String getUserFromAuthenticationRequest(final AuthenticationRequest authRequest) {
-        String userId = authRequest.getUserId();
-        if (StringExtensions.IsNullOrBlank(userId)) {
-            userId = authRequest.getLoginHint();
-        }
-        
-        return userId;
     }
 
     private void setItemToCache(final AuthenticationRequest request, AuthenticationResult result,
@@ -1810,7 +1790,7 @@ public class AuthenticationContext {
      * 2) If refresh with MRRT, clear RT (C,U,A) and (R,C,U,A)
      * 3) if refresh with FRT, clear RT with (U,A) 
      */
-    private void removeItemFromCache(final String user, final RefreshItem refreshItem) {
+    private void removeItemFromCache(final RefreshItem refreshItem) {
         if (mTokenCacheStore != null) {
             mTokenCacheStore.removeItem(refreshItem.mKey);
             for (final String key : refreshItem.mKeysWithUser) {
@@ -1843,7 +1823,7 @@ public class AuthenticationContext {
                 Logger.v(TAG, "Removing token cache for invalid_grant error returned from server.");
                 // remove item from cache to avoid same usage of
                 // refresh token in next acquireToken call
-                removeItemFromCache(getUserFromAuthenticationRequest(request), refreshItem);
+                removeItemFromCache(refreshItem);
             }
         } else {
             if (result.getUserInfo() == null && refreshItem.mUserInfo != null) {

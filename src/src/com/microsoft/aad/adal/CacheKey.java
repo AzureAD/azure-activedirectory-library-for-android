@@ -83,7 +83,7 @@ public final class CacheKey implements Serializable {
         // for now since only FoCI feature is only supported for Microsoft first
         // party apps, and server returns "1" for first party families. 
         if (clientId == null) {
-            throw new IllegalArgumentException("clientid");
+            throw new IllegalArgumentException("clientId");
         }
 
         CacheKey key = new CacheKey();
@@ -103,9 +103,7 @@ public final class CacheKey implements Serializable {
             key.mAuthority = (String)key.mAuthority.subSequence(0, key.mAuthority.length() - 1);
         }
 
-        if (clientId != null) {
-            key.mClientId = clientId.toLowerCase(Locale.US);
-        }
+        key.mClientId = clientId.toLowerCase(Locale.US);
         
         key.mIsMultipleResourceRefreshToken = isMultiResourceRefreshToken;
 
