@@ -83,8 +83,8 @@ public class TokenCacheItem implements Serializable {
             mClientId = request.getClientId();
         }
 
-        if (keyEntryType != KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY) {
-            // Cache item will not store resource info for MRRT token entry
+        if (keyEntryType == KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY) {
+            // Only regular token cache entry should stoure resource
             mResource = request.getResource();
         }
 

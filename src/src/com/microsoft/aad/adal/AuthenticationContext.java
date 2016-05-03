@@ -1643,8 +1643,10 @@ public class AuthenticationContext {
                 final RefreshItem mrrtItem = getRefreshTokenFromCache(KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY, request);
                 refreshItem = mrrtItem;
                 
-                // If RT is found, but it's not marked as MRRT, shouldn't bother trying to find FRT. 
-                if (refreshItem == null || !StringExtensions.IsNullOrBlank(refreshItem.mFamilyClientId)) {
+                // If we still cannot find any token or found token is marked as family token and we're not talking to adfs, should
+                // look for FRT.
+                if (!UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthority)) && 
+                        (refreshItem == null || !StringExtensions.IsNullOrBlank(refreshItem.mFamilyClientId))) {
                     final String mrrtLookupMsg = refreshItem == null ? "MRRT does not exist, look for FRT."
                             : "Found MRRT which is also a FRT, look for FRT.";
 
@@ -1671,6 +1673,7 @@ public class AuthenticationContext {
         if (StringExtensions.IsNullOrBlank(user)) {
             user = authRequest.getLoginHint();
         }
+        
         if (StringExtensions.IsNullOrBlank(user) && KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY == keyEntryType) {
             // Fmaily token should be retrieved specifically by user. If no user is passed in the request, 
             // shouldn't create the refresh item.
