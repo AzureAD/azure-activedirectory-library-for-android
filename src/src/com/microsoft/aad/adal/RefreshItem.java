@@ -43,6 +43,7 @@ class RefreshItem {
         if (item == null) {
             throw new IllegalArgumentException("item");
         }
+        
         mKey = keyInCache;
         mMultiResource = item.getIsMultiResourceRefreshToken();
         mRefreshToken = item.getRefreshToken();
@@ -59,8 +60,8 @@ class RefreshItem {
             mKeysWithUser.add(mKeyWithDisplayableId);
             
             if (KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY == refreshTokenEntryType) {
-                mKeysWithUser.add(CacheKey.createCacheKey(authenticationRequest, mUserInfo.getUserId()));
-                mKeysWithUser.add(CacheKey.createCacheKey(authenticationRequest, mUserInfo.getDisplayableId()));
+                mKeysWithUser.add(CacheKey.createCacheKey(authenticationRequest, KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY, mUserInfo.getUserId()));
+                mKeysWithUser.add(CacheKey.createCacheKey(authenticationRequest, KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY, mUserInfo.getDisplayableId()));
             }
         }
     }

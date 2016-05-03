@@ -133,70 +133,30 @@ public final class CacheKey implements Serializable {
         return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(),
                 item.getIsMultiResourceRefreshToken(), userid);
     }
-
-    /**
-     * @param item AuthenticationRequest item
-     * @param cacheUserId UserId in the cache
-     * @return CacheKey to save token
-     */
-    public static String createCacheKey(AuthenticationRequest item, String cacheUserId) {
-        if (item == null) {
-            throw new IllegalArgumentException("AuthenticationRequest");
-        }
-
-        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
-                cacheUserId);
-    }
-
-    /**
-     * Store multi resource refresh tokens with different key. Key will not
-     * include resource and set flag to y.
-     * 
-     * @param item AuthenticationRequest item
-     * @param cacheUserId UserId in the cache
-     * @return CacheKey to save token
-     */
-    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item,
-            String cacheUserId) {
-        if (item == null) {
-            throw new IllegalArgumentException("AuthenticationRequest");
-        }
-
-        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
-                cacheUserId);
-    }
-    
-    /**
-     * Create cache key for storing family refresh token. 
-     * @note For family token entry, will store foci-familyId as the client id. 
-     */
-    public static String createFamilyRefreshTokenKey(final AuthenticationRequest authRequest, final String familyClientId, 
-            final String userId) {
-        if (authRequest == null) {
-            throw new IllegalArgumentException("authentication request is null");
-        }
-        
-        // family token cache entry will store foci-familyId as client id.
-        return createCacheKey(authRequest.getAuthority(), null, FRT_ENTRY_PREFIX + familyClientId, true, userId);
-    }
     
     /**
      * Create cache key based on the {@link KeyEntryType}. 
      */
     public static String createCacheKey(final AuthenticationRequest authRequest, final KeyEntryType keyEntryType, final String userId) {
+        if (authRequest == null) {
+            throw new IllegalArgumentException("authRequest");
+        }
+        
         final String cacheKey;
         switch (keyEntryType) {
         case REGULAR_REFRESH_TOKEN_ENTRY :
-            cacheKey = createCacheKey(authRequest, userId);
+            cacheKey = createCacheKey(authRequest.getAuthority(), authRequest.getResource(), authRequest.getClientId(), false,
+                    userId);
             break;
         case MULTI_RESOURCE_REFRESH_TOKEN_ENTRY :
-            cacheKey = createMultiResourceRefreshTokenKey(authRequest, userId);
+            cacheKey = createCacheKey(authRequest.getAuthority(), null, authRequest.getClientId(), true, userId);
             break;
         case FAMILY_REFRESH_TOKEN_ENTRY :
-            cacheKey = createFamilyRefreshTokenKey(authRequest, AuthenticationConstants.FIRST_PARTY_FAMILY_ID, userId);
+            cacheKey = createCacheKey(authRequest.getAuthority(), null, FRT_ENTRY_PREFIX + AuthenticationConstants.FIRST_PARTY_FAMILY_ID, 
+                    true, userId);
             break;
         default :
-            cacheKey = "";
+            throw new IllegalArgumentException("keyEntryType");
         }
         
         return cacheKey;

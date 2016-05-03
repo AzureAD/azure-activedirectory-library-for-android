@@ -967,7 +967,7 @@ public class AuthenticationActivity extends Activity {
             String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
-            String key = CacheKey.createCacheKey(mRequest, null);
+            String key = CacheKey.createCacheKey(mRequest, KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY, null);
             saveCacheKey(key, newaccount, mAppCallingUID);
             mAccountManager.setUserData(
                     newaccount,
@@ -979,7 +979,7 @@ public class AuthenticationActivity extends Activity {
                 TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY);
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
-                key = CacheKey.createMultiResourceRefreshTokenKey(mRequest, null);
+                key = CacheKey.createCacheKey(mRequest,KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY, null);
                 saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(
                         newaccount,

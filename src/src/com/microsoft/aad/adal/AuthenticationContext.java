@@ -1590,16 +1590,17 @@ public class AuthenticationContext {
             TokenCacheItem item = null;
             if (request.getUserIdentifierType() == UserIdentifierType.LoginHint) {
                 item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
-                        request.getLoginHint()));
+                        KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY, request.getLoginHint()));
             }
 
             if (request.getUserIdentifierType() == UserIdentifierType.UniqueId) {
                 item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request,
-                        request.getUserId()));
+                        KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY, request.getUserId()));
             }
 
             if (request.getUserIdentifierType() == UserIdentifierType.NoUser) {
-                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request, null));
+                item = mTokenCacheStore.getItem(CacheKey.createCacheKey(request, 
+                        KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY, null));
             }
 
             if (item != null) {
@@ -1731,20 +1732,20 @@ public class AuthenticationContext {
 
     private void setItemToCacheForUser(final AuthenticationRequest request,
             AuthenticationResult result, String userId) {
-        mTokenCacheStore.setItem(CacheKey.createCacheKey(request, userId), new TokenCacheItem(
+        mTokenCacheStore.setItem(CacheKey.createCacheKey(request, KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY, userId), new TokenCacheItem(
                 request, result, KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY));
 
         // Store broad refresh token if available
         if (result.getIsMultiResourceRefreshToken()) {
             Logger.v(TAG, "Setting Multi Resource Refresh token to cache");
-            mTokenCacheStore.setItem(CacheKey.createMultiResourceRefreshTokenKey(request, userId),
+            mTokenCacheStore.setItem(CacheKey.createCacheKey(request, KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY, userId),
                     new TokenCacheItem(request, result, KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY));
         }
         
         if (!StringExtensions.IsNullOrBlank(result.getFamilyClientId()) && !StringExtensions.IsNullOrBlank(userId)) {
             Logger.v(TAG, "Set Family Refresh token into cache");
             final TokenCacheItem familyTokenCacheItem = new TokenCacheItem(request, result, KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY);
-            mTokenCacheStore.setItem(CacheKey.createFamilyRefreshTokenKey(request, result.getFamilyClientId(), 
+            mTokenCacheStore.setItem(CacheKey.createCacheKey(request, KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY, 
                     userId), familyTokenCacheItem);
         }
     }

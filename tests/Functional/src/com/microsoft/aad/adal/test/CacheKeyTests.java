@@ -115,7 +115,7 @@ public class CacheKeyTests extends AndroidTestCase {
             fail("Expect exceptions");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
-            assertEquals("contains clientid", "clientid", ((IllegalArgumentException)exc).getMessage());
+            assertEquals("contains clientId", "clientId", ((IllegalArgumentException)exc).getMessage());
         }
     }
 }
