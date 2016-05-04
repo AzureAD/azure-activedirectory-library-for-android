@@ -32,6 +32,7 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 import com.microsoft.aad.adal.WebRequestHandler;
 
 import android.app.Activity;
@@ -381,7 +382,12 @@ public class TestScriptRunner {
                 data.mErrorMessage = "Context is not initialized";
                 data.mErrorInRun = true;
             } else {
-                data.mContext.getCache().removeAll();
+                try {
+					data.mContext.getCache().removeAll();
+				} catch (UsageAuthenticationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         }
     }
