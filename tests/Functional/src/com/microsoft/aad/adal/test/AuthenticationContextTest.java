@@ -184,7 +184,12 @@ public class AuthenticationContextTest extends AndroidTestCase {
         String authority = "https://github.com/MSOpenTech";
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
                 null);
-        assertNull(context.getCache());
+        try {
+			assertNull(context.getCache());
+		} catch (UsageAuthenticationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     public void testConstructorWithCache() throws NoSuchAlgorithmException, NoSuchPaddingException {
@@ -192,25 +197,33 @@ public class AuthenticationContextTest extends AndroidTestCase {
         DefaultTokenCacheStore expected = new DefaultTokenCacheStore(getContext());
         AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
                 expected);
-        assertEquals("Cache object is expected to be same", expected, context.getCache());
+        try {
+			assertEquals("Cache object is expected to be same", expected, context.getCache());
+		} catch (UsageAuthenticationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
         AuthenticationContext contextDefaultCache = new AuthenticationContext(getContext(),
                 authority, false);
-        assertNotNull(contextDefaultCache.getCache());
+        try {
+			assertNotNull(contextDefaultCache.getCache());
+		} catch (UsageAuthenticationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     public void testConstructor_InternetPermission() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
         String authority = "https://github.com/MSOpenTech";
         FileMockContext mockContext = new FileMockContext(getContext());
-        mockContext.requestedPermissionName = "android.permission.INTERNET";
-        mockContext.responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
 
         // no exception
         new AuthenticationContext(mockContext, authority, false);
 
         try {
-            mockContext.responsePermissionFlag = PackageManager.PERMISSION_DENIED;
+        	mockContext.setPermission("android.permission.INTERNET",PackageManager.PERMISSION_DENIED);
             new AuthenticationContext(mockContext, authority, false);
             Assert.fail("Supposed to fail");
         } catch (Exception e) {
@@ -2081,7 +2094,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
-        //test@case valid redirect uri
+        //test case valid redirect uri
         String testRedirectUri = authContext.getRedirectUriForBroker();
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
             "resource", "clientid", testRedirectUri, "loginHint");
@@ -2099,14 +2112,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
-        //test@case broker redirect uri with invalid prefix
+        //test case broker redirect uri with invalid prefix
         try {
             String testRedirectUri = "http://helloApp";
             Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                     "resource", "clientid", testRedirectUri, "loginHint");
             m.invoke(authContext, authRequest);
             Assert.fail("It is expected to return an exception here.");
-        } catch(InvocationTargetException e) {
+        } catch(final InvocationTargetException e) {
             assertTrue(e.getCause() instanceof UsageAuthenticationException);
             assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
             assertTrue((e.getCause()).getMessage().toString().contains("prefix"));
@@ -2123,14 +2136,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
-        //test@case broker redirect uri with invalid packageName
+        //test case broker redirect uri with invalid packageName
         try {
              String testRedirectUri = "msauth://testapp/gwdiktUBDmQq%2BfbWiJoa%2B%2FYH070%3D";
              Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                      "resource", "clientid", testRedirectUri, "loginHint");
              m.invoke(authContext, authRequest);
              Assert.fail("It is expected to return an exception here.");
-        } catch(InvocationTargetException e) {
+        } catch(final InvocationTargetException e) {
             assertTrue(e.getCause() instanceof UsageAuthenticationException);
             assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
             assertTrue((e.getCause()).getMessage().toString().contains("package name"));
@@ -2147,14 +2160,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
         Method m = ReflectionUtils.getTestMethod(authContext, "verifyBrokerRedirectUri", c);
 
-        //test@case broker redirect uri with invalid signature
+        //test case broker redirect uri with invalid signature
         try {
         String testRedirectUri = "msauth://" + getContext().getPackageName() + "/falsesignH070%3D";
         Object authRequest = AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, 
                 "resource", "clientid", testRedirectUri, "loginHint");
         m.invoke(authContext, authRequest);
         Assert.fail("It is expected to return an exception here.");
-        } catch(InvocationTargetException e) {
+        } catch(final InvocationTargetException e) {
             assertTrue(e.getCause() instanceof UsageAuthenticationException);
             assertEquals(ADALError.DEVELOPER_REDIRECTURI_INVALID,((UsageAuthenticationException)e.getCause()).getCode());
             assertTrue((e.getCause()).getMessage().toString().contains("signature"));
@@ -2402,9 +2415,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
     }
 
     private void clearCache(AuthenticationContext context) {
-        if (context.getCache() != null) {
-            context.getCache().removeAll();
-        }
+        try {
+			if (context.getCache() != null) {
+			    context.getCache().removeAll();
+			}
+		} catch (UsageAuthenticationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     class MockCache implements ITokenCacheStore {

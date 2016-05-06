@@ -96,13 +96,17 @@ public class ApplicationReceiver extends BroadcastReceiver {
                     // 1) there is saved request in sharedPreference
                     // 2) app has the correct configuration to get token from broker
                     // 3) the saved request is not timeout
-                    if (!StringExtensions.IsNullOrBlank(request) && brokerProxy.canSwitchToBroker() 
-                            && isRequestTimestampValidForResume(dateTimeForSavedRequest)) {
-                        Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
-                        resumeRequestInBroker(context, request);
-                    } else {
-                        Logger.v(TAG + methodName, "No request saved in sharedpreferences or request already timeout"
-                                + ", cannot resume broker request.");
+                    try {
+                        if (!StringExtensions.IsNullOrBlank(request) && brokerProxy.canSwitchToBroker() 
+                                && isRequestTimestampValidForResume(dateTimeForSavedRequest)) {
+                            Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
+                            resumeRequestInBroker(context, request);
+                        } else {
+                            Logger.v(TAG + methodName, "No request saved in sharedpreferences or request already timeout"
+                                    + ", cannot resume broker request.");
+                        }
+                    } catch (final UsageAuthenticationException e) {
+                        Logger.v(TAG + methodName, e.getMessage());
                     }
                 }
             }

@@ -59,6 +59,7 @@ import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
+import com.microsoft.aad.adal.UsageAuthenticationException;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -266,7 +267,12 @@ public class MainActivity extends Activity {
         btnSetExpired.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setTokenExpired();
+                try {
+					setTokenExpired();
+				} catch (UsageAuthenticationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
 
@@ -442,7 +448,12 @@ public class MainActivity extends Activity {
             initContext();
         }
 
-        mContext.getCache().removeAll();
+        try {
+			mContext.getCache().removeAll();
+		} catch (UsageAuthenticationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         textViewStatus.setText("");
     }
 
@@ -457,8 +468,9 @@ public class MainActivity extends Activity {
 
     /**
      * set all expired
+     * @throws UsageAuthenticationException 
      */
-    private void setTokenExpired() {
+    private void setTokenExpired() throws UsageAuthenticationException {
         Log.d(TAG, "Setting item to expire...");
 
         Calendar calendar = new GregorianCalendar();
@@ -495,16 +507,21 @@ public class MainActivity extends Activity {
     public ArrayList<TokenCacheItem> getTokens() {
         Log.d(TAG, "Setting item to expire...");
         ArrayList<TokenCacheItem> items = new ArrayList<TokenCacheItem>();
-        DefaultTokenCacheStore cache = (DefaultTokenCacheStore)mContext.getCache();
-        final Iterator<TokenCacheItem> allItems = cache.getAll();
-        while (allItems.hasNext()) {
-            TokenCacheItem tokenCacheItem = allItems.next();
-            if (tokenCacheItem != null) {
-                items.add(tokenCacheItem);
-            }
-        }
-
-        return items;
+        DefaultTokenCacheStore cache;
+		try {
+			cache = (DefaultTokenCacheStore)mContext.getCache();
+			final Iterator<TokenCacheItem> allItems = cache.getAll();
+	        while (allItems.hasNext()) {
+	            TokenCacheItem tokenCacheItem = allItems.next();
+	            if (tokenCacheItem != null) {
+	                items.add(tokenCacheItem);
+	            }
+	        }
+		} catch (UsageAuthenticationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return items;
     }
 
     /**

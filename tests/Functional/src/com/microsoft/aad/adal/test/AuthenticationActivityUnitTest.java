@@ -275,8 +275,25 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         WebViewClient client = getCustomWebViewClient();
         WebView mockview = new WebView(getActivity().getApplicationContext());
         ReflectionUtils.setFieldValue(activity, "mSpinner", null);
-        //shouldOverrideUrlLoading should prevent non https redirects in the web view
         assertEquals(false,client.shouldOverrideUrlLoading(mockview, url));
+    }
+    
+    @SmallTest
+    @UiThreadTest    
+    public void testWebview_blankredirectURL() throws IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            InterruptedException, ExecutionException {
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        /*
+         * case 1: url = "about:blank"
+         */
+        String url = "about:blank";
+        WebViewClient client = getCustomWebViewClient();
+        WebView mockview = new WebView(getActivity().getApplicationContext());
+        ReflectionUtils.setFieldValue(activity, "mSpinner", null);
+        assertEquals(true,client.shouldOverrideUrlLoading(mockview, url));
     }
     
 
