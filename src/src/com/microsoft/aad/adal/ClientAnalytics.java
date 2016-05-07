@@ -53,6 +53,14 @@ public class ClientAnalytics {
 
     /**
      * send event to listener
+     * @param event
+     */
+    static void logEvent(final Event event) {
+        logEvent(event.mName, event.mProperties);
+    }
+
+    /**
+     * send event to listener
      * @param eventName
      * @param properties
      */
@@ -79,6 +87,15 @@ public class ClientAnalytics {
         }
     }
 
+    static class Event {
+        private final String mName;
+        private final Map<String, String> mProperties;
+
+        public Event(String name, Map<String, String> properties) {
+            mName = name;
+            mProperties = properties;
+        }
+    }
     /**
      * Event listener interface
      */
