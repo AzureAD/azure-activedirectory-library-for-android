@@ -528,9 +528,9 @@ public enum ADALError {
     FAIL_TO_IMPORT("Fail to import"),
         
     /**
-     * Deserialization of FID failure
+     * Incompatible blob version
      */
-    FAIL_TO_DESERIALIZE("Fail to deserialize"), 
+    INCOMPATIBLE_BLOB_VERSION("Fail to deserialize because the blob version is incompatible"), 
     
     /**
      * Fail to get the family refresh token from the cache item

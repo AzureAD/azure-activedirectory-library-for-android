@@ -44,6 +44,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
 import android.accounts.AuthenticatorException;
@@ -553,7 +556,7 @@ public class AuthenticationContext {
             public void startActivityForResult(Intent intent, int requestCode) {
                 // if user closed an app or switched to another activity
                 // refActivity can die before this method got invoked
-                if(refActivity != null) {
+                if (refActivity != null) {
                     refActivity.startActivityForResult(intent, requestCode);
                 }
             }
@@ -623,9 +626,9 @@ public class AuthenticationContext {
         Exception e = exception.get();
         if (e != null) {
             // change to unchecked exception
-            if(e instanceof AuthenticationException) {
+            if (e instanceof AuthenticationException) {
                 throw (AuthenticationException)e;
-            } else if(e instanceof RuntimeException) {
+            } else if (e instanceof RuntimeException) {
                 throw (RuntimeException)e;
             }
             if (e.getCause() != null) {
@@ -1257,12 +1260,12 @@ public class AuthenticationContext {
         final String actualUri = getRedirectUriForBroker();
         String errMsg = "";
         
-        if(StringExtensions.IsNullOrBlank(inputUri)) {
+        if (StringExtensions.IsNullOrBlank(inputUri)) {
             errMsg = "The redirectUri is null or blank. "
                     + "so the redirect uri is expected to be:" + actualUri;
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID); 
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
-        } else if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://")) {
+        } else if (!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://")) {
             errMsg = "The prefix of the redirect uri does not match the expected value. "
                     + " The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
                     + " so the redirect uri is expected to be: " + actualUri;
@@ -1273,20 +1276,20 @@ public class AuthenticationContext {
                 PackageHelper packageHelper = new PackageHelper(mContext);
                 String base64URLEncodePackagename = URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8);
                 String base64URLEncodeSignature = URLEncoder.encode(packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
-                if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + base64URLEncodePackagename + "/")) {
+                if (!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + base64URLEncodePackagename + "/")) {
                     errMsg = "The base64 url encoded package name component of the redirect uri does not match the expected value. "
                             + " This apps package name is: " + base64URLEncodePackagename
                             + " so the redirect uri is expected to be: " + actualUri;
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                     throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
-                } else if(!inputUri.equalsIgnoreCase(actualUri)) {
+                } else if (!inputUri.equalsIgnoreCase(actualUri)) {
                     errMsg = "The base64 url encoded signature component of the redirect uri does not match the expected value. "
                             + " This apps signature is: " + base64URLEncodeSignature
                             + " so the redirect uri is expected to be: " + actualUri;
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                     throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                 }
-            } catch (UnsupportedEncodingException e) {
+            } catch (final UnsupportedEncodingException e) {
                 Logger.e(TAG + methodName, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
                 throw new UsageAuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The verifying BrokerRedirectUri "
                         + "process failed because the base64 url encoding is not supported.", e);
@@ -1318,10 +1321,10 @@ public class AuthenticationContext {
                 //the request from client App is not silent
                 //otherwise the acquiretokensilent might be interrupted 
                 //by DeveloperAuthenticationException
-                if(!request.isSilent()) {
+                if (!request.isSilent()) {
                     verifyBrokerRedirectUri(request);
                 }
-            } catch(UsageAuthenticationException exception) {
+            } catch (final UsageAuthenticationException exception) {
                 Logger.v(TAG + methodName, "Did not pass the verification of the broker redirect URI");
                 callbackHandle.onError(exception);
                 return result;
@@ -2131,6 +2134,65 @@ public class AuthenticationContext {
         }
     }
 
+    protected String serialize(String uniqueUserId) throws UsageAuthenticationException {
+        if (StringExtensions.IsNullOrBlank(uniqueUserId)) {
+            throw new IllegalArgumentException("uniqueUserId");
+        }
+        
+        if ((new BrokerProxy(mContext)).canSwitchToBroker()) {
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,"Failed to export the FID because broker is enabled.");
+        } else {
+            /* the current serialize/deserialize feature is for first party 
+             * so the client ID for the FoCI token cache item is hard coded below
+             */
+            final String foci = "1";
+            TokenCacheItem tokenItem = new TokenCacheItem();
+            final String cacheKey = CacheKey.createCacheKey(this.getAuthority(), null, foci, true, uniqueUserId);
+            tokenItem = this.getCache().getItem(cacheKey);
+            
+            if (tokenItem == null) {
+                Logger.i(TAG, "Cannot find the FoCI token cache item for this userID", "");
+                return null;
+            }
+
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(BlobContainer.class, new BlobContainerAdapter())
+                    .create();
+            final BlobContainer blobContainer = new BlobContainer(tokenItem);
+            Logger.i(TAG, "family refresh token cache item:" + blobContainer.toString(), "");
+            String json = gson.toJson(blobContainer);
+            return json;           
+        }      
+    }
+    
+    protected void deserialize(String serializedBlob) throws AuthenticationException {
+        if (StringExtensions.IsNullOrBlank(serializedBlob)) {
+            throw new IllegalArgumentException("serializedBlob");
+        }
+            
+        if ((new BrokerProxy(mContext)).canSwitchToBroker()) {
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT,"Failed to import the serialized blob because broker is enabled.");
+        } else {
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(BlobContainer.class, new BlobContainerAdapter())
+                    .create(); 
+            BlobContainer blobContainer;
+            
+            try {
+                blobContainer = gson.fromJson(serializedBlob, BlobContainer.class);
+            } catch (final JsonParseException exp) {
+                throw new DeserializationAuthenticationException(exp.getMessage());
+            }            
+            Logger.i(TAG + ".deserialize", "Json parsing for serializedBlob :" + blobContainer.toString(), "");
+            
+            final TokenCacheItem tokenCacheItem = blobContainer.getTokenItem();
+            final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
+            Logger.i(TAG + ".getTokenItem", "Get the family refresh token from the deserialized object.", "");
+            
+            this.getCache().setItem(cacheKey, tokenCacheItem);    
+            }
+    }
+    
     class DefaultConnectionService implements IConnectionService {
 
         private Context mConnectionContext;

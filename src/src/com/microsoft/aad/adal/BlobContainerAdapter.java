@@ -37,7 +37,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
-public final class BlobContainerAdapter implements JsonDeserializer<BlobContainer>, JsonSerializer<BlobContainer> {
+final class BlobContainerAdapter implements JsonDeserializer<BlobContainer>, JsonSerializer<BlobContainer> {
     
     private static final String TAG = "BlobContainerAdapter";    
     
@@ -51,11 +51,11 @@ public final class BlobContainerAdapter implements JsonDeserializer<BlobContaine
     @Override
     public synchronized JsonElement serialize(BlobContainer blobContainer, Type typeOfSrc, JsonSerializationContext arg2) {
         
-        long versionUID = BlobContainer.getSerialversionuid();        
-        String serialCacheToke = mGson.toJson(blobContainer.getTokenItem(), TokenCacheItem.class);
+        final long versionUID = BlobContainer.getSerialversionuid();        
+        final String serialCacheToke = mGson.toJson(blobContainer.getTokenItem(), TokenCacheItem.class);
         JsonObject jsonObj = new JsonObject();
-        JsonPrimitive versionUIDJson = new JsonPrimitive(versionUID);
-        JsonPrimitive cacheItemJson = new JsonPrimitive(serialCacheToke);        
+        final JsonPrimitive versionUIDJson = new JsonPrimitive(versionUID);
+        final JsonPrimitive cacheItemJson = new JsonPrimitive(serialCacheToke);        
         jsonObj.add("SerialVersionUID",versionUIDJson);
         jsonObj.add("TokenCacheItem",cacheItemJson);        
         return jsonObj;
@@ -63,24 +63,23 @@ public final class BlobContainerAdapter implements JsonDeserializer<BlobContaine
     
     @Override
     public synchronized BlobContainer deserialize(JsonElement json, Type typeOfTarget, JsonDeserializationContext context) {
-        JsonObject srcJsonObj = json.getAsJsonObject();
-        
-        if(BlobContainer.getSerialversionuid() == srcJsonObj.get("SerialVersionUID").getAsLong()) {
+        JsonObject srcJsonObj = json.getAsJsonObject();        
+        if (BlobContainer.getSerialversionuid() == srcJsonObj.get("SerialVersionUID").getAsLong()) {
             String cacheItemJson = srcJsonObj.get("TokenCacheItem").getAsString();
             
             try {
-                TokenCacheItem tokenCacheItem = mGson.fromJson(cacheItemJson, TokenCacheItem.class);                
+                final TokenCacheItem tokenCacheItem = mGson.fromJson(cacheItemJson, TokenCacheItem.class);                
                 return new BlobContainer(tokenCacheItem);
             } catch (final Exception e) {
                 Logger.e(TAG, "The input json string cannot be deserialized to an BlobContainer object." + e.getMessage()
-                        , "", ADALError.FAIL_TO_DESERIALIZE);
+                        , "", ADALError.INCOMPATIBLE_BLOB_VERSION);
                 throw new JsonParseException("Cannot parse the blob: " + json.getAsString()); 
             }        
         }
         
         Logger.e(TAG, "cannot deserialze because the serial version UID does not match. "
                 + "Deserialzing target UID is:" + BlobContainer.getSerialversionuid(), 
-                "", ADALError.FAIL_TO_DESERIALIZE);
+                "", ADALError.INCOMPATIBLE_BLOB_VERSION);
         throw new JsonParseException("Cannot parse the blob, because the serial version UID does not match.");
     }
 }

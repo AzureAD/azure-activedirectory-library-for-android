@@ -211,16 +211,4 @@ public class UserInfo implements Serializable {
     void setPasswordExpiresOn(Date passwordExpiresOn) {
         this.mPasswordExpiresOn = passwordExpiresOn;
     }
-    
-    @Override
-    public String toString(){
-    	return "UserInfo { UniqueId = " + this.getUserId() + ","
-    			+ "DisplayableId = " + this.getDisplayableId() + ","
-    			+ "GivenName = " + this.getGivenName() + ","
-				+ "FamilyName = " + this.getFamilyName() + ","
-    			+ "IdentityProvider = " + this.getIdentityProvider() + ","
-				+ "PasswordChangeUrl = " + this.getPasswordChangeUrl() + ","
-    			+ "PasswordExpiresOn = " + (this.getPasswordExpiresOn() != null? this.getPasswordExpiresOn().toString(): "null")
-    			+ " }";
-    }
 }

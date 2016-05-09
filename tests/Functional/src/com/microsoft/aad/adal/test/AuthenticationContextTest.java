@@ -36,6 +36,7 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.UUID;
@@ -49,6 +50,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.google.gson.Gson;
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationActivity;
 import com.microsoft.aad.adal.AuthenticationCallback;
@@ -2284,6 +2286,197 @@ public class AuthenticationContextTest extends AndroidTestCase {
          signalCallback.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
      }
      
+     /**
+      * Add a FoCI token item into the mocked cache store
+      * @param mockCache
+      */
+     private void addFRTCacheItem(DefaultTokenCacheStore mockCache) {
+         final UserInfo user2 = new UserInfo(TEST_IDTOKEN_USERID, "givenName", "familyName", "identity", "userid2");
+         TokenCacheItem testFamilyRefreshTokenItemUser2 = new TokenCacheItem();
+         testFamilyRefreshTokenItemUser2.setAccessToken("user2token2Family");
+         testFamilyRefreshTokenItemUser2.setIsMultiResourceRefreshToken(true);
+         testFamilyRefreshTokenItemUser2.setAuthority(VALID_AUTHORITY);
+         testFamilyRefreshTokenItemUser2.setUserInfo(user2);
+         testFamilyRefreshTokenItemUser2.setFamilyClientId("1");
+         testFamilyRefreshTokenItemUser2.setRefreshToken("user2FRT");
+         testFamilyRefreshTokenItemUser2.setClientId("1");
+         testFamilyRefreshTokenItemUser2.setResource("");
+         mockCache.setItem(CacheKey.createCacheKey(testFamilyRefreshTokenItemUser2),
+                 testFamilyRefreshTokenItemUser2);         
+     }
+     
+     @SmallTest
+     /**
+      * Test the serialize() function
+      * where the cache store does not have the FoCI token for the user
+      * the function is expected to return null 
+      * 
+      * @throws AuthenticationException
+      * @throws IllegalAccessException
+      * @throws IllegalArgumentException
+      * @throws InvocationTargetException
+      * @throws ClassNotFoundException
+      * @throws NoSuchMethodException
+      * @throws InstantiationException
+      */
+     public void testSerialize_nullCacheItem() throws AuthenticationException, IllegalAccessException, 
+     IllegalArgumentException, InvocationTargetException, ClassNotFoundException, NoSuchMethodException, 
+     InstantiationException {         
+         FileMockContext mockContext = new FileMockContext(getContext());         
+         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext); 
+         final AuthenticationContext context = getAuthenticationContext(mockContext,
+                 VALID_AUTHORITY, false, mockCache);
+         this.clearCache(context);
+         Method m = ReflectionUtils.getTestMethod(context, "serialize", String.class);
+         assertTrue(null == m.invoke(context, TEST_IDTOKEN_USERID));
+     }
+     
+     @SmallTest
+     /**
+      * Test the serialize() function
+      * where the input userID is blank or null
+      * the function is expected to throw the IllegalArgumentException
+      * 
+      * @throws ClassNotFoundException
+      * @throws NoSuchMethodException
+      * @throws InstantiationException
+      * @throws IllegalAccessException
+      * @throws InvocationTargetException
+      */
+     public void testSerialize_invalidUserId() throws ClassNotFoundException, NoSuchMethodException, 
+     InstantiationException, IllegalAccessException, InvocationTargetException {
+         FileMockContext mockContext = new FileMockContext(getContext());
+         DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);        
+         addFRTCacheItem(mockCache);
+         final AuthenticationContext context = getAuthenticationContext(mockContext,
+                 VALID_AUTHORITY, false, mockCache);
+         Method m = ReflectionUtils.getTestMethod(context, "serialize", String.class);
+         
+         try {
+             String jsonString = (String)m.invoke(context, "");
+             Assert.fail("not expected");
+         } catch (final InvocationTargetException exception) {
+              assertTrue(exception.getCause() instanceof IllegalArgumentException);
+         }
+         
+         try {
+             String jsonString = (String)m.invoke(context, (String)null);
+             Assert.fail("not expected");
+         } catch (final InvocationTargetException exception) {
+             assertTrue(exception.getCause() instanceof IllegalArgumentException);
+         }        
+     }
+     
+     @SmallTest
+     /**
+      * Test the serialize() function
+      * where the cache store has the FoCI token for the user
+      * the function is expected to return the serialized string
+      * of the BlobContainer object which contain the FoCI token 
+      * cache item for the user
+      * 
+      * @throws AuthenticationException
+      * @throws IllegalArgumentException
+      * @throws ClassNotFoundException
+      * @throws NoSuchMethodException
+      * @throws InstantiationException
+      * @throws IllegalAccessException
+      * @throws InvocationTargetException
+      */
+     public void testSerialize_valid() throws AuthenticationException, IllegalArgumentException, ClassNotFoundException, 
+     NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+         FileMockContext mockContext = new FileMockContext(getContext());
+         DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);        
+         addFRTCacheItem(mockCache);
+         final AuthenticationContext context = getAuthenticationContext(mockContext,
+                 VALID_AUTHORITY, false, mockCache);
+         Method m = ReflectionUtils.getTestMethod(context, "serialize", String.class);
+         String jsonStr = (String)m.invoke(context, TEST_IDTOKEN_USERID);
+         assertTrue(jsonStr != null);
+     }
+
+     @SmallTest
+     /**
+      * Test the deserialize() function
+      * with a valid deserialized string containing 
+      * the FoCI token cache item for the user
+      * the function is expected to store the deserialized 
+      * FoCI token cache item back to the cache store
+      * 
+      * @throws AuthenticationException
+      * @throws IllegalArgumentException
+      * @throws ClassNotFoundException
+      * @throws NoSuchMethodException
+      * @throws InstantiationException
+      * @throws IllegalAccessException
+      * @throws InvocationTargetException
+      */
+     public void testDeserialize_valid() throws AuthenticationException, IllegalArgumentException, 
+     ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, 
+     InvocationTargetException {
+         FileMockContext mockContext = new FileMockContext(getContext());
+         DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);        
+         addFRTCacheItem(mockCache);
+         final AuthenticationContext context = getAuthenticationContext(mockContext,
+                 VALID_AUTHORITY, false, mockCache);
+         Method m = ReflectionUtils.getTestMethod(context, "serialize", String.class);        
+         String serializedBlob = (String)m.invoke(context, TEST_IDTOKEN_USERID);
+         
+         Method deserializeReflect = ReflectionUtils.getTestMethod(context, "deserialize", String.class);
+         deserializeReflect.invoke(context, serializedBlob);
+         
+         Method getfrtReflect = ReflectionUtils.getTestMethod(context, "serialize", String.class);
+         assertTrue(getfrtReflect.invoke(context, TEST_IDTOKEN_USERID) != null);
+     }    
+     
+     @SmallTest
+     /**
+      * Test the deserialize() function
+      * where the serial version UID is not compatible
+      * the function is expected to throw the DeserializationAuthenticationException
+      * 
+      * @throws AuthenticationException
+      */
+     public void testDeserialize_invalidSerialVersionUID() throws AuthenticationException {
+         FileMockContext mockContext = new FileMockContext(getContext());
+         DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);        
+         addFRTCacheItem(mockCache);
+         final AuthenticationContext context = getAuthenticationContext(mockContext,
+                 VALID_AUTHORITY, false, mockCache);
+         final Date date = new Date(1000);
+         Gson gson = new Gson();
+         final String mockFalseSerializedBlob = gson.toJson(date); 
+         
+         try {
+             Method deserializeReflect = ReflectionUtils.getTestMethod(context, "deserialize", String.class);
+             deserializeReflect.invoke(context, mockFalseSerializedBlob);
+             Assert.fail("Not expected.");
+         } catch (final Exception exception) {
+             assertTrue(((AuthenticationException)exception.getCause()).getCode().equals(ADALError.INCOMPATIBLE_BLOB_VERSION));
+         }
+     }
+     
+     @SmallTest
+     /**
+      * Test the deserialize() function
+      * where the deserialize input is null
+      * the function is expected to throw IllegalArgumentException
+      */
+     public void testDeserialize_nullSerializedBlob() {
+         final String nullSerializedBlob = null;
+         FileMockContext mockContext = new FileMockContext(getContext());
+         DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);        
+         addFRTCacheItem(mockCache);
+         final AuthenticationContext context = getAuthenticationContext(mockContext,
+                 VALID_AUTHORITY, false, mockCache);         
+         try {
+             Method deserializeReflect = ReflectionUtils.getTestMethod(context, "deserialize", String.class);
+             deserializeReflect.invoke(context, nullSerializedBlob);
+         } catch (final Exception exception) {
+             assertTrue("argument exception", exception.getCause() instanceof IllegalArgumentException);            
+         }
+     }
+     
      private String getErrorResponseBody(final String errorCode) {
          final String errorDescription = "\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null";
          
@@ -2403,8 +2596,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     private void clearCache(AuthenticationContext context) {
         if (context.getCache() != null) {
-		    context.getCache().removeAll();
-		}
+            context.getCache().removeAll();
+        }
     }
 
     class MockCache implements ITokenCacheStore {

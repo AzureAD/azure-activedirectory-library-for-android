@@ -23,19 +23,25 @@
 
 package com.microsoft.aad.adal;
 
+import java.util.Date;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 class BlobContainer {
 
     /**
      * universal version identifier for BlobContainer class
+     * @SerializedName("SerialVersionUID")
      */
-    private static final long serialVersionUID = 5722517776407773544L;
+    private static final long serialVersionUID = 20160501L;
     
-    private static final String TAG = "BlobContainer";    
+    private static final String TAG = "BlobContainer";
 
     /**
      * the BlobContainer stores the FRT tokenCacheItem 
      * of the given user
-     */
+     * @SerializedName("TokenCacheItem")
+     */ 
     private TokenCacheItem tokenItem;
     
     /**
@@ -45,15 +51,23 @@ class BlobContainer {
      */
     BlobContainer(TokenCacheItem tokenItem) {
         //only FRT is stored here 
-        if(tokenItem == null || StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
-            if(tokenItem != null) {
-                Logger.e(TAG, 
-                        "Invalid constructor input, the input TokenCacheItem should contains family refresh token.", 
-                        "", 
-                        ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND);
-            }
+        if (tokenItem == null) {
+            Logger.e(TAG, 
+                    "Invalid constructor input, the input should be a TokenCacheItem object.", 
+                    "", 
+                    ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND);
             throw new IllegalArgumentException("invalid input TokenCacheItem");
         }
+        
+        
+        if (StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
+            Logger.e(TAG, 
+                    "Invalid constructor input, the input TokenCacheItem should contains family refresh token.", 
+                    "", 
+                    ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND);
+            throw new IllegalArgumentException("invalid input TokenCacheItem");
+        }
+        
         this.tokenItem = tokenItem;        
     }
     
@@ -66,35 +80,14 @@ class BlobContainer {
     }
     
     /**
-     * Get the family refresh token from the tokenItem
-     * @return family refresh token
-     */
-    public String getFamilyRefreshToken() {
-        if(tokenItem!=null && !StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())){
-            return tokenItem.getRefreshToken();
-        } else {
-            return null;
-        }
-    }
-    
-    /**
      * return the values of variables in the tokenItem
      */
     @Override
-    public String toString() {
-        return "BlobContainer { "
-                + "tokenItem { UserInfo = " + (tokenItem.getUserInfo()).toString() + ","
-                + "Resource = " + tokenItem.getResource() + ","
-                + "Authority = " + tokenItem.getAuthority() + ","
-                + "ClientId = " + tokenItem.getClientId() + ","
-                + "AccessToken = " + tokenItem.getAccessToken() + ","
-                + "RefreshToken = " + tokenItem.getRefreshToken() + ","
-                + "RawIdToken = " + tokenItem.getRawIdToken() + ","
-                + "ExpiresOn = " + (tokenItem.getExpiresOn() != null? tokenItem.getExpiresOn().toString(): "null") + ","
-                + "IsMultiResourceRefreshToken = " + (tokenItem.getIsMultiResourceRefreshToken() ? "y" : "n") + ","
-                + "TenantId = " + tokenItem.getTenantId() + ","
-                + "FamilyClientId = " + tokenItem.getFamilyClientId()
-                + " } }";
+    public String toString() {        
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Date.class, new DateTimeAdapter())
+                .create();
+         return gson.toJson(this).toString();
     }
 
     /**
