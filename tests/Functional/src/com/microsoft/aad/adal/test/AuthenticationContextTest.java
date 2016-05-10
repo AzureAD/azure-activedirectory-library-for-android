@@ -2291,16 +2291,18 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * @param mockCache
       */
      private void addFRTCacheItem(DefaultTokenCacheStore mockCache) {
-         final UserInfo user2 = new UserInfo(TEST_IDTOKEN_USERID, "givenName", "familyName", "identity", "userid2");
+         final UserInfo user2 = new UserInfo(TEST_IDTOKEN_USERID, "givenName", "familyName", "identity", TEST_IDTOKEN_USERID);
          TokenCacheItem testFamilyRefreshTokenItemUser2 = new TokenCacheItem();
-         testFamilyRefreshTokenItemUser2.setAccessToken("user2token2Family");
+         testFamilyRefreshTokenItemUser2.setAccessToken("");
          testFamilyRefreshTokenItemUser2.setIsMultiResourceRefreshToken(true);
-         testFamilyRefreshTokenItemUser2.setAuthority(VALID_AUTHORITY);
+         testFamilyRefreshTokenItemUser2.setAuthority(TEST_AUTHORITY);
          testFamilyRefreshTokenItemUser2.setUserInfo(user2);
          testFamilyRefreshTokenItemUser2.setFamilyClientId("1");
-         testFamilyRefreshTokenItemUser2.setRefreshToken("user2FRT");
-         testFamilyRefreshTokenItemUser2.setClientId("1");
-         testFamilyRefreshTokenItemUser2.setResource("");
+         testFamilyRefreshTokenItemUser2.setRefreshToken("FRT");
+         testFamilyRefreshTokenItemUser2.setClientId(testClientId);
+         testFamilyRefreshTokenItemUser2.setResource(testResource);
+         testFamilyRefreshTokenItemUser2.setRawIdToken(TEST_IDTOKEN);
+         
          mockCache.setItem(CacheKey.createCacheKey(testFamilyRefreshTokenItemUser2),
                  testFamilyRefreshTokenItemUser2);         
      }
@@ -2424,9 +2426,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
          
          Method deserializeReflect = ReflectionUtils.getTestMethod(context, "deserialize", String.class);
          deserializeReflect.invoke(context, serializedBlob);
-         
-         Method getfrtReflect = ReflectionUtils.getTestMethod(context, "serialize", String.class);
-         assertTrue(getfrtReflect.invoke(context, TEST_IDTOKEN_USERID) != null);
+         assertTrue(mockCache.getTokensForUser(TEST_IDTOKEN_USERID) != null);
      }    
      
      @SmallTest

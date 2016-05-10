@@ -253,7 +253,7 @@ class Oauth2 {
                 if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
                     IdToken tokenParsed = parseIdToken(rawIdToken);
                     if (tokenParsed != null) {
-                        tenantId = tokenParsed.mTenantId;
+                        tenantId = tokenParsed.getTenantId();
                         userinfo = new UserInfo(tokenParsed);
                     }
                 } else {
@@ -288,54 +288,11 @@ class Oauth2 {
      */
     private static IdToken parseIdToken(String idtoken) {
         try {
-            // Message segments: Header.Body.Signature
-            int firstDot = idtoken.indexOf(".");
-            int secondDot = idtoken.indexOf(".", firstDot + 1);
-            int invalidDot = idtoken.indexOf(".", secondDot + 1);
-
-            if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
-                String idbody = idtoken.substring(firstDot + 1, secondDot);
-                // URL_SAFE: Encoder/decoder flag bit to use
-                // "URL and filename safe" variant of Base64
-                // (see RFC 3548 section 4) where - and _ are used in place of +
-                // and /.
-                byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
-                String decodedBody = new String(data, "UTF-8");
-
-                HashMap<String, String> responseItems = new HashMap<String, String>();
-                extractJsonObjects(responseItems, decodedBody);
-                if (responseItems != null && !responseItems.isEmpty()) {
-                    IdToken idtokenInfo = new IdToken();
-                    idtokenInfo.mSubject = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
-                    idtokenInfo.mTenantId = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_TENANTID);
-                    idtokenInfo.mUpn = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
-                    idtokenInfo.mEmail = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_EMAIL);
-                    idtokenInfo.mGivenName = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
-                    idtokenInfo.mFamilyName = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
-                    idtokenInfo.mIdentityProvider = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
-                    idtokenInfo.mObjectId = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
-                    String expiration = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
-                    if (!StringExtensions.IsNullOrBlank(expiration)) {
-                        idtokenInfo.mPasswordExpiration = Long.parseLong(expiration);
-                    }
-                    idtokenInfo.mPasswordChangeUrl = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
-                    Logger.v(TAG, "IdToken is extracted from token response");
-                    return idtokenInfo;
-                }
-            }
-        } catch (JSONException | UnsupportedEncodingException ex) {
+            IdToken idtokenInfo = IdToken.create(idtoken);
+            return idtokenInfo;
+        } catch (JSONException | UnsupportedEncodingException exception) {
             Logger.e(TAG, "Error in parsing user id token", null,
-                    ADALError.IDTOKEN_PARSING_FAILURE, ex);
+                    ADALError.IDTOKEN_PARSING_FAILURE, exception);
         }
         return null;
     }

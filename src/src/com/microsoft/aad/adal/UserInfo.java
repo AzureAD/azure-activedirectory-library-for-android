@@ -77,32 +77,32 @@ public class UserInfo implements Serializable {
         mUniqueId = null;
         mDisplayableId = null;
 
-        if (!StringExtensions.IsNullOrBlank(token.mObjectId)) {
-            mUniqueId = token.mObjectId;
-        } else if (!StringExtensions.IsNullOrBlank(token.mSubject)) {
-            mUniqueId = token.mSubject;
+        if (!StringExtensions.IsNullOrBlank(token.getObjectId())) {
+            mUniqueId = token.getObjectId();
+        } else if (!StringExtensions.IsNullOrBlank(token.getSubject())) {
+            mUniqueId = token.getSubject();
         }
 
-        if (!StringExtensions.IsNullOrBlank(token.mUpn)) {
-            mDisplayableId = token.mUpn;
-        } else if (!StringExtensions.IsNullOrBlank(token.mEmail)) {
-            mDisplayableId = token.mEmail;
+        if (!StringExtensions.IsNullOrBlank(token.getUpn())) {
+            mDisplayableId = token.getUpn();
+        } else if (!StringExtensions.IsNullOrBlank(token.getEmail())) {
+            mDisplayableId = token.getEmail();
         }
 
-        mGivenName = token.mGivenName;
-        mFamilyName = token.mFamilyName;
-        mIdentityProvider = token.mIdentityProvider;
-        if (token.mPasswordExpiration > 0) {
+        mGivenName = token.getGivenName();
+        mFamilyName = token.getFamilyName();
+        mIdentityProvider = token.getIdentityProvider();
+        if (token.getPasswordExpiration() > 0) {
             // pwd_exp returns seconds to expiration time
             // it returns in seconds. Date accepts milliseconds.
             Calendar expires = new GregorianCalendar();
-            expires.add(Calendar.SECOND, (int)token.mPasswordExpiration);
+            expires.add(Calendar.SECOND, (int)token.getPasswordExpiration());
             mPasswordExpiresOn = expires.getTime();
         }
 
         mPasswordChangeUrl = null;
-        if (!StringExtensions.IsNullOrBlank(token.mPasswordChangeUrl)) {
-            mPasswordChangeUrl = Uri.parse(token.mPasswordChangeUrl);
+        if (!StringExtensions.IsNullOrBlank(token.getPasswordChangeUrl())) {
+            mPasswordChangeUrl = Uri.parse(token.getPasswordChangeUrl());
         }
     }
 

@@ -45,7 +45,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.crypto.NoSuchPaddingException;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
@@ -2134,35 +2133,31 @@ public class AuthenticationContext {
         }
     }
 
-    protected String serialize(String uniqueUserId) throws UsageAuthenticationException {
+    protected String serialize(final String uniqueUserId) throws UsageAuthenticationException {
         if (StringExtensions.IsNullOrBlank(uniqueUserId)) {
             throw new IllegalArgumentException("uniqueUserId");
         }
         
         if ((new BrokerProxy(mContext)).canSwitchToBroker()) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,"Failed to export the FID because broker is enabled.");
-        } else {
-            /* the current serialize/deserialize feature is for first party 
-             * so the client ID for the FoCI token cache item is hard coded below
-             */
-            final String foci = "1";
-            TokenCacheItem tokenItem = new TokenCacheItem();
-            final String cacheKey = CacheKey.createCacheKey(this.getAuthority(), null, foci, true, uniqueUserId);
-            tokenItem = this.getCache().getItem(cacheKey);
-            
-            if (tokenItem == null) {
-                Logger.i(TAG, "Cannot find the FoCI token cache item for this userID", "");
-                return null;
-            }
+        }
+        
+        /* the current serialize/deserialize feature is for only supports MS apps 
+         * so the client ID for the FoCI token cache item is hard coded below
+         */        
+        final String cacheKey = CacheKey.createCacheKey(this.getAuthority(), null, AuthenticationConstants.MS_FAMILY_ID, true, uniqueUserId);
+        final TokenCacheItem tokenItem = this.getCache().getItem(cacheKey);
+        
+        if (tokenItem == null) {
+            Logger.i(TAG, "Cannot find the FoCI token cache item for this userID", "");
+            return null;
+        }
 
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(BlobContainer.class, new BlobContainerAdapter())
-                    .create();
-            final BlobContainer blobContainer = new BlobContainer(tokenItem);
-            Logger.i(TAG, "family refresh token cache item:" + blobContainer.toString(), "");
-            String json = gson.toJson(blobContainer);
-            return json;           
-        }      
+        Gson gson = new Gson();
+        final SSOStateContainer blobContainer = new SSOStateContainer(tokenItem);
+        Logger.i(TAG, "Family refresh token found.","");
+        final String json = gson.toJson(blobContainer);
+        return json;  
     }
     
     protected void deserialize(String serializedBlob) throws AuthenticationException {
@@ -2172,25 +2167,21 @@ public class AuthenticationContext {
             
         if ((new BrokerProxy(mContext)).canSwitchToBroker()) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT,"Failed to import the serialized blob because broker is enabled.");
-        } else {
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(BlobContainer.class, new BlobContainerAdapter())
-                    .create(); 
-            BlobContainer blobContainer;
-            
-            try {
-                blobContainer = gson.fromJson(serializedBlob, BlobContainer.class);
-            } catch (final JsonParseException exp) {
-                throw new DeserializationAuthenticationException(exp.getMessage());
-            }            
-            Logger.i(TAG + ".deserialize", "Json parsing for serializedBlob :" + blobContainer.toString(), "");
-            
-            final TokenCacheItem tokenCacheItem = blobContainer.getTokenItem();
-            final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
-            Logger.i(TAG + ".getTokenItem", "Get the family refresh token from the deserialized object.", "");
-            
-            this.getCache().setItem(cacheKey, tokenCacheItem);    
-            }
+        }
+        
+        Gson gson = new Gson();
+        SSOStateContainer blobContainer;
+        
+        try {
+            blobContainer = gson.fromJson(serializedBlob, SSOStateContainer.class);
+        } catch (final JsonParseException exception) {
+            throw new DeserializationAuthenticationException(exception.getMessage());
+        }
+        
+        final TokenCacheItem tokenCacheItem = blobContainer.getTokenItem().parseSerializedTokenCacheItem();
+        final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
+        Logger.i(TAG, "Get the family refresh token from the deserialized object.", "");        
+        this.getCache().setItem(cacheKey, tokenCacheItem);  
     }
     
     class DefaultConnectionService implements IConnectionService {

@@ -23,60 +23,53 @@
 
 package com.microsoft.aad.adal;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 
-class BlobContainer {
-
+class SSOStateContainer {
     /**
-     * universal version identifier for BlobContainer class
-     * @SerializedName("SerialVersionUID")
+     * the version number of {@link SSOStateContainer}
      */
-    private static final long serialVersionUID = 20160501L;
-    
-    private static final String TAG = "BlobContainer";
+    @SerializedName("version")
+    private final int version = 1;
 
     /**
-     * the BlobContainer stores the FRT tokenCacheItem 
+     * the {@link SSOStateContainer} stores the FRT tokenCacheItem 
      * of the given user
-     * @SerializedName("TokenCacheItem")
      */ 
-    private TokenCacheItem tokenItem;
+    @SerializedName("tokenCacheItems") 
+    private final List<SerializedTokenCacheItem> tokenCacheItems = new ArrayList<SerializedTokenCacheItem>();
     
     /**
      * Check if the cache item contains family refresh token
      * if true, value the tokenItem with this cache item
      * @param item
      */
-    BlobContainer(TokenCacheItem tokenItem) {
+    SSOStateContainer(final TokenCacheItem tokenItem) {
         //only FRT is stored here 
         if (tokenItem == null) {
-            Logger.e(TAG, 
-                    "Invalid constructor input, the input should be a TokenCacheItem object.", 
-                    "", 
-                    ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND);
-            throw new IllegalArgumentException("invalid input TokenCacheItem");
+            throw new IllegalArgumentException("tokenItem is null");
         }
-        
         
         if (StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
-            Logger.e(TAG, 
-                    "Invalid constructor input, the input TokenCacheItem should contains family refresh token.", 
-                    "", 
-                    ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND);
-            throw new IllegalArgumentException("invalid input TokenCacheItem");
+            throw new IllegalArgumentException("tokenItem does not contain family refresh token");
         }
         
-        this.tokenItem = tokenItem;        
+        final SerializedTokenCacheItem serializedTokenCacheItem = new SerializedTokenCacheItem(tokenItem);        
+        this.tokenCacheItems.add(serializedTokenCacheItem);
     }
     
     /**
      * return the token cache item in this blob container object
      * @return tokenCacheItem
      */
-    public TokenCacheItem getTokenItem() {
-        return tokenItem;
+    public SerializedTokenCacheItem getTokenItem() {
+        return tokenCacheItems.get(0);
     }
     
     /**
@@ -87,14 +80,6 @@ class BlobContainer {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Date.class, new DateTimeAdapter())
                 .create();
-         return gson.toJson(this).toString();
-    }
-
-    /**
-     * method to get the serialVersionUID of BlobContainer
-     * @return serialVersionUID
-     */
-    protected static long getSerialversionuid() {
-        return serialVersionUID;
+        return gson.toJson(this).toString();
     }
 }

@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import java.io.IOException;
-import java.io.ObjectStreamClass;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -41,9 +40,6 @@ import javax.crypto.NoSuchPaddingException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSyntaxException;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
