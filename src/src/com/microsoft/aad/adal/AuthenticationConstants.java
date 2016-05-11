@@ -330,4 +330,6 @@ public class AuthenticationConstants {
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
     public static final String AUTHENTICATION_FILE_DIRECTORY = "com.microsoft.aad.adal.authentication";
+    
+    public static final String ADAL_ERROR_CODE = "ADALErrorCode";
 }

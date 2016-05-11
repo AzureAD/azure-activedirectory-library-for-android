@@ -758,8 +758,9 @@ public class AuthenticationContext {
                             + requestId + correlationInfo);
                     
                     ADALError adalError = ADALError.SERVER_INVALID_REQUEST;
-                    if (errCode.equalsIgnoreCase("Code:" + String.valueOf(WebViewClient.ERROR_FAILED_SSL_HANDSHAKE))) {
-                    	adalError = ADALError.ERROR_FAILED_SSL_HANDSHAKE;
+                    Serializable resultADALErrorCode = data.getSerializableExtra(AuthenticationConstants.ADAL_ERROR_CODE);
+                    if (null != resultADALErrorCode) {                            
+                    	adalError = (ADALError)resultADALErrorCode;
                     }
                     
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(

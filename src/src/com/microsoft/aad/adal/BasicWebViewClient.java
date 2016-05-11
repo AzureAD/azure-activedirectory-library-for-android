@@ -120,6 +120,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         handler.cancel();
         Logger.e(TAG, "Received ssl error", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
         Intent resultIntent = new Intent();
+        resultIntent.putExtra(AuthenticationConstants.ADAL_ERROR_CODE, ADALError.ERROR_FAILED_SSL_HANDSHAKE);
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Code:"
                 + ERROR_FAILED_SSL_HANDSHAKE);
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
