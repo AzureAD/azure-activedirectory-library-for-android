@@ -109,6 +109,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                 + errorCode);
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE, description);
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO, mRequest);
+        resultIntent.putExtra(AuthenticationConstants.ADAL_ERROR_CODE, ADALError.ERROR_WEBVIEW);
         sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
     }
 

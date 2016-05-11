@@ -756,15 +756,8 @@ public class AuthenticationContext {
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
                     Logger.v(TAG, "Error info:" + errCode + " " + errMessage + " for requestId: "
                             + requestId + correlationInfo);
-                    
-                    ADALError adalError = ADALError.SERVER_INVALID_REQUEST;
-                    Serializable resultADALErrorCode = data.getSerializableExtra(AuthenticationConstants.ADAL_ERROR_CODE);
-                    if (null != resultADALErrorCode) {                            
-                    	adalError = (ADALError)resultADALErrorCode;
-                    }
-                    
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
-                            adalError, errCode + " " + errMessage));
+                    		(ADALError)data.getSerializableExtra(AuthenticationConstants.ADAL_ERROR_CODE), errCode + " " + errMessage));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);

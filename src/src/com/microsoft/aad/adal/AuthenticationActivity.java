@@ -162,6 +162,7 @@ public class AuthenticationActivity extends Activity {
                     AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE,
                     "Intent does not have request details");
+            resultIntent.putExtra(AuthenticationConstants.ADAL_ERROR_CODE, ADALError.ERROR_WEBVIEW);
             returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
             return;
         }
@@ -414,6 +415,7 @@ public class AuthenticationActivity extends Activity {
         resultIntent
                 .putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, errorCode.name());
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE, argument);
+        resultIntent.putExtra(AuthenticationConstants.ADAL_ERROR_CODE, errorCode);
         if (mAuthRequest != null) {
             resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
