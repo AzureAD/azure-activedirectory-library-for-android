@@ -1,5 +1,7 @@
 package com.microsoft.aad.adal;
 
+import org.json.JSONException;
+
 import com.google.gson.annotations.SerializedName;
 
 final class SerializedTokenCacheItem {
@@ -32,8 +34,8 @@ final class SerializedTokenCacheItem {
         UserInfo userInfo = new UserInfo(idToken);
         tokenCacheItem.setUserInfo(userInfo);
         tokenCacheItem.setTenantId(idToken.getTenantId());
-        
-        //For family refresh token, clientId and resource will all be null
+        tokenCacheItem.setClientId(idToken.getClienIdfromRawIdToken(this.mIdToken));
+        //For family refresh token, resource will all be null
         tokenCacheItem.setAuthority(this.mAuthority);
         tokenCacheItem.setIsMultiResourceRefreshToken(true);
         tokenCacheItem.setRawIdToken(this.mIdToken);

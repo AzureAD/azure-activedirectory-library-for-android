@@ -2299,15 +2299,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
          testFamilyRefreshTokenItemUser2.setUserInfo(user2);
          testFamilyRefreshTokenItemUser2.setFamilyClientId("1");
          testFamilyRefreshTokenItemUser2.setRefreshToken("FRT");
-         testFamilyRefreshTokenItemUser2.setClientId(testClientId);
-         testFamilyRefreshTokenItemUser2.setResource(testResource);
+         //testFamilyRefreshTokenItemUser2.setClientId("");
+         //testFamilyRefreshTokenItemUser2.setResource(testResource);
          testFamilyRefreshTokenItemUser2.setRawIdToken(TEST_IDTOKEN);
          
-         mockCache.setItem(CacheKey.createCacheKey(testFamilyRefreshTokenItemUser2),
-                 testFamilyRefreshTokenItemUser2);         
-     }
+         mockCache.setItem(CacheKey.createCacheKey(testFamilyRefreshTokenItemUser2.getAuthority(), null, AuthenticationConstants.MS_FAMILY_ID, true, TEST_IDTOKEN_USERID),
+                 testFamilyRefreshTokenItemUser2);
+        }
      
-     @SmallTest
      /**
       * Test the serialize() function
       * where the cache store does not have the FoCI token for the user
@@ -2321,6 +2320,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * @throws NoSuchMethodException
       * @throws InstantiationException
       */
+     @SmallTest
      public void testSerialize_nullCacheItem() throws AuthenticationException, IllegalAccessException, 
      IllegalArgumentException, InvocationTargetException, ClassNotFoundException, NoSuchMethodException, 
      InstantiationException {         
@@ -2333,7 +2333,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
          assertTrue(null == m.invoke(context, TEST_IDTOKEN_USERID));
      }
      
-     @SmallTest
      /**
       * Test the serialize() function
       * where the input userID is blank or null
@@ -2345,6 +2344,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * @throws IllegalAccessException
       * @throws InvocationTargetException
       */
+     @SmallTest
      public void testSerialize_invalidUserId() throws ClassNotFoundException, NoSuchMethodException, 
      InstantiationException, IllegalAccessException, InvocationTargetException {
          FileMockContext mockContext = new FileMockContext(getContext());
@@ -2369,7 +2369,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
          }        
      }
      
-     @SmallTest
      /**
       * Test the serialize() function
       * where the cache store has the FoCI token for the user
@@ -2385,19 +2384,19 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * @throws IllegalAccessException
       * @throws InvocationTargetException
       */
+     @SmallTest
      public void testSerialize_valid() throws AuthenticationException, IllegalArgumentException, ClassNotFoundException, 
      NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
          FileMockContext mockContext = new FileMockContext(getContext());
          DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);        
          addFRTCacheItem(mockCache);
          final AuthenticationContext context = getAuthenticationContext(mockContext,
-                 VALID_AUTHORITY, false, mockCache);
+        		 TEST_AUTHORITY, false, mockCache);
          Method m = ReflectionUtils.getTestMethod(context, "serialize", String.class);
          String jsonStr = (String)m.invoke(context, TEST_IDTOKEN_USERID);
          assertTrue(jsonStr != null);
      }
 
-     @SmallTest
      /**
       * Test the deserialize() function
       * with a valid deserialized string containing 
@@ -2413,6 +2412,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * @throws IllegalAccessException
       * @throws InvocationTargetException
       */
+     @SmallTest
      public void testDeserialize_valid() throws AuthenticationException, IllegalArgumentException, 
      ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, 
      InvocationTargetException {
@@ -2420,7 +2420,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
          DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);        
          addFRTCacheItem(mockCache);
          final AuthenticationContext context = getAuthenticationContext(mockContext,
-                 VALID_AUTHORITY, false, mockCache);
+                 TEST_AUTHORITY, false, mockCache);
          Method m = ReflectionUtils.getTestMethod(context, "serialize", String.class);        
          String serializedBlob = (String)m.invoke(context, TEST_IDTOKEN_USERID);
          
@@ -2429,7 +2429,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
          assertTrue(mockCache.getTokensForUser(TEST_IDTOKEN_USERID) != null);
      }    
      
-     @SmallTest
      /**
       * Test the deserialize() function
       * where the serial version UID is not compatible
@@ -2437,6 +2436,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * 
       * @throws AuthenticationException
       */
+     @SmallTest
      public void testDeserialize_invalidSerialVersionUID() throws AuthenticationException {
          FileMockContext mockContext = new FileMockContext(getContext());
          DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);        
@@ -2456,12 +2456,12 @@ public class AuthenticationContextTest extends AndroidTestCase {
          }
      }
      
-     @SmallTest
      /**
       * Test the deserialize() function
       * where the deserialize input is null
       * the function is expected to throw IllegalArgumentException
       */
+     @SmallTest
      public void testDeserialize_nullSerializedBlob() {
          final String nullSerializedBlob = null;
          FileMockContext mockContext = new FileMockContext(getContext());

@@ -75,7 +75,7 @@ class SSOStateContainer {
     }
     
     String serializeFRT() throws AuthenticationException{    	
-    	if (this.getTokenItem() != null) {
+    	if (tokenCacheItems.get(0) != null) {
     		Gson gson  = new Gson();
     		final String json = gson.toJson(this);
         	return json;

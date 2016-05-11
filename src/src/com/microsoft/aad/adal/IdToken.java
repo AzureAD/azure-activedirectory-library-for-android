@@ -34,7 +34,7 @@ import android.util.Base64;
 
 public class IdToken {
     
-    final private String TAG = "IdToken";
+    final private static String TAG = "IdToken";
     
     private String mSubject;
 
@@ -169,6 +169,16 @@ public class IdToken {
             final String key = (String) i.next();
             responseItems.put(key, jsonObject.getString(key));
         }
+    }
+    
+    String getClienIdfromRawIdToken(String jsonStr) throws AuthenticationException {
+    	HashMap<String, String> responseItems = this.extractBody(jsonStr);
+    	if (responseItems != null && !responseItems.isEmpty()) {
+    		return responseItems.get(AuthenticationConstants.OAuth2.CLIENT_ID);
+    	} else {
+    		Logger.e(TAG, "Failed to extract the ClientID", "", ADALError.JSON_PARSE_ERROR);
+            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR,"Failed to extract the ClientID");
+    	}
     }
     
     
