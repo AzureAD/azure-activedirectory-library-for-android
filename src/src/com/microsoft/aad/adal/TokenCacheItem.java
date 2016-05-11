@@ -27,8 +27,6 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
-import com.microsoft.aad.adal.RefreshItem.KeyEntryType;
-
 /**
  * Extended result to store more info Queries will be performed over this item
  * not the key.
@@ -68,42 +66,62 @@ public class TokenCacheItem implements Serializable {
     private String mFamilyClientId;
 
     /**
-     * Construct default cache item.
+     * Default constructor for cache item.
      */
-    public TokenCacheItem() {
-
+    public TokenCacheItem() {}
+    
+    /**
+     * Construct cache item with given authority and returned auth result. 
+     */
+    private TokenCacheItem(final String authority, final AuthenticationResult authenticationResult) {
+        if (authenticationResult == null) {
+            throw new IllegalArgumentException("authenticationResult");
+        }
+        
+        if (StringExtensions.IsNullOrBlank(authority)) {
+            throw new IllegalArgumentException("authority");
+        }
+        
+        mAuthority = authority;
+        mExpiresOn = authenticationResult.getExpiresOn();
+        // Multi-resource refresh token won't have resource recorded. To support back-compability
+        // for existing token cache item.
+        mIsMultiResourceRefreshToken = authenticationResult.getIsMultiResourceRefreshToken();
+        mTenantId = authenticationResult.getTenantId();
+        mUserInfo = authenticationResult.getUserInfo();
+        mRawIdToken = authenticationResult.getIdToken();
+        mRefreshtoken = authenticationResult.getRefreshToken();
+        mFamilyClientId = authenticationResult.getFamilyClientId();
     }
-
-    TokenCacheItem(final AuthenticationRequest request, final AuthenticationResult result,
-            final KeyEntryType keyEntryType) {
-        mAuthority = request.getAuthority();
-           
-        // Do not store client id for token stored in family token entry
-        if (keyEntryType != KeyEntryType.FAMILY_REFRESH_TOKEN_ENTRY) {
-            mClientId = request.getClientId();
-        }
-
-        if (keyEntryType == KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY) {
-            // Only regular token cache entry should stoure resource
-            mResource = request.getResource();
-        }
-
-        if (result != null) {
-            mExpiresOn = result.getExpiresOn();
-            mIsMultiResourceRefreshToken = result.getIsMultiResourceRefreshToken();
-            mTenantId = result.getTenantId();
-            mUserInfo = result.getUserInfo();
-            mRawIdToken = result.getIdToken();
-
-            if (keyEntryType == KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY) {
-                // Only store AT for regular token cache entry.
-                // Don't store AT for MRRT token cache entry or FRT entry
-                mAccessToken = result.getAccessToken();
-            } 
-
-            mRefreshtoken = result.getRefreshToken();
-            mFamilyClientId = result.getFamilyClientId();
-        }
+    
+    /**
+     * Create regular RT token cache item. 
+     */
+    public static TokenCacheItem createRegularTokenCacheItem(final String authority, final String resource, final String clientId, final AuthenticationResult authResult) {
+        final TokenCacheItem item = new TokenCacheItem(authority, authResult);
+        item.setClientId(clientId);
+        item.setResource(resource);
+        item.setAccessToken(authResult.getAccessToken());
+        return item;
+    }
+    
+    /**
+     * Create MRRT token cache item. 
+     * Will not store AT and resource in the token cache.
+     */
+    public static TokenCacheItem createMRRTTokenCacheItem(final String authority, final String clientId, final AuthenticationResult authResult) {
+        final TokenCacheItem item = new TokenCacheItem(authority, authResult);
+        item.setClientId(clientId);
+        
+        return item;
+    }
+    
+    /**
+     * Create FRT token cache entry. 
+     * Will not store clientId, resource and AT. 
+     */
+    public static TokenCacheItem createFRRTTokenCacheItem(final String authority, final AuthenticationResult authResult) {
+        return new TokenCacheItem(authority, authResult);
     }
 
     public UserInfo getUserInfo() {

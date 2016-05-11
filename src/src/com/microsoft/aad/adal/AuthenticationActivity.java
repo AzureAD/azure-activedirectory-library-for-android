@@ -37,7 +37,6 @@ import java.util.UUID;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.aad.adal.RefreshItem.KeyEntryType;
 
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
@@ -962,12 +961,14 @@ public class AuthenticationActivity extends Activity {
                 Logger.i(TAG, "setAccount: user key is null", "");
             }
 
-            TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY);
+            TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(mRequest.getAuthority(), mRequest.getResource(), 
+                    mRequest.getClientId(), result.taskResult);
             String json = gson.toJson(item);
             String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
-            String key = CacheKey.createCacheKey(mRequest, KeyEntryType.REGULAR_REFRESH_TOKEN_ENTRY, null);
+            String key = CacheKey.createCacheKeyForRTEntry(mAuthRequest.getAuthority(), mAuthRequest.getResource(), 
+                    mAuthRequest.getClientId(), null);
             saveCacheKey(key, newaccount, mAppCallingUID);
             mAccountManager.setUserData(
                     newaccount,
@@ -976,10 +977,11 @@ public class AuthenticationActivity extends Activity {
 
             if (result.taskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
-                TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY);
+                TokenCacheItem itemMRRT = TokenCacheItem.createMRRTTokenCacheItem(mRequest.getAuthority(), mRequest.getClientId(), result.taskResult);
+//                        new TokenCacheItem(mRequest, result.taskResult, TokenEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY);
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
-                key = CacheKey.createCacheKey(mRequest,KeyEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY, null);
+                key = CacheKey.createCacheKeyForMRRT(mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);
                 saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(
                         newaccount,

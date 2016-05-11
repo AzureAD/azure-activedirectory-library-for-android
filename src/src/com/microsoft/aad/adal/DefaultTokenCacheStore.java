@@ -273,7 +273,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
-            if (tokenCacheItem.getResource().equals(resource)) {
+            // MRRT and FRT don't store resource in the token cache item. 
+            // reverse the check to avoid NPE. 
+            if (resource.equalsIgnoreCase(tokenCacheItem.getResource())) {
                 tokenItems.add(tokenCacheItem);
             }
         }
