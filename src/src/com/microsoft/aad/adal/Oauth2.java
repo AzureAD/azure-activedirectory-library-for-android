@@ -251,11 +251,17 @@ class Oauth2 {
                 // response. ADFS does not return that.
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
-                    IdToken tokenParsed = parseIdToken(rawIdToken);
-                    if (tokenParsed != null) {
-                        tenantId = tokenParsed.getTenantId();
-                        userinfo = new UserInfo(tokenParsed);
-                    }
+                    IdToken tokenParsed;
+					try {
+						tokenParsed = new IdToken(rawIdToken);
+						if (tokenParsed != null) {
+	                        tenantId = tokenParsed.getTenantId();
+	                        userinfo = new UserInfo(tokenParsed);
+	                    }
+					} catch (AuthenticationException e) {
+						Logger.e(TAG, "Error in parsing user id token", null,
+			                    ADALError.IDTOKEN_PARSING_FAILURE, e.getCause());
+					}                    
                 } else {
                     Logger.v(TAG, "IdToken is not provided");
                 }
@@ -278,23 +284,6 @@ class Oauth2 {
         }
 
         return result;
-    }
-
-    /**
-     * parse user id token string.
-     * 
-     * @param idtoken
-     * @return UserInfo
-     */
-    private static IdToken parseIdToken(String idtoken) {
-        try {
-            IdToken idtokenInfo = IdToken.create(idtoken);
-            return idtokenInfo;
-        } catch (JSONException | UnsupportedEncodingException exception) {
-            Logger.e(TAG, "Error in parsing user id token", null,
-                    ADALError.IDTOKEN_PARSING_FAILURE, exception);
-        }
-        return null;
     }
 
     private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr)

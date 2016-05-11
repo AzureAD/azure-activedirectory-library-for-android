@@ -535,7 +535,12 @@ public enum ADALError {
     /**
      * Fail to get the family refresh token from the cache item
      */
-    FAMILY_REFRESH_TOKEN_NOT_FOUND("Family fresh token is not found");
+    FAMILY_REFRESH_TOKEN_NOT_FOUND("Family fresh token is not found"), 
+    
+    /**
+     * Fail to parse JSON because of the problem with the JSON API
+     */
+    JSON_PARSE_ERROR("Fail to parse JSON");
     
     private String mDescription;
 

@@ -72,37 +72,37 @@ public class UserInfo implements Serializable {
         mDisplayableId = displayableId;
     }
 
-    public UserInfo(IdToken token) {
+    public UserInfo(IdToken idToken) {
 
         mUniqueId = null;
         mDisplayableId = null;
 
-        if (!StringExtensions.IsNullOrBlank(token.getObjectId())) {
-            mUniqueId = token.getObjectId();
-        } else if (!StringExtensions.IsNullOrBlank(token.getSubject())) {
-            mUniqueId = token.getSubject();
+        if (!StringExtensions.IsNullOrBlank(idToken.getObjectId())) {
+            mUniqueId = idToken.getObjectId();
+        } else if (!StringExtensions.IsNullOrBlank(idToken.getSubject())) {
+            mUniqueId = idToken.getSubject();
         }
 
-        if (!StringExtensions.IsNullOrBlank(token.getUpn())) {
-            mDisplayableId = token.getUpn();
-        } else if (!StringExtensions.IsNullOrBlank(token.getEmail())) {
-            mDisplayableId = token.getEmail();
+        if (!StringExtensions.IsNullOrBlank(idToken.getUpn())) {
+            mDisplayableId = idToken.getUpn();
+        } else if (!StringExtensions.IsNullOrBlank(idToken.getEmail())) {
+            mDisplayableId = idToken.getEmail();
         }
 
-        mGivenName = token.getGivenName();
-        mFamilyName = token.getFamilyName();
-        mIdentityProvider = token.getIdentityProvider();
-        if (token.getPasswordExpiration() > 0) {
+        mGivenName = idToken.getGivenName();
+        mFamilyName = idToken.getFamilyName();
+        mIdentityProvider = idToken.getIdentityProvider();
+        if (idToken.getPasswordExpiration() > 0) {
             // pwd_exp returns seconds to expiration time
             // it returns in seconds. Date accepts milliseconds.
             Calendar expires = new GregorianCalendar();
-            expires.add(Calendar.SECOND, (int)token.getPasswordExpiration());
+            expires.add(Calendar.SECOND, (int)idToken.getPasswordExpiration());
             mPasswordExpiresOn = expires.getTime();
         }
 
         mPasswordChangeUrl = null;
-        if (!StringExtensions.IsNullOrBlank(token.getPasswordChangeUrl())) {
-            mPasswordChangeUrl = Uri.parse(token.getPasswordChangeUrl());
+        if (!StringExtensions.IsNullOrBlank(idToken.getPasswordChangeUrl())) {
+            mPasswordChangeUrl = Uri.parse(idToken.getPasswordChangeUrl());
         }
     }
 

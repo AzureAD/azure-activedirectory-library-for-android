@@ -2133,7 +2133,7 @@ public class AuthenticationContext {
         }
     }
 
-    protected String serialize(final String uniqueUserId) throws UsageAuthenticationException {
+    String serialize(final String uniqueUserId) throws AuthenticationException {
         if (StringExtensions.IsNullOrBlank(uniqueUserId)) {
             throw new IllegalArgumentException("uniqueUserId");
         }
@@ -2151,16 +2151,14 @@ public class AuthenticationContext {
         if (tokenItem == null) {
             Logger.i(TAG, "Cannot find the FoCI token cache item for this userID", "");
             return null;
-        }
-
-        Gson gson = new Gson();
+        }        
+       
         final SSOStateContainer blobContainer = new SSOStateContainer(tokenItem);
-        Logger.i(TAG, "Family refresh token found.","");
-        final String json = gson.toJson(blobContainer);
-        return json;  
+        Logger.i(TAG, "prepare to serialize","");
+        return blobContainer.serializeFRT();  
     }
     
-    protected void deserialize(String serializedBlob) throws AuthenticationException {
+    void deserialize(String serializedBlob) throws AuthenticationException {
         if (StringExtensions.IsNullOrBlank(serializedBlob)) {
             throw new IllegalArgumentException("serializedBlob");
         }
@@ -2169,18 +2167,9 @@ public class AuthenticationContext {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT,"Failed to import the serialized blob because broker is enabled.");
         }
         
-        Gson gson = new Gson();
-        SSOStateContainer blobContainer;
-        
-        try {
-            blobContainer = gson.fromJson(serializedBlob, SSOStateContainer.class);
-        } catch (final JsonParseException exception) {
-            throw new DeserializationAuthenticationException(exception.getMessage());
-        }
-        
-        final TokenCacheItem tokenCacheItem = blobContainer.getTokenItem().parseSerializedTokenCacheItem();
+        Logger.i(TAG, "prepare to deserialize","");
+        final TokenCacheItem tokenCacheItem = SSOStateContainer.deserializeFRT(serializedBlob);
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
-        Logger.i(TAG, "Get the family refresh token from the deserialized object.", "");        
         this.getCache().setItem(cacheKey, tokenCacheItem);  
     }
     

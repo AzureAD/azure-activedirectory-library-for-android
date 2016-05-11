@@ -33,7 +33,9 @@ import org.json.JSONObject;
 import android.util.Base64;
 
 public class IdToken {
-	
+    
+    final private String TAG = "IdToken";
+    
     private String mSubject;
 
     private String mTenantId;
@@ -54,8 +56,40 @@ public class IdToken {
     
     private String mPasswordChangeUrl;
     
-    private IdToken(String idtoken) throws UnsupportedEncodingException, JSONException{
+    public IdToken(String idtoken) throws AuthenticationException {
         // Message segments: Header.Body.Signature
+        HashMap<String, String> responseItems = this.extractBody(idtoken);
+            
+        if (responseItems != null && !responseItems.isEmpty()) {
+            this.mSubject = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
+            this.mTenantId = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_TENANTID);
+            this.mUpn = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
+            this.mEmail = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_EMAIL);
+            this.mGivenName = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
+            this.mFamilyName = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
+            this.mIdentityProvider = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
+            this.mObjectId = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
+            String expiration = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
+            
+            if (!StringExtensions.IsNullOrBlank(expiration)) {
+                this.mPasswordExpiration = Long.parseLong(expiration);
+            }
+            
+            this.mPasswordChangeUrl = responseItems
+                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
+        }
+    }
+    
+    private HashMap<String, String> extractBody(String idtoken) throws AuthenticationException {
         int firstDot = idtoken.indexOf(".");
         int secondDot = idtoken.indexOf(".", firstDot + 1);
         int invalidDot = idtoken.indexOf(".", secondDot + 1);
@@ -67,78 +101,63 @@ public class IdToken {
             // (see RFC 3548 section 4) where - and _ are used in place of +
             // and /.
             byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
-            String decodedBody = new String(data, "UTF-8");
-
             HashMap<String, String> responseItems = new HashMap<String, String>();
-            extractJsonObjects(responseItems, decodedBody);
-            if (responseItems != null && !responseItems.isEmpty()) {
-                this.mSubject = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
-                this.mTenantId = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_TENANTID);
-                this.mUpn = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
-                this.mEmail = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_EMAIL);
-                this.mGivenName = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
-                this.mFamilyName = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
-                this.mIdentityProvider = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
-                this.mObjectId = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
-                String expiration = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
-                if (!StringExtensions.IsNullOrBlank(expiration)) {
-                	this.mPasswordExpiration = Long.parseLong(expiration);
-                }
-                this.mPasswordChangeUrl = responseItems
-                        .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
+            
+            try {
+                String decodedBody = new String(data, "UTF-8");                
+                extractJsonObjects(responseItems, decodedBody);
+                return responseItems;
+            } catch (UnsupportedEncodingException exception) {
+                Logger.e(TAG, "The encoding is not supported.","", ADALError.ENCODING_IS_NOT_SUPPORTED);
+                throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage());
+            } catch (JSONException exception) {
+                Logger.e(TAG, "Failed to parse the decoded body into JsonObject.", "", ADALError.JSON_PARSE_ERROR);
+                throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, exception.getMessage());
             }
         }
         
+        return null;
     }
     
     public String getSubject() {
-		return mSubject;
-	}
+        return mSubject;
+    }
 
-	public String getTenantId() {
-		return mTenantId;
-	}
+    public String getTenantId() {
+        return mTenantId;
+    }
 
-	public String getUpn() {
-		return mUpn;
-	}
+    public String getUpn() {
+        return mUpn;
+    }
 
-	public String getGivenName() {
-		return mGivenName;
-	}
+    public String getGivenName() {
+        return mGivenName;
+    }
 
-	public String getFamilyName() {
-		return mFamilyName;
-	}
+    public String getFamilyName() {
+        return mFamilyName;
+    }
 
-	public String getEmail() {
-		return mEmail;
-	}
+    public String getEmail() {
+        return mEmail;
+    }
 
-	public String getIdentityProvider() {
-		return mIdentityProvider;
-	}
+    public String getIdentityProvider() {
+        return mIdentityProvider;
+    }
 
-	public String getObjectId() {
-		return mObjectId;
-	}
+    public String getObjectId() {
+        return mObjectId;
+    }
 
-	public long getPasswordExpiration() {
-		return mPasswordExpiration;
-	}
+    public long getPasswordExpiration() {
+        return mPasswordExpiration;
+    }
 
-	public String getPasswordChangeUrl() {
-		return mPasswordChangeUrl;
-	}
+    public String getPasswordChangeUrl() {
+        return mPasswordChangeUrl;
+    }
     
     private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr)
             throws JSONException {
@@ -152,7 +171,5 @@ public class IdToken {
         }
     }
     
-    public static IdToken create(String idtoken) throws UnsupportedEncodingException, JSONException{
-    	return new IdToken(idtoken);
-    }
+    
 }
