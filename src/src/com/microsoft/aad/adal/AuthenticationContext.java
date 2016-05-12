@@ -61,7 +61,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.NetworkOnMainThreadException;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.util.SparseArray;
 
 /**
@@ -605,7 +608,25 @@ public class AuthenticationContext {
         final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
         final AtomicReference<Exception> exception = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
-        acquireTokenSilentAsync(resource, clientId, userId, new AuthenticationCallback<AuthenticationResult>() {
+        if (StringExtensions.IsNullOrBlank(resource)) {
+            throw new IllegalArgumentException("resource");
+        }
+        if (StringExtensions.IsNullOrBlank(clientId)) {
+            throw new IllegalArgumentException("clientId");
+        }
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, userId, getRequestCorrelationId());
+        request.setSilent(true);
+        request.setPrompt(PromptBehavior.Auto);
+        request.setUserIdentifierType(UserIdentifierType.UniqueId);
+        final Handler handler = Looper.myLooper() == null ? getHandler() : null;
+        if (handler == null) {
+            Log.e(TAG, "Sync network calls must not be invoked in main thread. " +
+                    "This method will throw android.os.NetworkOnMainThreadException in next major release",
+                    new NetworkOnMainThreadException());
+        }
+        acquireTokenLocal(null, false, request, handler, new AuthenticationCallback<AuthenticationResult>() {
             @Override
             public void onSuccess(AuthenticationResult result) {
                 authenticationResult.set(result);
@@ -622,7 +643,6 @@ public class AuthenticationContext {
         latch.await();
         Exception e = exception.get();
         if (e != null) {
-            // change to unchecked exception
             if(e instanceof AuthenticationException) {
                 throw (AuthenticationException)e;
             } else if(e instanceof RuntimeException) {
@@ -883,7 +903,7 @@ public class AuthenticationContext {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
                     final String endingUrl = extras
-                            .getString(AuthenticationConstants.Browser.RESPONSE_FINAL_URL);
+                            .getString(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, "");
                     if (endingUrl.isEmpty()) {
                         AuthenticationException e = new AuthenticationException(
                                 ADALError.WEBVIEW_RETURNED_EMPTY_REDIRECT_URL,
@@ -1155,35 +1175,54 @@ public class AuthenticationContext {
         }
 
         public void onError(final AuthenticationException e) {
-            if (mRefHandler != null && callback != null) {
-                mRefHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onError(e);
-                        return;
-                    }
-                });
+            if (callback != null) {
+               if (mRefHandler != null) {
+                   mRefHandler.post(new Runnable() {
+                       @Override
+                       public void run() {
+                           callback.onError(e);
+                       }
+                   });
+               } else {
+                   callback.onError(e);
+               }
             }
         }
 
         public void onSuccess(final AuthenticationResult result) {
-            if (mRefHandler != null && callback != null) {
-                mRefHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onSuccess(result);
-                        return;
-                    }
-                });
+            if (callback != null) {
+                if (mRefHandler != null) {
+                    mRefHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onSuccess(result);
+                        }
+                    });
+                } else {
+                    callback.onSuccess(result);
+                }
             }
         }
     }
 
     private void acquireTokenLocal(final IWindowComponent activity,
-            final boolean useDialog, final AuthenticationRequest request,
-            final AuthenticationCallback<AuthenticationResult> externalCall) {
-        getHandler();
-        final CallbackHandler callbackHandle = new CallbackHandler(mHandler, externalCall);
+                                   final boolean useDialog,
+                                   final AuthenticationRequest request,
+                                   final AuthenticationCallback<AuthenticationResult> externalCall) {
+        acquireTokenLocal(
+                activity,
+                useDialog,
+                request,
+                getHandler(),
+                externalCall);
+    }
+
+    private void acquireTokenLocal(final IWindowComponent activity,
+                                   final boolean useDialog,
+                                   final AuthenticationRequest request,
+                                   final Handler handler,
+                                   final AuthenticationCallback<AuthenticationResult> externalCall) {
+        final CallbackHandler callbackHandle = new CallbackHandler(handler, externalCall);
         // Executes all the calls inside the Runnable to return immediately to
         // user. All UI
         // related actions will be performed using Handler.
