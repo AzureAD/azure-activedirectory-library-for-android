@@ -252,8 +252,8 @@ class Oauth2 {
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
                     IdToken tokenParsed = new IdToken(rawIdToken);
-	                tenantId = tokenParsed.getTenantId();
-	                userinfo = new UserInfo(tokenParsed);
+	            tenantId = tokenParsed.getTenantId();
+	            userinfo = new UserInfo(tokenParsed);
                 } else {
                     Logger.v(TAG, "IdToken is not provided");
                 }
