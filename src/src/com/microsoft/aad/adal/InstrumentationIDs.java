@@ -27,13 +27,20 @@ package com.microsoft.aad.adal;
  * Index of instrumentation event IDs used for logging
  */
 final class InstrumentationIDs {
-    /* Event invoked when refresh token request fails with some exception */
-    static final String REFRESH_TOKEN_REQUEST_FAILED = "RefreshTokenRequestFailed";
-    /* Event invoked when auth token wasn't obtained by some reason */
-    static final String AUTH_TOKEN_NOT_RETURNED = "AuthTokenNotReturned";
-    /* Event invoked when auth token was successfully obtained */
-    static final String REFRESH_TOKEN_REQUEST_SUCCEEDED = "RefreshTokenRequestSucceeded";
+    /* Event invoked when refresh token request fails or successes*/
+    static final String REFRESH_TOKEN_EVENT = "RefreshToken";
 
+    /* Event invoked when auth token was successfully obtained */
+    static final String EVENT_RESULT_SUCCESS = "Success";
+    /* Event invoked when auth token wasn't obtained by some reason */
+    static final String EVENT_RESULT_FAIL = "Fail";
+
+    /* Clarifies the cause why auth token wasn't obtained */
+    static final String REFRESH_TOKEN_NOT_FOUND = "RefreshTokenNotFound";
+    static final String AUTH_RESULT_EMPTY = "EmptyResponseFromServer";
+    static final String AUTH_TOKEN_NOT_RETURNED = "AuthTokenNotReturned";
+
+    static final String EVENT_RESULT = "Result";
     static final String ERROR_CLASS = "ErrorClass";
     static final String ERROR_CODE = "ErrorCode";
     static final String ERROR_MESSAGE = "ErrorMessage";
@@ -41,4 +48,5 @@ final class InstrumentationIDs {
     static final String RESOURCE_ID = "ResourceName";
     static final String CORRELATION_ID = "CorrelationId";
     static final String AUTHORITY_ID = "Authority";
+    static final String IS_BROKER_APP = "BrokerApp";
 }

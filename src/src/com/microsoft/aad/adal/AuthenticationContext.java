@@ -1377,6 +1377,8 @@ public class AuthenticationContext {
                 } catch (AuthenticationException ex) {
                     // pass back to caller for known exceptions such as failure
                     // to encrypt
+                    ClientAnalytics.logEvent(new RefreshTokenEvent(
+                            new InstrumentationPropertiesBuilder(request, ex), InstrumentationIDs.EVENT_RESULT_FAIL, true));
                     callbackHandle.onError(ex);
                     return null;
                 }
@@ -1387,6 +1389,9 @@ public class AuthenticationContext {
             if (result != null && result.getAccessToken() != null
                     && !result.getAccessToken().isEmpty()) {
                 Logger.v(TAG, "Token is returned from background call ");
+                ClientAnalytics.logEvent(new RefreshTokenEvent(
+                        new InstrumentationPropertiesBuilder(request, result), InstrumentationIDs.EVENT_RESULT_SUCCESS, true));
+
                 callbackHandle.onSuccess(result);
                 return result;
             }
@@ -1435,6 +1440,10 @@ public class AuthenticationContext {
                             ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
                 }
             } else {
+                InstrumentationPropertiesBuilder propertiesBuilder = new InstrumentationPropertiesBuilder(request, result)
+                        .add(InstrumentationIDs.ERROR_CLASS,
+                                result == null ? InstrumentationIDs.AUTH_RESULT_EMPTY : InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED);
+                ClientAnalytics.logEvent(new RefreshTokenEvent(propertiesBuilder, InstrumentationIDs.EVENT_RESULT_FAIL, true));
 
                 // User does not want to launch activity
                 String msg = "Prompt is not allowed and failed to get token:";
@@ -1478,21 +1487,21 @@ public class AuthenticationContext {
             try {
                 authResult = getTokenWithRefreshTokenAndUpdateCache(request, refreshItem);
             } catch (AuthenticationException authenticationException) {
-                ClientAnalytics.logEvent(
-                        InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED,
-                        new InstrumentationPropertiesBuilder(request, authenticationException).build());
+                ClientAnalytics.logEvent(new RefreshTokenEvent(
+                        new InstrumentationPropertiesBuilder(request, authenticationException),
+                        InstrumentationIDs.EVENT_RESULT_FAIL));
                 callbackHandle.onError(authenticationException);
                 return null;
             }
             
             if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken())) {
                 callbackHandle.onSuccess(authResult);
-                ClientAnalytics.logEvent(
-                        InstrumentationIDs.REFRESH_TOKEN_REQUEST_SUCCEEDED,
-                        new InstrumentationPropertiesBuilder(request, authResult).build());
+                ClientAnalytics.logEvent(new RefreshTokenEvent(
+                        new InstrumentationPropertiesBuilder(request, authResult),
+                        InstrumentationIDs.EVENT_RESULT_SUCCESS));
                 return authResult;
             }
-        } 
+        }
         
         // refresh token does not exist or refresh token request failed to give back the token. 
         // If it's non-silent request, will try to acquire token interactively. 
@@ -1500,9 +1509,11 @@ public class AuthenticationContext {
         if (refreshItem == null || authResult == null 
                 || (authResult != null && StringExtensions.IsNullOrBlank(authResult.getAccessToken()))) {
             Logger.v(TAG, "Refresh token is not available or refresh token request failed to return token.");
-            ClientAnalytics.logEvent(
-                    InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
-                    new InstrumentationPropertiesBuilder(request, authResult).build());
+            InstrumentationPropertiesBuilder propertiesBuilder = new InstrumentationPropertiesBuilder(request, authResult)
+                    .add(InstrumentationIDs.ERROR_CLASS, refreshItem == null ?
+                            InstrumentationIDs.REFRESH_TOKEN_NOT_FOUND :
+                            authResult == null ? InstrumentationIDs.AUTH_RESULT_EMPTY : InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED);
+            ClientAnalytics.logEvent(new RefreshTokenEvent(propertiesBuilder, InstrumentationIDs.EVENT_RESULT_FAIL));
             if (!request.isSilent() && (activity != null || useDialog)) {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
@@ -2278,6 +2289,20 @@ public class AuthenticationContext {
         @Override
         public void setException(Throwable t) {
             super.setException(t);
+        }
+    }
+
+    private static class RefreshTokenEvent extends ClientAnalytics.Event {
+
+        private RefreshTokenEvent(InstrumentationPropertiesBuilder builder, String result) {
+            this(builder, result, false);
+        }
+
+        private RefreshTokenEvent(InstrumentationPropertiesBuilder builder, String result, boolean isBroker) {
+            super(InstrumentationIDs.REFRESH_TOKEN_EVENT,
+                    builder.add(InstrumentationIDs.EVENT_RESULT, result)
+                            .add(InstrumentationIDs.IS_BROKER_APP, Boolean.valueOf(isBroker).toString())
+                            .build());
         }
     }
 }
