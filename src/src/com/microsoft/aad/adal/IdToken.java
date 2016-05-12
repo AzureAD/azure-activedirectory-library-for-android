@@ -32,10 +32,10 @@ import org.json.JSONObject;
 
 import android.util.Base64;
 
-public class IdToken {
-    
+class IdToken {
+
     final private static String TAG = "IdToken";
-    
+
     private String mSubject;
 
     private String mTenantId;
@@ -49,76 +49,36 @@ public class IdToken {
     private String mEmail;
 
     private String mIdentityProvider;
-    
+
     private String mObjectId;
-    
+
     private long mPasswordExpiration;
-    
+
     private String mPasswordChangeUrl;
-    
+
     public IdToken(String idtoken) throws AuthenticationException {
         // Message segments: Header.Body.Signature
-        HashMap<String, String> responseItems = this.extractBody(idtoken);
-            
+        HashMap<String, String> responseItems = this.parseJWT(idtoken);
+
         if (responseItems != null && !responseItems.isEmpty()) {
-            this.mSubject = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
-            this.mTenantId = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_TENANTID);
-            this.mUpn = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
-            this.mEmail = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_EMAIL);
-            this.mGivenName = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
-            this.mFamilyName = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
-            this.mIdentityProvider = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
-            this.mObjectId = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
-            String expiration = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
-            
+            this.mSubject = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
+            this.mTenantId = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_TENANTID);
+            this.mUpn = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
+            this.mEmail = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_EMAIL);
+            this.mGivenName = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
+            this.mFamilyName = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
+            this.mIdentityProvider = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
+            this.mObjectId = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
+            String expiration = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
+
             if (!StringExtensions.IsNullOrBlank(expiration)) {
                 this.mPasswordExpiration = Long.parseLong(expiration);
             }
-            
-            this.mPasswordChangeUrl = responseItems
-                    .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
-        }
-    }
-    
-    private HashMap<String, String> extractBody(String idtoken) throws AuthenticationException {
-        int firstDot = idtoken.indexOf(".");
-        int secondDot = idtoken.indexOf(".", firstDot + 1);
-        int invalidDot = idtoken.indexOf(".", secondDot + 1);
 
-        if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
-            String idbody = idtoken.substring(firstDot + 1, secondDot);
-            // URL_SAFE: Encoder/decoder flag bit to use
-            // "URL and filename safe" variant of Base64
-            // (see RFC 3548 section 4) where - and _ are used in place of +
-            // and /.
-            byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
-            HashMap<String, String> responseItems = new HashMap<String, String>();
-            
-            try {
-                String decodedBody = new String(data, "UTF-8");                
-                extractJsonObjects(responseItems, decodedBody);
-                return responseItems;
-            } catch (UnsupportedEncodingException exception) {
-                Logger.e(TAG, "The encoding is not supported.","", ADALError.ENCODING_IS_NOT_SUPPORTED);
-                throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage());
-            } catch (JSONException exception) {
-                Logger.e(TAG, "Failed to parse the decoded body into JsonObject.", "", ADALError.JSON_PARSE_ERROR);
-                throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, exception.getMessage());
-            }
+            this.mPasswordChangeUrl = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
         }
-        
-        return null;
     }
-    
+
     public String getSubject() {
         return mSubject;
     }
@@ -158,9 +118,43 @@ public class IdToken {
     public String getPasswordChangeUrl() {
         return mPasswordChangeUrl;
     }
-    
-    private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr)
-            throws JSONException {
+
+    private HashMap<String, String> parseJWT(String idtoken) throws AuthenticationException {
+        String idbody = extractJWTBody(idtoken);
+        // URL_SAFE: Encoder/decoder flag bit to use
+        // "URL and filename safe" variant of Base64
+        // (see RFC 3548 section 4) where - and _ are used in place of +
+        // and /.
+        byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
+        HashMap<String, String> responseItems = new HashMap<String, String>();
+
+        try {
+            String decodedBody = new String(data, "UTF-8");
+            extractJsonObjects(responseItems, decodedBody);
+            return responseItems;
+        } catch (UnsupportedEncodingException exception) {
+            Logger.e(TAG, "The encoding is not supported.", "", ADALError.ENCODING_IS_NOT_SUPPORTED, exception);
+            throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage(), exception);
+        } catch (JSONException exception) {
+            Logger.e(TAG, "Failed to parse the decoded body into JsonObject.", "", ADALError.JSON_PARSE_ERROR,
+                    exception);
+            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, exception.getMessage(), exception);
+        }
+    }
+
+    private String extractJWTBody(String idtoken) throws AuthenticationException {
+        int firstDot = idtoken.indexOf(".");
+        int secondDot = idtoken.indexOf(".", firstDot + 1);
+        int invalidDot = idtoken.indexOf(".", secondDot + 1);
+
+        if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
+            return idtoken.substring(firstDot + 1, secondDot);
+        } else {
+            throw new AuthenticationException(ADALError.IDTOKEN_PARSING_FAILURE, "Failed to extract the ClientID");
+        }
+    }
+
+    private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr) throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
 
         final Iterator<?> i = jsonObject.keys();
@@ -170,16 +164,4 @@ public class IdToken {
             responseItems.put(key, jsonObject.getString(key));
         }
     }
-    
-    String getClienIdfromRawIdToken(String jsonStr) throws AuthenticationException {
-    	HashMap<String, String> responseItems = this.extractBody(jsonStr);
-    	if (responseItems != null && !responseItems.isEmpty()) {
-    		return responseItems.get(AuthenticationConstants.OAuth2.CLIENT_ID);
-    	} else {
-    		Logger.e(TAG, "Failed to extract the ClientID", "", ADALError.JSON_PARSE_ERROR);
-            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR,"Failed to extract the ClientID");
-    	}
-    }
-    
-    
 }

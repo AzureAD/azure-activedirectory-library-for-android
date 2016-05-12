@@ -1,7 +1,5 @@
 package com.microsoft.aad.adal;
 
-import org.json.JSONException;
-
 import com.google.gson.annotations.SerializedName;
 
 final class SerializedTokenCacheItem {
@@ -16,17 +14,17 @@ final class SerializedTokenCacheItem {
 
     @SerializedName("idToken")
     private final String mIdToken;
-    
+
     @SerializedName("familyClientId")
     private final String mFamilyClientId;
-    
+
     SerializedTokenCacheItem(final TokenCacheItem tokenCacheItem) {
         this.mAuthority = tokenCacheItem.getAuthority();
         this.mRefreshToken = tokenCacheItem.getRefreshToken();
         this.mIdToken = tokenCacheItem.getRawIdToken();
-        this.mFamilyClientId = tokenCacheItem.getFamilyClientId();        
+        this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
     }
-    
+
     TokenCacheItem parseSerializedTokenCacheItem() throws AuthenticationException {
         TokenCacheItem tokenCacheItem = new TokenCacheItem();
         IdToken idToken;
@@ -34,12 +32,11 @@ final class SerializedTokenCacheItem {
         UserInfo userInfo = new UserInfo(idToken);
         tokenCacheItem.setUserInfo(userInfo);
         tokenCacheItem.setTenantId(idToken.getTenantId());
-        tokenCacheItem.setClientId(idToken.getClienIdfromRawIdToken(this.mIdToken));
-        //For family refresh token, resource will all be null
+        // For family refresh token, resource will all be null
         tokenCacheItem.setAuthority(this.mAuthority);
         tokenCacheItem.setIsMultiResourceRefreshToken(true);
         tokenCacheItem.setRawIdToken(this.mIdToken);
-        tokenCacheItem.setFamilyClientId(this.mFamilyClientId);        
+        tokenCacheItem.setFamilyClientId(this.mFamilyClientId);
         return tokenCacheItem;
     }
 }

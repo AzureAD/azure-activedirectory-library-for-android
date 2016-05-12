@@ -252,16 +252,9 @@ class Oauth2 {
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
                     IdToken tokenParsed;
-					try {
 						tokenParsed = new IdToken(rawIdToken);
-						if (tokenParsed != null) {
 	                        tenantId = tokenParsed.getTenantId();
 	                        userinfo = new UserInfo(tokenParsed);
-	                    }
-					} catch (AuthenticationException e) {
-						Logger.e(TAG, "Error in parsing user id token", null,
-			                    ADALError.IDTOKEN_PARSING_FAILURE, e.getCause());
-					}                    
                 } else {
                     Logger.v(TAG, "IdToken is not provided");
                 }

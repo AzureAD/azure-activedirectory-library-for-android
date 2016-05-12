@@ -44,8 +44,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.crypto.NoSuchPaddingException;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
 import android.accounts.AuthenticatorException;

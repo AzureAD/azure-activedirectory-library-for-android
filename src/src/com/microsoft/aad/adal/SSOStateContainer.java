@@ -24,11 +24,9 @@
 package com.microsoft.aad.adal;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
 
@@ -40,60 +38,59 @@ class SSOStateContainer {
     private final int version = 1;
 
     /**
-     * the {@link SSOStateContainer} stores the FRT tokenCacheItem 
-     * of the given user
-     */ 
-    @SerializedName("tokenCacheItems") 
+     * the {@link SSOStateContainer} stores the FRT tokenCacheItem of the given
+     * user
+     */
+    @SerializedName("tokenCacheItems")
     private final List<SerializedTokenCacheItem> tokenCacheItems = new ArrayList<SerializedTokenCacheItem>();
-    
+
     /**
-     * Check if the cache item contains family refresh token
-     * if true, value the tokenItem with this cache item
+     * Check if the cache item contains family refresh token if true, value the
+     * tokenItem with this cache item
+     * 
      * @param item
      */
     SSOStateContainer(final TokenCacheItem tokenItem) {
-        //only FRT is stored here 
+        // only FRT is stored here
         if (tokenItem == null) {
             throw new IllegalArgumentException("tokenItem is null");
         }
-        
+
         if (StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
             throw new IllegalArgumentException("tokenItem does not contain family refresh token");
         }
-        
-        final SerializedTokenCacheItem serializedTokenCacheItem = new SerializedTokenCacheItem(tokenItem);        
+
+        final SerializedTokenCacheItem serializedTokenCacheItem = new SerializedTokenCacheItem(tokenItem);
         this.tokenCacheItems.add(serializedTokenCacheItem);
     }
-    
+
     /**
      * return the token cache item in this blob container object
+     * 
      * @return tokenCacheItem
-     * @throws AuthenticationException 
+     * @throws AuthenticationException
      */
-    public TokenCacheItem getTokenItem() throws AuthenticationException {
+    private TokenCacheItem getTokenItem() throws AuthenticationException {
+        if (tokenCacheItems == null || tokenCacheItems.isEmpty()) {
+            throw new AuthenticationException(ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND,
+                    "There is no family refresh token cache item in the SSOStateContainer.");
+        }
         return tokenCacheItems.get(0).parseSerializedTokenCacheItem();
     }
-    
-    String serializeFRT() throws AuthenticationException{    	
-    	if (tokenCacheItems.get(0) != null) {
-    		Gson gson  = new Gson();
-    		final String json = gson.toJson(this);
-        	return json;
-    	} else {
-    		//throw exception?
-    		return null;
-    	}
+
+    String serializeFRT() {
+        Gson gson = new Gson();
+        final String json = gson.toJson(this);
+        return json;
     }
-    
+
     static TokenCacheItem deserializeFRT(String serializedBlob) throws AuthenticationException {
-    	final Gson gson = new Gson();
-    	try {
-    		final TokenCacheItem tokenCacheItem =  
-        			gson.fromJson(serializedBlob, SSOStateContainer.class)
-        			.getTokenItem();
-    		return tokenCacheItem;
-    	} catch (final JsonParseException exception) {
-    		throw new DeserializationAuthenticationException(exception.getMessage());
-    	}
+        final Gson gson = new Gson();
+        try {
+            final TokenCacheItem tokenCacheItem = gson.fromJson(serializedBlob, SSOStateContainer.class).getTokenItem();
+            return tokenCacheItem;
+        } catch (final JsonParseException exception) {
+            throw new DeserializationAuthenticationException(exception.getMessage());
+        }
     }
 }
