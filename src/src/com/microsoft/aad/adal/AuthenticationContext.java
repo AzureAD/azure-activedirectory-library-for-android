@@ -2153,7 +2153,7 @@ public class AuthenticationContext {
        
         final SSOStateContainer blobContainer = new SSOStateContainer(tokenItem);
         Logger.i(TAG, "prepare to serialize","");
-        return blobContainer.serializeFRT();  
+        return blobContainer.serialize();
     }
     
     void deserialize(String serializedBlob) throws AuthenticationException {
@@ -2166,7 +2166,7 @@ public class AuthenticationContext {
         }
         
         Logger.i(TAG, "prepare to deserialize","");
-        final TokenCacheItem tokenCacheItem = SSOStateContainer.deserializeFRT(serializedBlob);
+        final TokenCacheItem tokenCacheItem = SSOStateContainer.deserialize(serializedBlob);
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
         this.getCache().setItem(cacheKey, tokenCacheItem);  
     }

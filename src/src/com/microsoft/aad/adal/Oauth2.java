@@ -192,7 +192,7 @@ class Oauth2 {
         return message;
     }
 
-    public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) {
+    public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) throws AuthenticationException {
 
         final AuthenticationResult result;
 
@@ -251,10 +251,9 @@ class Oauth2 {
                 // response. ADFS does not return that.
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
-                    IdToken tokenParsed;
-						tokenParsed = new IdToken(rawIdToken);
-	                        tenantId = tokenParsed.getTenantId();
-	                        userinfo = new UserInfo(tokenParsed);
+                    IdToken tokenParsed = new IdToken(rawIdToken);
+	                tenantId = tokenParsed.getTenantId();
+	                userinfo = new UserInfo(tokenParsed);
                 } else {
                     Logger.v(TAG, "IdToken is not provided");
                 }
@@ -560,7 +559,8 @@ class Oauth2 {
         return result;
     }
     
-    private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException {
+    private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException,
+            AuthenticationException {
         HashMap<String, String> responseItems = new HashMap<String, String>();
         extractJsonObjects(responseItems, responseBody);
         return processUIResponseParams(responseItems);

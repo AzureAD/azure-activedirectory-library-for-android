@@ -2313,15 +2313,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
       *
       * @throws AuthenticationException
       * @throws IllegalAccessException
-      * @throws IllegalArgumentException
       * @throws InvocationTargetException
       * @throws ClassNotFoundException
       * @throws NoSuchMethodException
       * @throws InstantiationException
       */
      @SmallTest
-     public void testSerialize_nullCacheItem() throws AuthenticationException, IllegalAccessException,
-     IllegalArgumentException, InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
+    public void testSerialize_nullCacheItem() throws AuthenticationException, IllegalAccessException,
+            InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
      InstantiationException {
          FileMockContext mockContext = new FileMockContext(getContext());
          final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
@@ -2376,7 +2375,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * cache item for the user
       *
       * @throws AuthenticationException
-      * @throws IllegalArgumentException
       * @throws ClassNotFoundException
       * @throws NoSuchMethodException
       * @throws InstantiationException
@@ -2384,7 +2382,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * @throws InvocationTargetException
       */
      @SmallTest
-     public void testSerialize_valid() throws AuthenticationException, IllegalArgumentException, ClassNotFoundException,
+    public void testSerialize_valid() throws AuthenticationException, ClassNotFoundException,
      NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
          FileMockContext mockContext = new FileMockContext(getContext());
          DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
@@ -2404,7 +2402,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * FoCI token cache item back to the cache store
       *
       * @throws AuthenticationException
-      * @throws IllegalArgumentException
       * @throws ClassNotFoundException
       * @throws NoSuchMethodException
       * @throws InstantiationException
@@ -2412,7 +2409,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
       * @throws InvocationTargetException
       */
      @SmallTest
-     public void testDeserialize_valid() throws AuthenticationException, IllegalArgumentException,
+    public void testDeserialize_valid() throws AuthenticationException,
      ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException,
      InvocationTargetException {
          FileMockContext mockContext = new FileMockContext(getContext());

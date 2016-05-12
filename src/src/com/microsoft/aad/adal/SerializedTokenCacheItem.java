@@ -25,14 +25,12 @@ final class SerializedTokenCacheItem {
         this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
     }
 
-    TokenCacheItem parseSerializedTokenCacheItem() throws AuthenticationException {
+    TokenCacheItem toTokenCacheItem() throws AuthenticationException {
         TokenCacheItem tokenCacheItem = new TokenCacheItem();
-        IdToken idToken;
-        idToken = new IdToken(this.mIdToken);
+        IdToken idToken = new IdToken(this.mIdToken);
         UserInfo userInfo = new UserInfo(idToken);
         tokenCacheItem.setUserInfo(userInfo);
         tokenCacheItem.setTenantId(idToken.getTenantId());
-        // For family refresh token, resource will all be null
         tokenCacheItem.setAuthority(this.mAuthority);
         tokenCacheItem.setIsMultiResourceRefreshToken(true);
         tokenCacheItem.setRawIdToken(this.mIdToken);

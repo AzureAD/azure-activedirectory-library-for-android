@@ -29,7 +29,7 @@ package com.microsoft.aad.adal;
 class DeserializationAuthenticationException extends AuthenticationException {
     static final long serialVersionUID = 1;
     final static ADALError errorCode = ADALError.INCOMPATIBLE_BLOB_VERSION;
-        
+
     /**
      * Constructs a new DeserializationAuthenticationException.
      */
@@ -45,14 +45,14 @@ class DeserializationAuthenticationException extends AuthenticationException {
     public DeserializationAuthenticationException(String msg) {
         super(errorCode, msg);
     }
-    
+
     /**
      * Constructs a new DeserializationAuthenticationException with message and the cause exception
      * @param details Details related to the error such as query string, request
      *            info
      * @param throwable {@link Throwable}
      */
-    public DeserializationAuthenticationException(String msg, Throwable throwable) {
-        super(errorCode, msg, throwable);
+    public DeserializationAuthenticationException(String msg, Throwable cause) {
+        super(errorCode, msg, cause);
     }
 }

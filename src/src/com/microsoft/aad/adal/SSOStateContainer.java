@@ -75,20 +75,18 @@ class SSOStateContainer {
             throw new AuthenticationException(ADALError.FAMILY_REFRESH_TOKEN_NOT_FOUND,
                     "There is no family refresh token cache item in the SSOStateContainer.");
         }
-        return tokenCacheItems.get(0).parseSerializedTokenCacheItem();
+        return tokenCacheItems.get(0).toTokenCacheItem();
     }
 
-    String serializeFRT() {
-        Gson gson = new Gson();
-        final String json = gson.toJson(this);
-        return json;
+    String serialize() {
+        final Gson gson = new Gson();
+        return gson.toJson(this);
     }
 
-    static TokenCacheItem deserializeFRT(String serializedBlob) throws AuthenticationException {
+    static TokenCacheItem deserialize(String serializedBlob) throws AuthenticationException {
         final Gson gson = new Gson();
         try {
-            final TokenCacheItem tokenCacheItem = gson.fromJson(serializedBlob, SSOStateContainer.class).getTokenItem();
-            return tokenCacheItem;
+            return gson.fromJson(serializedBlob, SSOStateContainer.class).getTokenItem();
         } catch (final JsonParseException exception) {
             throw new DeserializationAuthenticationException(exception.getMessage());
         }
