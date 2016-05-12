@@ -1386,6 +1386,9 @@ public class AuthenticationContextTest extends AndroidTestCase {
         clearCache(context);
     }
 
+    /**
+     * Test for verifying the userid in the request is different from what's in the cache. 
+     */
     @SmallTest
     public void testAcquireTokenCacheLookup_ReturnWrongUserId() throws InterruptedException,
             IllegalArgumentException, NoSuchFieldException, IllegalAccessException,
@@ -1424,11 +1427,13 @@ public class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
-        assertNotNull("Error is not null", callback.mException);
-        assertTrue(
-                "Error is related to user mismatch",
-                callback.mException.getMessage().contains(
-                        "User returned by service does not match the one in the request"));
+        // @note: 
+        // Old test: userInfo stored in cache has the user2 as the userId while the key
+        //           use the user1. 
+        // We should store whatever server returns back to us. And when we lookup, look by 
+        // whatever developer passes us. 
+        assertNull("Error is not null", callback.mException);
+        assertNotNull(callback.mResult);
         clearCache(context);
     }
 

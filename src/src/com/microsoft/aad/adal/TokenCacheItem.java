@@ -70,6 +70,20 @@ public class TokenCacheItem implements Serializable {
      */
     public TokenCacheItem() {}
     
+    TokenCacheItem(final TokenCacheItem tokenCacheItem) {
+        this.mAuthority = tokenCacheItem.getAuthority();
+        this.mResource = tokenCacheItem.getResource();
+        this.mClientId = tokenCacheItem.getClientId();
+        this.mAccessToken = tokenCacheItem.getAccessToken();
+        this.mRefreshtoken = tokenCacheItem.getRefreshToken();
+        this.mRawIdToken = tokenCacheItem.getRawIdToken();
+        this.mUserInfo = tokenCacheItem.getUserInfo();
+        this.mExpiresOn = tokenCacheItem.getExpiresOn();
+        this.mIsMultiResourceRefreshToken = tokenCacheItem.getIsMultiResourceRefreshToken();
+        this.mTenantId = tokenCacheItem.getTenantId();
+        this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
+    }
+    
     /**
      * Construct cache item with given authority and returned auth result. 
      */
@@ -230,5 +244,23 @@ public class TokenCacheItem implements Serializable {
         }
 
         return false;
+    }
+    
+    /**
+     * @return {@link TokenEntryType} based on the fields stored in the 
+     * {@link TokenCacheItem}. 
+     * 1) Only item stored for regular token entry has resource stored. 
+     * 2) Item stored for FRT entry won't have client Id stored. 
+     */
+    TokenEntryType getTokenEntryType() {
+        if (!StringExtensions.IsNullOrBlank(this.getResource())) {
+            // Only regular token cache entry is storing resouce. 
+            return TokenEntryType.REGULAR_TOKEN_ENTRY;
+        } else if (StringExtensions.IsNullOrBlank(this.getClientId())) {
+            // Family token cache item does not store clientId
+            return TokenEntryType.FRT_TOKEN_ENTRY;
+        } else {
+            return TokenEntryType.MRRT_TOKEN_ENTRY;
+        }
     }
 }

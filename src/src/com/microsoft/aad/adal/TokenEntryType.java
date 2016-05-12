@@ -22,25 +22,34 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-
 /**
- * Default connection service check network connectivity. 
+ * Internal class representing the entry type for stored {@link TokenCacheItem}
  */
-class DefaultConnectionService implements IConnectionService{
-
-    private Context mConnectionContext;
-
-    DefaultConnectionService(Context ctx) {
-        mConnectionContext = ctx;
-    }
-
-    public boolean isConnectionAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-    }
+enum TokenEntryType {
+    /**
+     * Represents the regular token entry. 
+     * {@link TokenCacheItem} stored for regular token entry will have resource, 
+     * access token, client id store. 
+     * If it's also a MRRT item, MRRT flag will be marked as true. 
+     * If it's also a FRT item, FoCI field will be populated with the family client Id 
+     * server returned. 
+     */
+    REGULAR_TOKEN_ENTRY, 
+    
+    /**
+     * Represents the MRRT token entry. 
+     * {@link TokenCacheItem} stored for MRRT token entry will not have resource 
+     * and access token store. 
+     * MRRT flag will be set as true. 
+     * If it's also a FRT item, FoCI field will be populated with the family client Id 
+     * server returned. 
+     */
+    MRRT_TOKEN_ENTRY, 
+    
+    /**
+     * Represents the FRT token entry. 
+     * {@link TokenCacheItem} stored for FRT token entry will not have resource, access token
+     * and client id stored. FoCI field be will populated with the value server returned. 
+     */
+    FRT_TOKEN_ENTRY
 }

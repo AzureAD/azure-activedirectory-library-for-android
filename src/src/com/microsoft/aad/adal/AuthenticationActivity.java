@@ -978,7 +978,6 @@ public class AuthenticationActivity extends Activity {
             if (result.taskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
                 TokenCacheItem itemMRRT = TokenCacheItem.createMRRTTokenCacheItem(mRequest.getAuthority(), mRequest.getClientId(), result.taskResult);
-//                        new TokenCacheItem(mRequest, result.taskResult, TokenEntryType.MULTI_RESOURCE_REFRESH_TOKEN_ENTRY);
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
                 key = CacheKey.createCacheKeyForMRRT(mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);

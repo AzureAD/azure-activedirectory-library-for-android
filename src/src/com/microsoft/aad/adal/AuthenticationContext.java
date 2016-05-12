@@ -951,8 +951,7 @@ public class AuthenticationContext {
                                                         + authenticationRequest.getLogInfo());
 
                                         if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                                            // TODO: Next stage for refactoring, move the interactive flow logic to 
-                                            // interactive handler
+                                            // TODO: Should pull out the interactive logic into another handler. 
                                             mTokenCacheAccessor.updateTokenCache(authenticationRequest.getResource(), 
                                                     authenticationRequest.getClientId(), result);
                                         }

@@ -27,6 +27,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+
 /**
  * Internal class handling the interaction with {@link AcquireTokenSilentHandler} and {@link ITokenCacheStore}. 
  */
@@ -50,9 +52,30 @@ class TokenCacheAccessor {
     }
     
     /**
+     * @return Access token from cache. Could be null if AT does not exist or expired. 
+     * This will be a strict match with the user passed in, could be unique userid, 
+     * displayable id, or null user. 
+     */
+    TokenCacheItem getATFromCache(final String resource, final String clientId, final String user) {
+        final TokenCacheItem accessTokenItem = getRegularRefreshTokenCacheItem(resource, clientId, user);
+        if (accessTokenItem == null) {
+            Logger.v(TAG, "No access token exists.");
+            return null;
+        }
+        
+        if (!StringExtensions.IsNullOrBlank(accessTokenItem.getAccessToken()) 
+                && accessTokenItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
+            Logger.v(TAG, "Access token exists, but already expired.");
+            return null;
+        }
+        
+        return accessTokenItem;
+    }
+    
+    /**
      * @return {@link TokenCacheItem} for regular token cache entry.  
      */
-    TokenCacheItem getRegularTokenCacheItemWithAT(final String resource, final String clientId, final String user) {
+    TokenCacheItem getRegularRefreshTokenCacheItem(final String resource, final String clientId, final String user) {
         final String cacheKey = CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, user);
         return mTokenCacheStore.getItem(cacheKey);
     }
@@ -78,19 +101,17 @@ class TokenCacheAccessor {
     }
     
     /**
-     * Remove existing token cache item if needed and update token cache with returned auth result. 
+     * Update token cache with returned auth result.
+     * @throws IllegalArgumentException If {@link AuthenticationResult} is null. 
      */
-    void updateCachedItemToResult(final String resource, final String clientId, final AuthenticationResult result, 
+    void updateCachedItemWithResult(final String resource, final String clientId, final AuthenticationResult result, 
             final TokenCacheItem cachedItem) {
         if (result == null) {
-            return;
+            Logger.v(TAG, "AuthenticationResult is not, cannot update cache.");
+            throw new IllegalArgumentException("result");
         }
         
-        // remove Item if oauth2_error is invalid_grant
-        if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
-            Logger.v(TAG, "Received INVALID_GRANT error code, remove existing cache entry.");
-            removeTokenCacheItem(cachedItem, resource);
-        } else {
+        if (result.getStatus() == AuthenticationStatus.Succeeded) {
             Logger.v(TAG, "Save returned AuthenticationResult into cache.");
             if (cachedItem != null && cachedItem.getUserInfo() != null && result.getUserInfo() == null) {
                 result.setUserInfo(cachedItem.getUserInfo());
@@ -99,11 +120,15 @@ class TokenCacheAccessor {
             }
             
             updateTokenCache(resource, clientId, result);
+        } else if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
+            // remove Item if oauth2_error is invalid_grant
+            Logger.v(TAG, "Received INVALID_GRANT error code, remove existing cache entry.");
+            removeTokenCacheItem(cachedItem, resource);
         }
     }
     
     /**
-     * Udpate token cache with returned auth result. 
+     * Update token cache with returned auth result. 
      * @param result
      */
     void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) {
@@ -111,7 +136,7 @@ class TokenCacheAccessor {
             return;
         }
         
-        //@note: The current way for setting token into cache is
+        // @note: The past way for setting token into cache is
         // For interactive flow
         // 1) save token item with returned displayabledId in userInfo
         // 2) save token item with returned userId in userInfo
@@ -121,8 +146,9 @@ class TokenCacheAccessor {
         // 2) if user id is not provided in request, set it to loghint(will be nul, silent request never sets loghint)
         // 3) update cache with the user in above two steps
         // 4) update cache with userId returned in userInfo
-        // Update: To support backward compatibility, should alwasy store the token with empty user except FRT item. 
-        // for token cacheitem with either displayableId or userId, should take whatever returned from server. 
+        // The current way:
+        // To support backward compatibility, should always store the token with empty user except FRT item. 
+        // for token cache item with either displayableId or userId, should take whatever returned from server. 
         
         if (result.getUserInfo() != null) {
             // update cache entry with displayableId
@@ -149,12 +175,13 @@ class TokenCacheAccessor {
      */
     void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource) {
         final List<String> keys;
-        if (!StringExtensions.IsNullOrBlank(tokenCacheItem.getResource())) {
+        final TokenEntryType tokenEntryType = tokenCacheItem.getTokenEntryType();
+        if (TokenEntryType.REGULAR_TOKEN_ENTRY == tokenEntryType) {
             // Only regular token cache entry is storing resouce. 
             Logger.v(TAG, "Regular RT was used to get access token, remove entries "
                     + "for regular RT entries.");
             keys = getKeyListToRemoveForRT(tokenCacheItem);
-        } else if (StringExtensions.IsNullOrBlank(tokenCacheItem.getClientId())) {
+        } else if (TokenEntryType.FRT_TOKEN_ENTRY == tokenEntryType) {
             // Family token cache item does not store clientId
             Logger.v(TAG, "FRT was used to get access token, remove entries for "
                     + "FRT entries.");
@@ -163,7 +190,11 @@ class TokenCacheAccessor {
             Logger.v(TAG, "MRRT was used to get access token, remove entries for both "
                     + "MRRT entries and regular RT entries.");
             keys = getKeyListToRemoveForMRRT(tokenCacheItem, resource);
-        }
+            
+            final TokenCacheItem regularRTItem = new TokenCacheItem(tokenCacheItem);
+            regularRTItem.setResource(resource);
+            keys.addAll(getKeyListToRemoveForRT(regularRTItem));
+        } 
         
         for (final String key : keys) {
             mTokenCacheStore.removeItem(key);
@@ -182,13 +213,14 @@ class TokenCacheAccessor {
         mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, userId), 
                 TokenCacheItem.createRegularTokenCacheItem(mAuthority, resource, clientId, result));
 
-        // Store broad refresh token if available
+        // Store separate entries for MRRT.  
         if (result.getIsMultiResourceRefreshToken()) {
             Logger.v(TAG, "Save Multi Resource Refresh token to cache");
             mTokenCacheStore.setItem(CacheKey.createCacheKeyForMRRT(mAuthority, clientId, userId),
                     TokenCacheItem.createMRRTTokenCacheItem(mAuthority, clientId, result));
         }
         
+        // Store separate entries for FRT.
         if (!StringExtensions.IsNullOrBlank(result.getFamilyClientId()) && !StringExtensions.IsNullOrBlank(userId)) {
             Logger.v(TAG, "Save Family Refresh token into cache");
             final TokenCacheItem familyTokenCacheItem = TokenCacheItem.createFRRTTokenCacheItem(mAuthority, result);
@@ -221,9 +253,6 @@ class TokenCacheAccessor {
             keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), cachedItem.getUserInfo().getDisplayableId()));
             keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), cachedItem.getUserInfo().getUserId()));
         }
-        
-        cachedItem.setResource(resource);
-        keysToRemove.addAll(getKeyListToRemoveForRT(cachedItem));
 
         return keysToRemove;
     }

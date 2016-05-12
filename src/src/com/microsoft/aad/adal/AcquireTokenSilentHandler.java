@@ -39,7 +39,7 @@ class AcquireTokenSilentHandler {
     private final TokenCacheAccessor mTokenCacheAccessor;
     private final AuthenticationRequest mAuthRequest;
     
-    private boolean mAttemptedWithFRT = false;
+    private boolean mAttemptedWithMRRT = false;
     private TokenCacheItem mMrrtTokenCacheItem;
 
     /**
@@ -71,7 +71,23 @@ class AcquireTokenSilentHandler {
     }
     
     /**
-     * Request for access token by looking up cache. . 
+     * Request for access token by looking up cache.
+     * Detailed token cache lookup:
+     * 1) try to find an AT, if AT exists and not expired, return it. 
+     * 2) Use RT:
+     *    i>   If RT exists, and it's an MRRT or there is an MRRT item exists, try to find the MRRT. 
+     *    ii>  If RT exists, and no MRRT existed, tried with the RT. 
+     *    iii> If RT does not exist, try to find MRRT.
+     * 3) Use MRRT:
+     *    i>   If MRRT exists, and if the MRRT is also an FRT, try to find FRT. 
+     *    ii>  If MRRT exists, but it's not FRT, use the MRRT. If MRRT request fails, 
+     *         still do one more try with FRT(FoCI will be hard-coded as MS family Id. )
+     *    iii> If no MRRT exists, try to find FRT. 
+     * 4) Use FRT:
+     *    i>   If FRT exists, use the FRT. 
+     *    ii>  If FRT request fails, and we haven't tried with MRRT, use MRRT. 
+     *    iii> If FRT does not exist, if we haven't tried with MRRT, use the MRRT. 
+     *    VI>  If FRT exists, and we've already tried with MRRT, return the MRRT result. 
      */
     AuthenticationResult getAccessToken() throws AuthenticationException {
         // If mTokenCacheAccessor is null, won't handle with token cache lookup. 
@@ -79,33 +95,16 @@ class AcquireTokenSilentHandler {
             return null;
         }
         
-        TokenCacheItem tokenCacheItem = mTokenCacheAccessor.getRegularTokenCacheItemWithAT(mAuthRequest.getResource(), 
-                mAuthRequest.getClientId(), getUser());
-        
-        if (tokenCacheItem == null 
-                && lookUpCachedTokenWithNoUserForADFS()) {
-            // ADFS doesn't return idtoken back. If app is talking to ADFS server, and provide us the userId
-            // or displayableId, since we didn't get idtoken back, we don't store user as part of key in this
-            // case. Try again to find token with no user.
-            tokenCacheItem = mTokenCacheAccessor.getRegularTokenCacheItemWithAT(mAuthRequest.getResource(), 
-                    mAuthRequest.getClientId(), null);
-            // If we still don't have anything to use then we should try to find if we have a MRRT that matches
-            if (tokenCacheItem == null) {
-                return tryMRRT();
-            }
+        // Check for if there is valid access token item in the cache.
+        final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getATFromCache(mAuthRequest.getResource(), 
+                mAuthRequest.getClientId(), getUserFromRequest());
+        if (accessTokenItem == null) {
+            Logger.v(TAG, "No valid access token exists, try with refresh token.");
+            return tryRT();
         }
         
-        if (isValidCache(tokenCacheItem)) {
-            if (isUserMisMatch(tokenCacheItem)) {
-                Logger.v(TAG, "User in retrieved token cache item does not match the user provided in the request.");
-                throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH);
-            }
-            
-            Logger.v(TAG, "Valid token cache item, return AT back.");
-            return AuthenticationResult.createResult(tokenCacheItem);
-        }
-        
-        return tryRT();
+        Logger.v(TAG, "Return AT from cache.");
+        return AuthenticationResult.createResult(accessTokenItem);
     }
     
     /**
@@ -116,20 +115,8 @@ class AcquireTokenSilentHandler {
         Logger.v(TAG, "Try to get new access token with the found refresh token.", 
                 mAuthRequest.getLogInfo(), null);
         
-        // @note: The original intention for checking network connection before sending RT request is to avoid RT removal
-        // from cache if user turned on airplane mode or similar case. However, the updated cache logic only remove RT when 
-        // receiving oauth2 error invalid_grant from server. 
-        // The only reason to keep it here is in case there is caller taking dependency on the below error code. 
-        final DefaultConnectionService connectionService = new DefaultConnectionService(mContext);
-        if (!connectionService.isConnectionAvailable()) {
-            AuthenticationException authenticationException = new AuthenticationException(
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
-                    "Connection is not available to refresh token");
-            Logger.w(TAG, "Connection is not available to refresh token", mAuthRequest.getLogInfo(),
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            
-            throw authenticationException;
-        }
+        // Check if network is available, if not throw exception. 
+        throwIfNetworkNotAvaliable();
         
         final AuthenticationResult result;
         try {
@@ -137,7 +124,7 @@ class AcquireTokenSilentHandler {
             final Oauth2 oauthRequest = new Oauth2(mAuthRequest, mWebRequestHandler, jwsBuilder);
             result = oauthRequest.refreshToken(refreshToken);
             if (result != null && StringExtensions.IsNullOrBlank(result.getRefreshToken())) {
-                Logger.v(TAG, "Refresh token is not returned or empty");
+                Logger.i(TAG, "Refresh token is not returned or empty", "");
                 result.setRefreshToken(refreshToken);
             }
         } catch (final IOException | AuthenticationException exc) {
@@ -146,10 +133,9 @@ class AcquireTokenSilentHandler {
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
                     exc);
 
-            AuthenticationException authException = new AuthenticationException(
+            throw new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
                     exc);
-            throw authException;
         }
 
         return result;
@@ -166,9 +152,8 @@ class AcquireTokenSilentHandler {
      * Attempt to get new access token with regular RT. 
      */
     private AuthenticationResult tryRT() throws AuthenticationException {
-        final String user = getUser();
-        final TokenCacheItem regularRTItem = mTokenCacheAccessor.getRegularTokenCacheItemWithAT(mAuthRequest.getResource(), 
-                mAuthRequest.getClientId(), user);
+        final TokenCacheItem regularRTItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(), 
+                mAuthRequest.getClientId(), getUserFromRequest());
         
         if (regularRTItem == null) {
             Logger.v(TAG, "Regular token cache entry does not exist, try with MRRT.");
@@ -180,7 +165,7 @@ class AcquireTokenSilentHandler {
         // However, the current cache implementation never mark the token stored in regular RT entry
         // as MRRT. To support the backward compatibility and improve cache lookup, when successfully
         // retrieved regular RT entry token and if the mrrt flag is false, check the existence of MRRT.
-        if (regularRTItem.getIsMultiResourceRefreshToken() || isMRRTExisted()) {
+        if (regularRTItem.getIsMultiResourceRefreshToken() || isMRRTEntryExisted()) {
             Logger.v(TAG, "Regular token cache entry exists but it's marked as MRRT, try with MRRT.");
             return tryMRRT();
         }
@@ -191,45 +176,33 @@ class AcquireTokenSilentHandler {
     
     /**
      * Attempt to get new access token with MRRT. 
+     * 1) If MRRT does not exist, try with FRT. 
+     * 2) If MRRT is also a FRT, try FRT first.
+     * 3) If MRRT request fails, fall back to FRT.  
      */
     private AuthenticationResult tryMRRT() throws AuthenticationException {
-
-        if (mMrrtTokenCacheItem == null) {
-            // If we don't have MRRT item, try to get it from cache first
-            mMrrtTokenCacheItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), getUser());
-        }
+        // Try to get it from cache
+        mMrrtTokenCacheItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), getUserFromRequest());
         
-        // ADFS doesn't return idtoken back. If app is talking to ADFS server, and provide us the userId
-        // or displayableId, since we didn't get idtoken back, we don't store user as part of key in this
-        // case. Try again to find token with no user.
+        // MRRT does not exist, try with FRT.
         if (mMrrtTokenCacheItem == null) {
-            if (lookUpCachedTokenWithNoUserForADFS()) {
-                mMrrtTokenCacheItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), null);
-                // ADFS doesn't support Family of Client Id, if we still cannot find anything, stop trying. 
-                if (mMrrtTokenCacheItem == null) {
-                    return null;
-                }
-            } else {
-                Logger.v(TAG, "MRRT token does not exist, try with FRT");
-                return tryFRT(AuthenticationConstants.MS_FAMILY_ID, null);
-            }
+            Logger.v(TAG, "MRRT token does not exist, try with FRT");
+            return tryFRT(AuthenticationConstants.MS_FAMILY_ID, null);
         } 
         
-        if (!StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId()) && !mAttemptedWithFRT) {
+        if (!StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())) {
             Logger.v(TAG, "MRRT item exists but it's also a FRT, try with FRT.");
             return tryFRT(mMrrtTokenCacheItem.getFamilyClientId(), null);
         }
-        
-        Logger.v(TAG, "Send request to use MRRT for new AT.");
-        AuthenticationResult mrrtResult = acquireTokenWithCachedItem(mMrrtTokenCacheItem);
-        if (containOauthError(mrrtResult)) {
+
+        AuthenticationResult mrrtResult = useMRRT();
+        if (isTokenRequestFailed(mrrtResult)) {
             // If MRRT fails, we still want to retry on FRT in case there is one there. 
             // MRRT may not be marked as FRT, hard-code it as "1" in this case. 
             final String familyClientId = StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId()) ? 
                     AuthenticationConstants.MS_FAMILY_ID : mMrrtTokenCacheItem.getFamilyClientId();
 
-            // Rest mMrrtTokenCacheItem to avoid the fallback when FRT request fails.
-            mMrrtTokenCacheItem = null;
+            // Pass the failed MRRT result to tryFRT, if FRT does not exist, return the MRRT result. 
             mrrtResult = tryFRT(familyClientId, mrrtResult);
         }
         
@@ -238,35 +211,48 @@ class AcquireTokenSilentHandler {
     
     /**
      * Attempt to get access token with FRT. 
+     * 1) If FRT does not exist, and we haven't tried with MRRT(the only possible to enter try FRT is after we call tryMRRT, 
+     * then we either already have a MRRT or MRRT does not exist)
+     * 2) If FRT request fails, and we haven't tried with MRRT yet, use it. 
      */
     private AuthenticationResult tryFRT(final String familyClientId, final AuthenticationResult mrrtResult) 
             throws AuthenticationException {
-        if (mAttemptedWithFRT) {
-            return mrrtResult;
-        }
-        
-        mAttemptedWithFRT = true;
-        final TokenCacheItem frtTokenCacheItem = mTokenCacheAccessor.getFRTItem(familyClientId, getUser());
+        final TokenCacheItem frtTokenCacheItem = mTokenCacheAccessor.getFRTItem(familyClientId, getUserFromRequest());
         
         if (frtTokenCacheItem  == null) {
-            if (mMrrtTokenCacheItem != null) {
-                // if mrrt token cache item is already used for token request, it will be reset as null
+            // If we haven't tried with MRRT, use the MRRT. MRRT either exists or not, if it does not exist, we've 
+            // already tried our best, null will be retured. If it eixsts, try with it. 
+            // If we have already tried an MRRT and no FRT found, we return the MRRT result passed in. 
+            if (!mAttemptedWithMRRT) {
                 Logger.v(TAG, "FRT cache item does not exist, fall back to try MRRT.");
-                return tryMRRT();
+                return useMRRT();
             } else {
-                // No FRT existed, and we've already tried to get new AT with MRRT, returning MRRT token request result in this case. 
                 return mrrtResult;
             }
         }
         
         Logger.v(TAG, "Send request to use FRT for new AT.");
         AuthenticationResult frtResult = acquireTokenWithCachedItem(frtTokenCacheItem);
-        if (containOauthError(frtResult)) {
-            final AuthenticationResult retryMrrtResult = tryMRRT();
+        if (isTokenRequestFailed(frtResult) && !mAttemptedWithMRRT) {
+            // FRT request fails, fallback to MRRT if we haven't tried with MRRT. 
+            final AuthenticationResult retryMrrtResult = useMRRT();
             frtResult = retryMrrtResult == null ? frtResult : retryMrrtResult;
         }
         
         return frtResult;
+    }
+
+    /**
+     * Attempt to use MRRT. 
+     */
+    private AuthenticationResult useMRRT() throws AuthenticationException {
+        Logger.v(TAG, "Send request to use MRRT for new AT.");
+        mAttemptedWithMRRT = true;
+        if (mMrrtTokenCacheItem == null) {
+            return null;
+        }
+        
+        return acquireTokenWithCachedItem(mMrrtTokenCacheItem);
     }
     
     /**
@@ -275,8 +261,11 @@ class AcquireTokenSilentHandler {
     private AuthenticationResult acquireTokenWithCachedItem(final TokenCacheItem cachedItem)
             throws AuthenticationException {
         final AuthenticationResult result = acquireTokenWithRefreshToken(cachedItem.getRefreshToken());
-        mTokenCacheAccessor.updateCachedItemToResult(mAuthRequest.getResource(), mAuthRequest.getClientId(), 
-                result, cachedItem);
+        
+        if (result != null) {
+            mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest.getResource(), mAuthRequest.getClientId(), 
+                    result, cachedItem);
+        }
 
         return result;
     }
@@ -286,51 +275,16 @@ class AcquireTokenSilentHandler {
      * MRRT is when RT is not found or found RT is also MRRT. To support the old behavior, do a separate check on
      * the existence for MRRT token entry. 
      */
-    private boolean isMRRTExisted() {
-        final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), getUser());
+    private boolean isMRRTEntryExisted() {
+        final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), getUserFromRequest());
         return mrrtItem != null && !StringExtensions.IsNullOrBlank(mrrtItem.getRefreshToken());
     }
     
     /**
      * Check if the {@link AuthenticationResult} contains oauth2 error. 
      */
-    private boolean containOauthError(final AuthenticationResult result) {
+    private boolean isTokenRequestFailed(final AuthenticationResult result) {
         return result != null && !StringExtensions.IsNullOrBlank(result.getErrorCode());
-    }
-    
-    /**
-     * Check if the retrieved {@link TokenCacheItem} matches the user supplied in the request. 
-     */
-    private boolean isUserMisMatch(final TokenCacheItem result) {
-        if (result.getUserInfo() != null
-                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())
-                && !StringExtensions.IsNullOrBlank(mAuthRequest.getUserId())) {
-            // Verify if IdToken is present and userid is specified
-            return !mAuthRequest.getUserId().equalsIgnoreCase(result.getUserInfo().getUserId());
-        }
-
-        // it should verify loginhint as well if specified
-        if (result.getUserInfo() != null
-                && !StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())
-                && !StringExtensions.IsNullOrBlank(mAuthRequest.getLoginHint())) {
-            // Verify if IdToken is present and userid is specified
-            return !mAuthRequest.getLoginHint()
-                    .equalsIgnoreCase(result.getUserInfo().getDisplayableId());
-        }
-
-        return false;
-    }
-    
-    /**
-     * Check if the retrieved cache item is valid. 
-     */
-    private boolean isValidCache(final TokenCacheItem cachedItem) {
-        if (cachedItem != null && !StringExtensions.IsNullOrBlank(cachedItem.getAccessToken())
-                && !cachedItem.isTokenExpired(cachedItem.getExpiresOn())) {
-            return true;
-        }
-
-        return false;
     }
     
     /**
@@ -341,13 +295,13 @@ class AcquireTokenSilentHandler {
      */
     private boolean lookUpCachedTokenWithNoUserForADFS() {
         return UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthRequest.getAuthority()))
-                && !StringExtensions.IsNullOrBlank(getUser());
+                && !StringExtensions.IsNullOrBlank(getUserFromRequest());
     }
     
     /**
      * Get either loginhint or user id based what's passed in the request. 
      */
-    private String getUser() {
+    private String getUserFromRequest() {
         if (UserIdentifierType.LoginHint == mAuthRequest.getUserIdentifierType()) {
             return mAuthRequest.getLoginHint();
         } else if (UserIdentifierType.UniqueId == mAuthRequest.getUserIdentifierType()) {
@@ -355,5 +309,22 @@ class AcquireTokenSilentHandler {
         }
         
         return null;
+    }
+    
+    /**
+     * Check if network is available, throw {@link AuthenticationException} with 
+     * {@link ADALError#DEVICE_CONNECTION_IS_NOT_AVAILABLE} if not available. 
+     */
+    private void throwIfNetworkNotAvaliable() throws AuthenticationException {
+        final DefaultConnectionService connectionService = new DefaultConnectionService(mContext);
+        if (!connectionService.isConnectionAvailable()) {
+            AuthenticationException authenticationException = new AuthenticationException(
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                    "Connection is not available to refresh token");
+            Logger.w(TAG, "Connection is not available to refresh token", mAuthRequest.getLogInfo(),
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+            
+            throw authenticationException;
+        }
     }
 }
