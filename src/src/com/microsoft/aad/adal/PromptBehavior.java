@@ -56,5 +56,5 @@ public enum PromptBehavior {
      * If using embeded flow, please keep using Always, if force_prompt is set for 
      * embeded flow, the sdk will re-intepret it to Always. 
      */
-    FORCE_PRMOPT
+    FORCE_PROMPT
 }

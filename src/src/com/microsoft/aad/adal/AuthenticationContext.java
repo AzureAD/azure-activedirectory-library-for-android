@@ -1465,7 +1465,7 @@ public class AuthenticationContext {
         // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to 
         // force prompt, if this flag is set in the embeded flow, we need to update it to always. For embed 
         // flow, force_prompt is the same as always. 
-        if (PromptBehavior.FORCE_PRMOPT == request.getPrompt()) {
+        if (PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
             request.setPrompt(PromptBehavior.Always);
         }
         

@@ -406,7 +406,8 @@ class BrokerProxy implements IBrokerProxy {
                 // Only the new broker with PRT support can read the new PromptBehavior force_prompt. 
                 // If talking to the old broker, and PromptBehavior is set as force_prompt, reset it as 
                 // Always. 
-                if (!isBrokerWithPRTSupport(intent) && PromptBehavior.FORCE_PRMOPT == request.getPrompt()) {
+                if (!isBrokerWithPRTSupport(intent) && PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
+                    Logger.v(TAG, "FORCE_PROMPT is set for broker auth via old version of broker app, reset to ALWAYS.");
                     intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, PromptBehavior.Always.name());
                 }
             }
@@ -467,12 +468,8 @@ class BrokerProxy implements IBrokerProxy {
         
         // Only new broker with PRT support will send down the value and the version will be v2
         final String brokerVersion = intent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
-        if (!StringExtensions.IsNullOrBlank(brokerVersion) 
-                && AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION.equalsIgnoreCase(brokerVersion)) {
-            return true;
-        }
-        
-        return false;
+        return !StringExtensions.IsNullOrBlank(brokerVersion) 
+                && AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION.equalsIgnoreCase(brokerVersion);
     }
 
     /**
