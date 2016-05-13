@@ -1462,6 +1462,13 @@ public class AuthenticationContext {
     private AuthenticationResult localFlow(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request) {
+        // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to 
+        // force prompt, if this flag is set in the embeded flow, we need to update it to always. For embed 
+        // flow, force_prompt is the same as always. 
+        if (PromptBehavior.FORCE_PRMOPT == request.getPrompt()) {
+            request.setPrompt(PromptBehavior.Always);
+        }
+        
         // Lookup access token from cache
         AuthenticationResult cachedItem = getItemFromCache(request);
         if (cachedItem != null && isUserMisMatch(request, cachedItem)) {

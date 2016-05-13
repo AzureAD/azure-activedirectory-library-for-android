@@ -402,6 +402,13 @@ class BrokerProxy implements IBrokerProxy {
             if (intent != null) {
                 intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
                         AuthenticationConstants.Broker.BROKER_REQUEST);
+                
+                // Only the new broker with PRT support can read the new PromptBehavior force_prompt. 
+                // If talking to the old broker, and PromptBehavior is set as force_prompt, reset it as 
+                // Always. 
+                if (!isBrokerWithPRTSupport(intent) && request.getPrompt() == PromptBehavior.FORCE_PRMOPT) {
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, PromptBehavior.Always.name());
+                }
             }
         } catch (OperationCanceledException e) {
             Logger.e(TAG, "Authenticator cancels the request", "", ADALError.AUTH_FAILED_CANCELLED, e);
@@ -446,6 +453,26 @@ class BrokerProxy implements IBrokerProxy {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt().name());
         }
         return brokerOptions;
+    }
+    
+    /**
+     * Check if the broker is the new one with PRT support by checking the version returned from intent. 
+     * Only new broker will send {@link AuthenticationConstants.Broker.BROKER_VERSION}, and the version number
+     * will be v2. 
+     */
+    private boolean isBrokerWithPRTSupport(final Intent intent) {
+        if (intent == null) {
+            throw new IllegalArgumentException("intent");
+        }
+        
+        // Only new broker with PRT support will send down the value and the version will be v2
+        final String brokerVersion = intent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
+        if (!StringExtensions.IsNullOrBlank(brokerVersion) 
+                && AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION.equalsIgnoreCase(brokerVersion)) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
