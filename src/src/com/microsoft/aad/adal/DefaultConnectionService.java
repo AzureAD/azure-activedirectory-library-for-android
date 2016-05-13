@@ -28,6 +28,10 @@ import android.net.NetworkInfo;
 
 /**
  * Default connection service check network connectivity. 
+ * TODO: No need for {@link IConnectionService}. Interface was created for testing purpose. 
+ * Same purpose could be achieved via mocking the context. Since it's a public interface, should
+ * be removed in the next major version update. 
+ * https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626
  */
 class DefaultConnectionService implements IConnectionService{
 
