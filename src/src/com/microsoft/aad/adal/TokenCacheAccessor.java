@@ -55,18 +55,27 @@ class TokenCacheAccessor {
      * @return Access token from cache. Could be null if AT does not exist or expired. 
      * This will be a strict match with the user passed in, could be unique userid, 
      * displayable id, or null user. 
+     * @throws AuthenticationException 
      */
-    TokenCacheItem getATFromCache(final String resource, final String clientId, final String user) {
+    TokenCacheItem getATFromCache(final String resource, final String clientId, final String user) 
+            throws AuthenticationException {
         final TokenCacheItem accessTokenItem = getRegularRefreshTokenCacheItem(resource, clientId, user);
         if (accessTokenItem == null) {
             Logger.v(TAG, "No access token exists.");
             return null;
         }
         
-        if (!StringExtensions.IsNullOrBlank(accessTokenItem.getAccessToken()) 
-                && accessTokenItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
-            Logger.v(TAG, "Access token exists, but already expired.");
-            return null;
+        if (!StringExtensions.IsNullOrBlank(accessTokenItem.getAccessToken())) {
+            if (accessTokenItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
+                Logger.v(TAG, "Access token exists, but already expired.");
+                return null;
+            }
+            
+            // To support backward-compatibility, for old token entry, user stored in 
+            // token cache item could be different from the one in cachekey. 
+            if (isUserMisMatch(user, accessTokenItem)) {
+                throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH);
+            }
         }
         
         return accessTokenItem;
@@ -102,10 +111,11 @@ class TokenCacheAccessor {
     
     /**
      * Update token cache with returned auth result.
+     * @throws AuthenticationException 
      * @throws IllegalArgumentException If {@link AuthenticationResult} is null. 
      */
     void updateCachedItemWithResult(final String resource, final String clientId, final AuthenticationResult result, 
-            final TokenCacheItem cachedItem) {
+            final TokenCacheItem cachedItem) throws AuthenticationException {
         if (result == null) {
             Logger.v(TAG, "AuthenticationResult is not, cannot update cache.");
             throw new IllegalArgumentException("result");
@@ -136,20 +146,6 @@ class TokenCacheAccessor {
             return;
         }
         
-        // @note: The past way for setting token into cache is
-        // For interactive flow
-        // 1) save token item with returned displayabledId in userInfo
-        // 2) save token item with returned userId in userInfo
-        // 3) save token item with null user
-        // For silent flow
-        // 1) save token with userId provided in request
-        // 2) if user id is not provided in request, set it to loghint(will be nul, silent request never sets loghint)
-        // 3) update cache with the user in above two steps
-        // 4) update cache with userId returned in userInfo
-        // The current way:
-        // To support backward compatibility, should always store the token with empty user except FRT item. 
-        // for token cache item with either displayableId or userId, should take whatever returned from server. 
-        
         if (result.getUserInfo() != null) {
             // update cache entry with displayableId
             if (!StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
@@ -162,7 +158,7 @@ class TokenCacheAccessor {
             }
         }
         
-        // upate for empty userid
+        // update for empty userid
         setItemToCacheForUser(resource, clientId, result, null);
     }
     
@@ -172,21 +168,19 @@ class TokenCacheAccessor {
      * 1) If refresh with resource specific token cache entry, clear RT with key(R,C,U,A)
      * 2) If refresh with MRRT, clear RT (C,U,A) and (R,C,U,A)
      * 3) if refresh with FRT, clear RT with (U,A) 
+     * @throws AuthenticationException 
      */
-    void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource) {
+    void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource) 
+            throws AuthenticationException {
         final List<String> keys;
         final TokenEntryType tokenEntryType = tokenCacheItem.getTokenEntryType();
-        if (TokenEntryType.REGULAR_TOKEN_ENTRY == tokenEntryType) {
-            // Only regular token cache entry is storing resouce. 
+        switch (tokenEntryType) {
+        case REGULAR_TOKEN_ENTRY : 
             Logger.v(TAG, "Regular RT was used to get access token, remove entries "
                     + "for regular RT entries.");
             keys = getKeyListToRemoveForRT(tokenCacheItem);
-        } else if (TokenEntryType.FRT_TOKEN_ENTRY == tokenEntryType) {
-            // Family token cache item does not store clientId
-            Logger.v(TAG, "FRT was used to get access token, remove entries for "
-                    + "FRT entries.");
-            keys = getKeyListToRemoveForFRT(tokenCacheItem);
-        } else {
+            break;
+        case MRRT_TOKEN_ENTRY : 
             Logger.v(TAG, "MRRT was used to get access token, remove entries for both "
                     + "MRRT entries and regular RT entries.");
             keys = getKeyListToRemoveForMRRT(tokenCacheItem, resource);
@@ -194,7 +188,15 @@ class TokenCacheAccessor {
             final TokenCacheItem regularRTItem = new TokenCacheItem(tokenCacheItem);
             regularRTItem.setResource(resource);
             keys.addAll(getKeyListToRemoveForRT(regularRTItem));
-        } 
+            break;
+        case FRT_TOKEN_ENTRY : 
+            Logger.v(TAG, "FRT was used to get access token, remove entries for "
+                    + "FRT entries.");
+            keys = getKeyListToRemoveForFRT(tokenCacheItem);
+            break;
+        default : 
+            throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM);
+        }
         
         for (final String key : keys) {
             mTokenCacheStore.removeItem(key);
@@ -268,6 +270,21 @@ class TokenCacheAccessor {
         }
         
         return keysToRemove;
+    }
+    
+    private boolean isUserMisMatch(final String user, final TokenCacheItem tokenCacheItem) {
+        // when both user and userInfo in AuthenticationResult is null, non-mismatch case
+        if (StringExtensions.IsNullOrBlank(user) && tokenCacheItem.getUserInfo() == null) {
+            return false;
+        }
+        
+        // If either user or userInfo in AuthenticationResult is null, there is a mismatch
+        if (StringExtensions.IsNullOrBlank(user) || tokenCacheItem.getUserInfo() == null) {
+            return true;
+        }
+        
+        return !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getDisplayableId()) 
+                && !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getUserId());
     }
     
     /**

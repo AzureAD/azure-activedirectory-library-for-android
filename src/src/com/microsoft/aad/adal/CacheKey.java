@@ -84,7 +84,7 @@ public final class CacheKey implements Serializable {
         // When we receive family token from server response, will use whatever
         // server returned as familyId; for caching look up, will hardcode "1"
         // for now since only FoCI feature is only supported for Microsoft first
-        // party apps, and server returns "1" for first party families. 
+        // party apps, and server returns "1" for Microsoft family apps. 
         if (clientId == null && familyClientId == null) {
             throw new IllegalArgumentException("both clientId and familyClientId are null");
         }
@@ -110,7 +110,8 @@ public final class CacheKey implements Serializable {
         }
         
         if (familyClientId != null) {
-            key.mFamilyClientId = familyClientId.toLowerCase(Locale.US);
+            final String prefixedFamilyClient = FRT_ENTRY_PREFIX + familyClientId;
+            key.mFamilyClientId =  prefixedFamilyClient.toLowerCase(Locale.US);
         }
 
         key.mIsMultipleResourceRefreshToken = isMultiResourceRefreshToken;
@@ -126,28 +127,31 @@ public final class CacheKey implements Serializable {
     /**
      * Create cachekey from {@link TokenCacheItem}. It will use {@link UserInfo#getUserId()} 
      * as the user for cachekey if present. 
+     * @param item {@link TokenCacheItem} that is used to create the cache key. 
+     * @return String value of the {@link CacheKey} to save token. 
+     * @throws AuthenticationException 
      */
-    public static String createCacheKey(TokenCacheItem item) {
+    public static String createCacheKey(TokenCacheItem item) throws AuthenticationException {
         if (item == null) {
             throw new IllegalArgumentException("TokenCacheItem");
         }
 
         String userid = null;
-
         if (item.getUserInfo() != null) {
             userid = item.getUserInfo().getUserId();
         }
         
-        if (!StringExtensions.IsNullOrBlank(item.getResource())) {
-            // create cache key for regular token cache entry. 
+        final TokenEntryType tokenEntryType = item.getTokenEntryType();
+        switch (tokenEntryType) {
+        case REGULAR_TOKEN_ENTRY: 
             return createCacheKeyForRTEntry(item.getAuthority(), item.getResource(), 
-                    item.getClientId(), item.getUserInfo().getUserId());
-        } else if (StringExtensions.IsNullOrBlank(item.getClientId())) {
-            // create cache entry for FRT token cache entry, FRT entry doesn't have clientId stored
-            return createCacheKeyForFRT(item.getAuthority(), item.getFamilyClientId(), item.getUserInfo().getUserId());
-        } else {
-            // create for MRRT cache key
-            return createCacheKeyForMRRT(item.getAuthority(), item.getClientId(), item.getUserInfo().getUserId());
+                    item.getClientId(), userid);
+        case MRRT_TOKEN_ENTRY:
+            return createCacheKeyForMRRT(item.getAuthority(), item.getClientId(), userid);
+        case FRT_TOKEN_ENTRY:
+            return createCacheKeyForFRT(item.getAuthority(), item.getFamilyClientId(), userid);
+        default: 
+            throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM, "Cannot create cachekey from given token item");
         }
     }
     
@@ -169,7 +173,7 @@ public final class CacheKey implements Serializable {
      * Create cache key for FRT entry. 
      */
     public static String createCacheKeyForFRT(final String authority, final String familyClientId, final String userId) {
-        return createCacheKey(authority, null, null, true, userId, FRT_ENTRY_PREFIX + familyClientId);
+        return createCacheKey(authority, null, null, true, userId, familyClientId);
     }
 
     /**

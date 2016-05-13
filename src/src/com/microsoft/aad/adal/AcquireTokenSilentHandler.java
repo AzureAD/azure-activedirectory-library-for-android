@@ -30,7 +30,7 @@ import android.content.Context;
 
 /**
  * Internal class handling the detailed acquiretoken silent logic, including cache lookup and also
- * interact with web request.
+ * interact with web request(The class represents the state machine for acquiretoken silent flow.)
  */
 class AcquireTokenSilentHandler {
     private static final String TAG = AcquireTokenSilentHandler.class.getSimpleName();
@@ -43,7 +43,8 @@ class AcquireTokenSilentHandler {
     private TokenCacheItem mMrrtTokenCacheItem;
 
     /**
-     * TODO: need to remove. {@link HttpUrlConnectionFactory} provides the possibility to 
+     * TODO: Remove(https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626). 
+     * {@link HttpUrlConnectionFactory} provides the possibility to 
      * mock the real connection. Needs to update the class to make different response based on 
      * post message. 
      */
@@ -52,6 +53,8 @@ class AcquireTokenSilentHandler {
     /**
      * Constructor for {@link AcquireTokenSilentHandler}. 
      * {@link TokenCacheAccessor} could be null. If null, won't handle with cache. 
+     * TODO: Consider have a separate handler for refresh token without cache interaction.
+     * (https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626)
      */
     AcquireTokenSilentHandler(final Context context, final AuthenticationRequest authRequest,
             final TokenCacheAccessor tokenCacheAccessor) {
@@ -71,7 +74,7 @@ class AcquireTokenSilentHandler {
     }
     
     /**
-     * Request for access token by looking up cache.
+     * Request for access token by looking up cache(Initial start point.).
      * Detailed token cache lookup:
      * 1) try to find an AT, if AT exists and not expired, return it. 
      * 2) Use RT:
@@ -116,7 +119,7 @@ class AcquireTokenSilentHandler {
                 mAuthRequest.getLogInfo(), null);
         
         // Check if network is available, if not throw exception. 
-        throwIfNetworkNotAvaliable();
+        HttpWebRequest.throwIfNetworkNotAvaliable(mContext);
         
         final AuthenticationResult result;
         try {
@@ -166,7 +169,9 @@ class AcquireTokenSilentHandler {
         // as MRRT. To support the backward compatibility and improve cache lookup, when successfully
         // retrieved regular RT entry token and if the mrrt flag is false, check the existence of MRRT.
         if (regularRTItem.getIsMultiResourceRefreshToken() || isMRRTEntryExisted()) {
-            Logger.v(TAG, "Regular token cache entry exists but it's marked as MRRT, try with MRRT.");
+            final String statusMessage = regularRTItem.getIsMultiResourceRefreshToken() ? 
+                    "Found RT and it's also a MRRT, retry with MRRT" : "RT is found and there is a MRRT entry existed, try with MRRT";
+            Logger.v(TAG, statusMessage);
             return tryMRRT();
         }
         
@@ -190,6 +195,7 @@ class AcquireTokenSilentHandler {
             return tryFRT(AuthenticationConstants.MS_FAMILY_ID, null);
         } 
         
+        // If MRRT is also a FRT, we try FRT first. 
         if (!StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())) {
             Logger.v(TAG, "MRRT item exists but it's also a FRT, try with FRT.");
             return tryFRT(mMrrtTokenCacheItem.getFamilyClientId(), null);
@@ -288,17 +294,6 @@ class AcquireTokenSilentHandler {
     }
     
     /**
-     * ADFS server doesn't return idtoken back. If id token is not returned, we won't be able to get 
-     * userinfo back, ADAL then won't be able store token with displayableId or userId as cache key. 
-     * In this case, when looking up token, we should try our best to find tokens with no user even user
-     * pass the loginhint in the request. 
-     */
-    private boolean lookUpCachedTokenWithNoUserForADFS() {
-        return UrlExtensions.isADFSAuthority(StringExtensions.getUrl(mAuthRequest.getAuthority()))
-                && !StringExtensions.IsNullOrBlank(getUserFromRequest());
-    }
-    
-    /**
      * Get either loginhint or user id based what's passed in the request. 
      */
     private String getUserFromRequest() {
@@ -309,22 +304,5 @@ class AcquireTokenSilentHandler {
         }
         
         return null;
-    }
-    
-    /**
-     * Check if network is available, throw {@link AuthenticationException} with 
-     * {@link ADALError#DEVICE_CONNECTION_IS_NOT_AVAILABLE} if not available. 
-     */
-    private void throwIfNetworkNotAvaliable() throws AuthenticationException {
-        final DefaultConnectionService connectionService = new DefaultConnectionService(mContext);
-        if (!connectionService.isConnectionAvailable()) {
-            AuthenticationException authenticationException = new AuthenticationException(
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
-                    "Connection is not available to refresh token");
-            Logger.w(TAG, "Connection is not available to refresh token", mAuthRequest.getLogInfo(),
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            
-            throw authenticationException;
-        }
     }
 }

@@ -114,11 +114,6 @@ public class AuthenticationContext {
      */
     private IJWSBuilder mJWSBuilder;
 
-    /**
-     * Connection service interface to test different behaviors.
-     */
-    private IConnectionService mConnectionService = null;
-
     private IBrokerProxy mBrokerProxy = null;
     
     private TokenCacheAccessor mTokenCacheAccessor;
@@ -194,7 +189,6 @@ public class AuthenticationContext {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
         }
         mContext = appContext;
-        mConnectionService = new DefaultConnectionService(mContext);
         checkInternetPermission();
         mAuthority = extractAuthority(authority);
         mValidateAuthority = validateAuthority;
@@ -951,9 +945,13 @@ public class AuthenticationContext {
                                                         + authenticationRequest.getLogInfo());
 
                                         if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                                            // TODO: Should pull out the interactive logic into another handler. 
-                                            mTokenCacheAccessor.updateTokenCache(authenticationRequest.getResource(), 
-                                                    authenticationRequest.getClientId(), result);
+                                            // TODO: Should pull out the interactive logic into another handler.
+                                            // https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626
+                                            if (mTokenCacheAccessor != null) {
+                                                // Developer may pass null for the acquireToken flow.
+                                                mTokenCacheAccessor.updateTokenCache(authenticationRequest.getResource(), 
+                                                        authenticationRequest.getClientId(), result);
+                                            }
                                         }
 
                                         if (waitingRequest != null
@@ -1413,7 +1411,7 @@ public class AuthenticationContext {
                 return null;
             }
             
-            if (authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken())) {
+            if (isAccessTokenReturned(authResult)) {
                 callbackHandle.onSuccess(authResult);
                 ClientAnalytics.logEvent(
                         InstrumentationIDs.REFRESH_TOKEN_REQUEST_SUCCEEDED,
@@ -1422,12 +1420,11 @@ public class AuthenticationContext {
             }
         }
         
-        // refresh token does not exist or refresh token request failed to give back the token. 
+        // No token is returned.  
         // If it's non-silent request, will try to acquire token interactively. 
         // if it's silent request, will return the AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED.
-        if (authResult == null 
-                || (authResult != null && StringExtensions.IsNullOrBlank(authResult.getAccessToken()))) {
-            Logger.v(TAG, "Refresh token is not available or refresh token request failed to return token.");
+        if (!isAccessTokenReturned(authResult)) {
+            Logger.v(TAG, "No token returned for silent flow or promptbehavior is set to alwasys.");
             ClientAnalytics.logEvent(
                     InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
                     new InstrumentationPropertiesBuilder(request, authResult).build());
@@ -1462,15 +1459,13 @@ public class AuthenticationContext {
     private void acquireTokenInteractively(final CallbackHandler callbackHandle, final IWindowComponent activity, 
             final AuthenticationRequest request, final boolean useDialog) {
         //Check if there is network connection
-        if (!mConnectionService.isConnectionAvailable()) {
-            AuthenticationException exc = new AuthenticationException(
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
-                    "Connection is not available to request token");
-            Logger.w(TAG, "Connection is not available to request token", request.getLogInfo(),
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            callbackHandle.onError(exc);
+        try {
+            HttpWebRequest.throwIfNetworkNotAvaliable(mContext);
+        } catch (final AuthenticationException exception) {
+            callbackHandle.onError(exception);
             return;
         }
+
         
         // start activity if other options are not available
         // delegate map is used to remember callback if another
@@ -1519,6 +1514,10 @@ public class AuthenticationContext {
 
     private String getRedirectFromPackage() {
         return mContext.getApplicationContext().getPackageName();
+    }
+    
+    private boolean isAccessTokenReturned(final AuthenticationResult authResult) {
+        return authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken());
     }
 
     /**

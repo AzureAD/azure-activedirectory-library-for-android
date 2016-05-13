@@ -70,7 +70,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("Same item as mock", "clientId23", item.getClientId());
     }
 
-    public void testGetAll() {
+    public void testGetAll() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         Iterator<TokenCacheItem> results = store.getAll();
@@ -79,7 +79,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertNotNull("Has item", item);
     }
 
-    public void testGetUniqueUsers() {
+    public void testGetUniqueUsers() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         Set<String> users = store.getUniqueUsersWithTokenCache();
         assertNotNull(users);
@@ -124,7 +124,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     
-    public void testDateTimeFormatterLocaleChange() {
+    public void testDateTimeFormatterLocaleChange() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");
         // Serializing without miliseconds
@@ -157,7 +157,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
     }
 
-    public void testGetTokensForResource() {
+    public void testGetTokensForResource() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");
@@ -168,7 +168,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 2, tokens.size());
     }
 
-    public void testGetTokensForUser() {
+    public void testGetTokensForUser() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
@@ -178,7 +178,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 2, tokens.size());
     }
 
-    public void testExpiringTokens() throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public void testExpiringTokens() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
@@ -198,7 +198,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 1, expireTokenList.size());
     }
 
-    public void testClearTokensForUser() {
+    public void testClearTokensForUser() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         store.clearTokensForUser("userid");
@@ -212,7 +212,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 0, tokens.size());
     }
 
-    public void testExpireBuffer() {
+    public void testExpireBuffer() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");

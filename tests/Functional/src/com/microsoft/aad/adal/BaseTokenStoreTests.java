@@ -56,7 +56,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         super.tearDown();
     }
 
-    protected ITokenCacheStore setupItems() {
+    protected ITokenCacheStore setupItems() throws AuthenticationException {
         ITokenCacheStore store = getTokenCacheStore();
         store.removeAll();
         // set items for user1
@@ -104,7 +104,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 
     protected abstract ITokenCacheStore getTokenCacheStore();
 
-    public void testGetRemoveItem() {
+    public void testGetRemoveItem() throws AuthenticationException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
@@ -171,7 +171,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertNull("Token cache item is expected to be null", item);
     }
 
-    public void testContains() {
+    public void testContains() throws AuthenticationException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
@@ -183,7 +183,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertTrue("Item is expected to be there", actual);
     }
 
-    public void testRemoveAll() {
+    public void testRemoveAll() throws AuthenticationException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 

@@ -60,7 +60,7 @@ public class CacheKeyTests extends AndroidTestCase {
                 testKeySlash);
         
         final String testKeyWithFamilyCientId = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
-        assertEquals("authority$null$null$y$user123$family123", testKeyWithFamilyCientId);
+        assertEquals("authority$null$null$y$user123$foci-family123", testKeyWithFamilyCientId);
     }
 
     /**
@@ -68,13 +68,13 @@ public class CacheKeyTests extends AndroidTestCase {
      */
     public void testcreateCacheKey_EmptyValues() {
         String testKey = CacheKey.createCacheKey("", "", "", false, "", "");
-        assertEquals("expected key", "$$$n$null", testKey);
+        assertEquals("expected key", "$$$n$null$foci-", testKey);
 
         String testKeyNullUser = CacheKey.createCacheKey("", "", "", false, null, "");
-        assertEquals("expected key", "$$$n$null", testKeyNullUser);
+        assertEquals("expected key", "$$$n$null$foci-", testKeyNullUser);
 
         String testKeyWithUser = CacheKey.createCacheKey("", "", "", false, "userid", "");
-        assertEquals("expected key", "$$$n$userid", testKeyWithUser);
+        assertEquals("expected key", "$$$n$userid$foci-", testKeyWithUser);
     }
 
     public void testcreateCacheKey_NullItem() {
@@ -131,7 +131,7 @@ public class CacheKeyTests extends AndroidTestCase {
         // Test client id is null but family client id is not null
         try {
             final String key = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
-            assertEquals("authority$null$null$y$user123$family123", key);
+            assertEquals("authority$null$null$y$user123$foci-family123", key);
         } catch (final Exception exception) {
             fail("Non-expected exception");
         }

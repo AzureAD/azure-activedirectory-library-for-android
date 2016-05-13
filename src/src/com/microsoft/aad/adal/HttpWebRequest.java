@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import android.content.Context;
 import android.os.Build;
 import android.os.Debug;
 import android.os.Process;
@@ -167,6 +168,19 @@ class HttpWebRequest {
 
         return response;
     }
+    
+    static void throwIfNetworkNotAvaliable(final Context context) throws AuthenticationException {
+        final DefaultConnectionService connectionService = new DefaultConnectionService(context);
+        if (!connectionService.isConnectionAvailable()) {
+            AuthenticationException authenticationException = new AuthenticationException(
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                    "Connection is not available to refresh token");
+            Logger.w(TAG, "Connection is not available to refresh token", "",
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+            
+            throw authenticationException;
+        }
+    } 
 
     /**
      * Convert stream into the string
