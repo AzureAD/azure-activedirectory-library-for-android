@@ -406,7 +406,7 @@ class BrokerProxy implements IBrokerProxy {
                 // Only the new broker with PRT support can read the new PromptBehavior force_prompt. 
                 // If talking to the old broker, and PromptBehavior is set as force_prompt, reset it as 
                 // Always. 
-                if (!isBrokerWithPRTSupport(intent) && request.getPrompt() == PromptBehavior.FORCE_PRMOPT) {
+                if (!isBrokerWithPRTSupport(intent) && PromptBehavior.FORCE_PRMOPT == request.getPrompt()) {
                     intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, PromptBehavior.Always.name());
                 }
             }
