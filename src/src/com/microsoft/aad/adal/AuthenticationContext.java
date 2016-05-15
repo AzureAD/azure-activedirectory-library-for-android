@@ -1277,7 +1277,10 @@ public class AuthenticationContext {
     }
 
     private boolean promptUser(PromptBehavior prompt) {
-        return prompt == PromptBehavior.Always || prompt == PromptBehavior.REFRESH_SESSION;
+        return prompt == PromptBehavior.Always 
+                || prompt == PromptBehavior.REFRESH_SESSION 
+                // Force broker with PRT support to prompt user. 
+                || PromptBehavior.FORCE_PROMPT == prompt;
     }
     
     /**
