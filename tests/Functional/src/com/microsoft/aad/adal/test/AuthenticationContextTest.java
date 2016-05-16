@@ -2388,7 +2388,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
          DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
          addFRTCacheItem(mockCache);
          final AuthenticationContext context = getAuthenticationContext(mockContext,
-        		 TEST_AUTHORITY, false, mockCache);
+ TEST_AUTHORITY, false, mockCache);
          Method m = ReflectionUtils.getTestMethod(context, "serialize", String.class);
          String jsonStr = (String)m.invoke(context, TEST_IDTOKEN_USERID);
          assertTrue(jsonStr != null);

@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +35,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import android.os.*;
+import android.os.Build;
+import android.os.Debug;
 import android.os.Process;
 
 /**
@@ -164,7 +164,7 @@ class HttpWebRequest {
             // connection pool. If we call disconnect due to buggy implementation we are not reusing
             // connections.
             //if (connection != null) {
-            //	connection.disconnect();
+            // connection.disconnect();
             //}
         }
 
