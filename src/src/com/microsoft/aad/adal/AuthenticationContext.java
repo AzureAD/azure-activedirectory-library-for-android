@@ -1276,11 +1276,13 @@ public class AuthenticationContext {
         return acquireTokenAfterValidation(callbackHandle, activity, useDialog, request);
     }
 
+    /**
+     * FORCE_PROMPT will force broker with PRT support to prompt user. 
+     */
     private boolean promptUser(PromptBehavior prompt) {
         return prompt == PromptBehavior.Always 
                 || prompt == PromptBehavior.REFRESH_SESSION 
-                // Force broker with PRT support to prompt user. 
-                || PromptBehavior.FORCE_PROMPT == prompt;
+                || prompt == PromptBehavior.FORCE_PROMPT;
     }
     
     /**
