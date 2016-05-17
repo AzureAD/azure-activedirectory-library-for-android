@@ -468,8 +468,7 @@ class BrokerProxy implements IBrokerProxy {
         
         // Only new broker with PRT support will send down the value and the version will be v2
         final String brokerVersion = intent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
-        return !StringExtensions.IsNullOrBlank(brokerVersion) 
-                && AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION.equalsIgnoreCase(brokerVersion);
+        return AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION.equalsIgnoreCase(brokerVersion);
     }
 
     /**
