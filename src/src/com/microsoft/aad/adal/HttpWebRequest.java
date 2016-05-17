@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +35,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import android.os.*;
+import android.content.Context;
+import android.os.Build;
+import android.os.Debug;
 import android.os.Process;
 
 /**
@@ -93,7 +94,7 @@ class HttpWebRequest {
             throw new IllegalArgumentException("requestURL");
         }
         HttpURLConnection.setFollowRedirects(true);
-        final HttpURLConnection connection = (HttpURLConnection)mUrl.openConnection();
+        final HttpURLConnection connection = HttpUrlConnectionFactory.createHttpUrlConnection(mUrl);
         connection.setConnectTimeout(CONNECT_TIME_OUT);
         // To prevent EOF exception.
         if (Build.VERSION.SDK_INT > 13) {
@@ -170,6 +171,19 @@ class HttpWebRequest {
 
         return response;
     }
+    
+    static void throwIfNetworkNotAvaliable(final Context context) throws AuthenticationException {
+        final DefaultConnectionService connectionService = new DefaultConnectionService(context);
+        if (!connectionService.isConnectionAvailable()) {
+            AuthenticationException authenticationException = new AuthenticationException(
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                    "Connection is not available to refresh token");
+            Logger.w(TAG, "Connection is not available to refresh token", "",
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+            
+            throw authenticationException;
+        }
+    } 
 
     /**
      * Convert stream into the string
