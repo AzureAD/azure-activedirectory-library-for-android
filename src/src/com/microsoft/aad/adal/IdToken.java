@@ -32,6 +32,10 @@ import org.json.JSONObject;
 
 import android.util.Base64;
 
+/**
+ * IdToken class is used to initialize the IdToken object with the raw idToken
+ * String from the server.
+ */
 class IdToken {
 
     final private static String TAG = "IdToken";
@@ -119,18 +123,17 @@ class IdToken {
         return mPasswordChangeUrl;
     }
 
-    private HashMap<String, String> parseJWT(String idtoken) throws AuthenticationException {
-        String idbody = extractJWTBody(idtoken);
+    private HashMap<String, String> parseJWT(final String idtoken) throws AuthenticationException {
+        final String idbody = extractJWTBody(idtoken);
         // URL_SAFE: Encoder/decoder flag bit to use
         // "URL and filename safe" variant of Base64
         // (see RFC 3548 section 4) where - and _ are used in place of +
         // and /.
-        byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
-        HashMap<String, String> responseItems = new HashMap<String, String>();
+        final byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
 
         try {
-            String decodedBody = new String(data, "UTF-8");
-            extractJsonObjects(responseItems, decodedBody);
+            final String decodedBody = new String(data, "UTF-8");
+            final HashMap<String, String> responseItems = extractJsonObjects(decodedBody);
             return responseItems;
         } catch (UnsupportedEncodingException exception) {
             Logger.e(TAG, "The encoding is not supported.", "", ADALError.ENCODING_IS_NOT_SUPPORTED, exception);
@@ -142,7 +145,7 @@ class IdToken {
         }
     }
 
-    private String extractJWTBody(String idtoken) throws AuthenticationException {
+    private String extractJWTBody(final String idtoken) throws AuthenticationException {
         int firstDot = idtoken.indexOf(".");
         int secondDot = idtoken.indexOf(".", firstDot + 1);
         int invalidDot = idtoken.indexOf(".", secondDot + 1);
@@ -154,14 +157,14 @@ class IdToken {
         }
     }
 
-    private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr) throws JSONException {
+    private static HashMap<String, String> extractJsonObjects(final String jsonStr) throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
-
+        HashMap<String, String> responseItems = new HashMap<String, String>();
         final Iterator<?> i = jsonObject.keys();
-
         while (i.hasNext()) {
             final String key = (String) i.next();
             responseItems.put(key, jsonObject.getString(key));
         }
+        return responseItems;
     }
 }

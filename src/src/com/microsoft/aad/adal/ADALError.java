@@ -533,9 +533,9 @@ public enum ADALError {
     INCOMPATIBLE_BLOB_VERSION("Fail to deserialize because the blob version is incompatible"), 
     
     /**
-     * Fail to get the family refresh token from the cache item
+     * Fail to get the token cache item from the cache item
      */
-    FAMILY_REFRESH_TOKEN_NOT_FOUND("Family fresh token is not found"), 
+    TOKEN_CACHE_ITEM_NOT_FOUND("Token cache item is not found"),
     
     /**
      * Fail to parse JSON because of the problem with the JSON API

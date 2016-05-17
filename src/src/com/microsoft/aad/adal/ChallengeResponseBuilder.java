@@ -150,7 +150,7 @@ class ChallengeResponseBuilder {
     }
 
     private IDeviceCertificate getWPJAPIInstance(Class<IDeviceCertificate> certClazz) 
-    	throws AuthenticationException {
+ throws AuthenticationException {
         IDeviceCertificate deviceCertProxy = null;
         Constructor<?> constructor;
         try {

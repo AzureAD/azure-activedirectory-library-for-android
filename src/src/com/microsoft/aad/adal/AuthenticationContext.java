@@ -2131,46 +2131,77 @@ public class AuthenticationContext {
         }
     }
 
+    /**
+     * Internal API of ADAL to serialize the family token cache item for the
+     * given user.
+     * 
+     * Verify if the input uniqueUserId is valid and the broker is not used.
+     * Then check if this user has family refresh token item in the cache. If
+     * true, create an SSOStateContainer object with the family refresh token
+     * item of this user and continue the serialization process.
+     * 
+     * @param String
+     *            uniqueUserId
+     * @return String
+     * @throws AuthenticationException
+     */
     String serialize(final String uniqueUserId) throws AuthenticationException {
         if (StringExtensions.IsNullOrBlank(uniqueUserId)) {
             throw new IllegalArgumentException("uniqueUserId");
         }
-        
-        if ((new BrokerProxy(mContext)).canSwitchToBroker()) {
-            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,"Failed to export the FID because broker is enabled.");
+
+        if (mBrokerProxy.canSwitchToBroker()) {
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
+                    "Failed to export the family refresh token cache item because broker is enabled.");
         }
-        
-        /* the current serialize/deserialize feature is for only supports MS apps 
-         * so the client ID for the FoCI token cache item is hard coded below
-         */        
+
+        /*
+         * The current serialize/deserialize feature is for only supports MS
+         * apps. So the client ID for the FoCI token cache item is hard coded
+         * below
+         */
         final String cacheKey = CacheKey.createCacheKey(this.getAuthority(), null, AuthenticationConstants.MS_FAMILY_ID, true, uniqueUserId);
         final TokenCacheItem tokenItem = this.getCache().getItem(cacheKey);
-        
+
         if (tokenItem == null) {
-            Logger.i(TAG, "Cannot find the FoCI token cache item for this userID", "");
-            return null;
-        }        
-       
-        final SSOStateContainer blobContainer = new SSOStateContainer(tokenItem);
-        Logger.i(TAG, "prepare to serialize","");
-        return blobContainer.serialize();
+            Logger.i(TAG, "Cannot find the family token cache item for this userID", "");
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
+                    "Failed to export the FID because no family token cache item is found.");
+        }
+
+        if (!StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
+            return SSOStateSerializer.serialize(tokenItem);
+        } else {
+            throw new IllegalArgumentException("tokenItem does not contain family refresh token");
+        }
     }
-    
-    void deserialize(String serializedBlob) throws AuthenticationException {
+
+    /**
+     * Internal API of ADAL to provide the deserialization to the TokenCacheItem
+     * 
+     * The method will take the serializedBlob string as input and deserialize
+     * the string into a tokenCacheItem. The deserialized tokenCacheItem will be
+     * stored into the cache. Exceptions will be thrown for invalid input or the
+     * broker is enabled.
+     * 
+     * @param String
+     *            serializedBlob
+     * @throws AuthenticationException
+     */
+    void deserialize(final String serializedBlob) throws AuthenticationException {
         if (StringExtensions.IsNullOrBlank(serializedBlob)) {
             throw new IllegalArgumentException("serializedBlob");
         }
-            
-        if ((new BrokerProxy(mContext)).canSwitchToBroker()) {
+
+        if (mBrokerProxy.canSwitchToBroker()) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT,"Failed to import the serialized blob because broker is enabled.");
         }
-        
-        Logger.i(TAG, "prepare to deserialize","");
-        final TokenCacheItem tokenCacheItem = SSOStateContainer.deserialize(serializedBlob);
+
+        final TokenCacheItem tokenCacheItem = SSOStateSerializer.deserialize(serializedBlob);
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
         this.getCache().setItem(cacheKey, tokenCacheItem);  
     }
-    
+
     class DefaultConnectionService implements IConnectionService {
 
         private Context mConnectionContext;
