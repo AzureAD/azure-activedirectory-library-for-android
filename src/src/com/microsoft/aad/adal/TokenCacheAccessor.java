@@ -170,7 +170,7 @@ class TokenCacheAccessor {
      * 3) if refresh with FRT, clear RT with (U,A) 
      * @throws AuthenticationException 
      */
-    void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource) 
+    private void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource) 
             throws AuthenticationException {
         final List<String> keys;
         final TokenEntryType tokenEntryType = tokenCacheItem.getTokenEntryType();

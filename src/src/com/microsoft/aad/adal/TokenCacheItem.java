@@ -263,6 +263,13 @@ public class TokenCacheItem implements Serializable {
             return TokenEntryType.MRRT_TOKEN_ENTRY;
         }
     }
+    
+    /**
+     * @return True if the {@link TokenCacheItem} has FoCI flag, false otherwise. 
+     */
+    boolean isFamilyToken() {
+        return !StringExtensions.IsNullOrBlank(mFamilyClientId);
+    }
 }
 
 /**

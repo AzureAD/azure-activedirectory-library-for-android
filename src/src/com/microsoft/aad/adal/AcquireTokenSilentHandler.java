@@ -24,8 +24,6 @@ package com.microsoft.aad.adal;
 
 import java.io.IOException;
 
-import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
-
 import android.content.Context;
 
 /**
@@ -100,7 +98,7 @@ class AcquireTokenSilentHandler {
         
         // Check for if there is valid access token item in the cache.
         final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getATFromCache(mAuthRequest.getResource(), 
-                mAuthRequest.getClientId(), getUserFromRequest());
+                mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
         if (accessTokenItem == null) {
             Logger.v(TAG, "No valid access token exists, try with refresh token.");
             return tryRT();
@@ -156,7 +154,7 @@ class AcquireTokenSilentHandler {
      */
     private AuthenticationResult tryRT() throws AuthenticationException {
         final TokenCacheItem regularRTItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(), 
-                mAuthRequest.getClientId(), getUserFromRequest());
+                mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
         
         if (regularRTItem == null) {
             Logger.v(TAG, "Regular token cache entry does not exist, try with MRRT.");
@@ -187,7 +185,8 @@ class AcquireTokenSilentHandler {
      */
     private AuthenticationResult tryMRRT() throws AuthenticationException {
         // Try to get it from cache
-        mMrrtTokenCacheItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), getUserFromRequest());
+        mMrrtTokenCacheItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), 
+                mAuthRequest.getUserFromRequest());
         
         // MRRT does not exist, try with FRT.
         if (mMrrtTokenCacheItem == null) {
@@ -196,7 +195,7 @@ class AcquireTokenSilentHandler {
         } 
         
         // If MRRT is also a FRT, we try FRT first. 
-        if (!StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())) {
+        if (mMrrtTokenCacheItem.isFamilyToken()) {
             Logger.v(TAG, "MRRT item exists but it's also a FRT, try with FRT.");
             return tryFRT(mMrrtTokenCacheItem.getFamilyClientId(), null);
         }
@@ -223,7 +222,8 @@ class AcquireTokenSilentHandler {
      */
     private AuthenticationResult tryFRT(final String familyClientId, final AuthenticationResult mrrtResult) 
             throws AuthenticationException {
-        final TokenCacheItem frtTokenCacheItem = mTokenCacheAccessor.getFRTItem(familyClientId, getUserFromRequest());
+        final TokenCacheItem frtTokenCacheItem = mTokenCacheAccessor.getFRTItem(familyClientId, 
+                mAuthRequest.getUserFromRequest());
         
         if (frtTokenCacheItem  == null) {
             // If we haven't tried with MRRT, use the MRRT. MRRT either exists or not, if it does not exist, we've 
@@ -282,7 +282,8 @@ class AcquireTokenSilentHandler {
      * the existence for MRRT token entry. 
      */
     private boolean isMRRTEntryExisted() {
-        final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), getUserFromRequest());
+        final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), 
+                mAuthRequest.getUserFromRequest());
         return mrrtItem != null && !StringExtensions.IsNullOrBlank(mrrtItem.getRefreshToken());
     }
     
@@ -291,18 +292,5 @@ class AcquireTokenSilentHandler {
      */
     private boolean isTokenRequestFailed(final AuthenticationResult result) {
         return result != null && !StringExtensions.IsNullOrBlank(result.getErrorCode());
-    }
-    
-    /**
-     * Get either loginhint or user id based what's passed in the request. 
-     */
-    private String getUserFromRequest() {
-        if (UserIdentifierType.LoginHint == mAuthRequest.getUserIdentifierType()) {
-            return mAuthRequest.getLoginHint();
-        } else if (UserIdentifierType.UniqueId == mAuthRequest.getUserIdentifierType()) {
-            return mAuthRequest.getUserId();
-        }
-        
-        return null;
     }
 }

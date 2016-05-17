@@ -1424,10 +1424,12 @@ public class AuthenticationContext {
         // If it's non-silent request, will try to acquire token interactively. 
         // if it's silent request, will return the AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED.
         if (!isAccessTokenReturned(authResult)) {
-            Logger.v(TAG, "No token returned for silent flow or promptbehavior is set to alwasys.");
+            final String authFailedMessage = "No token returned for silent flow or promptbehavior is set to always.";
+            Logger.v(TAG, authFailedMessage);
             ClientAnalytics.logEvent(
                     InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
-                    new InstrumentationPropertiesBuilder(request, authResult).build());
+                    new InstrumentationPropertiesBuilder(request, authResult).add(InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED, 
+                            authFailedMessage).build());
             if (!request.isSilent() && (activity != null || useDialog)) {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
