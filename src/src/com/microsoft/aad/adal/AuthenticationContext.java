@@ -59,7 +59,10 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.NetworkOnMainThreadException;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.util.SparseArray;
 
 /**
@@ -603,7 +606,25 @@ public class AuthenticationContext {
         final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
         final AtomicReference<Exception> exception = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
-        acquireTokenSilentAsync(resource, clientId, userId, new AuthenticationCallback<AuthenticationResult>() {
+        if (StringExtensions.IsNullOrBlank(resource)) {
+            throw new IllegalArgumentException("resource");
+        }
+        if (StringExtensions.IsNullOrBlank(clientId)) {
+            throw new IllegalArgumentException("clientId");
+        }
+
+        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                clientId, userId, getRequestCorrelationId());
+        request.setSilent(true);
+        request.setPrompt(PromptBehavior.Auto);
+        request.setUserIdentifierType(UserIdentifierType.UniqueId);
+        final Handler handler = Looper.myLooper() == null ? getHandler() : null;
+        if (handler == null) {
+            Log.e(TAG, "Sync network calls must not be invoked in main thread. " +
+                    "This method will throw android.os.NetworkOnMainThreadException in next major release",
+                    new NetworkOnMainThreadException());
+        }
+        acquireTokenLocal(null, false, request, handler, new AuthenticationCallback<AuthenticationResult>() {
             @Override
             public void onSuccess(AuthenticationResult result) {
                 authenticationResult.set(result);
@@ -620,7 +641,6 @@ public class AuthenticationContext {
         latch.await();
         Exception e = exception.get();
         if (e != null) {
-            // change to unchecked exception
             if(e instanceof AuthenticationException) {
                 throw (AuthenticationException)e;
             } else if(e instanceof RuntimeException) {
@@ -881,7 +901,7 @@ public class AuthenticationContext {
                     final AuthenticationRequest authenticationRequest = (AuthenticationRequest)extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO);
                     final String endingUrl = extras
-                            .getString(AuthenticationConstants.Browser.RESPONSE_FINAL_URL);
+                            .getString(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, "");
                     if (endingUrl.isEmpty()) {
                         AuthenticationException e = new AuthenticationException(
                                 ADALError.WEBVIEW_RETURNED_EMPTY_REDIRECT_URL,
@@ -1138,35 +1158,54 @@ public class AuthenticationContext {
         }
 
         public void onError(final AuthenticationException e) {
-            if (mRefHandler != null && callback != null) {
-                mRefHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onError(e);
-                        return;
-                    }
-                });
+            if (callback != null) {
+               if (mRefHandler != null) {
+                   mRefHandler.post(new Runnable() {
+                       @Override
+                       public void run() {
+                           callback.onError(e);
+                       }
+                   });
+               } else {
+                   callback.onError(e);
+               }
             }
         }
 
         public void onSuccess(final AuthenticationResult result) {
-            if (mRefHandler != null && callback != null) {
-                mRefHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onSuccess(result);
-                        return;
-                    }
-                });
+            if (callback != null) {
+                if (mRefHandler != null) {
+                    mRefHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onSuccess(result);
+                        }
+                    });
+                } else {
+                    callback.onSuccess(result);
+                }
             }
         }
     }
 
     private void acquireTokenLocal(final IWindowComponent activity,
-            final boolean useDialog, final AuthenticationRequest request,
-            final AuthenticationCallback<AuthenticationResult> externalCall) {
-        getHandler();
-        final CallbackHandler callbackHandle = new CallbackHandler(mHandler, externalCall);
+                                   final boolean useDialog,
+                                   final AuthenticationRequest request,
+                                   final AuthenticationCallback<AuthenticationResult> externalCall) {
+        acquireTokenLocal(
+                activity,
+                useDialog,
+                request,
+                getHandler(),
+                externalCall);
+    }
+
+    private void acquireTokenLocal(final IWindowComponent activity,
+                                   final boolean useDialog,
+                                   final AuthenticationRequest request,
+                                   final Handler handler,
+                                   final AuthenticationCallback<AuthenticationResult> externalCall) {
+        final CallbackHandler callbackHandle = new CallbackHandler(handler, externalCall);
         // Executes all the calls inside the Runnable to return immediately to
         // user. All UI
         // related actions will be performed using Handler.
@@ -1321,6 +1360,8 @@ public class AuthenticationContext {
                 } catch (AuthenticationException ex) {
                     // pass back to caller for known exceptions such as failure
                     // to encrypt
+                    ClientAnalytics.logEvent(new RefreshTokenEvent(
+                            new InstrumentationPropertiesBuilder(request, ex), InstrumentationIDs.EVENT_RESULT_FAIL, true));
                     callbackHandle.onError(ex);
                     return null;
                 }
@@ -1331,6 +1372,9 @@ public class AuthenticationContext {
             if (result != null && result.getAccessToken() != null
                     && !result.getAccessToken().isEmpty()) {
                 Logger.v(TAG, "Token is returned from background call ");
+                ClientAnalytics.logEvent(new RefreshTokenEvent(
+                        new InstrumentationPropertiesBuilder(request, result), InstrumentationIDs.EVENT_RESULT_SUCCESS, true));
+
                 callbackHandle.onSuccess(result);
                 return result;
             }
@@ -1379,6 +1423,10 @@ public class AuthenticationContext {
                             ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED));
                 }
             } else {
+                InstrumentationPropertiesBuilder propertiesBuilder = new InstrumentationPropertiesBuilder(request, result)
+                        .add(InstrumentationIDs.ERROR_CLASS,
+                                result == null ? InstrumentationIDs.AUTH_RESULT_EMPTY : InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED);
+                ClientAnalytics.logEvent(new RefreshTokenEvent(propertiesBuilder, InstrumentationIDs.EVENT_RESULT_FAIL, true));
 
                 // User does not want to launch activity
                 String msg = "Prompt is not allowed and failed to get token:";
@@ -1406,16 +1454,18 @@ public class AuthenticationContext {
                         request, mTokenCacheAccessor);
                 authResult = acquireTokenSilentHandler.getAccessToken();
             } catch (final AuthenticationException authenticationException) {
-                addLogEventForRequestFailureWithCause(InstrumentationIDs.REFRESH_TOKEN_REQUEST_FAILED, request, authenticationException);
+                ClientAnalytics.logEvent(new RefreshTokenEvent(
+                        new InstrumentationPropertiesBuilder(request, authenticationException),
+                        InstrumentationIDs.EVENT_RESULT_FAIL));
                 callbackHandle.onError(authenticationException);
                 return null;
             }
             
             if (isAccessTokenReturned(authResult)) {
                 callbackHandle.onSuccess(authResult);
-                ClientAnalytics.logEvent(
-                        InstrumentationIDs.REFRESH_TOKEN_REQUEST_SUCCEEDED,
-                        new InstrumentationPropertiesBuilder(request, authResult).build());
+                ClientAnalytics.logEvent(new RefreshTokenEvent(
+                        new InstrumentationPropertiesBuilder(request, authResult),
+                        InstrumentationIDs.EVENT_RESULT_SUCCESS));
                 return authResult;
             }
         }
@@ -1426,10 +1476,10 @@ public class AuthenticationContext {
         if (!isAccessTokenReturned(authResult)) {
             final String authFailedMessage = "No token returned for silent flow or promptbehavior is set to always.";
             Logger.v(TAG, authFailedMessage);
-            ClientAnalytics.logEvent(
-                    InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED,
-                    new InstrumentationPropertiesBuilder(request, authResult).add(InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED, 
-                            authFailedMessage).build());
+            InstrumentationPropertiesBuilder propertiesBuilder = new InstrumentationPropertiesBuilder(request, authResult)
+                    .add(InstrumentationIDs.ERROR_CLASS, authResult == null ? 
+                            InstrumentationIDs.AUTH_RESULT_EMPTY : InstrumentationIDs.AUTH_TOKEN_NOT_RETURNED);
+            ClientAnalytics.logEvent(new RefreshTokenEvent(propertiesBuilder, InstrumentationIDs.EVENT_RESULT_FAIL));
             if (!request.isSilent() && (activity != null || useDialog)) {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
@@ -1794,7 +1844,7 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.1.18";
+        return "1.1.19";
     }
 
     /**
@@ -1817,6 +1867,20 @@ public class AuthenticationContext {
         @Override
         public void setException(Throwable t) {
             super.setException(t);
+        }
+    }
+
+    private static class RefreshTokenEvent extends ClientAnalytics.Event {
+
+        private RefreshTokenEvent(InstrumentationPropertiesBuilder builder, String result) {
+            this(builder, result, false);
+        }
+
+        private RefreshTokenEvent(InstrumentationPropertiesBuilder builder, String result, boolean isBroker) {
+            super(InstrumentationIDs.REFRESH_TOKEN_EVENT,
+                    builder.add(InstrumentationIDs.EVENT_RESULT, result)
+                            .add(InstrumentationIDs.IS_BROKER_APP, Boolean.valueOf(isBroker).toString())
+                            .build());
         }
     }
 }

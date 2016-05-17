@@ -484,7 +484,24 @@ public class StorageHelper {
     private synchronized KeyPair getKeyPairFromAndroidKeyStore() throws GeneralSecurityException, IOException {
         KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
-        if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
+        
+        final boolean isKeyStoreCertAliasExisted;
+        try {
+            isKeyStoreCertAliasExisted = keyStore.containsAlias(KEY_STORE_CERT_ALIAS);
+        } catch (final NullPointerException exception) {
+            // There is an issue with Android Keystore when remote service attempts 
+            // to access Keystore. 
+            // Changeset found for google source to address the related issue with 
+            // remote service accessing keystore :
+            // https://android.googlesource.com/platform/external/sepolicy/+/0e30164b17af20f680635c7c6c522e670ecc3df3
+            // The thrown exception in this case is:
+            // java.lang.NullPointerException: Attempt to invoke interface method 
+            // 'int android.security.IKeystoreService.exist(java.lang.String, int)' on a null object reference
+            // To avoid app from crashing, re-throw as checked exception
+            throw new KeyStoreException(exception);
+        }
+        
+        if (!isKeyStoreCertAliasExisted) {
             Logger.v(TAG, "Key entry is not available");
             Calendar start = Calendar.getInstance();
             Calendar end = Calendar.getInstance();
@@ -495,7 +512,22 @@ public class StorageHelper {
             final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
                     "AndroidKeyStore");
             generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
-            generator.generateKeyPair();
+            
+            try {
+                generator.generateKeyPair();
+            } catch (final IllegalStateException exception) {
+                // There is an issue with AndroidKeyStore when attempting to generate keypair
+                // if user doesn't have pin/passphrase setup for their lock screen. 
+                // Issue 177459 : AndroidKeyStore KeyPairGenerator fails to generate 
+                // KeyPair after toggling lock type, even without setting the encryptionRequired 
+                // flag on the KeyPairGeneratorSpec. 
+                // https://code.google.com/p/android/issues/detail?id=177459
+                // The thrown exception in this case is: 
+                // java.lang.IllegalStateException: could not generate key in keystore
+                // To avoid app crashing, re-throw as checked exception
+                throw new KeyStoreException(exception);
+            }
+            
             Logger.v(TAG, "Key entry is generated");
         } else {
             Logger.v(TAG, "Key entry is available");
@@ -549,7 +581,20 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private SecretKey unwrap(Cipher wrapCipher, byte[] keyBlob) throws GeneralSecurityException {
         wrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());
-        return (SecretKey)wrapCipher.unwrap(keyBlob, KEYSPEC_ALGORITHM, Cipher.SECRET_KEY);
+        try {
+            return (SecretKey)wrapCipher.unwrap(keyBlob, KEYSPEC_ALGORITHM, Cipher.SECRET_KEY);
+        } catch (final IllegalArgumentException exception) {
+            // There is issue with Android KeyStore when lock screen type is changed which could 
+            // potentially wipe out keystore. 
+            // Here are the two top exceptions that could be thrown due to the above issue:
+            // 1) Caused by: java.security.InvalidKeyException: javax.crypto.BadPaddingException: 
+            //    error:0407106B:rsa routines:RSA_padding_check_PKCS1_type_2:block type is not 02
+            // 2) Caused by: java.lang.IllegalArgumentException: key.length == 0
+            // Issue 61989: AndroidKeyStore deleted after changing screen lock type
+            // https://code.google.com/p/android/issues/detail?id=61989
+            // To avoid app crashing from 2), re-throw it as checked exception
+            throw new KeyStoreException(exception);
+        }
     }
 
     private static void writeKeyData(File file, byte[] data) throws IOException {
