@@ -62,7 +62,7 @@ class SSOStateSerializer {
             .registerTypeAdapter(TokenCacheItem.class, new FamilyTokenCacheItemAdapter())
             .create();
 
-    int getVersion() {
+    private int getVersion() {
         return version;
     }
 
@@ -73,7 +73,7 @@ class SSOStateSerializer {
      * 
      * @param item
      */
-    SSOStateSerializer(final TokenCacheItem item) {
+    private SSOStateSerializer(final TokenCacheItem item) {
         if (item == null) {
             throw new IllegalArgumentException("tokenItem is null");
         }
@@ -83,7 +83,7 @@ class SSOStateSerializer {
     /**
      * default constructor
      */
-    SSOStateSerializer() {
+    private SSOStateSerializer() {
     }
 
     /**
@@ -103,28 +103,24 @@ class SSOStateSerializer {
     /**
      * Serialize the TokenCacheItem
      * 
-     * To hide the details of the serialization, we serialize the tokenCacheItem
-     * with Adapter.
+     * serialize the tokenCacheItem with Adapter.
      * 
      * @return String
      */
-    String serialize() {
+    private String serialize() {
         return mGson.toJson(this);
     }
 
     /**
      * Deserialize the serializedBlob
      * 
-     * In order to provide symmetry and hide the details in the
-     * SSOStateSerializer on the deserialization, we have deserialize function
-     * take the serialized string as input and return a deserialized
-     * TokenCacheItem if successful.
+     * this function covers the details of the deserialization process
      * 
      * @param String
      * @return TokenCacheItem
      * @throws AuthenticationException
      */
-    TokenCacheItem deserialize(String serializedBlob) throws AuthenticationException {
+    private TokenCacheItem deserialize(String serializedBlob) throws AuthenticationException {
         try {
             final JSONObject jsonObject = new JSONObject(serializedBlob);
             if (jsonObject != null && jsonObject.getInt("version") == this.getVersion()) {
@@ -138,5 +134,34 @@ class SSOStateSerializer {
         } catch (final JsonParseException | JSONException exception) {
             throw new DeserializationAuthenticationException(exception.getMessage());
         }
+    }
+
+    /**
+     * In order to provide symmetry and hide the details in the
+     * SSOStateSerializer on the serialization, we have this static serialize
+     * function which takes the TokenCacheItem object as input and return the
+     * serialized json string if successful.
+     * 
+     * @param TokenCacheItem
+     * @return String
+     */
+    static String isSerialize(final TokenCacheItem item) {
+        SSOStateSerializer ssoStateSerializer = new SSOStateSerializer(item);
+        return ssoStateSerializer.serialize();
+    }
+
+    /**
+     * In order to provide symmetry and hide the details in the
+     * SSOStateSerializer on the deserialization, we have this static
+     * deserialize function take the serialized string as input and return the
+     * deserialized TokenCacheItem if successful.
+     * 
+     * @param String
+     * @return TokenCacheItem
+     * @throws AuthenticationException
+     */
+    static TokenCacheItem isDeserialize(String serializedBlob) throws AuthenticationException {
+        SSOStateSerializer ssoStateSerializer = new SSOStateSerializer();
+        return ssoStateSerializer.deserialize(serializedBlob);
     }
 }

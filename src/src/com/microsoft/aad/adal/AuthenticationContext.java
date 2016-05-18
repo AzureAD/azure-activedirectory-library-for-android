@@ -1818,7 +1818,7 @@ public class AuthenticationContext {
         }
 
         if (!StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
-            return new SSOStateSerializer(tokenItem).serialize();
+            return SSOStateSerializer.isSerialize(tokenItem);
         } else {
             throw new IllegalArgumentException("tokenItem does not contain family refresh token");
         }
@@ -1845,7 +1845,7 @@ public class AuthenticationContext {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT,"Failed to import the serialized blob because broker is enabled.");
         }
 
-        final TokenCacheItem tokenCacheItem = new SSOStateSerializer().deserialize(serializedBlob);
+        final TokenCacheItem tokenCacheItem = SSOStateSerializer.isDeserialize(serializedBlob);
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
         this.getCache().setItem(cacheKey, tokenCacheItem);  
     }
