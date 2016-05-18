@@ -33,9 +33,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -49,27 +47,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.IJWSBuilder;
-import com.microsoft.aad.adal.IWebRequestHandler;
-import com.microsoft.aad.adal.PromptBehavior;
 
 import android.annotation.SuppressLint;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
-
-import junit.framework.Assert;
-
-import org.json.JSONException;
 
 @SuppressLint("TrulyRandom")
 public class OauthTests extends AndroidTestCase {
@@ -82,8 +66,7 @@ public class OauthTests extends AndroidTestCase {
     public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, NoSuchFieldException, UnsupportedEncodingException {
-        IdToken idtoken = new IdToken();
-        Object actual = parseIdToken(idtoken.getIdToken());
+        Object actual = parseIdToken(Util.getIdToken());
         assertEquals("0DxnAlLi12IvGL", ReflectionUtils.getFieldValue(actual, "mSubject"));
         assertEquals("6fd1f5cd-a94c-4335-889b-6c598e6d8048",
                 ReflectionUtils.getFieldValue(actual, "mTenantId"));
@@ -542,8 +525,7 @@ public class OauthTests extends AndroidTestCase {
         Object oauth = createOAuthInstance(request);
         Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
                 Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
-        IdToken defaultIdToken = new IdToken();
-        String idToken = defaultIdToken.getIdToken();
+        String idToken = Util.getIdToken();
         String json = "{\"id_token\":\""
                 + idToken
                 + "\",\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
@@ -781,5 +763,4 @@ public class OauthTests extends AndroidTestCase {
         KeyPair keyPair = keyGen.genKeyPair();
         return keyPair;
     }
-
 }

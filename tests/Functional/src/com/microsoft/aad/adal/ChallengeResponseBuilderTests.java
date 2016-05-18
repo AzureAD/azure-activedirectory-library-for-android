@@ -37,12 +37,6 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.IJWSBuilder;
-
 import junit.framework.Assert;
 
 public class ChallengeResponseBuilderTests extends AndroidTestHelper {

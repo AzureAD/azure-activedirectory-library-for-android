@@ -617,10 +617,8 @@ public class AuthenticationActivity extends Activity {
         public boolean processInvalidUrl(final WebView view, String url) {
             final String methodName = ":processInvalidUrl";
             if (isBrokerRequest(getIntent())
-                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) 
-            {
-                Logger.e(TAG + methodName, String
-                        .format(
+                    && url.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX)) {
+                Logger.e(TAG + methodName, String.format(
                         "The RedirectUri is not as expected. Received %s and expected %s", url,
                         mRedirectUrl), "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
                 returnError(ADALError.DEVELOPER_REDIRECTURI_INVALID, String.format(
@@ -628,20 +626,17 @@ public class AuthenticationActivity extends Activity {
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
-            }
-            
-            //check if the redirect URL is under SSL protected
-            if(!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX))
-            {
-                Logger.e(TAG + methodName, "The webview was redirected to an unsafe URL.", "",
-                        ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
-                returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED,
-                        "The webview was redirected to an unsafe URL.");
+            } else if (url.toLowerCase(Locale.US).equals("about:blank")) {
+                Logger.v(TAG, "It is an blank page request");
+                return true;
+            } else if (!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX)) {
+                Logger.e(TAG + methodName, "The webview was redirected to an unsafe URL.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
+                returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, "The webview was redirected to an unsafe URL.");
                 view.stopLoading();
                 return true;
+            } else {
+                return false;
             }
-
-            return false;
         }
         
         public void showSpinner(boolean status){
@@ -964,12 +959,14 @@ public class AuthenticationActivity extends Activity {
                 Logger.i(TAG, "setAccount: user key is null", "");
             }
 
-            TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
+            TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(mRequest.getAuthority(), mRequest.getResource(), 
+                    mRequest.getClientId(), result.taskResult);
             String json = gson.toJson(item);
             String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
-            String key = CacheKey.createCacheKey(mRequest, null);
+            String key = CacheKey.createCacheKeyForRTEntry(mAuthRequest.getAuthority(), mAuthRequest.getResource(), 
+                    mAuthRequest.getClientId(), null);
             saveCacheKey(key, newaccount, mAppCallingUID);
             mAccountManager.setUserData(
                     newaccount,
@@ -978,10 +975,10 @@ public class AuthenticationActivity extends Activity {
 
             if (result.taskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
-                TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
+                TokenCacheItem itemMRRT = TokenCacheItem.createMRRTTokenCacheItem(mRequest.getAuthority(), mRequest.getClientId(), result.taskResult);
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
-                key = CacheKey.createMultiResourceRefreshTokenKey(mRequest, null);
+                key = CacheKey.createCacheKeyForMRRT(mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);
                 saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(
                         newaccount,

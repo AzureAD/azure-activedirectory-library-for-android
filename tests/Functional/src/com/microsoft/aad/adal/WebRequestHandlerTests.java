@@ -33,11 +33,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 import com.google.gson.Gson;
-import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.WebRequestHandler;
 
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;

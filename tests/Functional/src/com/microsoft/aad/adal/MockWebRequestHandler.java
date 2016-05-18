@@ -28,9 +28,6 @@ import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.IWebRequestHandler;
-
 import junit.framework.Assert;
 
 /**

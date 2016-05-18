@@ -28,8 +28,6 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
-import com.microsoft.aad.adal.IDeviceCertificate;
-
 /**
  * This class will be used from ADAL after getting the classname from
  * AuthenticationSettings. WPJ class will be referenced inside the authenticator

@@ -36,7 +36,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -45,15 +44,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.ApplicationReceiver;
-import com.microsoft.aad.adal.AuthenticationActivity;
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.R;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -275,8 +265,25 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         WebViewClient client = getCustomWebViewClient();
         WebView mockview = new WebView(getActivity().getApplicationContext());
         ReflectionUtils.setFieldValue(activity, "mSpinner", null);
-        //shouldOverrideUrlLoading should prevent non https redirects in the web view
         assertEquals(false,client.shouldOverrideUrlLoading(mockview, url));
+    }
+    
+    @SmallTest
+    @UiThreadTest    
+    public void testWebview_blankredirectURL() throws IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            InterruptedException, ExecutionException {
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        /*
+         * case 1: url = "about:blank"
+         */
+        String url = "about:blank";
+        WebViewClient client = getCustomWebViewClient();
+        WebView mockview = new WebView(getActivity().getApplicationContext());
+        ReflectionUtils.setFieldValue(activity, "mSpinner", null);
+        assertEquals(true,client.shouldOverrideUrlLoading(mockview, url));
     }
     
 

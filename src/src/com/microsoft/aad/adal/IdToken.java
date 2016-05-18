@@ -62,7 +62,7 @@ class IdToken {
 
     public IdToken(String idtoken) throws AuthenticationException {
         // Message segments: Header.Body.Signature
-        HashMap<String, String> responseItems = this.parseJWT(idtoken);
+        final HashMap<String, String> responseItems = this.parseJWT(idtoken);
 
         if (responseItems != null && !responseItems.isEmpty()) {
             this.mSubject = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
@@ -73,7 +73,7 @@ class IdToken {
             this.mFamilyName = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
             this.mIdentityProvider = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
             this.mObjectId = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
-            String expiration = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
+            final String expiration = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
 
             if (!StringExtensions.IsNullOrBlank(expiration)) {
                 this.mPasswordExpiration = Long.parseLong(expiration);
@@ -146,9 +146,9 @@ class IdToken {
     }
 
     private String extractJWTBody(final String idtoken) throws AuthenticationException {
-        int firstDot = idtoken.indexOf(".");
-        int secondDot = idtoken.indexOf(".", firstDot + 1);
-        int invalidDot = idtoken.indexOf(".", secondDot + 1);
+        final int firstDot = idtoken.indexOf(".");
+        final int secondDot = idtoken.indexOf(".", firstDot + 1);
+        final int invalidDot = idtoken.indexOf(".", secondDot + 1);
 
         if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
             return idtoken.substring(firstDot + 1, secondDot);
@@ -159,7 +159,7 @@ class IdToken {
 
     private static HashMap<String, String> extractJsonObjects(final String jsonStr) throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
-        HashMap<String, String> responseItems = new HashMap<String, String>();
+        final HashMap<String, String> responseItems = new HashMap<String, String>();
         final Iterator<?> i = jsonObject.keys();
         while (i.hasNext()) {
             final String key = (String) i.next();

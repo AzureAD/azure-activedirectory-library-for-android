@@ -36,9 +36,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.StorageHelper;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;

@@ -27,9 +27,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 

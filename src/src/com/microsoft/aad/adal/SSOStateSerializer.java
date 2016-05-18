@@ -26,12 +26,12 @@ package com.microsoft.aad.adal;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -44,7 +44,7 @@ class SSOStateSerializer {
      * The version number of {@link SSOStateSerializer }
      */
     @SerializedName("version")
-    private final static int version = 1;
+    private final int version = 1;
 
     /**
      * The {@link SSOStateSerializer } stores the FRT tokenCacheItem of the
@@ -58,23 +58,32 @@ class SSOStateSerializer {
      * lightweight TokenCacheItem, FamilyTokenCacheItemAdapter is used here to
      * register custom serializer.
      */
-    private static Gson mGson = new GsonBuilder()
+    private static final Gson mGson = new GsonBuilder()
             .registerTypeAdapter(TokenCacheItem.class, new FamilyTokenCacheItemAdapter())
             .create();
 
-    static int getVersion() {
+    int getVersion() {
         return version;
     }
+
     /**
-     * A private constructor to with an input item in type TokenCacheItem.
+     * constructor with an input item in type TokenCacheItem. We take
+     * TokenCacheItem as input and call the constructor to initialize a
+     * SSOStateSerializer object.
      * 
      * @param item
      */
-    private SSOStateSerializer(final TokenCacheItem item) {
+    SSOStateSerializer(final TokenCacheItem item) {
         if (item == null) {
             throw new IllegalArgumentException("tokenItem is null");
         }
         this.mTokenCacheItems.add(item);
+    }
+
+    /**
+     * default constructor
+     */
+    SSOStateSerializer() {
     }
 
     /**
@@ -94,44 +103,39 @@ class SSOStateSerializer {
     /**
      * Serialize the TokenCacheItem
      * 
-     * To hide the details of the serialization, we take TokenCacheItem as input
-     * and call the constructor to initialize a SSOStateSerializer object. The
-     * type of the TokenCacheItem will be checked in the caller method. This is
-     * a static method because we want to hide the details in the
-     * SSOStateSerializer on the serialization.
+     * To hide the details of the serialization, we serialize the tokenCacheItem
+     * with Adapter.
      * 
-     * @return
+     * @return String
      */
-    static String serialize(final TokenCacheItem item) {
-        SSOStateSerializer serializerObject = new SSOStateSerializer(item);
-        return mGson.toJson(serializerObject);
+    String serialize() {
+        return mGson.toJson(this);
     }
 
     /**
      * Deserialize the serializedBlob
      * 
-     * In order to provide symmetry, we have serialize function take a
-     * TokenCacheItem as input and a deserialize return it. This is a static
-     * method because we want to hide the details in the SSOStateSerializer on
-     * the deserialization.
+     * In order to provide symmetry and hide the details in the
+     * SSOStateSerializer on the deserialization, we have deserialize function
+     * take the serialized string as input and return a deserialized
+     * TokenCacheItem if successful.
      * 
      * @param String
      * @return TokenCacheItem
      * @throws AuthenticationException
      */
-    static TokenCacheItem deserialize(String serializedBlob) throws AuthenticationException {
+    TokenCacheItem deserialize(String serializedBlob) throws AuthenticationException {
         try {
-            final JsonObject srcJsonObj = new JsonPrimitive(serializedBlob).getAsJsonObject();
-            final JsonElement blobVersion = srcJsonObj.get("version");
-            if (blobVersion != null && blobVersion.getAsInt() == SSOStateSerializer.getVersion()) {
+            final JSONObject jsonObject = new JSONObject(serializedBlob);
+            if (jsonObject != null && jsonObject.getInt("version") == this.getVersion()) {
                 return mGson.fromJson(serializedBlob, SSOStateSerializer.class).getTokenItem();
             } else {
                 throw new DeserializationAuthenticationException(
                         "Fail to deserialize because the blob version is incompatible. The version of the serializedBlob is "
-                                + blobVersion.getAsInt() + "And the target class version is "
-                                + SSOStateSerializer.getVersion());
+                                + jsonObject.getInt("version") + ". And the target class version is "
+                                + this.getVersion());
             }
-        } catch (final JsonParseException exception) {
+        } catch (final JsonParseException | JSONException exception) {
             throw new DeserializationAuthenticationException(exception.getMessage());
         }
     }

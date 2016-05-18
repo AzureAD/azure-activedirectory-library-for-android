@@ -20,33 +20,31 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 /**
- * Index of instrumentation event IDs used for logging
+ * Default connection service check network connectivity. 
+ * TODO: No need for {@link IConnectionService}. Interface was created for testing purpose. 
+ * Same purpose could be achieved via mocking the context. Since it's a public interface, should
+ * be removed in the next major version update. 
+ * https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626
  */
-final class InstrumentationIDs {
-    /* Event invoked when refresh token request fails or successes*/
-    static final String REFRESH_TOKEN_EVENT = "RefreshToken";
+class DefaultConnectionService implements IConnectionService{
 
-    /* Event invoked when auth token was successfully obtained */
-    static final String EVENT_RESULT_SUCCESS = "Success";
-    /* Event invoked when auth token wasn't obtained by some reason */
-    static final String EVENT_RESULT_FAIL = "Fail";
+    private Context mConnectionContext;
 
-    /* Clarifies the cause why auth token wasn't obtained */
-    static final String REFRESH_TOKEN_NOT_FOUND = "RefreshTokenNotFound";
-    static final String AUTH_RESULT_EMPTY = "EmptyResponseFromServer";
-    static final String AUTH_TOKEN_NOT_RETURNED = "AuthTokenNotReturned";
+    DefaultConnectionService(Context ctx) {
+        mConnectionContext = ctx;
+    }
 
-    static final String EVENT_RESULT = "Result";
-    static final String ERROR_CLASS = "ErrorClass";
-    static final String ERROR_CODE = "ErrorCode";
-    static final String ERROR_MESSAGE = "ErrorMessage";
-    static final String USER_ID = "UserId";
-    static final String RESOURCE_ID = "ResourceName";
-    static final String CORRELATION_ID = "CorrelationId";
-    static final String AUTHORITY_ID = "Authority";
-    static final String IS_BROKER_APP = "BrokerApp";
+    public boolean isConnectionAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    }
 }

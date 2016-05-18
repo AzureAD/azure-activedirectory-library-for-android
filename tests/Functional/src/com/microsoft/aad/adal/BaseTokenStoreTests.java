@@ -25,12 +25,6 @@ package com.microsoft.aad.adal;
 
 import java.util.Locale;
 
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.CacheKey;
-import com.microsoft.aad.adal.ITokenCacheStore;
-import com.microsoft.aad.adal.TokenCacheItem;
-import com.microsoft.aad.adal.UserInfo;
-
 import android.content.Context;
 
 public abstract class BaseTokenStoreTests extends AndroidTestHelper {
@@ -62,7 +56,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         super.tearDown();
     }
 
-    protected ITokenCacheStore setupItems() {
+    protected ITokenCacheStore setupItems() throws AuthenticationException {
         ITokenCacheStore store = getTokenCacheStore();
         store.removeAll();
         // set items for user1
@@ -100,7 +94,6 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         testItemMultiResourceUser2.setIsMultiResourceRefreshToken(true);
         testItemMultiResourceUser2.setAuthority(TEST_AUTHORITY2);
         testItemMultiResourceUser2.setClientId("clientid2");
-        testItemMultiResourceUser2.setResource("resource2");
         testItemMultiResourceUser2.setUserInfo(user2);
         store.setItem(CacheKey.createCacheKey(testItem2), testItem2);
         store.setItem(CacheKey.createCacheKey(testItemMultiResourceUser2),
@@ -111,11 +104,11 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 
     protected abstract ITokenCacheStore getTokenCacheStore();
 
-    public void testGetRemoveItem() {
+    public void testGetRemoveItem() throws AuthenticationException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", "", false, ""));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", ""));
         assertNull("Token cache item is expected to be null", item);
 
         item = store.getItem(CacheKey.createCacheKey(testItem));
@@ -123,45 +116,45 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertEquals("same item", testItem.getTenantId(), item.getTenantId());
         assertEquals("same item", testItem.getAccessToken(), item.getAccessToken());
         
-        item = store.getItem(CacheKey.createCacheKey("", "", "", true, ""));
+        item = store.getItem(CacheKey.createCacheKey("", "", "", true, "", null));
         assertNull("Token cache item is expected to be null", item);
 
         item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                true, ""));
+                true, "", null));
         assertNull("Token cache item is expected to be null since userid is expected", item);
 
         item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                true, "userid1"));
+                true, "userid1", null));
         assertNull(
                 "Token cache item is NOT expected since there isn't any multiResourceItem for this user",
                 item);
 
         item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                false, "userid1"));
+                false, "userid1", null));
         assertNotNull("Token cache item is expected", item);
 
         item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                true, "userid2"));
+                true, "userid2", null));
         assertNotNull("Token cache item is expected", item);
 
         item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2, "resource2", "clientid2",
-                false, "userid2"));
+                false, "userid2", null));
         assertNotNull("Token cache item is expected", item);
 
         item = store.getItem(CacheKey.createCacheKey(TEST_AUTHORITY2.toUpperCase(Locale.US),
-                "resource2", "clientid2", false, "userid2"));
+                "resource2", "clientid2", false, "userid2", null));
         assertNotNull("Expected to be case insensitive", item);
 
         item = store.getItem(CacheKey.createCacheKey("AuthoritY", "resource", "clientid", false,
-                "userid1"));
+                "userid1", null));
         assertNotNull("Expected to be case insensitive", item);
 
         item = store.getItem(CacheKey.createCacheKey("AuthoritY", "resource", "clientid", false,
-                null));
+                null, null));
         assertNull("Expected to be null for null userid", item);
 
         item = store.getItem(CacheKey.createCacheKey("AuthoritY", "resource", "clientid", true,
-                null));
+                null, null));
         assertNull("Expected to be null for null userid", item);
 
         store.removeItem(CacheKey.createCacheKey(testItem));
@@ -178,7 +171,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertNull("Token cache item is expected to be null", item);
     }
 
-    public void testContains() {
+    public void testContains() throws AuthenticationException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 
@@ -190,7 +183,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertTrue("Item is expected to be there", actual);
     }
 
-    public void testRemoveAll() {
+    public void testRemoveAll() throws AuthenticationException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
 

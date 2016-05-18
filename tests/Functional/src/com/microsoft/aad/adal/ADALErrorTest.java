@@ -26,10 +26,6 @@ package com.microsoft.aad.adal;
 import java.security.MessageDigest;
 import java.util.Locale;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationSettings;
-
 import android.annotation.TargetApi;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;

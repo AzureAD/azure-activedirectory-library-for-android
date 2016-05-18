@@ -28,11 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Set;
-
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.IWebRequestHandler;
 
 /**
  * Discovery class is not public, so it needs reflection to make a call to

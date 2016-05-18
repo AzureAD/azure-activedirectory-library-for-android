@@ -27,8 +27,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 
-import com.microsoft.aad.adal.PromptBehavior;
-
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 

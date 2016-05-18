@@ -50,9 +50,6 @@ import java.util.Enumeration;
 
 import javax.security.auth.x500.X500Principal;
 
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.Logger;
-
 import android.content.Context;
 import android.util.Base64;
 import android.util.Log;

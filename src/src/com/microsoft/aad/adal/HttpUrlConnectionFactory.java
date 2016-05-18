@@ -20,33 +20,25 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 /**
- * Index of instrumentation event IDs used for logging
+ * Internal class for creating {@link HttpURLConnection}. 
+ * For testability, test case could set mocked {@link HttpURLConnection} 
+ * to inject dependency. 
  */
-final class InstrumentationIDs {
-    /* Event invoked when refresh token request fails or successes*/
-    static final String REFRESH_TOKEN_EVENT = "RefreshToken";
-
-    /* Event invoked when auth token was successfully obtained */
-    static final String EVENT_RESULT_SUCCESS = "Success";
-    /* Event invoked when auth token wasn't obtained by some reason */
-    static final String EVENT_RESULT_FAIL = "Fail";
-
-    /* Clarifies the cause why auth token wasn't obtained */
-    static final String REFRESH_TOKEN_NOT_FOUND = "RefreshTokenNotFound";
-    static final String AUTH_RESULT_EMPTY = "EmptyResponseFromServer";
-    static final String AUTH_TOKEN_NOT_RETURNED = "AuthTokenNotReturned";
-
-    static final String EVENT_RESULT = "Result";
-    static final String ERROR_CLASS = "ErrorClass";
-    static final String ERROR_CODE = "ErrorCode";
-    static final String ERROR_MESSAGE = "ErrorMessage";
-    static final String USER_ID = "UserId";
-    static final String RESOURCE_ID = "ResourceName";
-    static final String CORRELATION_ID = "CorrelationId";
-    static final String AUTHORITY_ID = "Authority";
-    static final String IS_BROKER_APP = "BrokerApp";
+class HttpUrlConnectionFactory {
+    static HttpURLConnection mockedConnection = null;
+    
+    static HttpURLConnection createHttpUrlConnection(final URL url) throws IOException {
+        if (mockedConnection != null) {
+            return mockedConnection;
+        }
+        
+        return (HttpURLConnection)url.openConnection();
+    }
 }

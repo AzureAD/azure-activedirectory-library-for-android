@@ -27,6 +27,8 @@ import static org.mockito.Mockito.mock;
 
 import java.io.File;
 
+import org.mockito.Mockito;
+
 import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
@@ -35,6 +37,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Looper;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
@@ -54,6 +57,8 @@ class FileMockContext extends MockContext {
     String requestedPermissionName;
 
     int responsePermissionFlag;
+    
+    boolean isConnectionAvaliable = true;
 
     public FileMockContext(Context context) {
         mContext = context;
@@ -89,7 +94,11 @@ class FileMockContext extends MockContext {
         if (name.equalsIgnoreCase("account")) {
             return mock(AccountManager.class);
         } else if(name.equalsIgnoreCase("connectivity")) {
-            return mock(ConnectivityManager.class);
+            final ConnectivityManager mockedConnectivityManager = mock(ConnectivityManager.class);
+            final NetworkInfo mockedNetworkInfo = mock(NetworkInfo.class);
+            Mockito.when(mockedNetworkInfo.isConnectedOrConnecting()).thenReturn(isConnectionAvaliable);
+            Mockito.when(mockedConnectivityManager.getActiveNetworkInfo()).thenReturn(mockedNetworkInfo);
+            return mockedConnectivityManager;
         }
         return new Object();
     }

@@ -30,10 +30,6 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.NoSuchPaddingException;
 
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.IWindowComponent;
-
 import android.content.Intent;
 import android.test.AndroidTestCase;
 import junit.framework.Assert;

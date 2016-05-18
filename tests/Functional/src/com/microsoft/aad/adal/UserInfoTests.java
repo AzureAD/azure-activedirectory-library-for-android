@@ -28,8 +28,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import com.microsoft.aad.adal.UserInfo;
-
 import android.test.suitebuilder.annotation.SmallTest;
 import junit.framework.TestCase;
 
