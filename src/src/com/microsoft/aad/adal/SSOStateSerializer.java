@@ -107,7 +107,7 @@ class SSOStateSerializer {
      * 
      * @return String
      */
-    private String serialize() {
+    private String internalSerialize() {
         return mGson.toJson(this);
     }
 
@@ -120,7 +120,7 @@ class SSOStateSerializer {
      * @return TokenCacheItem
      * @throws AuthenticationException
      */
-    private TokenCacheItem deserialize(String serializedBlob) throws AuthenticationException {
+    private TokenCacheItem internalDeserialize(String serializedBlob) throws AuthenticationException {
         try {
             final JSONObject jsonObject = new JSONObject(serializedBlob);
             if (jsonObject != null && jsonObject.getInt("version") == this.getVersion()) {
@@ -145,9 +145,9 @@ class SSOStateSerializer {
      * @param TokenCacheItem
      * @return String
      */
-    static String isSerialize(final TokenCacheItem item) {
+    static String serialize(final TokenCacheItem item) {
         SSOStateSerializer ssoStateSerializer = new SSOStateSerializer(item);
-        return ssoStateSerializer.serialize();
+        return ssoStateSerializer.internalSerialize();
     }
 
     /**
@@ -160,8 +160,8 @@ class SSOStateSerializer {
      * @return TokenCacheItem
      * @throws AuthenticationException
      */
-    static TokenCacheItem isDeserialize(String serializedBlob) throws AuthenticationException {
+    static TokenCacheItem deserialize(String serializedBlob) throws AuthenticationException {
         SSOStateSerializer ssoStateSerializer = new SSOStateSerializer();
-        return ssoStateSerializer.deserialize(serializedBlob);
+        return ssoStateSerializer.internalDeserialize(serializedBlob);
     }
 }
