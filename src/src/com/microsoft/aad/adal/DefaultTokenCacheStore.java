@@ -273,7 +273,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
-            if (tokenCacheItem.getResource().equals(resource)) {
+            // MRRT and FRT don't store resource in the token cache item. 
+            if (resource.equals(tokenCacheItem.getResource())) {
                 tokenItems.add(tokenCacheItem);
             }
         }
@@ -307,6 +308,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      * Clear tokens for user without additional retry.
      * 
      * @param userid UserId
+     * @throws AuthenticationException 
      */
     @Override
     public void clearTokensForUser(String userid) {
@@ -315,7 +317,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         for (TokenCacheItem item : results) {
             if (item.getUserInfo() != null
                     && item.getUserInfo().getUserId().equalsIgnoreCase(userid)) {
-                this.removeItem(CacheKey.createCacheKey(item));
+                try {
+                    this.removeItem(CacheKey.createCacheKey(item));
+                } catch (final AuthenticationException exception) {
+                    // Catch the exception because clearTokensForUser is an API in public 
+                    // interface ITokenCacheQuery.
+                    Logger.e(TAG, "Fail to create cachekey", "", exception.getCode(), exception);
+                }
             }
         }
     }

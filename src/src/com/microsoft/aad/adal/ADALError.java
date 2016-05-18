@@ -515,7 +515,12 @@ public enum ADALError {
     /**
      * Resource authentication challenge failure
      */
-    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure");
+    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure"), 
+    
+    /**
+     * The token cache item is invalid, cannot use it to create cachekey. 
+     */
+    INVALID_TOKEN_CACHE_ITEM("Invalid token cache item");
 
     private String mDescription;
 
