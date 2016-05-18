@@ -59,7 +59,7 @@ class SSOStateSerializer {
      * register custom serializer.
      */
     private static final Gson mGson = new GsonBuilder()
-            .registerTypeAdapter(TokenCacheItem.class, new FamilyTokenCacheItemAdapter())
+            .registerTypeAdapter(TokenCacheItem.class, new TokenCacheItemSerializationAdapater())
             .create();
 
     private int getVersion() {

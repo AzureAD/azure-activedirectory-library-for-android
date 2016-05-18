@@ -40,9 +40,10 @@ import com.google.gson.JsonSerializer;
  * tokenCacheItem by parsing the raw idToken, we can get all the claims in it,
  * including userInfo, and tenantId.
  */
-public final class FamilyTokenCacheItemAdapter implements JsonDeserializer<TokenCacheItem>, JsonSerializer<TokenCacheItem> {
+public final class TokenCacheItemSerializationAdapater
+        implements JsonDeserializer<TokenCacheItem>, JsonSerializer<TokenCacheItem> {
 
-    private static final String TAG = FamilyTokenCacheItemAdapter.class.getSimpleName();
+    private static final String TAG = TokenCacheItemSerializationAdapater.class.getSimpleName();
 
     @Override
     public JsonElement serialize(TokenCacheItem tokenCacheItem, Type type, JsonSerializationContext context) {
