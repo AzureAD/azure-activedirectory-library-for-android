@@ -59,6 +59,8 @@ class FileMockContext extends MockContext {
     int responsePermissionFlag;
     
     boolean isConnectionAvaliable = true;
+    
+    private AccountManager mMockedAccountManager = null;
 
     public FileMockContext(Context context) {
         mContext = context;
@@ -92,7 +94,11 @@ class FileMockContext extends MockContext {
     @Override
     public Object getSystemService(String name) {
         if (name.equalsIgnoreCase("account")) {
-            return mock(AccountManager.class);
+            if (mMockedAccountManager == null) {
+                return mock(AccountManager.class);
+            }
+            
+            return mMockedAccountManager;
         } else if(name.equalsIgnoreCase("connectivity")) {
             final ConnectivityManager mockedConnectivityManager = mock(ConnectivityManager.class);
             final NetworkInfo mockedNetworkInfo = mock(NetworkInfo.class);
@@ -111,6 +117,13 @@ class FileMockContext extends MockContext {
     @Override
     public PackageManager getPackageManager() {
         return new TestPackageManager();
+    }
+    
+    public void setMockedAccountManager(final AccountManager mockedAccountManager) {
+        if (mockedAccountManager == null) {
+            throw new IllegalArgumentException("mockedAccountManager");
+        }
+        mMockedAccountManager = mockedAccountManager;
     }
 
     class TestPackageManager extends MockPackageManager {

@@ -53,7 +53,7 @@ public enum PromptBehavior {
     /**
      * If Azure Authenticator or Company Portal is installed, this flag will have 
      * the broker app force the prompt behavior, otherwise it will be same as Always. 
-     * If using embeded flow, please keep using Always, if force_prompt is set for 
+     * If using embeded flow, please keep using Always, if FORCE_PROMPT is set for 
      * embeded flow, the sdk will re-intepret it to Always. 
      */
     FORCE_PROMPT

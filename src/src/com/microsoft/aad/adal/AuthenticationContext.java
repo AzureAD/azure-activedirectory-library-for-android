@@ -1450,14 +1450,7 @@ public class AuthenticationContext {
     private AuthenticationResult localFlow(CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
             final AuthenticationRequest request) {
-        // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to 
-        // force prompt, if this flag is set in the embeded flow, we need to update it to always. For embed 
-        // flow, force_prompt is the same as always. 
-        if (PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
-            request.setPrompt(PromptBehavior.Always);
-        }
-        
-        // If PromptBehavior is not "always" or "refresh_session", try silent flow first.
+        // If PromptBehavior is not "always", "refresh_session" or "force_prompt", try silent flow first.
         AuthenticationResult authResult = null;
         if (!promptUser(request.getPrompt())) {
             try {
@@ -1508,16 +1501,6 @@ public class AuthenticationContext {
 
         return null;
     }
-    
-    /**
-     * Add log event for request failure with a cause. 
-     */
-    private void addLogEventForRequestFailureWithCause(final String eventName, final AuthenticationRequest request, 
-            final AuthenticationException authenticationException) {
-        ClientAnalytics.logEvent(
-                eventName,
-                new InstrumentationPropertiesBuilder(request, authenticationException).build());
-    }
 
     private void acquireTokenInteractively(final CallbackHandler callbackHandle, final IWindowComponent activity, 
             final AuthenticationRequest request, final boolean useDialog) {
@@ -1528,8 +1511,15 @@ public class AuthenticationContext {
             callbackHandle.onError(exception);
             return;
         }
-
         
+        // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to 
+        // force prompt, if this flag is set in the embeded flow, we need to update it to always. For embed 
+        // flow, force_prompt is the same as always. 
+        if (PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
+            Logger.v(TAG, "FORCE_PRMOPT is set for embeded flow, reset it as Always.");
+            request.setPrompt(PromptBehavior.Always);
+        }
+
         // start activity if other options are not available
         // delegate map is used to remember callback if another
         // instance of authenticationContext is created for config
