@@ -165,7 +165,7 @@ class HttpWebRequest {
             // connection pool. If we call disconnect due to buggy implementation we are not reusing
             // connections.
             //if (connection != null) {
-            // connection.disconnect();
+            //	connection.disconnect();
             //}
         }
 

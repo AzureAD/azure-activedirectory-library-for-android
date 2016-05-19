@@ -286,7 +286,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     String[] getErrorCodes() {
-        return (mErrorCodes != null) ? mErrorCodes.replaceAll("[\\[\\]]", "").split("([^,]),") : null;
+    	return (mErrorCodes != null) ? mErrorCodes.replaceAll("[\\[\\]]", "").split("([^,]),") : null;
     }
 
     boolean isInitialRequest() {

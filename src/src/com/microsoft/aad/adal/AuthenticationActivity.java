@@ -1034,7 +1034,7 @@ public class AuthenticationActivity extends Activity {
                     }
                     
                     if (result.taskResult.getTenantId() != null) {
-                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID,
+                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID, 
                                 result.taskResult.getTenantId());
                     }
 
