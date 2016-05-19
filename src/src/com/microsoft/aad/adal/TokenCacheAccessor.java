@@ -273,14 +273,15 @@ class TokenCacheAccessor {
     }
     
     private boolean isUserMisMatch(final String user, final TokenCacheItem tokenCacheItem) {
-        // If user if provided, it needs to match either displayId or userId. 
-        if (!StringExtensions.IsNullOrBlank(user)) {
-            return !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getDisplayableId()) 
-                    && !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getUserId());
+        // If user is not passed in the request or userInfo does not exist in the token cache item, 
+        // it's a match case. We do wildcard find, return whatever match with cache key. 
+        if (StringExtensions.IsNullOrBlank(user) || tokenCacheItem.getUserInfo() == null) {
+            return false;
         }
         
-        return false;
-
+        // If user if provided, it needs to match either displayId or userId. 
+        return !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getDisplayableId()) 
+                && !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getUserId());
     }
     
     /**
