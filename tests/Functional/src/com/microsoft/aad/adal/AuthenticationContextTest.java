@@ -1439,6 +1439,41 @@ public class AuthenticationContextTest extends AndroidTestCase {
                         "User returned by service does not match the one in the request"));
         clearCache(context);
     }
+    
+    /**
+     * Test when there is no user id passed in request, if there is a token cache item existed in the cache, we'll return it.
+     */
+    @SmallTest
+    public void testAcquireTokenNoUserPassedIn() throws InterruptedException {
+        final FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
+        
+        // set up cache
+        mockCache.removeAll();
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final TokenCacheItem tokenCacheItem = Util.getTokenCacheItem(VALID_AUTHORITY, resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final Calendar timeAhead = new GregorianCalendar();
+        timeAhead.add(Calendar.MINUTE, 10);
+        tokenCacheItem.setExpiresOn(timeAhead.getTime());
+        
+        // Store the key without userid into cache
+        mockCache.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, null), tokenCacheItem);
+        
+        final AuthenticationContext context = getAuthenticationContext(mContext, VALID_AUTHORITY, false, mockCache);
+        final MockActivity testActivity = new MockActivity();
+        final CountDownLatch signal = new CountDownLatch(1);
+        testActivity.mSignal = signal;
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
+        
+        // Acquire token call will return from cache
+        context.acquireTokenSilentAsync(resource, clientId, null, callback);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        
+        assertNull(callback.mException);
+        assertNotNull(callback.mResult);
+        assertNotNull(callback.mResult.getAccessToken());
+    }
 
     @SmallTest
     public void testAcquireTokenCacheLookup_MultipleUser_LoginHint() throws InterruptedException,
