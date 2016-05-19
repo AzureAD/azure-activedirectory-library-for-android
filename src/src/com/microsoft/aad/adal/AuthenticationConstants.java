@@ -212,6 +212,8 @@ public class AuthenticationConstants {
         
         public static final String BROKER_VERSION = "broker.version";
         
+        public static final String BROKER_PROTOCOL_VERSION = "v2";
+        
         public static final String BROKER_RESULT_RETURNED = "broker.result.returned";
 
         /**
