@@ -273,18 +273,14 @@ class TokenCacheAccessor {
     }
     
     private boolean isUserMisMatch(final String user, final TokenCacheItem tokenCacheItem) {
-        // when both user and userInfo in AuthenticationResult is null, non-mismatch case
-        if (StringExtensions.IsNullOrBlank(user) && tokenCacheItem.getUserInfo() == null) {
-            return false;
+        // If user if provided, it needs to match either displayId or userId. 
+        if (!StringExtensions.IsNullOrBlank(user)) {
+            return !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getDisplayableId()) 
+                    && !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getUserId());
         }
         
-        // If either user or userInfo in AuthenticationResult is null, there is a mismatch
-        if (StringExtensions.IsNullOrBlank(user) || tokenCacheItem.getUserInfo() == null) {
-            return true;
-        }
-        
-        return !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getDisplayableId()) 
-                && !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getUserId());
+        return false;
+
     }
     
     /**
