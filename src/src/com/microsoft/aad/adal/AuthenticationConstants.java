@@ -93,6 +93,8 @@ public class AuthenticationConstants {
         /** Core OAuth2 strings. */
         public static final String ACCESS_TOKEN = "access_token";
 
+        public static final String AUTHORITY = "authority";
+
         public static final String AUTHORIZATION_CODE = "authorization_code";
 
         public static final String CLIENT_ID = "client_id";
