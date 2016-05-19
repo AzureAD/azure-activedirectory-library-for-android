@@ -57,6 +57,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -554,7 +556,7 @@ public class AuthenticationContext {
             public void startActivityForResult(Intent intent, int requestCode) {
                 // if user closed an app or switched to another activity
                 // refActivity can die before this method got invoked
-                if(refActivity != null) {
+                if (refActivity != null) {
                     refActivity.startActivityForResult(intent, requestCode);
                 }
             }
@@ -641,9 +643,9 @@ public class AuthenticationContext {
         latch.await();
         Exception e = exception.get();
         if (e != null) {
-            if(e instanceof AuthenticationException) {
+            if (e instanceof AuthenticationException) {
                 throw (AuthenticationException)e;
-            } else if(e instanceof RuntimeException) {
+            } else if (e instanceof RuntimeException) {
                 throw (RuntimeException)e;
             }
             if (e.getCause() != null) {
@@ -1284,12 +1286,12 @@ public class AuthenticationContext {
         final String actualUri = getRedirectUriForBroker();
         String errMsg = "";
         
-        if(StringExtensions.IsNullOrBlank(inputUri)) {
+        if (StringExtensions.IsNullOrBlank(inputUri)) {
             errMsg = "The redirectUri is null or blank. "
                     + "so the redirect uri is expected to be:" + actualUri;
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID); 
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
-        } else if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://")) {
+        } else if (!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://")) {
             errMsg = "The prefix of the redirect uri does not match the expected value. "
                     + " The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
                     + " so the redirect uri is expected to be: " + actualUri;
@@ -1300,20 +1302,20 @@ public class AuthenticationContext {
                 PackageHelper packageHelper = new PackageHelper(mContext);
                 String base64URLEncodePackagename = URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8);
                 String base64URLEncodeSignature = URLEncoder.encode(packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
-                if(!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + base64URLEncodePackagename + "/")) {
+                if (!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + base64URLEncodePackagename + "/")) {
                     errMsg = "The base64 url encoded package name component of the redirect uri does not match the expected value. "
                             + " This apps package name is: " + base64URLEncodePackagename
                             + " so the redirect uri is expected to be: " + actualUri;
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                     throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
-                } else if(!inputUri.equalsIgnoreCase(actualUri)) {
+                } else if (!inputUri.equalsIgnoreCase(actualUri)) {
                     errMsg = "The base64 url encoded signature component of the redirect uri does not match the expected value. "
                             + " This apps signature is: " + base64URLEncodeSignature
                             + " so the redirect uri is expected to be: " + actualUri;
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);     
                     throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                 }
-            } catch (UnsupportedEncodingException e) {
+            } catch (final UnsupportedEncodingException e) {
                 Logger.e(TAG + methodName, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
                 throw new UsageAuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The verifying BrokerRedirectUri "
                         + "process failed because the base64 url encoding is not supported.", e);
@@ -1345,10 +1347,10 @@ public class AuthenticationContext {
                 //the request from client App is not silent
                 //otherwise the acquiretokensilent might be interrupted 
                 //by DeveloperAuthenticationException
-                if(!request.isSilent()) {
+                if (!request.isSilent()) {
                     verifyBrokerRedirectUri(request);
                 }
-            } catch(UsageAuthenticationException exception) {
+            } catch (final UsageAuthenticationException exception) {
                 Logger.v(TAG + methodName, "Did not pass the verification of the broker redirect URI");
                 callbackHandle.onError(exception);
                 return result;
@@ -1774,6 +1776,95 @@ public class AuthenticationContext {
         if (PackageManager.PERMISSION_GRANTED != pm.checkPermission("android.permission.INTERNET",
                 mContext.getPackageName())) {
             throw new IllegalStateException(new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING));
+        }
+    }
+
+    /**
+     * Internal API of ADAL to serialize the family token cache item for the
+     * given user.
+     * 
+     * Verify if the input uniqueUserId is valid and the broker is not used.
+     * Then check if this user has family refresh token item in the cache. If
+     * true, create an SSOStateContainer object with the family refresh token
+     * item of this user and continue the serialization process.
+     * 
+     * @param String
+     *            uniqueUserId
+     * @return String
+     * @throws AuthenticationException
+     */
+    String serialize(final String uniqueUserId) throws AuthenticationException {
+        if (StringExtensions.IsNullOrBlank(uniqueUserId)) {
+            throw new IllegalArgumentException("uniqueUserId");
+        }
+
+        if (mBrokerProxy.canSwitchToBroker()) {
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
+                    "Failed to export the family refresh token cache item because broker is enabled.");
+        }
+
+        /*
+         * The current serialize/deserialize feature is for only supports MS
+         * apps. So the client ID for the FoCI token cache item is hard coded
+         * below.
+         */
+        final String cacheKey = CacheKey.createCacheKeyForFRT(this.getAuthority(),
+                AuthenticationConstants.MS_FAMILY_ID, uniqueUserId);
+        final TokenCacheItem tokenItem = this.getCache().getItem(cacheKey);
+
+        if (tokenItem == null) {
+            Logger.i(TAG, "Cannot find the family token cache item for this userID", "");
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
+                    "Failed to export the FID because no family token cache item is found.");
+        }
+
+        if (!StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
+            return SSOStateSerializer.serialize(tokenItem);
+        } else {
+            throw new IllegalArgumentException("tokenItem does not contain family refresh token");
+        }
+    }
+
+    /**
+     * Internal API of ADAL to provide the deserialization to the TokenCacheItem
+     * 
+     * The method will take the serializedBlob string as input and deserialize
+     * the string into a tokenCacheItem. The deserialized tokenCacheItem will be
+     * stored into the cache. Exceptions will be thrown for invalid input or the
+     * broker is enabled.
+     * 
+     * @param String
+     *            serializedBlob
+     * @throws AuthenticationException
+     */
+    void deserialize(final String serializedBlob) throws AuthenticationException {
+        if (StringExtensions.IsNullOrBlank(serializedBlob)) {
+            throw new IllegalArgumentException("serializedBlob");
+        }
+
+        if (mBrokerProxy.canSwitchToBroker()) {
+            throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT,"Failed to import the serialized blob because broker is enabled.");
+        }
+
+        final TokenCacheItem tokenCacheItem = SSOStateSerializer.deserialize(serializedBlob);
+        final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
+        this.getCache().setItem(cacheKey, tokenCacheItem);  
+    }
+
+    class DefaultConnectionService implements IConnectionService {
+
+        private Context mConnectionContext;
+
+        DefaultConnectionService(Context ctx) {
+            mConnectionContext = ctx;
+        }
+
+        public boolean isConnectionAvailable() {
+            ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+            boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+            return isConnected;
         }
     }
 

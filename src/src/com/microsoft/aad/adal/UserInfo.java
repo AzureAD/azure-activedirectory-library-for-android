@@ -37,7 +37,7 @@ import android.os.Bundle;
 public class UserInfo implements Serializable {
 
     /**
-     * 
+     * universal version identifier for UserInfo class
      */
     private static final long serialVersionUID = 8790127561636702672L;
 
@@ -72,37 +72,37 @@ public class UserInfo implements Serializable {
         mDisplayableId = displayableId;
     }
 
-    public UserInfo(IdToken token) {
+    public UserInfo(IdToken idToken) {
 
         mUniqueId = null;
         mDisplayableId = null;
 
-        if (!StringExtensions.IsNullOrBlank(token.mObjectId)) {
-            mUniqueId = token.mObjectId;
-        } else if (!StringExtensions.IsNullOrBlank(token.mSubject)) {
-            mUniqueId = token.mSubject;
+        if (!StringExtensions.IsNullOrBlank(idToken.getObjectId())) {
+            mUniqueId = idToken.getObjectId();
+        } else if (!StringExtensions.IsNullOrBlank(idToken.getSubject())) {
+            mUniqueId = idToken.getSubject();
         }
 
-        if (!StringExtensions.IsNullOrBlank(token.mUpn)) {
-            mDisplayableId = token.mUpn;
-        } else if (!StringExtensions.IsNullOrBlank(token.mEmail)) {
-            mDisplayableId = token.mEmail;
+        if (!StringExtensions.IsNullOrBlank(idToken.getUpn())) {
+            mDisplayableId = idToken.getUpn();
+        } else if (!StringExtensions.IsNullOrBlank(idToken.getEmail())) {
+            mDisplayableId = idToken.getEmail();
         }
 
-        mGivenName = token.mGivenName;
-        mFamilyName = token.mFamilyName;
-        mIdentityProvider = token.mIdentityProvider;
-        if (token.mPasswordExpiration > 0) {
+        mGivenName = idToken.getGivenName();
+        mFamilyName = idToken.getFamilyName();
+        mIdentityProvider = idToken.getIdentityProvider();
+        if (idToken.getPasswordExpiration() > 0) {
             // pwd_exp returns seconds to expiration time
             // it returns in seconds. Date accepts milliseconds.
             Calendar expires = new GregorianCalendar();
-            expires.add(Calendar.SECOND, (int)token.mPasswordExpiration);
+            expires.add(Calendar.SECOND, (int)idToken.getPasswordExpiration());
             mPasswordExpiresOn = expires.getTime();
         }
 
         mPasswordChangeUrl = null;
-        if (!StringExtensions.IsNullOrBlank(token.mPasswordChangeUrl)) {
-            mPasswordChangeUrl = Uri.parse(token.mPasswordChangeUrl);
+        if (!StringExtensions.IsNullOrBlank(idToken.getPasswordChangeUrl())) {
+            mPasswordChangeUrl = Uri.parse(idToken.getPasswordChangeUrl());
         }
     }
 
