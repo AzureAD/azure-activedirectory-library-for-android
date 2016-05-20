@@ -1,3 +1,13 @@
+Version 1.2.0
+--------------
+Add support for family ClientId
+Add support for serialize/deserialize cache per user base
+Add FORCE_PROMPT support for authentication via broker
+Update to revert back the behaviour for calling acquireTokenSilentSync on main thread
+Add interface for telemetry events
+Fix date time parsing for 24 hour format
+Update to reuse existing sockets
+
 Version 1.1.19
 --------------
 (Hotfix) To avoid app crashing from runtime exceptions thrown by AndroidKeystore, catch and rethrow as checked exception
