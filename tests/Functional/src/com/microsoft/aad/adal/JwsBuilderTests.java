@@ -194,8 +194,6 @@ public class JwsBuilderTests extends AndroidTestHelper {
         BufferedInputStream stream = new BufferedInputStream(ctx.getAssets().open(PKCS12_FILENAME));
         caKs.load(stream, PKCS12_PASS.toCharArray());
 
-        // CertificateFactory cf = CertificateFactory.getInstance("X.509");
-
         for (Enumeration<String> e = caKs.aliases(); e.hasMoreElements();) {
             String alias = e.nextElement();
             Log.v(TAG, "--- Entry Alias: \"" + alias + "\" ---");

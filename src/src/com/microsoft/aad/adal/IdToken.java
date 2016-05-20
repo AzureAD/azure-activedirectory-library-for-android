@@ -125,10 +125,9 @@ class IdToken {
 
     private HashMap<String, String> parseJWT(final String idtoken) throws AuthenticationException {
         final String idbody = extractJWTBody(idtoken);
-        // URL_SAFE: Encoder/decoder flag bit to use
-        // "URL and filename safe" variant of Base64
-        // (see RFC 3548 section 4) where - and _ are used in place of +
-        // and /.
+        // URL_SAFE: Encoder/decoder flag bit to use "URL and filename safe"
+        // variant of Base64 (see RFC 3548 section 4) where - and _ are used in
+        // place of + and /.
         final byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
 
         try {
