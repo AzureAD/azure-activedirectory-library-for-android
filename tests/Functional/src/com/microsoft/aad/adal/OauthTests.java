@@ -63,22 +63,18 @@ public class OauthTests extends AndroidTestCase {
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
 
     @SmallTest
-    public void testParseIdTokenPositive() throws IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, NoSuchFieldException, UnsupportedEncodingException {
-        Object actual = parseIdToken(Util.getIdToken());
-        assertEquals("0DxnAlLi12IvGL", ReflectionUtils.getFieldValue(actual, "mSubject"));
-        assertEquals("6fd1f5cd-a94c-4335-889b-6c598e6d8048",
-                ReflectionUtils.getFieldValue(actual, "mTenantId"));
-        assertEquals("test@test.onmicrosoft.com", ReflectionUtils.getFieldValue(actual, "mUpn"));
-        assertEquals("givenName", ReflectionUtils.getFieldValue(actual, "mGivenName"));
-        assertEquals("familyName", ReflectionUtils.getFieldValue(actual, "mFamilyName"));
-        assertEquals("emailField", ReflectionUtils.getFieldValue(actual, "mEmail"));
-        assertEquals("idpProvider", ReflectionUtils.getFieldValue(actual, "mIdentityProvider"));
-        assertEquals("53c6acf2-2742-4538-918d-e78257ec8516",
-                ReflectionUtils.getFieldValue(actual, "mObjectId"));
-        assertTrue(1387227772 == (Long) ReflectionUtils.getFieldValue(actual, "mPasswordExpiration"));
-        assertEquals("pwdUrl", ReflectionUtils.getFieldValue(actual, "mPasswordChangeUrl"));
+    public void testParseIdTokenPositive() throws UnsupportedEncodingException, AuthenticationException {
+        IdToken actual = new IdToken(Util.getIdToken());
+        assertEquals("0DxnAlLi12IvGL", actual.getSubject());
+        assertEquals("6fd1f5cd-a94c-4335-889b-6c598e6d8048", actual.getTenantId());
+        assertEquals("test@test.onmicrosoft.com", actual.getUpn());
+        assertEquals("givenName", actual.getGivenName());
+        assertEquals("familyName", actual.getFamilyName());
+        assertEquals("emailField", actual.getEmail());
+        assertEquals("idpProvider", actual.getIdentityProvider());
+        assertEquals("53c6acf2-2742-4538-918d-e78257ec8516", actual.getObjectId());
+        assertTrue(1387227772 == actual.getPasswordExpiration());
+        assertEquals("pwdUrl", actual.getPasswordChangeUrl());
     }
 
     @SmallTest
@@ -114,48 +110,51 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testParseIdTokenNegativeIncorrectMessage() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
+    public void testParseIdTokenNegativeIncorrectMessage() {
         String idToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2.";
-        Object actual = parseIdToken(idToken);
-        assertNull("IdToken is null", actual);
+        try {
+            final IdToken actual = new IdToken(idToken);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof AuthenticationException);
+        }
     }
 
     @SmallTest
-    public void testParseIdTokenNegativeInvalidEncodedTokens() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
+    public void testParseIdTokenNegativeInvalidEncodedTokens() {
         String idToken = "..";
-        Object actual = parseIdToken(idToken);
-        assertNull("IdToken is null", actual);
+        try {
+            final IdToken actual = new IdToken(idToken);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof AuthenticationException);
+        }
 
         idToken = "sdf.sdf.";
-        actual = parseIdToken(idToken);
-        assertNull("IdToken is null", actual);
+        try {
+            final IdToken actual = new IdToken(idToken);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof AuthenticationException);
+        }
 
         idToken = "sdf.sdf.34";
-        actual = parseIdToken(idToken);
-        assertNull("IdToken is null", actual);
+        try {
+            final IdToken actual = new IdToken(idToken);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof AuthenticationException);
+        }
 
         idToken = "dfdf";
-        actual = parseIdToken(idToken);
-        assertNull("IdToken is null", actual);
+        try {
+            final IdToken actual = new IdToken(idToken);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof AuthenticationException);
+        }
 
         idToken = ".....";
-        actual = parseIdToken(idToken);
-        assertNull("IdToken is null", actual);
-    }
-
-    @SmallTest
-    private Object parseIdToken(String idToken) throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
-        Object request = createAuthenticationRequest("http://www.something.com", "resource",
-                "client", "redirect", "loginhint@ggg.com", null, null, null);
-        Object oauth = createOAuthInstance(request);
-        Method m = ReflectionUtils.getTestMethod(oauth, "parseIdToken", String.class);
-        return (Object)m.invoke(oauth, idToken);
+        try {
+            final IdToken actual = new IdToken(idToken);
+        } catch (final Exception exception) {
+            assertTrue("argument exception", exception instanceof AuthenticationException);
+        }
     }
 
     @SmallTest
