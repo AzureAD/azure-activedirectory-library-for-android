@@ -150,7 +150,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
-    	Logger.v(TAG + "onPageStarted", "page is started with the url " + url);
+        Logger.v(TAG + "onPageStarted", "page is started with the url " + url);
         super.onPageStarted(view, url, favicon);
         showSpinner(true);
     }

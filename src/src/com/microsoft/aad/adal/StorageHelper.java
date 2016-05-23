@@ -280,7 +280,7 @@ public class StorageHelper {
         Logger.v(TAG, "Finished decryption");
         return decrypted;
     }
-    
+
     /**
      * Get Secret Key based on API level to use in encryption. Decryption key
      * depends on version# since user can migrate to new Android.OS
@@ -299,27 +299,19 @@ public class StorageHelper {
             throw new IllegalStateException("Secret key must be provided for API < 18. " +
                     "Use AuthenticationSettings.INSTANCE.setSecretKey()");
         }
-
+        
         if (secretKeyData != null) {
-            Logger.v(TAG, "Encryption will use user provided secret key.");
-            mKey = getSecretKey(secretKeyData);
-            mMacKey = getMacKey(mKey);
             mBlobVersion = VERSION_USER_DEFINED;
         } else {
-            // androidKeyStore can store app specific self signed cert.
-            // Asymmetric cryptography is used to protect the session
-            // key for Encryption and HMac.
-            // If user specifies secret key, it will use the provided
-            // key.
-            Logger.v(TAG, "Encryption will use keys persisted in AndroidKeyStore.");
-            mKey = getSecretKeyFromAndroidKeyStore();
-            mMacKey = getMacKey(mKey);
             mBlobVersion = VERSION_ANDROID_KEY_STORE;
         }
-
+        
+        mKey = getKeyOrCreate(mBlobVersion);
+        mMacKey = getMacKey(mKey);
+        
         return mKey;
     }
-    
+
     /**
      * load key based on version for migration
      * 
@@ -327,129 +319,172 @@ public class StorageHelper {
      * @throws IOException
      */
     public synchronized SecretKey loadSecretKeyForDecryption(String keyVersion) throws GeneralSecurityException, IOException {
+        if (mSecretKeyFromAndroidKeyStore != null) {
+            return mSecretKeyFromAndroidKeyStore;
+        }
+        
+        return getKey(keyVersion);
+    }
 
-        if (keyVersion.equals(VERSION_USER_DEFINED)) {
+    /**
+     * For API <18 or user provide the key, will return the user supplied key.
+     * Supported API >= 18 PrivateKey is stored in AndroidKeyStore. Loads key
+     * from the file if it exists. If not exist, it will generate one.
+     * @param keyVersion
+     * @return
+     * @throws GeneralSecurityException
+     * @throws IOException
+     */
+    private synchronized SecretKey getKeyOrCreate(final String keyVersion) throws GeneralSecurityException, IOException {
+        if (VERSION_USER_DEFINED.equals(keyVersion)) {
+            return getKey(keyVersion);
+        }
+        
+        try {
+            mSecretKeyFromAndroidKeyStore = getKey(keyVersion);
+        } catch (final IOException | GeneralSecurityException exception) {
+            // If encountering exception for reading keys, try to generate new keys
+            mKeyPair = generateKeyPairFromAndroidKeyStore();
+            
+            // Store secret key in a file after wrapping
+            File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
+                    ADALKS);
+            Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
+            // If keyfile does not exist, it needs to generate one
+
+            mSecretKeyFromAndroidKeyStore = generateSecretKey();
+            Logger.v(TAG, "Wrapping SecretKey");
+            final byte[] keyWrapped = wrap(wrapCipher, mSecretKeyFromAndroidKeyStore);
+            Logger.v(TAG, "Writing SecretKey");
+            writeKeyData(keyFile, keyWrapped);
+        }
+        
+        return mSecretKeyFromAndroidKeyStore;
+    }
+
+    /**
+     * Get the saved key. Will only do read operation. 
+     * @param keyVersion
+     * @return
+     * @throws GeneralSecurityException
+     * @throws IOException
+     */
+    private synchronized SecretKey getKey(final String keyVersion) throws GeneralSecurityException, IOException {
+        if (VERSION_USER_DEFINED.equals(keyVersion)) {
             return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
         }
-
-        if (keyVersion.equals(VERSION_ANDROID_KEY_STORE)) {
+        
+        if (VERSION_ANDROID_KEY_STORE.equals(keyVersion)) {
             if (Build.VERSION.SDK_INT >= 18) {
                 // androidKeyStore can store app specific self signed cert.
                 // Asymmetric cryptography is used to protect the session key
                 // used for Encryption and HMac
-                return readSecretKeyFromKeyStoreForDecryption();
-            } else {
-                throw new IllegalArgumentException(
-                        String.format(
-                                "keyVersion '%s' is not supported in this SDK. AndroidKeyStore is supported API18 and above.",
-                                keyVersion));
+                final File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
+                        ADALKS);
+                mKeyPair = readKeyPair();
+                mSecretKeyFromAndroidKeyStore = getUnwrappedSecretKey(keyFile);
+                return mSecretKeyFromAndroidKeyStore;
             }
         }
-
+        
         throw new IllegalArgumentException("keyVersion = " + keyVersion);
     }
-    
-    /**
-     * Supported API >= 18 PrivateKey is stored in AndroidKeyStore. Loads key
-     * from the file if it exists. If not exist, it will generate one.
-     * 
-     * @return
-     * @throws IOException
-     * @throws GeneralSecurityException
-     */
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private final synchronized SecretKey getSecretKeyFromAndroidKeyStore() throws IOException,
-            GeneralSecurityException {
-
-        // Loading file and unwrapping this key is causing performance issue.
-        if (mSecretKeyFromAndroidKeyStore != null) {
-            return mSecretKeyFromAndroidKeyStore;
-        }
-
-        if (mKeyPair == null) {
-            mKeyPair = getKeyPairFromAndroidKeyStoreForEncryption();
-            Logger.v(TAG, "Retrived keypair from androidKeyStore");
-        }
-
-        // Store secret key in a file after wrapping
-        File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
-                ADALKS);
-        Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
-        // If keyfile does not exist, it needs to generate one
-        if (!keyFile.exists()) {
-            Logger.v(TAG, "Key file does not exists");
-            final SecretKey key = generateSecretKey();
-            Logger.v(TAG, "Wrapping SecretKey");
-            final byte[] keyWrapped = wrap(wrapCipher, key);
-            Logger.v(TAG, "Writing SecretKey");
-            writeKeyData(keyFile, keyWrapped);
-            Logger.v(TAG, "Finished writing SecretKey");
-        }
-        
-        mSecretKeyFromAndroidKeyStore = getUnwrappedSecretKey(keyFile);
-        return mSecretKeyFromAndroidKeyStore;
-    }
-
-    /**
-     * Get key pair from AndroidKeyStore.
-     * 
-     * @return
-     * @throws GeneralSecurityException
-     * @throws IOException
-     */
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private synchronized KeyPair getKeyPairFromAndroidKeyStoreForEncryption() throws GeneralSecurityException, IOException {
+    private synchronized KeyPair generateKeyPairFromAndroidKeyStore() throws GeneralSecurityException, IOException {
         final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
-        // For encryption purpose, if alias does not exist in AndroidKeyStore, 
-        // generate a new keypair. 
-        if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
-            Logger.v(TAG, "Key entry is not available, generating new entry.");
-            Calendar start = Calendar.getInstance();
-            Calendar end = Calendar.getInstance();
-            end.add(Calendar.YEAR, 100);
+        
+        Logger.v(TAG, "Generate KeyPair from AndroidKeyStore");
+        Calendar start = Calendar.getInstance();
+        Calendar end = Calendar.getInstance();
+        end.add(Calendar.YEAR, 100);
 
-            // self signed cert stored in AndroidKeyStore to asym. encrypt key
-            // to a file
-            final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
-                    "AndroidKeyStore");
-            generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
-            generator.generateKeyPair();
-            Logger.v(TAG, "Key entry is generated");
-        } else {
-            Logger.v(TAG, "Key entry is available");
+        // self signed cert stored in AndroidKeyStore to asym. encrypt key
+        // to a file
+        final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
+                "AndroidKeyStore");
+        generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
+        try {
+            return generator.generateKeyPair();
+        } catch (final IllegalStateException exception) {
+            // There is an issue with AndroidKeyStore when attempting to generate keypair
+            // if user doesn't have pin/passphrase setup for their lock screen. 
+            // Issue 177459 : AndroidKeyStore KeyPairGenerator fails to generate 
+            // KeyPair after toggling lock type, even without setting the encryptionRequired 
+            // flag on the KeyPairGeneratorSpec. 
+            // https://code.google.com/p/android/issues/detail?id=177459
+            // The thrown exception in this case is: 
+            // java.lang.IllegalStateException: could not generate key in keystore
+            // To avoid app crashing, re-throw as checked exception
+            throw new KeyStoreException(exception);
         }
-
-        // Read key pair again
-        return readKeyPairFromKeyEntry(keyStore);
     }
-    
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private final synchronized SecretKey readSecretKeyFromKeyStoreForDecryption() throws GeneralSecurityException, IOException {
-        if (mSecretKeyFromAndroidKeyStore != null) {
-            return mSecretKeyFromAndroidKeyStore;
-        }
 
-        final File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
-                ADALKS);
-        if (mKeyPair == null) {
-            final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-            keyStore.load(null);
-            if (!keyStore.containsAlias(KEY_STORE_CERT_ALIAS)) {
-                Logger.v(TAG, "Key store alias is not avaliable.");
-                // Due to an issue with android keystore, when user change lockscreen type, 
-                // key data and alias could be wiped. Key data will be unrecoverable if being 
-                // wiped out.
-                throw new UnrecoverableKeyException("AndroidKeyStore does not contain the alias.");
-            } else {
-                Logger.v(TAG, "Key entry is available");
+    /**
+     * Read KeyPair from AndroidKeyStore. 
+     */
+    private synchronized KeyPair readKeyPair() throws GeneralSecurityException, IOException {
+        if (doesKeyPairExist()) {
+            // Read key pair again
+            Logger.v(TAG, "Reading Key entry");
+            try {
+                KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+                keyStore.load(null);
+                final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
+                        KEY_STORE_CERT_ALIAS, null);
+                return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
+            } catch (RuntimeException e) {
+                // There is an issue in android keystore that resets keystore
+                // Issue 61989:  AndroidKeyStore deleted after changing screen lock type
+                // https://code.google.com/p/android/issues/detail?id=61989
+                // in this case getEntry throws
+                // java.lang.RuntimeException: error:0D07207B:asn1 encoding routines:ASN1_get_object:header too long
+                // handle it as regular KeyStoreException
+                throw new KeyStoreException(e);
             }
-            
-            mKeyPair = readKeyPairFromKeyEntry(keyStore);
         }
         
-        mSecretKeyFromAndroidKeyStore = getUnwrappedSecretKey(keyFile);
-        return mSecretKeyFromAndroidKeyStore;
+        throw new KeyStoreException("KeyPair entry does not exist.");
+    }
+    
+    /**
+     * Check if KeyPair exists on AndroidKeyStore. 
+     */
+    private synchronized boolean doesKeyPairExist() throws GeneralSecurityException, IOException {
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        
+        final boolean isKeyStoreCertAliasExisted;
+        try {
+            isKeyStoreCertAliasExisted = keyStore.containsAlias(KEY_STORE_CERT_ALIAS);
+        } catch (final NullPointerException exception) {
+            // There is an issue with Android Keystore when remote service attempts 
+            // to access Keystore. 
+            // Changeset found for google source to address the related issue with 
+            // remote service accessing keystore :
+            // https://android.googlesource.com/platform/external/sepolicy/+/0e30164b17af20f680635c7c6c522e670ecc3df3
+            // The thrown exception in this case is:
+            // java.lang.NullPointerException: Attempt to invoke interface method 
+            // 'int android.security.IKeystoreService.exist(java.lang.String, int)' on a null object reference
+            // To avoid app from crashing, re-throw as checked exception
+            throw new KeyStoreException(exception);
+        }
+        
+        return isKeyStoreCertAliasExisted;
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private AlgorithmParameterSpec getKeyPairGeneratorSpec(Context context, Date start, Date end) {
+        final String certInfo = String.format(Locale.ROOT, "CN=%s, OU=%s", KEY_STORE_CERT_ALIAS,
+                context.getPackageName());
+        return new KeyPairGeneratorSpec.Builder(context)
+                .setAlias(KEY_STORE_CERT_ALIAS)
+                .setSubject(new X500Principal(certInfo))
+                .setSerialNumber(BigInteger.ONE)
+                .setStartDate(start)
+                .setEndDate(end)
+                .build();
     }
 
     private SecretKey getSecretKey(byte[] rawBytes) {
@@ -509,7 +544,7 @@ public class StorageHelper {
         keygen.init(KEY_SIZE, mRandom);
         return keygen.generateKey();
     }
-    
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized SecretKey getUnwrappedSecretKey(final File keyFile) throws GeneralSecurityException, IOException {
         Logger.v(TAG, "Reading SecretKey");
@@ -547,7 +582,7 @@ public class StorageHelper {
         
         return unwrappedSecretKey;
     }
-    
+
     private void deleteKeyFile() {
         // Store secret key in a file after wrapping
         File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
@@ -557,38 +592,6 @@ public class StorageHelper {
             keyFile.delete();
         }
     }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private synchronized KeyPair readKeyPairFromKeyEntry(final KeyStore keyStore) throws GeneralSecurityException {
-        Logger.v(TAG, "Reading key entry persisted in AndroidKeyStore.");
-        try {
-            final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
-                    KEY_STORE_CERT_ALIAS, null);
-            return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
-        } catch (RuntimeException e) {
-            // There is an issue in android keystore that resets keystore
-            // Issue 61989:  AndroidKeyStore deleted after changing screen lock type
-            // https://code.google.com/p/android/issues/detail?id=61989
-            // in this case getEntry throws
-            // java.lang.RuntimeException: error:0D07207B:asn1 encoding routines:ASN1_get_object:header too long
-            // handle it as regular KeyStoreException
-            throw new KeyStoreException(e);
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private AlgorithmParameterSpec getKeyPairGeneratorSpec(Context context, Date start, Date end) {
-        final String certInfo = String.format(Locale.ROOT, "CN=%s, OU=%s", KEY_STORE_CERT_ALIAS,
-                context.getPackageName());
-        return new KeyPairGeneratorSpec.Builder(context)
-                .setAlias(KEY_STORE_CERT_ALIAS)
-                .setSubject(new X500Principal(certInfo))
-                .setSerialNumber(BigInteger.ONE)
-                .setStartDate(start)
-                .setEndDate(end)
-                .build();
-    }
-
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized void resetKeyPairFromAndroidKeyStore() throws KeyStoreException,
@@ -607,7 +610,20 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private SecretKey unwrap(Cipher wrapCipher, byte[] keyBlob) throws GeneralSecurityException {
         wrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());
-        return (SecretKey)wrapCipher.unwrap(keyBlob, KEYSPEC_ALGORITHM, Cipher.SECRET_KEY);
+        try {
+            return (SecretKey)wrapCipher.unwrap(keyBlob, KEYSPEC_ALGORITHM, Cipher.SECRET_KEY);
+        } catch (final IllegalArgumentException exception) {
+            // There is issue with Android KeyStore when lock screen type is changed which could 
+            // potentially wipe out keystore. 
+            // Here are the two top exceptions that could be thrown due to the above issue:
+            // 1) Caused by: java.security.InvalidKeyException: javax.crypto.BadPaddingException: 
+            //    error:0407106B:rsa routines:RSA_padding_check_PKCS1_type_2:block type is not 02
+            // 2) Caused by: java.lang.IllegalArgumentException: key.length == 0
+            // Issue 61989: AndroidKeyStore deleted after changing screen lock type
+            // https://code.google.com/p/android/issues/detail?id=61989
+            // To avoid app crashing from 2), re-throw it as checked exception
+            throw new KeyStoreException(exception);
+        }
     }
 
     private static void writeKeyData(File file, byte[] data) throws IOException {

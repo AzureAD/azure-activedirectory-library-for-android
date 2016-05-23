@@ -192,7 +192,7 @@ class Oauth2 {
         return message;
     }
 
-    public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) {
+    public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) throws AuthenticationException {
 
         final AuthenticationResult result;
 
@@ -251,11 +251,9 @@ class Oauth2 {
                 // response. ADFS does not return that.
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
-                    IdToken tokenParsed = parseIdToken(rawIdToken);
-                    if (tokenParsed != null) {
-                        tenantId = tokenParsed.mTenantId;
-                        userinfo = new UserInfo(tokenParsed);
-                    }
+                    IdToken tokenParsed = new IdToken(rawIdToken);
+                    tenantId = tokenParsed.getTenantId();
+                    userinfo = new UserInfo(tokenParsed);
                 } else {
                     Logger.v(TAG, "IdToken is not provided");
                 }
@@ -278,66 +276,6 @@ class Oauth2 {
         }
 
         return result;
-    }
-
-    /**
-     * parse user id token string.
-     * 
-     * @param idtoken
-     * @return UserInfo
-     */
-    private static IdToken parseIdToken(String idtoken) {
-        try {
-            // Message segments: Header.Body.Signature
-            int firstDot = idtoken.indexOf(".");
-            int secondDot = idtoken.indexOf(".", firstDot + 1);
-            int invalidDot = idtoken.indexOf(".", secondDot + 1);
-
-            if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
-                String idbody = idtoken.substring(firstDot + 1, secondDot);
-                // URL_SAFE: Encoder/decoder flag bit to use
-                // "URL and filename safe" variant of Base64
-                // (see RFC 3548 section 4) where - and _ are used in place of +
-                // and /.
-                byte[] data = Base64.decode(idbody, Base64.URL_SAFE);
-                String decodedBody = new String(data, "UTF-8");
-
-                HashMap<String, String> responseItems = new HashMap<String, String>();
-                extractJsonObjects(responseItems, decodedBody);
-                if (responseItems != null && !responseItems.isEmpty()) {
-                    IdToken idtokenInfo = new IdToken();
-                    idtokenInfo.mSubject = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
-                    idtokenInfo.mTenantId = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_TENANTID);
-                    idtokenInfo.mUpn = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
-                    idtokenInfo.mEmail = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_EMAIL);
-                    idtokenInfo.mGivenName = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
-                    idtokenInfo.mFamilyName = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_FAMILY_NAME);
-                    idtokenInfo.mIdentityProvider = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
-                    idtokenInfo.mObjectId = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
-                    String expiration = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
-                    if (!StringExtensions.IsNullOrBlank(expiration)) {
-                        idtokenInfo.mPasswordExpiration = Long.parseLong(expiration);
-                    }
-                    idtokenInfo.mPasswordChangeUrl = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
-                    Logger.v(TAG, "IdToken is extracted from token response");
-                    return idtokenInfo;
-                }
-            }
-        } catch (JSONException | UnsupportedEncodingException ex) {
-            Logger.e(TAG, "Error in parsing user id token", null,
-                    ADALError.IDTOKEN_PARSING_FAILURE, ex);
-        }
-        return null;
     }
 
     private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr)
@@ -572,7 +510,7 @@ class Oauth2 {
      * @param webResponse
      * @return
      */
-    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse){
+    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) throws AuthenticationException {
         AuthenticationResult result;
         String correlationIdInHeader = null;
         if (webResponse.getResponseHeaders() != null
@@ -594,15 +532,12 @@ class Oauth2 {
             try {
                 result = parseJsonResponse(webResponse.getBody());
             } catch (final JSONException jsonException) {
-                Logger.e(TAG, jsonException.getMessage(), "", ADALError.SERVER_INVALID_JSON_RESPONSE, jsonException);
-                result = new AuthenticationResult(JSON_PARSING_ERROR, jsonException.getMessage(), null);
+                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
             }
 
         break;
-        default:
-            Logger.e(TAG, "Server response", webResponse.getBody(), ADALError.SERVER_ERROR);
-            result = new AuthenticationResult(String.valueOf(webResponse.getStatusCode()),
-                    webResponse.getBody(), null);
+        default: 
+            throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + webResponse.getBody());
         }
 
         // Set correlationId in the result
@@ -624,7 +559,8 @@ class Oauth2 {
         return result;
     }
     
-    private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException {
+    private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException,
+            AuthenticationException {
         HashMap<String, String> responseItems = new HashMap<String, String>();
         extractJsonObjects(responseItems, responseBody);
         return processUIResponseParams(responseItems);

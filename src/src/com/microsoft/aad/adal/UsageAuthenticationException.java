@@ -30,14 +30,14 @@ public class UsageAuthenticationException extends AuthenticationException {
     static final long serialVersionUID = 1;
 
     /**
-     * Constructs a new AuthenticationCancelError.
+     * Constructs a new UsageAuthenticationException.
      */
     public UsageAuthenticationException() {
         super();
     }
 
     /**
-     * Constructs a new AuthenticationCancelError with message.
+     * Constructs a new UsageAuthenticationException with message.
      * 
      * @param msg Message for cancel request
      */
@@ -46,7 +46,7 @@ public class UsageAuthenticationException extends AuthenticationException {
     }
     
     /**
-     * Constructs a new AuthenticationCancelError with message and the cause exception
+     * Constructs a new UsageAuthenticationException with message and the cause exception
      * 
      * @param code Resource file related error code. Message will be derived
      *            from resource with using app context

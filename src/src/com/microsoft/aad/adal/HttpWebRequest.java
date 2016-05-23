@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +35,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import android.os.*;
+import android.content.Context;
+import android.os.Build;
+import android.os.Debug;
 import android.os.Process;
 
 /**
@@ -93,7 +94,7 @@ class HttpWebRequest {
             throw new IllegalArgumentException("requestURL");
         }
         HttpURLConnection.setFollowRedirects(true);
-        final HttpURLConnection connection = (HttpURLConnection)mUrl.openConnection();
+        final HttpURLConnection connection = HttpUrlConnectionFactory.createHttpUrlConnection(mUrl);
         connection.setConnectTimeout(CONNECT_TIME_OUT);
         // To prevent EOF exception.
         if (Build.VERSION.SDK_INT > 13) {
@@ -109,8 +110,6 @@ class HttpWebRequest {
             connection.setRequestProperty(header, mRequestHeaders.get(header));
         }
 
-        // Avoid reuse of existing sockets to avoid random EOF errors
-        System.setProperty("http.keepAlive", "false");
         connection.setReadTimeout(READ_TIME_OUT);
         connection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
         connection.setUseCaches(mUseCaches);
@@ -144,7 +143,7 @@ class HttpWebRequest {
             }
             // GET request should read status after getInputStream to make
             // this work for different SDKs
-            final int statusCode = getStatusCode(connection);
+            final int statusCode = connection.getResponseCode();
             final String responseBody = convertStreamToString(responseStream);
 
             // It will only run in debugger and set from outside for testing
@@ -162,11 +161,29 @@ class HttpWebRequest {
             response = new HttpWebResponse(statusCode, responseBody, connection.getHeaderFields());
         } finally {
             safeCloseStream(responseStream);
-            connection.disconnect();
+            // We are not disconnecting from network to allow connection to be returned into the
+            // connection pool. If we call disconnect due to buggy implementation we are not reusing
+            // connections.
+            //if (connection != null) {
+            //	connection.disconnect();
+            //}
         }
 
         return response;
     }
+    
+    static void throwIfNetworkNotAvaliable(final Context context) throws AuthenticationException {
+        final DefaultConnectionService connectionService = new DefaultConnectionService(context);
+        if (!connectionService.isConnectionAvailable()) {
+            AuthenticationException authenticationException = new AuthenticationException(
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                    "Connection is not available to refresh token");
+            Logger.w(TAG, "Connection is not available to refresh token", "",
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+            
+            throw authenticationException;
+        }
+    } 
 
     /**
      * Convert stream into the string
@@ -196,40 +213,6 @@ class HttpWebRequest {
                 reader.close();
             }
         }
-    }
-
-    private static int getStatusCode(HttpURLConnection connection) throws IOException {
-        int statusCode = HttpURLConnection.HTTP_BAD_REQUEST;
-
-        try {
-            statusCode = connection.getResponseCode();
-        } catch (IOException ex) {
-
-            if (Build.VERSION.SDK_INT < 16) {
-                // this exception is hardcoded in HttpUrlConnection class inside
-                // Android source code for previous SDKs.
-                // Status code handling is throwing exceptions if it does not
-                // see challenge
-                if (ex.getMessage().equals(UNAUTHORIZED_ERROR_MESSAGE_PRE18)) {
-                    statusCode = HttpURLConnection.HTTP_UNAUTHORIZED;
-                }
-            } else {
-                // HttpUrlConnection does not understand Bearer challenge
-                // Second time query will get the correct status.
-                // it will throw, if it is a different status related to
-                // connection problem
-                statusCode = connection.getResponseCode();
-            }
-
-            // if status is 200 or 401 after reading again, it can read the
-            // response body for messages
-            if (statusCode != HttpURLConnection.HTTP_OK
-                    && statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
-                throw ex;
-            }
-        }
-        Logger.v(TAG, "Status code:" + statusCode);
-        return statusCode;
     }
 
     private static void setRequestBody(HttpURLConnection connection, byte[] contentRequest, String requestContentType) throws IOException {

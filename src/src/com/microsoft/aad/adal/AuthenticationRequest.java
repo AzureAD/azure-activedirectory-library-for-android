@@ -242,4 +242,17 @@ class AuthenticationRequest implements Serializable {
     public void setUserIdentifierType(UserIdentifierType user) {
         mIdentifierType = user;
     }
+    
+    /**
+     * Get either loginhint or user id based what's passed in the request. 
+     */
+    String getUserFromRequest() {
+        if (UserIdentifierType.LoginHint == mIdentifierType) {
+            return mLoginHint;
+        } else if (UserIdentifierType.UniqueId == mIdentifierType) {
+            return mUserId;
+        }
+        
+        return null;
+    }
 }

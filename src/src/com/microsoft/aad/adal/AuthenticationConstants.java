@@ -93,6 +93,8 @@ public class AuthenticationConstants {
         /** Core OAuth2 strings. */
         public static final String ACCESS_TOKEN = "access_token";
 
+        public static final String AUTHORITY = "authority";
+
         public static final String AUTHORIZATION_CODE = "authorization_code";
 
         public static final String CLIENT_ID = "client_id";
@@ -211,6 +213,8 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_DEFAULT_NAME = "Default";
         
         public static final String BROKER_VERSION = "broker.version";
+        
+        public static final String BROKER_PROTOCOL_VERSION = "v2";
         
         public static final String BROKER_RESULT_RETURNED = "broker.result.returned";
 
@@ -340,6 +344,8 @@ public class AuthenticationConstants {
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";
+    
+    public static final String MS_FAMILY_ID = "1";
 
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
