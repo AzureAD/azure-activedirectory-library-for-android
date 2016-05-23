@@ -98,6 +98,15 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         if (mPrefs == null) {
             throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
         }
+        
+        // Check upfront when initializing DefaultTokenCacheStore. 
+        // If it's under API 18 and secretkey is not provided, we should fail upfront to inform 
+        // notify developers. 
+        try {
+            getStorageHelper().loadSecretKeyForEncryption();
+        } catch (final IOException | GeneralSecurityException e) {
+            Logger.v(TAG, "Fail to create keys from android keystore.");
+        }
     }
 
     /**
@@ -119,6 +128,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         try {
             return getStorageHelper().encrypt(value);
         } catch (GeneralSecurityException | IOException e) {
+            ClientAnalytics.logEvent(new EncryptionDecryptionFailureEvent(new InstrumentationPropertiesBuilder(e), true));
             Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
         }
 
@@ -133,6 +143,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         try {
             return getStorageHelper().decrypt(value);
         } catch (GeneralSecurityException | IOException e) {
+            ClientAnalytics.logEvent(new EncryptionDecryptionFailureEvent(new InstrumentationPropertiesBuilder(e), false));
             Logger.e(TAG, "Decryption failure", "", ADALError.DECRYPTION_FAILED, e);
             removeItem(key);
             Logger.v(TAG, String.format("Decryption error, item removed for key: '%s'", key));
@@ -368,5 +379,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
 
         return mPrefs.contains(key);
+    }
+    
+    private static class EncryptionDecryptionFailureEvent extends ClientAnalytics.Event {
+        private EncryptionDecryptionFailureEvent(final InstrumentationPropertiesBuilder builder, final boolean isEncryption) {
+            super(isEncryption ? InstrumentationIDs.ENCRYPTION_EVENT : InstrumentationIDs.DECRYPTION_EVENT,
+                    builder.add(InstrumentationIDs.EVENT_RESULT, InstrumentationIDs.EVENT_RESULT_FAIL)
+                            .build());
+        }
     }
 }

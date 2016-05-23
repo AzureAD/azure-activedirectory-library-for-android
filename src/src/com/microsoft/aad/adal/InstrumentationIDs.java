@@ -27,8 +27,17 @@ package com.microsoft.aad.adal;
  * Index of instrumentation event IDs used for logging
  */
 final class InstrumentationIDs {
-    /* Event invoked when refresh token request fails or successes*/
+    /* Event invoked when refresh token request fails or successes */
     static final String REFRESH_TOKEN_EVENT = "RefreshToken";
+    
+    /* Event invoked when android keystore fails to return persisted key */
+    static final String ANDROIDKEYSTORE_EVENT = "AndroidKeyStore";
+    
+    /* Event invoked when decryption fails */
+    static final String DECRYPTION_EVENT = "Decryption";
+    
+    /* Event invoked when encryption fail */
+    static final String ENCRYPTION_EVENT = "Encryption";
 
     /* Event invoked when auth token was successfully obtained */
     static final String EVENT_RESULT_SUCCESS = "Success";

@@ -23,8 +23,15 @@
 
 package com.microsoft.aad.adal.example.userappwithbroker;
 
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationCallback;
@@ -63,29 +70,28 @@ public class MainActivity extends Activity {
     /**
      * https://login.windows.net/tenantInfo
      */
-    private static final String AUTHORITY_URL = "https://login.microsoftonline.com/msdevex.onmicrosoft.com" ;
+    private static final String AUTHORITY_URL = "https://login.microsoftonline.com/yourtenantinfo";
 
     /**
-     * Client id is given from AAD page when you register your native app.
+     * Client id is given from AAD page when you register your native app. 
      */
-    private static final String CLIENT_ID = "b92e0ba5-f86e-4411-8e18-6b5f928d968a" ;
+    private static final String CLIENT_ID = "your-clientid";
 
     /**
-     * To user broker, Developer needs to register special redirectUri in Azure Portal for broker usage. RedirectUri is
-     * in the format of msauth://packagename /Base64UrlencodedSignature.
+     * To user broker, Developer needs to register special redirectUri in Azure Portal for broker usage. RedirectUri is 
+     * in the format of msauth://packagename/Base64UrlencodedSignature.
      */
-    private static final String REDIRECT_URL = "msauth://com.microsoft.aad.adal.example.userappwithbroker/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D" ;
+    private static final String REDIRECT_URL = "msauth://packagename/Base64EncodedSignature";
 
     /**
-     * URI for the resource. You need to setup this resource at AAD.
+     * URI for the resource. You need to setup this resource at AAD. 
      * @note: With the new broker with PRT support, even resouce or user don't have policy on to enforce
      * conditional access, when you have broker app installed, you'll still be able to talk to broker. And
-     * broker will support multiple users, one WPJ account and multiple aad users.
+     * broker will support multiple users, one WPJ account and multiple aad users. 
      */
-    private static final String RESOURCE_ID = "https://msdevex-my.sharepoint.com" ;
-   
-    private static final String RESOURCE_ID2 = "00000002-0000-0000-c000-000000000000" ;
-
+    private static final String RESOURCE_ID = "your-resource-with-CA-policy";
+    
+    private static final String RESOURCE_ID2 = "your-resource";
     
     private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID = "user.app.withbroker.uniqueidstorage";
 
@@ -182,29 +188,29 @@ public class MainActivity extends Activity {
         // AuthenticationSettings.Instance.setSkipBroker(boolean) is already deprecated. 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
         
-//        // Provide secret key for token encryption.
-//        try {
-//            // For API version lower than 18, you have to provide the secret key. The secret key 
-//            // needs to be 256 bits. You can use the following way to generate the secret key. And 
-//            // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the key. 
-//            // For API version 18 and above, we use android keystore to generate keypair, and persist
-//            // the keypair in AnroidKeyStore. Current investigation shows 1)Keystore may be locked with
-//            // a lock screen, if calling app has a lot of background activity, keystore cannot be 
-//            // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore could
-//            // be reset when gesture to unlock the device is changed.
-//            // We do recommend the calling app the supply us the key with the above two limitations. 
-//            if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
-//                // use same key for tests
-//                SecretKeyFactory keyFactory = SecretKeyFactory
-//                        .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
-//                SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-//                        "abcdedfdfd".getBytes("UTF-8"), 100, 256));
-//                SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
-//                AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
-//            }
-//        } catch (NoSuchAlgorithmException | InvalidKeySpecException | UnsupportedEncodingException ex) {
-//            showMessage("Fail to generate secret key:" + ex.getMessage());
-//        } 
+        // Provide secret key for token encryption.
+        try {
+            // For API version lower than 18, you have to provide the secret key. The secret key 
+            // needs to be 256 bits. You can use the following way to generate the secret key. And 
+            // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the key. 
+            // For API version 18 and above, we use android keystore to generate keypair, and persist
+            // the keypair in AnroidKeyStore. Current investigation shows 1)Keystore may be locked with
+            // a lock screen, if calling app has a lot of background activity, keystore cannot be 
+            // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore could
+            // be reset when gesture to unlock the device is changed.
+            // We do recommend the calling app the supply us the key with the above two limitations. 
+            if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
+                // use same key for tests
+                SecretKeyFactory keyFactory = SecretKeyFactory
+                        .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+                SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
+                        "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+                SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
+                AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
+            }
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | UnsupportedEncodingException ex) {
+            showMessage("Fail to generate secret key:" + ex.getMessage());
+        } 
 
         ApplicationInfo appInfo = getApplicationContext().getApplicationInfo();
         Log.v(TAG, "App info:" + appInfo.uid + " package:" + appInfo.packageName);

@@ -40,6 +40,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
@@ -133,7 +134,7 @@ public class StorageHelper {
     private final SecureRandom mRandom;
 
     /**
-     * it is needed for AndroidKeyStore.
+     * Public and private keys that are generated in AndroidKeyStore. 
      */
     private KeyPair mKeyPair;
     private String mBlobVersion;
@@ -149,7 +150,7 @@ public class StorageHelper {
     /**
      * encrypt text with current key based on API level
      *
-     * @param clearText Clar text to encrypt. 
+     * @param clearText Clear text to encrypt. 
      * @return Encrypted blob.
      * @throws GeneralSecurityException
      * @throws UnsupportedEncodingException
@@ -163,7 +164,9 @@ public class StorageHelper {
         }
 
         // load key for encryption if not loaded
-        loadSecretKeyForEncryption();
+        mKey = loadSecretKeyForEncryption();
+        mMacKey = getMacKey(mKey);
+        
         Logger.v(TAG, "Encrypt version:" + mBlobVersion);
         final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
@@ -208,7 +211,7 @@ public class StorageHelper {
     }
 
     /**
-     * Decrypt then blob with either user provided key or key persisted in AndroidKeyStore. 
+     * Decrypt encrypted blob with either user provided key or key persisted in AndroidKeyStore. 
      * @param value The blob to decrypt
      * @return Decrypted clear text.
      * @throws GeneralSecurityException
@@ -239,11 +242,11 @@ public class StorageHelper {
 
         // get key version used for this data. If user upgraded to different
         // API level, data needs to be updated
-        String encryptedDataKeyVersion = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
+        String keyVersion = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
                 AuthenticationConstants.ENCODING_UTF8);
-        Logger.v(TAG, "Encrypt version:" + encryptedDataKeyVersion);
+        Logger.v(TAG, "Encrypt version:" + keyVersion);
 
-        SecretKey secretKey = loadSecretKeyForDecryption(encryptedDataKeyVersion);
+        SecretKey secretKey = loadSecretKeyForDecryption(keyVersion);
         SecretKey macKey = getMacKey(secretKey);
 
         // byte input array: encryptedData-iv-macDigest
@@ -305,10 +308,7 @@ public class StorageHelper {
             mBlobVersion = VERSION_ANDROID_KEY_STORE;
         }
         
-        mKey = getKeyOrCreate(mBlobVersion);
-        mMacKey = getMacKey(mKey);
-        
-        return mKey;
+        return getKeyOrCreate(mBlobVersion);
     }
 
     /**
@@ -416,6 +416,8 @@ public class StorageHelper {
             // The thrown exception in this case is: 
             // java.lang.IllegalStateException: could not generate key in keystore
             // To avoid app crashing, re-throw as checked exception
+            ClientAnalytics.logEvent(new AndroidKeyStoreFailureEvent(
+                    new InstrumentationPropertiesBuilder(exception)));
             throw new KeyStoreException(exception);
         }
     }
@@ -440,6 +442,8 @@ public class StorageHelper {
                 // in this case getEntry throws
                 // java.lang.RuntimeException: error:0D07207B:asn1 encoding routines:ASN1_get_object:header too long
                 // handle it as regular KeyStoreException
+                ClientAnalytics.logEvent(new AndroidKeyStoreFailureEvent(
+                        new InstrumentationPropertiesBuilder(e)));
                 throw new KeyStoreException(e);
             }
         }
@@ -467,6 +471,8 @@ public class StorageHelper {
             // java.lang.NullPointerException: Attempt to invoke interface method 
             // 'int android.security.IKeystoreService.exist(java.lang.String, int)' on a null object reference
             // To avoid app from crashing, re-throw as checked exception
+            ClientAnalytics.logEvent(new AndroidKeyStoreFailureEvent(
+                    new InstrumentationPropertiesBuilder(exception)));
             throw new KeyStoreException(exception);
         }
         
@@ -572,7 +578,6 @@ public class StorageHelper {
             // All tokens with previous SecretKey are not possible to decrypt.
             Logger.e(TAG, "Unwrap failed for AndroidKeyStore", "", ADALError.ANDROIDKEYSTORE_FAILED, ex);
             mKeyPair = null;
-            unwrappedSecretKey = null;
             deleteKeyFile();
             resetKeyPairFromAndroidKeyStore();
             Logger.v(TAG, "Removed previous key pair info.");
@@ -621,6 +626,8 @@ public class StorageHelper {
             // Issue 61989: AndroidKeyStore deleted after changing screen lock type
             // https://code.google.com/p/android/issues/detail?id=61989
             // To avoid app crashing from 2), re-throw it as checked exception
+            ClientAnalytics.logEvent(new AndroidKeyStoreFailureEvent(
+                    new InstrumentationPropertiesBuilder(exception)));
             throw new KeyStoreException(exception);
         }
     }
@@ -650,6 +657,14 @@ public class StorageHelper {
             return bytes.toByteArray();
         } finally {
             in.close();
+        }
+    }
+    
+    private static class AndroidKeyStoreFailureEvent extends ClientAnalytics.Event {
+        private AndroidKeyStoreFailureEvent(final InstrumentationPropertiesBuilder builder) {
+            super(InstrumentationIDs.ANDROIDKEYSTORE_EVENT,
+                    builder.add(InstrumentationIDs.EVENT_RESULT, InstrumentationIDs.EVENT_RESULT_FAIL)
+                            .build());
         }
     }
 }
