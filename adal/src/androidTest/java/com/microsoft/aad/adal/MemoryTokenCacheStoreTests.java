@@ -1,22 +1,27 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
-packagecom.microsoft.aad.adal;
+package com.microsoft.aad.adal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,12 +32,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CountDownLatch;
 
 import javax.crypto.NoSuchPaddingException;
-
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.CacheKey;
-import com.microsoft.aad.adal.ITokenCacheStore;
-import com.microsoft.aad.adal.MemoryTokenCacheStore;
-import com.microsoft.aad.adal.TokenCacheItem;
 
 public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
@@ -59,8 +58,9 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
      * 
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
+     * @throws AuthenticationException 
      */
-    public void testSharedCacheGetItem() throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public void testSharedCacheGetItem() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
         final ITokenCacheStore store = setupItems();
 
         final CountDownLatch signal = new CountDownLatch(activeTestThreads);
@@ -72,18 +72,22 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
                 // Remove and then verify that
                 // One thread will do the actual remove action.
-                store.removeItem(CacheKey.createCacheKey(testItem));
-                TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
-                assertNull("Token cache item is expected to be null", item);
+                try {
+                    store.removeItem(CacheKey.createCacheKey(testItem));
+                    TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+                    assertNull("Token cache item is expected to be null", item);
 
-                item = store.getItem(CacheKey.createCacheKey("", "", "", false, ""));
-                assertNull("Token cache item is expected to be null", item);
+                    item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", null));
+                    assertNull("Token cache item is expected to be null", item);
 
-                store.removeItem(CacheKey.createCacheKey(testItem2));
-                item = store.getItem(CacheKey.createCacheKey(testItem));
-                assertNull("Token cache item is expected to be null", item);
-
-                signal.countDown();
+                    store.removeItem(CacheKey.createCacheKey(testItem2));
+                    item = store.getItem(CacheKey.createCacheKey(testItem));
+                    assertNull("Token cache item is expected to be null", item);
+                } catch (AuthenticationException e) {
+                    e.printStackTrace();
+                } finally {
+                    signal.countDown();
+                }
             }
         };
 
@@ -94,7 +98,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testSerialization() throws IOException, ClassNotFoundException,
-            NoSuchAlgorithmException, NoSuchPaddingException {
+            NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
 
         ITokenCacheStore store = setupItems();
 
@@ -130,9 +134,10 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
      * 
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
+     * @throws AuthenticationException 
      */
     public void testMemoryCacheMultipleContext() throws NoSuchAlgorithmException,
-            NoSuchPaddingException {
+            NoSuchPaddingException, AuthenticationException {
         ITokenCacheStore tokenCacheA = setupItems();
         AuthenticationContext contextA = new AuthenticationContext(getInstrumentation()
                 .getContext(), VALID_AUTHORITY, false, tokenCacheA);

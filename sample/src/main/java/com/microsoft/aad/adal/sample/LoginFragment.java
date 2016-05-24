@@ -14,6 +14,7 @@ import android.webkit.CookieSyncManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.microsoft.aad.adal.hello.R;
 
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;

@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -30,6 +35,8 @@ public final class CacheKey implements Serializable {
      * Serial version id.
      */
     private static final long serialVersionUID = 8067972995583126404L;
+    
+    static final String FRT_ENTRY_PREFIX = "foci-";
 
     private String mAuthority;
 
@@ -39,18 +46,23 @@ public final class CacheKey implements Serializable {
 
     private String mUserId;
 
+    private String mFamilyClientId;
+    
     private boolean mIsMultipleResourceRefreshToken;
 
     private CacheKey() {
-        mAuthority = null;
-        mResource = null;
-        mClientId = null;
     }
 
     @Override
     public String toString() {
-        return String.format(Locale.US, "%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
-                (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId);
+        // only family token cache item will have the family client id as the key
+        if (StringExtensions.IsNullOrBlank(mFamilyClientId)) {
+            return String.format(Locale.US, "%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
+                    (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId);
+        }
+        
+        return String.format(Locale.US, "%s$%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
+                (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId, mFamilyClientId);
     }
 
     /**
@@ -61,21 +73,25 @@ public final class CacheKey implements Serializable {
      * @param userId userid provided from {@link UserInfo}
      * @return CacheKey to use in saving token
      */
-    public static String createCacheKey(String authority, String resource, String clientId,
-            boolean isMultiResourceRefreshToken, String userId) {
+    public static String createCacheKey(final String authority, final String resource, final String clientId,
+            final boolean isMultiResourceRefreshToken, final String userId, final String familyClientId) {
 
         if (authority == null) {
             throw new IllegalArgumentException("authority");
         }
-
-        if (clientId == null) {
-            throw new IllegalArgumentException("clientId");
+        
+        // For family token cache entry, client id will be foci-familyId
+        // When we receive family token from server response, will use whatever
+        // server returned as familyId; for caching look up, will hardcode "1"
+        // for now since only FoCI feature is only supported for Microsoft first
+        // party apps, and server returns "1" for Microsoft family apps. 
+        if (clientId == null && familyClientId == null) {
+            throw new IllegalArgumentException("both clientId and familyClientId are null");
         }
-
-        CacheKey key = new CacheKey();
-
+        
+        final CacheKey key = new CacheKey();
+        
         if (!isMultiResourceRefreshToken) {
-
             if (resource == null) {
                 throw new IllegalArgumentException("resource");
             }
@@ -83,13 +99,21 @@ public final class CacheKey implements Serializable {
             // MultiResource token items will be stored without resource
             key.mResource = resource;
         }
-
+        
         key.mAuthority = authority.toLowerCase(Locale.US);
         if (key.mAuthority.endsWith("/")) {
             key.mAuthority = (String)key.mAuthority.subSequence(0, key.mAuthority.length() - 1);
         }
 
-        key.mClientId = clientId.toLowerCase(Locale.US);
+        if (clientId != null) {
+            key.mClientId = clientId.toLowerCase(Locale.US);
+        }
+        
+        if (familyClientId != null) {
+            final String prefixedFamilyClient = FRT_ENTRY_PREFIX + familyClientId;
+            key.mFamilyClientId =  prefixedFamilyClient.toLowerCase(Locale.US);
+        }
+
         key.mIsMultipleResourceRefreshToken = isMultiResourceRefreshToken;
 
         // optional
@@ -101,54 +125,55 @@ public final class CacheKey implements Serializable {
     }
 
     /**
-     * @param item Token item in the cache
-     * @return CacheKey to save token
+     * Create cachekey from {@link TokenCacheItem}. It will use {@link UserInfo#getUserId()} 
+     * as the user for cachekey if present. 
+     * @param item {@link TokenCacheItem} that is used to create the cache key. 
+     * @return String value of the {@link CacheKey} to save token. 
+     * @throws AuthenticationException 
      */
-    public static String createCacheKey(TokenCacheItem item) {
+    public static String createCacheKey(TokenCacheItem item) throws AuthenticationException {
         if (item == null) {
             throw new IllegalArgumentException("TokenCacheItem");
         }
 
         String userid = null;
-
         if (item.getUserInfo() != null) {
             userid = item.getUserInfo().getUserId();
         }
-
-        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(),
-                item.getIsMultiResourceRefreshToken(), userid);
-    }
-
-    /**
-     * @param item AuthenticationRequest item
-     * @param cacheUserId UserId in the cache
-     * @return CacheKey to save token
-     */
-    public static String createCacheKey(AuthenticationRequest item, String cacheUserId) {
-        if (item == null) {
-            throw new IllegalArgumentException("AuthenticationRequest");
+        
+        final TokenEntryType tokenEntryType = item.getTokenEntryType();
+        switch (tokenEntryType) {
+        case REGULAR_TOKEN_ENTRY: 
+            return createCacheKeyForRTEntry(item.getAuthority(), item.getResource(), 
+                    item.getClientId(), userid);
+        case MRRT_TOKEN_ENTRY:
+            return createCacheKeyForMRRT(item.getAuthority(), item.getClientId(), userid);
+        case FRT_TOKEN_ENTRY:
+            return createCacheKeyForFRT(item.getAuthority(), item.getFamilyClientId(), userid);
+        default: 
+            throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM, "Cannot create cachekey from given token item");
         }
-
-        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), false,
-                cacheUserId);
     }
-
+    
     /**
-     * Store multi resource refresh tokens with different key. Key will not
-     * include resource and set flag to y.
-     * 
-     * @param item AuthenticationRequest item
-     * @param cacheUserId UserId in the cache
-     * @return CacheKey to save token
+     * Create cache key for regular RT entry. 
      */
-    public static String createMultiResourceRefreshTokenKey(AuthenticationRequest item,
-            String cacheUserId) {
-        if (item == null) {
-            throw new IllegalArgumentException("AuthenticationRequest");
-        }
-
-        return createCacheKey(item.getAuthority(), item.getResource(), item.getClientId(), true,
-                cacheUserId);
+    public static String createCacheKeyForRTEntry(final String authority, final String resource, final String clientId, final String userId) {
+        return createCacheKey(authority, resource, clientId, false, userId, null);
+    }
+    
+    /**
+     * Create cache key for MRRT entry. 
+     */
+    public static String createCacheKeyForMRRT(final String authority, final String clientId, final String userId) {
+        return createCacheKey(authority, null, clientId, true, userId, null);
+    }
+    
+    /**
+     * Create cache key for FRT entry. 
+     */
+    public static String createCacheKeyForFRT(final String authority, final String familyClientId, final String userId) {
+        return createCacheKey(authority, null, null, true, userId, familyClientId);
     }
 
     /**

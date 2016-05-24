@@ -465,13 +465,13 @@ public class MainActivity extends Activity {
         calendar.add(Calendar.MINUTE, -30);
         Date date = calendar.getTime();
         ITokenCacheStore cache = mContext.getCache();
-        String key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
-                .toString(), mClientId.getText().toString(), false, mUserid.getText().toString());
+        String key = CacheKey.createCacheKeyForRTEntry(mAuthority.getText().toString(), 
+                mResource.getText().toString(), mClientId.getText().toString(), mUserid.getText().toString());
         TokenCacheItem item = cache.getItem(key);
         setTime(cache, date, key, item);
 
-        key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
-                .toString(), mClientId.getText().toString(), true, mUserid.getText().toString());
+        key = CacheKey.createCacheKeyForMRRT(mAuthority.getText().toString(), mClientId.getText().toString(),  
+                mUserid.getText().toString());
         item = cache.getItem(key);
         setTime(cache, date, key, item);
     }
@@ -496,11 +496,11 @@ public class MainActivity extends Activity {
         Log.d(TAG, "Setting item to expire...");
         ArrayList<TokenCacheItem> items = new ArrayList<TokenCacheItem>();
         DefaultTokenCacheStore cache = (DefaultTokenCacheStore)mContext.getCache();
-        Iterator<TokenCacheItem> iterator = cache.getAll();
-        while (iterator.hasNext()) {
-            TokenCacheItem item = iterator.next();
-            if (item != null) {
-                items.add(item);
+        final Iterator<TokenCacheItem> allItems = cache.getAll();
+        while (allItems.hasNext()) {
+            TokenCacheItem tokenCacheItem = allItems.next();
+            if (tokenCacheItem != null) {
+                items.add(tokenCacheItem);
             }
         }
 

@@ -1,24 +1,30 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -31,11 +37,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.IJWSBuilder;
+import junit.framework.Assert;
 
 public class ChallengeResponseBuilderTests extends AndroidTestHelper {
 
@@ -193,7 +195,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         try 
         {
             response = m.invoke(handler, authorizationHeader);
-            fail("expected exception");
+            Assert.fail("expected exception");
         } 
         catch (Exception ex) 
         {
@@ -216,7 +218,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         // act
         try {
             m.invoke(handler, redirectURI);
-            fail("expected exception");
+            Assert.fail("expected exception");
         } catch (Exception ex) {
             assertEquals("Error code check", ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
                     ((AuthenticationException)ex.getCause()).getCode());
@@ -278,7 +280,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
 
         try {
             m.invoke(handler, "");
-            fail("No exception");
+            Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("redirectUri"));
         }
@@ -286,7 +288,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         try {
             m.invoke(handler, CERT_REDIRECT
                     + "?Noncemissing=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Context=1");
-            fail("No exception");
+            Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("Nonce"));
         }
@@ -294,7 +296,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         try {
             m.invoke(handler, CERT_REDIRECT
                     + "?Nonce=2&CertAuthoritiesMissing=ABC&Version=1.0&SubmitUrl=1&Context=1");
-            fail("No exception");
+            Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("CertAuthorities"));
         }
@@ -302,7 +304,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         try {
             m.invoke(handler, CERT_REDIRECT
                     + "?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrlMissing=1&Context=1");
-            fail("No exception");
+            Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("SubmitUrl"));
         }
@@ -310,7 +312,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         try {
             m.invoke(handler, CERT_REDIRECT
                     + "?Nonce=2&CertAuthorities=ABC&Versionmiss=1.0&SubmitUrl=1&Context=1");
-            fail("No exception");
+            Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("Version"));
         }
@@ -318,7 +320,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         try {
             m.invoke(handler, CERT_REDIRECT
                     + "?Nonce=2&CertAuthorities=ABC&Version=1.0&SubmitUrl=1&Contextmiss=1");
-            fail("No exception");
+            Assert.fail("No exception");
         } catch (Exception ex) {
             assertTrue("Argument exception", ex.getCause().getMessage().contains("Context"));
         }

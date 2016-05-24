@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -68,6 +73,12 @@ public class AuthenticationConstants {
          * callback.
          */
         public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = 2005;
+        
+        /**
+         * CA flow, device doesn't have company portal or azure authenticator installed. 
+         * Waiting for broker package to be installed, and resume request in broker. 
+         */
+        public static final int BROKER_REQUEST_RESUME = 2006;
     }
 
     public static final class UIRequest {
@@ -81,6 +92,8 @@ public class AuthenticationConstants {
     public static final class OAuth2 {
         /** Core OAuth2 strings. */
         public static final String ACCESS_TOKEN = "access_token";
+
+        public static final String AUTHORITY = "authority";
 
         public static final String AUTHORIZATION_CODE = "authorization_code";
 
@@ -198,6 +211,12 @@ public class AuthenticationConstants {
         public static final String BACKGROUND_REQUEST_MESSAGE = "background.request";
 
         public static final String ACCOUNT_DEFAULT_NAME = "Default";
+        
+        public static final String BROKER_VERSION = "broker.version";
+        
+        public static final String BROKER_PROTOCOL_VERSION = "v2";
+        
+        public static final String BROKER_RESULT_RETURNED = "broker.result.returned";
 
         /**
          * Authtoken type string.
@@ -289,13 +308,13 @@ public class AuthenticationConstants {
          * Apk packagename that will install AD-Authenticator. It is used to
          * query if this app installed or not from package manager.
          */
-        public static final String PACKAGE_NAME = "com.microsoft.windowsintune.companyportal";
+        public static final String COMPANY_PORTAL_APP_PACKAGE_NAME = "com.microsoft.windowsintune.companyportal";
 
         /**
          * Signature info for Intune Company portal app that installs authenticator
          * component.
          */
-        public static final String SIGNATURE = "1L4Z9FJCgn5c0VLhyAxC5O9LdlE=";
+        public static final String COMPANY_PORTAL_APP_SIGNATURE = "1L4Z9FJCgn5c0VLhyAxC5O9LdlE=";
         
         /**
          * Signature info for Azure authenticator app that installs authenticator
@@ -325,6 +344,8 @@ public class AuthenticationConstants {
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";
+    
+    public static final String MS_FAMILY_ID = "1";
 
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
@@ -334,4 +355,12 @@ public class AuthenticationConstants {
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
     public static final String AUTHENTICATION_FILE_DIRECTORY = "com.microsoft.aad.adal.authentication";
+    
+    protected static final class OAuth2ErrorCode {
+        /**       
+         * Oauth2 error code invalid_grant.
+         */       
+        static final String INVALID_GRANT = "invalid_grant";
+    }     
+
 }

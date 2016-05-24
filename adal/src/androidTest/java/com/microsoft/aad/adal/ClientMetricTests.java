@@ -1,3 +1,25 @@
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
+//
+// This code is licensed under the MIT License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -6,6 +28,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class ClientMetricTests extends AndroidTestHelper {
@@ -17,9 +40,9 @@ public class ClientMetricTests extends AndroidTestHelper {
         Object clientMetrics = getInstance();
         final URL endpointAdfs = new URL("https://fs.ade2eadfs30.com/adfs");
         UUID correlationId = UUID.randomUUID();
-        HashMap<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<String, String>();
         Method method = ReflectionUtils.getTestMethod(clientMetrics, "beginClientMetricsRecord",
-                URL.class, UUID.class, headers.getClass());
+                URL.class, UUID.class, Map.class);
         method.invoke(clientMetrics, endpointAdfs, correlationId, headers);
 
         assertTrue("Expecting empty header", headers.isEmpty());
@@ -33,9 +56,9 @@ public class ClientMetricTests extends AndroidTestHelper {
         Object clientMetrics = getInstance();
         final URL endpointAdfs = new URL("https://login.windwos.com/testtenant");
         UUID correlationId = UUID.randomUUID();
-        HashMap<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<String, String>();
         Method beginMethod = ReflectionUtils.getTestMethod(clientMetrics,
-                "beginClientMetricsRecord", URL.class, UUID.class, headers.getClass());
+                "beginClientMetricsRecord", URL.class, UUID.class, Map.class);
         beginMethod.invoke(clientMetrics, endpointAdfs, correlationId, headers);
 
         Method endMethod = ReflectionUtils.getTestMethod(clientMetrics, "endClientMetricsRecord",

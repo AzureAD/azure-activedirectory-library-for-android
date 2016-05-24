@@ -51,6 +51,7 @@ import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.hello.R;
 
 public class MainActivity extends Activity {
 

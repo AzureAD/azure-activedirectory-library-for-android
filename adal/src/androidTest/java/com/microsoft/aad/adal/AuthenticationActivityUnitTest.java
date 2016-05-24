@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -31,7 +36,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -55,15 +59,6 @@ import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.ApplicationReceiver;
-import com.microsoft.aad.adal.AuthenticationActivity;
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.R;
 
 /**
  * Unit test to verify buttons, webview and other items.
@@ -270,8 +265,25 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         WebViewClient client = getCustomWebViewClient();
         WebView mockview = new WebView(getActivity().getApplicationContext());
         ReflectionUtils.setFieldValue(activity, "mSpinner", null);
-        //shouldOverrideUrlLoading should prevent non https redirects in the web view
         assertEquals(false,client.shouldOverrideUrlLoading(mockview, url));
+    }
+    
+    @SmallTest
+    @UiThreadTest    
+    public void testWebview_blankredirectURL() throws IllegalArgumentException,
+            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
+            ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            InterruptedException, ExecutionException {
+        startActivity(intentToStartActivity, null, null);
+        activity = getActivity();
+        /*
+         * case 1: url = "about:blank"
+         */
+        String url = "about:blank";
+        WebViewClient client = getCustomWebViewClient();
+        WebView mockview = new WebView(getActivity().getApplicationContext());
+        ReflectionUtils.setFieldValue(activity, "mSpinner", null);
+        assertEquals(true,client.shouldOverrideUrlLoading(mockview, url));
     }
     
 
@@ -454,9 +466,8 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         String json = "{\"id_token\":"
                 + idToken
                 + ",\"access_token\":\"TokentestBroker\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
-        webrequest.setReturnResponse(new HttpWebResponse(200, json.getBytes(Charset
-                .defaultCharset()), null));
         ReflectionUtils.setFieldValue(activity, "mWebRequestHandler", webrequest);
+        webrequest.setReturnResponse(new HttpWebResponse(200, json, null));
         return webrequest;
     }
 
@@ -577,6 +588,54 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("log the message for correct Intent",
                 response2.message.contains(broadcastCancelMsg2));
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testWebview_HardwareAccelerationDisable() throws IllegalArgumentException, 
+           NoSuchFieldException, IllegalAccessException {
+        
+        //By default hardware acceleration should be enable.
+        assertTrue(AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration());
+        
+        // Disable webview hardware acceleration
+        AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(false);
+        
+        startActivity(intentToStartActivity, null, null);
+
+        activity = getActivity();
+
+        // get field value to check
+        WebView webView = (WebView) ReflectionUtils.getFieldValue(activity,"mWebView");
+
+        // Assert WebView is not null
+        assertNotNull("WebView:: ", webView);
+
+        // If LayerType is LAYER_TYPE_SOFTWARE then HardwareAcceleration would be disabled
+        assertEquals("LayerType", WebView.LAYER_TYPE_SOFTWARE, webView.getLayerType());
+        
+        // Reset hardware acceleration to default value.
+        AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(true);
+    }
+
+    @SmallTest
+    @UiThreadTest
+    public void testWebview_HardwareAccelerationEnable() throws IllegalArgumentException, 
+           NoSuchFieldException, IllegalAccessException {
+
+        startActivity(intentToStartActivity, null, null);
+
+        activity = getActivity();
+
+        // get field value to check
+        WebView webView = (WebView) ReflectionUtils.getFieldValue(activity, "mWebView");
+
+        // Assert WebView is not null
+        assertNotNull("WebView:: ", webView);
+
+        // In case if webview is hardware accelerated then 
+        // its layer type should not be LAYER_TYPE_SOFTWARE
+        assertNotSame("LayerType", WebView.LAYER_TYPE_SOFTWARE, webView.getLayerType());
     }
 
     @Override

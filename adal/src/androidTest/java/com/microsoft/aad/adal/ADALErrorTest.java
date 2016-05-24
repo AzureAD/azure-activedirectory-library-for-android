@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -31,10 +36,6 @@ import android.test.InstrumentationTestCase;
 import android.util.Base64;
 import android.util.Log;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationSettings;
-
 public class ADALErrorTest extends InstrumentationTestCase {
 
     private static final String TAG = "ADALErrorTests";
@@ -47,8 +48,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         getInstrumentation().getTargetContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
-                .getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
@@ -62,7 +62,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
         }
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         AuthenticationSettings.INSTANCE
-                .setBrokerPackageName(AuthenticationConstants.Broker.PACKAGE_NAME);
+                .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Log.d(TAG, "testSignature is set");
     }
 
@@ -70,33 +70,25 @@ public class ADALErrorTest extends InstrumentationTestCase {
     public void testResourceOverwrite() {
         ADALError err = ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED;
         String msg = err.getDescription();
-        Log.v(TAG, "Test context packagename:"
-                + getInstrumentation().getTargetContext().getPackageName());
+        Log.v(TAG, "Test context packagename:" + getInstrumentation().getTargetContext().getPackageName());
         Locale locale2 = new Locale("de");
         Locale.setDefault(locale2);
         Configuration config = new Configuration();
         config.setLocale(locale2);
-        getInstrumentation()
-                .getContext()
-                .getResources()
-                .updateConfiguration(config,
-                        getInstrumentation().getContext().getResources().getDisplayMetrics());
+        getInstrumentation().getContext().getResources().updateConfiguration(config,
+                getInstrumentation().getContext().getResources().getDisplayMetrics());
         String localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
-        
+
         assertFalse("Error decription is different in resource", msg.equalsIgnoreCase(localizedMsg));
 
         Locale localefr = new Locale("fr");
         Locale.setDefault(localefr);
         config.setLocale(localefr);
-        getInstrumentation()
-                .getContext()
-                .getResources()
-                .updateConfiguration(config,
-                        getInstrumentation().getContext().getResources().getDisplayMetrics());
+        getInstrumentation().getContext().getResources().updateConfiguration(config,
+                getInstrumentation().getContext().getResources().getDisplayMetrics());
         localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
-        
+
         assertFalse("Same as english", msg.equalsIgnoreCase(localizedMsg));
-        assertTrue("in default",
-                localizedMsg.contains("Authority validation returned an error"));
+        assertTrue("in default", localizedMsg.contains("Authority validation returned an error"));
     }
 }

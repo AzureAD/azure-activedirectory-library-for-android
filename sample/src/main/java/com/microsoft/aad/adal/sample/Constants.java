@@ -31,20 +31,15 @@ public class Constants {
     public static final String HEADER_AUTHORIZATION_VALUE_PREFIX = "Bearer ";
     
     // AAD PARAMETERS
-    // https://login.windows.net/tenantInfo
-    static final String AUTHORITY_URL = "https://login.windows.net/common";
+    static final String AUTHORITY_URL = "https://login.microsoftonline.com/msdevex.onmicrosoft.com";
 
-    // Clientid is given from AAD page when you register your Android app
-    static final String CLIENT_ID = "the_client_ID";
+    static final String CLIENT_ID = "d6098c32-84e4-4833-b8a5-f0a475f1c27a";
 
-    // RedirectUri
-    static final String REDIRECT_URL = "http://your.redirect.url.here";
+    static final String REDIRECT_URL = "http://taskapp";
 
-    // URI for the resource. You need to setup this resource at AAD
-    static final String RESOURCE_ID = "your_resource_ID";
+    static final String RESOURCE_ID = "00000002-0000-0000-c000-000000000000";
 
-    // Endpoint we are targeting for the deployed WebAPI service
-    static final String SERVICE_URL = "https://your.service.url.here";
+    static final String SERVICE_URL = "https://android.azurewebsites.net/api/values";
 
     // ------------------------------------------------------------------------------------------
 

@@ -1,20 +1,25 @@
-// Copyright © Microsoft Open Technologies, Inc.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-// All Rights Reserved
+// This code is licensed under the MIT License.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS
-// OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-// ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A
-// PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
-//
-// See the Apache License, Version 2.0 for the specific language
-// governing permissions and limitations under the License.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 package com.microsoft.aad.adal;
 
@@ -61,39 +66,76 @@ public class TokenCacheItem implements Serializable {
     private String mFamilyClientId;
 
     /**
-     * Construct default cache item.
+     * Default constructor for cache item.
      */
-    public TokenCacheItem() {
-
+    public TokenCacheItem() {}
+    
+    TokenCacheItem(final TokenCacheItem tokenCacheItem) {
+        this.mAuthority = tokenCacheItem.getAuthority();
+        this.mResource = tokenCacheItem.getResource();
+        this.mClientId = tokenCacheItem.getClientId();
+        this.mAccessToken = tokenCacheItem.getAccessToken();
+        this.mRefreshtoken = tokenCacheItem.getRefreshToken();
+        this.mRawIdToken = tokenCacheItem.getRawIdToken();
+        this.mUserInfo = tokenCacheItem.getUserInfo();
+        this.mExpiresOn = tokenCacheItem.getExpiresOn();
+        this.mIsMultiResourceRefreshToken = tokenCacheItem.getIsMultiResourceRefreshToken();
+        this.mTenantId = tokenCacheItem.getTenantId();
+        this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
     }
-
-    TokenCacheItem(final AuthenticationRequest request, final AuthenticationResult result,
-            boolean storeMultiResourceRefreshToken) {
-        if (request != null) {
-            mAuthority = request.getAuthority();
-            mClientId = request.getClientId();
-            if (!storeMultiResourceRefreshToken) {
-                // Cache item will not store resource info for Multi Resource
-                // Refresh Token
-                mResource = request.getResource();
-            }
+    
+    /**
+     * Construct cache item with given authority and returned auth result. 
+     */
+    private TokenCacheItem(final String authority, final AuthenticationResult authenticationResult) {
+        if (authenticationResult == null) {
+            throw new IllegalArgumentException("authenticationResult");
         }
 
-        if (result != null) {
-            mRefreshtoken = result.getRefreshToken();
-            mExpiresOn = result.getExpiresOn();
-            mIsMultiResourceRefreshToken = storeMultiResourceRefreshToken;
-            mTenantId = result.getTenantId();
-            mUserInfo = result.getUserInfo();
-            mRawIdToken = result.getIdToken();
-            if (!storeMultiResourceRefreshToken) {
-                // Cache item will not store accesstoken for Multi
-                // Resource Refresh Token
-                mAccessToken = result.getAccessToken();
-            }
-            
-            mFamilyClientId = result.getFamilyClientId();
+        if (StringExtensions.IsNullOrBlank(authority)) {
+            throw new IllegalArgumentException("authority");
         }
+        
+        mAuthority = authority;
+        mExpiresOn = authenticationResult.getExpiresOn();
+        // Multi-resource refresh token won't have resource recorded. To support back-compability
+        // for existing token cache item.
+        mIsMultiResourceRefreshToken = authenticationResult.getIsMultiResourceRefreshToken();
+        mTenantId = authenticationResult.getTenantId();
+        mUserInfo = authenticationResult.getUserInfo();
+        mRawIdToken = authenticationResult.getIdToken();
+        mRefreshtoken = authenticationResult.getRefreshToken();
+        mFamilyClientId = authenticationResult.getFamilyClientId();
+    }
+    
+    /**
+     * Create regular RT token cache item. 
+     */
+    public static TokenCacheItem createRegularTokenCacheItem(final String authority, final String resource, final String clientId, final AuthenticationResult authResult) {
+        final TokenCacheItem item = new TokenCacheItem(authority, authResult);
+        item.setClientId(clientId);
+        item.setResource(resource);
+        item.setAccessToken(authResult.getAccessToken());
+        return item;
+    }
+    
+    /**
+     * Create MRRT token cache item. 
+     * Will not store AT and resource in the token cache.
+     */
+    public static TokenCacheItem createMRRTTokenCacheItem(final String authority, final String clientId, final AuthenticationResult authResult) {
+        final TokenCacheItem item = new TokenCacheItem(authority, authResult);
+        item.setClientId(clientId);
+        
+        return item;
+    }
+    
+    /**
+     * Create FRT token cache entry. 
+     * Will not store clientId, resource and AT. 
+     */
+    public static TokenCacheItem createFRRTTokenCacheItem(final String authority, final AuthenticationResult authResult) {
+        return new TokenCacheItem(authority, authResult);
     }
 
     public UserInfo getUserInfo() {
@@ -203,4 +245,61 @@ public class TokenCacheItem implements Serializable {
 
         return false;
     }
+    
+    /**
+     * @return {@link TokenEntryType} based on the fields stored in the 
+     * {@link TokenCacheItem}. 
+     * 1) Only item stored for regular token entry has resource stored. 
+     * 2) Item stored for FRT entry won't have client Id stored. 
+     */
+    TokenEntryType getTokenEntryType() {
+        if (!StringExtensions.IsNullOrBlank(this.getResource())) {
+            // Only regular token cache entry is storing resouce. 
+            return TokenEntryType.REGULAR_TOKEN_ENTRY;
+        } else if (StringExtensions.IsNullOrBlank(this.getClientId())) {
+            // Family token cache item does not store clientId
+            return TokenEntryType.FRT_TOKEN_ENTRY;
+        } else {
+            return TokenEntryType.MRRT_TOKEN_ENTRY;
+        }
+    }
+    
+    /**
+     * @return True if the {@link TokenCacheItem} has FoCI flag, false otherwise. 
+     */
+    boolean isFamilyToken() {
+        return !StringExtensions.IsNullOrBlank(mFamilyClientId);
+    }
+}
+
+/**
+ * Internal class representing the entry type for stored {@link TokenCacheItem}
+ */
+enum TokenEntryType {
+    /**
+     * Represents the regular token entry. 
+     * {@link TokenCacheItem} stored for regular token entry will have resource, 
+     * access token, client id store. 
+     * If it's also a MRRT item, MRRT flag will be marked as true. 
+     * If it's also a FRT item, FoCI field will be populated with the family client Id 
+     * server returned. 
+     */
+    REGULAR_TOKEN_ENTRY, 
+    
+    /**
+     * Represents the MRRT token entry. 
+     * {@link TokenCacheItem} stored for MRRT token entry will not have resource 
+     * and access token store. 
+     * MRRT flag will be set as true. 
+     * If it's also a FRT item, FoCI field will be populated with the family client Id 
+     * server returned. 
+     */
+    MRRT_TOKEN_ENTRY, 
+    
+    /**
+     * Represents the FRT token entry. 
+     * {@link TokenCacheItem} stored for FRT token entry will not have resource, access token
+     * and client id stored. FoCI field be will populated with the value server returned. 
+     */
+    FRT_TOKEN_ENTRY
 }

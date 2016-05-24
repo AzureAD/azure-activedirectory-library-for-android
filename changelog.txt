@@ -1,3 +1,70 @@
+Version 1.2.0
+--------------
+Add support for family ClientId
+Add support for serialize/deserialize cache per user base
+Add FORCE_PROMPT support for authentication via broker
+Update to revert back the behaviour for calling acquireTokenSilentSync on main thread
+Add interface for telemetry events
+Fix date time parsing for 24 hour format
+Update to reuse existing sockets
+
+Version 1.1.19
+--------------
+(Hotfix) To avoid app crashing from runtime exceptions thrown by AndroidKeystore, catch and rethrow as checked exception
+
+Version 1.1.18
+--------------
+(Hotfix) Revert the checking for private key before unwrapping
+
+Version 1.1.17
+--------------
+Fix for checking retrieved private key before unwrapping symmetric key, avoid the crash for InvalidArgumentException when key data is wiped by keystore but not alias
+Update the cache lookup logic for multi-resource refresh token
+Update token cache removal logic to only remove stored token when receiving invalid_grant as oauth2 error
+Disable Family of Client Id feature
+Update readme for secret key generation and update sample for token acquisition flow with broker
+Add the function to turn-off hardware acceleration in AuthenticationActivity webview
+Add the function to resume broker request after clicking on "Get the app" page and install the broker app
+Update BrokerProxy to recognize company portal for adding account during conditional access flow
+
+Version 1.1.16
+--------------
+Hot fix for catching RuntimeException thrown due to AndroidKeyStore bug, so App won't crash due to keystore got reset
+
+Version 1.1.15
+--------------
+Update check for null to prevent null pointer exception
+Update AuthenticationException to extend from Exception instead of RuntimeException
+Update for PoliCheck result
+Type update for Challenge
+
+Version 1.1.14 (hot fix)
+--------------
+Add the support for FamilyClientID
+Fix the bug of redirect URI verification for silent request (hot fix)
+Refactor the broker usage flag and change the public API for using broker and broker is not used by default
+Add the UsageAuthenticationException to handle the errors that the developer might have made in their usage of ADAL
+Fix breaking tests
+
+Version 1.1.13
+--------------
+Remove catching generic exceptions and catch only expected ones
+Add broker redirect uri verify before talking to broker
+Fix for default token cache removing token when there is decryption failure
+Remove static class variable for solving decryption problem when two both broker apps are involved
+
+Version 1.1.12
+--------------
+Update cert prompt for TLS request(not responding to TLS request for device authentication)
+Update Travis to compile Android 21
+Remove warnings for unused code
+
+Version 1.1.11
+--------------
+Fix for reading tenant id, and expiration data from broker return
+Add support for authenticating user using client certificate
+Update target version to android 5
+
 Version 1.1.10
 --------------
 fix issue #420: pick up device cert based on either cert authority or cert thumbprint
