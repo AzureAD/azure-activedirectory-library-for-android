@@ -19,25 +19,16 @@
 package com.microsoft.aad.adal;
 
 class ProfileInfo {
+    String mVersion;
+
     String mSubject;
 
     String mTenantId;
 
-    String mUpn;
-
     String mName;
 
-    String mEmail;
-
-    String mIdentityProvider;
+    String mPreferredName;
     
-    String mObjectId;
-    
-    long mPasswordExpiration;
-    
-    String mPasswordChangeUrl;
-        
     public ProfileInfo(){
-        
     }
 }

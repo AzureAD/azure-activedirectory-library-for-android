@@ -1354,14 +1354,18 @@ public class AuthenticationContext {
             mTokenCacheStore.deleteIntersectingScope(key);
             
             TokenCacheItem cacheItem = new TokenCacheItem(request, result, result.getIsMultiResourceRefreshToken());
-            mTokenCacheStore.setItem(key, cacheItem);
-            
-            // Record idtoken with clientid as scope
-            if(request.isIdTokenRequest()){
-                cacheItem.setScope(new String[]{request.getClientId()});
-                key.setScope(new String[]{request.getClientId()});
-                mTokenCacheStore.setItem(key, cacheItem);
+
+            // If request contains open_id, convert it to client id.
+            final String[] scopesInRequest = request.getScope();
+            if (scopesInRequest != null && scopesInRequest.length == 1
+                    && (scopesInRequest[0] == AuthenticationConstants.OAuth2.OPEN_ID
+                            || scopesInRequest[0] == request.getClientId())) {
+                final String[] convertedScope = new String[] { request.getClientId() };
+                key.setScope(convertedScope);
+                cacheItem.setScope(convertedScope);
             }
+
+            mTokenCacheStore.setItem(key, cacheItem);
         }
     }
 

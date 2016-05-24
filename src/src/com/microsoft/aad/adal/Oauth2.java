@@ -27,15 +27,16 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
+
 import android.os.Build;
 import android.util.Base64;
-
-import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 /**
  * Base Oauth class.
@@ -237,54 +238,52 @@ class Oauth2 {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN) ||
                 response.containsKey(AuthenticationConstants.OAuth2.ID_TOKEN)) {
-            // Token response
-            boolean isMultiResourcetoken = false;
-            
-            // AccessToken/Idtoken expiresIn
-            String expiresInLookUp = "expires_in";
-            String token = response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN);
-            if(mRequest.isIdTokenRequest()){
-                expiresInLookUp = "idtoken_expires_in";
-                token = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
-            }
-            
-            String expires_in = response.get(expiresInLookUp);
-            Calendar expires = new GregorianCalendar();
-
-            // Compute token expiration
-            expires.add(
-                    Calendar.SECOND,
-                    expires_in == null || expires_in.isEmpty() ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
-                            : Integer.parseInt(expires_in));
-
-            if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)) {
-                isMultiResourcetoken = true;
-            }
-
-            UserInfo userinfo = null;
-            String tenantId = null;
-            String rawProfileInfo = null;
-            if (response.containsKey(AuthenticationConstants.OAuth2.PROFILE_INFO)) {
-                // IDtoken is related to Azure AD and returned with token
-                // response. ADFS does not return that.
-                rawProfileInfo = response.get(AuthenticationConstants.OAuth2.PROFILE_INFO);
-                if (!StringExtensions.IsNullOrBlank(rawProfileInfo)) {
-                    ProfileInfo tokenParsed = parseProfileInfo(rawProfileInfo);
-                    if (tokenParsed != null) {
-                        tenantId = tokenParsed.mTenantId;
-                        userinfo = new UserInfo(tokenParsed);
-                    }
-                } else {
-                    Logger.v(TAG, "ProfileInfo is not provided");
-                }
-            }
-
-            result = new AuthenticationResult(token,
-                    response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
-                    isMultiResourcetoken, userinfo, tenantId, rawProfileInfo);
-            result.setScopeInResponse(response.get(AuthenticationConstants.OAuth2.SCOPE));
+            result = createAuthenticationResult(response);
         }
 
+        return result;
+    }
+    
+    AuthenticationResult createAuthenticationResult(final Map<String, String> response) {
+        final String token, expiresIn, scope;
+        if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
+            token = response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN);
+            expiresIn = response.get(AuthenticationConstants.OAuth2.EXPIRES_IN);
+            scope = response.get(AuthenticationConstants.OAuth2.SCOPE);
+        } else {
+            token = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
+            expiresIn = response.get(AuthenticationConstants.OAuth2.ID_TOKEN_EXPIRES_IN);
+            scope = AuthenticationConstants.OAuth2.OPEN_ID;
+        }
+        
+        final Calendar expires = new GregorianCalendar();
+        // Compute token expiration
+        expires.add(Calendar.SECOND, expiresIn == null || expiresIn.isEmpty() ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
+                        : Integer.parseInt(expiresIn));
+        
+        UserInfo userinfo = null;
+        String tenantId = null;
+        String rawProfileInfo = null;
+        if (response.containsKey(AuthenticationConstants.OAuth2.PROFILE_INFO)) {
+            // IDtoken is related to Azure AD and returned with token
+            // response. ADFS does not return that.
+            rawProfileInfo = response.get(AuthenticationConstants.OAuth2.PROFILE_INFO);
+            if (!StringExtensions.IsNullOrBlank(rawProfileInfo)) {
+                ProfileInfo profileinfo = parseProfileInfo(rawProfileInfo);
+                if (profileinfo != null) {
+                    tenantId = profileinfo.mTenantId;
+                    userinfo = new UserInfo(profileinfo);
+                }
+            } else {
+                Logger.v(TAG, "ProfileInfo is not provided");
+            }
+        }
+
+        final AuthenticationResult result = new AuthenticationResult(token,
+                response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
+                true, userinfo, tenantId, rawProfileInfo);
+        result.setScopeInResponse(scope);
+        
         return result;
     }
 
@@ -294,46 +293,32 @@ class Oauth2 {
      * @param idtoken
      * @return UserInfo
      */
-    private static ProfileInfo parseProfileInfo(String profileInfo) {
+    private static ProfileInfo parseProfileInfo(String rawProfileInfo) {
         try {
             // Message Base64 encoded text
              
 
-            if (!StringExtensions.IsNullOrBlank(profileInfo)) {
+            if (!StringExtensions.IsNullOrBlank(rawProfileInfo)) {
                 // URL_SAFE: Encoder/decoder flag bit to use
                 // "URL and filename safe" variant of Base64
                 // (see RFC 3548 section 4) where - and _ are used in place of +
                 // and /.
-                byte[] data = Base64.decode(profileInfo, Base64.URL_SAFE);
+                byte[] data = Base64.decode(rawProfileInfo, Base64.URL_SAFE);
                 String decodedBody = new String(data, "UTF-8");
 
                 HashMap<String, String> responseItems = new HashMap<String, String>();
                 extractJsonObjects(responseItems, decodedBody);
                 if (responseItems != null && !responseItems.isEmpty()) {
-                    ProfileInfo idtokenInfo = new ProfileInfo();
-                    idtokenInfo.mSubject = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
-                    idtokenInfo.mTenantId = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_TENANTID);
-                    idtokenInfo.mUpn = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
-                    idtokenInfo.mEmail = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_UPN);
-                    idtokenInfo.mName = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_GIVEN_NAME);
-                    idtokenInfo.mIdentityProvider = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_IDENTITY_PROVIDER);
-                    idtokenInfo.mObjectId = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
-                    String expiration = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
-                    if (!StringExtensions.IsNullOrBlank(expiration)) {
-                        idtokenInfo.mPasswordExpiration = Long.parseLong(expiration);
-                    }
-                    idtokenInfo.mPasswordChangeUrl = responseItems
-                            .get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_CHANGE_URL);
-                    Logger.v(TAG, "IdToken is extracted from token response");
-                    return idtokenInfo;
+                    final ProfileInfo profileInfo = new ProfileInfo();
+                    profileInfo.mVersion = responseItems.get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.VERSION);
+                    profileInfo.mSubject = responseItems.get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.SUBJECT);
+                    profileInfo.mTenantId = responseItems
+                            .get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.TENANT_ID);
+                    profileInfo.mName = responseItems.get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.NAME);
+                    profileInfo.mPreferredName = responseItems
+                            .get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.PREFERRED_USERNAME);
+                    Logger.v(TAG, "Profile info is extracted from token response");
+                    return profileInfo;
                 }
             }
         } catch (Exception ex) {

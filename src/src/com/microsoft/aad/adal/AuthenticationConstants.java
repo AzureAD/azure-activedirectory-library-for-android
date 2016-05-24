@@ -97,6 +97,8 @@ public class AuthenticationConstants {
         public static final String ERROR_CODES = "error_codes";
 
         public static final String EXPIRES_IN = "expires_in";
+        
+        public static final String ID_TOKEN_EXPIRES_IN = "id_token_expires_in";
 
         public static final String GRANT_TYPE = "grant_type";
 
@@ -135,6 +137,16 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
 
         public static final Object PROFILE_INFO = "profile_info";
+        
+        static final String OPEN_ID = "openid";
+
+        static final class PROFILE_INFO_CLAIM {
+            static final String VERSION = "ver";
+            static final String SUBJECT = "sub";
+            static final String TENANT_ID = "tid";
+            static final String PREFERRED_USERNAME = "preferred_username";
+            static final String NAME = "name";
+        }
     }
 
     public static final class AAD {
