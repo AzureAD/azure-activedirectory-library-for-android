@@ -46,6 +46,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Build;
 
 /**
  * Store/Retrieve TokenCacheItem from private SharedPreferences.
@@ -102,11 +103,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         // Check upfront when initializing DefaultTokenCacheStore. 
         // If it's under API 18 and secretkey is not provided, we should fail upfront to inform 
         // notify developers. 
-        try {
-            getStorageHelper().loadSecretKeyForEncryption();
-        } catch (final IOException | GeneralSecurityException e) {
-            Logger.v(TAG, "Fail to create keys from android keystore.");
-        }
+        validateSecretKeySetting();
     }
 
     /**
@@ -352,6 +349,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
 
         return tokenItems;
+    }
+
+    private void validateSecretKeySetting() {
+        final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
+        if(secretKeyData == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            throw new IllegalArgumentException("Secret key must be provided for API < 18. " +
+                    "Use AuthenticationSettings.INSTANCE.setSecretKey()");
+        }
     }
 
     private boolean isAboutToExpire(Date expires) {
