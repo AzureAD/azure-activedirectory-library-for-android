@@ -29,6 +29,14 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import com.microsoft.aad.adal.AuthenticationCallback;
+import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.Logger;
+import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.UserIdentifier;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -45,14 +53,6 @@ import android.webkit.CookieSyncManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.microsoft.aad.adal.AuthenticationCallback;
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.Logger;
-import com.microsoft.aad.adal.PromptBehavior;
-import com.microsoft.aad.adal.UserIdentifier;
-import com.microsoft.aad.adal.UserIdentifier.UserIdentifierType;
 
 public class MainActivity extends Activity {
 
@@ -190,7 +190,9 @@ public class MainActivity extends Activity {
     public void onClickAcquireTokenSilent(View v) {
         Log.v(TAG, "onClickAcquireTokenSilent is clicked");
         mLoginProgressDialog.show();
-        mAuthContext.acquireTokenSilent(Constants.SCOPE, policySignin, Constants.CLIENT_ID, new UserIdentifier(getUniqueId(), UserIdentifier.UserIdentifierType.UniqueId),
+        AuthenticationSettings.INSTANCE.setExpirationBuffer(3600);
+        mAuthContext.acquireTokenSilent(new String[] { Constants.CLIENT_ID }, policySignin, Constants.CLIENT_ID,
+                new UserIdentifier(getUniqueId(), UserIdentifier.UserIdentifierType.UniqueId),
                 getCallback());
     }
 

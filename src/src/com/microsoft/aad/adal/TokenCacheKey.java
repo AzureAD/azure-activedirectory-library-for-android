@@ -147,7 +147,7 @@ final class TokenCacheKey implements Serializable {
             throw new IllegalArgumentException("AuthenticationRequest");
         }
 
-        return createCacheKey(item.getAuthority(), item.getScope(), item.getPolicy(), item.getClientId(), false,
+        return createCacheKey(item.getAuthority(), item.getScope(), item.getPolicy(), item.getClientId(), true,
                 item.getUserIdentifier().getUniqueId(), item.getUserIdentifier().getDisplayableId());
     }
 
@@ -181,7 +181,6 @@ final class TokenCacheKey implements Serializable {
             displayableId = result.getUserInfo().getDisplayableId();
         }
 
-        // TODO: test for the scope
         return createCacheKey(request.getAuthority(), request.getScope(), request.getPolicy(), request.getClientId(),
                 result.getIsMultiResourceRefreshToken(), uniqueId, displayableId);
     }
