@@ -255,6 +255,9 @@ public class StorageHelperTests extends AndroidTestHelper {
         }
     }
 
+    /*
+    Disabled see https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/580
+
     @TargetApi(18)
     public void testKeyPair() throws
             GeneralSecurityException, IOException {
@@ -272,7 +275,7 @@ public class StorageHelperTests extends AndroidTestHelper {
 
         assertTrue("Keystore has the alias", keyStore.containsAlias("AdalKey"));
     }
-
+*/
     @TargetApi(18)
     public void testMigration() throws
             GeneralSecurityException, IOException {

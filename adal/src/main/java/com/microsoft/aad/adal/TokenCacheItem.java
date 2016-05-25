@@ -62,14 +62,14 @@ public class TokenCacheItem implements Serializable {
     private boolean mIsMultiResourceRefreshToken;
 
     private String mTenantId;
-    
+
     private String mFamilyClientId;
 
     /**
      * Default constructor for cache item.
      */
     public TokenCacheItem() {}
-    
+
     TokenCacheItem(final TokenCacheItem tokenCacheItem) {
         this.mAuthority = tokenCacheItem.getAuthority();
         this.mResource = tokenCacheItem.getResource();
@@ -83,7 +83,7 @@ public class TokenCacheItem implements Serializable {
         this.mTenantId = tokenCacheItem.getTenantId();
         this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
     }
-    
+
     /**
      * Construct cache item with given authority and returned auth result. 
      */
@@ -95,7 +95,7 @@ public class TokenCacheItem implements Serializable {
         if (StringExtensions.IsNullOrBlank(authority)) {
             throw new IllegalArgumentException("authority");
         }
-        
+
         mAuthority = authority;
         mExpiresOn = authenticationResult.getExpiresOn();
         // Multi-resource refresh token won't have resource recorded. To support back-compability
@@ -107,7 +107,7 @@ public class TokenCacheItem implements Serializable {
         mRefreshtoken = authenticationResult.getRefreshToken();
         mFamilyClientId = authenticationResult.getFamilyClientId();
     }
-    
+
     /**
      * Create regular RT token cache item. 
      */
@@ -118,7 +118,7 @@ public class TokenCacheItem implements Serializable {
         item.setAccessToken(authResult.getAccessToken());
         return item;
     }
-    
+
     /**
      * Create MRRT token cache item. 
      * Will not store AT and resource in the token cache.
@@ -126,10 +126,10 @@ public class TokenCacheItem implements Serializable {
     public static TokenCacheItem createMRRTTokenCacheItem(final String authority, final String clientId, final AuthenticationResult authResult) {
         final TokenCacheItem item = new TokenCacheItem(authority, authResult);
         item.setClientId(clientId);
-        
+
         return item;
     }
-    
+
     /**
      * Create FRT token cache entry. 
      * Will not store clientId, resource and AT. 
@@ -217,18 +217,18 @@ public class TokenCacheItem implements Serializable {
     public void setRawIdToken(String rawIdToken) {
         this.mRawIdToken = rawIdToken;
     }
-    
+
     public final String getFamilyClientId() {
         return mFamilyClientId;
     }
-    
+
     public final void setFamilyClientId(final String familyClientId) {
         this.mFamilyClientId = familyClientId;
     }
 
     /**
      * Checks expiration time.
-     * 
+     *
      * @return true if expired
      */
     public static boolean isTokenExpired(Date expiresOn) {
@@ -245,7 +245,7 @@ public class TokenCacheItem implements Serializable {
 
         return false;
     }
-    
+
     /**
      * @return {@link TokenEntryType} based on the fields stored in the 
      * {@link TokenCacheItem}. 
@@ -263,7 +263,7 @@ public class TokenCacheItem implements Serializable {
             return TokenEntryType.MRRT_TOKEN_ENTRY;
         }
     }
-    
+
     /**
      * @return True if the {@link TokenCacheItem} has FoCI flag, false otherwise. 
      */
@@ -284,8 +284,8 @@ enum TokenEntryType {
      * If it's also a FRT item, FoCI field will be populated with the family client Id 
      * server returned. 
      */
-    REGULAR_TOKEN_ENTRY, 
-    
+    REGULAR_TOKEN_ENTRY,
+
     /**
      * Represents the MRRT token entry. 
      * {@link TokenCacheItem} stored for MRRT token entry will not have resource 
@@ -294,8 +294,8 @@ enum TokenEntryType {
      * If it's also a FRT item, FoCI field will be populated with the family client Id 
      * server returned. 
      */
-    MRRT_TOKEN_ENTRY, 
-    
+    MRRT_TOKEN_ENTRY,
+
     /**
      * Represents the FRT token entry. 
      * {@link TokenCacheItem} stored for FRT token entry will not have resource, access token

@@ -82,10 +82,16 @@ public class ReflectionUtils {
 
         // getConstructor() returns only public constructors,
 
-        Constructor<?> constructor = c.getDeclaredConstructor();
+        Constructor[] constructors = c.getDeclaredConstructors();
+        Constructor constructor = null;
+        for (int i = 0; i < constructors.length; i++) {
+            constructor = constructors[i];
+            if (constructor.getGenericParameterTypes().length == 0)
+                break;
+        }
 
         constructor.setAccessible(true);
-        return constructor.newInstance(null);
+        return constructor.newInstance();
     }
 
     public static Object getFieldValue(Object object, String fieldName)

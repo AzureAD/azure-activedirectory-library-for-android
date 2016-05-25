@@ -7,7 +7,6 @@ apply plugin: 'checkstyle'
 
 group = 'com.microsoft.aad'
 
-
 buildscript {
     repositories {
         jcenter()
@@ -103,9 +102,7 @@ task findbugs(type: FindBugs) {
     classes = fileTree("build/intermediates/classes/debug/")
     source = fileTree('src/main/java')
     classpath = files()
-
     effort = 'max'
-
     excludeFilter = file("../config/findbugs/exclude.xml")
 
     reports {
@@ -113,7 +110,6 @@ task findbugs(type: FindBugs) {
         html.enabled = true
     }
 }
-
 
 pmd {
     ignoreFailures = true
