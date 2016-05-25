@@ -23,9 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationException;
-
 import android.test.AndroidTestCase;
 
 public class AuthenticationExceptionTests extends AndroidTestCase{

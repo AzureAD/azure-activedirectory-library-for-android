@@ -28,6 +28,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class ClientMetricTests extends AndroidTestHelper {
@@ -39,9 +40,9 @@ public class ClientMetricTests extends AndroidTestHelper {
         Object clientMetrics = getInstance();
         final URL endpointAdfs = new URL("https://fs.ade2eadfs30.com/adfs");
         UUID correlationId = UUID.randomUUID();
-        HashMap<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<String, String>();
         Method method = ReflectionUtils.getTestMethod(clientMetrics, "beginClientMetricsRecord",
-                URL.class, UUID.class, headers.getClass());
+                URL.class, UUID.class, Map.class);
         method.invoke(clientMetrics, endpointAdfs, correlationId, headers);
 
         assertTrue("Expecting empty header", headers.isEmpty());
@@ -55,9 +56,9 @@ public class ClientMetricTests extends AndroidTestHelper {
         Object clientMetrics = getInstance();
         final URL endpointAdfs = new URL("https://login.windwos.com/testtenant");
         UUID correlationId = UUID.randomUUID();
-        HashMap<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<String, String>();
         Method beginMethod = ReflectionUtils.getTestMethod(clientMetrics,
-                "beginClientMetricsRecord", URL.class, UUID.class, headers.getClass());
+                "beginClientMetricsRecord", URL.class, UUID.class, Map.class);
         beginMethod.invoke(clientMetrics, endpointAdfs, correlationId, headers);
 
         Method endMethod = ReflectionUtils.getTestMethod(clientMetrics, "endClientMetricsRecord",

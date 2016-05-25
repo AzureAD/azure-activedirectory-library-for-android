@@ -1,26 +1,9 @@
-# Built application files
-/build
-/captures
-
-# Gradle generated files
-.gradle/
-
-# Local configuration file 
+.gradle
 /local.properties
-
-# Signing files
-.signing/
-
-# User-specific configurations
 /.idea/workspace.xml
 /.idea/libraries
-.idea/
-*.iml
-
-# OS-specific files
 .DS_Store
-.DS_Store?
-._*
-
-#optional
-*.apk 
+/build
+/captures
+*.iml
+.idea

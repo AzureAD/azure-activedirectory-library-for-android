@@ -29,17 +29,8 @@ import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.CacheKey;
-import com.microsoft.aad.adal.FileTokenCacheStore;
-import com.microsoft.aad.adal.ITokenCacheStore;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
-import com.microsoft.aad.adal.TokenCacheItem;
-import com.microsoft.aad.adal.UserInfo;
 
 import android.content.Context;
 
@@ -73,7 +64,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         super.tearDown();
     }
 
-    private void setupCache(String fileName) {
+    private void setupCache(String fileName) throws AuthenticationException {
         // set item and then get
         ITokenCacheStore store = new FileTokenCacheStore(targetContex, fileName);
         store.removeAll();
@@ -134,11 +125,11 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         assertTrue("Verify message ", logger.logMessage.contains(msgToCheck));
     }
 
-    public void testGetItem() {
+    public void testGetItem() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", "", false, ""));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", null));
         assertNull("Token cache item is expected to be null", item);
 
         // get item
@@ -149,7 +140,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         assertEquals("Same tokencacheitem content", testItem.getResource(), item.getResource());
     }
 
-    public void testWriteFileException() {
+    public void testWriteFileException() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "fileWriteFileException";
         setupCache(file);
         ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
@@ -170,7 +161,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         mock.setWritable(true);
     }
 
-    public void testRemoveItem() {
+    public void testRemoveItem() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testRemoveItem";
         String file2 = FILE_DEFAULT_NAME + "testRemoveItem2";
         setupCache(file);
@@ -192,7 +183,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         store2.removeAll();
     }
 
-    public void testRemoveAll() {
+    public void testRemoveAll() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
@@ -203,7 +194,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         assertNull("Token cache item is expected to be null", item);
     }
     
-    public void testGetAll() {
+    public void testGetAll() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
@@ -224,8 +215,9 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     /**
      * test the usage of cache from different threads. It is expected to work
      * with multiThreads
+     * @throws AuthenticationException 
      */
-    public void testSharedCacheGetItem() {
+    public void testSharedCacheGetItem() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         final ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
@@ -237,18 +229,22 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
                 // Remove and then verify that
                 // One thread will do the actual remove action.
-                store.removeItem(CacheKey.createCacheKey(testItem));
-                TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
-                assertNull("Token cache item is expected to be null", item);
+                try {
+                    store.removeItem(CacheKey.createCacheKey(testItem));
+                    TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+                    assertNull("Token cache item is expected to be null", item);
 
-                item = store.getItem(CacheKey.createCacheKey("", "", "", false, ""));
-                assertNull("Token cache item is expected to be null", item);
+                    item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", null));
+                    assertNull("Token cache item is expected to be null", item);
 
-                store.removeItem(CacheKey.createCacheKey(testItem2));
-                item = store.getItem(CacheKey.createCacheKey(testItem));
-                assertNull("Token cache item is expected to be null", item);
-
-                signal.countDown();
+                    store.removeItem(CacheKey.createCacheKey(testItem2));
+                    item = store.getItem(CacheKey.createCacheKey(testItem));
+                    assertNull("Token cache item is expected to be null", item);
+                } catch (AuthenticationException e) {
+                    e.printStackTrace();
+                } finally {
+                    signal.countDown();
+                }
             }
         };
 
@@ -260,8 +256,9 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
     /**
      * memory cache is shared between context
+     * @throws AuthenticationException 
      */
-    public void testMemoryCacheMultipleContext() {
+    public void testMemoryCacheMultipleContext() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         ITokenCacheStore tokenCacheA = new FileTokenCacheStore(targetContex, file);

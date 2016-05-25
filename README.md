@@ -3,14 +3,9 @@
 
 The ADAL SDK for Android gives you the ability to add support for Work Accounts to your application with just a few lines of additional code. This SDK gives your application the full functionality of Microsoft Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
 
-**What is a Work Account?**
+## ADAL for Android 1.2 Released!
 
-A Work Account is an identity you use to get work done no matter if at your business or on a college campus. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
-
-## ADAL for Android 1.0 Released!
-
-Thanks to all your great feedback over the preview period, we have released 1.0 (GA) of the Microsoft Azure Active Directory Library for Android! 
-Recent version is 1.1.16
+Recent version is 1.2.0
 
 ## Features
 * Industry standard Oauth2 protocol support.
@@ -34,6 +29,10 @@ Xamarin related info is here:
 We leverage [Stack Overflow](http://stackoverflow.com/) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browser existing issues to see if someone has had your question before. 
 
 We recommend you use the "adal" tag so we can see it! Here is the latest Q&A on Stack Overflow for ADAL: [http://stackoverflow.com/questions/tagged/adal](http://stackoverflow.com/questions/tagged/adal)
+
+## Security Reporting
+
+If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/en-us/security/dd252948) and subscribing to Security Advisory Alerts.
 
 ## Contributing
 
@@ -233,46 +232,52 @@ If you're implementing your authentication logic in a Fragment, you'll need to w
     }
     ```
 
-Explanation of the parameters:
+	Explanation of the parameters(Example of those parameters could be found at [Android Native Client Sample](https://github.com/AzureADSamples/NativeClient-Android)):
     
-  * Resource is required and is the resource you are trying to access.
-  * Clientid is required and comes from the AzureAD Portal.
-  * You can setup redirectUri as your packagename. It is not required to be provided for the acquireToken call.
-  * PromptBehavior helps to ask for credentials to skip cache and cookie. 
-  * Callback will be called after authorization code is exchanged for a token. 
+	* Resource is required and is the resource you are trying to access.
+	* Clientid is required and comes from the AzureAD Portal.
+	* You can setup redirectUri as your packagename. It is not required to be provided for the acquireToken call.
+	* PromptBehavior helps to ask for credentials to skip cache and cookie. 
+	* Callback will be called after authorization code is exchanged for a token. 
   
-  The Callback will have an object of AuthenticationResult which has accesstoken, date expired, and idtoken info. 
+	The Callback will have an object of AuthenticationResult which has accesstoken, date expired, and idtoken info. 
+	
+	**acquireTokenSilentSync**
 
-Optional:  **acquireTokenSilent**
-
-You can call **acquireTokenSilent** to handle caching, and token refresh. It provides sync version as well. It accepts userid as paremeter.
+	In order to get token back without prompt, you can call **acquireTokenSilentSync** which handles caching, and token refresh without UI prompt. It provides async version as well. **Note:** userId required in silent call is the one you get back from the interactive call) as parameter.
  
-```java
-mContext.acquireTokenSilent(resource, clientid, userId, callback );
-```
+	```java
+	mContext.acquireTokenSilentSync(String resource, String clientId, String userId);
+	```
+	or 
+	```java
+	mContext.acquireTokenSilent(String resource, String clientId, String userId, final AuthenticationCallback<AuthenticationResult> callback);
+	```
+	
 11. Broker:
-  Microsoft Intune's Company portal app will provide the broker component. ADAL will use the broker account, if there is one user account is created at this authenticator and Developer choose to use it. The previous API setSkipBroker() is deprecated. ADAL will not talk to broker by default. And developer can use the broker with:
 
-    ```java
-    AuthenticationSettings.Instance.setUseBroker(true);
-    ```
- Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script "brokerRedirectPrint.ps1" or use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
- 
- Current broker model is for one user. AuthenticationContext provides API method to get the broker user. 
+	Microsoft Intune's Company portal App and Azure Authenticator App will provide the broker component. 
+	In order to acquire token via broker, the following requirements have to meet(Please check samples\userappwithbroker for authentication via broker):
+	* Starting version 1.1.14, developer has to explicitly specify set to use broker via:
+		```
+		AuthenticationSettings.Instance.setUseBroker(true);
+		```
+	* Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script `brokerRedirectPrint.ps1` on Windows or `brokerRedirectPrint.sh` on Linux or Mac. You can also use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
+	* If target version is lower than 23, calling app has to have the following permissions declared in manifest(http://developer.android.com/reference/android/accounts/AccountManager.html):
+		* GET_ACCOUNTS
+		* USE_CREDENTIALS
+		* MANAGE_ACOUNTS
+	* If target version is 23, USE_CREDENTIALS and MANAGE_ACCOUNTS are already deprecated. But GET_ACCOUNTS is under protection level "dangerous", calling app is responsible for requesting the run-time permisson. You can      reference [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
+	* There must be an account existed and registered via one of the two broker apps.
+	
+	AuthenticationContext provides API method to get the broker user. 
 
- ```java
- String brokerAccount =  mContext.getBrokerUser();
- ```
- Broker user will be returned if account is valid. 
+	```java
+	String brokerAccount =  mContext.getBrokerUser();
+	```
+	Broker user will be returned if account is valid. 
 
- Your app manifest should have permissions to use AccountManager accounts: http://developer.android.com/reference/android/accounts/AccountManager.html
-
- * GET_ACCOUNTS
- * USE_CREDENTIALS
- * MANAGE_ACCOUNTS
-
-
-Using this walkthrough, you should have what you need to successfully integrate with Azure Active Directory. For more examples of this working, viist the AzureADSamples/ repository on GitHub.
+Using this walkthrough, you should have what you need to successfully integrate with Azure Active Directory. For more examples of this working, visit the AzureADSamples/ repository on GitHub.
        
 ## Important Information
 
@@ -393,7 +398,17 @@ acquireToken method without activity supports dialog prompt.
 
 ### Encryption
 
-ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details. Android introduced AndroidKeyStore for 4.3(API18) secure storage of private keys. ADAL uses that for API18 and above. If you want to use ADAL for lower SDK versions, you need to provide secret key at AuthenticationSettings.INSTANCE.setSecretKey
+ADAL encrypts the tokens and store in SharedPreferences by default. You can look at the StorageHelper class to see the details. ADAL uses AndroidKeyStore for 4.3(API18) and above for secure storage of private keys. If you want to use ADAL for lower SDK versions, you need to **provide secret key at AuthenticationSettings.INSTANCE.setSecretKey**
+
+Following example is using the password based encryption key(which takes the specified password and salt). And then create the provider-independent secret key with the generated password based encryption key. ADAL requires the key to be 256 bits. You can use other key generation algorithm.
+```Java
+	SecretKeyFactory keyFactory = SecretKeyFactory
+		.getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+    SecretKey generatedSecretKey = keyFactory.generateSecret(new PBEKeySpec(your_password,
+		byte-code-for-your-salt, 100, 256));
+    SecretKey secretKey = new SecretKeySpec(generatedSecretKey.getEncoded(), "AES");
+    AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
+```
 
 ### Oauth2 Bearer challange
 

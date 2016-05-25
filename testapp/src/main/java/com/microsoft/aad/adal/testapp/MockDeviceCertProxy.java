@@ -16,7 +16,7 @@
 // See the Apache License, Version 2.0 for the specific language
 // governing permissions and limitations under the License.
 
-package com.microsoft.aad.adal.testapp;
+package com.microsoft.aad.testapp;
 
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;

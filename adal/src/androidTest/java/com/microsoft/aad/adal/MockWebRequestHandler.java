@@ -23,13 +23,10 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.IWebRequestHandler;
 
 import junit.framework.Assert;
 
@@ -44,14 +41,14 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     private UUID mCorrelationId;
 
-    private HashMap<String, String> mRequestHeaders;
+    private Map<String, String> mRequestHeaders;
 
     private HttpWebResponse mReturnResponse;
 
     private String mReturnException;
 
     @Override
-    public HttpWebResponse sendGet(URL url, HashMap<String, String> headers) {
+    public HttpWebResponse sendGet(URL url, Map<String, String> headers) throws IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (mReturnException != null) {
@@ -62,17 +59,15 @@ class MockWebRequestHandler implements IWebRequestHandler {
     }
 
     @Override
-    public HttpWebResponse sendPost(URL url, HashMap<String, String> headers, byte[] content,
-            String contentType) {
+    public HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
+            String contentType) throws IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {
             try {
                 mRequestContent = new String(content, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                Assert.fail("Encoding");                
+            } catch (final IOException e) {
+                Assert.fail("IOException");
             }
         }
 
@@ -87,7 +82,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
         return mRequestUrl;
     }
 
-    public HashMap<String, String> getRequestHeaders() {
+    public Map<String, String> getRequestHeaders() {
         return mRequestHeaders;
     }
 

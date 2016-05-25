@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
@@ -40,20 +39,11 @@ import java.util.TimeZone;
 
 import javax.crypto.NoSuchPaddingException;
 
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.CacheKey;
-import com.microsoft.aad.adal.DefaultTokenCacheStore;
-import com.microsoft.aad.adal.ITokenCacheStore;
-import com.microsoft.aad.adal.Logger;
-import com.microsoft.aad.adal.StorageHelper;
-import com.microsoft.aad.adal.TokenCacheItem;
+import org.mockito.Mockito;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager.NameNotFoundException;
-
-import org.mockito.Mockito;
 
 public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
@@ -73,14 +63,14 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         super.tearDown();
     }
 
-    public void testSharedCache() throws GeneralSecurityException, IOException {
-        TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
+    public void testCacheItemRetrieval() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 1:09:57 PM").getItem("testkey");
 
         // Verify returned item
         assertEquals("Same item as mock", "clientId23", item.getClientId());
     }
 
-    public void testGetAll() {
+    public void testGetAll() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         Iterator<TokenCacheItem> results = store.getAll();
@@ -89,30 +79,38 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertNotNull("Has item", item);
     }
 
-    public void testGetUniqueUsers() {
+    public void testGetUniqueUsers() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         Set<String> users = store.getUniqueUsersWithTokenCache();
         assertNotNull(users);
         assertEquals(2, users.size());
     }
 
-    public void testDateTimeFormatterOldFormat() throws GeneralSecurityException, IOException {
-        TokenCacheItem item = mockDefaultCacheStore().getItem("testkey");
+    public void testDateTimeFormatterOldFormatWithAMOrPM() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 1:09:57 PM").getItem("testkey");
+
+        // Verify returned item
+        assertNotNull(item.getExpiresOn());
+        assertNotNull(item.getExpiresOn().after(new Date()));
+    }
+    
+    public void testDateTimeFormatterOldFormat24hourFormat() throws GeneralSecurityException, IOException {
+        TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 13:09:57").getItem("testkey");
 
         // Verify returned item
         assertNotNull(item.getExpiresOn());
         assertNotNull(item.getExpiresOn().after(new Date()));
     }
 
-    private DefaultTokenCacheStore mockDefaultCacheStore() throws GeneralSecurityException, IOException {
+    private DefaultTokenCacheStore mockDefaultCacheStore(final String dateTimeString) throws GeneralSecurityException, IOException {
         final StorageHelper mockSecure = Mockito.mock(StorageHelper.class);
         Context mockContext = mock(Context.class);
         SharedPreferences prefs = mock(SharedPreferences.class);
         when(prefs.contains("testkey")).thenReturn(true);
         when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
-        when(mockSecure.loadSecretKeyForAPI()).thenReturn(null);
+        when(mockSecure.loadSecretKeyForEncryption()).thenReturn(null);
         when(mockSecure.decrypt("test_encrypted"))
-                .thenReturn("{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"Apr 28, 2015 1:09:57 PM\"}");
+                .thenReturn("{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"" + dateTimeString + "\"}");
         when(
                 mockContext.getSharedPreferences("com.microsoft.aad.adal.cache",
                         Activity.MODE_PRIVATE)).thenReturn(prefs);
@@ -123,10 +121,10 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
             }
         };
         return cache;
-
     }
 
-    public void testDateTimeFormatterLocaleChange() {
+    
+    public void testDateTimeFormatterLocaleChange() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");
         // Serializing without miliseconds
@@ -159,7 +157,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
     }
 
-    public void testGetTokensForResource() {
+    public void testGetTokensForResource() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");
@@ -167,10 +165,10 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token content", "token", tokens.get(0).getAccessToken());
 
         tokens = store.getTokensForResource("resource2");
-        assertEquals("token size", 3, tokens.size());
+        assertEquals("token size", 2, tokens.size());
     }
 
-    public void testGetTokensForUser() {
+    public void testGetTokensForUser() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
@@ -180,7 +178,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 2, tokens.size());
     }
 
-    public void testExpiringTokens() throws NoSuchAlgorithmException, NoSuchPaddingException {
+    public void testExpiringTokens() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
@@ -200,7 +198,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 1, expireTokenList.size());
     }
 
-    public void testClearTokensForUser() {
+    public void testClearTokensForUser() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         store.clearTokensForUser("userid");
@@ -214,7 +212,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertEquals("token size", 0, tokens.size());
     }
 
-    public void testExpireBuffer() {
+    public void testExpireBuffer() throws AuthenticationException {
         DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");

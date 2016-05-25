@@ -41,15 +41,8 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.mockito.Matchers;
 import org.mockito.Mockito;
-
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationConstants;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.PromptBehavior;
-import com.microsoft.aad.adal.UserInfo;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -70,6 +63,7 @@ import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.Handler;
 import android.test.AndroidTestCase;
+import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 import android.util.Log;
 import junit.framework.Assert;
@@ -677,6 +671,99 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertNotNull("intent is not null", intent);
         assertEquals("intent is not null", AuthenticationConstants.Broker.BROKER_REQUEST,
                 intent.getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
+    }
+    
+    /**
+     * Test verifying if always is set when speaking to new broker, intent for doing auth via broker will have prompt behavior
+     * reset as always. 
+     */
+    @SmallTest
+    public void testForce_PromptFlag_OldBroker() throws OperationCanceledException, AuthenticatorException, IOException {
+        final Intent intent = new Intent();
+        final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
+        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
+        
+        // mock account manager
+        final AccountManager mockedAccoutManager = getMockedAccountManager(getMockedAccountManagerFuture(intent));
+        
+        final FileMockContext mockedContext = new FileMockContext(getContext());
+        mockedContext.setMockedAccountManager(mockedAccoutManager);
+        final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
+        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest);
+        assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
+    }
+    
+    /**
+     * Test verifying if force_prmopt is set when speaking to new broker, intent for doing auth via broker will have prompt behavior
+     * as Force_Prompt. 
+     */
+    @SmallTest
+    public void testForce_Prompt_NewBroker() throws OperationCanceledException, AuthenticatorException, IOException {
+        final Intent intent = new Intent();
+        final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
+        intent.putExtra(AuthenticationConstants.Broker.BROKER_VERSION, AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION);
+        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
+        
+        // mock account manager
+        final AccountManager mockedAccoutManager = getMockedAccountManager(getMockedAccountManagerFuture(intent));
+        
+        final FileMockContext mockedContext = getMockedContext(mockedAccoutManager);
+        final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
+        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest);
+        assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.FORCE_PROMPT.name()));
+    }
+    
+    /**
+     * Test verifying if always is set when speaking to new broker, intent for doing auth via broker will have prompt behavior
+     * as always. 
+     */
+    @SmallTest
+    public void testPromptAlways_NewBroker() throws OperationCanceledException, AuthenticatorException, IOException {
+        final Intent intent = new Intent();
+        final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.Always);
+        intent.putExtra(AuthenticationConstants.Broker.BROKER_VERSION, AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION);
+        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, authenticationRequest.getPrompt().name());
+        
+        // mock account manager
+        final AccountManager mockedAccoutManager = getMockedAccountManager(getMockedAccountManagerFuture(intent));
+        
+        final FileMockContext mockedContext = getMockedContext(mockedAccoutManager);
+        final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
+        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest);
+        assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
+    }
+    
+    private FileMockContext getMockedContext(final AccountManager mockedAccountManager) {
+        final FileMockContext mockedContext = new FileMockContext(getContext());
+        mockedContext.setMockedAccountManager(mockedAccountManager);
+        
+        return mockedContext;
+    }
+    
+    private AuthenticationRequest getAuthRequest(final PromptBehavior promptBehavior) {
+        final AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+        authenticationRequest.setPrompt(promptBehavior);
+        
+        return authenticationRequest;
+    }
+    
+    private AccountManagerFuture<Bundle> getMockedAccountManagerFuture(final Intent intent) throws OperationCanceledException, AuthenticatorException, IOException {
+        final Bundle bundle = new Bundle();
+        bundle.putParcelable(AccountManager.KEY_INTENT, intent);
+        
+        final AccountManagerFuture<Bundle> mockedAccountManagerFuture = Mockito.mock(AccountManagerFuture.class);
+        Mockito.when(mockedAccountManagerFuture.getResult()).thenReturn(bundle);
+        
+        return mockedAccountManagerFuture;
+    }
+    
+    private AccountManager getMockedAccountManager(final AccountManagerFuture<Bundle> mockedAccountManagerFuture) {
+        final AccountManager mockedAccoutManager = Mockito.mock(AccountManager.class);
+        Mockito.when(mockedAccoutManager.addAccount(Matchers.anyString(), Mockito.anyString(), Matchers.any(String[].class), 
+                Matchers.any(Bundle.class), Matchers.any(Activity.class), Matchers.any(AccountManagerCallback.class), 
+                Mockito.any(Handler.class))).thenReturn(mockedAccountManagerFuture);
+        
+        return mockedAccoutManager;
     }
 
     private void updateContextToSaveAccount(Context mockContext, String initialList, String savingAccount) {

@@ -28,11 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Set;
-
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.IWebRequestHandler;
 
 /**
  * Discovery class is not public, so it needs reflection to make a call to
@@ -120,8 +116,7 @@ public class DiscoveryTests extends AndroidTestHelper {
     private IWebRequestHandler getMockRequest(String json, int statusCode) {
         MockWebRequestHandler mockWebRequest = new MockWebRequestHandler();
 
-        mockWebRequest.setReturnResponse(new HttpWebResponse(statusCode, json.getBytes(Charset
-                .defaultCharset()), null));
+        mockWebRequest.setReturnResponse(new HttpWebResponse(statusCode, json, null));
         return mockWebRequest;
     }
 
@@ -224,7 +219,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         // it should be in the list
         Set<String> validHosts = (Set<String>)ReflectionUtils.getFieldValue(discovery,
                 "sValidHosts");
-        assertTrue("added new host in the list", validHosts.size() == 5);
+        assertTrue("added new host in the list", validHosts.size() == 6);
         assertTrue("has new host in the list to skip query",
                 validHosts.contains("login.windows-ppe.net"));
 

@@ -25,9 +25,6 @@ package com.microsoft.aad.adal;
 
 import java.util.concurrent.CountDownLatch;
 
-import com.microsoft.aad.adal.AuthenticationCallback;
-import com.microsoft.aad.adal.AuthenticationResult;
-
 /**
  * callback to store responses
  */

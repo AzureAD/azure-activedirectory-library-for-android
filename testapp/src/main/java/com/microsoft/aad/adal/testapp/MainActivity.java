@@ -16,7 +16,7 @@
 // See the Apache License, Version 2.0 for the specific language
 // governing permissions and limitations under the License.
 
-package com.microsoft.aad.adal.testapp;
+package com.microsoft.aad.testapp;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -465,13 +465,13 @@ public class MainActivity extends Activity {
         calendar.add(Calendar.MINUTE, -30);
         Date date = calendar.getTime();
         ITokenCacheStore cache = mContext.getCache();
-        String key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
-                .toString(), mClientId.getText().toString(), false, mUserid.getText().toString());
+        String key = CacheKey.createCacheKeyForRTEntry(mAuthority.getText().toString(), 
+                mResource.getText().toString(), mClientId.getText().toString(), mUserid.getText().toString());
         TokenCacheItem item = cache.getItem(key);
         setTime(cache, date, key, item);
 
-        key = CacheKey.createCacheKey(mAuthority.getText().toString(), mResource.getText()
-                .toString(), mClientId.getText().toString(), true, mUserid.getText().toString());
+        key = CacheKey.createCacheKeyForMRRT(mAuthority.getText().toString(), mClientId.getText().toString(),  
+                mUserid.getText().toString());
         item = cache.getItem(key);
         setTime(cache, date, key, item);
     }

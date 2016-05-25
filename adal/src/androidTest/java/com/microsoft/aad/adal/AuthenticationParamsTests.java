@@ -32,14 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationParameters;
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
-import com.microsoft.aad.adal.HttpWebResponse;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
-import com.microsoft.aad.adal.ResourceAuthenticationChallengeException;
 
 import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
