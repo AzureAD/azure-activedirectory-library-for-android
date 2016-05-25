@@ -137,15 +137,6 @@ abstract class BasicWebViewClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-        
-        final Uri uri = Uri.parse(url);
-        if (doesLoadingUrlContainAuthCode(url)) {
-            Logger.v(TAG, "Webview finished loading: " + uri.getHost() + uri.getPath() 
-                + " Auth code is returned for the loading url.");
-        } else {
-            Logger.v(TAG, "Webview finished loading: " + uri.getHost() + uri.getPath(), 
-                "Full loading url is: " + url, null);
-        }
 
         /*
          * Once web view is fully loaded,set to visible
@@ -203,12 +194,12 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 String loadUrl = challengeResponse.mSubmitUrl;
                                 HashMap<String, String> parameters = StringExtensions
                                         .getUrlParameters(challengeResponse.mSubmitUrl);
-                                Logger.v(TAG, "SubmitUrl:" + challengeResponse.mSubmitUrl);
                                 if (!parameters
                                         .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
                                     loadUrl = loadUrl + "?" + mQueryParam;
                                 }
-                                Logger.v(TAG, "Challenge submit url:" + challengeResponse.mSubmitUrl);
+                                Logger.v(TAG, "Respond to pkeyAuth challenge", "Challenge submit url:" 
+                                        + challengeResponse.mSubmitUrl, null);
                                 view.loadUrl(loadUrl, headers);
                             }
                         });

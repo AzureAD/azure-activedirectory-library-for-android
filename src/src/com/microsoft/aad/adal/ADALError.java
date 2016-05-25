@@ -515,8 +515,38 @@ public enum ADALError {
     /**
      * Resource authentication challenge failure
      */
-    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure");
+    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure"), 
+    
+    /**
+     * The token cache item is invalid, cannot use it to create cachekey. 
+     */
+    INVALID_TOKEN_CACHE_ITEM("Invalid token cache item"),
 
+    /**
+     * Export of FID failure
+     */
+    FAIL_TO_EXPORT("Fail to export"),
+    
+    /**
+     * Import of FID failure
+     */
+    FAIL_TO_IMPORT("Fail to import"),
+        
+    /**
+     * Incompatible blob version
+     */
+    INCOMPATIBLE_BLOB_VERSION("Fail to deserialize because the blob version is incompatible"), 
+    
+    /**
+     * Fail to get the token cache item from the cache item
+     */
+    TOKEN_CACHE_ITEM_NOT_FOUND("Token cache item is not found"),
+    
+    /**
+     * Fail to parse JSON because of the problem with the JSON API
+     */
+    JSON_PARSE_ERROR("Fail to parse JSON");
+    
     private String mDescription;
 
     private ADALError(String message) {

@@ -18,19 +18,13 @@
 
 package com.microsoft.aad.adal.testapp;
 
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import android.app.Activity;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationCallback;
@@ -39,6 +33,11 @@ import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.WebRequestHandler;
+
+import android.app.Activity;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.util.Log;
 
 public class TestScriptRunner {
     static final String TAG = "TestScriptRunner";
@@ -568,10 +567,7 @@ public class TestScriptRunner {
             try {
                 response = request.sendPost(new URL(mUrl), headers, mData.getBytes("UTF-8"),
                         "application/json");
-            } catch (MalformedURLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
+            } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -607,14 +603,11 @@ public class TestScriptRunner {
             HttpWebResponse response = null;
             try {
                 response = request.sendGet(new URL(mUrl), headers);
-                String body = new String(response.getBody(), "UTF-8");
+                String body = response.getBody();
                 Log.v(TAG, "testScript:" + body);
                 ScriptInfo scriptInfo = gson.fromJson(body, ScriptInfo.class);
                 return scriptInfo;
-            } catch (MalformedURLException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
+            } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }

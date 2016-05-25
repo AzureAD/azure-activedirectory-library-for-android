@@ -157,7 +157,7 @@ public class AuthenticationActivity extends Activity {
         // Get the message from the intent
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
-            Log.d(TAG, "Intent for Authentication Activity doesn't have the request details, returns to caller");
+            Log.d(TAG, "Intent for Authentication Activity doesn't have the request details, returning to caller");
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
                     AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
@@ -623,17 +623,17 @@ public class AuthenticationActivity extends Activity {
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
-            }
-            
-            //check if the redirect URL is under SSL protected
-            if(!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX)) {
-                Logger.e(TAG + methodName, "The webview was redirected to an non-SSL protected URL.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
+            } else if (url.toLowerCase(Locale.US).equals("about:blank")) {
+                Logger.v(TAG, "It is an blank page request");
+                return true;
+            } else if (!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX)) {
+                Logger.e(TAG + methodName, "The webview was redirected to an unsafe URL.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
                 returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, "The webview was redirected to an unsafe URL.");
                 view.stopLoading();
                 return true;
+            } else {
+                return false;
             }
-
-            return false;
         }
         
         public void showSpinner(boolean status){
@@ -954,12 +954,14 @@ public class AuthenticationActivity extends Activity {
                 Logger.i(TAG, "Calling app doesn't provide the secret key", "");
             }
 
-            TokenCacheItem item = new TokenCacheItem(mRequest, result.taskResult, false);
+            TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(mRequest.getAuthority(), mRequest.getResource(), 
+                    mRequest.getClientId(), result.taskResult);
             String json = gson.toJson(item);
             String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
-            String key = CacheKey.createCacheKey(mRequest, null);
+            String key = CacheKey.createCacheKeyForRTEntry(mAuthRequest.getAuthority(), mAuthRequest.getResource(), 
+                    mAuthRequest.getClientId(), null);
             saveCacheKey(key, newaccount, mAppCallingUID);
             mAccountManager.setUserData(
                     newaccount,
@@ -968,10 +970,10 @@ public class AuthenticationActivity extends Activity {
 
             if (result.taskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
-                TokenCacheItem itemMRRT = new TokenCacheItem(mRequest, result.taskResult, true);
+                TokenCacheItem itemMRRT = TokenCacheItem.createMRRTTokenCacheItem(mRequest.getAuthority(), mRequest.getClientId(), result.taskResult);
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
-                key = CacheKey.createMultiResourceRefreshTokenKey(mRequest, null);
+                key = CacheKey.createCacheKeyForMRRT(mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);
                 saveCacheKey(key, newaccount, mAppCallingUID);
                 mAccountManager.setUserData(
                         newaccount,

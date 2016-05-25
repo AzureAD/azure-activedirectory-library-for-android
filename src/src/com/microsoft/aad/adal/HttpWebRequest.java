@@ -23,81 +23,68 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
+import android.content.Context;
 import android.os.Build;
+import android.os.Debug;
+import android.os.Process;
 
 /**
  * Webrequest are called in background thread from API level. HttpWebRequest
  * does not create another thread.
  */
 class HttpWebRequest {
-    private static final String UNAUTHORIZED_ERROR_MESSAGE_PRE18 = "Received authentication challenge is null";
-
-    private static final String TAG = "HttpWebRequest";
-
     static final String REQUEST_METHOD_POST = "POST";
-
     static final String REQUEST_METHOD_GET = "GET";
-
-    static final String REQUEST_METHOD_PUT = "PUT";
-
-    static final String REQUEST_METHOD_DELETE = "DELETE";
-
-    static int CONNECT_TIME_OUT = AuthenticationSettings.INSTANCE.getConnectTimeOut();
-
-    private static int READ_TIME_OUT = AuthenticationSettings.INSTANCE.getReadTimeOut();
-
+    private static final String UNAUTHORIZED_ERROR_MESSAGE_PRE18 = "Received authentication challenge is null";
+    private static final String TAG = "HttpWebRequest";
+    private static final int CONNECT_TIME_OUT = AuthenticationSettings.INSTANCE.getConnectTimeOut();
+    private static final int READ_TIME_OUT = AuthenticationSettings.INSTANCE.getReadTimeOut();
     private static int sDebugSimulateDelay = 0;
-
     private boolean mUseCaches = false;
-
     private boolean mInstanceRedirectsFollow = true;
+    private final String mRequestMethod;
+    private final URL mUrl;
+    private final byte[] mRequestContent;
+    private final String mRequestContentType;
+    private final Map<String, String> mRequestHeaders;
 
-    private String mRequestMethod;
-
-    URL mUrl;
-
-    HttpURLConnection mConnection = null;
-
-    byte[] mRequestContent = null;
-
-    private String mRequestContentType = null;
-
-    int mTimeOut = CONNECT_TIME_OUT;
-
-    private IOException mException = null;
-
-    HashMap<String, String> mRequestHeaders = null;
-
-    public HttpWebRequest(URL requestURL) {
-        mUrl = requestURL;
-        mRequestHeaders = new HashMap<String, String>();
-        if (mUrl != null) {
-            mRequestHeaders.put("Host", getURLAuthority(mUrl));
-        }
+    public HttpWebRequest(URL requestURL, String requestMethod, Map<String, String> headers) {
+        this(requestURL, requestMethod, headers, null, null);
     }
 
-    public HttpWebRequest(URL requestURL, int timeout) {
+    public HttpWebRequest(
+            URL requestURL,
+            String requestMethod,
+            Map<String, String> headers,
+            byte[] requestContent,
+            String requestContentType) {
         mUrl = requestURL;
+        mRequestMethod = requestMethod;
         mRequestHeaders = new HashMap<String, String>();
         if (mUrl != null) {
             mRequestHeaders.put("Host", getURLAuthority(mUrl));
         }
-        mTimeOut = timeout;
+        mRequestHeaders.putAll(headers);
+        mRequestContent = requestContent;
+        mRequestContentType = requestContentType;
     }
 
     /**
      * setupConnection before sending the request.
      */
-    private void setupConnection() {
+    private HttpURLConnection setupConnection() throws IOException {
         Logger.v(TAG, "HttpWebRequest setupConnection thread:" + android.os.Process.myTid());
         if (mUrl == null) {
             throw new IllegalArgumentException("requestURL");
@@ -107,170 +94,162 @@ class HttpWebRequest {
             throw new IllegalArgumentException("requestURL");
         }
         HttpURLConnection.setFollowRedirects(true);
-        mConnection = openConnection();
+        final HttpURLConnection connection = HttpUrlConnectionFactory.createHttpUrlConnection(mUrl);
+        connection.setConnectTimeout(CONNECT_TIME_OUT);
         // To prevent EOF exception.
         if (Build.VERSION.SDK_INT > 13) {
-            mConnection.setRequestProperty("Connection", "close");
+            connection.setRequestProperty("Connection", "close");
         }
+
+        // Apply the request headers
+        final Iterator<String> headerKeys = mRequestHeaders.keySet().iterator();
+
+        while (headerKeys.hasNext()) {
+            String header = headerKeys.next();
+            Logger.v(TAG, "Setting header: " + header);
+            connection.setRequestProperty(header, mRequestHeaders.get(header));
+        }
+
+        connection.setReadTimeout(READ_TIME_OUT);
+        connection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
+        connection.setUseCaches(mUseCaches);
+        connection.setRequestMethod(mRequestMethod);
+        connection.setDoInput(true); // it will at least read status
+                                     // code. Default is true.
+        setRequestBody(connection, mRequestContent, mRequestContentType);
+
+        return connection;
     }
 
     /**
      * send the request.
-     * 
-     * @param contentType
      */
-    public HttpWebResponse send() {
-
-        Logger.v(TAG, "HttpWebRequest send thread:" + android.os.Process.myTid());
-        setupConnection();
-        HttpWebResponse response = new HttpWebResponse();
-
-        if (mConnection != null) {
+    public HttpWebResponse send() throws IOException {
+        Logger.v(TAG, "HttpWebRequest send thread:" + Process.myTid());
+        final HttpURLConnection connection = setupConnection();
+        final HttpWebResponse response;
+        InputStream responseStream = null;
+        try {
             try {
-                // Apply the request headers
-                final Iterator<String> headerKeys = mRequestHeaders.keySet().iterator();
-
-                while (headerKeys.hasNext()) {
-                    String header = headerKeys.next();
-                    Logger.v(TAG, "Setting header: " + header);
-                    mConnection.setRequestProperty(header, mRequestHeaders.get(header));
+                responseStream = connection.getInputStream();
+            } catch (IOException ex) {
+                Logger.e(TAG, "IOException:" + ex.getMessage(), "", ADALError.SERVER_ERROR);
+                // If it does not get the error stream, it will return
+                // exception in the httpresponse
+                responseStream = connection.getErrorStream();
+                if (responseStream == null) {
+                    throw ex;
                 }
-
-                // Avoid reuse of existing sockets to avoid random EOF errors
-                System.setProperty("http.keepAlive", "false");
-                mConnection.setReadTimeout(READ_TIME_OUT);
-                mConnection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
-                mConnection.setUseCaches(mUseCaches);
-                mConnection.setRequestMethod(mRequestMethod);
-                mConnection.setDoInput(true); // it will at least read status
-                                              // code. Default is true.
-                setRequestBody();
-
-                byte[] responseBody = null;
-                InputStream responseStream = null;
-
-                try {
-                    responseStream = mConnection.getInputStream();
-                } catch (IOException ex) {
-                    Logger.e(TAG, "IOException:" + ex.getMessage(), "", ADALError.SERVER_ERROR);
-                    // If it does not get the error stream, it will return
-                    // exception in the httpresponse
-                    responseStream = mConnection.getErrorStream();
-                    mException = ex;
-                }
-
-                // GET request should read status after getInputStream to make
-                // this work for different SDKs
-                getStatusCode(response);
-
-                if (responseStream != null) {
-
-                    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[4096];
-                    int bytesRead = -1;
-
-                    // Continue to read from stream if not cancelled and not EOF
-                    while ((bytesRead = responseStream.read(buffer)) > 0) {
-                        byteStream.write(buffer, 0, bytesRead);
-                    }
-
-                    responseBody = byteStream.toByteArray();
-                }
-
-                // It will only run in debugger and set from outside for testing
-                if (android.os.Debug.isDebuggerConnected() && sDebugSimulateDelay > 0) {
-                    // sleep background thread in debugging mode
-                    Logger.v(TAG, "Sleeping to simulate slow network response");
-                    Thread.sleep(sDebugSimulateDelay);
-                }
-
-                Logger.v(TAG, "Response is received");
-                response.setBody(responseBody);
-                response.setResponseHeaders(mConnection.getHeaderFields());
-            } catch (InterruptedException e) {
-                Logger.v(TAG, "Thread.sleep got interrupted exception " + e);
-            } catch (IOException e ) {
-                Logger.e(TAG, "IOException:" + e.getMessage(), " Method:" + mRequestMethod,
-                        ADALError.SERVER_ERROR, e);
-                mException = e;
-            } finally {
-                mConnection.disconnect();
-                mConnection = null;
             }
+            // GET request should read status after getInputStream to make
+            // this work for different SDKs
+            final int statusCode = connection.getResponseCode();
+            final String responseBody = convertStreamToString(responseStream);
+
+            // It will only run in debugger and set from outside for testing
+            if (Debug.isDebuggerConnected() && sDebugSimulateDelay > 0) {
+                // sleep background thread in debugging mode
+                Logger.v(TAG, "Sleeping to simulate slow network response");
+                try {
+                    Thread.sleep(sDebugSimulateDelay);
+                } catch (InterruptedException e) {
+                    Logger.v(TAG, "Thread.sleep got interrupted exception " + e);
+                }
+            }
+
+            Logger.v(TAG, "Response is received");
+            response = new HttpWebResponse(statusCode, responseBody, connection.getHeaderFields());
+        } finally {
+            safeCloseStream(responseStream);
+            // We are not disconnecting from network to allow connection to be returned into the
+            // connection pool. If we call disconnect due to buggy implementation we are not reusing
+            // connections.
+            //if (connection != null) {
+            //	connection.disconnect();
+            //}
         }
 
-        response.setResponseException(mException);
         return response;
     }
+    
+    static void throwIfNetworkNotAvaliable(final Context context) throws AuthenticationException {
+        final DefaultConnectionService connectionService = new DefaultConnectionService(context);
+        if (!connectionService.isConnectionAvailable()) {
+            AuthenticationException authenticationException = new AuthenticationException(
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                    "Connection is not available to refresh token");
+            Logger.w(TAG, "Connection is not available to refresh token", "",
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+            
+            throw authenticationException;
+        }
+    } 
 
-    private void getStatusCode(HttpWebResponse response) throws IOException {
-        int statusCode = HttpURLConnection.HTTP_BAD_REQUEST;
-
+    /**
+     * Convert stream into the string
+     *
+     * @param is
+     *            Input stream
+     * @return The converted string
+     * @throws IOException
+     *             Thrown when failing to access input stream.
+     */
+    private static String convertStreamToString(InputStream is) throws IOException {
+        BufferedReader reader = null;
         try {
-            statusCode = mConnection.getResponseCode();
-        } catch (IOException ex) {
-
-            if (Build.VERSION.SDK_INT < 16) {
-                // this exception is hardcoded in HttpUrlConnection class inside
-                // Android source code for previous SDKs.
-                // Status code handling is throwing exceptions if it does not
-                // see challenge
-                if (ex.getMessage().equals(UNAUTHORIZED_ERROR_MESSAGE_PRE18)) {
-                    statusCode = HttpURLConnection.HTTP_UNAUTHORIZED;
+            reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (sb.length() > 0) {
+                    sb.append("\n");
                 }
-            } else {
-                // HttpUrlConnection does not understand Bearer challenge
-                // Second time query will get the correct status.
-                // it will throw, if it is a different status related to
-                // connection problem
-                statusCode = mConnection.getResponseCode();
+                sb.append(line);
             }
 
-            // if status is 200 or 401 after reading again, it can read the
-            // response body for messages
-            if (statusCode != HttpURLConnection.HTTP_OK
-                    && statusCode != HttpURLConnection.HTTP_UNAUTHORIZED) {
-                throw ex;
+            return sb.toString();
+        } finally {
+            if (reader != null) {
+                reader.close();
             }
         }
-        response.setStatusCode(statusCode);
-        Logger.v(TAG, "Status code:" + statusCode);
+    }
+
+    private static void setRequestBody(HttpURLConnection connection, byte[] contentRequest, String requestContentType) throws IOException {
+        if (null != contentRequest) {
+            connection.setDoOutput(true);
+
+            if (null != requestContentType && !requestContentType.isEmpty()) {
+                connection.setRequestProperty("Content-Type", requestContentType);
+            }
+
+            connection.setRequestProperty("Content-Length",
+                    Integer.toString(contentRequest.length));
+            connection.setFixedLengthStreamingMode(contentRequest.length);
+
+            OutputStream out = null;
+            try {
+                out = connection.getOutputStream();
+                out.write(contentRequest);
+            } finally {
+                safeCloseStream(out);
+            }
+        }
     }
 
     /**
-     * open connection. If there is any error, set exception inside the response
-     * 
-     * @param _response
-     * @return
+     * Close the stream safely
+     *
+     * @param stream stream to be closed
      */
-    private HttpURLConnection openConnection() {
-        HttpURLConnection connection = null;
-        try {
-
-            connection = (HttpURLConnection)mUrl.openConnection();
-            connection.setConnectTimeout(mTimeOut);
-
-        } catch (IOException e) {
-            mException = e;
-        }
-        return connection;
-    }
-
-    private void setRequestBody() throws IOException {
-        if (null != mRequestContent) {
-            mConnection.setDoOutput(true);
-
-            if (null != getRequestContentType() && !getRequestContentType().isEmpty()) {
-                mConnection.setRequestProperty("Content-Type", getRequestContentType());
+    private static void safeCloseStream(Closeable stream) {
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (IOException e) {
+                // swallow error in this case
+                Logger.e(TAG, "Failed to close the stream: ", "", ADALError.IO_EXCEPTION, e);
             }
-
-            mConnection.setRequestProperty("Content-Length",
-                    Integer.toString(mRequestContent.length));
-            mConnection.setFixedLengthStreamingMode(mRequestContent.length);
-
-            OutputStream out = mConnection.getOutputStream();
-            out.write(mRequestContent);
-            out.close();
         }
     }
 
@@ -291,35 +270,5 @@ class HttpWebRequest {
         }
 
         return authority;
-    }
-
-    /**
-     * The requests target URL.
-     */
-    URL getURL() {
-        return mUrl;
-    }
-
-    /**
-     * The request headers.
-     */
-    public HashMap<String, String> getRequestHeaders() {
-        return mRequestHeaders;
-    }
-
-    void setRequestMethod(String requestMethod) {
-        this.mRequestMethod = requestMethod;
-    }
-
-    String getRequestContentType() {
-        return mRequestContentType;
-    }
-
-    void setRequestContentType(String requestContentType) {
-        this.mRequestContentType = requestContentType;
-    }
-
-    void setRequestContent(byte[] data) {
-        this.mRequestContent = data;
     }
 }
