@@ -131,7 +131,7 @@ public class TokenCache implements ITokenCacheStore {
         return "";
     }
 
-    public final void deSerialize(String input) {
+    public final void deserialize(String input) {
         try {
             mCacheItems = new HashMap<TokenCacheKey, TokenCacheItem>();
 
@@ -327,7 +327,7 @@ public class TokenCache implements ITokenCacheStore {
     void initCache(){
         if (mPrefs.contains(CACHE_BLOB)) {
             String json = mPrefs.getString(CACHE_BLOB, "");
-            deSerialize(json);
+            deserialize(json);
         }
     }
 

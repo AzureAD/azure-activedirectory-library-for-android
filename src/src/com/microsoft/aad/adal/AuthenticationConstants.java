@@ -136,17 +136,9 @@ public class AuthenticationConstants {
 
         static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
 
-        public static final Object PROFILE_INFO = "profile_info";
+        public static final String PROFILE_INFO = "profile_info";
         
         static final String OPEN_ID = "openid";
-
-        static final class PROFILE_INFO_CLAIM {
-            static final String VERSION = "ver";
-            static final String SUBJECT = "sub";
-            static final String TENANT_ID = "tid";
-            static final String PREFERRED_USERNAME = "preferred_username";
-            static final String NAME = "name";
-        }
     }
 
     public static final class AAD {

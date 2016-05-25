@@ -25,18 +25,13 @@ import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import com.microsoft.aad.adal.ChallangeResponseBuilder.ChallangeResponse;
 
 import android.os.Build;
-import android.util.Base64;
 
 /**
  * Base Oauth class.
@@ -269,7 +264,7 @@ class Oauth2 {
             // response. ADFS does not return that.
             rawProfileInfo = response.get(AuthenticationConstants.OAuth2.PROFILE_INFO);
             if (!StringExtensions.IsNullOrBlank(rawProfileInfo)) {
-                ProfileInfo profileinfo = parseProfileInfo(rawProfileInfo);
+                final ProfileInfo profileinfo = ProfileInfo.parseProfileInfo(rawProfileInfo);
                 if (profileinfo != null) {
                     tenantId = profileinfo.mTenantId;
                     userinfo = new UserInfo(profileinfo);
@@ -285,60 +280,6 @@ class Oauth2 {
         result.setScopeInResponse(scope);
         
         return result;
-    }
-
-    /**
-     * parse user id token string.
-     * 
-     * @param idtoken
-     * @return UserInfo
-     */
-    private static ProfileInfo parseProfileInfo(String rawProfileInfo) {
-        try {
-            // Message Base64 encoded text
-             
-
-            if (!StringExtensions.IsNullOrBlank(rawProfileInfo)) {
-                // URL_SAFE: Encoder/decoder flag bit to use
-                // "URL and filename safe" variant of Base64
-                // (see RFC 3548 section 4) where - and _ are used in place of +
-                // and /.
-                byte[] data = Base64.decode(rawProfileInfo, Base64.URL_SAFE);
-                String decodedBody = new String(data, "UTF-8");
-
-                HashMap<String, String> responseItems = new HashMap<String, String>();
-                extractJsonObjects(responseItems, decodedBody);
-                if (responseItems != null && !responseItems.isEmpty()) {
-                    final ProfileInfo profileInfo = new ProfileInfo();
-                    profileInfo.mVersion = responseItems.get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.VERSION);
-                    profileInfo.mSubject = responseItems.get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.SUBJECT);
-                    profileInfo.mTenantId = responseItems
-                            .get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.TENANT_ID);
-                    profileInfo.mName = responseItems.get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.NAME);
-                    profileInfo.mPreferredName = responseItems
-                            .get(AuthenticationConstants.OAuth2.PROFILE_INFO_CLAIM.PREFERRED_USERNAME);
-                    Logger.v(TAG, "Profile info is extracted from token response");
-                    return profileInfo;
-                }
-            }
-        } catch (Exception ex) {
-            Logger.e(TAG, "Error in parsing user id token", null,
-                    ADALError.IDTOKEN_PARSING_FAILURE, ex);
-        }
-        return null;
-    }
-
-    private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr)
-            throws JSONException {
-        final JSONObject jsonObject = new JSONObject(jsonStr);
-
-        @SuppressWarnings("unchecked")
-        final Iterator<String> i = jsonObject.keys();
-
-        while (i.hasNext()) {
-            final String key = i.next();
-            responseItems.put(key, jsonObject.getString(key));
-        }
     }
 
     public AuthenticationResult refreshToken(String refreshToken) throws Exception {
@@ -572,7 +513,7 @@ class Oauth2 {
             // Status is 400 for those.
             try {
                 String jsonStr = new String(webResponse.getBody());
-                extractJsonObjects(responseItems, jsonStr);
+                JsonHelper.extractJsonObjects(responseItems, jsonStr);
                 result = processUIResponseParams(responseItems);
             } catch (final Exception ex) {
                 // There is no recovery possible here, so
