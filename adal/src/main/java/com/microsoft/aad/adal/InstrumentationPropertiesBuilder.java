@@ -31,6 +31,14 @@ import java.util.Map;
  */
 class InstrumentationPropertiesBuilder {
     final private Map<String, String> mProperties = new HashMap<>();
+    
+    /**
+     * Initialize properties for event failed with exception. 
+     */
+    InstrumentationPropertiesBuilder(final Exception exception) {
+        addProperty(InstrumentationIDs.ERROR_CLASS, exception.getClass().getSimpleName());
+        addProperty(InstrumentationIDs.ERROR_MESSAGE, exception.getMessage());
+    }
 
     /**
      * Initializes properties for request that had exception during execution

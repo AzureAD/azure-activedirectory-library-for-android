@@ -46,6 +46,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Build;
 
 /**
  * Store/Retrieve TokenCacheItem from private SharedPreferences.
@@ -98,12 +99,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         if (mPrefs == null) {
             throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
         }
-
-        try {
-            getStorageHelper().loadSecretKeyForAPI();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new IllegalStateException("Failed to get private key from AndroidKeyStore", e);
-        }
+        
+        // Check upfront when initializing DefaultTokenCacheStore. 
+        // If it's under API 18 and secretkey is not provided, we should fail upfront to inform 
+        // notify developers. 
+        validateSecretKeySetting();
     }
 
     /**
@@ -125,6 +125,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         try {
             return getStorageHelper().encrypt(value);
         } catch (GeneralSecurityException | IOException e) {
+            ClientAnalytics.logEvent(new EncryptionDecryptionFailureEvent(new InstrumentationPropertiesBuilder(e), true));
             Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
         }
 
@@ -139,7 +140,8 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         try {
             return getStorageHelper().decrypt(value);
         } catch (GeneralSecurityException | IOException e) {
-            Logger.e(TAG, "Decryption failure", "", ADALError.ENCRYPTION_FAILED, e);
+            ClientAnalytics.logEvent(new EncryptionDecryptionFailureEvent(new InstrumentationPropertiesBuilder(e), false));
+            Logger.e(TAG, "Decryption failure", "", ADALError.DECRYPTION_FAILED, e);
             removeItem(key);
             Logger.v(TAG, String.format("Decryption error, item removed for key: '%s'", key));
         }
@@ -348,6 +350,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return tokenItems;
     }
 
+    private void validateSecretKeySetting() {
+        final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
+        if(secretKeyData == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            throw new IllegalArgumentException("Secret key must be provided for API < 18. " +
+                    "Use AuthenticationSettings.INSTANCE.setSecretKey()");
+        }
+    }
+
     private boolean isAboutToExpire(Date expires) {
         Date validity = getTokenValidityTime().getTime();
 
@@ -373,5 +383,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         }
 
         return mPrefs.contains(key);
+    }
+    
+    private static class EncryptionDecryptionFailureEvent extends ClientAnalytics.Event {
+        private EncryptionDecryptionFailureEvent(final InstrumentationPropertiesBuilder builder, final boolean isEncryption) {
+            super(isEncryption ? InstrumentationIDs.ENCRYPTION_EVENT : InstrumentationIDs.DECRYPTION_EVENT,
+                    builder.add(InstrumentationIDs.EVENT_RESULT, InstrumentationIDs.EVENT_RESULT_FAIL)
+                            .build());
+        }
     }
 }
