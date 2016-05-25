@@ -132,6 +132,8 @@ public class StorageHelper {
      * To keep track of encoding version and related flags.
      */
     private static final String ENCODE_VERSION = "E1";
+    
+    private static final int KEY_FILE_SIZE = 1024;
 
     private static final Object LOCK_OBJ = new Object();
     
@@ -371,14 +373,12 @@ public class StorageHelper {
         case VERSION_USER_DEFINED : 
             return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
         case VERSION_ANDROID_KEY_STORE :
-            if (Build.VERSION.SDK_INT >= 18) {
-                // androidKeyStore can store app specific self signed cert.
-                // Asymmetric cryptography is used to protect the session key
-                // used for Encryption and HMac
-                mKeyPair = readKeyPair();
-                mSecretKeyFromAndroidKeyStore = getUnwrappedSecretKey();
-                return mSecretKeyFromAndroidKeyStore;
-            }
+            // androidKeyStore can store app specific self signed cert.
+            // Asymmetric cryptography is used to protect the session key
+            // used for Encryption and HMac
+            mKeyPair = readKeyPair();
+            mSecretKeyFromAndroidKeyStore = getUnwrappedSecretKey();
+            return mSecretKeyFromAndroidKeyStore;
         default :
             throw new IOException("Unknown keyVersion.");
         }
@@ -429,10 +429,10 @@ public class StorageHelper {
         final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
         keyStore.load(null);
 
+        final KeyStore.PrivateKeyEntry entry;
         try {
-            final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
+            entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(
                     KEY_STORE_CERT_ALIAS, null);
-            return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
         } catch (final RuntimeException e) {
             // There is an issue in android keystore that resets keystore
             // Issue 61989:  AndroidKeyStore deleted after changing screen lock type
@@ -444,6 +444,8 @@ public class StorageHelper {
                     new InstrumentationPropertiesBuilder(e)));
             throw new KeyStoreException(e);
         }
+        
+        return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
     }
     
     /**
@@ -641,7 +643,7 @@ public class StorageHelper {
         final InputStream in = new FileInputStream(keyFile);
         try {
             final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            final byte[] buffer = new byte[1024];
+            final byte[] buffer = new byte[KEY_FILE_SIZE];
             int count;
             while ((count = in.read(buffer)) != -1) {
                 bytes.write(buffer, 0, count);
