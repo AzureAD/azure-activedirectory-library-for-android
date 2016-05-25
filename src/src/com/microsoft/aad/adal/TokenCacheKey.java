@@ -249,7 +249,7 @@ final class TokenCacheKey implements Serializable {
         // if key is specified for mrrt, it does not need to check scope
         // intersection
         return mAuthority.equalsIgnoreCase(item.getAuthority()) && mClientId.equalsIgnoreCase(item.getClientId())
-                && (mIsMultipleResourceRefreshToken || isScopeIntersect(item.getScope()))
+                && isScopeIntersect(item.getScope())
                 && (TextUtils.isEmpty(mUniqueId) || item.getUserInfo() == null
                         || mUniqueId.equalsIgnoreCase(item.getUserInfo().getUniqueId()))
                 && (TextUtils.isEmpty(mDisplayableId) || item.getUserInfo() == null

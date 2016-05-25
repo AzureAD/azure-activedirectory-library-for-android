@@ -163,6 +163,13 @@ class Oauth2 {
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
                 StringExtensions.URLFormEncode(mRequest.getRedirectUri()));
         
+        String scope = StringExtensions.createStringFromArray(mRequest.getDecoratedScopeRequest(),
+                " ");
+        if (!StringExtensions.IsNullOrBlank(scope)) {
+            message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.SCOPE,
+                    StringExtensions.URLFormEncode(scope));
+        }
+        
         if (!StringExtensions.IsNullOrBlank(mRequest.getPolicy())) {
             message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.QUERY_POLICY,
                     URLEncoder.encode(mRequest.getPolicy(), AuthenticationConstants.ENCODING_UTF8));
@@ -248,7 +255,7 @@ class Oauth2 {
         } else {
             token = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
             expiresIn = response.get(AuthenticationConstants.OAuth2.ID_TOKEN_EXPIRES_IN);
-            scope = AuthenticationConstants.OAuth2.OPEN_ID;
+            scope = mRequest.getClientId();
         }
         
         final Calendar expires = new GregorianCalendar();

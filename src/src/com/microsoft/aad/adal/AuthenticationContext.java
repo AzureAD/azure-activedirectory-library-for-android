@@ -1358,11 +1358,10 @@ public class AuthenticationContext {
             // If request contains open_id, convert it to client id.
             final String[] scopesInRequest = request.getScope();
             if (scopesInRequest != null && scopesInRequest.length == 1
-                    && (scopesInRequest[0] == AuthenticationConstants.OAuth2.OPEN_ID
+                    && (scopesInRequest[0] == AuthenticationConstants.OAuth2.SCOPE_OPEN_ID
                             || scopesInRequest[0] == request.getClientId())) {
                 final String[] convertedScope = new String[] { request.getClientId() };
                 key.setScope(convertedScope);
-                cacheItem.setScope(convertedScope);
             }
 
             mTokenCacheStore.setItem(key, cacheItem);

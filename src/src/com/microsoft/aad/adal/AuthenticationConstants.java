@@ -138,7 +138,11 @@ public class AuthenticationConstants {
 
         public static final String PROFILE_INFO = "profile_info";
         
-        static final String OPEN_ID = "openid";
+        static final String SCOPE_OPEN_ID = "openid";
+        
+        static final String SCOPE_OFFLINE_ACCESS = "offline_access";
+        
+        static final String SCOPE_PROFILE = "profile";
     }
 
     public static final class AAD {
