@@ -644,22 +644,22 @@ class BrokerProxy implements IBrokerProxy {
             throw new IllegalArgumentException("Calling getBrokerUsers on main thread");
         }
 
-        Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        Bundle bundle = new Bundle();
+        final Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        final Bundle bundle = new Bundle();
         bundle.putBoolean(DATA_USER_INFO, true);
         Logger.v(TAG + methodName, "Retrieve all the accounts from account manager with broker account type, "
                 + "and the account length is: " + accountList.length);
 
         // accountList will never be null, getAccountsByType will return an empty list if no matching account returned.
         // get info for each user
-        UserInfo[] users = new UserInfo[accountList.length];
+        final UserInfo[] users = new UserInfo[accountList.length];
         for (int i = 0; i < accountList.length; i++) {
 
             // Use AccountManager Api method to get extended user info
-            AccountManagerFuture<Bundle> result = mAcctManager.updateCredentials(accountList[i],
+            final AccountManagerFuture<Bundle> result = mAcctManager.updateCredentials(accountList[i],
                     AuthenticationConstants.Broker.AUTHTOKEN_TYPE, bundle, null, null, null);
             Logger.v(TAG, "Waiting for userinfo retrieval result from Broker.");
-            Bundle userInfoBundle = result.getResult();
+            final Bundle userInfoBundle = result.getResult();
 
             users[i] = new UserInfo(
                     userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID),

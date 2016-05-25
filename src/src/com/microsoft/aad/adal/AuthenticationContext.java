@@ -1353,7 +1353,7 @@ public class AuthenticationContext {
                 //the request from client App is not silent
                 //otherwise the acquiretokensilent might be interrupted 
                 //by DeveloperAuthenticationException
-                if(!request.isSilent()) {
+                if (!request.isSilent()) {
                     Logger.v(TAG + methodName, "Non-silent request, start broker redirect uri validation.");
                     verifyBrokerRedirectUri(request);
                 }
