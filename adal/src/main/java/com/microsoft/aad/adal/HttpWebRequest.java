@@ -115,7 +115,7 @@ class HttpWebRequest {
         connection.setUseCaches(mUseCaches);
         connection.setRequestMethod(mRequestMethod);
         connection.setDoInput(true); // it will at least read status
-                                     // code. Default is true.
+        // code. Default is true.
         setRequestBody(connection, mRequestContent, mRequestContentType);
 
         return connection;
@@ -164,14 +164,11 @@ class HttpWebRequest {
             // We are not disconnecting from network to allow connection to be returned into the
             // connection pool. If we call disconnect due to buggy implementation we are not reusing
             // connections.
-            //if (connection != null) {
-            //	connection.disconnect();
-            //}
         }
 
         return response;
     }
-    
+
     static void throwIfNetworkNotAvaliable(final Context context) throws AuthenticationException {
         final DefaultConnectionService connectionService = new DefaultConnectionService(context);
         if (!connectionService.isConnectionAvailable()) {
@@ -180,19 +177,17 @@ class HttpWebRequest {
                     "Connection is not available to refresh token");
             Logger.w(TAG, "Connection is not available to refresh token", "",
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            
+
             throw authenticationException;
         }
-    } 
+    }
 
     /**
      * Convert stream into the string
      *
-     * @param is
-     *            Input stream
+     * @param is Input stream
      * @return The converted string
-     * @throws IOException
-     *             Thrown when failing to access input stream.
+     * @throws IOException Thrown when failing to access input stream.
      */
     private static String convertStreamToString(InputStream is) throws IOException {
         BufferedReader reader = null;
