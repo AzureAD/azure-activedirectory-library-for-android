@@ -304,6 +304,11 @@ public enum ADALError {
      * Encryption failed.
      */
     ENCRYPTION_FAILED("Encryption failed"),
+    
+    /**
+     * Decryption failed.
+     */
+    DECRYPTION_FAILED("Decryption failed"),
 
     /**
      * Failed to use AndroidKeyStore.
