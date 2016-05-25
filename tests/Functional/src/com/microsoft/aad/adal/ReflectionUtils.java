@@ -80,8 +80,7 @@ public class ReflectionUtils {
         // full package name
         Class<?> c = Class.forName(name);
 
-        // getConstructor() returns only public constructors,
-
+        // getConstructor() returns only public constructors
         Constructor<?> constructor = c.getDeclaredConstructor();
 
         constructor.setAccessible(true);

@@ -64,11 +64,7 @@ class HttpWebRequest {
         this(requestURL, requestMethod, headers, null, null);
     }
 
-    public HttpWebRequest(
-            URL requestURL,
-            String requestMethod,
-            Map<String, String> headers,
-            byte[] requestContent,
+    public HttpWebRequest(URL requestURL, String requestMethod, Map<String, String> headers, byte[] requestContent,
             String requestContentType) {
         mUrl = requestURL;
         mRequestMethod = requestMethod;
@@ -89,8 +85,7 @@ class HttpWebRequest {
         if (mUrl == null) {
             throw new IllegalArgumentException("requestURL");
         }
-        if (!mUrl.getProtocol().equalsIgnoreCase("http")
-                && !mUrl.getProtocol().equalsIgnoreCase("https")) {
+        if (!mUrl.getProtocol().equalsIgnoreCase("http") && !mUrl.getProtocol().equalsIgnoreCase("https")) {
             throw new IllegalArgumentException("requestURL");
         }
         HttpURLConnection.setFollowRedirects(true);
@@ -161,29 +156,25 @@ class HttpWebRequest {
             response = new HttpWebResponse(statusCode, responseBody, connection.getHeaderFields());
         } finally {
             safeCloseStream(responseStream);
-            // We are not disconnecting from network to allow connection to be returned into the
-            // connection pool. If we call disconnect due to buggy implementation we are not reusing
-            // connections.
-            //if (connection != null) {
-            //	connection.disconnect();
-            //}
+            // We are not disconnecting from network to allow connection to be
+            // returned into the connection pool. If we call disconnect due to
+            // buggy implementation we are not reusing connections.
         }
 
         return response;
     }
-    
+
     static void throwIfNetworkNotAvaliable(final Context context) throws AuthenticationException {
         final DefaultConnectionService connectionService = new DefaultConnectionService(context);
         if (!connectionService.isConnectionAvailable()) {
             AuthenticationException authenticationException = new AuthenticationException(
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
-                    "Connection is not available to refresh token");
+                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE, "Connection is not available to refresh token");
             Logger.w(TAG, "Connection is not available to refresh token", "",
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            
+
             throw authenticationException;
         }
-    } 
+    }
 
     /**
      * Convert stream into the string
@@ -215,7 +206,8 @@ class HttpWebRequest {
         }
     }
 
-    private static void setRequestBody(HttpURLConnection connection, byte[] contentRequest, String requestContentType) throws IOException {
+    private static void setRequestBody(HttpURLConnection connection, byte[] contentRequest, String requestContentType)
+            throws IOException {
         if (null != contentRequest) {
             connection.setDoOutput(true);
 
@@ -223,8 +215,7 @@ class HttpWebRequest {
                 connection.setRequestProperty("Content-Type", requestContentType);
             }
 
-            connection.setRequestProperty("Content-Length",
-                    Integer.toString(contentRequest.length));
+            connection.setRequestProperty("Content-Length", Integer.toString(contentRequest.length));
             connection.setFixedLengthStreamingMode(contentRequest.length);
 
             OutputStream out = null;
@@ -240,7 +231,8 @@ class HttpWebRequest {
     /**
      * Close the stream safely
      *
-     * @param stream stream to be closed
+     * @param stream
+     *            stream to be closed
      */
     private static void safeCloseStream(Closeable stream) {
         if (stream != null) {
@@ -259,9 +251,8 @@ class HttpWebRequest {
         String authority = requestURL.getAuthority();
 
         if (requestURL.getPort() == -1) {
-            // No port in the URI so append a default using the
-            // scheme specified in the URI; only http and https are
-            // supported
+            // No port in the URI so append a default using the scheme specified
+            // in the URI; only http and https are supported
             if (requestURL.getProtocol().equalsIgnoreCase("http")) {
                 authority = authority + ":80";
             } else if (requestURL.getProtocol().equalsIgnoreCase("https")) {

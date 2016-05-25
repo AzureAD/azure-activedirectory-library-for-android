@@ -568,7 +568,6 @@ public class TestScriptRunner {
                 response = request.sendPost(new URL(mUrl), headers, mData.getBytes("UTF-8"),
                         "application/json");
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
 
@@ -608,7 +607,6 @@ public class TestScriptRunner {
                 ScriptInfo scriptInfo = gson.fromJson(body, ScriptInfo.class);
                 return scriptInfo;
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
 

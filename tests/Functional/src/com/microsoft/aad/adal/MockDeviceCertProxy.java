@@ -75,7 +75,6 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
 
     @Override
     public boolean isValidIssuer(List<String> certAuthorities) {
-        // TODO Auto-generated method stub
         return sValidIssuer;
     }
 }
