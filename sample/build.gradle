@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "com.microsoft.aad.adal.sample"
-        minSdkVersion 18
+        minSdkVersion 14
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
@@ -28,6 +28,5 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:21.0.3'
-    //compile 'com.microsoft.aad:adal:1.1.16'
     compile project(':adal')
 }

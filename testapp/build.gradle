@@ -5,8 +5,8 @@ android {
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "com.microsoft.aad.testapp"
-        minSdkVersion 18
+        applicationId "com.microsoft.aad.adal.testapp"
+        minSdkVersion 14
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
