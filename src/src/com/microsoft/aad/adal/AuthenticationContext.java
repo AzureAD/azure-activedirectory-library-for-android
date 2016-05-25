@@ -977,12 +977,12 @@ public class AuthenticationContext {
 
                                         if (waitingRequest != null
                                                 && waitingRequest.mDelagete != null) {
-                                            Logger.v(TAG, "Sending authentication result back to callback."
-                                                    ,authenticationRequest.getLogInfo(), null);
+                                            Logger.v(TAG, "Sending authentication result back to callback.",
+                                                    authenticationRequest.getLogInfo(), null);
                                             callbackHandle.onSuccess(result);
                                         }
                                     } else {
-                                        Logger.v(TAG, "Returned authentication is null.");
+                                        Logger.v(TAG, "Returned authentication result is null.");
                                         callbackHandle
                                                 .onError(new AuthenticationException(
                                                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, correlationInfo));
@@ -1384,8 +1384,7 @@ public class AuthenticationContext {
                 Logger.v(TAG + methodName, "User is not specified, skipping background(silent) token request");
             }
 
-            if (result != null && result.getAccessToken() != null
-                    && !result.getAccessToken().isEmpty()) {
+            if (isAccessTokenReturned(result)) {
                 Logger.v(TAG, "Token is returned from background(silent) request, sending token "
                         + "result back via callback.");
                 ClientAnalytics.logEvent(new RefreshTokenEvent(
@@ -1393,8 +1392,6 @@ public class AuthenticationContext {
 
                 callbackHandle.onSuccess(result);
                 return result;
-            } else {
-                Logger.v(TAG, "Returned result from broker doesn't contain access token.");
             }
 
             // Launch broker activity
