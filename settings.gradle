@@ -1,0 +1,1 @@
+include ':adal', ':testapp', ':sample',':userappwithbroker'

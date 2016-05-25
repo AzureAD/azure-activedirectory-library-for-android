@@ -1,7 +1,7 @@
-::	Broker RedirectUri
+::    Broker RedirectUri
 ::
 :: 1- Please copy your debug.keystore file into desktop from
-:: 	your "C:\users\yourname\.android" folder
+::     your "C:\users\yourname\.android" folder
 :: 2- Run this in git console or install openssl
 :: 3- Java Jdk is needed for keytool.exe
 REM Set your folders here

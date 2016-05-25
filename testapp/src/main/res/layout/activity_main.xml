@@ -1,0 +1,148 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity" >
+
+    <TextView
+        android:id="@+id/textViewStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="30dp"
+        android:text="Status"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <Button
+        android:id="@+id/buttonReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewStatus"
+        android:layout_below="@+id/buttonExpired"
+        android:text="-Tokens" />
+
+    <EditText
+        android:id="@+id/editClientid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editResource"
+        android:layout_below="@+id/editResource"
+        android:ems="10"
+        android:hint="Clientid" />
+
+    <EditText
+        android:id="@+id/editUserId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editClientid"
+        android:layout_below="@+id/editClientid"
+        android:ems="10"
+        android:hint="Userid" />
+
+    <EditText
+        android:id="@+id/editPrompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editUserId"
+        android:layout_below="@+id/editUserId"
+        android:ems="10"
+        android:hint="Prompt" />
+
+    <EditText
+        android:id="@+id/editRedirect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editPrompt"
+        android:layout_below="@+id/editPrompt"
+        android:ems="10"
+        android:hint="Redirect" />
+
+    <CheckBox
+        android:id="@+id/checkBoxValidate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editRedirect"
+        android:layout_below="@+id/editRedirect"
+        android:text="Validate" />
+
+    <Button
+        android:id="@+id/buttonExpired"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/editAuthority"
+        android:layout_toRightOf="@+id/buttonGetToken"
+        android:text="Expire" />
+
+    <Button
+        android:id="@+id/buttonGetToken"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewStatus"
+        android:layout_below="@+id/textViewStatus"
+        android:text="Token" />
+
+    <EditText
+        android:id="@+id/editAuthority"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/editClientid"
+        android:layout_below="@+id/buttonGetToken"
+        android:layout_marginTop="50dp"
+        android:ems="10"
+        android:hint="Authority" >
+
+        <requestFocus />
+    </EditText>
+
+    <EditText
+        android:id="@+id/editResource"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/buttonReset"
+        android:layout_below="@+id/editAuthority"
+        android:ems="10"
+        android:hint="Resource" />
+
+    <Button
+        android:id="@+id/buttonRefresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonReset"
+        android:layout_alignBottom="@+id/buttonReset"
+        android:layout_toRightOf="@+id/buttonReset"
+        android:text="Refresh" />
+
+    <Button
+        android:id="@+id/buttonVerify"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonRefresh"
+        android:layout_alignBottom="@+id/buttonRefresh"
+        android:layout_toRightOf="@+id/buttonRefresh"
+        android:text="Verify" />
+
+    <Button
+        android:id="@+id/buttonRemoveCookies"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/buttonExpired"
+        android:layout_alignBottom="@+id/buttonExpired"
+        android:layout_toRightOf="@+id/buttonExpired"
+        android:text="-Cookie" />
+
+    <Button
+        android:id="@+id/buttonTestScriptRun"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/buttonRemoveCookies"
+        android:layout_alignLeft="@+id/buttonRefresh"
+        android:text="Script" />
+
+</RelativeLayout>
