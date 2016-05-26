@@ -70,5 +70,5 @@ public interface ITokenCacheStore extends Serializable {
     
     String serialize();
     
-    void deSerialize(String blob);
+    void deserialize(String blob);
 }

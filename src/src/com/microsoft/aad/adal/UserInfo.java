@@ -19,9 +19,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -35,6 +33,8 @@ public class UserInfo implements Serializable {
      * 
      */
     private static final long serialVersionUID = 8790127561636702672L;
+
+    private String mVersion;
 
     private String mUniqueId;
 
@@ -64,36 +64,21 @@ public class UserInfo implements Serializable {
         mDisplayableId = displayableId;
     }
 
-    public UserInfo(ProfileInfo token) {
-
-        mUniqueId = null;
-        mDisplayableId = null;
-
-        if (!StringExtensions.IsNullOrBlank(token.mObjectId)) {
-            mUniqueId = token.mObjectId;
-        } else if (!StringExtensions.IsNullOrBlank(token.mSubject)) {
-            mUniqueId = token.mSubject;
+    public UserInfo(ProfileInfo profileinfo) {
+        if (!StringExtensions.IsNullOrBlank(profileinfo.mVersion)) {
+            mVersion = profileinfo.mVersion;
         }
 
-        if (!StringExtensions.IsNullOrBlank(token.mUpn)) {
-            mDisplayableId = token.mUpn;
-        } else if (!StringExtensions.IsNullOrBlank(token.mEmail)) {
-            mDisplayableId = token.mEmail;
+        if (!StringExtensions.IsNullOrBlank(profileinfo.mSubject)) {
+            mUniqueId = profileinfo.mSubject;
         }
 
-        mName = token.mName;
-        mIdentityProvider = token.mIdentityProvider;
-        if (token.mPasswordExpiration > 0) {
-            // pwd_exp returns seconds to expiration time
-            // it returns in seconds. Date accepts milliseconds.
-            Calendar expires = new GregorianCalendar();
-            expires.add(Calendar.SECOND, (int)token.mPasswordExpiration);
-            mPasswordExpiresOn = expires.getTime();
+        if (!StringExtensions.IsNullOrBlank(profileinfo.mPreferredName)) {
+            mDisplayableId = profileinfo.mPreferredName;
         }
 
-        mPasswordChangeUrl = null;
-        if (!StringExtensions.IsNullOrBlank(token.mPasswordChangeUrl)) {
-            mPasswordChangeUrl = Uri.parse(token.mPasswordChangeUrl);
+        if (!StringExtensions.IsNullOrBlank(profileinfo.mName)) {
+            mName = profileinfo.mName;
         }
     }
 

@@ -97,6 +97,8 @@ public class AuthenticationConstants {
         public static final String ERROR_CODES = "error_codes";
 
         public static final String EXPIRES_IN = "expires_in";
+        
+        public static final String ID_TOKEN_EXPIRES_IN = "id_token_expires_in";
 
         public static final String GRANT_TYPE = "grant_type";
 
@@ -134,7 +136,13 @@ public class AuthenticationConstants {
 
         static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
 
-        public static final Object PROFILE_INFO = "profile_info";
+        public static final String PROFILE_INFO = "profile_info";
+        
+        static final String SCOPE_OPEN_ID = "openid";
+        
+        static final String SCOPE_OFFLINE_ACCESS = "offline_access";
+        
+        static final String SCOPE_PROFILE = "profile";
     }
 
     public static final class AAD {

@@ -229,8 +229,9 @@ class AuthenticationRequest implements Serializable {
             set.remove(mClientId); // remove client id if it exists
         }
        
-        set.add("openid");
-        set.add("offline_access");
+        set.add(AuthenticationConstants.OAuth2.SCOPE_OPEN_ID);
+        set.add(AuthenticationConstants.OAuth2.SCOPE_OFFLINE_ACCESS);
+        set.add(AuthenticationConstants.OAuth2.SCOPE_PROFILE);
         return set.toArray(new String[set.size()]);
     }
     
