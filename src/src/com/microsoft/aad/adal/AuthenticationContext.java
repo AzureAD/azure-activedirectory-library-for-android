@@ -1490,7 +1490,7 @@ public class AuthenticationContext {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
                 // TODO: investigate which server response actually should force user to sign in again
-                // and which error actually should just notify user that some resource require extra steps
+                // and which error actually should just notify user that some resource requires extra steps
 
                 final String errorInfo = authResult == null ? "" : authResult.getErrorLogInfo();
                 // User does not want to launch activity
@@ -1515,10 +1515,10 @@ public class AuthenticationContext {
         }
         
         // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to 
-        // force prompt, if this flag is set in the embeded flow, we need to update it to always. For embed 
+        // force prompt, if this flag is set in the embedded flow, we need to update it to always. For embedded 
         // flow, force_prompt is the same as always. 
         if (PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
-            Logger.v(TAG, "FORCE_PRMOPT is set for embeded flow, reset it as Always.");
+            Logger.v(TAG, "FORCE_PRMOPT is set for embedded flow, reset it as Always.");
             request.setPrompt(PromptBehavior.Always);
         }
 
@@ -1592,7 +1592,7 @@ public class AuthenticationContext {
         }
 
         try {
-            // Start activity from callers context so that caller can intercept
+            // Start activity from caller's context so that caller can intercept
             // when it is done
             activity.startActivityForResult(intent, AuthenticationConstants.UIRequest.BROWSER_FLOW);
         } catch (ActivityNotFoundException e) {

@@ -62,7 +62,7 @@ class AuthenticationRequest implements Serializable {
     private UserIdentifierType mIdentifierType;
 
     /**
-     * Developer can use acquiretoken(with loginhint) or acquireTokenSilent(with
+     * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
      */
     enum UserIdentifierType {

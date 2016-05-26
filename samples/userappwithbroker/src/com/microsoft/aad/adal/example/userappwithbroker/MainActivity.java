@@ -78,14 +78,14 @@ public class MainActivity extends Activity {
     private static final String CLIENT_ID = "your-clientid";
 
     /**
-     * To user broker, Developer needs to register special redirectUri in Azure Portal for broker usage. RedirectUri is 
+     * To use broker, Developer needs to register special redirectUri in Azure Portal for broker usage. RedirectUri is 
      * in the format of msauth://packagename/Base64UrlencodedSignature.
      */
     private static final String REDIRECT_URL = "msauth://packagename/Base64EncodedSignature";
 
     /**
      * URI for the resource. You need to setup this resource at AAD. 
-     * @note: With the new broker with PRT support, even resouce or user don't have policy on to enforce
+     * @note: With the new broker with PRT support, even resource or user don't have policy on to enforce
      * conditional access, when you have broker app installed, you'll still be able to talk to broker. And
      * broker will support multiple users, one WPJ account and multiple aad users. 
      */
@@ -164,7 +164,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * To calling broker, you have to ensure the following:
+     * To call broker, you have to ensure the following:
      * 1) You have to call {@link AuthenticationSettings#INSTANCE#setUseBroker(boolean)}  
      *    and the supplied value has to be true
      * 2) You have to have to correct set of permissions. 
@@ -258,7 +258,7 @@ public class MainActivity extends Activity {
     }
     
     /**
-     * For the sake for simplicily of sample app, used id stored in the shared preference is keyed
+     * For the sake of simplicity of the sample app, used id stored in the shared preference is keyed
      * by displayable id. 
      */
     private String getUserIdBasedOnUPN(final String upn) {
