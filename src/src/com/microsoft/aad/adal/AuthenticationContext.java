@@ -225,13 +225,13 @@ public class AuthenticationContext {
                 @Override
                 public void setItem(String key, TokenCacheItem item) {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support direct setItem operation");
+                            "Broker cache does not support direct 'setItem' operation");
                 }
 
                 @Override
                 public void removeItem(String key) {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support direct removeItem operation");
+                            "Broker cache does not support direct 'removeItem' operation");
                 }
 
                 @Override
@@ -242,19 +242,19 @@ public class AuthenticationContext {
                 @Override
                 public TokenCacheItem getItem(String key) {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support direct getItem operation");
+                            "Broker cache does not support direct 'getItem' operation");
                 }
 
                 @Override
                 public boolean contains(String key) {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support contains operation");
+                            "Broker cache does not support 'contains' operation");
                 }
 
                 @Override
                 public Iterator<TokenCacheItem> getAll() {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support direct getAll operation");
+                            "Broker cache does not support direct 'getAll' operation");
                 }
             };
         }
@@ -323,7 +323,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, it will remove
      * this refresh token from cache and start authentication.
@@ -351,7 +351,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use the refresh
      * token if available. If it fails to get token with refresh token, it will
      * remove this refresh token from cache and fall back on the UI.
@@ -386,7 +386,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, behavior will
      * depend on options. If {@link PromptBehavior} is AUTO, it will remove this
@@ -416,7 +416,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, behavior will
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
@@ -447,7 +447,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, behavior will
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
@@ -851,7 +851,7 @@ public class AuthenticationContext {
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
-                    Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker installation. Once "
+                    Logger.v(TAG + methodName, "Device needs to have broker installed, waiting for the broker installation. Once "
                             + "broker is installed, request will be resumed and result will be received");
                     
                     //Register the broker resume result receiver with intent filter as broker_request_resume and specific app package name
@@ -860,7 +860,7 @@ public class AuthenticationContext {
                             new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME 
                                     + mContext.getPackageName()), null, mHandler);
                     
-                    // Send cancel result back to caller if doesn't receive result from broker within 5 minuites
+                    // Send cancel result back to caller if doesn't receive result from broker within 10 minutes
                     mHandler.postDelayed(new Runnable() {
                         
                         @Override
@@ -912,7 +912,7 @@ public class AuthenticationContext {
                         Logger.e(TAG, e.getMessage(), "", e.getCode());
                         waitingRequestOnError(waitingRequest, requestId, e);
                     } else {
-                        // Browser has the url and it will exchange auth code
+                        // Browser has the url and it will exchange the authorization code
                         // for token
                         final CallbackHandler callbackHandle = new CallbackHandler(mHandler,
                                 waitingRequest.mDelagete);
@@ -1071,7 +1071,7 @@ public class AuthenticationContext {
             // it does not have the caller callback. It will check the last
             // callback if set
             Logger.e(TAG, "Request callback is not available for requestid:" + requestId
-                    + ". It will use last callback.", "", ADALError.CALLBACK_IS_NOT_FOUND);
+                    + ". It will use the last callback.", "", ADALError.CALLBACK_IS_NOT_FOUND);
             request = new AuthenticationRequestState(0, null, mAuthorizationCallback);
         }
 
