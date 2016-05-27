@@ -1,3 +1,10 @@
+Version 2.0.2-alpha
+Update on reading ProfileInfo
+Fix on reading id_token_expires_in from server
+Fix on sending profile as reserved scope
+Fix on sending reserved scopes to token endpoint for auth code flow
+Fix for storing returned token from convergence and b2c into cache
+
 Version 1.1.7
 --------------
 Fix issue with acquireTokenSilent for new authenticator version.
