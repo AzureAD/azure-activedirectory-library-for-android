@@ -10,7 +10,6 @@ build/
 *.ap_
 *.dex
 *.class
-*.jar
 .DS_Store
 bin/
 gen/

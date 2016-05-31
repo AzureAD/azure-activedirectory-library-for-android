@@ -3,7 +3,6 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.1"
-    //useLibrary 'org.apache.http.legacy' //FOR sdk 23
 
     defaultConfig {
         applicationId "com.microsoft.aad.adal.sample"
@@ -12,10 +11,11 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt')
         }
     }
 
@@ -25,8 +25,9 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:21.0.3'
+    //Compile Dependencies
     compile project(':adal')
+    compile 'com.android.support:appcompat-v7:21.0.3'
+    //Test Dependencies
+    testCompile 'junit:junit:4.12'
 }
