@@ -12,7 +12,7 @@ android checkstyle
 <module name="Checker">
   <module name="SuppressionFilter">
     <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
-  </module>  <property name="severity" value="warning"/>
+  </module>
   <property name="severity" value="warning"/>
   <module name="TreeWalker">
     <property name="tabWidth" value="4"/>
