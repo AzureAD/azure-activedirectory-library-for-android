@@ -7,5 +7,5 @@
     "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
-    <suppress checks="JavadocStyleCheck" files=".*Test.java"/>
+    <suppress checks="Javadoc.*" files=".*Test.java"/>
 </suppressions>
