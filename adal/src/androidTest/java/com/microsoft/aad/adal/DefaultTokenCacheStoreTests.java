@@ -108,7 +108,6 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         SharedPreferences prefs = mock(SharedPreferences.class);
         when(prefs.contains("testkey")).thenReturn(true);
         when(prefs.getString("testkey", "")).thenReturn("test_encrypted");
-        when(mockSecure.loadSecretKeyForEncryption()).thenReturn(null);
         when(mockSecure.decrypt("test_encrypted"))
                 .thenReturn("{\"mClientId\":\"clientId23\",\"mExpiresOn\":\"" + dateTimeString + "\"}");
         when(
