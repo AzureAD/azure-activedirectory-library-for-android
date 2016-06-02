@@ -87,7 +87,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     private final static String TEST_AUTHORITY = "https://login.windows.net/ComMon/";
 
-    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
+    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.test";
 
     static final String testClientId = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
 
@@ -245,9 +245,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
      */
     @MediumTest
     @UiThreadTest
-    public void testCorrelationId_InWebRequest() throws NoSuchFieldException,
-            IllegalAccessException, InterruptedException, NoSuchAlgorithmException,
-            NoSuchPaddingException {
+    public void testCorrelationId_InWebRequest() throws InterruptedException {
 
         if (Build.VERSION.SDK_INT <= 15) {
             Log.v(TAG,
@@ -431,7 +429,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("AuthenticationRequest inside the intent", request.getClass(),
                 Class.forName("com.microsoft.aad.adal.AuthenticationRequest"));
         String redirect = (String)ReflectionUtils.getFieldValue(request, "mRedirectUri");
-        assertEquals("Redirect uri is same as package", "com.microsoft.aad.adal.testapp", redirect);
+        assertEquals("Redirect uri is same as package", TEST_PACKAGE_NAME, redirect);
     }
 
     @SmallTest
@@ -2311,8 +2309,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
 
     private ITokenCacheStore getMockCache(int minutes, String token, String resource,
-            String client, String user, boolean isMultiResource) throws NoSuchAlgorithmException,
-            NoSuchPaddingException {
+            String client, String user, boolean isMultiResource) {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         // Code response
         Calendar timeAhead = new GregorianCalendar();
