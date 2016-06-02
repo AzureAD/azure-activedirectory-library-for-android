@@ -6,10 +6,13 @@
 -->
 <!--
     Checkstyle-Configuration: android
-    Description: 
+    Description:
 android checkstyle
 -->
 <module name="Checker">
+  <module name="SuppressionFilter">
+    <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
+  </module>
   <property name="severity" value="warning"/>
   <module name="TreeWalker">
     <property name="tabWidth" value="4"/>
@@ -47,6 +50,7 @@ android checkstyle
     <module name="UnusedImports"/>
     <module name="LineLength">
       <property name="severity" value="ignore"/>
+      <property name="max" value="120"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="MethodLength">
@@ -74,7 +78,6 @@ android checkstyle
     <module name="LeftCurly"/>
     <module name="NeedBraces"/>
     <module name="RightCurly"/>
-    <module name="AvoidInlineConditionals"/>
     <module name="EmptyStatement"/>
     <module name="EqualsHashCode"/>
     <module name="HiddenField"/>
@@ -114,9 +117,6 @@ android checkstyle
       <metadata name="net.sf.eclipsecs.core.comment" value="non public members should start with m"/>
       <property name="applyToPublic" value="false"/>
       <property name="format" value="^[m][a-zA-Z0-9]*$"/>
-    </module>
-    <module name="LineLength">
-      <property name="max" value="100"/>
     </module>
   </module>
   <module name="JavadocPackage"/>

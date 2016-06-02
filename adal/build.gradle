@@ -132,6 +132,9 @@ task pmd(type: Pmd) {
     }
 }
 
+def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
+ext.checkstyleConfigDir = "$configDir/checkstyle"
+
 checkstyle {
     ignoreFailures = true
     reportsDir = file("$project.buildDir/outputs/")
@@ -139,6 +142,8 @@ checkstyle {
 
 task checkstyle(type: Checkstyle) {
     configFile file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+
+    configProperties.checkstyleConfigDir = checkstyleConfigDir
     configProperties.checkstyleSuppressionsPath = file("${project.rootDir}/config/checkstyle/suppressions.xml").absolutePath
     source 'src'
     include '**/*.java'
