@@ -51,12 +51,12 @@ interface IBrokerProxy {
      * 
      * @return Current user from AccountManager
      */
-    public String getCurrentUser();
+    String getCurrentUser();
 
     /**
      * gets token using authenticator service.
      * 
-     * @param request
+     * @param request AuthenticationRequest object
      * @return AuthenticationResult
      */
     AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request)
@@ -65,7 +65,7 @@ interface IBrokerProxy {
     /**
      * only gets intent to start from calling app's activity.
      * 
-     * @param request
+     * @param request AuthenticationRequest
      * @return Intent
      */
     Intent getIntentForBrokerActivity(final AuthenticationRequest request);

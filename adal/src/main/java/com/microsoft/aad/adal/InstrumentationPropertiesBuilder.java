@@ -42,8 +42,8 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Initializes properties for request that had exception during execution
-     * @param request
-     * @param exc
+     * @param request AuthenticationRequest for which properties to be added
+     * @param exc Exception from which error messages to be added
      */
     InstrumentationPropertiesBuilder(AuthenticationRequest request, Exception exc) {
         addPropertiesForRequest(request);
@@ -52,13 +52,15 @@ class InstrumentationPropertiesBuilder {
         final ADALError errorCode = exc instanceof AuthenticationException ? ((AuthenticationException) exc).getCode() : null;
         addProperty(InstrumentationIDs.ERROR_CLASS, causeClass.getSimpleName());
         addProperty(InstrumentationIDs.ERROR_MESSAGE, cause.getMessage());
-        addProperty(InstrumentationIDs.ERROR_CODE, errorCode.getDescription());
+        if (errorCode != null) {
+            addProperty(InstrumentationIDs.ERROR_CODE, errorCode.getDescription());
+        }
     }
 
     /**
      * Initializes properties for request that got results at the end of execution
-     * @param request
-     * @param result
+     * @param request AuthenticationRequest for which properties are to be added
+     * @param result AuthenticationResult for which errors to be added
      */
     InstrumentationPropertiesBuilder(AuthenticationRequest request, AuthenticationResult result) {
         addPropertiesForRequest(request);
@@ -70,9 +72,9 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Adds property
-     * @param propertyName
-     * @param propertyValue
-     * @return
+     * @param propertyName property name to be added
+     * @param propertyValue property value to be added
+     * @return InstrumentationPropertiesBuilder
      */
     InstrumentationPropertiesBuilder add(String propertyName, String propertyValue) {
         addProperty(propertyName, propertyValue);
@@ -81,7 +83,7 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Returns map of properties for event
-     * @return
+     * @return Map the entire Map of property names and values
      */
     Map<String, String> build() {
         return mProperties;
@@ -89,8 +91,8 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Adds property if the value isn't null
-     * @param propertyName
-     * @param propertyValue
+     * @param propertyName property name to be added
+     * @param propertyValue property value to be added
      */
     private void addProperty(String propertyName, String propertyValue) {
         if (propertyValue != null) {
@@ -100,7 +102,7 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Add basic properties for request
-     * @param request
+     * @param request AuthenticationRequest for which properties are to be added
      */
     private void addPropertiesForRequest(AuthenticationRequest request) {
         addProperty(InstrumentationIDs.USER_ID, request.getUserId());

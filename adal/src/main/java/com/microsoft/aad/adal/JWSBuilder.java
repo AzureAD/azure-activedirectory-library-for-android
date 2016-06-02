@@ -120,7 +120,8 @@ class JWSBuilder implements IJWSBuilder {
         header.mAlgorithm = JWS_HEADER_ALG;
         header.mType = "JWT"; // recommended UpperCase in JWT Spec
 
-        String signingInput = "", signature = "";
+        String signingInput;
+        String signature;
         try {
 
             // Server side expects x5c in the header to verify the signer and
@@ -145,7 +146,7 @@ class JWSBuilder implements IJWSBuilder {
                     + StringExtensions.encodeBase64URLSafeString(claimsJsonString
                             .getBytes(AuthenticationConstants.ENCODING_UTF8));
 
-            signature = sign((RSAPrivateKey)privateKey,
+            signature = sign(privateKey,
                     signingInput.getBytes(AuthenticationConstants.ENCODING_UTF8));
         } catch (UnsupportedEncodingException e) {
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
@@ -158,12 +159,12 @@ class JWSBuilder implements IJWSBuilder {
     /**
      * Signs the input with the private key.
      * 
-     * @param privateKey
-     * @param input
-     * @return
+     * @param privateKey the key to sign input with
+     * @param input the data that needs to be signed
+     * @return String signed string
      */
     private static String sign(RSAPrivateKey privateKey, final byte[] input) throws AuthenticationException {
-        Signature signer = null;
+        Signature signer;
         try {
             signer = Signature.getInstance(JWS_ALGORITHM);
             signer.initSign(privateKey);

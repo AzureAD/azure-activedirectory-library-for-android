@@ -554,7 +554,7 @@ public enum ADALError {
     
     private String mDescription;
 
-    private ADALError(String message) {
+    ADALError(String message) {
         mDescription = message;
     }
 

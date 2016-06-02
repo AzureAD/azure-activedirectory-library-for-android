@@ -47,10 +47,6 @@ public class FileTokenCacheStore implements ITokenCacheStore {
 
     private static final String TAG = null;
 
-    private final String mFileName;
-
-    private final File mDirectory;
-
     private final File mFile;
 
     private final MemoryTokenCacheStore mInMemoryCache;
@@ -75,18 +71,17 @@ public class FileTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("fileName");
         }
 
-        mFileName = fileName;
         // It is using package directory not the external storage, so
         // external write permissions are not needed
-        mDirectory = context.getDir(context.getPackageName(), Context.MODE_PRIVATE);
+        File directory = context.getDir(context.getPackageName(), Context.MODE_PRIVATE);
 
-        if (mDirectory == null) {
+        if (directory == null) {
             throw new IllegalStateException("It could not access the Authorization cache directory");
         }
 
         // Initialize cache from file if it exists
         try {
-            mFile = new File(mDirectory, mFileName);
+            mFile = new File(directory, fileName);
 
             if (mFile.exists()) {
                 Logger.v(TAG, "There is previous cache file to load cache.");

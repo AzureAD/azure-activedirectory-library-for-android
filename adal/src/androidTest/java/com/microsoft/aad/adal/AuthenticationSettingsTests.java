@@ -62,7 +62,7 @@ public class AuthenticationSettingsTests extends AndroidTestCase {
         constructor.setAccessible(true);
         Object authRequest = constructor.newInstance();
         Method m = ReflectionUtils.getTestMethod(context, "getAuthenticationActivityIntent",
-                IWindowComponent.class, clazzAuthRequest);
+                clazzAuthRequest);
 
         Intent intent = (Intent)m.invoke(context, null, authRequest);
 

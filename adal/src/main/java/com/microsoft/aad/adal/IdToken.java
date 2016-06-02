@@ -133,8 +133,7 @@ class IdToken {
 
         try {
             final String decodedBody = new String(data, "UTF-8");
-            final HashMap<String, String> responseItems = extractJsonObjects(decodedBody);
-            return responseItems;
+            return extractJsonObjects(decodedBody);
         } catch (UnsupportedEncodingException exception) {
             Logger.e(TAG, "The encoding is not supported.", "", ADALError.ENCODING_IS_NOT_SUPPORTED, exception);
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage(), exception);
@@ -145,13 +144,13 @@ class IdToken {
         }
     }
 
-    private String extractJWTBody(final String idtoken) throws AuthenticationException {
-        final int firstDot = idtoken.indexOf(".");
-        final int secondDot = idtoken.indexOf(".", firstDot + 1);
-        final int invalidDot = idtoken.indexOf(".", secondDot + 1);
+    private String extractJWTBody(final String idToken) throws AuthenticationException {
+        final int firstDot = idToken.indexOf(".");
+        final int secondDot = idToken.indexOf(".", firstDot + 1);
+        final int invalidDot = idToken.indexOf(".", secondDot + 1);
 
         if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
-            return idtoken.substring(firstDot + 1, secondDot);
+            return idToken.substring(firstDot + 1, secondDot);
         } else {
             throw new AuthenticationException(ADALError.IDTOKEN_PARSING_FAILURE, "Failed to extract the ClientID");
         }
@@ -159,7 +158,7 @@ class IdToken {
 
     private static HashMap<String, String> extractJsonObjects(final String jsonStr) throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
-        final HashMap<String, String> responseItems = new HashMap<String, String>();
+        final HashMap<String, String> responseItems = new HashMap<>();
         final Iterator<?> i = jsonObject.keys();
         while (i.hasNext()) {
             final String key = (String) i.next();

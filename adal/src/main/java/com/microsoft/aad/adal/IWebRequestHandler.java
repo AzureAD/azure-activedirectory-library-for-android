@@ -37,5 +37,5 @@ public interface IWebRequestHandler {
     HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
             String contentType) throws IOException;
 
-    public void setRequestCorrelationId(UUID mRequestCorrelationId);
+    void setRequestCorrelationId(UUID mRequestCorrelationId);
 }

@@ -56,7 +56,7 @@ public enum AuthenticationSettings {
     /**
      * set to be false in default 
      * if user want to use broker
-     * the mUseBroker should be set explicitly by calling {@link #setUseBroker()} 
+     * the mUseBroker should be set explicitly by calling {@link #setUseBroker(boolean)}
      */
     private boolean mUseBroker = false;
 
@@ -132,8 +132,7 @@ public enum AuthenticationSettings {
      * set class for work place join related API. This is only used from
      * Authenticator side.
      * 
-     * @param <T>
-     * @param clazz
+     * @param clazz class for workplace join
      */
     public void setDeviceCertificateProxyClass(Class clazz) {
         if (IDeviceCertificate.class.isAssignableFrom(clazz)) {
@@ -147,7 +146,7 @@ public enum AuthenticationSettings {
      * get class for work place join related API. This is only used from
      * Authenticator side.
      * 
-     * @return
+     * @return Class
      */
     public Class<?> getDeviceCertificateProxy() {
         return mClazzDeviceCertProxy;
@@ -179,7 +178,7 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker()}
+     * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker(boolean)}
      */
     @Deprecated public void setSkipBroker(boolean skip) {
         mUseBroker = !skip;
@@ -226,7 +225,7 @@ public enum AuthenticationSettings {
     /**
      * Gets expiration buffer.
      * 
-     * @return
+     * @return int
      */
     public int getExpirationBuffer() {
         return mExpirationBuffer;
@@ -238,7 +237,7 @@ public enum AuthenticationSettings {
      * give 5min buffer. Token with Expiry time of 12:04 will say expired when
      * actual time is 12:00 with 5min buffer.
      * 
-     * @param expirationBuffer
+     * @param expirationBuffer the time buffer provided to expiration time
      */
     public void setExpirationBuffer(int expirationBuffer) {
         this.mExpirationBuffer = expirationBuffer;
@@ -273,7 +272,7 @@ public enum AuthenticationSettings {
      * giving up. Reading will fail with a SocketTimeoutException if the timeout
      * elapses before data becomes available. The default value is 30000.
      * 
-     * @param timeoutMillis the read timeout in milliseconds. Non-negative
+     * @param timeOutMillis the read timeout in milliseconds. Non-negative
      */
     public void setReadTimeOut(int timeOutMillis) {
         if (timeOutMillis < 0) {

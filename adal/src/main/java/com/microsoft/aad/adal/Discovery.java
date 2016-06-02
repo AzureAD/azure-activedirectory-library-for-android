@@ -104,16 +104,17 @@ final class Discovery implements IDiscovery {
                         ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
                         new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
                 return false;
-            } else if (sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
-                // host can be the instance or inside the validated list.
-                // Valid hosts will help to skip validation if validated before
-                // call Callback and skip the look up
-                return true;
-            } else {
-                // Only query from Prod instance for now, not all of the
-                // instances in the list
-                return queryInstance(authorizationEndpoint);
             }
+
+            // host can be the instance or inside the validated list.
+            // Valid hosts will help to skip validation if validated before
+            // call Callback and skip the look up
+            // Else
+            // Only query from Prod instance for now, not all of the
+            // instances in the list
+            return (sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) ||
+                    queryInstance(authorizationEndpoint);
+
         }
 
         return false;
@@ -122,7 +123,7 @@ final class Discovery implements IDiscovery {
     /**
      * add this host as valid to skip another query to server.
      * 
-     * @param validhost
+     * @param validhost the host to be added as valid
      */
     private void addValidHostToList(URL validhost) {
         String validHost = validhost.getHost();
@@ -152,7 +153,7 @@ final class Discovery implements IDiscovery {
         // It will query prod instance to verify the authority
         // construct query string for this instance
         URL queryUrl;
-        boolean result = false;       
+        boolean result;
         try {
             queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE, getAuthorizationCommonEndpoint(authorizationEndpointUrl));
             result = sendRequest(queryUrl);
@@ -181,7 +182,7 @@ final class Discovery implements IDiscovery {
     private boolean sendRequest(final URL queryUrl) throws IOException, JSONException {
 
         Logger.v(TAG, "Sending discovery request to:" + queryUrl);
-        Map<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 
         // CorrelationId is used to track the request at the Azure services
@@ -191,14 +192,15 @@ final class Discovery implements IDiscovery {
         }
 
         HttpWebResponse webResponse = null;
-        String errorCodes = "";
         try {
             ClientMetrics.INSTANCE.beginClientMetricsRecord(queryUrl, mCorrelationId, headers);
             try {
                 webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
                 ClientMetrics.INSTANCE.setLastError(null);
             } catch (IOException e) {
-                ClientMetrics.INSTANCE.setLastError(String.valueOf(webResponse.getStatusCode()));
+                if (webResponse != null) {
+                    ClientMetrics.INSTANCE.setLastError(String.valueOf(webResponse.getStatusCode()));
+                }
                 throw e;
             }
 
@@ -206,11 +208,11 @@ final class Discovery implements IDiscovery {
             final Map<String, String> discoveryResponse = parseResponse(webResponse);
             if(discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES))
             {
-                errorCodes = discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
+                String errorCodes = discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
                 ClientMetrics.INSTANCE.setLastError(errorCodes);
             }
             
-            return (discoveryResponse != null && discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT));
+            return (discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT));
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);                
         }
@@ -220,7 +222,7 @@ final class Discovery implements IDiscovery {
      * get Json output from web response body. If it is well formed response, it
      * will have tenant discovery endpoint.
      * 
-     * @param webResponse
+     * @param webResponse HttpWebResponse from which Json has to be extracted
      * @return true if tenant discovery endpoint is reported. false otherwise.
      * @throws JSONException
      */
@@ -232,7 +234,7 @@ final class Discovery implements IDiscovery {
      * service side does not validate tenant, so it is sending common keyword as
      * tenant.
      * 
-     * @param authorizationEndpointUrl
+     * @param authorizationEndpointUrl converts the endpoint URL to authorization endpoint
      * @return https://hostname/common
      */
     private String getAuthorizationCommonEndpoint(final URL authorizationEndpointUrl) {
@@ -244,9 +246,9 @@ final class Discovery implements IDiscovery {
     /**
      * It will build query url to check the authorization endpoint.
      * 
-     * @param instance
-     * @param authorizationEndpointUrl
-     * @return
+     * @param instance authority instance
+     * @param authorizationEndpointUrl authorization endpoint
+     * @return URL
      * @throws MalformedURLException
      */
     private URL buildQueryString(final String instance, final String authorizationEndpointUrl)

@@ -62,8 +62,6 @@ class Oauth2 {
 
     private final static String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
 
-    private final static String JSON_PARSING_ERROR = "It failed to parse response as json";
-
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
         mWebRequestHandler = null;
@@ -152,13 +150,12 @@ class Oauth2 {
     }
 
     public String getCodeRequestUrl() throws UnsupportedEncodingException {
-        String requestUrl = String.format("%s?%s", getAuthorizationEndpoint(),
+        return String.format("%s?%s", getAuthorizationEndpoint(),
                 getAuthorizationEndpointQueryParameters());
-        return requestUrl;
     }
 
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
-        String message = String.format("%s=%s&%s=%s&%s=%s&%s=%s",
+        return String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
 
@@ -169,7 +166,6 @@ class Oauth2 {
 
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
                 StringExtensions.URLFormEncode(mRequest.getRedirectUri()));
-        return message;
     }
 
     public String buildRefreshTokenRequestMessage(String refreshToken)
@@ -201,14 +197,12 @@ class Oauth2 {
             // Error response from the server
             // CorrelationID will be same as in request headers. This is
             // retrieved in result in case it was not set.
-            UUID correlationId = null;
             String correlationInResponse = response.get(AuthenticationConstants.AAD.CORRELATION_ID);
             if (!StringExtensions.IsNullOrBlank(correlationInResponse)) {
                 try {
-                    correlationId = UUID.fromString(correlationInResponse);
+                    UUID correlationId = UUID.fromString(correlationInResponse);
                     Logger.setCorrelationId(correlationId);
                 } catch (IllegalArgumentException ex) {
-                    correlationId = null;
                     Logger.e(TAG, "CorrelationId is malformed: " + correlationInResponse, "",
                             ADALError.CORRELATION_ID_FORMAT);
                 }
@@ -291,7 +285,7 @@ class Oauth2 {
     }
 
     public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationException {
-        String requestMessage = null;
+        String requestMessage;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
             throw new IllegalArgumentException("webRequestHandler is null.");
@@ -322,10 +316,11 @@ class Oauth2 {
      *            or token for next step
      * @return Token in the AuthenticationResult. Null result if response does
      *         not have protocol error.
-     * @throws Exception
+     * @throws IOException
+     * @throws AuthenticationException
      */
     public AuthenticationResult getToken(String authorizationUrl)
-            throws IOException, AuthenticationServerProtocolException, AuthenticationException {
+            throws IOException, AuthenticationException {
 
         if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
             throw new IllegalArgumentException("authorizationUrl");
@@ -370,13 +365,14 @@ class Oauth2 {
     /**
      * get code and exchange for token.
      * 
-     * @param code
-     * @return Token in the AuthenticationResult
-     * @throws Exception
+     * @param code the authorization code for which Authentication result is needed
+     * @return AuthenticationResult
+     * @throws IOException
+     * @throws AuthenticationException
      */
     public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationException {
 
-        String requestMessage = null;
+        String requestMessage;
         if (mWebRequestHandler == null) {
             throw new IllegalArgumentException("webRequestHandler");
         }
@@ -499,7 +495,7 @@ class Oauth2 {
     }
 
     private HashMap<String, String> getRequestHeaders() {
-        HashMap<String, String> headers = new HashMap<String, String>();
+        HashMap<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
         return headers;
     }
@@ -507,8 +503,8 @@ class Oauth2 {
     /**
      * extract AuthenticationResult object from response body if available
      * 
-     * @param webResponse
-     * @return
+     * @param webResponse the web response from which authentication result will be constructed
+     * @return AuthenticationResult
      */
     private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) throws AuthenticationException {
         AuthenticationResult result;
@@ -561,7 +557,7 @@ class Oauth2 {
     
     private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException,
             AuthenticationException {
-        HashMap<String, String> responseItems = new HashMap<String, String>();
+        HashMap<String, String> responseItems = new HashMap<>();
         extractJsonObjects(responseItems, responseBody);
         return processUIResponseParams(responseItems);
     }

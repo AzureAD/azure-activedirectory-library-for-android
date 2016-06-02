@@ -46,6 +46,6 @@ public interface IJWSBuilder {
      * @param x509Certificate X509 certificate
      * @return Signed JWT
      */
-    public String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
+    String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
             RSAPublicKey pubKey, X509Certificate x509Certificate) throws AuthenticationException;
 }

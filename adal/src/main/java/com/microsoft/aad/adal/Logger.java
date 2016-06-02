@@ -73,10 +73,10 @@ public class Logger {
         @SuppressWarnings("unused")
         private int value;
 
-        private LogLevel(int val) {
+        LogLevel(int val) {
             this.value = val;
         }
-    };
+    }
 
     /**
      * one callback logger.
@@ -117,7 +117,7 @@ public class Logger {
     /**
      * set custom logger.
      * 
-     * @param externalLogger
+     * @param customLogger reference of the ILogger interface to use
      */
     public void setExternalLogger(ILogger customLogger) {
         this.mExternalLogger = customLogger;
@@ -125,11 +125,11 @@ public class Logger {
 
     private static String addMoreInfo(String message) {
         if (message != null) {
-            return GetUTCdatetimeAsString() + "-" + getInstance().mCorrelationId + "-" + message
+            return GetUTCDateTimeAsString() + "-" + getInstance().mCorrelationId + "-" + message
                     + " ver:" + AuthenticationContext.getVersionName();
         }
 
-        return GetUTCdatetimeAsString() + "-" + getInstance().mCorrelationId + "- ver:"
+        return GetUTCDateTimeAsString() + "-" + getInstance().mCorrelationId + "- ver:"
                 + AuthenticationContext.getVersionName();
     }
 
@@ -271,11 +271,11 @@ public class Logger {
     }
 
     /**
-     * @param tag
-     * @param message
-     * @param additionalMessage
-     * @param errorCode
-     * @param err
+     * @param tag Tag for the log
+     * @param message Message to add to the log
+     * @param additionalMessage any additional parameters
+     * @param errorCode ADAL error code
+     * @param err Throwable
      */
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
             Throwable err) {
@@ -305,12 +305,11 @@ public class Logger {
         return "";
     }
 
-    private static String GetUTCdatetimeAsString() {
+    private static String GetUTCDateTimeAsString() {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        final String utcTime = dateFormat.format(new Date());
+        return dateFormat.format(new Date());
 
-        return utcTime;
     }
 
     public String getCorrelationId() {

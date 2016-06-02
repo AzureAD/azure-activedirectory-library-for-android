@@ -128,7 +128,7 @@ public class AuthenticationResult implements Serializable {
     /**
      * Creates result from {@link TokenCacheItem}.
      * 
-     * @param cacheItem
+     * @param cacheItem TokenCacheItem to be converted
      * @return AuthenticationResult
      */
     static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
@@ -217,7 +217,7 @@ public class AuthenticationResult implements Serializable {
     /**
      * Set userinfo after refresh from previous idtoken.
      * 
-     * @param userinfo
+     * @param userinfo latest user info
      */
     void setUserInfo(UserInfo userinfo) {
         mUserInfo = userinfo;

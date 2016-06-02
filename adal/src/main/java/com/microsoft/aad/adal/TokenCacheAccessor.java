@@ -66,7 +66,7 @@ class TokenCacheAccessor {
         }
         
         if (!StringExtensions.IsNullOrBlank(accessTokenItem.getAccessToken())) {
-            if (accessTokenItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
+            if (TokenCacheItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
                 Logger.v(TAG, "Access token exists, but already expired.");
                 return null;
             }
@@ -138,8 +138,10 @@ class TokenCacheAccessor {
     }
     
     /**
-     * Update token cache with returned auth result. 
-     * @param result
+     * Update token cache with returned auth result.
+     * @param resource resource for which the token cache has to be updated
+     * @param clientId clientId for the token that has to be updated
+     * @param result the AuthenticationResult from which the data has to be pulled
      */
     void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) {
         if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
@@ -164,7 +166,6 @@ class TokenCacheAccessor {
     
     /**
      * Remove token from cache.
-     * {@link RefreshItem#mKeysWithUser} is holding a list of keys related to user for removal. 
      * 1) If refresh with resource specific token cache entry, clear RT with key(R,C,U,A)
      * 2) If refresh with MRRT, clear RT (C,U,A) and (R,C,U,A)
      * 3) if refresh with FRT, clear RT with (U,A) 
@@ -183,7 +184,7 @@ class TokenCacheAccessor {
         case MRRT_TOKEN_ENTRY : 
             Logger.v(TAG, "MRRT was used to get access token, remove entries for both "
                     + "MRRT entries and regular RT entries.");
-            keys = getKeyListToRemoveForMRRT(tokenCacheItem, resource);
+            keys = getKeyListToRemoveForMRRT(tokenCacheItem);
             
             final TokenCacheItem regularRTItem = new TokenCacheItem(tokenCacheItem);
             regularRTItem.setResource(resource);
@@ -234,7 +235,7 @@ class TokenCacheAccessor {
      * @return List of keys to remove when using regular RT to send refresh token request. 
      */
     private List<String> getKeyListToRemoveForRT(final TokenCacheItem cachedItem) {
-        final List<String> keysToRemove = new ArrayList<String>();
+        final List<String> keysToRemove = new ArrayList<>();
         keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), null));
         if (cachedItem.getUserInfo() != null) {
             keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getDisplayableId()));
@@ -247,8 +248,8 @@ class TokenCacheAccessor {
     /**
      * @return List of keys to remove when using MRRT to send refresh token request. 
      */
-    private List<String> getKeyListToRemoveForMRRT(final TokenCacheItem cachedItem, final String resource) {
-        final List<String> keysToRemove = new ArrayList<String>();
+    private List<String> getKeyListToRemoveForMRRT(final TokenCacheItem cachedItem) {
+        final List<String> keysToRemove = new ArrayList<>();
         
         keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), null));
         if (cachedItem.getUserInfo() != null) {
@@ -263,7 +264,7 @@ class TokenCacheAccessor {
      * @return List of keys to remove when using FRT to send refresh token request. 
      */
     private List<String> getKeyListToRemoveForFRT(final TokenCacheItem cachedItem) {
-        final List<String> keysToRemove = new ArrayList<String>();
+        final List<String> keysToRemove = new ArrayList<>();
         if (cachedItem.getUserInfo() != null) {
             keysToRemove.add(CacheKey.createCacheKeyForFRT(mAuthority, cachedItem.getFamilyClientId(), cachedItem.getUserInfo().getDisplayableId()));
             keysToRemove.add(CacheKey.createCacheKeyForFRT(mAuthority, cachedItem.getFamilyClientId(), cachedItem.getUserInfo().getUserId()));
@@ -287,8 +288,7 @@ class TokenCacheAccessor {
     /**
      * Calculate hash for accessToken and log that.
      * 
-     * @param request
-     * @param result
+     * @param result Logs the access and refresh token hash
      */
     private void logReturnedToken(final AuthenticationResult result) {
         if (result != null && result.getAccessToken() != null) {

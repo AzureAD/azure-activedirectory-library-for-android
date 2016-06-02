@@ -42,24 +42,23 @@ final class HashMapExtensions {
     /**
      * decode url string into a key value pairs with default query delimiter.
      * 
-     * @param query
+     * @param parameters URL query parameter
      * @return key value pairs
      */
-    static final HashMap<String, String> URLFormDecode(String query) {
-        HashMap<String, String> result = URLFormDecodeData(query, "&");
-        return result;
+    static HashMap<String, String> URLFormDecode(String parameters) {
+        return URLFormDecodeData(parameters, "&");
     }
 
     /**
      * decode url string into a key value pairs with given query delimiter given
      * string as a=1&b=2 will return key value of [[a,1],[b,2]].
      * 
-     * @param parameters
-     * @param delimiter
-     * @return key value pairs
+     * @param parameters URL parameter to be decoded
+     * @param delimiter query delimiter
+     * @return Map key value pairs
      */
-    static final HashMap<String, String> URLFormDecodeData(String parameters, String delimiter) {
-        HashMap<String, String> result = new HashMap<String, String>();
+    static HashMap<String, String> URLFormDecodeData(String parameters, String delimiter) {
+        HashMap<String, String> result = new HashMap<>();
 
         if (!StringExtensions.IsNullOrBlank(parameters)) {
             StringTokenizer parameterTokenizer = new StringTokenizer(parameters, delimiter);
@@ -68,7 +67,7 @@ final class HashMapExtensions {
                 String pair = parameterTokenizer.nextToken();
                 String[] elements = pair.split("=");
 
-                if (elements != null && elements.length == 2) {
+                if (elements.length == 2) {
                     String key = null;
                     String value = null;
                     try {
@@ -92,11 +91,11 @@ final class HashMapExtensions {
     
     /**
      * get key value pairs from response.
-     * @param webResponse
-     * @return
+     * @param webResponse HttpWebResponse to convert to a map
+     * @return Map
      * @throws JSONException
      */
-    static final Map<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException{
+    static Map<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException{
         Map<String, String> response = new HashMap<>();
         if(webResponse != null && !TextUtils.isEmpty(webResponse.getBody())) {
             JSONObject jsonObject = new JSONObject(webResponse.getBody());

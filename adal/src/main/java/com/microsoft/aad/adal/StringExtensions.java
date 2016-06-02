@@ -49,15 +49,11 @@ final class StringExtensions {
     /**
      * checks if string is null or empty.
      * 
-     * @param param
-     * @return
+     * @param param String to check for null or blank
+     * @return boolean if the string was null or blank
      */
     static boolean IsNullOrBlank(String param) {
-        if (param == null || param.trim().length() == 0) {
-            return true;
-        }
-
-        return false;
+        return (param == null || param.trim().length() == 0);
     }
 
     public static String createHash(String msg) throws NoSuchAlgorithmException,
@@ -65,9 +61,8 @@ final class StringExtensions {
         if (!StringExtensions.IsNullOrBlank(msg)) {
             MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
             final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
-            String hash = new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
+            return new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
                     AuthenticationConstants.ENCODING_UTF8);
-            return hash;
         }
         return msg;
     }
@@ -75,28 +70,28 @@ final class StringExtensions {
     /**
      * encode string with url form encoding. Space will be +
      * 
-     * @param source
-     * @return
+     * @param source the string to encode
+     * @return the decoded
      * @throws UnsupportedEncodingException
      */
-    static final String URLFormEncode(String source) throws UnsupportedEncodingException {
+    static String URLFormEncode(String source) throws UnsupportedEncodingException {
         return URLEncoder.encode(source, ENCODING_UTF8);
     }
 
     /**
      * replace + to space and decode.
      * 
-     * @param source
-     * @return
+     * @param source the string to decode
+     * @return the encoded string
      * @throws UnsupportedEncodingException
      */
-    static final String URLFormDecode(String source) throws UnsupportedEncodingException {
+    static String URLFormDecode(String source) throws UnsupportedEncodingException {
 
         // Decode everything else
         return URLDecoder.decode(source, ENCODING_UTF8);
     }
 
-    static final String encodeBase64URLSafeString(final byte[] bytes)
+    static String encodeBase64URLSafeString(final byte[] bytes)
             throws UnsupportedEncodingException {
         return new String(
                 Base64.encode(bytes, Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
@@ -106,11 +101,10 @@ final class StringExtensions {
     /**
      * create url from given endpoint. return null if format is not right.
      * 
-     * @param endpoint
-     * @return
-     * @throws MalformedURLException
+     * @param endpoint url as a string
+     * @return URL object for this string
      */
-    static final URL getUrl(String endpoint) {
+    static URL getUrl(String endpoint) {
         URL authority = null;
         try {
             authority = new URL(endpoint);
@@ -121,7 +115,7 @@ final class StringExtensions {
         return authority;
     }
 
-    static final HashMap<String, String> getUrlParameters(String finalUrl) {
+    static HashMap<String, String> getUrlParameters(String finalUrl) {
         Uri response = Uri.parse(finalUrl);
         String fragment = response.getFragment();
         HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
@@ -133,9 +127,9 @@ final class StringExtensions {
         return parameters;
     }
 
-    static final List<String> getStringTokens(final String items, final String delimeter) {
+    static List<String> getStringTokens(final String items, final String delimeter) {
         StringTokenizer st = new StringTokenizer(items, delimeter);
-        List<String> itemList = new ArrayList<String>();
+        List<String> itemList = new ArrayList<>();
         if (st.hasMoreTokens()) {
             while (st.hasMoreTokens()) {
                 String name = st.nextToken();
@@ -148,7 +142,7 @@ final class StringExtensions {
     }
     
     static ArrayList<String> splitWithQuotes(String input, char delimiter) {
-        ArrayList<String> items = new ArrayList<String>();
+        ArrayList<String> items = new ArrayList<>();
 
         int startIndex = 0;
         boolean insideString = false;
@@ -185,9 +179,9 @@ final class StringExtensions {
      * Checks if header value has this prefix. Prefix + whitespace is
      * acceptable.
      * 
-     * @param value
-     * @param prefix
-     * @return
+     * @param value String to check
+     * @param prefix prefix to check the above string
+     * @return boolean true if the string starts with prefix and has some body after it.
      */
     static boolean hasPrefixInHeader(final String value, final String prefix) {
         return value.startsWith(prefix) && value.length() > prefix.length() + 2

@@ -64,7 +64,7 @@ import android.util.Base64;
 /**
  * Shared preferences store clear text. This class helps to encrypt/decrypt text
  * to store. API SDK >= 18 has more security with AndroidKeyStore.
- * @note: {@link StorageHelper} is designed for the ADAL internal encryption/decryption. 
+ * Note: {@link StorageHelper} is designed for the ADAL internal encryption/decryption.
  * Don't take dependency on it for external use. 
  */
 public class StorageHelper {
@@ -135,8 +135,6 @@ public class StorageHelper {
     
     private static final int KEY_FILE_SIZE = 1024;
 
-    private static final Object LOCK_OBJ = new Object();
-    
     private final Context mContext;
     private final SecureRandom mRandom;
 
@@ -223,7 +221,6 @@ public class StorageHelper {
      * @return Decrypted clear text.
      * @throws GeneralSecurityException
      * @throws IOException
-     * @throws AuthenticationException
      */
     public String decrypt(final String encryptedBlob) throws GeneralSecurityException, IOException {
         Logger.v(TAG, "Starting decryption");
@@ -294,8 +291,9 @@ public class StorageHelper {
      * Get Secret Key based on API level to use in encryption. Decryption key
      * depends on version# since user can migrate to new Android.OS
      *
-     * @return
+     * @return SecretKey Get Secret Key based on API level to use in encryption
      * @throws NoSuchAlgorithmException
+     * @throws IOException
      */
     synchronized SecretKey loadSecretKeyForEncryption() throws IOException, GeneralSecurityException {
         // Loading key only once for performance. If API is upgraded, it will
@@ -332,8 +330,8 @@ public class StorageHelper {
      * For API <18 or user provide the key, will return the user supplied key.
      * Supported API >= 18 PrivateKey is stored in AndroidKeyStore. Loads key
      * from the file if it exists. If not exist, it will generate one.
-     * @param keyVersion
-     * @return
+     * @param keyVersion whether its user defined or from the android key store
+     * @return SecretKey
      * @throws GeneralSecurityException
      * @throws IOException
      */
@@ -363,8 +361,8 @@ public class StorageHelper {
 
     /**
      * Get the saved key. Will only do read operation. 
-     * @param keyVersion
-     * @return
+     * @param keyVersion whether the key is user defined or in Android key store
+     * @return SecretKey
      * @throws GeneralSecurityException
      * @throws IOException
      */
@@ -498,10 +496,10 @@ public class StorageHelper {
     }
 
     /**
-     * Derive mac key from given key
+     * Derive HMAC key from given key
      * 
-     * @param key
-     * @return
+     * @param key SecretKey from which HMAC key has to be derived
+     * @return SecretKey
      * @throws NoSuchAlgorithmException
      */
     private SecretKey getHMacKey(final SecretKey key) throws NoSuchAlgorithmException {
@@ -540,10 +538,10 @@ public class StorageHelper {
     /**
      * generate secretKey to store after wrapping with KeyStore
      * 
-     * @return
+     * @return SecretKey
      * @throws NoSuchAlgorithmException
      */
-    private final SecretKey generateSecretKey() throws NoSuchAlgorithmException {
+    private SecretKey generateSecretKey() throws NoSuchAlgorithmException {
         final KeyGenerator keygen = KeyGenerator.getInstance(KEYSPEC_ALGORITHM);
         keygen.init(KEY_SIZE, mRandom);
         return keygen.generateKey();
@@ -553,7 +551,7 @@ public class StorageHelper {
     private synchronized SecretKey getUnwrappedSecretKey() throws GeneralSecurityException, IOException {
         Logger.v(TAG, "Reading SecretKey");
 
-        SecretKey unwrappedSecretKey = null;
+        SecretKey unwrappedSecretKey;
         try {
             final byte[] wrappedSecretKey = readKeyData();
             unwrappedSecretKey = unwrap(wrappedSecretKey);
@@ -578,7 +576,9 @@ public class StorageHelper {
                 ADALKS);
         if (keyFile.exists()) {
             Logger.v(TAG, "Delete KeyFile");
-            keyFile.delete();
+            if (!keyFile.delete()) {
+                Logger.v(TAG, "Delete KeyFile failed");
+            }
         }
     }
 

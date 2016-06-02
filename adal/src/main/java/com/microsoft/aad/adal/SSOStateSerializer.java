@@ -51,7 +51,7 @@ class SSOStateSerializer {
      * given user.
      */
     @SerializedName("tokenCacheItems")
-    private final List<TokenCacheItem> mTokenCacheItems = new ArrayList<TokenCacheItem>();
+    private final List<TokenCacheItem> mTokenCacheItems = new ArrayList<>();
 
     /**
      * To customize the serialize/deserialize process and provide a more
@@ -71,7 +71,7 @@ class SSOStateSerializer {
      * TokenCacheItem as input and call the constructor to initialize a
      * SSOStateSerializer object.
      * 
-     * @param item
+     * @param item TokenCacheItem to initialize a SSOStateSerializer
      */
     private SSOStateSerializer(final TokenCacheItem item) {
         if (item == null) {
@@ -116,14 +116,14 @@ class SSOStateSerializer {
      * 
      * this function covers the details of the deserialization process
      * 
-     * @param String
+     * @param serializedBlob String blob to convert to TokenCacheItem
      * @return TokenCacheItem
      * @throws AuthenticationException
      */
     private TokenCacheItem internalDeserialize(String serializedBlob) throws AuthenticationException {
         try {
             final JSONObject jsonObject = new JSONObject(serializedBlob);
-            if (jsonObject != null && jsonObject.getInt("version") == this.getVersion()) {
+            if (jsonObject.getInt("version") == this.getVersion()) {
                 return mGson.fromJson(serializedBlob, SSOStateSerializer.class).getTokenItem();
             } else {
                 throw new DeserializationAuthenticationException(
@@ -142,7 +142,7 @@ class SSOStateSerializer {
      * function which takes the TokenCacheItem object as input and return the
      * serialized json string if successful.
      * 
-     * @param TokenCacheItem
+     * @param item TokenCacheItem to convert to serialized json
      * @return String
      */
     static String serialize(final TokenCacheItem item) {
@@ -156,7 +156,7 @@ class SSOStateSerializer {
      * deserialize function take the serialized string as input and return the
      * deserialized TokenCacheItem if successful.
      * 
-     * @param String
+     * @param serializedBlob string blob to deserialize into TokenCacheItem
      * @return TokenCacheItem
      * @throws AuthenticationException
      */

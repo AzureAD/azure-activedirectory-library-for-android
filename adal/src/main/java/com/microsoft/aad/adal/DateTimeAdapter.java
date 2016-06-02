@@ -63,17 +63,15 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
      * Add new en-us date format for parsing date string if it doesn't contain AM/PM.
      */
     private static DateFormat buildEnUs24HourDateFormat() {
-        DateFormat newformat = new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.US);
-        return newformat;
+        return new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.US);
     }
     
     /**
      * Add new local date format when parsing date string if it doesn't contain AM/PM.
-     * @return
+     * @return DateFormat
      */
     private static DateFormat buildLocal24HourDateFormat() {
-        DateFormat newformat = new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault());
-        return newformat;
+        return new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault());
     }
 
     public DateTimeAdapter() {

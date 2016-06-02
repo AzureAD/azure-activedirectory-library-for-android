@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -35,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.crypto.NoSuchPaddingException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -68,11 +65,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     .registerTypeAdapter(Date.class, new DateTimeAdapter())
     .create();
     private static StorageHelper sHelper;
-    private static Object sLock = new Object();
+    private final static Object sLock = new Object();
     /**
      * @param context {@link Context}
-     * @throws NoSuchAlgorithmException
-     * @throws NoSuchPaddingException
      */
     public DefaultTokenCacheStore(Context context) {
         if (context == null) {
@@ -108,7 +103,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Method that allows to mock StorageHelper class and use custom encryption in UTs
-     * @return
      */
     protected StorageHelper getStorageHelper() {
         synchronized (sLock) {
@@ -222,7 +216,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         Map<String, String> results = (Map<String, String>)mPrefs.getAll();
 
         // create objects
-        ArrayList<TokenCacheItem> tokens = new ArrayList<TokenCacheItem>(results.values().size());
+        ArrayList<TokenCacheItem> tokens = new ArrayList<>(results.values().size());
         
         Iterator<Entry<String, String>> tokenResultEntrySet = results.entrySet().iterator();
         while (tokenResultEntrySet.hasNext())
@@ -250,7 +244,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     @Override
     public Set<String> getUniqueUsersWithTokenCache() {
         Iterator<TokenCacheItem> results = this.getAll();
-        Set<String> users = new HashSet<String>();
+        Set<String> users = new HashSet<>();
         
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
@@ -271,7 +265,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     @Override
     public List<TokenCacheItem> getTokensForResource(String resource) {
         Iterator<TokenCacheItem> results = this.getAll();
-        List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
+        List<TokenCacheItem> tokenItems = new ArrayList<>();
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
@@ -287,13 +281,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     /**
      * Get tokens for user.
      * 
-     * @param userid userId
+     * @param userId userId
      * @return list of {@link TokenCacheItem}
      */
     @Override
     public List<TokenCacheItem> getTokensForUser(String userId) {
         Iterator<TokenCacheItem> results = this.getAll();
-        List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
+        List<TokenCacheItem> tokenItems = new ArrayList<>();
         
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
@@ -309,16 +303,15 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     /**
      * Clear tokens for user without additional retry.
      * 
-     * @param userid UserId
-     * @throws AuthenticationException 
+     * @param userId UserId
      */
     @Override
-    public void clearTokensForUser(String userid) {
-        List<TokenCacheItem> results = this.getTokensForUser(userid);
+    public void clearTokensForUser(String userId) {
+        List<TokenCacheItem> results = this.getTokensForUser(userId);
 
         for (TokenCacheItem item : results) {
             if (item.getUserInfo() != null
-                    && item.getUserInfo().getUserId().equalsIgnoreCase(userid)) {
+                    && item.getUserInfo().getUserId().equalsIgnoreCase(userId)) {
                 try {
                     this.removeItem(CacheKey.createCacheKey(item));
                 } catch (final AuthenticationException exception) {
@@ -338,7 +331,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     @Override
     public List<TokenCacheItem> getTokensAboutToExpire() {
         Iterator<TokenCacheItem> results = this.getAll();
-        List<TokenCacheItem> tokenItems = new ArrayList<TokenCacheItem>();
+        List<TokenCacheItem> tokenItems = new ArrayList<>();
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
@@ -362,11 +355,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     private boolean isAboutToExpire(Date expires) {
         Date validity = getTokenValidityTime().getTime();
 
-        if (expires != null && expires.before(validity)) {
-            return true;
-        }
-
-        return false;
+        return (expires != null && expires.before(validity));
     }
 
     private static final int TOKEN_VALIDITY_WINDOW = 10;

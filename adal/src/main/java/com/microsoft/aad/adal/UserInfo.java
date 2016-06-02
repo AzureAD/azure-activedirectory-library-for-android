@@ -122,9 +122,9 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Gets unique userid.
+     * Gets unique user id.
      * 
-     * @return
+     * @return String
      */
     public String getUserId() {
         return mUniqueId;
@@ -137,78 +137,55 @@ public class UserInfo implements Serializable {
     /**
      * Gets given name.
      * 
-     * @return
+     * @return String
      */
     public String getGivenName() {
         return mGivenName;
     }
 
-    void setGivenName(String name) {
-        mGivenName = name;
-    }
-
     /**
      * Gets family name.
      * 
-     * @return
+     * @return String
      */
     public String getFamilyName() {
         return mFamilyName;
     }
 
-    void setFamilyName(String familyName) {
-        mFamilyName = familyName;
-    }
-
     /**
      * Gets Identity provider.
      * 
-     * @return
+     * @return String
      */
     public String getIdentityProvider() {
         return mIdentityProvider;
     }
 
-    void setIdentityProvider(String provider) {
-        mIdentityProvider = provider;
-    }
-
     /**
      * Gets displayable user name.
      * 
-     * @return
+     * @return String
      */
     public String getDisplayableId() {
         return mDisplayableId;
     }
 
-    void setDisplayableId(String displayId) {
-        mDisplayableId = displayId;
-    }
-
     /**
      * Gets password change url.
      * 
-     * @return
+     * @return Uri
      */
     public Uri getPasswordChangeUrl() {
         return mPasswordChangeUrl;
     }
 
-    void setPasswordChangeUrl(Uri passwordChangeUrl) {
-        this.mPasswordChangeUrl = passwordChangeUrl;
-    }
-
     /**
      * Gets password expires on.
      * 
-     * @return
+     * @return Date
      */
     public Date getPasswordExpiresOn() {
         return mPasswordExpiresOn;
     }
 
-    void setPasswordExpiresOn(Date passwordExpiresOn) {
-        this.mPasswordExpiresOn = passwordExpiresOn;
-    }
 }
