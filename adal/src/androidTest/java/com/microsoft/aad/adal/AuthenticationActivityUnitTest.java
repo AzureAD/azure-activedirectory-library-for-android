@@ -380,7 +380,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTaskResult"));
         AccountManager mockAct = mock(AccountManager.class);
         when(mockAct.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE))
-                .thenReturn(null);
+                .thenReturn(new Account[] {});
         ReflectionUtils.setFieldValue(tokenTask, "mRequest", authRequest);
         ReflectionUtils.setFieldValue(tokenTask, "mPackageName", "testpackagename");
         ReflectionUtils.setFieldValue(tokenTask, "mAccountManager", mockAct);

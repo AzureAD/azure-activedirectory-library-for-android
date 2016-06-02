@@ -36,6 +36,7 @@ import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -289,6 +290,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         AuthenticatorDescription[] descriptions = getAuthenticator(authenticatorType, brokerPackage);
         Context mockContext = getMockContext(signature, brokerPackage, brokerPackage, true);
         when(mockAcctManager.getAuthenticatorTypes()).thenReturn(descriptions);
+        when(mockAcctManager.getAccountsByType(Matchers.refEq(authenticatorType))).thenReturn(new Account[] {});
         when(mockContext.getPackageName()).thenReturn(brokerPackage);
         ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
         ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);

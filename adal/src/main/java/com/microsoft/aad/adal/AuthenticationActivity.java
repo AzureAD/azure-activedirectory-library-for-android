@@ -803,6 +803,9 @@ public class AuthenticationActivity extends Activity {
 
         IWebRequestHandler mRequestHandler;
 
+        public TokenTask() {
+        }
+
         public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
                          final String packagename, final int callingUID) {
             mRequestHandler = webHandler;
