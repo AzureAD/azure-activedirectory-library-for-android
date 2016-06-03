@@ -8,6 +8,4 @@
 
 <suppressions>
     <suppress checks="Javadoc.*" files=".*Test.java"/>
-    <!-- RedundantThrows check is buggy - https://github.com/checkstyle/checkstyle/issues/473 -->
-    <suppress checks="RedundantThrows" files=".*\.java" />
 </suppressions>

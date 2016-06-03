@@ -282,10 +282,10 @@ public class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that web request send correct headers
-        Log.v(TAG, "Response msg:" + response.message);
-        assertNotNull("Server response isn't null ", response.message);
+        Log.v(TAG, "Response msg:" + response.getMessage());
+        assertNotNull("Server response isn't null ", response.getMessage());
         assertTrue("Server response has same correlationId",
-                response.message.contains(requestCorrelationId.toString()));
+                response.getMessage().contains(requestCorrelationId.toString()));
     }
 
     /**
@@ -928,8 +928,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
         MockedIdToken idtoken = new MockedIdToken();
-        idtoken.upn = idTokenUpn;
-        idtoken.oid = "userid123";
+        idtoken.setUpn(idTokenUpn);
+        idtoken.setOid("userid123");
         final String response = "{\"id_token\":\""
                 + idtoken.getIdToken()
                 + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
@@ -962,7 +962,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Call with userId should return from cache as well
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
-                idtoken.oid);
+                idtoken.getOid());
         verifyTokenResult(idtoken, result);
 
         clearCache(context);
@@ -990,8 +990,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
         MockedIdToken idtoken = new MockedIdToken();
-        idtoken.upn = "admin@user.com";
-        idtoken.oid = "admin123";
+        idtoken.setUpn("admin@user.com");
+        idtoken.setOid("admin123");
         String loginHint = "user1@user.com";
         final String response = "{\"id_token\":\""
                 + idtoken.getIdToken()
@@ -1024,7 +1024,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
         // Call with userId should return from cache as well
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
-                idtoken.oid);
+                idtoken.getOid());
         verifyTokenResult(idtoken, result);
 
         clearCache(context);
@@ -1172,8 +1172,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("Check access token", "TokenUserIdTest", result.getAccessToken());
         assertEquals("Check refresh token", "refresh112", result.getRefreshToken());
         if (idtoken != null) {
-            assertEquals("Result has userid", idtoken.oid, result.getUserInfo().getUserId());
-            assertEquals("Result has username", idtoken.upn, result.getUserInfo()
+            assertEquals("Result has userid", idtoken.getOid(), result.getUserInfo().getUserId());
+            assertEquals("Result has username", idtoken.getUpn(), result.getUserInfo()
                     .getDisplayableId());
         }
     }
@@ -1521,7 +1521,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         authContext.onActivityResult(requestCode, resultCode, null);
 
         // assert
-        assertTrue(logResponse.message.contains(msgToCheck));
+        assertTrue(logResponse.getMessage().contains(msgToCheck));
     }
 
     @SmallTest
@@ -1542,7 +1542,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         authContext.onActivityResult(requestCode, resultCode, data);
 
         // assert
-        assertTrue(logResponse.message.contains(msgToCheck));
+        assertTrue(logResponse.getMessage().contains(msgToCheck));
     }
 
     @SmallTest

@@ -38,12 +38,15 @@ import com.microsoft.aad.adal.Logger.LogLevel;
 
 import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
+
 import junit.framework.Assert;
 
 public class AuthenticationParamsTests extends AndroidTestHelper {
 
     protected static final String TAG = "AuthenticationParamsTests";
 
+    private static final int HTTP_OK = 200;
+    private static final int HTTP_UNAUTHORIZED = 401;
     public void testGetAuthority() {
         AuthenticationParameters param = new AuthenticationParameters();
         assertTrue("authority should be null", param.getAuthority() == null);
@@ -60,11 +63,11 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         final TestResponse testResponse = new TestResponse();
         setupAsyncParamRequest("http://www.cnn.com", testResponse);
 
-        assertNotNull("Exception null", testResponse.exception);
-        assertNull("Parameter is not null", testResponse.param);
+        assertNotNull("Exception null", testResponse.getException());
+        assertNull("Parameter is not null", testResponse.getParam());
         assertTrue(
                 "Check header exception",
-                testResponse.exception.getMessage() == AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
+                testResponse.getException().getMessage() == AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
     }
 
     public void testCreateFromResponseAuthenticateHeader() {
@@ -100,10 +103,10 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         final TestResponse testResponse = new TestResponse();
         setupAsyncParamRequest("https://testapi007.azurewebsites.net/api/WorkItem", testResponse);
 
-        assertNull("Exception is not null", testResponse.exception);
-        assertNotNull("Check parameter", testResponse.param);
-        Log.d(TAG, "test:" + getName() + "authority:" + testResponse.param.getAuthority());
-        assertEquals("https://login.windows.net/omercantest.onmicrosoft.com", testResponse.param
+        assertNull("Exception is not null", testResponse.getException());
+        assertNotNull("Check parameter", testResponse.getParam());
+        Log.d(TAG, "test:" + getName() + "authority:" + testResponse.getParam().getAuthority());
+        assertEquals("https://login.windows.net/omercantest.onmicrosoft.com", testResponse.getParam()
                 .getAuthority().trim());
     }
 
@@ -134,14 +137,14 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 "Bearer   \t  scope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\", authorization_uri=\"https://login.windows.net/tenant\"",
                 "https://login.windows.net/tenant", null);
 
-        assertTrue("Has warning for redudant items", callback.called);
+        assertTrue("Has warning for redudant items", callback.isCalled());
         Logger.getInstance().setExternalLogger(null);
     }
 
     private void verifyAuthenticationParam(Method m, String headerValue, String authorizationUri,
-            String resource) throws IllegalAccessException, InvocationTargetException {
-        AuthenticationParameters param = (AuthenticationParameters)m.invoke(null,
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", headerValue)));
+                                           String resource) throws IllegalAccessException, InvocationTargetException {
+        AuthenticationParameters param = (AuthenticationParameters) m.invoke(null,
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", headerValue)));
         assertNotNull("Parsed ok", param);
         assertEquals("Verify authorization uri", authorizationUri, param.getAuthority());
         assertEquals("Verify resource", resource, param.getResource());
@@ -149,107 +152,103 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
     /**
      * test private method to make sure parsing is right
-     * 
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws ClassNotFoundException
-     * @throws IllegalArgumentException
      */
     public void testParseResponseNegative() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
-        callParseResponseForException(new HttpWebResponse(200, null, null),
+        callParseResponseForException(new HttpWebResponse(HTTP_OK, null, null),
                 AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
 
-        callParseResponseForException(new HttpWebResponse(401, null, null),
+        callParseResponseForException(new HttpWebResponse(HTTP_UNAUTHORIZED, null, null),
                 AuthenticationParameters.AUTH_HEADER_MISSING);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "v")),
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "v")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer nonsense")),
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer nonsense")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer")),
-                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
-        
-        callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer ")),
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", " Bearer")),
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", " Bearer ")),
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", " Bearer")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "\t Bearer  ")),
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", " Bearer ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer test ")),
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "\t Bearer  ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bear gets=honey ")),
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer test ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate", "Bearer =,=,")),
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bear gets=honey ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer =,=,")),
+                AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
+
+        callParseResponseForException(
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer some text here,")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer authorization_uri= ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearerauthorization_uri=something")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearerauthorization_uri=\"https://www.something.com\"")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(401, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer    \t authorization_uri=,something=a ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
     }
 
     class LogCallback implements ILogger {
-        boolean called = false;
+        private boolean mCalled = false;
 
-        ADALError checkCode;
+        private ADALError mCheckCode;
 
         public LogCallback(ADALError errorCode) {
-            checkCode = errorCode;
-            called = false;
+            mCheckCode = errorCode;
+            mCalled = false;
         }
 
         @Override
-        public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                ADALError errorCode) {
-            if (errorCode == checkCode) {
-                called = true;
+        public void Log(String tag, String message, String additionalMessage, LogLevel level, ADALError errorCode) {
+            if (errorCode == mCheckCode) {
+                mCalled = true;
             }
         }
-    };
+
+        public boolean isCalled() {
+            return mCalled;
+        }
+    }
 
     private Method getParseResponseMethod() throws ClassNotFoundException {
         Method m = null;
@@ -270,7 +269,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         AuthenticationParameters param = null;
 
         try {
-            param = (AuthenticationParameters)m.invoke(null, response);
+            param = (AuthenticationParameters) m.invoke(null, response);
             assertTrue("expected to fail", false);
         } catch (Exception exception) {
             assertNotNull("Exception is not null", exception);
@@ -293,26 +292,39 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     }
 
     class TestResponse {
-        AuthenticationParameters param;
+        private AuthenticationParameters mParam;
 
-        Exception exception;
+        private Exception mException;
+
+        public AuthenticationParameters getParam() {
+            return mParam;
+        }
+
+        public void setParam(AuthenticationParameters param) {
+            this.mParam = param;
+        }
+
+        public Exception getException() {
+            return mException;
+        }
+
+        public void setException(Exception exception) {
+            this.mException = exception;
+        }
     }
 
     /**
      * This will call createFromResourceUrl for given url and update the
      * testresponse obj it helps to wait for the callback and handles
      * interruptions
-     * 
-     * @param requestUrl
-     * @param testResponse
      */
     private void setupAsyncParamRequest(final String requestUrl, final TestResponse testResponse) {
         final CountDownLatch signal = new CountDownLatch(1);
         final AuthenticationParamCallback callback = new AuthenticationParamCallback() {
             @Override
             public void onCompleted(Exception exception, AuthenticationParameters param) {
-                testResponse.param = param;
-                testResponse.exception = exception;
+                testResponse.setParam(param);
+                testResponse.setException(exception);
                 Log.d(TAG, "test " + android.os.Process.myTid());
                 signal.countDown();
             }

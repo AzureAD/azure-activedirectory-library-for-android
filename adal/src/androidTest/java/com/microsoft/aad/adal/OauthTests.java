@@ -554,7 +554,7 @@ public class OauthTests extends AndroidTestCase {
         // verify same token
         assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
         assertTrue("Log response has message",
-                logResponse.errorCode
+                logResponse.getErrorCode()
                         .equals(ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE));
 
         List<String> invalidHeaders = new ArrayList<String>();
@@ -568,7 +568,7 @@ public class OauthTests extends AndroidTestCase {
         m.invoke(oauth, mockResponse);
         // verify same token
         assertTrue("Log response has message",
-                logResponse2.errorCode.equals(ADALError.CORRELATION_ID_FORMAT));
+                logResponse2.getErrorCode().equals(ADALError.CORRELATION_ID_FORMAT));
     }
 
     @SmallTest

@@ -29,21 +29,21 @@ import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
 
 public class TestLogResponse {
-    String tag;
+    private String mTag;
 
-    String message;
+    private String mMessage;
 
-    String additionalMessage;
+    private String mAdditionalMessage;
 
-    LogLevel level;
+    private LogLevel mLevel;
 
-    ADALError errorCode;
+    private ADALError mErrorCode;
 
     public void reset() {
-        this.tag = null;
-        this.message = null;
-        this.additionalMessage = null;
-        this.errorCode = null;
+        this.mTag = null;
+        this.mMessage = null;
+        this.mAdditionalMessage = null;
+        this.mErrorCode = null;
     }
 
     public void listenForLogMessage(final String msg, final CountDownLatch signal) {
@@ -56,11 +56,11 @@ public class TestLogResponse {
                     ADALError errorCode) {
 
                 if (message.contains(msg + " ver:" + AuthenticationContext.getVersionName())) {
-                    response.tag = tag;
-                    response.message = message;
-                    response.additionalMessage = additionalMessage;
-                    response.level = level;
-                    response.errorCode = errorCode;
+                    response.mTag = tag;
+                    response.mMessage = message;
+                    response.mAdditionalMessage = additionalMessage;
+                    response.mLevel = level;
+                    response.mErrorCode = errorCode;
                     if (signal != null) {
                         signal.countDown();
                     }
@@ -83,11 +83,11 @@ public class TestLogResponse {
                     ADALError errorCode) {
                 for (String msg : msgs) {
                     if (message.contains(msg) || additionalMessage.contains(msg)) {
-                        response.tag = tag;
-                        response.message = message;
-                        response.additionalMessage = additionalMessage;
-                        response.level = level;
-                        response.errorCode = errorCode;
+                        response.mTag = tag;
+                        response.mMessage = message;
+                        response.mAdditionalMessage = additionalMessage;
+                        response.mLevel = level;
+                        response.mErrorCode = errorCode;
                     } else {
                         break;
                     }
@@ -95,5 +95,41 @@ public class TestLogResponse {
             }
         });
 
+    }
+
+    public String getTag() {
+        return mTag;
+    }
+
+    public void setTag(String tag) {
+        mTag = tag;
+    }
+
+    public String getMessage() {
+        return mMessage;
+    }
+
+    public void setMessage(String message) {
+        mMessage = message;
+    }
+
+    public String getAdditionalMessage() {
+        return mAdditionalMessage;
+    }
+
+    public void setAdditionalMessage(String additionalMessage) {
+        mAdditionalMessage = additionalMessage;
+    }
+
+    public void setLevel(LogLevel level) {
+        mLevel = level;
+    }
+
+    public ADALError getErrorCode() {
+        return mErrorCode;
+    }
+
+    public void setErrorCode(ADALError errorCode) {
+        mErrorCode = errorCode;
     }
 }

@@ -481,7 +481,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
         // get field value to check
         assertTrue("verify log message",
-                logResponse.message.contains("Webview onResume register broadcast"));
+                logResponse.getMessage().contains("Webview onResume register broadcast"));
     }
 
     @SmallTest
@@ -565,7 +565,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         // Test onReceive call with correct request id
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("log the message for correct Intent",
-                response.message.contains(broadcastCancelMsg1));
+                response.getMessage().contains(broadcastCancelMsg1));
 
         // update requestId to match the AuthenticationRequest
         final CountDownLatch signal2 = new CountDownLatch(1);
@@ -579,7 +579,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         // verify that it received intent
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("log the message for correct Intent",
-                response2.message.contains(broadcastCancelMsg2));
+                response2.getMessage().contains(broadcastCancelMsg2));
     }
 
     @SmallTest
