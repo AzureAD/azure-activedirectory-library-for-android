@@ -908,7 +908,7 @@ public class AuthenticationContext {
                                         TAG,
                                         "Processing url for token. "
                                                 + authenticationRequest.getLogInfo());
-                                Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
+                                final Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
                                 AuthenticationResult result;
                                 try {
                                     result = oauthRequest.getToken(endingUrl);
@@ -1251,7 +1251,7 @@ public class AuthenticationContext {
         final String methodName = ":verifyBrokerRedirectUri";
         final String inputUri = request.getRedirectUri();
         final String actualUri = getRedirectUriForBroker();
-        String errMsg;
+        final String errMsg;
         
         if (StringExtensions.IsNullOrBlank(inputUri)) {
             errMsg = "The redirectUri is null or blank. "
@@ -1576,7 +1576,7 @@ public class AuthenticationContext {
      */
     private boolean resolveIntent(Intent intent) {
         ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
-        return (resolveInfo != null);
+        return resolveInfo != null;
     }
 
     /**

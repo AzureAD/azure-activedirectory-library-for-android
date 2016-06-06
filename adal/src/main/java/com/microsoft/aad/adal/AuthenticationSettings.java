@@ -225,7 +225,7 @@ public enum AuthenticationSettings {
     /**
      * Gets expiration buffer.
      * 
-     * @return int
+     * @return the amount of buffer that is provided to the expiration time.
      */
     public int getExpirationBuffer() {
         return mExpirationBuffer;
@@ -237,7 +237,7 @@ public enum AuthenticationSettings {
      * give 5min buffer. Token with Expiry time of 12:04 will say expired when
      * actual time is 12:00 with 5min buffer.
      * 
-     * @param expirationBuffer the time buffer provided to expiration time
+     * @param expirationBuffer the time buffer provided to expiration time.
      */
     public void setExpirationBuffer(int expirationBuffer) {
         this.mExpirationBuffer = expirationBuffer;
@@ -253,7 +253,7 @@ public enum AuthenticationSettings {
      * timeout elapses before a connection is established. Default value is
      * 30000 milliseconds.
      * 
-     * @param timeOutMillis the connect timeout in milliseconds. Non-negative
+     * @param timeOutMillis the connect timeout in milliseconds. Non-negative.
      * @throws IllegalArgumentException if timeoutMillis < 0.
      */
     public void setConnectTimeOut(int timeOutMillis) {

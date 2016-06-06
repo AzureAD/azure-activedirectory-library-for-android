@@ -83,9 +83,6 @@ public class ApplicationReceiver extends BroadcastReceiver {
                 if (receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME) ||
                         receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
                     
-                    String installedPackageName = receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)?
-                            AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME : AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
-                    
                     String request = getInstallRequestInthisApp(context);
                     brokerProxy = new BrokerProxy(context);
                     final Date dateTimeForSavedRequest = new Date(getInstallRequestTimeStamp(context));

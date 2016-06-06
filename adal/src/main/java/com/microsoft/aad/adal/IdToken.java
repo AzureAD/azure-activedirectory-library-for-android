@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -62,7 +63,7 @@ class IdToken {
 
     public IdToken(String idtoken) throws AuthenticationException {
         // Message segments: Header.Body.Signature
-        final HashMap<String, String> responseItems = this.parseJWT(idtoken);
+        final Map<String, String> responseItems = this.parseJWT(idtoken);
 
         if (responseItems != null && !responseItems.isEmpty()) {
             this.mSubject = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
@@ -123,7 +124,7 @@ class IdToken {
         return mPasswordChangeUrl;
     }
 
-    private HashMap<String, String> parseJWT(final String idtoken) throws AuthenticationException {
+    private Map<String, String> parseJWT(final String idtoken) throws AuthenticationException {
         final String idbody = extractJWTBody(idtoken);
         // URL_SAFE: Encoder/decoder flag bit to use
         // "URL and filename safe" variant of Base64
@@ -156,9 +157,9 @@ class IdToken {
         }
     }
 
-    private static HashMap<String, String> extractJsonObjects(final String jsonStr) throws JSONException {
+    private static Map<String, String> extractJsonObjects(final String jsonStr) throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
-        final HashMap<String, String> responseItems = new HashMap<>();
+        final Map<String, String> responseItems = new HashMap<>();
         final Iterator<?> i = jsonObject.keys();
         while (i.hasNext()) {
             final String key = (String) i.next();

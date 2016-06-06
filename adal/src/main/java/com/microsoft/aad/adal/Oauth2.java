@@ -33,6 +33,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONException;
@@ -188,7 +189,7 @@ class Oauth2 {
         return message;
     }
 
-    public static AuthenticationResult processUIResponseParams(HashMap<String, String> response) throws AuthenticationException {
+    public static AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
 
         final AuthenticationResult result;
 
@@ -200,7 +201,7 @@ class Oauth2 {
             String correlationInResponse = response.get(AuthenticationConstants.AAD.CORRELATION_ID);
             if (!StringExtensions.IsNullOrBlank(correlationInResponse)) {
                 try {
-                    UUID correlationId = UUID.fromString(correlationInResponse);
+                    final UUID correlationId = UUID.fromString(correlationInResponse);
                     Logger.setCorrelationId(correlationId);
                 } catch (IllegalArgumentException ex) {
                     Logger.e(TAG, "CorrelationId is malformed: " + correlationInResponse, "",
@@ -223,7 +224,7 @@ class Oauth2 {
         } 
         else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
-            boolean isMultiResourcetoken = false;
+            boolean isMultiResourceToken = false;
             String expires_in = response.get("expires_in");
             Calendar expires = new GregorianCalendar();
 
@@ -234,7 +235,7 @@ class Oauth2 {
                             : Integer.parseInt(expires_in));
 
             if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)) {
-                isMultiResourcetoken = true;
+                isMultiResourceToken = true;
             }
 
             UserInfo userinfo = null;
@@ -261,7 +262,7 @@ class Oauth2 {
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
-                    isMultiResourcetoken, userinfo, tenantId, rawIdToken);
+                    isMultiResourceToken, userinfo, tenantId, rawIdToken);
             
             //Set family client id on authentication result for TokenCacheItem to pick up
             result.setFamilyClientId(familyClientId);
@@ -272,7 +273,7 @@ class Oauth2 {
         return result;
     }
 
-    private static void extractJsonObjects(HashMap<String, String> responseItems, String jsonStr)
+    private static void extractJsonObjects(Map<String, String> responseItems, String jsonStr)
             throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
 
@@ -299,7 +300,7 @@ class Oauth2 {
             return null;
         }
 
-        HashMap<String, String> headers = getRequestHeaders();
+        Map<String, String> headers = getRequestHeaders();
 
         // Refresh token endpoint needs to send header field for device
         // challenge
@@ -372,7 +373,7 @@ class Oauth2 {
      */
     public AuthenticationResult getTokenForCode(String code) throws IOException, AuthenticationException {
 
-        String requestMessage;
+        final String requestMessage;
         if (mWebRequestHandler == null) {
             throw new IllegalArgumentException("webRequestHandler");
         }
@@ -385,11 +386,11 @@ class Oauth2 {
             return null;
         }
 
-        HashMap<String, String> headers = getRequestHeaders();
+        Map<String, String> headers = getRequestHeaders();
         return postMessage(requestMessage, headers);
     }
 
-    private AuthenticationResult postMessage(String requestMessage, HashMap<String, String> headers)
+    private AuthenticationResult postMessage(String requestMessage, Map<String, String> headers)
             throws IOException, AuthenticationException {
         AuthenticationResult result = null;
         final URL authority = StringExtensions.getUrl(getTokenEndpoint());
@@ -494,8 +495,8 @@ class Oauth2 {
         return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
-    private HashMap<String, String> getRequestHeaders() {
-        HashMap<String, String> headers = new HashMap<>();
+    private Map<String, String> getRequestHeaders() {
+        Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
         return headers;
     }
@@ -557,7 +558,7 @@ class Oauth2 {
     
     private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException,
             AuthenticationException {
-        HashMap<String, String> responseItems = new HashMap<>();
+        Map<String, String> responseItems = new HashMap<>();
         extractJsonObjects(responseItems, responseBody);
         return processUIResponseParams(responseItems);
     }

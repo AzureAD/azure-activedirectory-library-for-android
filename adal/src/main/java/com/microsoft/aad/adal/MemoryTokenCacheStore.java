@@ -28,6 +28,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * tokenCacheItem is not persisted. Memory cache does not keep static items.
@@ -41,7 +42,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     private static final String TAG = "MemoryTokenCacheStore";
 
-    private final HashMap<String, TokenCacheItem> mCache = new HashMap<>();
+    private final Map<String, TokenCacheItem> mCache = new HashMap<>();
 
     private transient Object mCacheLock = new Object();
 

@@ -165,7 +165,7 @@ public class AuthenticationParameters {
         sThreadExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                HashMap<String, String> headers = new HashMap<>();
+                Map<String, String> headers = new HashMap<>();
                 headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 
                 final HttpWebResponse webResponse;
@@ -219,7 +219,7 @@ public class AuthenticationParameters {
                 String headerSubFields = authenticateHeader.substring(BEARER.length());
                 Logger.v(TAG, "Values in here:" + headerSubFields);
                 Matcher values = valuePattern.matcher(headerSubFields);
-                HashMap<String, String> headerItems = new HashMap<>();
+                Map<String, String> headerItems = new HashMap<>();
                 while (values.find()) {
 
                     // values.group(0) is matching string

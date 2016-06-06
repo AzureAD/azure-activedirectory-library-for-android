@@ -551,7 +551,7 @@ public class StorageHelper {
     private synchronized SecretKey getUnwrappedSecretKey() throws GeneralSecurityException, IOException {
         Logger.v(TAG, "Reading SecretKey");
 
-        SecretKey unwrappedSecretKey;
+        final SecretKey unwrappedSecretKey;
         try {
             final byte[] wrappedSecretKey = readKeyData();
             unwrappedSecretKey = unwrap(wrappedSecretKey);

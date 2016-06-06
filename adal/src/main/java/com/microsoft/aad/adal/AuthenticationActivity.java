@@ -464,12 +464,9 @@ public class AuthenticationActivity extends Activity {
 
     /**
      * Activity sets result to go back to the caller.
-<<<<<<< c26e22c5d1cff9486c351dc040c5832a9d34b8fd
-=======
-     * 
+     *
      * @param resultCode result code to be returned to the called
      * @param data intent to be returned to the caller
->>>>>>> Cleaning up warnings pointed out by Android Studio
      */
     private void returnToCaller(int resultCode, Intent data) {
         Logger.v(TAG, "Return To Caller:" + resultCode);
@@ -721,7 +718,7 @@ public class AuthenticationActivity extends Activity {
     /**
      * handle spinner display.
      *
-     * @param show true if spinner needs to be displayed, false otherwise
+     * @param show True if spinner needs to be displayed, False otherwise
      */
     private void displaySpinner(boolean show) {
         if (!AuthenticationActivity.this.isFinishing()

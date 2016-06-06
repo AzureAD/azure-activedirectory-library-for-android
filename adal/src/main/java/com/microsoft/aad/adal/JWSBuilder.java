@@ -121,7 +121,7 @@ class JWSBuilder implements IJWSBuilder {
         header.mType = "JWT"; // recommended UpperCase in JWT Spec
 
         String signingInput;
-        String signature;
+        final String signature;
         try {
 
             // Server side expects x5c in the header to verify the signer and

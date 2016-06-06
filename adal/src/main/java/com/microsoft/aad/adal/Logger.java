@@ -125,11 +125,11 @@ public class Logger {
 
     private static String addMoreInfo(String message) {
         if (message != null) {
-            return GetUTCDateTimeAsString() + "-" + getInstance().mCorrelationId + "-" + message
+            return getUTCDateTimeAsString() + "-" + getInstance().mCorrelationId + "-" + message
                     + " ver:" + AuthenticationContext.getVersionName();
         }
 
-        return GetUTCDateTimeAsString() + "-" + getInstance().mCorrelationId + "- ver:"
+        return getUTCDateTimeAsString() + "-" + getInstance().mCorrelationId + "- ver:"
                 + AuthenticationContext.getVersionName();
     }
 
@@ -305,7 +305,7 @@ public class Logger {
         return "";
     }
 
-    private static String GetUTCDateTimeAsString() {
+    private static String getUTCDateTimeAsString() {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         return dateFormat.format(new Date());

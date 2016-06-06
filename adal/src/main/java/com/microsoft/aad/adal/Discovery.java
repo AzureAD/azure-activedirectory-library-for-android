@@ -208,7 +208,7 @@ final class Discovery implements IDiscovery {
             final Map<String, String> discoveryResponse = parseResponse(webResponse);
             if(discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES))
             {
-                String errorCodes = discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
+                final String errorCodes = discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
                 ClientMetrics.INSTANCE.setLastError(errorCodes);
             }
             

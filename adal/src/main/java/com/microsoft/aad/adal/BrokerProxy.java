@@ -228,12 +228,12 @@ class BrokerProxy implements IBrokerProxy {
 
             // blocking call to get token from cache or refresh request in
             // background at Authenticator
-            AccountManagerFuture<Bundle> result;
             try {
                 // It does not expect activity to be launched.
                 // AuthenticatorService is handling the request at
                 // AccountManager.
                 //
+                final AccountManagerFuture<Bundle> result;
                 result = mAcctManager.getAuthToken(targetAccount, AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
                         brokerOptions, false,
                         null /*
@@ -350,7 +350,7 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.v(TAG, "removeAccounts:");
                 Account[] accountList = mAcctManager
                         .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-                if (accountList != null) {
+                if (accountList.length != 0) {
                     for (Account targetAccount : accountList) {
                         Logger.v(TAG, "remove tokens for:" + targetAccount.name);
 
@@ -381,8 +381,8 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request) {
         Intent intent = null;
-        AccountManagerFuture<Bundle> result;
         try {
+            final AccountManagerFuture<Bundle> result;
             // Callback is not passed since it is making a blocking call to get
             // intent. Activity needs to be launched from calling app
             // to get the calling app's metadata if needed at BrokerActivity.

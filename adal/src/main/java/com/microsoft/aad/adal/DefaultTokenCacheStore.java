@@ -216,7 +216,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         Map<String, String> results = (Map<String, String>)mPrefs.getAll();
 
         // create objects
-        ArrayList<TokenCacheItem> tokens = new ArrayList<>(results.values().size());
+        List<TokenCacheItem> tokens = new ArrayList<>(results.values().size());
         
         Iterator<Entry<String, String>> tokenResultEntrySet = results.entrySet().iterator();
         while (tokenResultEntrySet.hasNext())
@@ -244,7 +244,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     @Override
     public Set<String> getUniqueUsersWithTokenCache() {
         Iterator<TokenCacheItem> results = this.getAll();
-        Set<String> users = new HashSet<>();
+        final Set<String> users = new HashSet<>();
         
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
@@ -265,7 +265,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     @Override
     public List<TokenCacheItem> getTokensForResource(String resource) {
         Iterator<TokenCacheItem> results = this.getAll();
-        List<TokenCacheItem> tokenItems = new ArrayList<>();
+        final List<TokenCacheItem> tokenItems = new ArrayList<>();
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
@@ -287,7 +287,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     @Override
     public List<TokenCacheItem> getTokensForUser(String userId) {
         Iterator<TokenCacheItem> results = this.getAll();
-        List<TokenCacheItem> tokenItems = new ArrayList<>();
+        final List<TokenCacheItem> tokenItems = new ArrayList<>();
         
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
@@ -311,6 +311,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         for (TokenCacheItem item : results) {
             if (item.getUserInfo() != null
+                    && item.getUserInfo().getUserId() != null
                     && item.getUserInfo().getUserId().equalsIgnoreCase(userId)) {
                 try {
                     this.removeItem(CacheKey.createCacheKey(item));
@@ -355,7 +356,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     private boolean isAboutToExpire(Date expires) {
         Date validity = getTokenValidityTime().getTime();
 
-        return (expires != null && expires.before(validity));
+        return expires != null && expires.before(validity);
     }
 
     private static final int TOKEN_VALIDITY_WINDOW = 10;

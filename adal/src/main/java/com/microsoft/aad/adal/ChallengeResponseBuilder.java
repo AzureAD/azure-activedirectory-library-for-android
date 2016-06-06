@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 class ChallengeResponseBuilder {
 
@@ -133,13 +134,13 @@ class ChallengeResponseBuilder {
     {
         @SuppressWarnings("unchecked")
         Class<IDeviceCertificate> certClass = (Class<IDeviceCertificate>)AuthenticationSettings.INSTANCE.getDeviceCertificateProxy();
-        return (certClass != null);
+        return certClass != null;
     }
 
     private IDeviceCertificate getWPJAPIInstance(Class<IDeviceCertificate> certClazz)
             throws AuthenticationException {
-        IDeviceCertificate deviceCertProxy;
-        Constructor<?> constructor;
+        final IDeviceCertificate deviceCertProxy;
+        final Constructor<?> constructor;
         try {
             constructor = certClazz.getDeclaredConstructor();
             deviceCertProxy = (IDeviceCertificate)constructor.newInstance((Object[])null);
@@ -180,7 +181,7 @@ class ChallengeResponseBuilder {
         String authenticateHeader = headerValue
                 .substring(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE.length());
         ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader, ',');
-        HashMap<String, String> headerItems = new HashMap<>();
+        Map<String, String> headerItems = new HashMap<>();
 
         for (String queryPair : queryPairs) 
         {
@@ -240,7 +241,7 @@ class ChallengeResponseBuilder {
         return challenge;
     }
 
-    private void validateChallengeRequest(HashMap<String, String> headerItems,
+    private void validateChallengeRequest(Map<String, String> headerItems,
             boolean redirectFormat) throws AuthenticationException{
         if (!(headerItems.containsKey(RequestField.Nonce.name()) || headerItems
                 .containsKey(RequestField.Nonce.name().toLowerCase(Locale.US)))) {
