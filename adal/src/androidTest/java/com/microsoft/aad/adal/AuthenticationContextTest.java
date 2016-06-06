@@ -88,7 +88,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/ComMon/";
 
-    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
+    private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.test";
 
     private static final int HTTP_OK = 200;
 
@@ -246,14 +246,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
      */
     @MediumTest
     @UiThreadTest
-    public void testCorrelationIdInWebRequest() throws NoSuchFieldException,
-            IllegalAccessException, InterruptedException, NoSuchAlgorithmException,
-            NoSuchPaddingException {
+    public void testCorrelationId_InWebRequest() throws InterruptedException {
 
         final int minSDKVersionForTest = 15;
         if (Build.VERSION.SDK_INT <= minSDKVersionForTest) {
             Log.v(TAG,
-                    "Server is returning 401 status code without challenge. HttpUrlConnection does not return error stream for that in SDK 15. Without error stream, this test is useless.");
+                    "Server is returning 401 status code without challenge. "
+                    + "HttpUrlConnection does not return error stream for that in SDK 15. "
+                    + "Without error stream, this test is useless.");
             return;
         }
 
@@ -421,8 +421,8 @@ public class AuthenticationContextTest extends AndroidTestCase {
                 .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
         assertEquals("AuthenticationRequest inside the intent", request.getClass(),
                 Class.forName("com.microsoft.aad.adal.AuthenticationRequest"));
-        String redirect = (String) ReflectionUtils.getFieldValue(request, "mRedirectUri");
-        assertEquals("Redirect uri is same as package", "com.microsoft.aad.adal.testapp", redirect);
+        String redirect = (String) ReflectionUtils.getFieldValue(request, "redirectUri");
+        assertEquals("Redirect uri is same as package", TEST_PACKAGE_NAME, redirect);
     }
 
     @SmallTest
@@ -2324,8 +2324,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
 
     private ITokenCacheStore getMockCache(int minutes, String token, String resource,
-                                          String client, String user, boolean isMultiResource) throws NoSuchAlgorithmException,
-            NoSuchPaddingException {
+            String client, String user, boolean isMultiResource) {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         // Code response
         Calendar timeAhead = new GregorianCalendar();
