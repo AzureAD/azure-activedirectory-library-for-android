@@ -225,13 +225,13 @@ public class AuthenticationContext {
                 @Override
                 public void setItem(String key, TokenCacheItem item) {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support direct setItem operation");
+                            "Broker cache does not support direct 'setItem' operation");
                 }
 
                 @Override
                 public void removeItem(String key) {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support direct removeItem operation");
+                            "Broker cache does not support direct 'removeItem' operation");
                 }
 
                 @Override
@@ -242,19 +242,19 @@ public class AuthenticationContext {
                 @Override
                 public TokenCacheItem getItem(String key) {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support direct getItem operation");
+                            "Broker cache does not support direct 'getItem' operation");
                 }
 
                 @Override
                 public boolean contains(String key) {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support contains operation");
+                            "Broker cache does not support 'contains' operation");
                 }
 
                 @Override
                 public Iterator<TokenCacheItem> getAll() {
                     throw new UnsupportedOperationException(
-                            "Broker cache does not support direct getAll operation");
+                            "Broker cache does not support direct 'getAll' operation");
                 }
             };
         }
@@ -323,7 +323,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, it will remove
      * this refresh token from cache and start authentication.
@@ -351,7 +351,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use the refresh
      * token if available. If it fails to get token with refresh token, it will
      * remove this refresh token from cache and fall back on the UI.
@@ -386,7 +386,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, behavior will
      * depend on options. If {@link PromptBehavior} is AUTO, it will remove this
@@ -416,7 +416,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, behavior will
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
@@ -447,7 +447,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * acquire Token will start interactive flow if needed. It checks the cache
+     * acquireToken will start interactive flow if needed. It checks the cache
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, behavior will
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
@@ -851,7 +851,7 @@ public class AuthenticationContext {
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
-                    Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker installation. Once "
+                    Logger.v(TAG + methodName, "Device needs to have broker installed, waiting for the broker installation. Once "
                             + "broker is installed, request will be resumed and result will be received");
                     
                     //Register the broker resume result receiver with intent filter as broker_request_resume and specific app package name
@@ -860,7 +860,7 @@ public class AuthenticationContext {
                             new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME 
                                     + mContext.getPackageName()), null, mHandler);
                     
-                    // Send cancel result back to caller if doesn't receive result from broker within 5 minuites
+                    // Send cancel result back to caller if doesn't receive result from broker within 10 minutes
                     mHandler.postDelayed(new Runnable() {
                         
                         @Override
@@ -912,7 +912,7 @@ public class AuthenticationContext {
                         Logger.e(TAG, e.getMessage(), "", e.getCode());
                         waitingRequestOnError(waitingRequest, requestId, e);
                     } else {
-                        // Browser has the url and it will exchange auth code
+                        // Browser has the url and it will exchange the authorization code
                         // for token
                         final CallbackHandler callbackHandle = new CallbackHandler(mHandler,
                                 waitingRequest.mDelagete);
@@ -1071,7 +1071,7 @@ public class AuthenticationContext {
             // it does not have the caller callback. It will check the last
             // callback if set
             Logger.e(TAG, "Request callback is not available for requestid:" + requestId
-                    + ". It will use last callback.", "", ADALError.CALLBACK_IS_NOT_FOUND);
+                    + ". It will use the last callback.", "", ADALError.CALLBACK_IS_NOT_FOUND);
             request = new AuthenticationRequestState(0, null, mAuthorizationCallback);
         }
 
@@ -1490,7 +1490,7 @@ public class AuthenticationContext {
                 acquireTokenInteractively(callbackHandle, activity, request, useDialog);
             } else {
                 // TODO: investigate which server response actually should force user to sign in again
-                // and which error actually should just notify user that some resource require extra steps
+                // and which error actually should just notify user that some resource requires extra steps
 
                 final String errorInfo = authResult == null ? "" : authResult.getErrorLogInfo();
                 // User does not want to launch activity
@@ -1515,10 +1515,10 @@ public class AuthenticationContext {
         }
         
         // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to 
-        // force prompt, if this flag is set in the embeded flow, we need to update it to always. For embed 
+        // force prompt, if this flag is set in the embedded flow, we need to update it to always. For embedded 
         // flow, force_prompt is the same as always. 
         if (PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
-            Logger.v(TAG, "FORCE_PRMOPT is set for embeded flow, reset it as Always.");
+            Logger.v(TAG, "FORCE_PRMOPT is set for embedded flow, reset it as Always.");
             request.setPrompt(PromptBehavior.Always);
         }
 
@@ -1592,7 +1592,7 @@ public class AuthenticationContext {
         }
 
         try {
-            // Start activity from callers context so that caller can intercept
+            // Start activity from caller's context so that caller can intercept
             // when it is done
             activity.startActivityForResult(intent, AuthenticationConstants.UIRequest.BROWSER_FLOW);
         } catch (ActivityNotFoundException e) {

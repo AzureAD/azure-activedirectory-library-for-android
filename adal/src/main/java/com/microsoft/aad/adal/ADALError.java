@@ -280,10 +280,10 @@ public enum ADALError {
     CORRELATION_ID_FORMAT("Correlationid is not in UUID format"),
 
     /**
-     * Correlationid provided in requrest is not matching the response.
+     * Correlationid provided in request is not matching the response.
      */
     CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE(
-            "Correlationid provided in requrest is not matching the response"),
+            "Correlationid provided in request is not matching the response"),
 
     /**
      * Encoding format is not supported.
@@ -291,7 +291,7 @@ public enum ADALError {
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
 
     /**
-     * erver returned invalid JSON response.
+     * Server returned invalid JSON response.
      */
     SERVER_INVALID_JSON_RESPONSE("Server returned invalid JSON response"),
 
@@ -316,7 +316,7 @@ public enum ADALError {
     ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"),
     
     /**
-     * Failed to use AndroidKeyStore.
+     * Failed to use KeyPairGeneratorSpec.
      */
     ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED("Failed to use KeyPairGeneratorSpec"),
 
