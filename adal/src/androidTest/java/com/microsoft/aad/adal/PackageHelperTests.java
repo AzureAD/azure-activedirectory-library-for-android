@@ -100,13 +100,13 @@ public class PackageHelperTests extends AndroidTestCase {
                 String.class);
 
         // act
-        String actual = (String)m.invoke(packageHelper, TEST_PACKAGE_NAME);
+        String actual = (String) m.invoke(packageHelper, TEST_PACKAGE_NAME);
 
         // assert
         assertEquals("should be same info", testTag, actual);
 
         // act
-        actual = (String)m.invoke(packageHelper, (String)null);
+        actual = (String) m.invoke(packageHelper, (String) null);
 
         // assert
         assertNull("should return null", actual);
@@ -122,13 +122,13 @@ public class PackageHelperTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(packageHelper, "getUIDForPackage", String.class);
 
         // act
-        int actual = (Integer)m.invoke(packageHelper, TEST_PACKAGE_NAME);
+        int actual = (Integer) m.invoke(packageHelper, TEST_PACKAGE_NAME);
 
         // assert
         assertEquals("should be same UID", expectedUID, actual);
 
         // act
-        actual = (Integer)m.invoke(packageHelper, (String)null);
+        actual = (Integer) m.invoke(packageHelper, (String) null);
 
         // assert
         assertEquals("should return 0", 0, actual);
@@ -143,7 +143,7 @@ public class PackageHelperTests extends AndroidTestCase {
                 String.class, String.class);
 
         // act
-        String actual = (String)m.invoke(packageHelper, TEST_PACKAGE_NAME, testTag);
+        String actual = (String) m.invoke(packageHelper, TEST_PACKAGE_NAME, testTag);
 
         // assert
         assertTrue("should have packagename", actual.contains(TEST_PACKAGE_NAME));
@@ -162,7 +162,7 @@ public class PackageHelperTests extends AndroidTestCase {
     }
 
     private Context getMockContext(final Signature signature, final String packageName,
-            final int callingUID) throws NameNotFoundException {
+                                   final int callingUID) throws NameNotFoundException {
         Context mockContext = mock(Context.class);
         // insert packagemanager mocks
         PackageManager mockPackageManager = getPackageManager(signature, packageName, callingUID);
@@ -172,7 +172,7 @@ public class PackageHelperTests extends AndroidTestCase {
     }
 
     private PackageManager getPackageManager(final Signature signature, final String packageName,
-            final int callingUID) throws NameNotFoundException {
+                                             final int callingUID) throws NameNotFoundException {
         PackageManager mockPackage = mock(PackageManager.class);
         PackageInfo info = new PackageInfo();
         Signature[] signatures = new Signature[1];

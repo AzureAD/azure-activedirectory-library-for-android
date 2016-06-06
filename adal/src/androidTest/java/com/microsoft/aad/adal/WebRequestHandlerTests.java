@@ -43,7 +43,11 @@ import android.util.Log;
  */
 public class WebRequestHandlerTests extends AndroidTestHelper {
 
-    private final static String TEST_WEBAPI_URL = "https://graphtestrun.azurewebsites.net/api/WebRequestTest";
+    private static final String TEST_WEBAPI_URL = "https://graphtestrun.azurewebsites.net/api/WebRequestTest";
+
+    private static final int HTTP_OK = 200;
+
+    private static final int HTTP_BAD_REQUEST = 400;
 
     protected static final String TAG = "WebRequestHandlerTests";
 
@@ -67,7 +71,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         Log.d(TAG, "Test correlationid:" + testID.toString());
         final HttpWebResponse testResponse = sendCorrelationIdRequest(testUrl, testID, false);
 
-        assertEquals("400 error code", 400, testResponse.getStatusCode());
+        assertEquals("400 error code", HTTP_BAD_REQUEST, testResponse.getStatusCode());
         String responseBody = testResponse.getBody();
         Log.v(TAG, "Test response:" + responseBody);
         assertNotNull("webresponse is not null", testResponse);
@@ -115,12 +119,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         });
     }
 
-    class TestResponse {
-        HttpWebResponse httpResponse;
-
-        Exception exception;
-    }
-
     public void testGetRequest() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
@@ -129,7 +127,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
                 getTestHeaders("testabc", "value123"));
 
         assertNotNull(httpResponse != null);
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HTTP_OK);
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request header check", responseMsg.contains("testabc-value123"));
     }
@@ -146,7 +144,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
                 getTestHeaders("testClientTraceInHeaders", "valueYes"));
 
         assertNotNull(httpResponse != null);
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HTTP_OK);
         String responseMsg = httpResponse.getBody();
         assertTrue("request header check", responseMsg.contains(AAD.ADAL_ID_PLATFORM + "-Android"));
         assertTrue(
@@ -171,7 +169,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"), null);
 
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HTTP_OK);
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check", responseMsg.contains("test get with id"));
     }
@@ -185,7 +183,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
                 json.getBytes(ENCODING_UTF8), "application/json");
 
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HTTP_OK);
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check",
                 responseMsg.contains(message.getAccessToken() + message.getUserName()));
@@ -207,16 +205,16 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             return mAccessToken;
         }
 
-        public void setAccessToken(String mAccessToken) {
-            this.mAccessToken = mAccessToken;
+        public void setAccessToken(String accessToken) {
+            this.mAccessToken = accessToken;
         }
 
         public String getUserName() {
             return mUserName;
         }
 
-        public void setUserName(String mUserName) {
-            this.mUserName = mUserName;
+        public void setUserName(String userName) {
+            this.mUserName = userName;
         }
 
     }

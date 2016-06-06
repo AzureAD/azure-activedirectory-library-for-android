@@ -199,14 +199,14 @@ public class AuthenticationContextTest extends AndroidTestCase {
             NoSuchPaddingException {
         String authority = "https://github.com/MSOpenTech";
         FileMockContext mockContext = new FileMockContext(getContext());
-        mockContext.requestedPermissionName = "android.permission.INTERNET";
-        mockContext.responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+        mockContext.setRequestedPermissionName("android.permission.INTERNET");
+        mockContext.setResponsePermissionFlag(PackageManager.PERMISSION_GRANTED);
 
         // no exception
         new AuthenticationContext(mockContext, authority, false);
 
         try {
-            mockContext.responsePermissionFlag = PackageManager.PERMISSION_DENIED;
+            mockContext.setResponsePermissionFlag(PackageManager.PERMISSION_DENIED);
             new AuthenticationContext(mockContext, authority, false);
             Assert.fail("Supposed to fail");
         } catch (Exception e) {
@@ -305,7 +305,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         boolean actual = (Boolean) m.invoke(context, intent);
         assertTrue("Intent is expected to resolve", actual);
 
-        mockContext.resolveIntent = false;
+        mockContext.setResolveIntent(false);
         actual = (Boolean) m.invoke(context, intent);
         assertFalse("Intent is not expected to resolve", actual);
     }
@@ -614,7 +614,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
             throws NoSuchFieldException, IllegalAccessException,
             NoSuchAlgorithmException, NoSuchPaddingException, InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
-        mockContext.isConnectionAvaliable = false;
+        mockContext.setConnectionAvaliable(false);
 
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);

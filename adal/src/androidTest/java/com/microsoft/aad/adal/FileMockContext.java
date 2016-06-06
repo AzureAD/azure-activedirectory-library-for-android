@@ -48,25 +48,25 @@ class FileMockContext extends MockContext {
 
     static final String PREFIX = "test.mock.";
 
-    boolean resolveIntent = true;
+    private boolean mResolveIntent = true;
 
-    String dirName;
+    private String mDirName;
 
-    int fileWriteMode;
+    private int mFileWriteMode;
 
-    String requestedPermissionName;
+    private String mRequestedPermissionName;
 
-    int responsePermissionFlag;
+    private int mResponsePermissionFlag;
     
-    boolean isConnectionAvaliable = true;
+    private boolean mIsConnectionAvaliable = true;
     
     private AccountManager mMockedAccountManager = null;
 
     public FileMockContext(Context context) {
         mContext = context;
         // default
-        requestedPermissionName = "android.permission.INTERNET";
-        responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+        mRequestedPermissionName = "android.permission.INTERNET";
+        mResponsePermissionFlag = PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
@@ -86,8 +86,8 @@ class FileMockContext extends MockContext {
 
     @Override
     public File getDir(String name, int mode) {
-        dirName = name;
-        fileWriteMode = mode;
+        mDirName = name;
+        mFileWriteMode = mode;
         return null;
     }
 
@@ -99,10 +99,10 @@ class FileMockContext extends MockContext {
             }
             
             return mMockedAccountManager;
-        } else if(name.equalsIgnoreCase("connectivity")) {
+        } else if (name.equalsIgnoreCase("connectivity")) {
             final ConnectivityManager mockedConnectivityManager = mock(ConnectivityManager.class);
             final NetworkInfo mockedNetworkInfo = mock(NetworkInfo.class);
-            Mockito.when(mockedNetworkInfo.isConnectedOrConnecting()).thenReturn(isConnectionAvaliable);
+            Mockito.when(mockedNetworkInfo.isConnectedOrConnecting()).thenReturn(mIsConnectionAvaliable);
             Mockito.when(mockedConnectivityManager.getActiveNetworkInfo()).thenReturn(mockedNetworkInfo);
             return mockedConnectivityManager;
         }
@@ -126,19 +126,44 @@ class FileMockContext extends MockContext {
         mMockedAccountManager = mockedAccountManager;
     }
 
+    public void setRequestedPermissionName(String requestedPermissionName) {
+        mRequestedPermissionName = requestedPermissionName;
+    }
+
+    public void setResponsePermissionFlag(int responsePermissionFlag) {
+        mResponsePermissionFlag = responsePermissionFlag;
+    }
+
+    public void setConnectionAvaliable(boolean connectionAvaliable) {
+        mIsConnectionAvaliable = connectionAvaliable;
+    }
+
+    public void setResolveIntent(boolean resolveIntent) {
+        mResolveIntent = resolveIntent;
+    }
+
+    public String getDirName() {
+        return mDirName;
+    }
+
+    public int getFileWriteMode() {
+        return mFileWriteMode;
+    }
+
     class TestPackageManager extends MockPackageManager {
         @Override
         public ResolveInfo resolveActivity(Intent intent, int flags) {
-            if (resolveIntent)
+            if (mResolveIntent) {
                 return new ResolveInfo();
+            }
 
             return null;
         }
 
         @Override
         public int checkPermission(String permName, String pkgName) {
-            if (permName.equals(requestedPermissionName)) {
-                return responsePermissionFlag;
+            if (permName.equals(mRequestedPermissionName)) {
+                return mResponsePermissionFlag;
             }
             return PackageManager.PERMISSION_DENIED;
         }

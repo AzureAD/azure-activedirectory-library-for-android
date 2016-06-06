@@ -29,22 +29,22 @@ import android.content.Context;
 
 public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 
-    protected Context ctx;
+    protected static final String TEST_AUTHORITY2 = "https://Developer.AndroiD.com/reference/android";
 
-    protected TokenCacheItem testItem;
+    protected Context mCtx;
 
-    protected TokenCacheItem testItem2;
+    protected TokenCacheItem mTestItem;
 
-    protected TokenCacheItem testItemUser2;
+    protected TokenCacheItem mTestItem2;
 
-    protected TokenCacheItem testItemMultiResourceUser2;
+    protected TokenCacheItem mTestItemUser2;
 
-    protected final static String TEST_AUTHORITY2 = "https://Developer.AndroiD.com/reference/android";
+    protected TokenCacheItem mTestItemMultiResourceUser2;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        ctx = this.getInstrumentation().getContext();
+        mCtx = this.getInstrumentation().getContext();
         AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
     }
 
@@ -61,43 +61,43 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         store.removeAll();
         // set items for user1
         UserInfo user = new UserInfo("userid1", "givenName", "familyName", "identity", "userid1");
-        testItem = new TokenCacheItem();
-        testItem.setAccessToken("token");
-        testItem.setAuthority("authority");
-        testItem.setClientId("clientid");
-        testItem.setResource("resource");
-        testItem.setTenantId("tenantId");
-        testItem.setUserInfo(user);
+        mTestItem = new TokenCacheItem();
+        mTestItem.setAccessToken("token");
+        mTestItem.setAuthority("authority");
+        mTestItem.setClientId("clientid");
+        mTestItem.setResource("resource");
+        mTestItem.setTenantId("tenantId");
+        mTestItem.setUserInfo(user);
 
-        testItem2 = new TokenCacheItem();
-        testItem2.setAccessToken("token2");
-        testItem2.setAuthority(TEST_AUTHORITY2);
-        testItem2.setClientId("clientid2");
-        testItem2.setResource("resource2");
-        testItem2.setUserInfo(user);
-        testItem2.setTenantId("tenantId2");
-        store.setItem(CacheKey.createCacheKey(testItem), testItem);
-        store.setItem(CacheKey.createCacheKey(testItem2), testItem2);
+        mTestItem2 = new TokenCacheItem();
+        mTestItem2.setAccessToken("token2");
+        mTestItem2.setAuthority(TEST_AUTHORITY2);
+        mTestItem2.setClientId("clientid2");
+        mTestItem2.setResource("resource2");
+        mTestItem2.setUserInfo(user);
+        mTestItem2.setTenantId("tenantId2");
+        store.setItem(CacheKey.createCacheKey(mTestItem), mTestItem);
+        store.setItem(CacheKey.createCacheKey(mTestItem2), mTestItem2);
 
         UserInfo user2 = new UserInfo("userid2", "givenName", "familyName", "identity", "userid2");
-        testItemUser2 = new TokenCacheItem();
+        mTestItemUser2 = new TokenCacheItem();
         // same authority, client, resource but different token for this user
-        testItem2.setAccessToken("user2token2");
-        testItem2.setAuthority(TEST_AUTHORITY2);
-        testItem2.setClientId("clientid2");
-        testItem2.setResource("resource2");
-        testItem2.setUserInfo(user2);
+        mTestItem2.setAccessToken("user2token2");
+        mTestItem2.setAuthority(TEST_AUTHORITY2);
+        mTestItem2.setClientId("clientid2");
+        mTestItem2.setResource("resource2");
+        mTestItem2.setUserInfo(user2);
 
-        testItemMultiResourceUser2 = new TokenCacheItem();
+        mTestItemMultiResourceUser2 = new TokenCacheItem();
         // same authority, client, resource but different token for this user
-        testItemMultiResourceUser2.setAccessToken("user2token2Broad");
-        testItemMultiResourceUser2.setIsMultiResourceRefreshToken(true);
-        testItemMultiResourceUser2.setAuthority(TEST_AUTHORITY2);
-        testItemMultiResourceUser2.setClientId("clientid2");
-        testItemMultiResourceUser2.setUserInfo(user2);
-        store.setItem(CacheKey.createCacheKey(testItem2), testItem2);
-        store.setItem(CacheKey.createCacheKey(testItemMultiResourceUser2),
-                testItemMultiResourceUser2);
+        mTestItemMultiResourceUser2.setAccessToken("user2token2Broad");
+        mTestItemMultiResourceUser2.setIsMultiResourceRefreshToken(true);
+        mTestItemMultiResourceUser2.setAuthority(TEST_AUTHORITY2);
+        mTestItemMultiResourceUser2.setClientId("clientid2");
+        mTestItemMultiResourceUser2.setUserInfo(user2);
+        store.setItem(CacheKey.createCacheKey(mTestItem2), mTestItem2);
+        store.setItem(CacheKey.createCacheKey(mTestItemMultiResourceUser2),
+                mTestItemMultiResourceUser2);
 
         return store;
     }
@@ -111,10 +111,10 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", ""));
         assertNull("Token cache item is expected to be null", item);
 
-        item = store.getItem(CacheKey.createCacheKey(testItem));
+        item = store.getItem(CacheKey.createCacheKey(mTestItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
-        assertEquals("same item", testItem.getTenantId(), item.getTenantId());
-        assertEquals("same item", testItem.getAccessToken(), item.getAccessToken());
+        assertEquals("same item", mTestItem.getTenantId(), item.getTenantId());
+        assertEquals("same item", mTestItem.getAccessToken(), item.getAccessToken());
         
         item = store.getItem(CacheKey.createCacheKey("", "", "", true, "", null));
         assertNull("Token cache item is expected to be null", item);
@@ -157,17 +157,17 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
                 null, null));
         assertNull("Expected to be null for null userid", item);
 
-        store.removeItem(CacheKey.createCacheKey(testItem));
-        item = store.getItem(CacheKey.createCacheKey(testItem));
+        store.removeItem(CacheKey.createCacheKey(mTestItem));
+        item = store.getItem(CacheKey.createCacheKey(mTestItem));
         assertNull("Token cache item is expected to be null", item);
 
         // second call should return false
-        item = store.getItem(CacheKey.createCacheKey(testItem));
+        item = store.getItem(CacheKey.createCacheKey(mTestItem));
         assertNull("Token cache item is expected to be null", item);
 
         //
-        store.removeItem(CacheKey.createCacheKey(testItem2));
-        item = store.getItem(CacheKey.createCacheKey(testItem2));
+        store.removeItem(CacheKey.createCacheKey(mTestItem2));
+        item = store.getItem(CacheKey.createCacheKey(mTestItem2));
         assertNull("Token cache item is expected to be null", item);
     }
 
@@ -176,10 +176,10 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         ITokenCacheStore store = setupItems();
 
         // item is present
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mTestItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
 
-        boolean actual = store.contains(CacheKey.createCacheKey(testItem));
+        boolean actual = store.contains(CacheKey.createCacheKey(mTestItem));
         assertTrue("Item is expected to be there", actual);
     }
 
@@ -189,7 +189,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 
         store.removeAll();
 
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mTestItem));
         assertNull("Token cache item is expected to be null", item);
     }
 }
