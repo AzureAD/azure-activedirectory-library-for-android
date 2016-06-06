@@ -117,7 +117,7 @@ class TokenCacheAccessor {
     void updateCachedItemWithResult(final String resource, final String clientId, final AuthenticationResult result, 
             final TokenCacheItem cachedItem) throws AuthenticationException {
         if (result == null) {
-            Logger.v(TAG, "AuthenticationResult is not, cannot update cache.");
+            Logger.v(TAG, "AuthenticationResult is null, cannot update cache.");
             throw new IllegalArgumentException("result");
         }
         
@@ -204,7 +204,7 @@ class TokenCacheAccessor {
     }
     
     /**
-     * Update token cache for given user. If token is MRRT, store two separate entries for regular RT entry and MRRT entry. 
+     * Update token cache for a given user. If token is MRRT, store two separate entries for regular RT entry and MRRT entry. 
      * Ideally, if returned token is MRRT, we should not store RT along with AT. However, there may be caller taking dependency
      * on RT. 
      * If the token is FRT, store three separate entries. 
