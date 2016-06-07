@@ -23,61 +23,73 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.UUID;
+import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 
-import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Log;
+import org.mockito.Mockito;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * webrequest tests related to get, put, post, delete requests
  */
-public class WebRequestHandlerTests extends AndroidTestHelper {
+public final class WebRequestHandlerTests extends AndroidTestHelper {
 
-    private final static String TEST_WEBAPI_URL = "https://graphtestrun.azurewebsites.net/api/WebRequestTest";
-
-    protected static final String TAG = "WebRequestHandlerTests";
+    private static final String TAG = WebRequestHandlerTests.class.getSimpleName();
+    private final static String TEST_WEBAPI_URL = "https://test.api.net/api/WebRequestTest";
 
     /**
      * send invalid request to production service
-     * 
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws ClassNotFoundException
-     * @throws IllegalArgumentException
+     *
      * @throws IOException 
      */
     @SmallTest
-    public void testCorrelationIdInRequest() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException, IOException {
-        final String testUrl = "https://login.windows.net/omercantest.onmicrosoft.com/oauth2/token";
-        final UUID testID = UUID.randomUUID();
-        Log.d(TAG, "Test correlationid:" + testID.toString());
-        final HttpWebResponse testResponse = sendCorrelationIdRequest(testUrl, testID, false);
+    public void testCorrelationIdInRequest() throws IOException {
+        final String testUrl = "https://login.microsoftonline.com/test.onmicrosoft.com/oauth2/token";
+        final UUID testCorrelationId = UUID.randomUUID();
+        Log.d(TAG, "Test correlationid:" + testCorrelationId.toString());
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        final List<String> headerValues = new ArrayList<>();
+        headerValues.add(testCorrelationId.toString());
+        final Map<String, List<String>> headerFields = new HashMap<>();
+        headerFields.put(AAD.CLIENT_REQUEST_ID, headerValues);
+        Mockito.when(mockedConnection.getHeaderFields()).thenReturn(headerFields);
+
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(Util.createInputStream(testCorrelationId.toString()));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(400);
+
+        final HttpWebResponse testResponse = sendCorrelationIdRequest(testUrl, testCorrelationId, false);
 
         assertEquals("400 error code", 400, testResponse.getStatusCode());
-        String responseBody = testResponse.getBody();
+        final String responseBody = testResponse.getBody();
         Log.v(TAG, "Test response:" + responseBody);
         assertNotNull("webresponse is not null", testResponse);
-        assertEquals("same correlationid", testID.toString(), testResponse.getResponseHeaders()
+        assertEquals("same correlationid", testCorrelationId.toString(), testResponse.getResponseHeaders()
                 .get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID).get(0));
-        assertTrue("correlationid in response", responseBody.contains(testID.toString()));
+        assertTrue("correlationid in response", responseBody.contains(testCorrelationId.toString()));
 
         // same id for next request
-        HttpWebResponse testResponse2 = sendCorrelationIdRequest(testUrl, testID, true);
-        assertEquals("same correlationid", testID.toString(), testResponse2.getResponseHeaders()
+        final HttpWebResponse testResponse2 = sendCorrelationIdRequest(testUrl, testCorrelationId, true);
+        assertEquals("same correlationid", testCorrelationId.toString(), testResponse2.getResponseHeaders()
                 .get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID).get(0));
     }
 
@@ -115,16 +127,17 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         });
     }
 
-    class TestResponse {
-        HttpWebResponse httpResponse;
-
-        Exception exception;
-    }
-
     public void testGetRequest() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
-        WebRequestHandler request = new WebRequestHandler();
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(Util.createInputStream("testabc-value123"));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+
+        final WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL),
                 getTestHeaders("testabc", "value123"));
 
@@ -141,7 +154,16 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
     public void testClientTraceInHeaders() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
-        WebRequestHandler request = new WebRequestHandler();
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(Util.createInputStream(AAD.ADAL_ID_PLATFORM + "-Android" + "dummy string"
+                        + AAD.ADAL_ID_VERSION + "-"
+                        + AuthenticationContext.getVersionName()));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+
+        final WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL),
                 getTestHeaders("testClientTraceInHeaders", "valueYes"));
 
@@ -168,25 +190,41 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
     }
 
     public void testGetWithIdRequest() throws IOException {
-        WebRequestHandler request = new WebRequestHandler();
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(Util.createInputStream("test get with id"));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+
+        final WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"), null);
 
         assertTrue("status is 200", httpResponse.getStatusCode() == 200);
-        String responseMsg = new String(httpResponse.getBody());
+        final String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check", responseMsg.contains("test get with id"));
     }
 
     public void testPostRequest() throws IOException {
         final TestMessage message = new TestMessage("messagetest", "12345");
-        HttpWebResponse httpResponse = null;
-        WebRequestHandler request = new WebRequestHandler();
-        String json = new Gson().toJson(message);
+        final String json = new Gson().toJson(message);
 
-        httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream())
+                .thenReturn(Util.createInputStream(message.getAccessToken() + message.getUserName()));
+
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+
+        final WebRequestHandler request = new WebRequestHandler();
+        final HttpWebResponse httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
                 json.getBytes(ENCODING_UTF8), "application/json");
 
         assertTrue("status is 200", httpResponse.getStatusCode() == 200);
-        String responseMsg = new String(httpResponse.getBody());
+        final String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check",
                 responseMsg.contains(message.getAccessToken() + message.getUserName()));
     }

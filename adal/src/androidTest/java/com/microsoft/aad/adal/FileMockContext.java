@@ -23,12 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import static org.mockito.Mockito.mock;
-
-import java.io.File;
-
-import org.mockito.Mockito;
-
 import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
@@ -41,6 +35,12 @@ import android.net.NetworkInfo;
 import android.os.Looper;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
+
+import org.mockito.Mockito;
+
+import java.io.File;
+
+import static org.mockito.Mockito.mock;
 
 class FileMockContext extends MockContext {
 
@@ -61,6 +61,8 @@ class FileMockContext extends MockContext {
     boolean isConnectionAvaliable = true;
     
     private AccountManager mMockedAccountManager = null;
+
+    private PackageManager mMockedPackageManager = null;
 
     public FileMockContext(Context context) {
         mContext = context;
@@ -116,14 +118,31 @@ class FileMockContext extends MockContext {
 
     @Override
     public PackageManager getPackageManager() {
-        return new TestPackageManager();
+        if (mMockedPackageManager == null) {
+            return new TestPackageManager();
+        }
+
+        return mMockedPackageManager;
     }
     
     public void setMockedAccountManager(final AccountManager mockedAccountManager) {
         if (mockedAccountManager == null) {
             throw new IllegalArgumentException("mockedAccountManager");
         }
+
         mMockedAccountManager = mockedAccountManager;
+    }
+
+    AccountManager getAccountManager() {
+        return mMockedAccountManager;
+    }
+
+    public void setMockedPackageManager(final PackageManager mockedPackageManager) {
+        if (mockedPackageManager == null) {
+            throw new IllegalArgumentException("mockedPackageManager");
+        }
+
+        mMockedPackageManager = mockedPackageManager;
     }
 
     class TestPackageManager extends MockPackageManager {

@@ -23,6 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.os.Build;
+import android.util.Base64;
+import android.util.Log;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -37,12 +43,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import android.annotation.TargetApi;
-import android.content.Context;
-import android.os.Build;
-import android.util.Base64;
-import android.util.Log;
 
 public class StorageHelperTests extends AndroidTestHelper {
 
@@ -262,13 +262,12 @@ public class StorageHelperTests extends AndroidTestHelper {
         }
         final Context context = getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
         SecretKey kp = storageHelper.loadSecretKeyForEncryption();
 
         assertNotNull("Keypair is not null", kp);
-        keyStore.load(null);
 
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
         assertTrue("Keystore has the alias", keyStore.containsAlias("AdalKey"));
     }
 

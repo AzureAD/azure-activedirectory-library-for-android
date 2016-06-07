@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -67,6 +66,7 @@ enum ClientMetrics {
             Map<String, String> headers) {
         if (UrlExtensions.isADFSAuthority(queryUrl)) {
             // Don't add for ADFS endpoint
+            mLastCorrelationId = null;
             return;
         }
 

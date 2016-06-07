@@ -1,26 +1,36 @@
-// Copyright (c) Microsoft Corporation.
-// All rights reserved.
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
 //
-// This code is licensed under the MIT License.
+//  This code is licensed under the MIT License.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files(the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions :
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.aad.adal;
+
+import android.content.Context;
+import android.test.AndroidTestCase;
+import android.test.suitebuilder.annotation.SmallTest;
+
+import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
+
+import org.mockito.AdditionalMatchers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -33,16 +43,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import org.mockito.AdditionalMatchers;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
-import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
-
-import android.content.Context;
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
 
 /**
  * Tests for verifying acquire token silent flow. 
@@ -82,11 +82,10 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase{
     }
     
     /**
-     * acquire token uses refresh token, but web request returns error with an empty body.
-     * @throws Exception 
+     * Acquire token uses refresh token, but web request returns error with an empty body.
      */
     @SmallTest
-    public void testRefreshTokenWebRequestHasError() throws Exception {
+    public void testRefreshTokenWebRequestHasError() throws IOException {
 
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -96,7 +95,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase{
         final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
-        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext, 
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
                 authenticationRequest, mockCache);
 
         // inject mocked web request handler
