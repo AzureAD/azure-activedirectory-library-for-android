@@ -25,9 +25,9 @@ package com.microsoft.aad.adal;
 
 import android.test.AndroidTestCase;
 
-public class AuthenticationExceptionTests extends AndroidTestCase{
+public class AuthenticationExceptionTests extends AndroidTestCase {
 
-    public void testException(){
+    public void testException() {
         AuthenticationException exception = new AuthenticationException();
         assertNull("Code is null", exception.getCode());
         assertNull("Details is null", exception.getMessage());

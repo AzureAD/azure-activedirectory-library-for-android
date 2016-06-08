@@ -42,7 +42,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        ctx = this.getInstrumentation().getContext();
+        mCtx = this.getInstrumentation().getContext();
     }
 
     @Override
@@ -73,15 +73,15 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
                 // Remove and then verify that
                 // One thread will do the actual remove action.
                 try {
-                    store.removeItem(CacheKey.createCacheKey(testItem));
-                    TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+                    store.removeItem(CacheKey.createCacheKey(mTestItem));
+                    TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mTestItem));
                     assertNull("Token cache item is expected to be null", item);
 
                     item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", null));
                     assertNull("Token cache item is expected to be null", item);
 
-                    store.removeItem(CacheKey.createCacheKey(testItem2));
-                    item = store.getItem(CacheKey.createCacheKey(testItem));
+                    store.removeItem(CacheKey.createCacheKey(mTestItem2));
+                    item = store.getItem(CacheKey.createCacheKey(mTestItem));
                     assertNull("Token cache item is expected to be null", item);
                 } catch (AuthenticationException e) {
                     e.printStackTrace();
@@ -93,7 +93,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
         testMultiThread(activeTestThreads, signal, runnable);
 
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mTestItem));
         assertNull("Token cache item is expected to be null", item);
     }
 
@@ -117,15 +117,15 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
         fileIn.close();
 
         // Verify the cache
-        TokenCacheItem item = deSerialized.getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem item = deSerialized.getItem(CacheKey.createCacheKey(mTestItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
 
-        item = deSerialized.getItem(CacheKey.createCacheKey(testItem2));
+        item = deSerialized.getItem(CacheKey.createCacheKey(mTestItem2));
         assertNotNull("Token cache item is expected to be NOT null", item);
 
         // do remove operation
-        deSerialized.removeItem(CacheKey.createCacheKey(testItem));
-        item = deSerialized.getItem(CacheKey.createCacheKey(testItem));
+        deSerialized.removeItem(CacheKey.createCacheKey(mTestItem));
+        item = deSerialized.getItem(CacheKey.createCacheKey(mTestItem));
         assertNull("Token cache item is expected to be null", item);
     }
 
@@ -145,20 +145,20 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
                 .getContext(), VALID_AUTHORITY, false, tokenCacheA);
 
         // Verify the cache
-        TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(mTestItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
 
-        item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem2));
+        item = contextA.getCache().getItem(CacheKey.createCacheKey(mTestItem2));
         assertNotNull("Token cache item is expected to be NOT null", item);
-        item = contextB.getCache().getItem(CacheKey.createCacheKey(testItem2));
+        item = contextB.getCache().getItem(CacheKey.createCacheKey(mTestItem2));
         assertNotNull("Token cache item is expected to be NOT null", item);
 
         // do remove operation
-        contextA.getCache().removeItem(CacheKey.createCacheKey(testItem));
-        item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
+        contextA.getCache().removeItem(CacheKey.createCacheKey(mTestItem));
+        item = contextA.getCache().getItem(CacheKey.createCacheKey(mTestItem));
         assertNull("Token cache item is expected to be null", item);
 
-        item = contextB.getCache().getItem(CacheKey.createCacheKey(testItem));
+        item = contextB.getCache().getItem(CacheKey.createCacheKey(mTestItem));
         assertNull("Token cache item is expected to be null", item);
 
     }

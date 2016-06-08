@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import android.util.Log;
+
 import junit.framework.Assert;
 
 /**
@@ -47,7 +48,7 @@ public class StringExtensionTests extends AndroidTestHelper {
         final String methodName = "IsNullOrBlank";
         Object foo = ReflectionUtils.getNonPublicInstance("com.microsoft.aad.adal.StringExtensions");
         Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
-        boolean result = (Boolean)m.invoke(foo, "non-empty");
+        boolean result = (Boolean) m.invoke(foo, "non-empty");
         assertFalse("not empty", result);
     }
 
@@ -58,13 +59,13 @@ public class StringExtensionTests extends AndroidTestHelper {
         Object foo = ReflectionUtils.getNonPublicInstance("com.microsoft.aad.adal.StringExtensions");
 
         Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
-        boolean result = (Boolean)m.invoke(foo, "");
+        boolean result = (Boolean) m.invoke(foo, "");
         assertTrue("empty", result);
 
-        result = (Boolean)m.invoke(foo, "  ");
+        result = (Boolean) m.invoke(foo, "  ");
         assertTrue("empty", result);
 
-        result = (Boolean)m.invoke(foo, "          ");
+        result = (Boolean) m.invoke(foo, "          ");
         assertTrue("empty", result);
 
     }
@@ -77,24 +78,24 @@ public class StringExtensionTests extends AndroidTestHelper {
             Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
             Method decodeMethod = ReflectionUtils.getTestMethod(foo, "URLFormDecode", String.class);
 
-            String result = (String)m.invoke(foo,
+            String result = (String) m.invoke(foo,
                     "https://login.windows.net/aaltests.onmicrosoft.com/");
             assertEquals("https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F", result);
 
-            result = (String)decodeMethod.invoke(foo,
+            result = (String) decodeMethod.invoke(foo,
                     "https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F");
             assertEquals("https://login.windows.net/aaltests.onmicrosoft.com/", result);
 
-            result = (String)m.invoke(foo, "abc d1234567890-");
+            result = (String) m.invoke(foo, "abc d1234567890-");
             assertEquals("abc+d1234567890-", result);
 
-            result = (String)decodeMethod.invoke(foo, "abc+d1234567890-");
+            result = (String) decodeMethod.invoke(foo, "abc+d1234567890-");
             assertEquals("abc d1234567890-", result);
 
             String longString = "asdfk+j0a-=skjwe43;1l234 1#$!$#%345903485qrq@#$!@#$!(rekr341!#$%Ekfaآزمايشsdsdfsddfdgsfgjsglk==CVADS";
-            result = (String)m.invoke(foo, longString);
+            result = (String) m.invoke(foo, longString);
 
-            String decodeResult = (String)decodeMethod.invoke(foo, result);
+            String decodeResult = (String) decodeMethod.invoke(foo, result);
             assertEquals(longString, decodeResult);
 
         } catch (Exception ex) {

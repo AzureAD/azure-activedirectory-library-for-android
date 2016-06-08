@@ -10,11 +10,13 @@
 android checkstyle
 -->
 <module name="Checker">
+  <module name="SuppressWarningsFilter"/>
   <module name="SuppressionFilter">
     <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
   </module>
   <property name="severity" value="warning"/>
   <module name="TreeWalker">
+    <module name="SuppressWarningsHolder" />
     <property name="tabWidth" value="4"/>
     <module name="JavadocMethod">
       <property name="scope" value="public"/>
@@ -31,11 +33,6 @@ android checkstyle
     <module name="ConstantName"/>
     <module name="LocalFinalVariableName"/>
     <module name="LocalVariableName"/>
-    <module name="MemberName">
-      <metadata name="net.sf.eclipsecs.core.comment" value="only public starts without m"/>
-      <property name="applyToProtected" value="false"/>
-      <property name="applyToPrivate" value="false"/>
-    </module>
     <module name="MethodName"/>
     <module name="PackageName"/>
     <module name="ParameterName"/>
@@ -85,9 +82,6 @@ android checkstyle
     <module name="InnerAssignment"/>
     <module name="MagicNumber"/>
     <module name="MissingSwitchDefault"/>
-    <module name="RedundantThrows">
-      <property name="suppressLoadErrors" value="true"/>
-    </module>
     <module name="SimplifyBooleanExpression"/>
     <module name="SimplifyBooleanReturn"/>
     <module name="DesignForExtension">

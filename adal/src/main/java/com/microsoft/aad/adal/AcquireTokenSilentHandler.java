@@ -27,8 +27,7 @@ import java.io.IOException;
 import android.content.Context;
 
 /**
- * Internal class handling the detailed acquiretoken silent logic, including cache lookup and also
- * interact with web request(The class represents the state machine for acquiretoken silent flow.)
+ * The class represents the state machine for acquiretoken silent flow.
  */
 class AcquireTokenSilentHandler {
     private static final String TAG = AcquireTokenSilentHandler.class.getSimpleName();
@@ -167,8 +166,9 @@ class AcquireTokenSilentHandler {
         // as MRRT. To support the backward compatibility and improve cache lookup, when successfully
         // retrieved regular RT entry token and if the mrrt flag is false, check the existence of MRRT.
         if (regularRTItem.getIsMultiResourceRefreshToken() || isMRRTEntryExisted()) {
-            final String statusMessage = regularRTItem.getIsMultiResourceRefreshToken() ? 
-                    "Found RT and it's also a MRRT, retry with MRRT" : "RT is found and there is a MRRT entry existed, try with MRRT";
+            final String statusMessage = regularRTItem.getIsMultiResourceRefreshToken()
+                    ? "Found RT and it's also a MRRT, retry with MRRT"
+                    : "RT is found and there is a MRRT entry existed, try with MRRT";
             Logger.v(TAG, statusMessage);
             return tryMRRT();
         }
@@ -204,8 +204,10 @@ class AcquireTokenSilentHandler {
         if (isTokenRequestFailed(mrrtResult)) {
             // If MRRT fails, we still want to retry on FRT in case there is one there. 
             // MRRT may not be marked as FRT, hard-code it as "1" in this case. 
-            final String familyClientId = StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId()) ? 
-                    AuthenticationConstants.MS_FAMILY_ID : mMrrtTokenCacheItem.getFamilyClientId();
+            final String familyClientId
+                    = StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())
+                    ? AuthenticationConstants.MS_FAMILY_ID
+                    : mMrrtTokenCacheItem.getFamilyClientId();
 
             // Pass the failed MRRT result to tryFRT, if FRT does not exist, return the MRRT result. 
             mrrtResult = tryFRT(familyClientId, mrrtResult);

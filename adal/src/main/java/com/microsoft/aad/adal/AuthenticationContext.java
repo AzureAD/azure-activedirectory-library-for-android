@@ -698,7 +698,7 @@ public class AuthenticationContext {
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
-        final SettableFuture<AuthenticationResult> futureTask = new SettableFuture();
+        final SettableFuture<AuthenticationResult> futureTask = new SettableFuture<AuthenticationResult>();
         acquireTokenLocal(null, false, request, new AuthenticationCallback<AuthenticationResult>() {
             @Override
             public void onSuccess(AuthenticationResult result) {

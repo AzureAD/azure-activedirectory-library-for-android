@@ -52,13 +52,13 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        ctx = this.getInstrumentation().getContext();
+        mCtx = this.getInstrumentation().getContext();
     }
 
     @Override
     protected void tearDown() throws Exception {
         AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
-        DefaultTokenCacheStore store = new DefaultTokenCacheStore(ctx);
+        DefaultTokenCacheStore store = new DefaultTokenCacheStore(mCtx);
         store.removeAll();
         super.tearDown();
     }
@@ -71,7 +71,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testGetAll() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+        DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         Iterator<TokenCacheItem> results = store.getAll();
         assertNotNull("Iterator is supposed to be not null", results);
@@ -80,7 +80,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testGetUniqueUsers() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+        DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
         Set<String> users = store.getUniqueUsersWithTokenCache();
         assertNotNull(users);
         assertEquals(2, users.size());
@@ -93,7 +93,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         assertNotNull(item.getExpiresOn());
         assertNotNull(item.getExpiresOn().after(new Date()));
     }
-    
+
     public void testDateTimeFormatterOldFormat24hourFormat() throws GeneralSecurityException, IOException {
         TokenCacheItem item = mockDefaultCacheStore("Apr 28, 2015 13:09:57").getItem("testkey");
 
@@ -122,12 +122,12 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         return cache;
     }
 
-    
+
     public void testDateTimeFormatterLocaleChange() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");
         // Serializing without miliseconds
-        long precision = 1000;
+        final long precision = 1000;
         TokenCacheItem item = tokens.get(0);
         String cacheKey = CacheKey.createCacheKey(item);
         Calendar time = Calendar.getInstance();
@@ -142,22 +142,22 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
         Locale.setDefault(Locale.FRANCE);
         fromCache = store.getItem(cacheKey);
         assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
-        
+
         Locale.setDefault(Locale.US);
         fromCache = store.getItem(cacheKey);
         assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
-        
+
         TimeZone.setDefault(TimeZone.getTimeZone("GMT+03:00"));
         fromCache = store.getItem(cacheKey);
         assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
-        
+
         TimeZone.setDefault(TimeZone.getTimeZone("GMT+05:00"));
         fromCache = store.getItem(cacheKey);
         assertTrue(Math.abs(timeNowMiliSeconds - fromCache.getExpiresOn().getTime()) < precision);
     }
 
     public void testGetTokensForResource() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");
         assertEquals("token size", 1, tokens.size());
@@ -168,7 +168,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testGetTokensForUser() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
         assertEquals("token size", 2, tokens.size());
@@ -178,7 +178,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testExpiringTokens() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
         List<TokenCacheItem> expireTokenList = store.getTokensAboutToExpire();
@@ -187,8 +187,9 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
         TokenCacheItem expire = tokens.get(0);
 
+        final int timeAdjustmentMins = -10;
         Calendar timeAhead = Calendar.getInstance();
-        timeAhead.add(Calendar.MINUTE, -10);
+        timeAhead.add(Calendar.MINUTE, timeAdjustmentMins);
         expire.setExpiresOn(timeAhead.getTime());
 
         store.setItem(CacheKey.createCacheKey(expire), expire);
@@ -198,7 +199,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testClearTokensForUser() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         store.clearTokensForUser("userid");
 
@@ -212,16 +213,18 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testExpireBuffer() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore)setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
         Calendar expireTime = Calendar.getInstance();
         Logger.d(TAG, "Time now: " + expireTime.getTime());
-        expireTime.add(Calendar.SECOND, 240);
+        final int timeAdjustmentSecs = 240;
+        expireTime.add(Calendar.SECOND, timeAdjustmentSecs);
         Logger.d(TAG, "Time modified: " + expireTime.getTime());
 
         // Sets token to expire if less than this buffer
-        AuthenticationSettings.INSTANCE.setExpirationBuffer(300);
+        final int expirationBuffer = 300;
+        AuthenticationSettings.INSTANCE.setExpirationBuffer(expirationBuffer);
         for (TokenCacheItem item : tokens) {
             item.setExpiresOn(expireTime.getTime());
             assertTrue("Should say expired", TokenCacheItem.isTokenExpired(item.getExpiresOn()));
@@ -229,7 +232,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
         // Set expire time ahead of buffer 240 +100 secs more than 300secs
         // buffer
-        expireTime.add(Calendar.SECOND, 100);
+        expireTime.add(Calendar.SECOND, timeAdjustmentSecs);
         for (TokenCacheItem item : tokens) {
             item.setExpiresOn(expireTime.getTime());
             assertFalse("Should not say expired since time is more than buffer",

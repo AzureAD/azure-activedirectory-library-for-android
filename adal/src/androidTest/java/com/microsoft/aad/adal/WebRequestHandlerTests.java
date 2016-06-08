@@ -25,6 +25,7 @@ package com.microsoft.aad.adal;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -33,6 +34,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 import com.google.gson.Gson;
+
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 
 import android.test.suitebuilder.annotation.SmallTest;
@@ -43,20 +45,12 @@ import android.util.Log;
  */
 public class WebRequestHandlerTests extends AndroidTestHelper {
 
-    private final static String TEST_WEBAPI_URL = "https://graphtestrun.azurewebsites.net/api/WebRequestTest";
+    private static final String TEST_WEBAPI_URL = "https://graphtestrun.azurewebsites.net/api/WebRequestTest";
 
     protected static final String TAG = "WebRequestHandlerTests";
 
     /**
      * send invalid request to production service
-     * 
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws ClassNotFoundException
-     * @throws IllegalArgumentException
-     * @throws IOException 
      */
     @SmallTest
     public void testCorrelationIdInRequest() throws IllegalArgumentException,
@@ -67,7 +61,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         Log.d(TAG, "Test correlationid:" + testID.toString());
         final HttpWebResponse testResponse = sendCorrelationIdRequest(testUrl, testID, false);
 
-        assertEquals("400 error code", 400, testResponse.getStatusCode());
+        assertEquals("400 error code", HttpURLConnection.HTTP_BAD_REQUEST, testResponse.getStatusCode());
         String responseBody = testResponse.getBody();
         Log.v(TAG, "Test response:" + responseBody);
         assertNotNull("webresponse is not null", testResponse);
@@ -82,7 +76,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
     }
 
     private HttpWebResponse sendCorrelationIdRequest(final String message, final UUID testID,
-            final boolean withoutHeader) throws IOException {
+                                                     final boolean withoutHeader) throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
         WebRequestHandler request = new WebRequestHandler();
@@ -92,7 +86,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             headers = new HashMap<String, String>();
             headers.put("Accept", "application/json");
         }
-        return request.sendPost(getUrl(message), headers, null, 
+        return request.sendPost(getUrl(message), headers, null,
                 "application/x-www-form-urlencoded");
     }
 
@@ -115,12 +109,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         });
     }
 
-    class TestResponse {
-        HttpWebResponse httpResponse;
-
-        Exception exception;
-    }
-
     public void testGetRequest() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
@@ -129,14 +117,13 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
                 getTestHeaders("testabc", "value123"));
 
         assertNotNull(httpResponse != null);
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request header check", responseMsg.contains("testabc-value123"));
     }
 
     /**
      * WebService returns the request headers in the response
-     * @throws IOException 
      */
     public void testClientTraceInHeaders() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
@@ -146,7 +133,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
                 getTestHeaders("testClientTraceInHeaders", "valueYes"));
 
         assertNotNull(httpResponse != null);
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         String responseMsg = httpResponse.getBody();
         assertTrue("request header check", responseMsg.contains(AAD.ADAL_ID_PLATFORM + "-Android"));
         assertTrue(
@@ -171,7 +158,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"), null);
 
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check", responseMsg.contains("test get with id"));
     }
@@ -185,7 +172,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
                 json.getBytes(ENCODING_UTF8), "application/json");
 
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check",
                 responseMsg.contains(message.getAccessToken() + message.getUserName()));
@@ -207,16 +194,16 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             return mAccessToken;
         }
 
-        public void setAccessToken(String mAccessToken) {
-            this.mAccessToken = mAccessToken;
+        public void setAccessToken(String accessToken) {
+            mAccessToken = accessToken;
         }
 
         public String getUserName() {
             return mUserName;
         }
 
-        public void setUserName(String mUserName) {
-            this.mUserName = mUserName;
+        public void setUserName(String userName) {
+            mUserName = userName;
         }
 
     }
