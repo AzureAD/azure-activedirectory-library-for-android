@@ -1976,17 +1976,6 @@ public class AuthenticationContext {
         }
     }
     
-    private static class RefreshTokenEvent2 extends ClientAnalytics.Event {
-
-        private RefreshTokenEvent2(InstrumentationPropertiesBuilder builder, String result) {
-            this(builder, result, false);
-        }
-
-        private RefreshTokenEvent2(InstrumentationPropertiesBuilder builder, String result, boolean isBroker) {
-            super(InstrumentationIDs.REFRESH_TOKEN_EVENT,
-                    builder.add(InstrumentationIDs.EVENT_RESULT, result)
-                            .add(InstrumentationIDs.IS_BROKER_APP, Boolean.valueOf(isBroker).toString())
-                            .build());
-        }
+    private static class RefreshTokenEvent2 {
     }
 }
