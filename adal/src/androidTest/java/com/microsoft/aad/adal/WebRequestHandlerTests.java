@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 import com.google.gson.Gson;
+
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 
 import android.test.suitebuilder.annotation.SmallTest;
@@ -50,14 +51,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
 
     /**
      * send invalid request to production service
-     * 
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws ClassNotFoundException
-     * @throws IllegalArgumentException
-     * @throws IOException 
      */
     @SmallTest
     public void testCorrelationIdInRequest() throws IllegalArgumentException,
@@ -83,7 +76,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
     }
 
     private HttpWebResponse sendCorrelationIdRequest(final String message, final UUID testID,
-            final boolean withoutHeader) throws IOException {
+                                                     final boolean withoutHeader) throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
         WebRequestHandler request = new WebRequestHandler();
@@ -93,7 +86,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
             headers = new HashMap<String, String>();
             headers.put("Accept", "application/json");
         }
-        return request.sendPost(getUrl(message), headers, null, 
+        return request.sendPost(getUrl(message), headers, null,
                 "application/x-www-form-urlencoded");
     }
 
@@ -131,7 +124,6 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
 
     /**
      * WebService returns the request headers in the response
-     * @throws IOException 
      */
     public void testClientTraceInHeaders() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
@@ -203,7 +195,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         }
 
         public void setAccessToken(String accessToken) {
-            this.mAccessToken = accessToken;
+            mAccessToken = accessToken;
         }
 
         public String getUserName() {
@@ -211,7 +203,7 @@ public class WebRequestHandlerTests extends AndroidTestHelper {
         }
 
         public void setUserName(String userName) {
-            this.mUserName = userName;
+            mUserName = userName;
         }
 
     }
