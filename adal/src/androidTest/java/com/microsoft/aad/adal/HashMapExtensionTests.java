@@ -107,10 +107,4 @@ public class HashMapExtensionTests extends AndroidTestHelper {
         assertTrue(result.containsValue("f"));
         assertTrue(result.size() == 1);
     }
-
-    private HashMap<String, String> getTestKeyValue(String key, String value) {
-        HashMap<String, String> result = new HashMap<String, String>();
-        result.put(key, value);
-        return result;
-    }
 }

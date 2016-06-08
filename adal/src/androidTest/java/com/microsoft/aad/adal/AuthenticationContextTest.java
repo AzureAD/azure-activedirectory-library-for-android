@@ -90,10 +90,6 @@ public class AuthenticationContextTest extends AndroidTestCase {
 
     private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.test";
 
-    private static final int HTTP_OK = 200;
-
-    private static final int HTTP_BAD_REQUEST = 400;
-
     private static final int EXPIRES_ON_ADJUST_MINS = 10;
 
     static final String TEST_CLIENT_ID = "650a6609-5463-4bc4-b7c6-19df7990a8bc";
@@ -651,7 +647,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getSuccessTokenResponse(false, false)),
                 Util.createInputStream(Util.getSuccessTokenResponse(true, true)));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientId, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
@@ -691,7 +687,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getSuccessResponseWithoutRefreshToken()));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
         context.acquireTokenByRefreshToken("refreshTokenSending", expectedClientId, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -884,7 +880,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
                 Util.createInputStream(response2));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         // Call acquire token which will try refresh token based on cache
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
@@ -940,7 +936,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
                 Util.createInputStream(Util.getSuccessTokenResponse(true, true)));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         Intent intent = getResponseIntent(callback, "resource", "clientid", "redirectUri",
                 responseIntentHint);
@@ -1003,7 +999,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
                 Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         Intent intent = getResponseIntent(callback, "resource", "clientid", "redirectUri",
                 loginHint);
@@ -1052,7 +1048,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
                 Util.createInputStream(Util.getSuccessTokenResponse(true, true)));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         Intent intent = getResponseIntent(callback, "resource", "clientid", "redirectUri", null);
 
@@ -1096,7 +1092,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
                 Util.createInputStream(response2));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         // Call acquire token which will try refresh token based on cache
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
@@ -1198,7 +1194,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         // Call refresh token in silent API method
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
@@ -1226,7 +1222,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(responseBody),
                 Util.createInputStream(Util.getSuccessTokenResponse(true, true)));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_BAD_REQUEST);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
 
         // Call refresh token in silent API method
 
@@ -1771,7 +1767,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
                 Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_OK);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final int requestWaitMs = 200000;
         CountDownLatch signal = new CountDownLatch(1);
@@ -2063,7 +2059,7 @@ public class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenThrow(new IOException());
         Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(responseBody));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HTTP_BAD_REQUEST);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
 
         context.acquireToken(testActivity, "resource", "clientId", "redirect", TEST_IDTOKEN_UPN,
                 callback);

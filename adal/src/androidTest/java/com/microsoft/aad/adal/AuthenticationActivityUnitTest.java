@@ -36,6 +36,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -74,8 +75,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
     private static final long DEVICE_RESPONSE_WAIT = 500;
 
     private static final int TEST_CALLING_UID = 333;
-
-    private static final int HTTP_OK = 200;
 
     private Intent mIntentToStartActivity;
 
@@ -459,7 +458,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 + idToken
                 + ",\"access_token\":\"TokentestBroker\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
         ReflectionUtils.setFieldValue(mActivity, "mWebRequestHandler", webrequest);
-        webrequest.setReturnResponse(new HttpWebResponse(HTTP_OK, json, null));
+        webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_OK, json, null));
         return webrequest;
     }
 

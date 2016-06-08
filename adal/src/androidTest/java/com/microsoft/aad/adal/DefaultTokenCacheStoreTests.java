@@ -124,7 +124,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 
 
     public void testDateTimeFormatterLocaleChange() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");
         // Serializing without miliseconds
         final long precision = 1000;
@@ -157,7 +157,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testGetTokensForResource() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");
         assertEquals("token size", 1, tokens.size());
@@ -168,7 +168,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testGetTokensForUser() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
         assertEquals("token size", 2, tokens.size());
@@ -178,7 +178,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testExpiringTokens() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
         List<TokenCacheItem> expireTokenList = store.getTokensAboutToExpire();
@@ -199,7 +199,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testClearTokensForUser() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         store.clearTokensForUser("userid");
 
@@ -213,7 +213,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     }
 
     public void testExpireBuffer() throws AuthenticationException {
-        DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
+        final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
 
         List<TokenCacheItem> tokens = store.getTokensForUser("userid1");
         Calendar expireTime = Calendar.getInstance();

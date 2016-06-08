@@ -25,6 +25,7 @@ package com.microsoft.aad.adal;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -45,8 +46,6 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
     protected static final String TAG = "AuthenticationParamsTests";
 
-    private static final int HTTP_OK = 200;
-    private static final int HTTP_UNAUTHORIZED = 401;
     public void testGetAuthority() {
         AuthenticationParameters param = new AuthenticationParameters();
         assertTrue("authority should be null", param.getAuthority() == null);
@@ -144,7 +143,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     private void verifyAuthenticationParam(Method m, String headerValue, String authorizationUri,
                                            String resource) throws IllegalAccessException, InvocationTargetException {
         AuthenticationParameters param = (AuthenticationParameters) m.invoke(null,
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", headerValue)));
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", headerValue)));
         assertNotNull("Parsed ok", param);
         assertEquals("Verify authorization uri", authorizationUri, param.getAuthority());
         assertEquals("Verify resource", resource, param.getResource());
@@ -156,74 +155,74 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     public void testParseResponseNegative() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
-        callParseResponseForException(new HttpWebResponse(HTTP_OK, null, null),
+        callParseResponseForException(new HttpWebResponse(HttpURLConnection.HTTP_OK, null, null),
                 AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
 
-        callParseResponseForException(new HttpWebResponse(HTTP_UNAUTHORIZED, null, null),
+        callParseResponseForException(new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, null),
                 AuthenticationParameters.AUTH_HEADER_MISSING);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "v")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "v")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer nonsense")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer nonsense")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer ")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", " Bearer")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", " Bearer")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", " Bearer ")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", " Bearer ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "\t Bearer  ")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "\t Bearer  ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer test ")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer test ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bear gets=honey ")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bear gets=honey ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer =,=,")),
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate", "Bearer =,=,")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer some text here,")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer authorization_uri= ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearerauthorization_uri=something")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearerauthorization_uri=\"https://www.something.com\"")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
 
         callParseResponseForException(
-                new HttpWebResponse(HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
+                new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, getHeader("WWW-Authenticate",
                         "Bearer    \t authorization_uri=,something=a ")),
                 AuthenticationParameters.AUTH_HEADER_INVALID_FORMAT);
     }

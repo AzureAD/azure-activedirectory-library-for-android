@@ -24,6 +24,7 @@ package com.microsoft.aad.adal;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -63,10 +64,6 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
 
     static final String TEST_IDTOKEN_UPN = "admin@aaltests.onmicrosoft.com";
 
-    static final int HTTP_OK = 200;
-    static final int HTTP_BAD_REQUEST = 400;
-    static final int HTTP_INTERNAL_SERVER_ERROR = 500;
-
     protected void setUp() throws Exception {
         super.setUp();
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
@@ -103,7 +100,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
-                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_INTERNAL_SERVER_ERROR, null, null));
+                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_INTERNAL_ERROR, null, null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -155,7 +152,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         final byte[] postMessage = Util.getPoseMessage(regularRT, clientId, resource);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
                 AdditionalMatchers.aryEq(postMessage), Mockito.anyString()))
-                .thenReturn(new HttpWebResponse(HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
+                .thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -216,7 +213,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         final byte[] postMessage = Util.getPoseMessage(mrrt, clientId, resource);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
                 AdditionalMatchers.aryEq(postMessage), Mockito.anyString()))
-                .thenReturn(new HttpWebResponse(HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
+                .thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -272,7 +269,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         final byte[] postMessage = Util.getPoseMessage(mrrt, clientId, resource);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
                 AdditionalMatchers.aryEq(postMessage), Mockito.anyString()))
-                .thenReturn(new HttpWebResponse(HTTP_OK, Util.getSuccessTokenResponse(true, false), null));
+                .thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_OK, Util.getSuccessTokenResponse(true, false), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -321,7 +318,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
-                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_OK, Util.getSuccessTokenResponse(true, true), null));
+                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_OK, Util.getSuccessTokenResponse(true, true), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -375,7 +372,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
                 Mockito.anyString().getBytes(), Mockito.anyString()))
-                .thenReturn(new HttpWebResponse(HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
+                .thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -433,12 +430,12 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         final String anotherResource = "anotherResource";
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
                 Mockito.refEq(Util.getPoseMessage(frtToken, clientId, anotherResource)),
-                Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
+                Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
 
         // retry request with MRRT succeeds
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
                 Mockito.refEq(Util.getPoseMessage(mrrtToken, clientId, anotherResource)),
-                Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_OK, Util.getSuccessTokenResponse(true, false), null));
+                Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_OK, Util.getSuccessTokenResponse(true, false), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -499,11 +496,11 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         //FRT request fails with invalid_grant
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), AdditionalMatchers.aryEq(Util.getPoseMessage(frtToken, clientId, resource)),
-                Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
+                Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
 
         // MRT request also fails
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), AdditionalMatchers.aryEq(Util.getPoseMessage(mrrtToken, clientId, resource)),
-                Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_request"), null));
+                Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_request"), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -568,11 +565,11 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         // MRRT request fails with invalid_grant
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), AdditionalMatchers.aryEq(Util.getPoseMessage(mrrtToken, clientId, resource)),
-                Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
+                Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST, Util.getErrorResponseBody("invalid_grant"), null));
 
         // FRT request succeed
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(), AdditionalMatchers.aryEq(Util.getPoseMessage(frtToken, clientId, resource)),
-                Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_OK, Util.getSuccessTokenResponse(true, true), null));
+                Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_OK, Util.getSuccessTokenResponse(true, true), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -624,7 +621,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
-                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_BAD_REQUEST, Util.getErrorResponseBody(null), null));
+                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST, Util.getErrorResponseBody(null), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 
         try {
@@ -664,7 +661,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
-                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(new HttpWebResponse(HTTP_BAD_REQUEST,
+                Mockito.anyString().getBytes(), Mockito.anyString())).thenReturn(new HttpWebResponse(HttpURLConnection.HTTP_BAD_REQUEST,
                 Util.getErrorResponseBody("interaction_required"), null));
         acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
 

@@ -33,6 +33,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -62,10 +63,6 @@ public class OauthTests extends AndroidTestCase {
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
 
-    private static final int HTTP_OK = 200;
-    private static final int HTTP_SERVICE_UNAVAILABLE = 503;
-    private static final int HTTP_UNAUTHORIZED = 401;
-
     @SmallTest
     public void testParseIdTokenPositive() throws UnsupportedEncodingException, AuthenticationException {
         IdToken actual = new IdToken(Util.getIdToken());
@@ -77,7 +74,7 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("emailField", actual.getEmail());
         assertEquals("idpProvider", actual.getIdentityProvider());
         assertEquals("53c6acf2-2742-4538-918d-e78257ec8516", actual.getObjectId());
-        assertTrue(Util.TEST_PASSWORD_EXPIRATION == actual.getPasswordExpiration());
+        assertTrue(actual.getPasswordExpiration() == Util.TEST_PASSWORD_EXPIRATION);
         assertEquals("pwdUrl", actual.getPasswordChangeUrl());
     }
 
@@ -391,7 +388,7 @@ public class OauthTests extends AndroidTestCase {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        webrequest.setReturnResponse(new HttpWebResponse(HTTP_SERVICE_UNAVAILABLE, null, null));
+        webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_UNAVAILABLE, null, null));
         // Invalid status that cause some exception at webrequest
         webrequest.setReturnException(TEST_RETURNED_EXCEPTION);
 
@@ -411,7 +408,7 @@ public class OauthTests extends AndroidTestCase {
             IllegalAccessException, InvocationTargetException {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         String json = "{\"access_token\":\"sometokenhere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435\",\"scope\":\"*\"}";
-        webrequest.setReturnResponse(new HttpWebResponse(HTTP_OK, json, null));
+        webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_OK, json, null));
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -458,8 +455,8 @@ public class OauthTests extends AndroidTestCase {
         String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallenge\",\"scope\":\"*\"}";
         HashMap<String, List<String>> headers = getHeader(
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, challengeHeaderValue);
-        HttpWebResponse responeChallenge = new HttpWebResponse(HTTP_UNAUTHORIZED, null, headers);
-        HttpWebResponse responseValid = new HttpWebResponse(HTTP_OK, tokenPositiveResponse, null);
+        HttpWebResponse responeChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
+        HttpWebResponse responseValid = new HttpWebResponse(HttpURLConnection.HTTP_OK, tokenPositiveResponse, null);
         // first call returns 401 and second call returns token
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
@@ -488,7 +485,7 @@ public class OauthTests extends AndroidTestCase {
         IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         HashMap<String, List<String>> headers = getHeader(
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");
-        HttpWebResponse responeChallenge = new HttpWebResponse(HTTP_SERVICE_UNAVAILABLE, null, headers);
+        HttpWebResponse responeChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAVAILABLE, null, headers);
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
                         any(headers.getClass()), any(byte[].class),
@@ -518,7 +515,7 @@ public class OauthTests extends AndroidTestCase {
         String json = "{\"id_token\":\""
                 + idToken
                 + "\",\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
-        HttpWebResponse mockResponse = new HttpWebResponse(HTTP_OK, json, null);
+        HttpWebResponse mockResponse = new HttpWebResponse(HttpURLConnection.HTTP_OK, json, null);
 
         // send call with mocks
         AuthenticationResult result = (AuthenticationResult) m.invoke(oauth, mockResponse);
@@ -544,7 +541,7 @@ public class OauthTests extends AndroidTestCase {
         listOfHeaders.add(UUID.randomUUID().toString());
         HashMap<String, List<String>> headers = new HashMap<String, List<String>>();
         headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, listOfHeaders);
-        HttpWebResponse mockResponse = new HttpWebResponse(HTTP_OK, json, headers);
+        HttpWebResponse mockResponse = new HttpWebResponse(HttpURLConnection.HTTP_OK, json, headers);
         TestLogResponse logResponse = new TestLogResponse();
         logResponse.listenForLogMessage("CorrelationId is not matching", null);
 
@@ -560,7 +557,7 @@ public class OauthTests extends AndroidTestCase {
         List<String> invalidHeaders = new ArrayList<String>();
         invalidHeaders.add("invalid-UUID");
         headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, invalidHeaders);
-        mockResponse = new HttpWebResponse(HTTP_OK, json, headers);
+        mockResponse = new HttpWebResponse(HttpURLConnection.HTTP_OK, json, headers);
         TestLogResponse logResponse2 = new TestLogResponse();
         logResponse2.listenLogForMessageSegments("Wrong format of the correlation ID:");
 
@@ -582,7 +579,7 @@ public class OauthTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(oauth, "processTokenResponse",
                 Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
         String json = "{invalid";
-        HttpWebResponse mockResponse = new HttpWebResponse(HTTP_OK, json, null);
+        HttpWebResponse mockResponse = new HttpWebResponse(HttpURLConnection.HTTP_OK, json, null);
 
         // send call with mocks
         try {
