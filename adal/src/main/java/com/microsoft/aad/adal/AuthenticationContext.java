@@ -41,6 +41,8 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.List;
+import java.util.ArrayList;
 
 import javax.crypto.NoSuchPaddingException;
 
@@ -59,6 +61,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -583,6 +586,15 @@ public class AuthenticationContext {
 
         if (StringExtensions.IsNullOrBlank(redirectUri)) {
             redirectUri = getRedirectFromPackage();
+        }
+
+        //check the permissions needed if broker is used
+        if(AuthenticationSettings.INSTANCE.getUseBroker() == true) {
+            try {
+                verifyManifestPermissions();
+            } catch (UsageAuthenticationException exception) {
+                callback.onError(exception);
+            }
         }
 
         return redirectUri;
@@ -1780,6 +1792,65 @@ public class AuthenticationContext {
     }
 
     /**
+     * To verify if App gives permissions to AccountManager to use broker.
+     *
+     * @throws UsageAuthenticationException
+     * @return boolean If the GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS permissions are granted in the Manifest.xml
+     */
+    private boolean verifyManifestPermissions() throws UsageAuthenticationException {
+        if(Build.VERSION.SDK_INT <= 22) {
+            final String methodName = ":verifyManifestPermissions";
+            final PackageManager packageManager = mContext.getPackageManager();
+            final StringBuilder permissionMissing = new StringBuilder();
+            Logger.v(
+                    TAG + methodName,
+                    "Broker related permissions checking starts.");
+
+            if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
+                    "android.permission.GET_ACCOUNTS", mContext.getPackageName())) {
+                permissionMissing.append("GET_ACCOUNTS ");
+                Logger.w(
+                        TAG + methodName,
+                        "Broker related permissions are missing for GET_ACCOUNTS",
+                        "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+            }
+
+            if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
+                    "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName())) {
+                permissionMissing.append("MANAGE_ACCOUNTS ");
+                Logger.w(
+                        TAG + methodName,
+                        "Broker related permissions are missing for MANAGE_ACCOUNTS",
+                        "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+            }
+
+            if(PackageManager.PERMISSION_GRANTED != packageManager.checkPermission(
+                    "android.permission.USE_CREDENTIALS", mContext.getPackageName())) {
+                permissionMissing.append("USE_CREDENTIALS");
+                Logger.w(
+                        TAG + methodName,
+                        "Broker related permissions are missing for USE_CREDENTIALS",
+                        "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+            }
+
+            Logger.v(
+                    TAG + methodName,
+                    "Broker related permissions are verified");
+
+            if(permissionMissing.length() == 0) {
+                return true;
+            } else {
+                throw new UsageAuthenticationException(
+                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                        "Broker related permissions are missing for " +
+                                permissionMissing.toString());
+            }
+        }
+        //this line will not be reached.
+        return false;
+    }
+
+    /**
      * Internal API of ADAL to serialize the family token cache item for the
      * given user.
      * 
@@ -1788,8 +1859,7 @@ public class AuthenticationContext {
      * true, create an SSOStateContainer object with the family refresh token
      * item of this user and continue the serialization process.
      * 
-     * @param String
-     *            uniqueUserId
+     * @param uniqueUserId
      * @return String
      * @throws AuthenticationException
      */
@@ -1833,8 +1903,8 @@ public class AuthenticationContext {
      * stored into the cache. Exceptions will be thrown for invalid input or the
      * broker is enabled.
      * 
-     * @param String
-     *            serializedBlob
+     *
+     * @param serializedBlob
      * @throws AuthenticationException
      */
     void deserialize(final String serializedBlob) throws AuthenticationException {

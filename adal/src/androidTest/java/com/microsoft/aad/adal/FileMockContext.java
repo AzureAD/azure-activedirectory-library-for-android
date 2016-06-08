@@ -26,6 +26,8 @@ package com.microsoft.aad.adal;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.mockito.Mockito;
 
@@ -54,19 +56,19 @@ class FileMockContext extends MockContext {
 
     int fileWriteMode;
 
-    String requestedPermissionName;
+    Map<String, Integer> permissionMap = new HashMap<String, Integer>();
 
-    int responsePermissionFlag;
-    
     boolean isConnectionAvaliable = true;
-    
+
     private AccountManager mMockedAccountManager = null;
 
+    private PackageManager mMockedPackageManager = null;
     public FileMockContext(Context context) {
         mContext = context;
         // default
-        requestedPermissionName = "android.permission.INTERNET";
-        responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+        final String requestedPermissionName = "android.permission.INTERNET";
+        final int responsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+        permissionMap.put(requestedPermissionName,responsePermissionFlag);
     }
 
     @Override
@@ -97,7 +99,7 @@ class FileMockContext extends MockContext {
             if (mMockedAccountManager == null) {
                 return mock(AccountManager.class);
             }
-            
+
             return mMockedAccountManager;
         } else if(name.equalsIgnoreCase("connectivity")) {
             final ConnectivityManager mockedConnectivityManager = mock(ConnectivityManager.class);
@@ -116,14 +118,44 @@ class FileMockContext extends MockContext {
 
     @Override
     public PackageManager getPackageManager() {
-        return new TestPackageManager();
+        if (mMockedPackageManager == null) {
+            return new TestPackageManager();
+        }
+
+        return mMockedPackageManager;
+
     }
-    
+
     public void setMockedAccountManager(final AccountManager mockedAccountManager) {
         if (mockedAccountManager == null) {
             throw new IllegalArgumentException("mockedAccountManager");
         }
         mMockedAccountManager = mockedAccountManager;
+    }
+
+    AccountManager getAccountManager() {
+        return mMockedAccountManager;
+    }
+
+    public void setMockedPackageManager(final PackageManager mockedPackageManager) {
+        if (mockedPackageManager == null) {
+            throw new IllegalArgumentException("mockedPackageManager");
+        }
+
+        mMockedPackageManager = mockedPackageManager;
+    }
+
+    public void setPermission(String permissionName, int permissionFlag) {
+        permissionMap.put(permissionName, permissionFlag);
+    }
+
+    public boolean removePermission(String permissionName) {
+        if(permissionMap.containsKey(permissionName)) {
+            permissionMap.remove(permissionName);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     class TestPackageManager extends MockPackageManager {
@@ -137,8 +169,8 @@ class FileMockContext extends MockContext {
 
         @Override
         public int checkPermission(String permName, String pkgName) {
-            if (permName.equals(requestedPermissionName)) {
-                return responsePermissionFlag;
+            if (permissionMap.containsKey(permName)) {
+                return permissionMap.get(permName);
             }
             return PackageManager.PERMISSION_DENIED;
         }
