@@ -253,7 +253,7 @@ public enum AuthenticationSettings {
      * timeout elapses before a connection is established. Default value is
      * 30000 milliseconds.
      * 
-     * @param timeOutMillis the connect timeout in milliseconds. Non-negative.
+     * @param timeOutMillis the non-negative connect timeout in milliseconds.
      * @throws IllegalArgumentException if timeoutMillis < 0.
      */
     public void setConnectTimeOut(int timeOutMillis) {

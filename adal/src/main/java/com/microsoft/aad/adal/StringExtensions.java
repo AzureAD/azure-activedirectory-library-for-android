@@ -128,8 +128,8 @@ final class StringExtensions {
     }
 
     static List<String> getStringTokens(final String items, final String delimeter) {
-        StringTokenizer st = new StringTokenizer(items, delimeter);
-        List<String> itemList = new ArrayList<>();
+        final StringTokenizer st = new StringTokenizer(items, delimeter);
+        final List<String> itemList = new ArrayList<>();
         if (st.hasMoreTokens()) {
             while (st.hasMoreTokens()) {
                 String name = st.nextToken();
@@ -142,7 +142,7 @@ final class StringExtensions {
     }
     
     static ArrayList<String> splitWithQuotes(String input, char delimiter) {
-        ArrayList<String> items = new ArrayList<>();
+        final ArrayList<String> items = new ArrayList<>();
 
         int startIndex = 0;
         boolean insideString = false;

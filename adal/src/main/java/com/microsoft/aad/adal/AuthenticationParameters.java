@@ -165,7 +165,7 @@ public class AuthenticationParameters {
         sThreadExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                Map<String, String> headers = new HashMap<>();
+                final Map<String, String> headers = new HashMap<>();
                 headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 
                 final HttpWebResponse webResponse;
@@ -200,7 +200,7 @@ public class AuthenticationParameters {
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
             String authenticateHeader) throws ResourceAuthenticationChallengeException {
-        AuthenticationParameters authParams;
+        final AuthenticationParameters authParams;
 
         if (StringExtensions.IsNullOrBlank(authenticateHeader)) {
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
@@ -219,7 +219,7 @@ public class AuthenticationParameters {
                 String headerSubFields = authenticateHeader.substring(BEARER.length());
                 Logger.v(TAG, "Values in here:" + headerSubFields);
                 Matcher values = valuePattern.matcher(headerSubFields);
-                Map<String, String> headerItems = new HashMap<>();
+                final Map<String, String> headerItems = new HashMap<>();
                 while (values.find()) {
 
                     // values.group(0) is matching string

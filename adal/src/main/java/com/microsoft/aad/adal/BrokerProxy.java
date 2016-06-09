@@ -233,12 +233,11 @@ class BrokerProxy implements IBrokerProxy {
                 // AuthenticatorService is handling the request at
                 // AccountManager.
                 //
-                final AccountManagerFuture<Bundle> result;
-                result = mAcctManager.getAuthToken(targetAccount, AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                final AccountManagerFuture<Bundle> result = mAcctManager.getAuthToken(targetAccount,
+                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
                         brokerOptions, false,
-                        null /*
-                              * set to null to avoid callback
-                              */, mHandler);
+                        null, //set to null to avoid callback
+                        mHandler);
 
                 // Making blocking request here
                 Logger.v(TAG, "Received result from Authenticator");
@@ -382,12 +381,12 @@ class BrokerProxy implements IBrokerProxy {
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request) {
         Intent intent = null;
         try {
-            final AccountManagerFuture<Bundle> result;
             // Callback is not passed since it is making a blocking call to get
             // intent. Activity needs to be launched from calling app
             // to get the calling app's metadata if needed at BrokerActivity.
             Bundle addAccountOptions = getBrokerOptions(request);
-            result = mAcctManager.addAccount(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+            final AccountManagerFuture<Bundle> result = mAcctManager.addAccount(
+                    AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                     AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null, null, mHandler);
 
             // Making blocking request here

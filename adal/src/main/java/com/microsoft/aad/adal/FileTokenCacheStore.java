@@ -73,7 +73,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
 
         // It is using package directory not the external storage, so
         // external write permissions are not needed
-        File directory = context.getDir(context.getPackageName(), Context.MODE_PRIVATE);
+        final File directory = context.getDir(context.getPackageName(), Context.MODE_PRIVATE);
 
         if (directory == null) {
             throw new IllegalStateException("It could not access the Authorization cache directory");

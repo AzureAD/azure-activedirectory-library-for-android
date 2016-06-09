@@ -95,7 +95,7 @@ class PackageHelper {
     public int getUIDForPackage(final String packageName) {
         int callingUID = 0;
         try {
-            ApplicationInfo info = mContext.getPackageManager().getApplicationInfo(packageName, 0);
+            final ApplicationInfo info = mContext.getPackageManager().getApplicationInfo(packageName, 0);
             if (info != null) {
                 callingUID = info.uid;
             }

@@ -103,20 +103,18 @@ final class Discovery implements IDiscovery {
                         "Instance validation returned error", "",
                         ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
                         new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
-                return false;
+            } else if (sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
+                // host can be the instance or inside the validated list.
+                // Valid hosts will help to skip validation if validated before
+                // call Callback and skip the look up
+                return true;
+            } else {
+                // Else
+                // Only query from Prod instance for now, not all of the
+                // instances in the list
+                return queryInstance(authorizationEndpoint);
             }
-
-            // host can be the instance or inside the validated list.
-            // Valid hosts will help to skip validation if validated before
-            // call Callback and skip the look up
-            // Else
-            // Only query from Prod instance for now, not all of the
-            // instances in the list
-            return (sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) ||
-                    queryInstance(authorizationEndpoint);
-
         }
-
         return false;
     }
 
@@ -182,7 +180,7 @@ final class Discovery implements IDiscovery {
     private boolean sendRequest(final URL queryUrl) throws IOException, JSONException {
 
         Logger.v(TAG, "Sending discovery request to:" + queryUrl);
-        Map<String, String> headers = new HashMap<>();
+        final Map<String, String> headers = new HashMap<>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 
         // CorrelationId is used to track the request at the Azure services
@@ -191,18 +189,11 @@ final class Discovery implements IDiscovery {
             headers.put(AuthenticationConstants.AAD.RETURN_CLIENT_REQUEST_ID, "true");
         }
 
-        HttpWebResponse webResponse = null;
+        final HttpWebResponse webResponse;
         try {
             ClientMetrics.INSTANCE.beginClientMetricsRecord(queryUrl, mCorrelationId, headers);
-            try {
-                webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
-                ClientMetrics.INSTANCE.setLastError(null);
-            } catch (IOException e) {
-                if (webResponse != null) {
-                    ClientMetrics.INSTANCE.setLastError(String.valueOf(webResponse.getStatusCode()));
-                }
-                throw e;
-            }
+            webResponse = mWebrequestHandler.sendGet(queryUrl, headers);
+            ClientMetrics.INSTANCE.setLastError(null);
 
             // parse discovery response to find tenant info
             final Map<String, String> discoveryResponse = parseResponse(webResponse);

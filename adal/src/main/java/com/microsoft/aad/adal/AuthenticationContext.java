@@ -909,7 +909,7 @@ public class AuthenticationContext {
                                         "Processing url for token. "
                                                 + authenticationRequest.getLogInfo());
                                 final Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
-                                AuthenticationResult result;
+                                final AuthenticationResult result;
                                 try {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
@@ -1543,12 +1543,11 @@ public class AuthenticationContext {
     }
 
     /**
-     * function returns false if intent is not resolved or error in starting.
-     * true: if intent is sent to start the activity.
+     * function returns true if intent is sent to start the activity. False otherwise.
      */
     private boolean startAuthenticationActivity(final IWindowComponent activity,
             AuthenticationRequest request) {
-        Intent intent = getAuthenticationActivityIntent(request);
+        final Intent intent = getAuthenticationActivityIntent(request);
 
         if (!resolveIntent(intent)) {
             Logger.e(TAG, "Intent is not resolved", "",
@@ -1572,10 +1571,10 @@ public class AuthenticationContext {
     /**
      * Resolve activity from the package. If developer did not declare the
      * activity, it will not resolve.
-     * returns true if activity is defined in the package.
+     * returns true if activity is defined in the package, false otherwise
      */
     private boolean resolveIntent(Intent intent) {
-        ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
+        final ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
         return resolveInfo != null;
     }
 

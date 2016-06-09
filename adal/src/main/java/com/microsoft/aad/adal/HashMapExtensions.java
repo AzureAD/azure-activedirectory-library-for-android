@@ -58,7 +58,7 @@ final class HashMapExtensions {
      * @return Map key value pairs
      */
     static HashMap<String, String> URLFormDecodeData(String parameters, String delimiter) {
-        HashMap<String, String> result = new HashMap<>();
+        final HashMap<String, String> result = new HashMap<>();
 
         if (!StringExtensions.IsNullOrBlank(parameters)) {
             StringTokenizer parameterTokenizer = new StringTokenizer(parameters, delimiter);
@@ -96,7 +96,7 @@ final class HashMapExtensions {
      * @throws JSONException
      */
     static Map<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException{
-        Map<String, String> response = new HashMap<>();
+        final Map<String, String> response = new HashMap<>();
         if(webResponse != null && !TextUtils.isEmpty(webResponse.getBody())) {
             JSONObject jsonObject = new JSONObject(webResponse.getBody());
             Iterator<?> i = jsonObject.keys();

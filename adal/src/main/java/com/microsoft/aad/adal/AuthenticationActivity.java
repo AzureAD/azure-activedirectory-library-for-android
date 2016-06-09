@@ -338,7 +338,6 @@ public class AuthenticationActivity extends Activity {
 
     private void setupWebView() {
 
-
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
@@ -903,7 +902,7 @@ public class AuthenticationActivity extends Activity {
                 return;
             }
 
-            Account newAccount = accountList[0];
+            final Account newAccount = accountList[0];
 
             // Single user in authenticator is already created.
             // This is only registering UID for the app

@@ -120,7 +120,7 @@ class JWSBuilder implements IJWSBuilder {
         header.mAlgorithm = JWS_HEADER_ALG;
         header.mType = "JWT"; // recommended UpperCase in JWT Spec
 
-        String signingInput;
+        final String signingInput;
         final String signature;
         try {
 
@@ -164,7 +164,7 @@ class JWSBuilder implements IJWSBuilder {
      * @return String signed string
      */
     private static String sign(RSAPrivateKey privateKey, final byte[] input) throws AuthenticationException {
-        Signature signer;
+        final Signature signer;
         try {
             signer = Signature.getInstance(JWS_ALGORITHM);
             signer.initSign(privateKey);

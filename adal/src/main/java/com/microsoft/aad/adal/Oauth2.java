@@ -286,7 +286,7 @@ class Oauth2 {
     }
 
     public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationException {
-        String requestMessage;
+        final String requestMessage;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
             throw new IllegalArgumentException("webRequestHandler is null.");
@@ -300,7 +300,7 @@ class Oauth2 {
             return null;
         }
 
-        Map<String, String> headers = getRequestHeaders();
+        final Map<String, String> headers = getRequestHeaders();
 
         // Refresh token endpoint needs to send header field for device
         // challenge
@@ -386,7 +386,7 @@ class Oauth2 {
             return null;
         }
 
-        Map<String, String> headers = getRequestHeaders();
+        final Map<String, String> headers = getRequestHeaders();
         return postMessage(requestMessage, headers);
     }
 
@@ -496,7 +496,7 @@ class Oauth2 {
     }
 
     private Map<String, String> getRequestHeaders() {
-        Map<String, String> headers = new HashMap<>();
+        final Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
         return headers;
     }
@@ -558,7 +558,7 @@ class Oauth2 {
     
     private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException,
             AuthenticationException {
-        Map<String, String> responseItems = new HashMap<>();
+        final Map<String, String> responseItems = new HashMap<>();
         extractJsonObjects(responseItems, responseBody);
         return processUIResponseParams(responseItems);
     }

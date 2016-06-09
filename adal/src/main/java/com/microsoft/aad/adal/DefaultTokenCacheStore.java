@@ -216,7 +216,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         Map<String, String> results = (Map<String, String>)mPrefs.getAll();
 
         // create objects
-        List<TokenCacheItem> tokens = new ArrayList<>(results.values().size());
+        final List<TokenCacheItem> tokens = new ArrayList<>(results.values().size());
         
         Iterator<Entry<String, String>> tokenResultEntrySet = results.entrySet().iterator();
         while (tokenResultEntrySet.hasNext())
@@ -307,7 +307,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
      */
     @Override
     public void clearTokensForUser(String userId) {
-        List<TokenCacheItem> results = this.getTokensForUser(userId);
+        final List<TokenCacheItem> results = this.getTokensForUser(userId);
 
         for (TokenCacheItem item : results) {
             if (item.getUserInfo() != null
@@ -332,7 +332,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     @Override
     public List<TokenCacheItem> getTokensAboutToExpire() {
         Iterator<TokenCacheItem> results = this.getAll();
-        List<TokenCacheItem> tokenItems = new ArrayList<>();
+        final List<TokenCacheItem> tokenItems = new ArrayList<>();
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();

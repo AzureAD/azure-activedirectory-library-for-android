@@ -138,7 +138,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
      * Get username that started the install flow.
      * 
      * @param ctx app/activity context
-     * @return String
+     * @return the username that started the install flow
      */
     public static String getUserName(Context ctx) {
         Logger.v(TAG, "ApplicationReceiver:getUserName");

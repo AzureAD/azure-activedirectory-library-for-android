@@ -64,7 +64,7 @@ public class AuthenticationSettingsTests extends AndroidTestCase {
         Method m = ReflectionUtils.getTestMethod(context, "getAuthenticationActivityIntent",
                 clazzAuthRequest);
 
-        Intent intent = (Intent)m.invoke(context, authRequest);
+        final Intent intent = (Intent)m.invoke(context, authRequest);
 
         assertEquals("same packagename", packagename, intent.getComponent().getPackageName());
     }

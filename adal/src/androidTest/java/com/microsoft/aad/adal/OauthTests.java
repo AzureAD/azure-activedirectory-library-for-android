@@ -598,11 +598,11 @@ public class OauthTests extends AndroidTestCase {
     public void testprocessUIResponseParams() throws
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException {
-        Map<String, String> response = new HashMap<>();
+        final Map<String, String> response = new HashMap<>();
         Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
                 "loginhint", null, null, null);
         Object oauth = createOAuthInstance(request);
-        Method m = ReflectionUtils.getTestMethod(oauth, "processUIResponseParams", Map.class);
+        final Method m = ReflectionUtils.getTestMethod(oauth, "processUIResponseParams", Map.class);
 
         // call for empty response
         AuthenticationResult result = (AuthenticationResult) m.invoke(null, response);

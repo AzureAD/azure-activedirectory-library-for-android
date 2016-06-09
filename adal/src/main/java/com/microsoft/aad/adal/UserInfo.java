@@ -124,7 +124,7 @@ public class UserInfo implements Serializable {
     /**
      * Gets unique user id.
      * 
-     * @return String
+     * @return the unique id representing an user
      */
     public String getUserId() {
         return mUniqueId;
@@ -137,7 +137,7 @@ public class UserInfo implements Serializable {
     /**
      * Gets given name.
      * 
-     * @return String
+     * @return the given name of the user
      */
     public String getGivenName() {
         return mGivenName;
@@ -146,7 +146,7 @@ public class UserInfo implements Serializable {
     /**
      * Gets family name.
      * 
-     * @return String
+     * @return the family name of the user
      */
     public String getFamilyName() {
         return mFamilyName;
@@ -155,7 +155,7 @@ public class UserInfo implements Serializable {
     /**
      * Gets Identity provider.
      * 
-     * @return String
+     * @return the identity provider
      */
     public String getIdentityProvider() {
         return mIdentityProvider;
@@ -164,7 +164,7 @@ public class UserInfo implements Serializable {
     /**
      * Gets displayable user name.
      * 
-     * @return String
+     * @return the displayable user name
      */
     public String getDisplayableId() {
         return mDisplayableId;
@@ -173,7 +173,7 @@ public class UserInfo implements Serializable {
     /**
      * Gets password change url.
      * 
-     * @return Uri
+     * @return the password change uri
      */
     public Uri getPasswordChangeUrl() {
         return mPasswordChangeUrl;
@@ -182,7 +182,7 @@ public class UserInfo implements Serializable {
     /**
      * Gets password expires on.
      * 
-     * @return Date
+     * @return the time when the password will expire
      */
     public Date getPasswordExpiresOn() {
         return mPasswordExpiresOn;
