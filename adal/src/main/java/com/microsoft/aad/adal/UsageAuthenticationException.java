@@ -30,13 +30,6 @@ public class UsageAuthenticationException extends AuthenticationException {
     static final long serialVersionUID = 1;
 
     /**
-     * Constructs a new UsageAuthenticationException.
-     */
-    public UsageAuthenticationException() {
-        super();
-    }
-
-    /**
      * Constructs a new UsageAuthenticationException with message.
      * 
      * @param msg Message for cancel request
@@ -50,7 +43,7 @@ public class UsageAuthenticationException extends AuthenticationException {
      * 
      * @param code Resource file related error code. Message will be derived
      *            from resource with using app context
-     * @param details Details related to the error such as query string, request
+     * @param msg Details related to the error such as query string, request
      *            info
      * @param throwable {@link Throwable}
      */

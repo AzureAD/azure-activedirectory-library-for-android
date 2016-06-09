@@ -28,7 +28,6 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.UUID;
@@ -41,8 +40,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.crypto.NoSuchPaddingException;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
@@ -57,8 +54,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -96,7 +91,7 @@ public class AuthenticationContext {
      * Delegate map is needed to handle activity recreate without asking
      * developer to handle context instance for config changes.
      */
-    static SparseArray<AuthenticationRequestState> mDelegateMap = new SparseArray<AuthenticationRequestState>();
+    static SparseArray<AuthenticationRequestState> mDelegateMap = new SparseArray<>();
 
     /**
      * Last set authorization callback.
@@ -113,11 +108,6 @@ public class AuthenticationContext {
      * Web request handler interface to test behaviors.
      */
     private IWebRequestHandler mWebRequest = new WebRequestHandler();
-
-    /**
-     * JWS message builder interface to test behaviors.
-     */
-    private IJWSBuilder mJWSBuilder;
 
     private IBrokerProxy mBrokerProxy = null;
     
@@ -139,10 +129,6 @@ public class AuthenticationContext {
      *            need to be activity.
      * @param authority Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
-     * @throws NoSuchPaddingException Algorithm padding does not exist in the
-     *             device
-     * @throws NoSuchAlgorithmException Encryption Algorithm does not exist in
-     *             the device. Please see the log record for details.
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
         // Fixes are required for SDK 16-18
@@ -202,7 +188,6 @@ public class AuthenticationContext {
         if (mTokenCacheStore != null) {
             mTokenCacheAccessor = new TokenCacheAccessor(mTokenCacheStore, mAuthority);
         }
-        mJWSBuilder = new JWSBuilder();
     }
 
     /**
@@ -340,8 +325,7 @@ public class AuthenticationContext {
             String redirectUri, String loginHint,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
-                callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
@@ -375,8 +359,7 @@ public class AuthenticationContext {
             String redirectUri, String loginHint, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, PromptBehavior.Auto,
-                callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
@@ -407,7 +390,7 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, null, getRequestCorrelationId());
@@ -437,7 +420,7 @@ public class AuthenticationContext {
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, extraQueryParameters,
@@ -470,7 +453,7 @@ public class AuthenticationContext {
             String redirectUri, String loginHint, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
@@ -502,7 +485,7 @@ public class AuthenticationContext {
             String redirectUri, String loginHint, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
@@ -535,7 +518,7 @@ public class AuthenticationContext {
             String loginHint, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, prompt, callback);
+        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
@@ -564,7 +547,7 @@ public class AuthenticationContext {
     }
 
     private String checkInputParameters(String resource, String clientId, String redirectUri,
-            PromptBehavior behavior, AuthenticationCallback<AuthenticationResult> callback) {
+            AuthenticationCallback<AuthenticationResult> callback) {
         if (mContext == null) {
             throw new IllegalArgumentException("context", new AuthenticationException(ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
         }
@@ -732,10 +715,6 @@ public class AuthenticationContext {
      *            {@link AuthenticationResult}
      * @param callback required {@link AuthenticationCallback} object for async
      *            call.
-     * @return A {@link Future} object representing the
-     *         {@link AuthenticationResult} of the call. It contains Access
-     *         Token,the Access Token's expiration time, Refresh token, and
-     *         {@link UserInfo}.
      */
     public void acquireTokenSilentAsync(String resource,
                                    String clientId,
@@ -839,7 +818,7 @@ public class AuthenticationContext {
                     UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken);
-                    if (brokerResult != null && brokerResult.getAccessToken() != null) {
+                    if (brokerResult.getAccessToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                         return;
                     }
@@ -929,8 +908,8 @@ public class AuthenticationContext {
                                         TAG,
                                         "Processing url for token. "
                                                 + authenticationRequest.getLogInfo());
-                                Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
-                                AuthenticationResult result = null;
+                                final Oauth2 oauthRequest = new Oauth2(authenticationRequest, mWebRequest);
+                                final AuthenticationResult result;
                                 try {
                                     result = oauthRequest.getToken(endingUrl);
                                     Logger.v(TAG, "OnActivityResult processed the result. "
@@ -976,8 +955,7 @@ public class AuthenticationContext {
                                             }
                                         }
 
-                                        if (waitingRequest != null
-                                                && waitingRequest.mDelagete != null) {
+                                        if (waitingRequest.mDelagete != null) {
                                             Logger.v(TAG, "Sending result to callback. "
                                                     + authenticationRequest.getLogInfo());
                                             callbackHandle.onSuccess(result);
@@ -1002,8 +980,8 @@ public class AuthenticationContext {
      * If request has correlationID, ADAL should report that instead of current
      * CorrelationId.
      * 
-     * @param waitingRequest
-     * @return
+     * @param waitingRequest AuthenticationRequestState from which the correlation id will be extracted
+     * @return String correlation id
      */
     private String getCorrelationInfoFromWaitingRequest(
             final AuthenticationRequestState waitingRequest) {
@@ -1012,9 +990,7 @@ public class AuthenticationContext {
             requestCorrelationID = waitingRequest.mRequest.getCorrelationId();
         }
 
-        String correlationInfo = String.format(" CorrelationId: %s",
-                requestCorrelationID.toString());
-        return correlationInfo;
+        return String.format(" CorrelationId: %s", requestCorrelationID.toString());
     }
 
     private void waitingRequestOnError(final AuthenticationRequestState waitingRequest,
@@ -1224,10 +1200,6 @@ public class AuthenticationContext {
 
     /**
      * Only gets token from activity defined in this package.
-     * 
-     * @param activity
-     * @param request
-     * @return
      */
     private AuthenticationResult acquireTokenLocalCall(final CallbackHandler callbackHandle,
             final IWindowComponent activity, final boolean useDialog,
@@ -1240,17 +1212,16 @@ public class AuthenticationContext {
         }
 
         if (mValidateAuthority && !mAuthorityValidated) {
-            final URL authorityUrlInCallback = authorityUrl;
             // Discovery call creates an Async Task to send
             // Web Requests
             // using a handler
             boolean result = validateAuthority(authorityUrl);
             if (result) {
                 mAuthorityValidated = true;
-                Logger.v(TAG, "Authority is validated: " + authorityUrlInCallback.toString());
+                Logger.v(TAG, "Authority is validated: " + authorityUrl.toString());
             } else {
                 Logger.v(TAG, "Call external callback since instance is invalid"
-                        + authorityUrlInCallback.toString());
+                        + authorityUrl.toString());
                 callbackHandle.onError(new AuthenticationException(
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
                 return null;
@@ -1275,16 +1246,12 @@ public class AuthenticationContext {
      * if the redirectUri from the client does not match the valid redirectUri
      * the client app would not jump to the login page
      * redirectUri format %PREFIX://%PACKAGE_NAME/%SIGNATURE
-     * 
-     * @param request
-     * @throws UsageAuthenticationException
-     * @return true if the redirectUri is valid or fail and throw the AuthenticationException
      */
     private boolean verifyBrokerRedirectUri(final AuthenticationRequest request) throws UsageAuthenticationException {   
         final String methodName = ":verifyBrokerRedirectUri";
         final String inputUri = request.getRedirectUri();
         final String actualUri = getRedirectUriForBroker();
-        String errMsg = "";
+        final String errMsg;
         
         if (StringExtensions.IsNullOrBlank(inputUri)) {
             errMsg = "The redirectUri is null or blank. "
@@ -1337,7 +1304,6 @@ public class AuthenticationContext {
                 && mBrokerProxy.verifyUser(request.getLoginHint(),
                         request.getUserId())) {
             Logger.v(TAG, "It switched to broker for context: " + mContext.getPackageName());
-            AuthenticationResult result = null;
             request.setVersion(getVersionName());
             request.setBrokerAccountName(request.getLoginHint());
             
@@ -1353,9 +1319,10 @@ public class AuthenticationContext {
             } catch (final UsageAuthenticationException exception) {
                 Logger.v(TAG + methodName, "Did not pass the verification of the broker redirect URI");
                 callbackHandle.onError(exception);
-                return result;
+                return null;
             }
-            
+
+            AuthenticationResult result = null;
             // Don't send background request, if prompt flag is always or
             // refresh_session
             if (!promptUser(request.getPrompt())
@@ -1576,14 +1543,11 @@ public class AuthenticationContext {
     }
 
     /**
-     * @param activity
-     * @param request
-     * @return false: if intent is not resolved or error in starting. true: if
-     *         intent is sent to start the activity.
+     * function returns true if intent is sent to start the activity. False otherwise.
      */
     private boolean startAuthenticationActivity(final IWindowComponent activity,
             AuthenticationRequest request) {
-        Intent intent = getAuthenticationActivityIntent(activity, request);
+        final Intent intent = getAuthenticationActivityIntent(request);
 
         if (!resolveIntent(intent)) {
             Logger.e(TAG, "Intent is not resolved", "",
@@ -1607,27 +1571,17 @@ public class AuthenticationContext {
     /**
      * Resolve activity from the package. If developer did not declare the
      * activity, it will not resolve.
-     * 
-     * @param intent
-     * @return true if activity is defined in the package.
+     * returns true if activity is defined in the package, false otherwise
      */
-    private final boolean resolveIntent(Intent intent) {
-        ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
-        if (resolveInfo == null) {
-            return false;
-        }
-
-        return true;
+    private boolean resolveIntent(Intent intent) {
+        final ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);
+        return resolveInfo != null;
     }
 
     /**
      * Get intent to start authentication activity.
-     * 
-     * @param request
-     * @return intent for authentication activity
      */
-    private final Intent getAuthenticationActivityIntent(IWindowComponent activity,
-            AuthenticationRequest request) {
+    private Intent getAuthenticationActivityIntent(AuthenticationRequest request) {
         Intent intent = new Intent();
         if (AuthenticationSettings.INSTANCE.getActivityPackageName() != null) {
             // This will use the activity from another given package.
@@ -1658,7 +1612,7 @@ public class AuthenticationContext {
     /**
      * set CorrelationId to requests.
      * 
-     * @param requestCorrelationId
+     * @param requestCorrelationId;
      */
     public void setRequestCorrelationId(UUID requestCorrelationId) {
         this.mRequestCorrelationId = requestCorrelationId;
@@ -1788,9 +1742,8 @@ public class AuthenticationContext {
      * true, create an SSOStateContainer object with the family refresh token
      * item of this user and continue the serialization process.
      * 
-     * @param String
-     *            uniqueUserId
-     * @return String
+     * @param uniqueUserId user id for which family token needs to be serialized
+     * @return String the serialized family token
      * @throws AuthenticationException
      */
     String serialize(final String uniqueUserId) throws AuthenticationException {
@@ -1833,8 +1786,7 @@ public class AuthenticationContext {
      * stored into the cache. Exceptions will be thrown for invalid input or the
      * broker is enabled.
      * 
-     * @param String
-     *            serializedBlob
+     * @param serializedBlob String blob to deserialize
      * @throws AuthenticationException
      */
     void deserialize(final String serializedBlob) throws AuthenticationException {
@@ -1849,23 +1801,6 @@ public class AuthenticationContext {
         final TokenCacheItem tokenCacheItem = SSOStateSerializer.deserialize(serializedBlob);
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
         this.getCache().setItem(cacheKey, tokenCacheItem);  
-    }
-
-    class DefaultConnectionService implements IConnectionService {
-
-        private Context mConnectionContext;
-
-        DefaultConnectionService(Context ctx) {
-            mConnectionContext = ctx;
-        }
-
-        public boolean isConnectionAvailable() {
-            ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
-                    .getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
-            boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-            return isConnected;
-        }
     }
 
     /**

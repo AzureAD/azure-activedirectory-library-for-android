@@ -53,7 +53,7 @@ public class ClientAnalytics {
 
     /**
      * send event to listener
-     * @param event
+     * @param event to be logged
      */
     static void logEvent(final Event event) {
         logEvent(event.mName, event.mProperties);
@@ -61,8 +61,8 @@ public class ClientAnalytics {
 
     /**
      * send event to listener
-     * @param eventName
-     * @param properties
+     * @param eventName event name to be logged
+     * @param properties map to be logged
      */
     static void logEvent(final String eventName, Map<String, String> properties) {
         InstanceHolder.sInstance.log(eventName, properties);
@@ -78,8 +78,8 @@ public class ClientAnalytics {
 
     /**
      * if there is event listener set send event to listener
-     * @param eventName
-     * @param properties
+     * @param eventName event name to be sent to the listener
+     * @param properties map to be logged
      */
     private void log(final String eventName, Map<String, String> properties) {
         if (mEventListener != null) {

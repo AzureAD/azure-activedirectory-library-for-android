@@ -281,7 +281,7 @@ public class AuthenticationActivity extends Activity {
                         + android.os.Build.MODEL);
 
         mStorageHelper = new StorageHelper(getApplicationContext());
-        setupWebView(mRedirectUrl, mQueryParameters, mAuthRequest);
+        setupWebView();
 
         if (savedInstanceState == null) {
             mWebView.post(new Runnable() {
@@ -336,8 +336,7 @@ public class AuthenticationActivity extends Activity {
         mWebView.restoreState(savedInstanceState);
     }
 
-    private void setupWebView(String redirect, String queryParam, AuthenticationRequest request) {
-
+    private void setupWebView() {
 
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
@@ -464,6 +463,9 @@ public class AuthenticationActivity extends Activity {
 
     /**
      * Activity sets result to go back to the caller.
+     *
+     * @param resultCode result code to be returned to the called
+     * @param data intent to be returned to the caller
      */
     private void returnToCaller(int resultCode, Intent data) {
         Logger.v(TAG, "Return To Caller:" + resultCode);
@@ -714,6 +716,8 @@ public class AuthenticationActivity extends Activity {
 
     /**
      * handle spinner display.
+     *
+     * @param show True if spinner needs to be displayed, False otherwise
      */
     private void displaySpinner(boolean show) {
         if (!AuthenticationActivity.this.isFinishing()
@@ -772,7 +776,7 @@ public class AuthenticationActivity extends Activity {
      * @param result this is returned as the result of the
      *               AbstractAccountAuthenticator request
      */
-    private final void setAccountAuthenticatorResult(Bundle result) {
+    private void setAccountAuthenticatorResult(Bundle result) {
         mAuthenticatorResultBundle = result;
     }
 
@@ -821,8 +825,7 @@ public class AuthenticationActivity extends Activity {
                 result.taskException = exc;
             }
 
-            if (result != null && result.taskResult != null
-                    && result.taskResult.getAccessToken() != null) {
+            if (result.taskResult != null && result.taskResult.getAccessToken() != null) {
                 Logger.v(TAG, "Setting account:" + mRequest.getLogInfo());
 
                 // Record account in the AccountManager service
@@ -892,14 +895,14 @@ public class AuthenticationActivity extends Activity {
             Account[] accountList = mAccountManager
                     .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
-            if (accountList == null || accountList.length != 1) {
+            if (accountList.length != 1) {
                 result.taskResult = null;
                 result.taskException = new AuthenticationException(
                         ADALError.BROKER_SINGLE_USER_EXPECTED);
                 return;
             }
 
-            Account newaccount = accountList[0];
+            final Account newAccount = accountList[0];
 
             // Single user in authenticator is already created.
             // This is only registering UID for the app
@@ -912,19 +915,19 @@ public class AuthenticationActivity extends Activity {
                 mRequest.setLoginHint(name);
             } else {
                 Logger.i(TAG, "Saving userinfo to account", "");
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
                         userinfo.getUserId());
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
                         userinfo.getGivenName());
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
                         userinfo.getFamilyName());
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
                         userinfo.getIdentityProvider());
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
                         userinfo.getDisplayableId());
             }
@@ -954,9 +957,9 @@ public class AuthenticationActivity extends Activity {
             // Single user and cache is stored per account
             String key = CacheKey.createCacheKeyForRTEntry(mAuthRequest.getAuthority(), mAuthRequest.getResource(),
                     mAuthRequest.getClientId(), null);
-            saveCacheKey(key, newaccount, mAppCallingUID);
+            saveCacheKey(key, newAccount, mAppCallingUID);
             mAccountManager.setUserData(
-                    newaccount,
+                    newAccount,
                     getBrokerAppCacheKey(key),
                     encrypted);
 
@@ -966,9 +969,9 @@ public class AuthenticationActivity extends Activity {
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
                 key = CacheKey.createCacheKeyForMRRT(mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);
-                saveCacheKey(key, newaccount, mAppCallingUID);
+                saveCacheKey(key, newAccount, mAppCallingUID);
                 mAccountManager.setUserData(
-                        newaccount,
+                        newAccount,
                         getBrokerAppCacheKey(key),
                         encrypted);
             }
@@ -977,7 +980,7 @@ public class AuthenticationActivity extends Activity {
             // in the background call without requiring server side
             // validation
             Logger.i(TAG, "Set calling uid:" + mAppCallingUID, "");
-            appendAppUIDToAccount(newaccount);
+            appendAppUIDToAccount(newAccount);
         }
 
         private void saveCacheKey(String key, Account cacheAccount, int callingUID) {

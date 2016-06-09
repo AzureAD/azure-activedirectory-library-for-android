@@ -26,8 +26,7 @@ package com.microsoft.aad.adal;
 import android.content.Intent;
 
 /**
- * Implement this interface to pass fragment. You can also use custom webview
- * with WebviewHelper.
+ * Implement this interface to pass fragment.
  */
 public interface IWindowComponent {
     /**
@@ -35,8 +34,8 @@ public interface IWindowComponent {
      * fragment, activity or dialog finishes after reaching to redirect, it
      * should call onActivityResult to complete the call.
      * 
-     * @param intent
-     * @param requestCode
+     * @param intent with the request in it
+     * @param requestCode for the intent data
      */
     void startActivityForResult(Intent intent, int requestCode);
 }

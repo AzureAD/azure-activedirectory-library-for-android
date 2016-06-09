@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 

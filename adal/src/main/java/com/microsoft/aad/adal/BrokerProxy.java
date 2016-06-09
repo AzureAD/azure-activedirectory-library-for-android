@@ -228,17 +228,16 @@ class BrokerProxy implements IBrokerProxy {
 
             // blocking call to get token from cache or refresh request in
             // background at Authenticator
-            AccountManagerFuture<Bundle> result = null;
             try {
                 // It does not expect activity to be launched.
                 // AuthenticatorService is handling the request at
                 // AccountManager.
                 //
-                result = mAcctManager.getAuthToken(targetAccount, AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                final AccountManagerFuture<Bundle> result = mAcctManager.getAuthToken(targetAccount,
+                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
                         brokerOptions, false,
-                        null /*
-                              * set to null to avoid callback
-                              */, mHandler);
+                        null, //set to null to avoid callback
+                        mHandler);
 
                 // Making blocking request here
                 Logger.v(TAG, "Received result from Authenticator");
@@ -309,9 +308,8 @@ class BrokerProxy implements IBrokerProxy {
                 expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
 
-            AuthenticationResult result = new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
+            return new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
                     "", expires, false, userinfo, tenantId, "");
-            return result;
         }
     }
 
@@ -351,24 +349,24 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.v(TAG, "removeAccounts:");
                 Account[] accountList = mAcctManager
                         .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-                if (accountList != null) {
+                if (accountList.length != 0) {
                     for (Account targetAccount : accountList) {
                         Logger.v(TAG, "remove tokens for:" + targetAccount.name);
-                        if (targetAccount != null) {
-                            Bundle brokerOptions = new Bundle();
-                            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
-                                    AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
 
-                            // only this API call sets calling UID. We are
-                            // setting
-                            // special value to indicate that tokens for this
-                            // calling UID will be cleaned from this account
-                            mAcctManager.getAuthToken(targetAccount, AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                                    brokerOptions, false,
-                                    null /*
-                                          * set to null to avoid callback
-                                          */, mHandler);
-                        }
+                        Bundle brokerOptions = new Bundle();
+                        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
+                                AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
+
+                        // only this API call sets calling UID. We are
+                        // setting
+                        // special value to indicate that tokens for this
+                        // calling UID will be cleaned from this account
+                        mAcctManager.getAuthToken(targetAccount, AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                                brokerOptions, false,
+                                null /*
+                                      * set to null to avoid callback
+                                      */, mHandler);
+
                     }
                 }
             }
@@ -382,13 +380,13 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request) {
         Intent intent = null;
-        AccountManagerFuture<Bundle> result = null;
         try {
             // Callback is not passed since it is making a blocking call to get
             // intent. Activity needs to be launched from calling app
             // to get the calling app's metadata if needed at BrokerActivity.
             Bundle addAccountOptions = getBrokerOptions(request);
-            result = mAcctManager.addAccount(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+            final AccountManagerFuture<Bundle> result = mAcctManager.addAccount(
+                    AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                     AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null, null, mHandler);
 
             // Making blocking request here
@@ -479,7 +477,7 @@ class BrokerProxy implements IBrokerProxy {
     public String getCurrentUser() {
         // authenticator is not used if there is not any user
         Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        if (accountList != null && accountList.length > 0) {
+        if (accountList.length > 0) {
             return accountList[0].name;
         }
 
@@ -508,7 +506,7 @@ class BrokerProxy implements IBrokerProxy {
                     if (hasSupportToAddUserThroughBroker(authenticator.packageName)) {
                         Logger.v(TAG, "Broker supports to add user through app");
                         return true;
-                    } else if (accountList != null && accountList.length > 0) {
+                    } else if (accountList.length > 0) {
                         return verifyAccount(accountList, username, uniqueId);
                     }
                 }
@@ -626,7 +624,7 @@ class BrokerProxy implements IBrokerProxy {
         Bundle bundle = new Bundle();
         bundle.putBoolean(DATA_USER_INFO, true);
 
-        if (accountList != null) {
+        if (accountList.length > 0) {
 
             // get info for each user
             UserInfo[] users = new UserInfo[accountList.length];

@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -597,11 +598,11 @@ public class OauthTests extends AndroidTestCase {
     public void testprocessUIResponseParams() throws
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException {
-        HashMap<String, String> response = new HashMap<String, String>();
+        final Map<String, String> response = new HashMap<>();
         Object request = createAuthenticationRequest("authority", "resource", "client", "redirect",
                 "loginhint", null, null, null);
         Object oauth = createOAuthInstance(request);
-        Method m = ReflectionUtils.getTestMethod(oauth, "processUIResponseParams", HashMap.class);
+        final Method m = ReflectionUtils.getTestMethod(oauth, "processUIResponseParams", Map.class);
 
         // call for empty response
         AuthenticationResult result = (AuthenticationResult) m.invoke(null, response);

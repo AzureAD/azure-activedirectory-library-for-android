@@ -24,11 +24,11 @@
 package com.microsoft.aad.adal;
 
 import java.io.IOException;
-import java.io.NotActiveException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * tokenCacheItem is not persisted. Memory cache does not keep static items.
@@ -42,7 +42,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     private static final String TAG = "MemoryTokenCacheStore";
 
-    private final HashMap<String, TokenCacheItem> mCache = new HashMap<String, TokenCacheItem>();
+    private final Map<String, TokenCacheItem> mCache = new HashMap<>();
 
     private transient Object mCacheLock = new Object();
 
@@ -104,9 +104,10 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         out.defaultWriteObject();
     }
 
-    private synchronized void readObject(ObjectInputStream inputStream) throws NotActiveException,
-            IOException, ClassNotFoundException {
+    private synchronized void readObject(ObjectInputStream inputStream) throws IOException,
+            ClassNotFoundException {
         inputStream.defaultReadObject();
+
         mCacheLock = new Object();
     }
 
@@ -116,7 +117,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        Logger.v(TAG, "contains Item from cache. Key:" + key.toString());
+        Logger.v(TAG, "contains Item from cache. Key:" + key);
         synchronized (mCacheLock) {
             return mCache.get(key) != null;
         }

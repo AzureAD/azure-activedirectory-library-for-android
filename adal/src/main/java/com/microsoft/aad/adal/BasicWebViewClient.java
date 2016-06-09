@@ -172,7 +172,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 new JWSBuilder());
                         final ChallengeResponse challengeResponse = certHandler
                                 .getChallengeResponseFromUri(challengeUrl);
-                        final HashMap<String, String> headers = new HashMap<String, String>();
+                        final Map<String, String> headers = new HashMap<>();
                         headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
                                 challengeResponse.mAuthorizationHeaderValue);
                         postRunnable(new Runnable() {

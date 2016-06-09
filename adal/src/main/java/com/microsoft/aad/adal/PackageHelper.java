@@ -29,15 +29,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import android.accounts.AccountManager;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
-import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 
@@ -54,7 +51,7 @@ class PackageHelper {
     /**
      * Creates helper to check caller info.
      * 
-     * @param ctx
+     * @param ctx The android app/activity context
      */
     public PackageHelper(Context ctx) {
         mContext = ctx;
@@ -62,45 +59,9 @@ class PackageHelper {
     }
 
     /**
-     * Gets metadata information from AndroidManifest file.
-     * 
-     * @param packageName
-     * @param component
-     * @param metaDataName
-     * @return MetaData
-     */
-    public Object getValueFromMetaData(final String packageName, final ComponentName component,
-            final String metaDataName) {
-        try {
-            Logger.v(TAG, "Calling package:" + packageName);
-            if (component != null) {
-                Logger.v(TAG, "component:" + component.flattenToString());
-                ActivityInfo ai = mContext.getPackageManager().getActivityInfo(component,
-                        PackageManager.GET_ACTIVITIES | PackageManager.GET_META_DATA);
-                if (ai != null) {
-                    Bundle metaData = ai.metaData;
-                    if (metaData == null) {
-                        Logger.v(TAG, "metaData is null. Unable to get meta data for "
-                                + metaDataName);
-                    } else {
-                        Object value = (Object)metaData.get(metaDataName);
-                        return value;
-                    }
-                }
-            } else {
-                Logger.v(TAG, "calling component is null.");
-            }
-        } catch (NameNotFoundException e) {
-            Logger.e(TAG, "ActivityInfo is not found", "",
-                    ADALError.BROKER_ACTIVITY_INFO_NOT_FOUND, e);
-        }
-        return null;
-    }
-
-    /**
      * Reads first signature in the list for given package name.
      * 
-     * @param packagename
+     * @param packagename name of the package for which signature should be returned
      * @return signature for package
      */
     public String getCurrentSignatureForPackage(final String packagename) {
@@ -126,20 +87,20 @@ class PackageHelper {
     }
 
     /**
-     * Gets package UID.
+     * Gets the kernel user-ID that has been assigned to this application.
      * 
-     * @param packagename
-     * @return UID
+     * @param packageName for which the user id has to be returned
+     * @return UID user id
      */
-    public int getUIDForPackage(final String packagename) {
+    public int getUIDForPackage(final String packageName) {
         int callingUID = 0;
         try {
-            ApplicationInfo info = mContext.getPackageManager().getApplicationInfo(packagename, 0);
+            final ApplicationInfo info = mContext.getPackageManager().getApplicationInfo(packageName, 0);
             if (info != null) {
                 callingUID = info.uid;
             }
         } catch (NameNotFoundException e) {
-            Logger.e(TAG, "Package " + packagename + " is not found", "",
+            Logger.e(TAG, "Package " + packageName + " is not found", "",
                     ADALError.PACKAGE_NAME_NOT_FOUND, e);
         }
         return callingUID;
