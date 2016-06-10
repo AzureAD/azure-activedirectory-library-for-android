@@ -54,10 +54,10 @@ class ProfileInfo {
                 if (responseItems != null && !responseItems.isEmpty()) {
                     final ProfileInfo profileInfo = new ProfileInfo();
                     profileInfo.mVersion = responseItems.get(ProfileInfoClaim.VERSION);
-                    profileInfo.mSubject = responseItems.get(ProfileInfoClaim.SUBJECT);
+                    profileInfo.mSubject = getValue(responseItems.get(ProfileInfoClaim.SUBJECT));
                     profileInfo.mTenantId = responseItems.get(ProfileInfoClaim.TENANT_ID);
-                    profileInfo.mName = responseItems.get(ProfileInfoClaim.NAME);
-                    profileInfo.mPreferredName = responseItems.get(ProfileInfoClaim.PREFERRED_USERNAME);
+                    profileInfo.mName = getValue(responseItems.get(ProfileInfoClaim.NAME)); //responseItems.get(ProfileInfoClaim.NAME);
+                    profileInfo.mPreferredName = getValue(responseItems.get(ProfileInfoClaim.PREFERRED_USERNAME));//responseItems.get(ProfileInfoClaim.PREFERRED_USERNAME);
                     Logger.v(TAG, "Profile info is extracted from token response");
                     return profileInfo;
                 }
@@ -66,6 +66,14 @@ class ProfileInfo {
             Logger.e(TAG, "Error in parsing user id token", null, ADALError.IDTOKEN_PARSING_FAILURE, ex);
         }
         return null;
+    }
+    
+    private static String getValue(final String value) {
+        if ("null".equalsIgnoreCase(value)) {
+            return null;
+        }
+        
+        return value;
     }
 
     private static final class ProfileInfoClaim {
