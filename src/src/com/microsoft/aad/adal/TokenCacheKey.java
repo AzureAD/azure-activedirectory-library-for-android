@@ -220,6 +220,10 @@ final class TokenCacheKey implements Serializable {
     public String getUniqueId() {
         return mUniqueId;
     }
+    
+    void setUniqueId(final String uniqueUserId) {
+        mUniqueId = uniqueUserId;
+    }
 
     /**
      * Gets DisplayableId.
@@ -228,6 +232,10 @@ final class TokenCacheKey implements Serializable {
      */
     public String getDisplayableId() {
         return mDisplayableId;
+    }
+    
+    void setDisplayableId(final String displayableId) {
+        mDisplayableId = displayableId;
     }
 
     /**

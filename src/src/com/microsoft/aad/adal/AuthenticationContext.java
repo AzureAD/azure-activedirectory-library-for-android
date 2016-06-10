@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -860,6 +861,11 @@ public class AuthenticationContext {
                     .equals(UserIdentifier.UserIdentifierType.UniqueId)) {
                 String resultUniqueID = result.getUserInfo().getUniqueId();
                 Logger.v(TAG, "UniqueId is specified.");
+                // False: If both the userid in the request and the one stored in the userinfo are null
+                if (resultUniqueID == null && request.getUserIdentifier().getId() == null) {
+                    return false;
+                }
+                
                 return resultUniqueID == null
                         || !resultUniqueID.equalsIgnoreCase(request.getUserIdentifier().getId());
             }
@@ -868,6 +874,10 @@ public class AuthenticationContext {
                     .equals(UserIdentifier.UserIdentifierType.RequiredDisplayableId)) {
                 String resultDispID = result.getUserInfo().getDisplayableId();
                 Logger.v(TAG, "RequiredDisplayableId is specified.");
+                if (resultDispID == null && request.getUserIdentifier().getId() == null) {
+                    return false;
+                }
+                
                 return resultDispID == null
                         || !resultDispID.equalsIgnoreCase(request.getUserIdentifier().getId());
             }
@@ -1300,6 +1310,20 @@ public class AuthenticationContext {
                 mUserInfo = item.getUserInfo();
                 mRawIdToken = item.getRawIdToken();
                 mTenantId = item.getTenantId();
+                // Should also update the displayable id or unique id if it's not there in the key. 
+                // Silent request pass the unique id, displayable id will be empty in the key. This will 
+                // cause a duplicate entry stored in the token cache. 
+                if (mUserInfo != null) {
+                    if (StringExtensions.IsNullOrBlank(mKey.getDisplayableId()) 
+                            && !StringExtensions.IsNullOrBlank(mUserInfo.getDisplayableId())) {
+                        mKey.setDisplayableId(mUserInfo.getDisplayableId().toLowerCase(Locale.US));
+                    }
+                    
+                    if (StringExtensions.IsNullOrBlank(mKey.getUniqueId()) 
+                            && !StringExtensions.IsNullOrBlank(mUserInfo.getUniqueId())) {
+                        mKey.setUniqueId(mUserInfo.getUniqueId().toLowerCase(Locale.US));
+                    }
+                }
             }
         }
     }
@@ -1307,18 +1331,16 @@ public class AuthenticationContext {
     private RefreshItem getRefreshToken(final AuthenticationRequest request) {
         RefreshItem refreshItem = null;
         if (mTokenCacheStore != null) {
-            boolean multiResource = false;
+            boolean multiResource = true;
             // target refreshToken for this resource first. CacheKey will
             // include the resourceId in the cachekey
             TokenCacheKey keyUsed = TokenCacheKey.createCacheKey(request);
             Logger.v(TAG, "Looking for regular refresh token. Key:" + keyUsed.getLog());
-            keyUsed.setIsMultipleResourceRefreshToken(false);
             TokenCacheItem item = mTokenCacheStore.getItem(keyUsed);
             if (item == null || StringExtensions.IsNullOrBlank(item.getRefreshToken())) {
                 // if not present, check multiResource item in cache. Cache key
                 // will not include resourceId in the cache key string.
                 Logger.v(TAG, "Looking for Multi Resource Refresh token");
-                keyUsed.setIsMultipleResourceRefreshToken(true);
                 item = mTokenCacheStore.getItem(keyUsed);
                 multiResource = true;
             }
