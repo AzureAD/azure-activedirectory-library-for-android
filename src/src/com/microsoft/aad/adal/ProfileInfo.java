@@ -56,8 +56,8 @@ class ProfileInfo {
                     profileInfo.mVersion = responseItems.get(ProfileInfoClaim.VERSION);
                     profileInfo.mSubject = getValue(responseItems.get(ProfileInfoClaim.SUBJECT));
                     profileInfo.mTenantId = responseItems.get(ProfileInfoClaim.TENANT_ID);
-                    profileInfo.mName = getValue(responseItems.get(ProfileInfoClaim.NAME)); //responseItems.get(ProfileInfoClaim.NAME);
-                    profileInfo.mPreferredName = getValue(responseItems.get(ProfileInfoClaim.PREFERRED_USERNAME));//responseItems.get(ProfileInfoClaim.PREFERRED_USERNAME);
+                    profileInfo.mName = getValue(responseItems.get(ProfileInfoClaim.NAME));
+                    profileInfo.mPreferredName = getValue(responseItems.get(ProfileInfoClaim.PREFERRED_USERNAME));
                     Logger.v(TAG, "Profile info is extracted from token response");
                     return profileInfo;
                 }
