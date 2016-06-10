@@ -1,4 +1,9 @@
+Version 2.0.3-alpha
+--------------
+Fix multiple cache item error
+
 Version 2.0.2-alpha
+--------------
 Update on reading ProfileInfo
 Fix on reading id_token_expires_in from server
 Fix on sending profile as reserved scope
