@@ -64,9 +64,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -83,6 +81,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      */
     private static final String VALID_AUTHORITY = "https://login.windows.net/test.onmicrosoft.com";
     private static final int ACTIVITY_TIME_OUT = 1000;
+    private static final int MINUS_MINUITE = 10;
     private static final String TEST_UPN = "testupn";
     private static final String TEST_USERID = "testuserid";
     private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
@@ -101,8 +100,10 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
                     .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+            final int iterationCount = 100;
+            final int keyLength = 256;
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+                    "abcdedfdfd".getBytes("UTF-8"), iterationCount, keyLength));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
@@ -125,7 +126,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         // Make sure AT is not expired
         final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, 10);
+        expiredTime.add(Calendar.MINUTE, MINUS_MINUITE);
         final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
@@ -160,7 +161,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             InterruptedException {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, -10);
+        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
         final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
@@ -211,7 +212,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, -10);
+        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
         final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
@@ -261,7 +262,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             InterruptedException {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, -10);
+        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
         final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
@@ -304,7 +305,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, -10);
+        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
         final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
@@ -367,7 +368,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_valid() throws PackageManager.NameNotFoundException, InterruptedException,
+    public void testVerifyBrokerRedirectUriValid() throws PackageManager.NameNotFoundException, InterruptedException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException {
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
@@ -403,7 +404,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_invalidPrefix() throws PackageManager.NameNotFoundException,
+    public void testVerifyBrokerRedirectUriInvalidPrefix() throws PackageManager.NameNotFoundException,
             InterruptedException {
         final FileMockContext mockContext = createMockContext();
 
@@ -426,7 +427,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_invalidPackageName() throws NoSuchAlgorithmException,
+    public void testVerifyBrokerRedirectUriInvalidPackageName() throws NoSuchAlgorithmException,
             PackageManager.NameNotFoundException, InterruptedException {
         final FileMockContext mockContext = createMockContext();
 
@@ -449,7 +450,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUri_invalidSignature() throws PackageManager.NameNotFoundException,
+    public void testVerifyBrokerRedirectUriInvalidSignature() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, InterruptedException {
 
         final FileMockContext mockContext = createMockContext();
@@ -595,7 +596,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(
                 Util.createInputStream(Util.getSuccessTokenResponse(false, false)));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
     }
 
     private void prepareFailedHttpUrlConnection(final String errorCode) throws IOException {
@@ -605,7 +606,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(
                 Util.createInputStream(Util.getErrorResponseBody(errorCode)));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(400);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
     }
 
     private String getEncodedTestingSignature() throws NoSuchAlgorithmException {

@@ -23,13 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.accounts.Account;
-import android.accounts.AccountManagerCallback;
-import android.app.Activity;
 import android.content.Intent;
-import android.os.Bundle;
-import android.os.Handler;
-
 
 /**
  * Internal class handling the logic for acquire token with Broker app(Either Company Portal or Azure Authenticator).
@@ -51,8 +45,8 @@ public class AcquireTokenWithBrokerRequest {
     }
 
     /**
-     * Call {@link android.accounts.AccountManager#getAuthToken(Account, String, Bundle, Activity,
-     * AccountManagerCallback, Handler)} for silent request to broker.
+     * Acquire token silently via broker. This is via account manager API call.
+     * see {@link BrokerProxy#getAuthTokenInBackground(AuthenticationRequest)} for details.
      */
     AuthenticationResult acquireTokenWithBrokerSilent()
             throws AuthenticationException {
@@ -74,8 +68,8 @@ public class AcquireTokenWithBrokerRequest {
     }
 
     /**
-     * Call {@link android.accounts.AccountManager#addAccount(String, String, String[], Bundle, Activity,
-     * AccountManagerCallback, Handler)} for interactive request to broker.
+     * Acquire token interactively, will prompt user if possible.
+     * See {@link BrokerProxy#getIntentForBrokerActivity(AuthenticationRequest)} for details.
      */
     AuthenticationResult acquireTokenWithBrokerInteractively(final IWindowComponent activity)
             throws AuthenticationException {

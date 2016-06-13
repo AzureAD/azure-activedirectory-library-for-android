@@ -22,12 +22,12 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 /**
  * Internal class handling the interaction with {@link AcquireTokenSilentHandler} and {@link ITokenCacheStore}. 
@@ -138,8 +138,7 @@ class TokenCacheAccessor {
     }
     
     /**
-     * Update token cache with returned auth result. 
-     * @param result
+     * Update token cache with returned auth result.
      */
     void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) {
         if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
@@ -164,7 +163,6 @@ class TokenCacheAccessor {
     
     /**
      * Remove token from cache.
-     * {@link RefreshItem#mKeysWithUser} is holding a list of keys related to user for removal. 
      * 1) If refresh with resource specific token cache entry, clear RT with key(R,C,U,A)
      * 2) If refresh with MRRT, clear RT (C,U,A) and (R,C,U,A)
      * 3) if refresh with FRT, clear RT with (U,A) 
@@ -286,9 +284,6 @@ class TokenCacheAccessor {
     
     /**
      * Calculate hash for accessToken and log that.
-     * 
-     * @param request
-     * @param result
      */
     private void logReturnedToken(final AuthenticationResult result) {
         if (result != null && result.getAccessToken() != null) {

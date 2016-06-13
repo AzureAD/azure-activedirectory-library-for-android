@@ -69,7 +69,6 @@ dependencies {
 
     // Test Dependencies
     testCompile 'junit:junit:4.12'
-    testCompile 'org.powermock:powermock-api-mockito:1.5.1'
 }
 
 task sourcesJar(type: Jar) {

@@ -23,7 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -31,8 +30,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.SparseArray;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -42,8 +39,6 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Internal class for handling acquireToken logic, including the silent flow and interactive flow.
@@ -55,25 +50,15 @@ class AcquireTokenRequest {
     /**
      * Singled threaded Executor for async work.
      */
-    private static final ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
-
-    /**
-     * Delegate map is needed to handle activity recreate without asking
-     * developer to handle context instance for config changes.
-     */
-    static SparseArray<AuthenticationRequestState> mDelegateMap = new SparseArray<>();
+    private static final ExecutorService THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
 
     private final Context mContext;
-    private final TokenCacheAccessor mTokenCacheAccessor;
-    private final boolean mValidateAuthority;
+    private final AuthenticationContext mAuthContext;
+    private TokenCacheAccessor mTokenCacheAccessor;
     private final IBrokerProxy mBrokerProxy;
 
-    private final ReentrantReadWriteLock RWL = new ReentrantReadWriteLock();
-    private final Lock READ_LOCK = RWL.readLock();
-    private final Lock WRITE_LOCK = RWL.writeLock();
     private Handler mHandler = null;
     private BrokerResumeResultReceiver mBrokerResumeResultReceiver = null;
-    private boolean mAuthorityValidated = false;
 
     /*Used for silent request telemetry data logging.*/
     private boolean mAcquireTokenSilentWithBroker = false;
@@ -83,27 +68,24 @@ class AcquireTokenRequest {
      */
     private UUID mRequestCorrelationId = null;
 
-        /**
-         * Instance validation related calls are serviced inside Discovery as a
-         * module.
-         */
+    /**
+     * Instance validation related calls are serviced inside Discovery as a
+     * module.
+     */
     private IDiscovery mDiscovery = new Discovery();
 
     /**
-     * Last set authorization callback.
+     * Constructor for {@link AcquireTokenRequest}.
      */
-    private AuthenticationCallback<AuthenticationResult> mAuthorizationCallback;
+    AcquireTokenRequest(final Context appContext, final AuthenticationContext authContext) {
+        mContext = appContext;
+        mAuthContext = authContext;
 
-    /**
-     * Constructor for {@link AcquireTokenRequest}
-     */
-    AcquireTokenRequest(final Context context, final boolean valiateAuthority,
-                        final TokenCacheAccessor tokenCacheAccessor) {
-        mContext = context;
-        mValidateAuthority = valiateAuthority;
-        mTokenCacheAccessor = tokenCacheAccessor;
-
-        mBrokerProxy = new BrokerProxy(context);
+        if (authContext.getTokenCacheStore() != null) {
+            mTokenCacheAccessor = new TokenCacheAccessor(authContext.getTokenCacheStore(),
+                    authContext.getAuthority());
+        }
+        mBrokerProxy = new BrokerProxy(appContext);
     }
 
     /**
@@ -119,11 +101,17 @@ class AcquireTokenRequest {
         Logger.setCorrelationId(authRequest.getCorrelationId());
         mRequestCorrelationId = authRequest.getCorrelationId();
         Logger.v(TAG, "Sending async task from thread:" + android.os.Process.myTid());
-        sThreadExecutor.execute(new Runnable() {
+        THREAD_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
                 Logger.v(TAG, "Running task in thread:" + android.os.Process.myTid());
-                acquireTokenPreValidation(callbackHandle, authRequest, activity, useDialog, mValidateAuthority);
+                try {
+                    // Validate acquire token call first.
+                    acquireTokenValidation(authRequest);
+                    acquireTokenAfterValidation(callbackHandle, activity, useDialog, authRequest);
+                } catch (final AuthenticationException authenticationException) {
+                    callbackHandle.onError(authenticationException);
+                }
             }
         });
     }
@@ -133,67 +121,26 @@ class AcquireTokenRequest {
      * App context or activity is not needed. Async requests are created, so this
      * needs to be called at UI thread.
      */
-    void refreshTokenWithoutCache(final String refreshToken, final String clientId,
-                                  final String resource, final String authority,
+    void refreshTokenWithoutCache(final String refreshToken, final AuthenticationRequest authenticationRequest,
                                   final AuthenticationCallback<AuthenticationResult> externalCallback) {
-        Logger.setCorrelationId(getRequestCorrelationId());
+        Logger.setCorrelationId(authenticationRequest.getCorrelationId());
         Logger.v(TAG, "Refresh token without cache");
-
-        if (StringExtensions.IsNullOrBlank(refreshToken)) {
-            throw new IllegalArgumentException("Refresh token is not provided");
-        }
-
-        if (StringExtensions.IsNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("ClientId is not provided");
-        }
-
-        if (externalCallback == null) {
-            throw new IllegalArgumentException("Callback is not provided");
-        }
 
         final CallbackHandler callbackHandle = new CallbackHandler(getHandler(), externalCallback);
 
         // Execute all the calls inside Runnable to return immediately. All UI
         // related actions will be performed using Handler.
-        sThreadExecutor.execute(new Runnable() {
+        THREAD_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
-                final URL authorityUrl = StringExtensions.getUrl(authority);
-                if (authorityUrl == null) {
-                    callbackHandle.onError(new AuthenticationException(
-                            ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
-
-                    return;
-                }
-
-                final AuthenticationRequest request = new AuthenticationRequest(authority,
-                        resource, clientId, mRequestCorrelationId);
-
-                // It is not using cache and refresh is not expected to
-                // show authentication activity.
-                request.setSilent(true);
-                if (mValidateAuthority) {
-                    Logger.v(TAG, "Start authority validation. ");
-
-                    if (validateAuthority(authorityUrl, request.getCorrelationId())) {
-                        Logger.v(TAG, "Authority is validated" + authorityUrl.toString());
-                    } else {
-                        Logger.v(
-                                TAG,
-                                "Call callback since instance is invalid:"
-                                        + authorityUrl.toString());
-                        callbackHandle.onError(new AuthenticationException(
-                                ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                        return;
-                    }
-                }
-
-                final AuthenticationResult authResult;
                 try {
-                    final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
-                            request, mTokenCacheAccessor);
-                    authResult = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
+                    // validate acquire token call first.
+                    acquireTokenValidation(authenticationRequest);
 
+                    final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
+                            authenticationRequest, mTokenCacheAccessor);
+                    final AuthenticationResult authResult
+                            = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
                     callbackHandle.onSuccess(authResult);
                 } catch (final AuthenticationException authenticationException) {
                     callbackHandle.onError(authenticationException);
@@ -202,51 +149,31 @@ class AcquireTokenRequest {
         });
     }
 
-
-    /**
-     * Only gets token from activity defined in this package.
-     *
-     * @param callbackHandle {@link CallbackHandler} used to deliver the result back to
-     *                                              the {@link AuthenticationCallback}
-     * @param activity {@link Activity} used to start the interactive flow.
-     * @param useDialog True if using {@link AuthenticationDialog}, false otherwise.
-     * @param  validateAuthority True if needed to perform authority validation, false otherwise.
-     * @return {@link AuthenticationResult} for acquireToken flow.
-     */
-    private AuthenticationResult acquireTokenPreValidation(final CallbackHandler callbackHandle,
-                                                           final AuthenticationRequest authenticationRequest,
-                                                           final IWindowComponent activity, final boolean useDialog,
-                                                           final boolean validateAuthority) {
+    private void acquireTokenValidation(final AuthenticationRequest authenticationRequest)
+            throws AuthenticationException {
         final URL authorityUrl = StringExtensions.getUrl(authenticationRequest.getAuthority());
         if (authorityUrl == null) {
-            callbackHandle.onError(new AuthenticationException(
-                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL));
-            return null;
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
-        if (validateAuthority && !mAuthorityValidated) {
-            // Discovery call creates an Async Task to send
-            // Web Requests
-            // using a handler
-            boolean result = validateAuthority(authorityUrl, authenticationRequest.getCorrelationId());
-            if (result) {
-                mAuthorityValidated = true;
-                Logger.v(TAG, "Authority is validated: " + authorityUrl.toString());
-            } else {
-                Logger.v(TAG, "Call external callback since instance is invalid"
-                        + authorityUrl.toString());
-                callbackHandle.onError(new AuthenticationException(
-                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
-                return null;
+        // validate authority
+        if (mAuthContext.getValidateAuthority()) {
+            validateAuthority(authorityUrl);
+            if (!mAuthContext.getIsAuthorityValidated()) {
+                Logger.v(TAG, "Invalid authority, sending back exception via callback.");
+                throw new AuthenticationException(
+                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
             }
         }
 
-        // Validated the authority or skipped the validation
-        try {
-            return acquireTokenAfterValidation(callbackHandle, activity, useDialog, authenticationRequest);
-        } catch (final AuthenticationException authenticationException) {
-            callbackHandle.onError(authenticationException);
-            return null;
+        // Verify broker redirect uri for non-silent request
+        if (canSwitchToBroker(authenticationRequest) && !authenticationRequest.isSilent()) {
+            // Verify redirect uri match what we expecting for broker non-silent request. For silent request,
+            // since we don't require developer to pass us the redirect uri, we won't perform the validation.
+            if (!authenticationRequest.isSilent()) {
+                verifyBrokerRedirectUri(authenticationRequest);
+            }
         }
     }
 
@@ -254,20 +181,14 @@ class AcquireTokenRequest {
      * Perform authority validation.
      * True if the passed in authority is valid, false otherwise.
      */
-    private boolean validateAuthority(final URL authorityUrl, final UUID correlationId) {
-        // This is not calling outer callback. It is using
-        // authenticationCallback, so handler is not needed here
-        if (mDiscovery != null) {
+    private void validateAuthority(final URL authorityUrl) {
+        if (!mAuthContext.getIsAuthorityValidated()) {
             Logger.v(TAG, "Start validating authority");
-
-            // Set CorrelationId for Instance Discovery
-            mDiscovery.setCorrelationId(correlationId);
-            boolean result = mDiscovery.isValidAuthority(authorityUrl);
-            Logger.v(TAG, "Finish validating authority:" + authorityUrl + " result:" + result);
-            return result;
+            mDiscovery.setCorrelationId(mAuthContext.getRequestCorrelationId());
+            final boolean authorityValidationResult = mDiscovery.isValidAuthority(authorityUrl);
+            Logger.v(TAG, "Finish validating authority:" + authorityUrl + " result:" + authorityValidationResult);
+            mAuthContext.setIsAuthorityValidated(mDiscovery.isValidAuthority(authorityUrl));
         }
-
-        return false;
     }
 
     /**
@@ -279,42 +200,31 @@ class AcquireTokenRequest {
      *    i> Do silent cache lookup first, same as 1.
      *       a) If we can talk to broker, go to broker for auth.
      *       b) If not, launch webview with embedded flow.
+     *
+     * If silent request succeeds, we'll return the token back via callback.
+     * If silent request fails and no prompt is allowed, we'll return the exception back via callback.
+     * If silent request fails and prompt is allowed, we'll prompt the user and launch webview.
      */
-    private AuthenticationResult acquireTokenAfterValidation(CallbackHandler callbackHandle,
-                                                             final IWindowComponent activity,
-                                                             final boolean useDialog,
-                                                             final AuthenticationRequest authenticationRequest)
+    private void acquireTokenAfterValidation(final CallbackHandler callbackHandle,
+                                             final IWindowComponent activity,
+                                             final boolean useDialog,
+                                             final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
 
-        AuthenticationResult authenticationResult = null;
-
-        // verify broker redirect uri first
-        if (canSwitchToBroker(authenticationRequest) && !authenticationRequest.isSilent()) {
-            //check if the redirectUri is valid
-            try {
-                //the broker redirectUri will be checked only if
-                //the request from client App is not silent
-                //otherwise the acquiretokensilent might be interrupted
-                //by DeveloperAuthenticationException
-                if (!authenticationRequest.isSilent()) {
-                    verifyBrokerRedirectUri(authenticationRequest);
-                }
-            } catch (final UsageAuthenticationException exception) {
-                Logger.v(TAG, "Did not pass the verification of the broker redirect URI");
-                callbackHandle.onError(exception);
-                return authenticationResult;
-            }
-        }
+        AuthenticationResult authenticationResult;
 
         // For silent request or prompt_behavior is auto, try to look up cache first.
-        if (!promptUser(authenticationRequest.getPrompt()) || authenticationRequest.isSilent()) {
+        if (shouldTrySilentFlow(authenticationRequest)) {
             authenticationResult = acquireTokenSilentFlow(authenticationRequest);
 
             if (isAccessTokenReturned(authenticationResult)) {
-                callbackHandle.onSuccess(authenticationResult);
+                // If AT is successfully returned and not via broker, we're using the local cache; vice versa
+                mAuthContext.setFavorLocalCache(!mAcquireTokenSilentWithBroker);
+                Logger.v(TAG, "Token is successfully returned from silent flow. ");
                 ClientAnalytics.logEvent(new RefreshTokenEvent(
                         new InstrumentationPropertiesBuilder(authenticationRequest, authenticationResult),
                         InstrumentationIDs.EVENT_RESULT_SUCCESS, mAcquireTokenSilentWithBroker));
+                callbackHandle.onSuccess(authenticationResult);
             } else {
                 // Silent request, if token not returned, return AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED back
                 // to developer.
@@ -332,20 +242,19 @@ class AcquireTokenRequest {
                             + " " + errorInfo);
 
                 } else {
-                    final boolean isInitialRequest = authenticationResult != null
-                            && authenticationResult.isInitialRequest();
                     // Prompt behavior is auto, try to launch webview
-                    return acquireTokenInteractiveFlow(callbackHandle, activity, useDialog, isInitialRequest,
-                            authenticationRequest);
+                    acquireTokenInteractiveFlow(callbackHandle, activity, useDialog, authenticationRequest);
                 }
             }
         } else {
             // For non-silent request or request with prompt behavior as Always, Force_Prompt and refresh_session,
             // launch the webview directly
-            return acquireTokenInteractiveFlow(callbackHandle, activity,useDialog, false, authenticationRequest);
+            acquireTokenInteractiveFlow(callbackHandle, activity, useDialog, authenticationRequest);
         }
+    }
 
-        return authenticationResult;
+    private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
+       return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
     }
 
     /**
@@ -375,7 +284,7 @@ class AcquireTokenRequest {
             try {
                 final AcquireTokenWithBrokerRequest acquireTokenWithBrokerRequest
                         = new AcquireTokenWithBrokerRequest(authenticationRequest, mBrokerProxy);
-                authResult =  acquireTokenWithBrokerRequest.acquireTokenWithBrokerSilent();
+                authResult = acquireTokenWithBrokerRequest.acquireTokenWithBrokerSilent();
             } catch (final AuthenticationException authenticationException) {
                 ClientAnalytics.logEvent(new RefreshTokenEvent(
                         new InstrumentationPropertiesBuilder(authenticationRequest, authenticationException),
@@ -390,35 +299,37 @@ class AcquireTokenRequest {
      * Handles the acquire token interactive flow. If we can switch to broker, will always launch webview via broker.
      * If we cannot switch to broker, will launch webview locally.
      */
-    private AuthenticationResult acquireTokenInteractiveFlow(final CallbackHandler callbackHandle,
-                                                             final IWindowComponent activity,
-                                                             final boolean useDialog,
-                                                             final boolean isInitialRequest,
-                                                             final AuthenticationRequest authenticationRequest)
+    private void acquireTokenInteractiveFlow(final CallbackHandler callbackHandle,
+                                             final IWindowComponent activity,
+                                             final boolean useDialog,
+                                             final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
+
+        if (activity == null && !useDialog) {
+            throw new AuthenticationException(
+                    ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
+                    + " Cannot launch webview, acitivity is null.");
+        }
 
         HttpWebRequest.throwIfNetworkNotAvaliable(mContext);
 
-        mAuthorizationCallback = callbackHandle.callback;
-        authenticationRequest.setRequestId(callbackHandle.callback.hashCode());
-        putWaitingRequest(callbackHandle.callback.hashCode(),
-                new AuthenticationRequestState(callbackHandle.callback.hashCode(), authenticationRequest,
-                        callbackHandle.callback));
+        mAuthContext.setAuthorizationCallback(callbackHandle.getCallback());
+        authenticationRequest.setRequestId(callbackHandle.getCallback().hashCode());
+        putWaitingRequest(callbackHandle.getCallback().hashCode(),
+                new AuthenticationRequestState(callbackHandle.getCallback().hashCode(), authenticationRequest,
+                        callbackHandle.getCallback()));
         if (canSwitchToBroker(authenticationRequest)) {
             // Always go to broker if the sdk can talk to broker for interactive flow
-            if (isInitialRequest) {
-                Logger.v(TAG, "Initial request to authenticator");
-            }
 
             Logger.v(TAG, "Launch activity for interactive authentication via broker with callback: "
-                    + callbackHandle.callback.hashCode());
+                    + callbackHandle.getCallback().hashCode());
             final AcquireTokenWithBrokerRequest acquireTokenWithBrokerRequest
                     = new AcquireTokenWithBrokerRequest(authenticationRequest, mBrokerProxy);
 
-            return acquireTokenWithBrokerRequest.acquireTokenWithBrokerInteractively(activity);
+            acquireTokenWithBrokerRequest.acquireTokenWithBrokerInteractively(activity);
         } else {
             Logger.v(TAG, "Starting Authentication Activity for embedded flow. Callback is:"
-                    + callbackHandle.callback.hashCode());
+                    + callbackHandle.getCallback().hashCode());
             final AcquireTokenInteractiveRequest acquireTokenInteractiveRequest
                     = new AcquireTokenInteractiveRequest(mContext, authenticationRequest, mTokenCacheAccessor);
             if (useDialog) {
@@ -428,8 +339,6 @@ class AcquireTokenRequest {
             } else {
                 acquireTokenInteractiveRequest.acquireToken(activity, null);
             }
-
-            return null;
         }
     }
 
@@ -449,42 +358,46 @@ class AcquireTokenRequest {
     private boolean verifyBrokerRedirectUri(final AuthenticationRequest request) throws UsageAuthenticationException {
         final String methodName = ":verifyBrokerRedirectUri";
         final String inputUri = request.getRedirectUri();
-        final String actualUri = getRedirectUriForBroker();
+        final String actualRedirectUri = mAuthContext.getRedirectUriForBroker();
 
         final String errMsg;
         if (StringExtensions.IsNullOrBlank(inputUri)) {
             errMsg = "The redirectUri is null or blank. "
-                    + "so the redirect uri is expected to be:" + actualUri;
+                    + "so the redirect uri is expected to be:" + actualRedirectUri;
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
         } else if (!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://")) {
             errMsg = "The prefix of the redirect uri does not match the expected value. "
                     + " The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
-                    + " so the redirect uri is expected to be: " + actualUri;
+                    + " so the redirect uri is expected to be: " + actualRedirectUri;
             Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
         } else {
             try {
-                PackageHelper packageHelper = new PackageHelper(mContext);
-                String base64URLEncodePackagename = URLEncoder.encode(mContext.getPackageName(), AuthenticationConstants.ENCODING_UTF8);
-                String base64URLEncodeSignature = URLEncoder.encode(packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()), AuthenticationConstants.ENCODING_UTF8);
-                if (!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://" + base64URLEncodePackagename + "/")) {
-                    errMsg = "The base64 url encoded package name component of the redirect uri does not match the expected value. "
-                            + " This apps package name is: " + base64URLEncodePackagename
-                            + " so the redirect uri is expected to be: " + actualUri;
+                final PackageHelper packageHelper = new PackageHelper(mContext);
+                final String base64URLEncodePackagename = URLEncoder.encode(mContext.getPackageName(),
+                        AuthenticationConstants.ENCODING_UTF8);
+                final String base64URLEncodeSignature = URLEncoder.encode(
+                        packageHelper.getCurrentSignatureForPackage(mContext.getPackageName()),
+                        AuthenticationConstants.ENCODING_UTF8);
+                if (!inputUri.startsWith(AuthenticationConstants.Broker.REDIRECT_PREFIX + "://"
+                        + base64URLEncodePackagename + "/")) {
+                    errMsg = "The base64 url encoded package name component of the redirect uri does not "
+                            + "match the expected value. This apps package name is: " + base64URLEncodePackagename
+                            + " so the redirect uri is expected to be: " + actualRedirectUri;
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
                     throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
-                } else if (!inputUri.equalsIgnoreCase(actualUri)) {
-                    errMsg = "The base64 url encoded signature component of the redirect uri does not match the expected value. "
-                            + " This apps signature is: " + base64URLEncodeSignature
-                            + " so the redirect uri is expected to be: " + actualUri;
+                } else if (!inputUri.equalsIgnoreCase(actualRedirectUri)) {
+                    errMsg = "The base64 url encoded signature component of the redirect uri does not match the "
+                            + "expected value. This apps signature is: " + base64URLEncodeSignature
+                            + " so the redirect uri is expected to be: " + actualRedirectUri;
                     Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
                     throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
                 }
             } catch (final UnsupportedEncodingException e) {
                 Logger.e(TAG + methodName, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-                throw new UsageAuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The verifying BrokerRedirectUri "
-                        + "process failed because the base64 url encoding is not supported.", e);
+                throw new UsageAuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, "The verifying "
+                        + "BrokerRedirectUri process failed because the base64 url encoding is not supported.", e);
             }
         }
 
@@ -492,30 +405,11 @@ class AcquireTokenRequest {
         return true;
     }
 
-    /**
-     * Get expected redirect Uri for your app to use in broker. You need to
-     * register this redirectUri in order to get token from Broker.
-     *
-     * @return RedirectUri string to use for broker requests.
-     */
-    String getRedirectUriForBroker() {
-        PackageHelper packageHelper = new PackageHelper(mContext);
-        String packageName = mContext.getPackageName();
-
-        // First available signature. Applications can be signed with multiple
-        // signatures.
-        String signatureDigest = packageHelper.getCurrentSignatureForPackage(packageName);
-        String redirectUri = PackageHelper.getBrokerRedirectUrl(packageName, signatureDigest);
-        Logger.v(TAG, "Broker redirectUri:" + redirectUri + " packagename:" + packageName
-                + " signatureDigest:" + signatureDigest);
-        return redirectUri;
-    }
 
     /**
      * This method wraps the implementation for onActivityResult at the related
      * Activity class. This method is called at UI thread.
      *
-     * @param requestCode Request code provided at the start of the activity.
      * @param resultCode Result code set from the activity.
      * @param data {@link Intent}
      */
@@ -533,9 +427,9 @@ class AcquireTokenRequest {
                 Logger.e(TAG, "onActivityResult BROWSER_FLOW data is null.", "",
                         ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
             } else {
-                Bundle extras = data.getExtras();
+                final Bundle extras = data.getExtras();
                 final int requestId = extras.getInt(AuthenticationConstants.Browser.REQUEST_ID);
-                final AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
+                final AuthenticationRequestState waitingRequest = mAuthContext.getWaitingRequest(requestId);
                 if (waitingRequest != null) {
                     Logger.v(TAG, "onActivityResult RequestId:" + requestId);
                 } else {
@@ -558,7 +452,8 @@ class AcquireTokenRequest {
                             AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE, 0);
                     final Date expire = new Date(expireTime);
                     final String idtoken = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_IDTOKEN);
-                    final String tenantId = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
+                    final String tenantId = data.getStringExtra(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                     final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken);
@@ -573,35 +468,39 @@ class AcquireTokenRequest {
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
-                    Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker installation. Once "
-                            + "broker is installed, request will be resumed and result will be received");
+                    Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker "
+                            + "installation. Once broker is installed, request will be resumed and result "
+                            + "will be received");
 
-                    //Register the broker resume result receiver with intent filter as broker_request_resume and specific app package name
+                    //Register the broker resume result receiver with intent filter as broker_request_resume and
+                    // specific app package name
                     mBrokerResumeResultReceiver = new BrokerResumeResultReceiver();
                     (new ContextWrapper(mContext)).registerReceiver(mBrokerResumeResultReceiver,
                             new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME
                                     + mContext.getPackageName()), null, mHandler);
 
                     // Send cancel result back to caller if doesn't receive result from broker within 5 minuites
+                    final int timoutForBrokerResult = 10 * 60 * 1000;
                     mHandler.postDelayed(new Runnable() {
 
                         @Override
                         public void run() {
                             if (!mBrokerResumeResultReceiver.isResultReceivedFromBroker()) {
-                                Logger.v(TAG + "onActivityResult", "BrokerResumeResultReceiver doesn't receive result from "
-                                        + "broker within 10 minuites, unregister the receiver and cancelling the request");
+                                Logger.v(TAG + "onActivityResult", "BrokerResumeResultReceiver doesn't receive "
+                                        + "result from broker within 10 minuites, unregister the receiver and "
+                                        + "cancelling the request");
 
                                 (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
-                                waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError("Broker doesn't "
-                                        + "return back the result within 10 minuites"));
+                                waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
+                                        "Broker doesn't return back the result within 10 minuites"));
                             }
                         }
-                    }, 10 * 60 * 1000);
+                    }, timoutForBrokerResult);
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
                     if (authException != null && authException instanceof AuthenticationException) {
-                        AuthenticationException exception = (AuthenticationException)authException;
+                        AuthenticationException exception = (AuthenticationException) authException;
                         Logger.w(TAG, "Webview returned exception", exception.getMessage(),
                                 ADALError.WEBVIEW_RETURNED_AUTHENTICATION_EXCEPTION);
                         waitingRequestOnError(waitingRequest, requestId, exception);
@@ -627,10 +526,15 @@ class AcquireTokenRequest {
                     final String endingUrl = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, "");
                     if (endingUrl.isEmpty()) {
+                        final StringBuilder exceptionMessage =
+                                new StringBuilder("Webview did not reach the redirectUrl. ");
+                        if (authenticationRequest != null) {
+                            exceptionMessage.append(authenticationRequest.getLogInfo());
+                        }
+                        exceptionMessage.append(correlationInfo);
+
                         AuthenticationException e = new AuthenticationException(
-                                ADALError.WEBVIEW_RETURNED_EMPTY_REDIRECT_URL,
-                                "Webview did not reach the redirectUrl. "
-                                        + authenticationRequest.getLogInfo() + correlationInfo);
+                                ADALError.WEBVIEW_RETURNED_EMPTY_REDIRECT_URL, exceptionMessage.toString());
                         Logger.e(TAG, e.getMessage(), "", e.getCode());
                         waitingRequestOnError(waitingRequest, requestId, e);
                     } else {
@@ -643,7 +547,7 @@ class AcquireTokenRequest {
                         // immediately to
                         // UI thread. All UI
                         // related actions will be performed using the Handler.
-                        sThreadExecutor.execute(new Runnable() {
+                        THREAD_EXECUTOR.execute(new Runnable() {
 
                             @Override
                             public void run() {
@@ -654,9 +558,9 @@ class AcquireTokenRequest {
                                     final AuthenticationResult authenticationResult
                                             = acquireTokenInteractiveRequest.acquireTokenWithAuthCode(endingUrl);
 
-                                    if (waitingRequest != null && waitingRequest.mDelagete != null) {
+                                    if (waitingRequest.mDelagete != null) {
                                         Logger.v(TAG, "Sending result to callback. "
-                                                + authenticationRequest.getLogInfo());
+                                                + waitingRequest.mRequest.getLogInfo());
                                         callbackHandle.onSuccess(authenticationResult);
                                     }
                                 } catch (final AuthenticationException authenticationException) {
@@ -681,15 +585,6 @@ class AcquireTokenRequest {
         }
     }
 
-    /**
-     * FORCE_PROMPT will force broker with PRT support to prompt user.
-     */
-    private boolean promptUser(PromptBehavior prompt) {
-        return prompt == PromptBehavior.Always
-                || prompt == PromptBehavior.REFRESH_SESSION
-                || prompt == PromptBehavior.FORCE_PROMPT;
-    }
-
     private boolean isAccessTokenReturned(final AuthenticationResult authResult) {
         return authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken());
     }
@@ -706,9 +601,6 @@ class AcquireTokenRequest {
     /**
      * If request has correlationID, ADAL should report that instead of current
      * CorrelationId.
-     *
-     * @param waitingRequest
-     * @return
      */
     private String getCorrelationInfoFromWaitingRequest(final AuthenticationRequestState waitingRequest) {
         UUID requestCorrelationID = getRequestCorrelationId();
@@ -716,9 +608,7 @@ class AcquireTokenRequest {
             requestCorrelationID = waitingRequest.mRequest.getCorrelationId();
         }
 
-        String correlationInfo = String.format(" CorrelationId: %s",
-                requestCorrelationID.toString());
-        return correlationInfo;
+        return String.format(" CorrelationId: %s", requestCorrelationID.toString());
     }
 
     /**
@@ -726,7 +616,7 @@ class AcquireTokenRequest {
      *
      * @return UUID
      */
-    UUID getRequestCorrelationId() {
+    private UUID getRequestCorrelationId() {
         if (mRequestCorrelationId == null) {
             return UUID.randomUUID();
         }
@@ -762,11 +652,11 @@ class AcquireTokenRequest {
     private void removeWaitingRequest(int requestId) {
         Logger.v(TAG, "Remove waiting request: " + requestId);
 
-        WRITE_LOCK.lock();
+        mAuthContext.getWriteLock().lock();
         try {
-            mDelegateMap.remove(requestId);
+            mAuthContext.getDelegateMap().remove(requestId);
         } finally {
-            WRITE_LOCK.unlock();
+            mAuthContext.getWriteLock().unlock();
         }
     }
 
@@ -774,20 +664,20 @@ class AcquireTokenRequest {
         Logger.v(TAG, "Get waiting request: " + requestId);
         AuthenticationRequestState request = null;
 
-        READ_LOCK.lock();
+        mAuthContext.getReadLock().lock();
         try {
-            request = mDelegateMap.get(requestId);
+            request = mAuthContext.getDelegateMap().get(requestId);
         } finally {
-            READ_LOCK.unlock();
+            mAuthContext.getReadLock().unlock();
         }
 
-        if (request == null && mAuthorizationCallback != null
-                && requestId == mAuthorizationCallback.hashCode()) {
+        if (request == null && mAuthContext.getAuthorizationCallback() != null
+                && requestId == mAuthContext.getAuthorizationCallback().hashCode()) {
             // it does not have the caller callback. It will check the last
             // callback if set
             Logger.e(TAG, "Request callback is not available for requestid:" + requestId
                     + ". It will use last callback.", "", ADALError.CALLBACK_IS_NOT_FOUND);
-            request = new AuthenticationRequestState(0, null, mAuthorizationCallback);
+            request = new AuthenticationRequestState(0, null, mAuthContext.getAuthorizationCallback());
         }
 
         return request;
@@ -797,104 +687,58 @@ class AcquireTokenRequest {
         Logger.v(TAG, "Put waiting request: " + requestId
                 + getCorrelationInfoFromWaitingRequest(requestState));
         if (requestState != null) {
-            WRITE_LOCK.lock();
+            mAuthContext.getWriteLock().lock();
 
             try {
-                mDelegateMap.put(requestId, requestState);
+                mAuthContext.getDelegateMap().put(requestId, requestState);
             } finally {
-                WRITE_LOCK.unlock();
+                mAuthContext.getWriteLock().unlock();
             }
         }
-    }
-
-    /**
-     * Active authentication activity can be cancelled if it exists. It may not
-     * be cancelled if activity is not launched yet. RequestId is the hashcode
-     * of your AuthenticationCallback.
-     *
-     * @param requestId Hash code value of your callback to cancel activity
-     *            launch
-     * @return true: if there is a valid waiting request and cancel message send
-     *         successfully. false: Request does not exist or cancel message not
-     *         send
-     */
-    boolean cancelAuthenticationActivity(final int requestId) {
-
-       final  AuthenticationRequestState request = getWaitingRequest(requestId);
-
-        if (request == null || request.mDelagete == null) {
-            // there is not any waiting callback
-            Logger.v(TAG, "Current callback is empty. There is not any active authentication.");
-            return true;
-        }
-
-        final String currentCorrelationInfo = getCorrelationInfoFromWaitingRequest(request);
-        Logger.v(TAG, "Current callback is not empty. There is an active authentication Activity."
-                + currentCorrelationInfo);
-
-        // intent to cancel. Authentication activity registers for this message
-        // at onCreate event.
-        final Intent intent = new Intent(AuthenticationConstants.Browser.ACTION_CANCEL);
-        final Bundle extras = new Bundle();
-        intent.putExtras(extras);
-        intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, requestId);
-        // send intent to cancel any active authentication activity.
-        // it may not cancel it, if activity takes some time to launch.
-
-        final boolean cancelResult = LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
-        if (cancelResult) {
-            // clear callback if broadcast message was successful
-            Logger.v(TAG, "Cancel broadcast message was successful." + currentCorrelationInfo);
-            request.mCancelled = true;
-            request.mDelagete.onError(new AuthenticationCancelError(
-                    "Cancel broadcast message was successful."));
-        } else {
-            // Activity is not launched yet or receiver is not registered
-            Logger.w(TAG, "Cancel broadcast message was not successful." + currentCorrelationInfo,
-                    "", ADALError.BROADCAST_CANCEL_NOT_SUCCESSFUL);
-        }
-
-        return cancelResult;
     }
 
     private static class CallbackHandler {
         private Handler mRefHandler;
 
-        private AuthenticationCallback<AuthenticationResult> callback;
+        private AuthenticationCallback<AuthenticationResult> mCallback;
 
         public CallbackHandler(Handler ref, AuthenticationCallback<AuthenticationResult> callbackExt) {
             mRefHandler = ref;
-            callback = callbackExt;
+            mCallback = callbackExt;
         }
 
         public void onError(final AuthenticationException e) {
-            if (callback != null) {
+            if (mCallback != null) {
                 if (mRefHandler != null) {
                     mRefHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onError(e);
+                            mCallback.onError(e);
                         }
                     });
                 } else {
-                    callback.onError(e);
+                    mCallback.onError(e);
                 }
             }
         }
 
         public void onSuccess(final AuthenticationResult result) {
-            if (callback != null) {
+            if (mCallback != null) {
                 if (mRefHandler != null) {
                     mRefHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onSuccess(result);
+                            mCallback.onSuccess(result);
                         }
                     });
                 } else {
-                    callback.onSuccess(result);
+                    mCallback.onSuccess(result);
                 }
             }
+        }
+
+        AuthenticationCallback<AuthenticationResult> getCallback() {
+            return mCallback;
         }
     }
 
@@ -902,9 +746,9 @@ class AcquireTokenRequest {
      * Responsible for receiving message from broker indicating the broker has completed the token acquisition.
      */
     protected class BrokerResumeResultReceiver extends BroadcastReceiver {
-        public BrokerResumeResultReceiver() {}
+        public BrokerResumeResultReceiver() { }
 
-        private boolean receivedResultFromBroker = false;
+        private boolean mReceivedResultFromBroker = false;
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -922,19 +766,24 @@ class AcquireTokenRequest {
             }
 
             // Setting flag to show that receiver already receive result from broker
-            receivedResultFromBroker = true;
+            mReceivedResultFromBroker = true;
             final AuthenticationRequestState waitingRequest = getWaitingRequest(receivedWaitingRequestId);
 
             final String errorCode = intent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
             if (!StringExtensions.IsNullOrBlank(errorCode)) {
-                final String errorMessage = intent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
-                final String returnedErrorMessage = "ErrorCode: " + errorCode + " ErrorMessage" + errorMessage + getCorrelationInfoFromWaitingRequest(waitingRequest);
+                final String errorMessage = intent.getStringExtra(
+                        AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
+                final String returnedErrorMessage = "ErrorCode: " + errorCode + " ErrorMessage" + errorMessage
+                        + getCorrelationInfoFromWaitingRequest(waitingRequest);
                 Logger.v(TAG + methodName, returnedErrorMessage);
-                waitingRequestOnError(waitingRequest, receivedWaitingRequestId, new AuthenticationException(ADALError.AUTH_FAILED, returnedErrorMessage));
+                waitingRequestOnError(waitingRequest, receivedWaitingRequestId,
+                        new AuthenticationException(ADALError.AUTH_FAILED, returnedErrorMessage));
             } else {
-                final boolean isBrokerCompleteTokenRequest = intent.getBooleanExtra(AuthenticationConstants.Broker.BROKER_RESULT_RETURNED, false);
+                final boolean isBrokerCompleteTokenRequest = intent.getBooleanExtra(
+                        AuthenticationConstants.Broker.BROKER_RESULT_RETURNED, false);
                 if (isBrokerCompleteTokenRequest) {
-                    Logger.v(TAG + methodName, "Broker already completed the token request, calling acquireTokenSilentSync to retrieve token from broker.");
+                    Logger.v(TAG + methodName, "Broker already completed the token request, calling "
+                            + "acquireTokenSilentSync to retrieve token from broker.");
                     final AuthenticationRequest authenticationRequest = waitingRequest.mRequest;
                     String userId = intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
 
@@ -958,11 +807,11 @@ class AcquireTokenRequest {
         }
 
         public boolean isResultReceivedFromBroker() {
-            return receivedResultFromBroker;
+            return mReceivedResultFromBroker;
         }
     }
 
-    private static class RefreshTokenEvent extends ClientAnalytics.Event {
+    private static final class RefreshTokenEvent extends ClientAnalytics.Event {
 
         private RefreshTokenEvent(InstrumentationPropertiesBuilder builder, String result) {
             this(builder, result, false);
