@@ -103,22 +103,23 @@ final class AcquireTokenInteractiveRequest {
                     msg, exc);
         }
 
-        if (result != null) {
-            if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
-                Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
-                throw new AuthenticationException(ADALError.AUTH_FAILED,
-                        result.getErrorLogInfo());
-            }
-            if (!StringExtensions.IsNullOrBlank(result.getAccessToken())) {
-                if (mTokenCacheAccessor != null) {
-                    // Developer may pass null for the acquireToken flow.
-                    mTokenCacheAccessor.updateTokenCache(mAuthRequest.getResource(),
-                            mAuthRequest.getClientId(), result);
-                }
-            }
-        } else {
+        if (result == null) {
+            Logger.e(TAG, "Returned result with exchanging auth code for token is null", getCorrelationInfo(),
+                    ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN);
             throw new AuthenticationException(
                     ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, getCorrelationInfo());
+        }
+
+        if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
+            Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
+            throw new AuthenticationException(ADALError.AUTH_FAILED,
+                    result.getErrorLogInfo());
+        }
+
+        if (!StringExtensions.IsNullOrBlank(result.getAccessToken()) && mTokenCacheAccessor != null) {
+            // Developer may pass null for the acquireToken flow.
+            mTokenCacheAccessor.updateTokenCache(mAuthRequest.getResource(),
+                    mAuthRequest.getClientId(), result);
         }
 
         return result;
@@ -171,7 +172,7 @@ final class AcquireTokenInteractiveRequest {
     /**
      * Resolve activity from the package. If developer did not declare the
      * activity, it will not resolve.
-     * True if activity is defined in the package, false otheriwise.
+     * True if activity is defined in the package, false otherwise.
      */
     private boolean resolveIntent(final Intent intent) {
         final ResolveInfo resolveInfo = mContext.getPackageManager().resolveActivity(intent, 0);

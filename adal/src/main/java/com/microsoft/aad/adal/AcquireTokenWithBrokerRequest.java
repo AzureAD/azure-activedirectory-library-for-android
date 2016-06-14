@@ -29,7 +29,7 @@ import android.content.Intent;
  * Internal class handling the logic for acquire token with Broker app(Either Company Portal or Azure Authenticator).
  * Including the logic for silent flow and interactive flow.
  */
-public class AcquireTokenWithBrokerRequest {
+final class AcquireTokenWithBrokerRequest {
     private static final String TAG = AcquireTokenWithBrokerRequest.class.getSimpleName();
 
     private final AuthenticationRequest mAuthRequest;
@@ -71,23 +71,22 @@ public class AcquireTokenWithBrokerRequest {
      * Acquire token interactively, will prompt user if possible.
      * See {@link BrokerProxy#getIntentForBrokerActivity(AuthenticationRequest)} for details.
      */
-    AuthenticationResult acquireTokenWithBrokerInteractively(final IWindowComponent activity)
+    void acquireTokenWithBrokerInteractively(final IWindowComponent activity)
             throws AuthenticationException {
         Logger.v(TAG, "Launch activity for interactive authentication via broker.");
 
         final Intent brokerIntent = mBrokerProxy.getIntentForBrokerActivity(mAuthRequest);
-        if (brokerIntent != null) {
-                Logger.v(TAG, "Calling activity pid:" + android.os.Process.myPid()
-                        + " tid:" + android.os.Process.myTid() + "uid:"
-                        + android.os.Process.myUid());
-                activity.startActivityForResult(brokerIntent,
-                        AuthenticationConstants.UIRequest.BROWSER_FLOW);
-        } else {
+
+        if (brokerIntent == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED);
         }
 
-        //It will start activity if callback is provided. Return null here.
+        Logger.v(TAG, "Calling activity pid:" + android.os.Process.myPid()
+                + " tid:" + android.os.Process.myTid() + "uid:"
+                + android.os.Process.myUid());
+        activity.startActivityForResult(brokerIntent, AuthenticationConstants.UIRequest.BROWSER_FLOW);
+
+        //It will start activity if callback is provided.
         //activity onActivityResult will receive the result, and result will be sent back via callback.
-        return null;
     }
 }

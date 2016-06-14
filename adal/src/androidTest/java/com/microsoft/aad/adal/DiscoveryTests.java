@@ -23,8 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import junit.framework.Assert;
-
+import org.json.JSONException;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -66,10 +65,13 @@ public class DiscoveryTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
 
         final URL testingURL = new URL("https://login.somewhere.com/path");
-        discovery.isValidAuthority(testingURL);
-
-        HttpUrlConnectionFactory.mockedConnection = null;
-        assertTrue(discovery.isValidAuthority(testingURL));
+        try {
+            assertTrue(discovery.isValidAuthority(testingURL));
+        } catch (final AuthenticationException e) {
+            fail("non-expected exception. ");
+        } finally {
+            HttpUrlConnectionFactory.mockedConnection = null;
+        }
     }
 
     /**
@@ -81,13 +83,26 @@ public class DiscoveryTests extends AndroidTestHelper {
         final Discovery discovery = new Discovery();
 
         final URL endpointFull = new URL("https://login.windows.net/common/oauth2/authorize");
-        Assert.assertTrue(discovery.isValidAuthority(endpointFull));
+        try {
+            assertTrue(discovery.isValidAuthority(endpointFull));
+        } catch (final AuthenticationException e) {
+            fail("unexpected exception. ");
+        }
 
         final URL endpointInstanceRight = new URL("https://login.windows.net/something/something");
-        Assert.assertTrue(discovery.isValidAuthority(endpointInstanceRight));
+        try {
+            assertTrue(discovery.isValidAuthority(endpointInstanceRight));
+        } catch (final AuthenticationException e) {
+            fail("unexpected exception.");
+        }
 
         final URL endpointInstanceOnly = new URL("https://login.windows.net");
-        Assert.assertFalse(discovery.isValidAuthority(endpointInstanceOnly));
+        try {
+            discovery.isValidAuthority(endpointInstanceOnly);
+        } catch (final AuthenticationException e) {
+            assertNotNull(e);
+            assertTrue(e.getCode() == ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        }
     }
 
     public void testIsValidAuthorityNegative() throws IOException {
@@ -102,7 +117,13 @@ public class DiscoveryTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(400);
 
-        assertFalse(discovery.isValidAuthority(endpointFull));
+        try {
+            discovery.isValidAuthority(endpointFull);
+            fail();
+        } catch (AuthenticationException e) {
+            assertNotNull(e);
+            assertTrue(e.getCode().equals(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE));
+        }
     }
 
     public void testServerInvalidJsonResponse() throws IOException {
@@ -116,32 +137,64 @@ public class DiscoveryTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
 
-        TestLogResponse logTrack = new TestLogResponse();
-        logTrack.listenForLogMessage("Json parsing error", null);
-
         final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
-        assertFalse(discovery.isValidAuthority(endpointFull));
-        assertTrue("Exception msg is logged", logTrack.message.contains("Json parsing error"));
+        try {
+            discovery.isValidAuthority(endpointFull);
+            fail();
+        } catch (final AuthenticationException e) {
+            assertNotNull(e);
+            assertTrue(e.getCode() == ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+            assertNotNull(e.getCause());
+            assertTrue(e.getCause() instanceof JSONException);
+        }
     }
 
     public void testIsValidAuthorityNegative_InvalidUrl() throws MalformedURLException {
         final Discovery discovery = new Discovery();
 
         final URL endpointFull = new URL("http://login.windows.net/common");
-        assertFalse(discovery.isValidAuthority(endpointFull));
+        try {
+            discovery.isValidAuthority(endpointFull);
+            fail();
+        } catch (final AuthenticationException e) {
+            assertNotNull(e);
+            assertTrue(e.getCode() == ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        }
 
         final URL endpointWithQueryParams = new URL(
                 "https://login.windows.net/common?resource=2343&client_id=234");
-        assertFalse(discovery.isValidAuthority(endpointWithQueryParams));
+        try {
+            discovery.isValidAuthority(endpointWithQueryParams);
+            fail();
+        } catch (final AuthenticationException e) {
+            assertNotNull(e);
+            assertTrue(e.getCode() == ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        }
+
 
         final URL endpointWithFragment = new URL("https://login.windows.net/common#token=23434");
-        assertFalse(discovery.isValidAuthority(endpointWithFragment));
+        try {
+            discovery.isValidAuthority(endpointWithFragment);
+            fail();
+        } catch (final AuthenticationException e) {
+            assertNotNull(e);
+            assertTrue(e.getCode() == ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        }
 
         final URL adfsEndpoint = new URL("https://fs.ade2eadfs30.com/adfs");
-        assertFalse(discovery.isValidAuthority(adfsEndpoint));
+        try {
+            discovery.isValidAuthority(adfsEndpoint);
+        } catch (final AuthenticationException e) {
+            assertNotNull(e);
+            assertTrue(e.getCode() == ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        }
 
         final URL endpointWithInvalidPath = new URL("https://login.windows.net/common/test/test");
-        assertTrue(discovery.isValidAuthority(endpointWithInvalidPath));
+        try {
+            assertTrue(discovery.isValidAuthority(endpointWithInvalidPath));
+        } catch (final AuthenticationException e) {
+            fail();
+        }
     }
 
     /**
@@ -160,12 +213,22 @@ public class DiscoveryTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
 
-        assertTrue(discovery.isValidAuthority(endpointFull));
+        try {
+            assertTrue(discovery.isValidAuthority(endpointFull));
+        } catch (final AuthenticationException e) {
+            fail();
+        } finally {
+            HttpUrlConnectionFactory.mockedConnection = null;
+        }
 
         HttpUrlConnectionFactory.mockedConnection = null;
         // case sensitivity check
         final URL endpointCaseDifferent = new URL("https://logiN.Windows-PPE.Net/Common");
-        assertTrue(discovery.isValidAuthority(endpointCaseDifferent));
+        try {
+            assertTrue(discovery.isValidAuthority(endpointCaseDifferent));
+        } catch (final AuthenticationException e) {
+            fail();
+        }
 
         final HttpURLConnection mockedConnection2 = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.mockedConnection = mockedConnection2;
@@ -176,9 +239,13 @@ public class DiscoveryTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
 
         final URL endpointTest = new URL("https://login.test-direct-add.net/common");
-        discovery.isValidAuthority(endpointTest);
+        try {
+            discovery.isValidAuthority(endpointTest);
 
-        HttpUrlConnectionFactory.mockedConnection = null;
-        assertTrue(discovery.isValidAuthority(endpointTest));
+            HttpUrlConnectionFactory.mockedConnection = null;
+            assertTrue(discovery.isValidAuthority(endpointTest));
+        } catch (final AuthenticationException e) {
+            fail();
+        }
     }
 }

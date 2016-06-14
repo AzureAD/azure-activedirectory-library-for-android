@@ -36,7 +36,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
-
 import java.io.UnsupportedEncodingException;
 
 @SuppressLint({
@@ -47,7 +46,7 @@ class AuthenticationDialog {
 
     private Context mContext;
 
-    private AcquireTokenRequest mAuthContext;
+    private AcquireTokenRequest mAcquireTokenRequest;
 
     private AuthenticationRequest mRequest;
 
@@ -63,7 +62,7 @@ class AuthenticationDialog {
             AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
-        mAuthContext = acquireTokenRequest;
+        mAcquireTokenRequest = acquireTokenRequest;
         mRequest = request;
     }
 
@@ -98,7 +97,7 @@ class AuthenticationDialog {
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
                             mRequest.getRequestId());
-                    mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                    mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                             AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
                     if (mHandlerInView != null) {
                         mHandlerInView.post(new Runnable() {
@@ -185,7 +184,7 @@ class AuthenticationDialog {
         Logger.i(TAG, "Cancelling dialog", "");
         Intent resultIntent = new Intent();
         resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
-        mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+        mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
         if (mHandlerInView != null) {
             mHandlerInView.post(new Runnable() {
@@ -229,7 +228,7 @@ class AuthenticationDialog {
         public void sendResponse(int returnCode, Intent responseIntent) {
             // Close this dialog
             mDialog.dismiss();
-            mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+            mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                     returnCode, responseIntent);
         }
 

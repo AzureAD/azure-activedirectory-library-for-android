@@ -148,6 +148,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertNotNull(callback.callbackResult);
         assertTrue(callback.callbackResult.getAccessToken().equals("I am an AT"));
 
+        assertTrue(authContext.getCache() instanceof DefaultTokenCacheStore);
         cacheStore.removeAll();
     }
 
@@ -198,6 +199,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertNotNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
                 TEST_UPN)));
 
+        assertFalse(authContext.getCache() instanceof DefaultTokenCacheStore);
         cacheStore.removeAll();
     }
 
@@ -249,6 +251,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
                 TEST_UPN)));
 
+        assertFalse(authContext.getCache() instanceof DefaultTokenCacheStore);
         cacheStore.removeAll();
     }
 
@@ -295,6 +298,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertNotNull(callback.callbackResult);
         assertTrue(callback.callbackResult.getAccessToken().equals("I am a new access token"));
 
+        assertTrue(authContext.getCache() instanceof DefaultTokenCacheStore);
         cacheStore.removeAll();
     }
 
@@ -303,6 +307,51 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             throws OperationCanceledException, IOException, AuthenticatorException,
             PackageManager.NameNotFoundException, NoSuchAlgorithmException, InterruptedException {
 
+        // Make sure AT is expired
+        final Calendar expiredTime = new GregorianCalendar();
+        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
+        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
+
+        final AccountManager mockedAccountManager = getMockedAccountManager();
+        mockAccountManagerGetAccountBehavior(mockedAccountManager);
+        mockGetAuthTokenCallWithThrow(mockedAccountManager);
+        mockAddAccountCall(mockedAccountManager);
+
+        final FileMockContext mockContext = createMockContext();
+        mockContext.setMockedAccountManager(mockedAccountManager);
+
+        prepareFailedHttpUrlConnection("invalid_request");
+        prepareAuthForBrokerCall();
+
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        final TestAuthCallback callback = new TestAuthCallback();
+
+        authContext.acquireToken(Mockito.mock(Activity.class), "resource", "clientid",
+                authContext.getRedirectUriForBroker(), TEST_UPN, callback);
+
+        final CountDownLatch signal = new CountDownLatch(1);
+        signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
+
+        // verify getAuthToken called once
+        verify(mockedAccountManager, times(1)).getAuthToken(Mockito.any(Account.class), Matchers.anyString(),
+                Matchers.any(Bundle.class), Matchers.eq(false), (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                Matchers.any(Handler.class));
+
+        verify(mockedAccountManager, times(1)).addAccount(
+                Matchers.refEq(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE),
+                anyString(), (String[]) Matchers.eq(null),
+                Matchers.any(Bundle.class), (Activity) Matchers.eq(null), (AccountManagerCallback<Bundle>) Matchers.
+                        eq(null), Matchers.any(Handler.class));
+
+        assertFalse(authContext.getCache() instanceof DefaultTokenCacheStore);
+        cacheStore.removeAll();
+    }
+
+    @SmallTest
+    public void testLocalSilentFailedBrokerSilentReturnErrorCannotTryWithInteractive()
+            throws OperationCanceledException, IOException, AuthenticatorException,
+            PackageManager.NameNotFoundException, NoSuchAlgorithmException, InterruptedException {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
@@ -334,12 +383,13 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 Matchers.any(Bundle.class), Matchers.eq(false), (AccountManagerCallback<Bundle>) Matchers.eq(null),
                 Matchers.any(Handler.class));
 
-        verify(mockedAccountManager, times(1)).addAccount(
+        verify(mockedAccountManager, times(0)).addAccount(
                 Matchers.refEq(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE),
                 anyString(), (String[]) Matchers.eq(null),
                 Matchers.any(Bundle.class), (Activity) Matchers.eq(null), (AccountManagerCallback<Bundle>) Matchers.
                         eq(null), Matchers.any(Handler.class));
 
+        assertFalse(authContext.getCache() instanceof DefaultTokenCacheStore);
         cacheStore.removeAll();
     }
 
@@ -521,6 +571,16 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 Matchers.any(Bundle.class), (Activity) Matchers.eq(null),
                 (AccountManagerCallback<Bundle>) Matchers.eq(null), (Handler) Matchers.eq(null)))
                 .thenReturn(mockedResult);
+    }
+
+    private void mockGetAuthTokenCallWithThrow(final AccountManager mockedAccountManager)
+            throws OperationCanceledException, IOException, AuthenticatorException {
+        final AccountManagerFuture<Bundle> mockedResult = Mockito.mock(AccountManagerFuture.class);
+        when(mockedResult.getResult()).thenThrow(mock(AuthenticatorException.class));
+
+        when(mockedAccountManager.getAuthToken(Mockito.any(Account.class), Matchers.anyString(),
+                Matchers.any(Bundle.class), Matchers.eq(false), (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                Matchers.any(Handler.class))).thenReturn(mockedResult);
     }
 
     private void mockGetAuthTokenCall(final AccountManager mockedAccountManager, final boolean returnToken)

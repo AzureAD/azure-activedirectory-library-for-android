@@ -39,7 +39,7 @@ public interface IDiscovery {
      * @param authorizationEndpoint URL for authorization endpoint
      * @return true if authority is valid
      */
-    boolean isValidAuthority(URL authorizationEndpoint);
+    boolean isValidAuthority(URL authorizationEndpoint) throws AuthenticationException;
 
     /**
      * Sets correlationId.
