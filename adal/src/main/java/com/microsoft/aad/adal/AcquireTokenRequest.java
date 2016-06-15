@@ -174,7 +174,7 @@ class AcquireTokenRequest {
 
         Logger.v(TAG, "Start validating authority");
         mDiscovery.setCorrelationId(mAuthContext.getRequestCorrelationId());
-        mDiscovery.validAuthority(authorityUrl);
+        mDiscovery.validateAuthority(authorityUrl);
 
         Logger.v(TAG, "The passe in authority is valid.");
         mAuthContext.setIsAuthorityValidated(true);
@@ -282,6 +282,11 @@ class AcquireTokenRequest {
             return authResult;
         }
 
+        // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does
+        // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
+        // app local cache is no longer useful, when user uninstalls broker, we should prompt user in the next sign-in.
+        removeTokensForUser(authenticationRequest);
+
         return tryAcquireTokenSilentWithBroker(authenticationRequest);
     }
 
@@ -312,10 +317,6 @@ class AcquireTokenRequest {
     private AuthenticationResult tryAcquireTokenSilentWithBroker(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
 
-        // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does
-        // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
-        removeTokenForUser(authenticationRequest);
-
         final AuthenticationResult authResult;
         mAcquireTokenSilentWithBroker = true;
         try {
@@ -332,13 +333,18 @@ class AcquireTokenRequest {
         return authResult;
     }
 
-    private void removeTokenForUser(final AuthenticationRequest request) throws AuthenticationException {
-        final String user = !StringExtensions.IsNullOrBlank(request.getUserId()) ? request.getUserId()
-                : request.getLoginHint();
+    private void removeTokensForUser(final AuthenticationRequest request) throws AuthenticationException {
         if (mTokenCacheAccessor == null) {
             return;
         }
 
+        final String user = !StringExtensions.IsNullOrBlank(request.getUserId()) ? request.getUserId()
+                : request.getLoginHint();
+
+        // Usually we only clear tokens for a particular user and a particular client id which identifies an app.
+        // Family token could be used across multiple apps within the same family, it's a SSO state across those
+        // family apps. If we want to clear the tokens for the user(signout the user with local cahce), have the
+        // user to sign-in through broker, we also need to clear the family token.
         // Check if there is a FRT existed for the user
         final TokenCacheItem frtItem = mTokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, user);
         if (frtItem != null) {
@@ -347,7 +353,7 @@ class AcquireTokenRequest {
 
         // Check if there is a MRRT existed for the user, if there is an MRRT, TokenCacheAccessor will also
         // delete the regular RT entry
-        // When there is no MRRT token cache item existe, try to check if there is regular RT cache item for the user.
+        // When there is no MRRT token cache item exist, try to check if there is regular RT cache item for the user.
         final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(request.getClientId(), user);
         final TokenCacheItem regularTokenCacheItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(
                 request.getResource(), request.getClientId(), user);
@@ -355,6 +361,8 @@ class AcquireTokenRequest {
             mTokenCacheAccessor.removeTokenCacheItem(mrrtItem, request.getResource());
         } else if (regularTokenCacheItem != null) {
             mTokenCacheAccessor.removeTokenCacheItem(regularTokenCacheItem, request.getResource());
+        } else {
+            Logger.v(TAG, "No token items need to be deleted for the user.");
         }
     }
 
