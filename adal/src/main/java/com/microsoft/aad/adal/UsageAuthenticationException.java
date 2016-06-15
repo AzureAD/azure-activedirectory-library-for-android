@@ -30,13 +30,6 @@ public class UsageAuthenticationException extends AuthenticationException {
     static final long serialVersionUID = 1;
 
     /**
-     * Constructs a new UsageAuthenticationException.
-     */
-    public UsageAuthenticationException() {
-        super();
-    }
-
-    /**
      * Constructs a new UsageAuthenticationException with message.
      * 
      * @param msg Detailed message for the reason causing the exception.

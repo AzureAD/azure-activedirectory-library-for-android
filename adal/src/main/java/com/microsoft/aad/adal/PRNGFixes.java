@@ -195,7 +195,7 @@ final class PRNGFixes {
          * Input stream for reading from Linux PRNG or {@code null} if not yet
          * opened.
          * 
-         * @GuardedBy("sLock")
+         * GuardedBy("sLock")
          */
         private static DataInputStream sUrandomIn;
 
@@ -203,7 +203,7 @@ final class PRNGFixes {
          * Output stream for writing to Linux PRNG or {@code null} if not yet
          * opened.
          * 
-         * @GuardedBy("sLock")
+         * GuardedBy("sLock")
          */
         private static OutputStream sUrandomOut;
 
@@ -242,8 +242,6 @@ final class PRNGFixes {
                 DataInputStream in;
                 synchronized (sLock) {
                     in = getUrandomInputStream();
-                }
-                synchronized (in) {
                     in.readFully(bytes);
                 }
             } catch (IOException e) {

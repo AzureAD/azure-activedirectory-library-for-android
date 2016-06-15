@@ -47,13 +47,10 @@ import android.os.Process;
 class HttpWebRequest {
     static final String REQUEST_METHOD_POST = "POST";
     static final String REQUEST_METHOD_GET = "GET";
-    private static final String UNAUTHORIZED_ERROR_MESSAGE_PRE18 = "Received authentication challenge is null";
     private static final String TAG = "HttpWebRequest";
     private static final int CONNECT_TIME_OUT = AuthenticationSettings.INSTANCE.getConnectTimeOut();
     private static final int READ_TIME_OUT = AuthenticationSettings.INSTANCE.getReadTimeOut();
     private static int sDebugSimulateDelay = 0;
-    private boolean mUseCaches = false;
-    private boolean mInstanceRedirectsFollow = true;
     private final String mRequestMethod;
     private final URL mUrl;
     private final byte[] mRequestContent;
@@ -72,7 +69,7 @@ class HttpWebRequest {
             String requestContentType) {
         mUrl = requestURL;
         mRequestMethod = requestMethod;
-        mRequestHeaders = new HashMap<String, String>();
+        mRequestHeaders = new HashMap<>();
         if (mUrl != null) {
             mRequestHeaders.put("Host", getURLAuthority(mUrl));
         }
@@ -111,8 +108,8 @@ class HttpWebRequest {
         }
 
         connection.setReadTimeout(READ_TIME_OUT);
-        connection.setInstanceFollowRedirects(mInstanceRedirectsFollow);
-        connection.setUseCaches(mUseCaches);
+        connection.setInstanceFollowRedirects(true);
+        connection.setUseCaches(false);
         connection.setRequestMethod(mRequestMethod);
         connection.setDoInput(true); // it will at least read status
                                      // code. Default is true.

@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 import com.google.gson.Gson;
+
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 import android.accounts.Account;
@@ -141,10 +142,11 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
+    // Turn off the deprecation warning for CookieSyncManager.  It was deprecated in API 21, but
+    // is still necessary for API level 20 and below.
     @SuppressLint("SetJavaScriptEnabled")
     @Override
-    protected void onCreate(Bundle savedInstanceState) 
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         final String methodName = ":onCreate";
         super.onCreate(savedInstanceState);
         setContentView(this.getResources().getIdentifier("activity_authentication", "layout",
@@ -194,9 +196,9 @@ public class AuthenticationActivity extends Activity {
         mRedirectUrl = mAuthRequest.getRedirectUri();
         Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
         // Create the Web View to show the page
-        mWebView = (WebView)findViewById(this.getResources().getIdentifier("webView1", "id",
+        mWebView = (WebView) findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
-        
+
         // Disable hardware acceleration in WebView if needed
         if (!AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration()) {
             mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
@@ -233,8 +235,7 @@ public class AuthenticationActivity extends Activity {
         userAgent = mWebView.getSettings().getUserAgentString();
         Logger.v(TAG, "UserAgent:" + userAgent);
 
-        if (isBrokerRequest(getIntent())) 
-        {
+        if (isBrokerRequest(getIntent())) {
             // This activity is started from calling app and running in
             // Authenticator's process
             mCallingPackage = getCallingPackage();
@@ -269,12 +270,10 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
                     + " calling package:" + mCallingPackage + " signatureDigest:" + signatureDigest
                     + " current Context Package: " + getPackageName());
-        }
-        else
-        {
+        } else {
             Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage());
         }
-        
+
         mRegisterReceiver = false;
         final String postUrl = mStartUrl;
         Logger.i(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage,
@@ -282,8 +281,8 @@ public class AuthenticationActivity extends Activity {
                         + android.os.Build.MODEL);
 
         mStorageHelper = new StorageHelper(getApplicationContext());
-        setupWebView(mRedirectUrl, mQueryParameters, mAuthRequest);
-        
+        setupWebView();
+
         if (savedInstanceState == null) {
             mWebView.post(new Runnable() {
                 @Override
@@ -315,7 +314,7 @@ public class AuthenticationActivity extends Activity {
                     + AuthenticationSettings.INSTANCE.getBrokerSignature());
             return signature.equals(AuthenticationSettings.INSTANCE.getBrokerSignature())
                     || signature
-                            .equals(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE);
+                    .equals(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE);
         }
 
         return false;
@@ -337,9 +336,8 @@ public class AuthenticationActivity extends Activity {
         mWebView.restoreState(savedInstanceState);
     }
 
-    private void setupWebView(String redirect, String queryParam, AuthenticationRequest request) {
+    private void setupWebView() {
 
-        
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
 
@@ -412,7 +410,7 @@ public class AuthenticationActivity extends Activity {
                     .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
 
             if (request instanceof AuthenticationRequest) {
-                authRequest = (AuthenticationRequest)request;
+                authRequest = (AuthenticationRequest) request;
             }
         }
         return authRequest;
@@ -456,19 +454,18 @@ public class AuthenticationActivity extends Activity {
         return loadUrl;
     }
 
-    private boolean isBrokerRequest(Intent callingIntent) 
-    {
+    private boolean isBrokerRequest(Intent callingIntent) {
         // Intent should have a flag and activity is hosted inside broker
         return callingIntent != null
                 && !StringExtensions.IsNullOrBlank(callingIntent
-                        .getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
+                .getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
     }
 
     /**
      * Activity sets result to go back to the caller.
-     * 
-     * @param resultCode
-     * @param data
+     *
+     * @param resultCode result code to be returned to the called
+     * @param data intent to be returned to the caller
      */
     private void returnToCaller(int resultCode, Intent data) {
         Logger.v(TAG, "Return To Caller:" + resultCode);
@@ -507,7 +504,7 @@ public class AuthenticationActivity extends Activity {
             Logger.v(TAG, "Spinner at onPause will dismiss");
             mSpinner.dismiss();
         }
-        
+
         hideKeyBoard();
     }
 
@@ -563,31 +560,30 @@ public class AuthenticationActivity extends Activity {
         Intent resultIntent = new Intent();
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
-    
-    private void prepareForBrokerResume ()
-    {
+
+    private void prepareForBrokerResume() {
         final String methodName = ":prepareForBrokerResume";
         Logger.v(TAG + methodName, "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");
-        
+
         final Intent resultIntent = new Intent();
         returnToCaller(AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME, resultIntent);
     }
 
     private void hideKeyBoard() {
         if (mWebView != null) {
-            InputMethodManager imm = (InputMethodManager)this
+            InputMethodManager imm = (InputMethodManager) this
                     .getSystemService(Service.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(mWebView.getApplicationWindowToken(), 0);
         }
     }
-    
+
     class CustomWebViewClient extends BasicWebViewClient {
 
-        public CustomWebViewClient(){
+        public CustomWebViewClient() {
             super(AuthenticationActivity.this, mRedirectUrl, mQueryParameters, mAuthRequest);
         }
-                
-        public void processRedirectUrl(final WebView view, String url){
+
+        public void processRedirectUrl(final WebView view, String url) {
             if (!isBrokerRequest(getIntent())) {
                 // It is pointing to redirect. Final url can be processed to
                 // get the code or error.
@@ -613,7 +609,7 @@ public class AuthenticationActivity extends Activity {
                         .execute(url);
             }
         }
-        
+
         public boolean processInvalidUrl(final WebView view, String url) {
             final String methodName = ":processInvalidUrl";
             if (isBrokerRequest(getIntent())
@@ -638,53 +634,48 @@ public class AuthenticationActivity extends Activity {
                 return false;
             }
         }
-        
-        public void showSpinner(boolean status){
+
+        public void showSpinner(boolean status) {
             displaySpinner(status);
         }
 
         @Override
         public void sendResponse(int returnCode, Intent responseIntent) {
-            returnToCaller(returnCode, responseIntent);            
+            returnToCaller(returnCode, responseIntent);
         }
 
         @Override
         public void cancelWebViewRequest() {
-            cancelRequest();            
+            cancelRequest();
         }
-        
+
         @Override
-        public void prepareForBrokerResumeRequest ()
-        {
+        public void prepareForBrokerResumeRequest() {
             prepareForBrokerResume();
         }
 
         @Override
         public void setPKeyAuthStatus(boolean status) {
-            mPkeyAuthRedirect = status;            
+            mPkeyAuthRedirect = status;
         }
 
         @Override
         public void postRunnable(Runnable item) {
-            mWebView.post(item);            
+            mWebView.post(item);
         }
-        
+
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         @Override
-        public void onReceivedClientCertRequest (WebView view, final ClientCertRequest request)
-        {
+        public void onReceivedClientCertRequest(WebView view, final ClientCertRequest request) {
             final String methodName = ":onReceivedClientCertRequest";
             Logger.v(TAG + methodName, "Webview receives client TLS request.");
-            
+
             final Principal[] acceptableCertIssuers = request.getPrincipals();
-            
+
             // When ADFS server sends null or empty issuers, we'll continue with cert prompt.
-            if (acceptableCertIssuers != null)
-            {
-                for (Principal issuer : acceptableCertIssuers)
-                {
-                    if (issuer.getName().contains("CN=MS-Organization-Access"))
-                    {
+            if (acceptableCertIssuers != null) {
+                for (Principal issuer : acceptableCertIssuers) {
+                    if (issuer.getName().contains("CN=MS-Organization-Access")) {
                         //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
                         Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
                         request.cancel();
@@ -692,7 +683,7 @@ public class AuthenticationActivity extends Activity {
                     }
                 }
             }
-            
+
             KeyChain.choosePrivateKeyAlias(AuthenticationActivity.this, new KeyChainAliasCallback() {
 
                 @Override
@@ -725,8 +716,8 @@ public class AuthenticationActivity extends Activity {
 
     /**
      * handle spinner display.
-     * 
-     * @param show
+     *
+     * @param show True if spinner needs to be displayed, False otherwise
      */
     private void displaySpinner(boolean show) {
         if (!AuthenticationActivity.this.isFinishing()
@@ -781,11 +772,11 @@ public class AuthenticationActivity extends Activity {
      * Set the result that is to be sent as the result of the request that
      * caused this Activity to be launched. If result is null or this method is
      * never called then the request will be canceled.
-     * 
+     *
      * @param result this is returned as the result of the
-     *            AbstractAccountAuthenticator request
+     *               AbstractAccountAuthenticator request
      */
-    private final void setAccountAuthenticatorResult(Bundle result) {
+    private void setAccountAuthenticatorResult(Bundle result) {
         mAuthenticatorResultBundle = result;
     }
 
@@ -812,7 +803,7 @@ public class AuthenticationActivity extends Activity {
         }
 
         public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
-                final String packagename, final int callingUID) {
+                         final String packagename, final int callingUID) {
             mRequestHandler = webHandler;
             mRequest = request;
             mPackageName = packagename;
@@ -834,8 +825,7 @@ public class AuthenticationActivity extends Activity {
                 result.taskException = exc;
             }
 
-            if (result != null && result.taskResult != null
-                    && result.taskResult.getAccessToken() != null) {
+            if (result.taskResult != null && result.taskResult.getAccessToken() != null) {
                 Logger.v(TAG, "Setting account:" + mRequest.getLogInfo());
 
                 // Record account in the AccountManager service
@@ -852,7 +842,7 @@ public class AuthenticationActivity extends Activity {
         }
 
         private String getBrokerAppCacheKey(String cacheKey)
-            throws NoSuchAlgorithmException, UnsupportedEncodingException {
+                throws NoSuchAlgorithmException, UnsupportedEncodingException {
             // include UID in the key for broker to store caches for different
             // apps under same account entry
             String digestKey = StringExtensions
@@ -864,7 +854,7 @@ public class AuthenticationActivity extends Activity {
         }
 
         private void appendAppUIDToAccount(Account account)
-            throws GeneralSecurityException, IOException {
+                throws GeneralSecurityException, IOException {
             String appIdList = mAccountManager.getUserData(account,
                     AuthenticationConstants.Broker.ACCOUNT_UID_CACHES);
             if (appIdList == null) {
@@ -889,9 +879,9 @@ public class AuthenticationActivity extends Activity {
                         + mAppCallingUID);
                 mAccountManager
                         .setUserData(
-                        account,
-                        AuthenticationConstants.Broker.ACCOUNT_UID_CACHES,
-                        encryptedValue);
+                                account,
+                                AuthenticationConstants.Broker.ACCOUNT_UID_CACHES,
+                                encryptedValue);
             }
         }
 
@@ -905,14 +895,14 @@ public class AuthenticationActivity extends Activity {
             Account[] accountList = mAccountManager
                     .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
-            if (accountList == null || accountList.length != 1) {
+            if (accountList.length != 1) {
                 result.taskResult = null;
                 result.taskException = new AuthenticationException(
                         ADALError.BROKER_SINGLE_USER_EXPECTED);
                 return;
             }
 
-            Account newaccount = accountList[0];
+            final Account newAccount = accountList[0];
 
             // Single user in authenticator is already created.
             // This is only registering UID for the app
@@ -925,19 +915,19 @@ public class AuthenticationActivity extends Activity {
                 mRequest.setLoginHint(name);
             } else {
                 Logger.i(TAG, "Saving userinfo to account", "");
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
                         userinfo.getUserId());
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
                         userinfo.getGivenName());
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
                         userinfo.getFamilyName());
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
                         userinfo.getIdentityProvider());
-                mAccountManager.setUserData(newaccount,
+                mAccountManager.setUserData(newAccount,
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
                         userinfo.getDisplayableId());
             }
@@ -959,17 +949,17 @@ public class AuthenticationActivity extends Activity {
                 Logger.i(TAG, "setAccount: user key is null", "");
             }
 
-            TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(mRequest.getAuthority(), mRequest.getResource(), 
+            TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(mRequest.getAuthority(), mRequest.getResource(),
                     mRequest.getClientId(), result.taskResult);
             String json = gson.toJson(item);
             String encrypted = mStorageHelper.encrypt(json);
 
             // Single user and cache is stored per account
-            String key = CacheKey.createCacheKeyForRTEntry(mAuthRequest.getAuthority(), mAuthRequest.getResource(), 
+            String key = CacheKey.createCacheKeyForRTEntry(mAuthRequest.getAuthority(), mAuthRequest.getResource(),
                     mAuthRequest.getClientId(), null);
-            saveCacheKey(key, newaccount, mAppCallingUID);
+            saveCacheKey(key, newAccount, mAppCallingUID);
             mAccountManager.setUserData(
-                    newaccount,
+                    newAccount,
                     getBrokerAppCacheKey(key),
                     encrypted);
 
@@ -979,9 +969,9 @@ public class AuthenticationActivity extends Activity {
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
                 key = CacheKey.createCacheKeyForMRRT(mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);
-                saveCacheKey(key, newaccount, mAppCallingUID);
+                saveCacheKey(key, newAccount, mAppCallingUID);
                 mAccountManager.setUserData(
-                        newaccount,
+                        newAccount,
                         getBrokerAppCacheKey(key),
                         encrypted);
             }
@@ -990,7 +980,7 @@ public class AuthenticationActivity extends Activity {
             // in the background call without requiring server side
             // validation
             Logger.i(TAG, "Set calling uid:" + mAppCallingUID, "");
-            appendAppUIDToAccount(newaccount);
+            appendAppUIDToAccount(newAccount);
         }
 
         private void saveCacheKey(String key, Account cacheAccount, int callingUID) {
@@ -1032,9 +1022,9 @@ public class AuthenticationActivity extends Activity {
                         intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
                                 result.taskResult.getExpiresOn().getTime());
                     }
-                    
+
                     if (result.taskResult.getTenantId() != null) {
-                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID, 
+                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID,
                                 result.taskResult.getTenantId());
                     }
 
@@ -1054,7 +1044,7 @@ public class AuthenticationActivity extends Activity {
                                 AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
                                 userinfo.getDisplayableId());
                     }
-                    
+
                     returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
                 } else {
                     returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,

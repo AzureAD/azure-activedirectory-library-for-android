@@ -105,7 +105,7 @@ public enum ADALError {
     DEVELOPER_CALLING_ON_MAIN_THREAD("Calling from main thread for background operation"),
 
     /**
-     * Layout file does not have correct elements such as different webview id
+     * Layout file does not have correct elements such as different webview id.
      */
     DEVELOPER_DIALOG_LAYOUT_INVALID("dialog_authentication.xml file has invalid elements"),
     
@@ -280,10 +280,10 @@ public enum ADALError {
     CORRELATION_ID_FORMAT("Correlationid is not in UUID format"),
 
     /**
-     * Correlationid provided in requrest is not matching the response.
+     * Correlationid provided in request is not matching the response.
      */
     CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE(
-            "Correlationid provided in requrest is not matching the response"),
+            "Correlationid provided in request is not matching the response"),
 
     /**
      * Encoding format is not supported.
@@ -291,7 +291,7 @@ public enum ADALError {
     ENCODING_IS_NOT_SUPPORTED("Encoding format is not supported"),
 
     /**
-     * erver returned invalid JSON response.
+     * Server returned invalid JSON response.
      */
     SERVER_INVALID_JSON_RESPONSE("Server returned invalid JSON response"),
 
@@ -316,7 +316,7 @@ public enum ADALError {
     ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"),
     
     /**
-     * Failed to use AndroidKeyStore.
+     * Failed to use KeyPairGeneratorSpec.
      */
     ANDROIDKEYSTORE_KEYPAIR_GENERATOR_FAILED("Failed to use KeyPairGeneratorSpec"),
 
@@ -513,12 +513,12 @@ public enum ADALError {
     DEVELOPER_REDIRECTURI_INVALID("The redirectUri for broker is invalid"),
 
     /**
-     * Device challenge failure
+     * Device challenge failure.
      */
     DEVICE_CHALLENGE_FAILURE("Device challenge failure"),
 
     /**
-     * Resource authentication challenge failure
+     * Resource authentication challenge failure.
      */
     RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure"), 
     
@@ -528,33 +528,33 @@ public enum ADALError {
     INVALID_TOKEN_CACHE_ITEM("Invalid token cache item"),
 
     /**
-     * Export of FID failure
+     * Export of FID failure.
      */
     FAIL_TO_EXPORT("Fail to export"),
     
     /**
-     * Import of FID failure
+     * Import of FID failure.
      */
     FAIL_TO_IMPORT("Fail to import"),
         
     /**
-     * Incompatible blob version
+     * Incompatible blob version.
      */
     INCOMPATIBLE_BLOB_VERSION("Fail to deserialize because the blob version is incompatible"), 
     
     /**
-     * Fail to get the token cache item from the cache item
+     * Fail to get the token cache item from the cache item.
      */
     TOKEN_CACHE_ITEM_NOT_FOUND("Token cache item is not found"),
     
     /**
-     * Fail to parse JSON because of the problem with the JSON API
+     * Fail to parse JSON because of the problem with the JSON API.
      */
     JSON_PARSE_ERROR("Fail to parse JSON");
     
     private String mDescription;
 
-    private ADALError(String message) {
+    ADALError(String message) {
         mDescription = message;
     }
 

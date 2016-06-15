@@ -65,8 +65,6 @@ public class ApplicationReceiver extends BroadcastReceiver {
     // Allow 5 mins for broker app to be installed
     private static final int BROKER_APP_INSTALLATION_TIME_OUT = 5;
     
-    private String installedPackageName = null;
-    
     private BrokerProxy brokerProxy;
 
     /**
@@ -79,14 +77,11 @@ public class ApplicationReceiver extends BroadcastReceiver {
         final String methodName = "onReceive";
         if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
             Logger.v(TAG + methodName, "Application install message is received");
-            if (intent != null && intent.getData() != null) {
+            if (intent.getData() != null) {
                 Logger.v(TAG + methodName, "ApplicationReceiver detectes the installation of " + intent.getData().toString());
                 final String receivedInstalledPackageName = intent.getData().toString();
                 if (receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME) ||
                         receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
-                    
-                    installedPackageName = receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)? 
-                            AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME : AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
                     
                     String request = getInstallRequestInthisApp(context);
                     brokerProxy = new BrokerProxy(context);
@@ -142,8 +137,8 @@ public class ApplicationReceiver extends BroadcastReceiver {
     /**
      * Get username that started the install flow.
      * 
-     * @param ctx
-     * @return
+     * @param ctx app/activity context
+     * @return the username that started the install flow
      */
     public static String getUserName(Context ctx) {
         Logger.v(TAG, "ApplicationReceiver:getUserName");
@@ -179,7 +174,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
     /**
      * Clear the username after resuming login.
      * 
-     * @param ctx
+     * @param ctx app/activity context
      */
     public static void clearUserName(Context ctx) {
         Logger.v(TAG, "ApplicationReceiver:clearUserName");

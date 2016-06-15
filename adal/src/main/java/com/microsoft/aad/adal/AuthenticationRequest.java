@@ -62,7 +62,7 @@ class AuthenticationRequest implements Serializable {
     private UserIdentifierType mIdentifierType;
 
     /**
-     * Developer can use acquiretoken(with loginhint) or acquireTokenSilent(with
+     * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
      */
     enum UserIdentifierType {
@@ -117,11 +117,11 @@ class AuthenticationRequest implements Serializable {
     /**
      * Cache usage and refresh token requests.
      * 
-     * @param authority
-     * @param resource
-     * @param clientid
-     * @param userid
-     * @param correlationId
+     * @param authority Authority URL
+     * @param resource Resource that is requested
+     * @param clientid ClientId for the app
+     * @param userid user id
+     * @param correlationId for logging
      */
     public AuthenticationRequest(String authority, String resource, String clientid, String userid,
             UUID correlationId) {

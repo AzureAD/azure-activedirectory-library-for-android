@@ -149,7 +149,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         }
     }
 
-    public void testIsValidAuthorityNegative_InvalidUrl() throws MalformedURLException {
+    public void testIsValidAuthorityNegativeInvalidUrl() throws MalformedURLException {
         final Discovery discovery = new Discovery();
 
         final URL endpointFull = new URL("http://login.windows.net/common");

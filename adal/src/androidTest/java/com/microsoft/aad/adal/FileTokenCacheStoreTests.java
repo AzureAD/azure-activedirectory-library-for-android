@@ -36,22 +36,24 @@ import android.content.Context;
 
 public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
-    int activeTestThreads = 10;
-
-    Context targetContex;
-
-    private TokenCacheItem testItem;
-
-    private TokenCacheItem testItem2;
-
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
-    private final String FILE_DEFAULT_NAME = "testfile";
+    private static final String FILE_DEFAULT_NAME = "testfile";
+
+    private static final int INITIAL_ACTIVE_TEST_THREADS = 10;
+
+    private int mActiveTestThreads = INITIAL_ACTIVE_TEST_THREADS;
+
+    private Context mTargetContex;
+
+    private TokenCacheItem mCacheItem;
+
+    private TokenCacheItem mTestItem2;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        targetContex = this.getInstrumentation().getTargetContext();
+        mTargetContex = this.getInstrumentation().getTargetContext();
         AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid");
         AuthenticationSettings.INSTANCE.setBrokerSignature("signature");
     }
@@ -59,34 +61,34 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     @Override
     protected void tearDown() throws Exception {
 
-        FileTokenCacheStore store = new FileTokenCacheStore(targetContex, FILE_DEFAULT_NAME);
+        FileTokenCacheStore store = new FileTokenCacheStore(mTargetContex, FILE_DEFAULT_NAME);
         store.removeAll();
         super.tearDown();
     }
 
     private void setupCache(String fileName) throws AuthenticationException {
         // set item and then get
-        ITokenCacheStore store = new FileTokenCacheStore(targetContex, fileName);
+        ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, fileName);
         store.removeAll();
-        testItem = new TokenCacheItem();
-        testItem.setAccessToken("token");
-        testItem.setAuthority("authority");
-        testItem.setClientId("clientid");
-        testItem.setResource("resource");
+        mCacheItem = new TokenCacheItem();
+        mCacheItem.setAccessToken("token");
+        mCacheItem.setAuthority("authority");
+        mCacheItem.setClientId("clientid");
+        mCacheItem.setResource("resource");
         UserInfo user = new UserInfo("userid", "givenName", "familyName", "identity", "userid");
-        testItem.setUserInfo(user);
-        testItem2 = new TokenCacheItem();
-        testItem2.setAccessToken("token2");
-        testItem2.setAuthority("authority2");
-        testItem2.setClientId("clientid2");
-        testItem2.setResource("resource2");
-        testItem2.setUserInfo(user);
-        store.setItem(CacheKey.createCacheKey(testItem), testItem);
-        store.setItem(CacheKey.createCacheKey(testItem2), testItem2);
+        mCacheItem.setUserInfo(user);
+        mTestItem2 = new TokenCacheItem();
+        mTestItem2.setAccessToken("token2");
+        mTestItem2.setAuthority("authority2");
+        mTestItem2.setClientId("clientid2");
+        mTestItem2.setResource("resource2");
+        mTestItem2.setUserInfo(user);
+        store.setItem(CacheKey.createCacheKey(mCacheItem), mCacheItem);
+        store.setItem(CacheKey.createCacheKey(mTestItem2), mTestItem2);
     }
 
     public void testFileCacheWriteError() {
-        final FileMockContext mockContext = new FileMockContext(targetContex);
+        final FileMockContext mockContext = new FileMockContext(mTargetContex);
         assertThrowsException(IllegalStateException.class,
                 "it could not access the authorization cache directory", new Runnable() {
                     @Override
@@ -96,13 +98,13 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
                     }
                 });
 
-        assertEquals("Check requested directory name", FileMockContext.PREFIX, mockContext.dirName);
-        assertEquals("Check requested mode", Context.MODE_PRIVATE, mockContext.fileWriteMode);
+        assertEquals("Check requested directory name", FileMockContext.PREFIX, mockContext.getDirName());
+        assertEquals("Check requested mode", Context.MODE_PRIVATE, mockContext.getFileWriteMode());
     }
 
     public void testLoadingFromInvalidCacheFile() {
 
-        File directory = targetContex.getDir(targetContex.getPackageName(), Context.MODE_PRIVATE);
+        File directory = mTargetContex.getDir(mTargetContex.getPackageName(), Context.MODE_PRIVATE);
         File mock = new File(directory, FILE_DEFAULT_NAME);
         try {
             mock.createNewFile();
@@ -120,43 +122,43 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
         CustomLogger logger = new CustomLogger();
         Logger.getInstance().setExternalLogger(logger);
-        ITokenCacheStore store = new FileTokenCacheStore(targetContex, FILE_DEFAULT_NAME);
+        ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, FILE_DEFAULT_NAME);
         String msgToCheck = "Existing cache format is wrong ver:" + AuthenticationContext.getVersionName();
-        assertTrue("Verify message ", logger.logMessage.contains(msgToCheck));
+        assertTrue("Verify message ", logger.getLogMessage().contains(msgToCheck));
     }
 
     public void testGetItem() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
-        ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
+        ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, file);
         TokenCacheItem item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", null));
         assertNull("Token cache item is expected to be null", item);
 
         // get item
-        item = store.getItem(CacheKey.createCacheKey(testItem));
+        item = store.getItem(CacheKey.createCacheKey(mCacheItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
-        assertEquals("Same tokencacheitem content", testItem.getAuthority(), item.getAuthority());
-        assertEquals("Same tokencacheitem content", testItem.getClientId(), item.getClientId());
-        assertEquals("Same tokencacheitem content", testItem.getResource(), item.getResource());
+        assertEquals("Same tokencacheitem content", mCacheItem.getAuthority(), item.getAuthority());
+        assertEquals("Same tokencacheitem content", mCacheItem.getClientId(), item.getClientId());
+        assertEquals("Same tokencacheitem content", mCacheItem.getResource(), item.getResource());
     }
 
     public void testWriteFileException() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "fileWriteFileException";
         setupCache(file);
-        ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+        ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, file);
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mCacheItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
 
         // Change file permissions to cause an error
         CustomLogger logger = new CustomLogger();
         Logger.getInstance().setExternalLogger(logger);
-        File directory = targetContex.getDir(targetContex.getPackageName(), Context.MODE_PRIVATE);
+        File directory = mTargetContex.getDir(mTargetContex.getPackageName(), Context.MODE_PRIVATE);
         File mock = new File(directory, file);
         mock.setWritable(false);
-        store.removeItem(CacheKey.createCacheKey(testItem));
+        store.removeItem(CacheKey.createCacheKey(mCacheItem));
 
         assertEquals("Permission issue", ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE,
-                logger.logErrorCode);
+                logger.mLogErrorCode);
 
         mock.setWritable(true);
     }
@@ -166,18 +168,18 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         String file2 = FILE_DEFAULT_NAME + "testRemoveItem2";
         setupCache(file);
         setupCache(file2);
-        ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
-        ITokenCacheStore store2 = new FileTokenCacheStore(targetContex, file2);
+        ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, file);
+        ITokenCacheStore store2 = new FileTokenCacheStore(mTargetContex, file2);
 
-        store.removeItem(CacheKey.createCacheKey(testItem));
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+        store.removeItem(CacheKey.createCacheKey(mCacheItem));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mCacheItem));
         assertNull("Token cache item is expected to be null", item);
-        TokenCacheItem itemInCache2 = store2.getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem itemInCache2 = store2.getItem(CacheKey.createCacheKey(mCacheItem));
         assertNotNull("Token cache item is expected to be NOT null", itemInCache2);
 
         // second call should be null as well
-        store.removeItem(CacheKey.createCacheKey(testItem));
-        item = store.getItem(CacheKey.createCacheKey(testItem));
+        store.removeItem(CacheKey.createCacheKey(mCacheItem));
+        item = store.getItem(CacheKey.createCacheKey(mCacheItem));
         assertNull("Token cache item is expected to be null", item);
 
         store2.removeAll();
@@ -186,18 +188,18 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     public void testRemoveAll() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
-        ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
+        ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, file);
 
         store.removeAll();
 
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mCacheItem));
         assertNull("Token cache item is expected to be null", item);
     }
     
     public void testGetAll() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
-        ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
+        ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, file);
 
         final Iterator<TokenCacheItem> allItems = store.getAll();
         
@@ -220,8 +222,8 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     public void testSharedCacheGetItem() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
-        final ITokenCacheStore store = new FileTokenCacheStore(targetContex, file);
-        final CountDownLatch signal = new CountDownLatch(activeTestThreads);
+        final ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, file);
+        final CountDownLatch signal = new CountDownLatch(mActiveTestThreads);
         final Runnable runnable = new Runnable() {
 
             @Override
@@ -230,15 +232,15 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
                 // Remove and then verify that
                 // One thread will do the actual remove action.
                 try {
-                    store.removeItem(CacheKey.createCacheKey(testItem));
-                    TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+                    store.removeItem(CacheKey.createCacheKey(mCacheItem));
+                    TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mCacheItem));
                     assertNull("Token cache item is expected to be null", item);
 
                     item = store.getItem(CacheKey.createCacheKey("", "", "", false, "", null));
                     assertNull("Token cache item is expected to be null", item);
 
-                    store.removeItem(CacheKey.createCacheKey(testItem2));
-                    item = store.getItem(CacheKey.createCacheKey(testItem));
+                    store.removeItem(CacheKey.createCacheKey(mTestItem2));
+                    item = store.getItem(CacheKey.createCacheKey(mCacheItem));
                     assertNull("Token cache item is expected to be null", item);
                 } catch (AuthenticationException e) {
                     e.printStackTrace();
@@ -248,9 +250,9 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
             }
         };
 
-        testMultiThread(activeTestThreads, signal, runnable);
+        testMultiThread(mActiveTestThreads, signal, runnable);
 
-        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mCacheItem));
         assertNull("Token cache item is expected to be null", item);
     }
 
@@ -261,41 +263,45 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
     public void testMemoryCacheMultipleContext() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
-        ITokenCacheStore tokenCacheA = new FileTokenCacheStore(targetContex, file);
+        ITokenCacheStore tokenCacheA = new FileTokenCacheStore(mTargetContex, file);
         AuthenticationContext contextA = new AuthenticationContext(getInstrumentation()
                 .getContext(), VALID_AUTHORITY, false, tokenCacheA);
         AuthenticationContext contextB = new AuthenticationContext(getInstrumentation()
                 .getContext(), VALID_AUTHORITY, false, tokenCacheA);
 
         // Verify the cache
-        TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
+        TokenCacheItem item = contextA.getCache().getItem(CacheKey.createCacheKey(mCacheItem));
         assertNotNull("Token cache item is expected to be NOT null", item);
 
-        item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem2));
+        item = contextA.getCache().getItem(CacheKey.createCacheKey(mTestItem2));
         assertNotNull("Token cache item is expected to be NOT null", item);
-        item = contextB.getCache().getItem(CacheKey.createCacheKey(testItem2));
+        item = contextB.getCache().getItem(CacheKey.createCacheKey(mTestItem2));
         assertNotNull("Token cache item is expected to be NOT null", item);
 
         // do remove operation
-        contextA.getCache().removeItem(CacheKey.createCacheKey(testItem));
-        item = contextA.getCache().getItem(CacheKey.createCacheKey(testItem));
+        contextA.getCache().removeItem(CacheKey.createCacheKey(mCacheItem));
+        item = contextA.getCache().getItem(CacheKey.createCacheKey(mCacheItem));
         assertNull("Token cache item is expected to be null", item);
 
-        item = contextB.getCache().getItem(CacheKey.createCacheKey(testItem));
+        item = contextB.getCache().getItem(CacheKey.createCacheKey(mCacheItem));
         assertNull("Token cache item is expected to be null", item);
     }
 
-    class CustomLogger implements ILogger {
+    private class CustomLogger implements ILogger {
 
-        String logMessage;
+        private String mLogMessage;
 
-        ADALError logErrorCode;
+        ADALError mLogErrorCode;
 
         @Override
         public void Log(String tag, String message, String additionalMessage, LogLevel level,
                 ADALError errorCode) {
-            logMessage = message;
-            logErrorCode = errorCode;
+            mLogMessage = message;
+            mLogErrorCode = errorCode;
+        }
+
+        public String getLogMessage() {
+            return mLogMessage;
         }
     }
 }

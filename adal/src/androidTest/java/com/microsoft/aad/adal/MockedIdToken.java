@@ -28,40 +28,56 @@ import android.util.Base64;
 
 class MockedIdToken {
 
-    static final String sIdTokenClaims = "{\"aud\":\"c3c7f5e5-7153-44d4-90e6-329686d48d76\",\"iss\":\"https://sts.windows.net/6fd1f5cd-a94c-4335-889b-6c598e6d8048/\",\"iat\":1387224169,\"nbf\":1387224170,\"exp\":1387227769,\"pwd_exp\":1387227772,\"pwd_url\":\"pwdUrl\",\"ver\":\"1.0\",\"tid\":\"%s\",\"oid\":\"%s\",\"upn\":\"%s\",\"unique_name\":\"%s\",\"sub\":\"%s\",\"family_name\":\"%s\",\"given_name\":\"%s\",\"altsecid\":\"%s\",\"idp\":\"%s\",\"email\":\"%s\"}";
+    private static final String ID_TOKEN_CLAIMS = "{\"aud\":\"c3c7f5e5-7153-44d4-90e6-329686d48d76\",\"iss\":\"https://sts.windows.net/6fd1f5cd-a94c-4335-889b-6c598e6d8048/\",\"iat\":1387224169,\"nbf\":1387224170,\"exp\":1387227769,\"pwd_exp\":1387227772,\"pwd_url\":\"pwdUrl\",\"ver\":\"1.0\",\"tid\":\"%s\",\"oid\":\"%s\",\"upn\":\"%s\",\"unique_name\":\"%s\",\"sub\":\"%s\",\"family_name\":\"%s\",\"given_name\":\"%s\",\"altsecid\":\"%s\",\"idp\":\"%s\",\"email\":\"%s\"}";
 
-    static final String sIdTokenHeader = "{\"typ\":\"JWT\",\"alg\":\"none\"}";
+    private static final String ID_TOKEN_HEADER = "{\"typ\":\"JWT\",\"alg\":\"none\"}";
 
-    String tid = "6fd1f5cd-a94c-4335-889b-6c598e6d8048";
+    private static final String TID = "6fd1f5cd-a94c-4335-889b-6c598e6d8048";
 
-    String oid = "53c6acf2-2742-4538-918d-e78257ec8516";
+    private static final String UNIQUE_NAME = "testUnique@test.onmicrosoft.com";
 
-    String upn = "test@test.onmicrosoft.com";
+    private static final String SUB = "0DxnAlLi12IvGL";
 
-    String unique_name = "testUnique@test.onmicrosoft.com";
+    private static final String FAMILY_NAME = "familyName";
 
-    String sub = "0DxnAlLi12IvGL";
+    private static final String GIVEN_NAME = "givenName";
 
-    String family_name = "familyName";
+    private static final String ALTSECID = "altsecid";
 
-    String given_name = "givenName";
+    private static final String IDP = "idpProvider";
 
-    String altsecid = "altsecid";
+    private static final String EMAIL = "emailField";
 
-    String idp = "idpProvider";
+    private String mOid = "53c6acf2-2742-4538-918d-e78257ec8516";
 
-    String email = "emailField";
+    private String mUpn = "test@test.onmicrosoft.com";
 
     public String getIdToken() throws UnsupportedEncodingException {
-        String claims = String.format(sIdTokenClaims, tid, oid, upn, unique_name, sub, family_name,
-                given_name, altsecid, idp, email);
+        String claims = String.format(ID_TOKEN_CLAIMS, TID, mOid, mUpn, UNIQUE_NAME, SUB, FAMILY_NAME,
+                GIVEN_NAME, ALTSECID, IDP, EMAIL);
         return String.format(
                 "%s.%s.",
-                new String(Base64.encode(sIdTokenHeader.getBytes(AuthenticationConstants.ENCODING_UTF8),
+                new String(Base64.encode(ID_TOKEN_HEADER.getBytes(AuthenticationConstants.ENCODING_UTF8),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
                         AuthenticationConstants.ENCODING_UTF8),
                 new String(Base64.encode(claims.getBytes(AuthenticationConstants.ENCODING_UTF8),
                         Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE),
                         AuthenticationConstants.ENCODING_UTF8));
+    }
+
+    public String getOid() {
+        return mOid;
+    }
+
+    public void setOid(String oid) {
+        this.mOid = oid;
+    }
+
+    public String getUpn() {
+        return mUpn;
+    }
+
+    public void setUpn(String upn) {
+        this.mUpn = upn;
     }
 }

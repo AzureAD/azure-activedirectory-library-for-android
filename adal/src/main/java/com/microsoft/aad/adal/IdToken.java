@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -62,7 +63,7 @@ class IdToken {
 
     public IdToken(String idtoken) throws AuthenticationException {
         // Message segments: Header.Body.Signature
-        final HashMap<String, String> responseItems = this.parseJWT(idtoken);
+        final Map<String, String> responseItems = this.parseJWT(idtoken);
 
         if (responseItems != null && !responseItems.isEmpty()) {
             this.mSubject = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_SUBJECT);
@@ -123,7 +124,7 @@ class IdToken {
         return mPasswordChangeUrl;
     }
 
-    private HashMap<String, String> parseJWT(final String idtoken) throws AuthenticationException {
+    private Map<String, String> parseJWT(final String idtoken) throws AuthenticationException {
         final String idbody = extractJWTBody(idtoken);
         // URL_SAFE: Encoder/decoder flag bit to use
         // "URL and filename safe" variant of Base64
@@ -133,8 +134,7 @@ class IdToken {
 
         try {
             final String decodedBody = new String(data, "UTF-8");
-            final HashMap<String, String> responseItems = extractJsonObjects(decodedBody);
-            return responseItems;
+            return extractJsonObjects(decodedBody);
         } catch (UnsupportedEncodingException exception) {
             Logger.e(TAG, "The encoding is not supported.", "", ADALError.ENCODING_IS_NOT_SUPPORTED, exception);
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage(), exception);
@@ -145,21 +145,21 @@ class IdToken {
         }
     }
 
-    private String extractJWTBody(final String idtoken) throws AuthenticationException {
-        final int firstDot = idtoken.indexOf(".");
-        final int secondDot = idtoken.indexOf(".", firstDot + 1);
-        final int invalidDot = idtoken.indexOf(".", secondDot + 1);
+    private String extractJWTBody(final String idToken) throws AuthenticationException {
+        final int firstDot = idToken.indexOf(".");
+        final int secondDot = idToken.indexOf(".", firstDot + 1);
+        final int invalidDot = idToken.indexOf(".", secondDot + 1);
 
         if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
-            return idtoken.substring(firstDot + 1, secondDot);
+            return idToken.substring(firstDot + 1, secondDot);
         } else {
             throw new AuthenticationException(ADALError.IDTOKEN_PARSING_FAILURE, "Failed to extract the ClientID");
         }
     }
 
-    private static HashMap<String, String> extractJsonObjects(final String jsonStr) throws JSONException {
+    private static Map<String, String> extractJsonObjects(final String jsonStr) throws JSONException {
         final JSONObject jsonObject = new JSONObject(jsonStr);
-        final HashMap<String, String> responseItems = new HashMap<String, String>();
+        final Map<String, String> responseItems = new HashMap<>();
         final Iterator<?> i = jsonObject.keys();
         while (i.hasNext()) {
             final String key = (String) i.next();

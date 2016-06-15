@@ -50,7 +50,7 @@ import java.util.UUID;
 public final class WebRequestHandlerTests extends AndroidTestHelper {
 
     private static final String TAG = WebRequestHandlerTests.class.getSimpleName();
-    private final static String TEST_WEBAPI_URL = "https://test.api.net/api/WebRequestTest";
+    private static final String TEST_WEBAPI_URL = "https://test.api.net/api/WebRequestTest";
 
     /**
      * send invalid request to production service
@@ -79,7 +79,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
 
         final HttpWebResponse testResponse = sendCorrelationIdRequest(testUrl, testCorrelationId, false);
 
-        assertEquals("400 error code", 400, testResponse.getStatusCode());
+        assertEquals("400 error code", HttpURLConnection.HTTP_BAD_REQUEST, testResponse.getStatusCode());
         final String responseBody = testResponse.getBody();
         Log.v(TAG, "Test response:" + responseBody);
         assertNotNull("webresponse is not null", testResponse);
@@ -94,7 +94,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
     }
 
     private HttpWebResponse sendCorrelationIdRequest(final String message, final UUID testID,
-            final boolean withoutHeader) throws IOException {
+                                                     final boolean withoutHeader) throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
         WebRequestHandler request = new WebRequestHandler();
@@ -104,7 +104,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
             headers = new HashMap<String, String>();
             headers.put("Accept", "application/json");
         }
-        return request.sendPost(getUrl(message), headers, null, 
+        return request.sendPost(getUrl(message), headers, null,
                 "application/x-www-form-urlencoded");
     }
 
@@ -142,14 +142,13 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
                 getTestHeaders("testabc", "value123"));
 
         assertNotNull(httpResponse != null);
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         String responseMsg = new String(httpResponse.getBody());
         assertTrue("request header check", responseMsg.contains("testabc-value123"));
     }
 
     /**
      * WebService returns the request headers in the response
-     * @throws IOException 
      */
     public void testClientTraceInHeaders() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
@@ -168,7 +167,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
                 getTestHeaders("testClientTraceInHeaders", "valueYes"));
 
         assertNotNull(httpResponse != null);
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         String responseMsg = httpResponse.getBody();
         assertTrue("request header check", responseMsg.contains(AAD.ADAL_ID_PLATFORM + "-Android"));
         assertTrue(
@@ -201,7 +200,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         final WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"), null);
 
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         final String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check", responseMsg.contains("test get with id"));
     }
@@ -223,7 +222,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         final HttpWebResponse httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
                 json.getBytes(ENCODING_UTF8), "application/json");
 
-        assertTrue("status is 200", httpResponse.getStatusCode() == 200);
+        assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         final String responseMsg = new String(httpResponse.getBody());
         assertTrue("request body check",
                 responseMsg.contains(message.getAccessToken() + message.getUserName()));
@@ -245,16 +244,16 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
             return mAccessToken;
         }
 
-        public void setAccessToken(String mAccessToken) {
-            this.mAccessToken = mAccessToken;
+        public void setAccessToken(String accessToken) {
+            mAccessToken = accessToken;
         }
 
         public String getUserName() {
             return mUserName;
         }
 
-        public void setUserName(String mUserName) {
-            this.mUserName = mUserName;
+        public void setUserName(String userName) {
+            mUserName = userName;
         }
 
     }

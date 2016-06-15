@@ -66,7 +66,7 @@ class TokenCacheAccessor {
         }
         
         if (!StringExtensions.IsNullOrBlank(accessTokenItem.getAccessToken())) {
-            if (accessTokenItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
+            if (TokenCacheItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
                 Logger.v(TAG, "Access token exists, but already expired.");
                 return null;
             }
@@ -117,7 +117,7 @@ class TokenCacheAccessor {
     void updateCachedItemWithResult(final String resource, final String clientId, final AuthenticationResult result, 
             final TokenCacheItem cachedItem) throws AuthenticationException {
         if (result == null) {
-            Logger.v(TAG, "AuthenticationResult is not, cannot update cache.");
+            Logger.v(TAG, "AuthenticationResult is null, cannot update cache.");
             throw new IllegalArgumentException("result");
         }
         
@@ -181,7 +181,7 @@ class TokenCacheAccessor {
         case MRRT_TOKEN_ENTRY : 
             Logger.v(TAG, "MRRT was used to get access token, remove entries for both "
                     + "MRRT entries and regular RT entries.");
-            keys = getKeyListToRemoveForMRRT(tokenCacheItem, resource);
+            keys = getKeyListToRemoveForMRRT(tokenCacheItem);
             
             final TokenCacheItem regularRTItem = new TokenCacheItem(tokenCacheItem);
             regularRTItem.setResource(resource);
@@ -202,7 +202,7 @@ class TokenCacheAccessor {
     }
     
     /**
-     * Update token cache for given user. If token is MRRT, store two separate entries for regular RT entry and MRRT entry. 
+     * Update token cache for a given user. If token is MRRT, store two separate entries for regular RT entry and MRRT entry. 
      * Ideally, if returned token is MRRT, we should not store RT along with AT. However, there may be caller taking dependency
      * on RT. 
      * If the token is FRT, store three separate entries. 
@@ -232,7 +232,7 @@ class TokenCacheAccessor {
      * @return List of keys to remove when using regular RT to send refresh token request. 
      */
     private List<String> getKeyListToRemoveForRT(final TokenCacheItem cachedItem) {
-        final List<String> keysToRemove = new ArrayList<String>();
+        final List<String> keysToRemove = new ArrayList<>();
         keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), null));
         if (cachedItem.getUserInfo() != null) {
             keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getDisplayableId()));
@@ -245,8 +245,8 @@ class TokenCacheAccessor {
     /**
      * @return List of keys to remove when using MRRT to send refresh token request. 
      */
-    private List<String> getKeyListToRemoveForMRRT(final TokenCacheItem cachedItem, final String resource) {
-        final List<String> keysToRemove = new ArrayList<String>();
+    private List<String> getKeyListToRemoveForMRRT(final TokenCacheItem cachedItem) {
+        final List<String> keysToRemove = new ArrayList<>();
         
         keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), null));
         if (cachedItem.getUserInfo() != null) {
@@ -261,7 +261,7 @@ class TokenCacheAccessor {
      * @return List of keys to remove when using FRT to send refresh token request. 
      */
     private List<String> getKeyListToRemoveForFRT(final TokenCacheItem cachedItem) {
-        final List<String> keysToRemove = new ArrayList<String>();
+        final List<String> keysToRemove = new ArrayList<>();
         if (cachedItem.getUserInfo() != null) {
             keysToRemove.add(CacheKey.createCacheKeyForFRT(mAuthority, cachedItem.getFamilyClientId(), cachedItem.getUserInfo().getDisplayableId()));
             keysToRemove.add(CacheKey.createCacheKeyForFRT(mAuthority, cachedItem.getFamilyClientId(), cachedItem.getUserInfo().getUserId()));

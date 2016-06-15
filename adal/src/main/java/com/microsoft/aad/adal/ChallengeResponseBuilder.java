@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 class ChallengeResponseBuilder {
 
@@ -46,14 +47,6 @@ class ChallengeResponseBuilder {
         String mSubmitUrl;
 
         String mAuthorizationHeaderValue;
-
-        public String getSubmitUrl() {
-            return mSubmitUrl;
-        }
-
-        public String getAuthorizationHeaderValue() {
-            return mAuthorizationHeaderValue;
-        }
     }
 
     enum RequestField {
@@ -91,13 +84,13 @@ class ChallengeResponseBuilder {
      * @return Return Device challenge response
      */
     public ChallengeResponse getChallengeResponseFromUri(final String redirectUri)
-            throws AuthenticationServerProtocolException, AuthenticationException  {
+            throws AuthenticationException  {
         ChallengeRequest request = getChallengeRequest(redirectUri);
         return getDeviceCertResponse(request);
     }
 
     public ChallengeResponse getChallengeResponseFromHeader(final String challengeHeaderValue,
-            final String endpoint) throws UnsupportedEncodingException, AuthenticationServerProtocolException, AuthenticationException {
+            final String endpoint) throws UnsupportedEncodingException, AuthenticationException {
         ChallengeRequest request = getChallengeRequestFromHeader(challengeHeaderValue);
         request.mSubmitUrl = endpoint;
         return getDeviceCertResponse(request);
@@ -141,34 +134,18 @@ class ChallengeResponseBuilder {
     {
         @SuppressWarnings("unchecked")
         Class<IDeviceCertificate> certClass = (Class<IDeviceCertificate>)AuthenticationSettings.INSTANCE.getDeviceCertificateProxy();
-        if (certClass == null)
-        {
-            return false;
-        }
-        
-        return true;
+        return certClass != null;
     }
 
-    private IDeviceCertificate getWPJAPIInstance(Class<IDeviceCertificate> certClazz) 
-    	throws AuthenticationException {
-        IDeviceCertificate deviceCertProxy = null;
-        Constructor<?> constructor;
+    private IDeviceCertificate getWPJAPIInstance(Class<IDeviceCertificate> certClazz)
+            throws AuthenticationException {
+        final IDeviceCertificate deviceCertProxy;
+        final Constructor<?> constructor;
         try {
             constructor = certClazz.getDeclaredConstructor();
             deviceCertProxy = (IDeviceCertificate)constructor.newInstance((Object[])null);
-        } catch (NoSuchMethodException e) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
-                    "WPJ Api constructor is not defined", e);
-        } catch (InstantiationException e) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
-                    "WPJ Api constructor is not defined", e);
-        } catch (IllegalAccessException e) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
-                    "WPJ Api constructor is not defined", e);
-        } catch (IllegalArgumentException e) {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
-                    "WPJ Api constructor is not defined", e);
-        } catch (InvocationTargetException e) {
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
+                IllegalArgumentException | InvocationTargetException e) {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
                     "WPJ Api constructor is not defined", e);
         }
@@ -204,7 +181,7 @@ class ChallengeResponseBuilder {
         String authenticateHeader = headerValue
                 .substring(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE.length());
         ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader, ',');
-        HashMap<String, String> headerItems = new HashMap<String, String>();
+        Map<String, String> headerItems = new HashMap<>();
 
         for (String queryPair : queryPairs) 
         {
@@ -264,7 +241,7 @@ class ChallengeResponseBuilder {
         return challenge;
     }
 
-    private void validateChallengeRequest(HashMap<String, String> headerItems,
+    private void validateChallengeRequest(Map<String, String> headerItems,
             boolean redirectFormat) throws AuthenticationException{
         if (!(headerItems.containsKey(RequestField.Nonce.name()) || headerItems
                 .containsKey(RequestField.Nonce.name().toLowerCase(Locale.US)))) {

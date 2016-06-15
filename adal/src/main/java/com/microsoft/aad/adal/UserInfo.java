@@ -122,9 +122,9 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Gets unique userid.
+     * Gets unique user id.
      * 
-     * @return
+     * @return the unique id representing an user
      */
     public String getUserId() {
         return mUniqueId;
@@ -137,78 +137,55 @@ public class UserInfo implements Serializable {
     /**
      * Gets given name.
      * 
-     * @return
+     * @return the given name of the user
      */
     public String getGivenName() {
         return mGivenName;
     }
 
-    void setGivenName(String name) {
-        mGivenName = name;
-    }
-
     /**
      * Gets family name.
      * 
-     * @return
+     * @return the family name of the user
      */
     public String getFamilyName() {
         return mFamilyName;
     }
 
-    void setFamilyName(String familyName) {
-        mFamilyName = familyName;
-    }
-
     /**
      * Gets Identity provider.
      * 
-     * @return
+     * @return the identity provider
      */
     public String getIdentityProvider() {
         return mIdentityProvider;
     }
 
-    void setIdentityProvider(String provider) {
-        mIdentityProvider = provider;
-    }
-
     /**
      * Gets displayable user name.
      * 
-     * @return
+     * @return the displayable user name
      */
     public String getDisplayableId() {
         return mDisplayableId;
     }
 
-    void setDisplayableId(String displayId) {
-        mDisplayableId = displayId;
-    }
-
     /**
      * Gets password change url.
      * 
-     * @return
+     * @return the password change uri
      */
     public Uri getPasswordChangeUrl() {
         return mPasswordChangeUrl;
     }
 
-    void setPasswordChangeUrl(Uri passwordChangeUrl) {
-        this.mPasswordChangeUrl = passwordChangeUrl;
-    }
-
     /**
      * Gets password expires on.
      * 
-     * @return
+     * @return the time when the password will expire
      */
     public Date getPasswordExpiresOn() {
         return mPasswordExpiresOn;
     }
 
-    void setPasswordExpiresOn(Date passwordExpiresOn) {
-        this.mPasswordExpiresOn = passwordExpiresOn;
-    }
 }

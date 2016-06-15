@@ -31,13 +31,6 @@ class DeserializationAuthenticationException extends AuthenticationException {
     final static ADALError defaultErrorCode = ADALError.INCOMPATIBLE_BLOB_VERSION;
 
     /**
-     * Constructs a new DeserializationAuthenticationException.
-     */
-    public DeserializationAuthenticationException() {
-        super();
-    }
-
-    /**
      * Constructs a new DeserializationAuthenticationException with message.
      * 
      * @param msg Message for cancel request
@@ -46,13 +39,4 @@ class DeserializationAuthenticationException extends AuthenticationException {
         super(defaultErrorCode, msg);
     }
 
-    /**
-     * Constructs a new DeserializationAuthenticationException with message and the cause exception
-     * @param details Details related to the error such as query string, request
-     *            info
-     * @param throwable {@link Throwable}
-     */
-    public DeserializationAuthenticationException(String msg, Throwable cause) {
-        super(defaultErrorCode, msg, cause);
-    }
 }
