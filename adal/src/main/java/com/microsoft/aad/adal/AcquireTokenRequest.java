@@ -353,7 +353,7 @@ class AcquireTokenRequest {
                 request.getResource(), request.getClientId(), user);
         if (mrrtItem != null) {
             mTokenCacheAccessor.removeTokenCacheItem(mrrtItem, request.getResource());
-        } else if (regularTokenCacheItem != null){
+        } else if (regularTokenCacheItem != null) {
             mTokenCacheAccessor.removeTokenCacheItem(regularTokenCacheItem, request.getResource());
         }
     }
