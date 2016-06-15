@@ -66,7 +66,7 @@ class AcquireTokenRequest {
      * Instance validation related calls are serviced inside Discovery as a
      * module.
      */
-    private IDiscovery mDiscovery = new Discovery();
+    private Discovery mDiscovery = new Discovery();
 
     /**
      * Constructor for {@link AcquireTokenRequest}.
@@ -75,8 +75,8 @@ class AcquireTokenRequest {
         mContext = appContext;
         mAuthContext = authContext;
 
-        if (authContext.getTokenCacheStore() != null) {
-            mTokenCacheAccessor = new TokenCacheAccessor(authContext.getTokenCacheStore(),
+        if (authContext.getCache() != null) {
+            mTokenCacheAccessor = new TokenCacheAccessor(authContext.getCache(),
                     authContext.getAuthority());
         }
         mBrokerProxy = new BrokerProxy(appContext);
@@ -174,8 +174,7 @@ class AcquireTokenRequest {
 
         Logger.v(TAG, "Start validating authority");
         mDiscovery.setCorrelationId(mAuthContext.getRequestCorrelationId());
-        // Discovery.isValidAuthority will throw in the false case
-        mDiscovery.isValidAuthority(authorityUrl);
+        mDiscovery.validAuthority(authorityUrl);
 
         Logger.v(TAG, "The passe in authority is valid.");
         mAuthContext.setIsAuthorityValidated(true);
@@ -202,7 +201,7 @@ class AcquireTokenRequest {
 
         // tryAcquireTokenSilent will:
         // 1) throw AuthenticationException if
-        //    a) No access token is allowed from local flow and no prompt is allowed
+        //    a) No access token is returned from local flow and no prompt is allowed
         //    b) Server error or network errors when sending post request to token endpoint with grant_type
         //       as refresh_token in local flow
         //    c) Broker returns ERROR_CODE_BAD_ARGUMENTS, ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION
@@ -216,10 +215,11 @@ class AcquireTokenRequest {
         final AuthenticationResult authenticationResultFromSilentRequest = tryAcquireTokenSilent(authenticationRequest);
         if (isAccessTokenReturned(authenticationResultFromSilentRequest)) {
             callbackHandle.onSuccess(authenticationResultFromSilentRequest);
-        } else {
-            Logger.d(TAG, "Trying to acquire token interactively.");
-            acquireTokenInteractiveFlow(callbackHandle, activity, useDialog, authenticationRequest);
+            return;
         }
+
+        Logger.d(TAG, "Trying to acquire token interactively.");
+        acquireTokenInteractiveFlow(callbackHandle, activity, useDialog, authenticationRequest);
     }
 
     private AuthenticationResult tryAcquireTokenSilent(final AuthenticationRequest authenticationRequest)
@@ -248,7 +248,6 @@ class AcquireTokenRequest {
             }
 
             if (isAccessTokenReturned) {
-                mAuthContext.setFavorLocalCache(!mAcquireTokenSilentWithBroker);
                 Logger.v(TAG, "Token is successfully returned from silent flow. ");
                 ClientAnalytics.logEvent(new RefreshTokenEvent(
                         new InstrumentationPropertiesBuilder(authenticationRequest, authenticationResult),
@@ -278,14 +277,19 @@ class AcquireTokenRequest {
             return authResult;
         }
 
-        return tryAcquireTokenSilentWithBroker(authResult, authenticationRequest);
+        // If we cannot switch to broker, return the result from local flow.
+        if (!canSwitchToBroker(authenticationRequest)) {
+            return authResult;
+        }
+
+        return tryAcquireTokenSilentWithBroker(authenticationRequest);
     }
 
     /**
      * Try acquire token silent locally.
      */
     private AuthenticationResult tryAcquireTokenSilentLocally(final AuthenticationRequest authenticationRequest)
-            throws  AuthenticationException{
+            throws AuthenticationException {
 
         final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                 authenticationRequest, mTokenCacheAccessor);
@@ -305,13 +309,12 @@ class AcquireTokenRequest {
     /**
      * Try acquire token silent with broker.
      */
-    private AuthenticationResult tryAcquireTokenSilentWithBroker(final AuthenticationResult resultFromLocalSilent,
-                                                                 final AuthenticationRequest authenticationRequest)
+    private AuthenticationResult tryAcquireTokenSilentWithBroker(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
 
-        if (!canSwitchToBroker(authenticationRequest)) {
-            return resultFromLocalSilent;
-        }
+        // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does
+        // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
+        removeTokenForUser(authenticationRequest);
 
         final AuthenticationResult authResult;
         mAcquireTokenSilentWithBroker = true;
@@ -327,6 +330,32 @@ class AcquireTokenRequest {
         }
 
         return authResult;
+    }
+
+    private void removeTokenForUser(final AuthenticationRequest request) throws AuthenticationException {
+        final String user = !StringExtensions.IsNullOrBlank(request.getUserId()) ? request.getUserId()
+                : request.getLoginHint();
+        if (mTokenCacheAccessor == null) {
+            return;
+        }
+
+        // Check if there is a FRT existed for the user
+        final TokenCacheItem frtItem = mTokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, user);
+        if (frtItem != null) {
+            mTokenCacheAccessor.removeTokenCacheItem(frtItem, request.getResource());
+        }
+
+        // Check if there is a MRRT existed for the user, if there is an MRRT, TokenCacheAccessor will also
+        // delete the regular RT entry
+        // When there is no MRRT token cache item existe, try to check if there is regular RT cache item for the user.
+        final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(request.getClientId(), user);
+        final TokenCacheItem regularTokenCacheItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(
+                request.getResource(), request.getClientId(), user);
+        if (mrrtItem != null) {
+            mTokenCacheAccessor.removeTokenCacheItem(mrrtItem, request.getResource());
+        } else if (regularTokenCacheItem != null){
+            mTokenCacheAccessor.removeTokenCacheItem(regularTokenCacheItem, request.getResource());
+        }
     }
 
     /**

@@ -46,7 +46,7 @@ import java.util.UUID;
  * sends common as a tenant name. Discovery checks only authorization endpoint.
  * It does not do tenant verification. Initialize and call from UI thread.
  */
-final class Discovery implements IDiscovery {
+final class Discovery {
 
     private static final String TAG = "Discovery";
 
@@ -86,8 +86,7 @@ final class Discovery implements IDiscovery {
         mWebrequestHandler = new WebRequestHandler();
     }
 
-    @Override
-    public boolean isValidAuthority(URL authorizationEndpoint) throws AuthenticationException {
+    public void validAuthority(URL authorizationEndpoint) throws AuthenticationException {
         // For comparison purposes, convert to lowercase Locale.US
         // getProtocol returns scheme and it is available if it is absolute url
         // Authority is in the form of https://Instance/tenant/somepath
@@ -108,30 +107,21 @@ final class Discovery implements IDiscovery {
                     new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED));
         }
 
-        if (sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
+        if (!sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
             // host can be the instance or inside the validated list.
             // Valid hosts will help to skip validation if validated before
             // call Callback and skip the look up
-            return true;
+            // Only query from Prod instance for now, not all of the instances in the list
+            queryInstance(authorizationEndpoint);
         }
-
-        // Only query from Prod instance for now, not all of the instances in the list
-        return queryInstance(authorizationEndpoint);
     }
 
-
     /**
-     * add this host as valid to skip another query to server.
-     * 
-     * @param validhost
+     * Set correlation id for the tenant discovery call.
+     * @param requestCorrelationId The correlation id for the tenant discovery.
      */
-    private void addValidHostToList(URL validhost) {
-        String validHost = validhost.getHost();
-        if (!StringExtensions.IsNullOrBlank(validHost)) {
-            // for comparisons it uses Locale.US, so it needs to be same
-            // here
-            sValidHosts.add(validHost.toLowerCase(Locale.US));
-        }
+    public void setCorrelationId(final UUID requestCorrelationId) {
+        mCorrelationId = requestCorrelationId;
     }
 
     /**
@@ -148,7 +138,7 @@ final class Discovery implements IDiscovery {
         }
     }
 
-    private boolean queryInstance(final URL authorizationEndpointUrl) throws AuthenticationException {
+    private void queryInstance(final URL authorizationEndpointUrl) throws AuthenticationException {
 
         // It will query prod instance to verify the authority
         // construct query string for this instance
@@ -168,7 +158,6 @@ final class Discovery implements IDiscovery {
         }
 
         addValidHostToList(authorizationEndpointUrl);
-        return true;
     }
 
     private boolean sendRequest(final URL queryUrl) throws IOException, JSONException, AuthenticationException {
@@ -207,6 +196,20 @@ final class Discovery implements IDiscovery {
             return (discoveryResponse != null && discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT));
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);                
+        }
+    }
+
+    /**
+     * add this host as valid to skip another query to server.
+     *
+     * @param validhost
+     */
+    private void addValidHostToList(URL validhost) {
+        String validHost = validhost.getHost();
+        if (!StringExtensions.IsNullOrBlank(validHost)) {
+            // for comparisons it uses Locale.US, so it needs to be same
+            // here
+            sValidHosts.add(validHost.toLowerCase(Locale.US));
         }
     }
 
@@ -254,10 +257,5 @@ final class Discovery implements IDiscovery {
                 .appendQueryParameter(API_VERSION_KEY, API_VERSION_VALUE)
                 .appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);
         return new URL(builder.build().toString());
-    }
-
-    @Override
-    public void setCorrelationId(UUID requestCorrelationId) {
-        mCorrelationId = requestCorrelationId;
     }
 }

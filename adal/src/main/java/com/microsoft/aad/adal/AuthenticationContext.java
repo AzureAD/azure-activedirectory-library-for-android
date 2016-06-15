@@ -39,7 +39,6 @@ import android.util.SparseArray;
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -69,8 +68,6 @@ public class AuthenticationContext {
     private ITokenCacheStore mTokenCacheStore;
 
     private IBrokerProxy mBrokerProxy = null;
-
-    private boolean mFavorLocalCache = false;
 
     /**
      * Delegate map is needed to handle activity recreate without asking
@@ -159,59 +156,7 @@ public class AuthenticationContext {
      */
     public ITokenCacheStore getCache() {
 
-        if (!mBrokerProxy.canSwitchToBroker() || mFavorLocalCache) {
-            return mTokenCacheStore;
-        }
-
-        // return cache implementation related to broker so that app can
-        // clear tokens for related accounts
-        return new ITokenCacheStore() {
-
-            /**
-             * default serial #
-             */
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void setItem(String key, TokenCacheItem item) {
-                throw new UnsupportedOperationException(
-                        "Broker cache does not support direct setItem operation");
-            }
-
-            @Override
-            public void removeItem(String key) {
-                throw new UnsupportedOperationException(
-                        "Broker cache does not support direct removeItem operation");
-            }
-
-            /**
-             * If interacting with broker, client app doesn't have access to broker cache, and we don't allow
-             * client app to clear the broker cache. With the new broker app version (Azure Authenticator 4.x.x
-             * and above, Intune Company Portal 5.0.3348.0 and above), multiple accounts will be supported. If calling
-             * removeAll at broker app, it will clear all the token and users broker is hosting, which will completely
-             * break the sso story broker app is building.
-             */
-            @Override
-            public void removeAll() { }
-
-            @Override
-            public TokenCacheItem getItem(String key) {
-                throw new UnsupportedOperationException(
-                        "Broker cache does not support direct getItem operation");
-            }
-
-            @Override
-            public boolean contains(String key) {
-                throw new UnsupportedOperationException(
-                        "Broker cache does not support contains operation");
-            }
-
-            @Override
-            public Iterator<TokenCacheItem> getAll() {
-                throw new UnsupportedOperationException(
-                        "Broker cache does not support direct getAll operation");
-            }
-        };
+        return mTokenCacheStore;
     }
 
     /**
@@ -1052,14 +997,6 @@ public class AuthenticationContext {
         }
 
         return String.format(" CorrelationId: %s", requestCorrelationID.toString());
-    }
-
-    ITokenCacheStore getTokenCacheStore() {
-        return mTokenCacheStore;
-    }
-
-    void setFavorLocalCache(final boolean favorLocalCache) {
-        mFavorLocalCache = favorLocalCache;
     }
 
     /**

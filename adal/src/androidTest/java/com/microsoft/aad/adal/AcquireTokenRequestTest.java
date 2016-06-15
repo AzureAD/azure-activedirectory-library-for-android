@@ -47,12 +47,14 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -127,7 +129,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         // Make sure AT is not expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
+        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -148,7 +150,6 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertNotNull(callback.callbackResult);
         assertTrue(callback.callbackResult.getAccessToken().equals("I am an AT"));
 
-        assertTrue(authContext.getCache() instanceof DefaultTokenCacheStore);
         cacheStore.removeAll();
     }
 
@@ -163,7 +164,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
+        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), true, true);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -172,7 +173,9 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final FileMockContext mockContext = createMockContext();
         mockContext.setMockedAccountManager(mockedAccountManager);
 
-        prepareFailedHttpUrlConnection("invalid_request");
+        final String errorCode = "invalid_request";
+        prepareFailedHttpUrlConnection(errorCode, errorCode);
+
         prepareAuthForBrokerCall();
 
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -194,12 +197,20 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertTrue(callback.callbackResult.getAccessToken().equals("I am an access token from broker"));
 
         //verify local cache is not cleared
-        assertNotNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
+        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
                 TEST_USERID)));
-        assertNotNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
+        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
                 TEST_UPN)));
 
-        assertFalse(authContext.getCache() instanceof DefaultTokenCacheStore);
+        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_UPN)));
+        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_USERID)));
+
+        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY,
+                AuthenticationConstants.MS_FAMILY_ID, TEST_UPN)));
+        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY,
+                AuthenticationConstants.MS_FAMILY_ID, TEST_USERID)));
+
+        assertFalse(authContext.getCache().getAll().hasNext());
         cacheStore.removeAll();
     }
 
@@ -215,7 +226,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
+        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), true, false);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -245,13 +256,16 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertNotNull(callback.callbackResult);
         assertTrue(callback.callbackResult.getAccessToken().equals("I am an access token from broker"));
 
-        //verify local cache is not cleared
+        //verify local cache is cleared
         assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
                 TEST_USERID)));
         assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
                 TEST_UPN)));
 
-        assertFalse(authContext.getCache() instanceof DefaultTokenCacheStore);
+        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_UPN)));
+        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_USERID)));
+
+        assertFalse(authContext.getCache().getAll().hasNext());
         cacheStore.removeAll();
     }
 
@@ -266,7 +280,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
+        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -298,7 +312,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertNotNull(callback.callbackResult);
         assertTrue(callback.callbackResult.getAccessToken().equals("I am a new access token"));
 
-        assertTrue(authContext.getCache() instanceof DefaultTokenCacheStore);
+        assertTrue(cacheStore.getAll().hasNext());
         cacheStore.removeAll();
     }
 
@@ -310,7 +324,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
+        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -344,7 +358,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 Matchers.any(Bundle.class), (Activity) Matchers.eq(null), (AccountManagerCallback<Bundle>) Matchers.
                         eq(null), Matchers.any(Handler.class));
 
-        assertFalse(authContext.getCache() instanceof DefaultTokenCacheStore);
+        assertFalse(cacheStore.getAll().hasNext());
         cacheStore.removeAll();
     }
 
@@ -355,7 +369,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime());
+        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -389,30 +403,47 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 Matchers.any(Bundle.class), (Activity) Matchers.eq(null), (AccountManagerCallback<Bundle>) Matchers.
                         eq(null), Matchers.any(Handler.class));
 
-        assertFalse(authContext.getCache() instanceof DefaultTokenCacheStore);
+        assertFalse(cacheStore.getAll().hasNext());
         cacheStore.removeAll();
     }
 
-    private ITokenCacheStore getTokenCache(final Date expiresOn) {
+    private ITokenCacheStore getTokenCache(final Date expiresOn, final boolean storeMRRT, final boolean storeFRT) {
         // prepare valid item in cache
-        final TokenCacheItem validTokenCacheItem = new TokenCacheItem();
-        validTokenCacheItem.setAccessToken("I am an AT");
-        validTokenCacheItem.setExpiresOn(expiresOn);
-        validTokenCacheItem.setRefreshToken("I am a RT");
-        validTokenCacheItem.setClientId("clientid");
-        validTokenCacheItem.setResource("resource");
-
         final UserInfo userInfo = new UserInfo();
         userInfo.setDisplayableId(TEST_UPN);
         userInfo.setUserId(TEST_USERID);
-        validTokenCacheItem.setUserInfo(userInfo);
+
+        final String accessToken = "I am an AT";
+        final String refreshToken = "I am a RT";
+        final String idToken = "I am an id token";
+        final String resource = "resource";
+        final String clientId = "clientid";
+        final AuthenticationResult result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT,
+                userInfo, "", idToken);
 
         final ITokenCacheStore cacheStore = new DefaultTokenCacheStore(getContext());
         cacheStore.removeAll();
-        cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid", TEST_USERID),
-                validTokenCacheItem);
-        cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid", TEST_UPN),
-                validTokenCacheItem);
+        final TokenCacheItem regularRTItem = TokenCacheItem.createRegularTokenCacheItem(VALID_AUTHORITY,
+                "resource", "clientid", result);
+        cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_USERID),
+                regularRTItem);
+        cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_UPN),
+                regularRTItem);
+
+        if (storeMRRT) {
+            final TokenCacheItem mrrtItem = TokenCacheItem.createMRRTTokenCacheItem(VALID_AUTHORITY, clientId, result);
+            cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_UPN), mrrtItem);
+            cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_USERID), mrrtItem);
+        }
+
+        if (storeFRT) {
+            result.setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
+            final TokenCacheItem frtItem = TokenCacheItem.createFRRTTokenCacheItem(VALID_AUTHORITY, result);
+            cacheStore.setItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY,
+                    AuthenticationConstants.MS_FAMILY_ID, TEST_USERID), frtItem);
+            cacheStore.setItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY,
+                    AuthenticationConstants.MS_FAMILY_ID, TEST_UPN), frtItem);
+        }
 
         return cacheStore;
     }
@@ -659,13 +690,15 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
     }
 
-    private void prepareFailedHttpUrlConnection(final String errorCode) throws IOException {
+    private void prepareFailedHttpUrlConnection(final String errorCode, final String ...errorCodes) throws IOException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.mockedConnection = mockedConnection;
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+
         Mockito.when(mockedConnection.getInputStream()).thenReturn(
-                Util.createInputStream(Util.getErrorResponseBody(errorCode)));
+                Util.createInputStream(Util.getErrorResponseBody(errorCode)), errorCodes.length == 1
+                        ? Util.createInputStream(Util.getErrorResponseBody(errorCodes[0])) : null);
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
     }
 
