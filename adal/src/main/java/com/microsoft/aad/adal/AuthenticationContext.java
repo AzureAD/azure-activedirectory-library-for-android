@@ -788,8 +788,6 @@ public class AuthenticationContext {
         return new IWindowComponent() {
             Activity mRefActivity = activity;
 
-            AuthenticationResult result = null;
-
             @Override
             public void startActivityForResult(Intent intent, int requestCode) {
                 // if user closed an app or switched to another activity
