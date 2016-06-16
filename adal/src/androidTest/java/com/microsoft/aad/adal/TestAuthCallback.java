@@ -27,13 +27,21 @@ package com.microsoft.aad.adal;
  * Implementation for {@link AuthenticationCallback} for testing purpose.
  */
 final class TestAuthCallback implements AuthenticationCallback<AuthenticationResult> {
-    public AuthenticationResult callbackResult;
+    private AuthenticationResult mCallbackResult;
 
-    public Exception callbackException;
+    private Exception mCallbackException;
+
+    public AuthenticationResult getCallbackResult() {
+        return mCallbackResult;
+    }
+
+    public Exception getCallbackException() {
+        return mCallbackException;
+    }
 
     @Override
-    public void onSuccess(AuthenticationResult result) { callbackResult = result; }
+    public void onSuccess(AuthenticationResult result) { mCallbackResult = result; }
 
     @Override
-    public void onError(Exception exc) { callbackException = exc; }
+    public void onError(Exception exc) { mCallbackException = exc; }
 }

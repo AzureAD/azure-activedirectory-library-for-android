@@ -146,9 +146,9 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        assertNull(callback.callbackException);
-        assertNotNull(callback.callbackResult);
-        assertTrue(callback.callbackResult.getAccessToken().equals("I am an AT"));
+        assertNull(callback.getCallbackException());
+        assertNotNull(callback.getCallbackResult());
+        assertTrue(callback.getCallbackResult().getAccessToken().equals("I am an AT"));
 
         cacheStore.removeAll();
     }
@@ -192,9 +192,9 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 Matchers.any(Handler.class));
 
         // verify returned AT is as expected
-        assertNull(callback.callbackException);
-        assertNotNull(callback.callbackResult);
-        assertTrue(callback.callbackResult.getAccessToken().equals("I am an access token from broker"));
+        assertNull(callback.getCallbackException());
+        assertNotNull(callback.getCallbackResult());
+        assertTrue(callback.getCallbackResult().getAccessToken().equals("I am an access token from broker"));
 
         //verify local cache is not cleared
         assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
@@ -252,9 +252,9 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 Matchers.any(Handler.class));
 
         // verify returned AT is as expected
-        assertNull(callback.callbackException);
-        assertNotNull(callback.callbackResult);
-        assertTrue(callback.callbackResult.getAccessToken().equals("I am an access token from broker"));
+        assertNull(callback.getCallbackException());
+        assertNotNull(callback.getCallbackResult());
+        assertTrue(callback.getCallbackResult().getAccessToken().equals("I am an access token from broker"));
 
         //verify local cache is cleared
         assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
@@ -308,9 +308,9 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 Matchers.any(Handler.class));
 
         // verify returned AT is as expected
-        assertNull(callback.callbackException);
-        assertNotNull(callback.callbackResult);
-        assertTrue(callback.callbackResult.getAccessToken().equals("I am a new access token"));
+        assertNull(callback.getCallbackException());
+        assertNotNull(callback.getCallbackResult());
+        assertTrue(callback.getCallbackResult().getAccessToken().equals("I am a new access token"));
 
         assertTrue(cacheStore.getAll().hasNext());
         cacheStore.removeAll();
@@ -481,7 +481,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         data.putExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN, "testAccessToken");
         authContext.onActivityResult(requestCode, resultCode, data);
 
-        assertNull(callback.callbackException);
+        assertNull(callback.getCallbackException());
     }
 
     @SmallTest
@@ -500,10 +500,10 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        assertNotNull(callback.callbackException);
-        assertTrue(callback.callbackException instanceof UsageAuthenticationException);
+        assertNotNull(callback.getCallbackException());
+        assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
         final UsageAuthenticationException usageAuthenticationException
-                = (UsageAuthenticationException) callback.callbackException;
+                = (UsageAuthenticationException) callback.getCallbackException();
         assertTrue(usageAuthenticationException.getMessage().contains("prefix"));
     }
 
@@ -523,10 +523,10 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        assertNotNull(callback.callbackException);
-        assertTrue(callback.callbackException instanceof UsageAuthenticationException);
+        assertNotNull(callback.getCallbackException());
+        assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
         final UsageAuthenticationException usageAuthenticationException
-                = (UsageAuthenticationException) callback.callbackException;
+                = (UsageAuthenticationException) callback.getCallbackException();
         assertTrue(usageAuthenticationException.getMessage().contains("package name"));
     }
 
@@ -550,10 +550,10 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        assertNotNull(callback.callbackException);
-        assertTrue(callback.callbackException instanceof UsageAuthenticationException);
+        assertNotNull(callback.getCallbackException());
+        assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
         final UsageAuthenticationException usageAuthenticationException
-                = (UsageAuthenticationException) callback.callbackException;
+                = (UsageAuthenticationException) callback.getCallbackException();
         assertTrue(usageAuthenticationException.getMessage().contains("signature"));
     }
 

@@ -84,6 +84,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
     private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.test";
 
+    private static final int EXPIRES_ON_ADJUST_MINS = 10;
+
     static final String TEST_IDTOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.";
 
     static final String TEST_IDTOKEN_USERID = "4f859989-a2ff-411e-9048-c322247ac62c";
@@ -300,19 +302,21 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     @SmallTest
     public void testResolveIntent() throws InterruptedException {
         final FileMockContext mockContext = new FileMockContext(getContext());
-        mockContext.resolveIntent = false;
+        mockContext.setResolveIntent(false);
 
         final AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
                 false);
         final TestAuthCallback callback = new TestAuthCallback();
-        context.acquireToken(Mockito.mock(Activity.class), "resource", "clientid", "redirect", PromptBehavior.Always, callback);
+        context.acquireToken(Mockito.mock(Activity.class), "resource", "clientid", "redirect",
+
+                PromptBehavior.Always, callback);
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        assertNotNull(callback.callbackException);
-        assertTrue(callback.callbackException instanceof AuthenticationException);
+        assertNotNull(callback.getCallbackException());
+        assertTrue(callback.getCallbackException() instanceof AuthenticationException);
 
-        final AuthenticationException authenticationException = (AuthenticationException)callback.callbackException;
+        final AuthenticationException authenticationException = (AuthenticationException) callback.getCallbackException();
         assertTrue(authenticationException.getCode() == ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED);
     }
 
@@ -1410,11 +1414,36 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final String clientId = "clientid" + UUID.randomUUID();
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
-        addItemToCache(mockCache, "token1", "refresh1", VALID_AUTHORITY, resource, clientId, "userid1", "userAname",
-                "userAfamily" , "userName1", "tenant", false);
-        addItemToCache(mockCache, "token2", "refresh2", VALID_AUTHORITY, resource, clientId, "userid2", "userBname",
-                "userBfamily" , "userName2", "tenant", false);
 
+        TestCacheItem newItem = new TestCacheItem();
+        newItem.setToken("token1");
+        newItem.setRefreshToken("refresh1");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId("userId1");
+        newItem.setName("userAname");
+        newItem.setFamilyName("userAfamily");
+        newItem.setDisplayId("userName1");
+        newItem.setTenantId("tenant");
+        newItem.setMultiResource(false);
+
+        addItemToCache(mockCache, newItem);
+
+        newItem = new TestCacheItem();
+        newItem.setToken("token2");
+        newItem.setRefreshToken("refresh2");
+        newItem.setAuthority(VALID_AUTHORITY);
+        newItem.setResource(resource);
+        newItem.setClientId(clientId);
+        newItem.setUserId("userId2");
+        newItem.setName("userBname");
+        newItem.setFamilyName("userBfamily");
+        newItem.setDisplayId("userName2");
+        newItem.setTenantId("tenant");
+        newItem.setMultiResource(false);
+
+        addItemToCache(mockCache, newItem);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
 
@@ -1611,7 +1640,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 callback.getCallbackException() instanceof AuthenticationException);
         assertTrue(
                 "Returns authentication exception",
-                ((AuthenticationException) callback.callbackException).getCode()
+                ((AuthenticationException) callback.getCallbackException()).getCode()
                         == ADALError.WEBVIEW_RETURNED_INVALID_AUTHENTICATION_EXCEPTION);
     }
 

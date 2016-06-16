@@ -106,7 +106,7 @@ final class Discovery {
                     "Cannot vaid ADFS authority",
                     new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED));
         }
-        
+
         if (!sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
             // host can be the instance or inside the validated list.
             // Valid hosts will help to skip validation if validated before

@@ -23,13 +23,13 @@
 
 package com.microsoft.aad.adal;
 
+import android.net.Uri;
+import android.os.Bundle;
+
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-
-import android.net.Uri;
-import android.os.Bundle;
 
 /**
  * Contains information of a single user.
@@ -168,6 +168,10 @@ public class UserInfo implements Serializable {
      */
     public String getDisplayableId() {
         return mDisplayableId;
+    }
+
+    void setDisplayableId(String displayableId) {
+        mDisplayableId = displayableId;
     }
 
     /**

@@ -546,7 +546,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         startActivity(mIntentToStartActivity, null, null);
         mActivity = getActivity();
         String broadcastCancelMsg1 = "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity";
-        String broadcastCancelMsg2 = "Waiting requestId is same and cancelling this mActivity";
+        String broadcastCancelMsg2 = "Waiting requestId is same and cancelling this activity";
 
         // Test onReceive call with wrong request id
         TestLogResponse response = new TestLogResponse();
