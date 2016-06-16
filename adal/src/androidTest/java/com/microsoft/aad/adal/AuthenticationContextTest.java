@@ -308,7 +308,6 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 false);
         final TestAuthCallback callback = new TestAuthCallback();
         context.acquireToken(Mockito.mock(Activity.class), "resource", "clientid", "redirect",
-
                 PromptBehavior.Always, callback);
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
