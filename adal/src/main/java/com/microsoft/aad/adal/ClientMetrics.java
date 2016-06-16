@@ -66,6 +66,7 @@ enum ClientMetrics {
             Map<String, String> headers) {
         if (UrlExtensions.isADFSAuthority(queryUrl)) {
             // Don't add for ADFS endpoint
+            mLastCorrelationId = null;
             return;
         }
 

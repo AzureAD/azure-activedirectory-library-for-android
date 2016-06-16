@@ -23,10 +23,13 @@
 
 package com.microsoft.aad.adal;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import android.annotation.SuppressLint;
+import android.test.AndroidTestCase;
+import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Base64;
+
+import com.microsoft.aad.adal.AuthenticationConstants.AAD;
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -49,13 +52,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
-import com.microsoft.aad.adal.AuthenticationConstants.AAD;
-import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-
-import android.annotation.SuppressLint;
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Base64;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressLint("TrulyRandom")
 public class OauthTests extends AndroidTestCase {
@@ -486,7 +486,7 @@ public class OauthTests extends AndroidTestCase {
         IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         HashMap<String, List<String>> headers = getHeader(
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");
-        HttpWebResponse responeChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAVAILABLE, null, headers);
+        HttpWebResponse responeChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
                         any(headers.getClass()), any(byte[].class),

@@ -32,7 +32,7 @@ public class UsageAuthenticationException extends AuthenticationException {
     /**
      * Constructs a new UsageAuthenticationException with message.
      * 
-     * @param msg Message for cancel request
+     * @param msg Detailed message for the reason causing the exception.
      */
     public UsageAuthenticationException(ADALError code, String msg) {
         super(code, msg);
@@ -43,8 +43,7 @@ public class UsageAuthenticationException extends AuthenticationException {
      * 
      * @param code Resource file related error code. Message will be derived
      *            from resource with using app context
-     * @param msg Details related to the error such as query string, request
-     *            info
+     * @param msg Detailed message for the reason causing the exception.
      * @param throwable {@link Throwable}
      */
     public UsageAuthenticationException(ADALError code, String msg, Throwable throwable) {

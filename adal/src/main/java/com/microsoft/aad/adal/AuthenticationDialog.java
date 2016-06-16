@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.UnsupportedEncodingException;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -38,6 +36,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
+import java.io.UnsupportedEncodingException;
 
 @SuppressLint({
         "InflateParams", "SetJavaScriptEnabled", "ClickableViewAccessibility"
@@ -47,7 +46,7 @@ class AuthenticationDialog {
 
     private Context mContext;
 
-    private AuthenticationContext mAuthContext;
+    private AcquireTokenRequest mAcquireTokenRequest;
 
     private AuthenticationRequest mRequest;
 
@@ -59,11 +58,11 @@ class AuthenticationDialog {
 
     private String mQueryParameters;
 
-    public AuthenticationDialog(Handler handler, Context context, AuthenticationContext authCtx,
+    public AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
             AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
-        mAuthContext = authCtx;
+        mAcquireTokenRequest = acquireTokenRequest;
         mRequest = request;
     }
 
@@ -98,7 +97,7 @@ class AuthenticationDialog {
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
                             mRequest.getRequestId());
-                    mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+                    mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                             AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
                     if (mHandlerInView != null) {
                         mHandlerInView.post(new Runnable() {
@@ -185,7 +184,7 @@ class AuthenticationDialog {
         Logger.i(TAG, "Cancelling dialog", "");
         Intent resultIntent = new Intent();
         resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
-        mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+        mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
         if (mHandlerInView != null) {
             mHandlerInView.post(new Runnable() {
@@ -229,7 +228,7 @@ class AuthenticationDialog {
         public void sendResponse(int returnCode, Intent responseIntent) {
             // Close this dialog
             mDialog.dismiss();
-            mAuthContext.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
+            mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
                     returnCode, responseIntent);
         }
 

@@ -22,12 +22,13 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import java.io.IOException;
-
 import android.content.Context;
 
+import java.io.IOException;
+
 /**
- * The class represents the state machine for acquiretoken silent flow.
+ * Internal class handling the detailed acquiretoken silent logic, including cache lookup and also
+ * interact with web request(The class represents the state machine for acquiretoken silent flow).
  */
 class AcquireTokenSilentHandler {
     private static final String TAG = AcquireTokenSilentHandler.class.getSimpleName();
@@ -204,10 +205,8 @@ class AcquireTokenSilentHandler {
         if (isTokenRequestFailed(mrrtResult)) {
             // If MRRT fails, we still want to retry on FRT in case there is one there. 
             // MRRT may not be marked as FRT, hard-code it as "1" in this case. 
-            final String familyClientId
-                    = StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())
-                    ? AuthenticationConstants.MS_FAMILY_ID
-                    : mMrrtTokenCacheItem.getFamilyClientId();
+            final String familyClientId = StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())
+                    ? AuthenticationConstants.MS_FAMILY_ID : mMrrtTokenCacheItem.getFamilyClientId();
 
             // Pass the failed MRRT result to tryFRT, if FRT does not exist, return the MRRT result. 
             mrrtResult = tryFRT(familyClientId, mrrtResult);

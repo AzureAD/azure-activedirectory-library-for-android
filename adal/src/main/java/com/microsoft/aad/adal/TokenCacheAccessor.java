@@ -22,12 +22,12 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 /**
  * Internal class handling the interaction with {@link AcquireTokenSilentHandler} and {@link ITokenCacheStore}. 
@@ -139,9 +139,6 @@ class TokenCacheAccessor {
     
     /**
      * Update token cache with returned auth result.
-     * @param resource resource for which the token cache has to be updated
-     * @param clientId clientId for the token that has to be updated
-     * @param result the AuthenticationResult from which the data has to be pulled
      */
     void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) {
         if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
@@ -171,7 +168,7 @@ class TokenCacheAccessor {
      * 3) if refresh with FRT, clear RT with (U,A) 
      * @throws AuthenticationException 
      */
-    private void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource) 
+    void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource)
             throws AuthenticationException {
         final List<String> keys;
         final TokenEntryType tokenEntryType = tokenCacheItem.getTokenEntryType();
@@ -287,8 +284,6 @@ class TokenCacheAccessor {
     
     /**
      * Calculate hash for accessToken and log that.
-     * 
-     * @param result Logs the access and refresh token hash
      */
     private void logReturnedToken(final AuthenticationResult result) {
         if (result != null && result.getAccessToken() != null) {

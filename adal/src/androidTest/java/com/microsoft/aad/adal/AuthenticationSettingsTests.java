@@ -23,15 +23,8 @@
 
 package com.microsoft.aad.adal;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
-
-import javax.crypto.NoSuchPaddingException;
-
-import android.content.Intent;
 import android.test.AndroidTestCase;
+
 import junit.framework.Assert;
 
 /**
@@ -39,34 +32,14 @@ import junit.framework.Assert;
  */
 public class AuthenticationSettingsTests extends AndroidTestCase {
 
-    private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
-
-    public void testActivityPackageName() throws NoSuchAlgorithmException, NoSuchPaddingException,
-            SecurityException, IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException {
+    public void testActivityPackageName() {
 
         // verify setter/getter
-        String packagename = "com.anotherapp";
+        final String packagename = "com.anotherapp";
         AuthenticationSettings.INSTANCE.setActivityPackageName(packagename);
 
         assertEquals("same packagename", packagename,
                 AuthenticationSettings.INSTANCE.getActivityPackageName());
-
-        // verify intent
-        AuthenticationContext context = new AuthenticationContext(getContext(), VALID_AUTHORITY,
-                false);
-        Class clazzAuthRequest = Class.forName(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".AuthenticationRequest");
-        Constructor<?> constructor = clazzAuthRequest.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        Object authRequest = constructor.newInstance();
-        Method m = ReflectionUtils.getTestMethod(context, "getAuthenticationActivityIntent",
-                clazzAuthRequest);
-
-        final Intent intent = (Intent)m.invoke(context, authRequest);
-
-        assertEquals("same packagename", packagename, intent.getComponent().getPackageName());
     }
 
     public void testTimeOut() {

@@ -23,6 +23,10 @@
 
 package com.microsoft.aad.adal;
 
+import android.net.Uri;
+
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,10 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.json.JSONException;
-
-import android.net.Uri;
-
 /**
  * Instance and Tenant discovery. It takes authorization endpoint and sends
  * query to known hard coded instances to get tenant discovery endpoint. If
@@ -46,7 +46,7 @@ import android.net.Uri;
  * sends common as a tenant name. Discovery checks only authorization endpoint.
  * It does not do tenant verification. Initialize and call from UI thread.
  */
-final class Discovery implements IDiscovery {
+final class Discovery {
 
     private static final String TAG = "Discovery";
 
@@ -86,50 +86,42 @@ final class Discovery implements IDiscovery {
         mWebrequestHandler = new WebRequestHandler();
     }
 
-    @Override
-    public boolean isValidAuthority(URL authorizationEndpoint) {
+    public void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
         // For comparison purposes, convert to lowercase Locale.US
         // getProtocol returns scheme and it is available if it is absolute url
         // Authority is in the form of https://Instance/tenant/somepath
-        if (authorizationEndpoint != null
-                && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getHost())
-                && authorizationEndpoint.getProtocol().equals("https")
-                && StringExtensions.IsNullOrBlank(authorizationEndpoint.getQuery())
-                && StringExtensions.IsNullOrBlank(authorizationEndpoint.getRef())
-                && !StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())) {
-
-            if (UrlExtensions.isADFSAuthority(authorizationEndpoint)) {
-                Logger.e(TAG,
-                        "Instance validation returned error", "",
-                        ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
-                        new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
-            } else if (sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
-                // host can be the instance or inside the validated list.
-                // Valid hosts will help to skip validation if validated before
-                // call Callback and skip the look up
-                return true;
-            } else {
-                // Else
-                // Only query from Prod instance for now, not all of the
-                // instances in the list
-                return queryInstance(authorizationEndpoint);
-            }
+        if (authorizationEndpoint == null || StringExtensions.IsNullOrBlank(authorizationEndpoint.getHost())
+                || !authorizationEndpoint.getProtocol().equals("https")
+                || !StringExtensions.IsNullOrBlank(authorizationEndpoint.getQuery())
+                || !StringExtensions.IsNullOrBlank(authorizationEndpoint.getRef())
+                || StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
         }
-        return false;
+
+        if (UrlExtensions.isADFSAuthority(authorizationEndpoint)) {
+            Logger.e(TAG, "Instance validation returned error", "",
+                    ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
+                    new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
+                    "Cannot vaid ADFS authority",
+                    new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED));
+        }
+
+        if (!sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
+            // host can be the instance or inside the validated list.
+            // Valid hosts will help to skip validation if validated before
+            // call Callback and skip the look up
+            // Only query from Prod instance for now, not all of the instances in the list
+            queryInstance(authorizationEndpoint);
+        }
     }
 
     /**
-     * add this host as valid to skip another query to server.
-     * 
-     * @param validhost the host to be added as valid
+     * Set correlation id for the tenant discovery call.
+     * @param requestCorrelationId The correlation id for the tenant discovery.
      */
-    private void addValidHostToList(URL validhost) {
-        String validHost = validhost.getHost();
-        if (!StringExtensions.IsNullOrBlank(validHost)) {
-            // for comparisons it uses Locale.US, so it needs to be same
-            // here
-            sValidHosts.add(validHost.toLowerCase(Locale.US));
-        }
+    public void setCorrelationId(final UUID requestCorrelationId) {
+        mCorrelationId = requestCorrelationId;
     }
 
     /**
@@ -146,38 +138,29 @@ final class Discovery implements IDiscovery {
         }
     }
 
-    private boolean queryInstance(final URL authorizationEndpointUrl) {
+    private void queryInstance(final URL authorizationEndpointUrl) throws AuthenticationException {
 
         // It will query prod instance to verify the authority
         // construct query string for this instance
         URL queryUrl;
-        boolean result;
+        final boolean result;
         try {
             queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE, getAuthorizationCommonEndpoint(authorizationEndpointUrl));
             result = sendRequest(queryUrl);
-        } catch (MalformedURLException e) {
-            Logger.e(TAG, "Invalid authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
-                    e);
-            result = false;
-        } catch (IOException e) {
-            Logger.e(TAG, "Network error", "", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
-                    e);
-            result = false;
-        } catch (JSONException e) {
-            Logger.e(TAG, "Json parsing error", "",
-                    ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED, e);
-            result = false;
+        } catch (final IOException | JSONException e) {
+            Logger.e(TAG, "Error when validating authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
         }
 
-        if (result) {
-            // it is validated
-            addValidHostToList(authorizationEndpointUrl);
+        if (!result) {
+            // throw exception in the false case
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
         }
 
-        return result;
+        addValidHostToList(authorizationEndpointUrl);
     }
 
-    private boolean sendRequest(final URL queryUrl) throws IOException, JSONException {
+    private boolean sendRequest(final URL queryUrl) throws IOException, JSONException, AuthenticationException {
 
         Logger.v(TAG, "Sending discovery request to:" + queryUrl);
         final Map<String, String> headers = new HashMap<>();
@@ -197,15 +180,30 @@ final class Discovery implements IDiscovery {
 
             // parse discovery response to find tenant info
             final Map<String, String> discoveryResponse = parseResponse(webResponse);
-            if(discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES))
-            {
+            if(discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES)) {
                 final String errorCodes = discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
                 ClientMetrics.INSTANCE.setLastError(errorCodes);
+                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
+                        "Fail to valid authority with errors: " + errorCodes);
             }
             
             return (discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT));
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);                
+        }
+    }
+
+    /**
+     * add this host as valid to skip another query to server.
+     *
+     * @param validhost
+     */
+    private void addValidHostToList(URL validhost) {
+        String validHost = validhost.getHost();
+        if (!StringExtensions.IsNullOrBlank(validHost)) {
+            // for comparisons it uses Locale.US, so it needs to be same
+            // here
+            sValidHosts.add(validHost.toLowerCase(Locale.US));
         }
     }
 
@@ -253,10 +251,5 @@ final class Discovery implements IDiscovery {
                 .appendQueryParameter(API_VERSION_KEY, API_VERSION_VALUE)
                 .appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);
         return new URL(builder.build().toString());
-    }
-
-    @Override
-    public void setCorrelationId(UUID requestCorrelationId) {
-        mCorrelationId = requestCorrelationId;
     }
 }

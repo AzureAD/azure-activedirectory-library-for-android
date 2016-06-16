@@ -23,18 +23,19 @@
 
 package com.microsoft.aad.adal;
 
-import java.security.MessageDigest;
-import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.test.InstrumentationTestCase;
 import android.util.Base64;
 import android.util.Log;
+
 import junit.framework.Assert;
+
+import java.security.MessageDigest;
+import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class AndroidTestHelper extends InstrumentationTestCase {
 
@@ -68,8 +69,13 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        // AuthenticationSettings.INSTANCE.setDeviceCertificateProxy();
         Log.d(TAG, "testSignature is set");
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        HttpUrlConnectionFactory.mockedConnection = null;
+        super.tearDown();
     }
 
     public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
