@@ -70,28 +70,29 @@ public class MainActivity extends Activity {
     /**
      * https://login.windows.net/tenantInfo
      */
-    private static final String AUTHORITY_URL = "https://login.microsoftonline.com/msdevex.onmicrosoft.com" ;
+    private static final String AUTHORITY_URL = "https://login.microsoftonline.com/yourtenantinfo";
 
     /**
-     * Client id is given from AAD page when you register your native app.
+     * Client id is given from AAD page when you register your native app. 
      */
-    private static final String CLIENT_ID = "b92e0ba5-f86e-4411-8e18-6b5f928d968a" ;
+    private static final String CLIENT_ID = "your-clientid";
 
     /**
-     * To user broker, Developer needs to register special redirectUri in Azure Portal for broker usage. RedirectUri is
-     * in the format of msauth://packagename /Base64UrlencodedSignature.
+     * To use broker, Developer needs to register special redirectUri in Azure Portal for broker usage. RedirectUri is 
+     * in the format of msauth://packagename/Base64UrlencodedSignature.
      */
-    private static final String REDIRECT_URL = "msauth://com.microsoft.aad.adal.userappwithbroker/IcB5PxIyvbLkbFVtBI%2FitkW%2Fejk%3D";
+    private static final String REDIRECT_URL = "msauth://packagename/Base64EncodedSignature";
 
     /**
-     * URI for the resource. You need to setup this resource at AAD.
-     * @note: With the new broker with PRT support, even resouce or user don't have policy on to enforce
+     * URI for the resource. You need to setup this resource at AAD. 
+     * @note: With the new broker with PRT support, even resource or user don't have policy on to enforce
      * conditional access, when you have broker app installed, you'll still be able to talk to broker. And
-     * broker will support multiple users, one WPJ account and multiple aad users.
+     * broker will support multiple users, one WPJ account and multiple aad users. 
      */
-    private static final String RESOURCE_ID = "https://msdevex-my.sharepoint.com" ;
-
-    private static final String RESOURCE_ID2 = "00000002-0000-0000-c000-000000000000" ;
+    private static final String RESOURCE_ID = "your-resource-with-CA-policy";
+    
+    private static final String RESOURCE_ID2 = "your-resource";
+    
     private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID = "user.app.withbroker.uniqueidstorage";
 
     private AuthenticationContext mAuthContext;
