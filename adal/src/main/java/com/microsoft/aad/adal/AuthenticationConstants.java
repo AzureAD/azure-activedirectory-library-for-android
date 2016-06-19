@@ -150,6 +150,8 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
         
         static final String ADAL_CLIENT_FAMILY_ID = "foci";
+
+        static final String HAS_CHROME = "haschrome";
     }
 
     public static final class AAD {
@@ -191,6 +193,8 @@ public class AuthenticationConstants {
         public final static String ADAL_ID_OS_VER = "x-client-OS";
 
         public final static String ADAL_ID_DM = "x-client-DM";
+
+        public final static String ADAL_ID_PLATFORM_VALUE = "Android";
     }
 
     public static final class Broker {
