@@ -7,12 +7,17 @@ jdk:
 
 android:
   components:
-    - build-tools-21.1.2
+    - platform-tools
+    - tools
+    - build-tools-23.0.3
+    - android-23
     - extra
+    - extra-android-m2repository
+    - extra-google-m2repository
 
 env:
     matrix:
-      - ANDROID_SDKS=android-21 ANDROID_TARGET=android-21
+      - ANDROID_SDKS=android-23 ANDROID_TARGET=android-23
       
 before_install:
   - chmod +x gradlew
