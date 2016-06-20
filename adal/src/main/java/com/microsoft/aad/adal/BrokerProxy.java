@@ -561,28 +561,31 @@ class BrokerProxy implements IBrokerProxy {
             PackageInfo info = mContext.getPackageManager().getPackageInfo(brokerPackageName,
                     PackageManager.GET_SIGNATURES);
 
-            if (info != null && info.signatures != null) {
-                // Broker App can be signed with multiple certificates. It will
-                // look all of them until it finds the correct one for ADAL
-                // broker.
-                for (Signature signature : info.signatures) {
-                    MessageDigest md = MessageDigest.getInstance("SHA");
-                    md.update(signature.toByteArray());
-                    String tag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
+            // Two two broker apps, Company Portal and Azure Authenticator are all only signed by the Microsoft
+            // certificate, and each app is only signed by one certificate. For the sdk to talk to the broker app,
+            // we will validate that there is only one signature associated with the apk, and it's the one the
+            // sdk trusts.
+            if (info == null || info.signatures == null || info.signatures.length != 1) {
+                return false;
+            }
 
-                    // Company portal(Intune) app and Azure authenticator app
-                    // have authenticator.
-                    if (tag.equals(mBrokerTag)
-                            || tag.equals(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE)) {
-                        return true;
-                    }
-                }
+            final Signature signatureToVerify = info.signatures[0];
+            final MessageDigest md = MessageDigest.getInstance("SHA");
+            md.update(signatureToVerify.toByteArray());
+            final String tag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
+
+            // Company portal(Intune) app and Azure authenticator app
+            // have authenticator.
+            if (tag.equals(mBrokerTag)
+                    || tag.equals(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE)) {
+                return true;
             }
         } catch (NameNotFoundException e) {
             Logger.e(TAG, "Broker related package does not exist", "", ADALError.BROKER_PACKAGE_NAME_NOT_FOUND);
         } catch (NoSuchAlgorithmException e) {
             Logger.e(TAG, "Digest SHA algorithm does not exists", "", ADALError.DEVICE_NO_SUCH_ALGORITHM);
         }
+
         return false;
     }
 
