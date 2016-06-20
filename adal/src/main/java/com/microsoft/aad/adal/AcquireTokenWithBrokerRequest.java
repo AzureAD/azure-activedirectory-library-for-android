@@ -54,6 +54,9 @@ final class AcquireTokenWithBrokerRequest {
         mAuthRequest.setVersion(AuthenticationContext.getVersionName());
         mAuthRequest.setBrokerAccountName(mAuthRequest.getLoginHint());
 
+        // Log the broker version for silent request to broker
+        logBrokerVersion();
+
         final AuthenticationResult authenticationResult;
         if (!StringExtensions.IsNullOrBlank(mAuthRequest.getBrokerAccountName()) || !StringExtensions
                 .IsNullOrBlank(mAuthRequest.getUserId())) {
@@ -74,6 +77,8 @@ final class AcquireTokenWithBrokerRequest {
     void acquireTokenWithBrokerInteractively(final IWindowComponent activity)
             throws AuthenticationException {
         Logger.v(TAG, "Launch activity for interactive authentication via broker.");
+        // Also log the broker version for interactive request to broker
+        logBrokerVersion();
 
         final Intent brokerIntent = mBrokerProxy.getIntentForBrokerActivity(mAuthRequest);
 
@@ -88,5 +93,24 @@ final class AcquireTokenWithBrokerRequest {
 
         //It will start activity if callback is provided.
         //activity onActivityResult will receive the result, and result will be sent back via callback.
+    }
+
+    private void logBrokerVersion () {
+        final String currentActiveBrokerPackageName =
+                mBrokerProxy.getCurrentActiveBrokerPackageName();
+        if (!StringExtensions.IsNullOrBlank(currentActiveBrokerPackageName)) {
+            String brokerRelatedInfoLogging = "The active broker is: " +
+                    currentActiveBrokerPackageName;
+            if (mBrokerProxy.isBrokerWithPRTSupport(currentActiveBrokerPackageName)) {
+                brokerRelatedInfoLogging += ". The active broker version is: " +
+                        AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION  +
+                        ". It contains PRT support.";
+            } else {
+                brokerRelatedInfoLogging += " The active broker version is: v1. It doesn't " +
+                        "contain PRT support";
+            }
+
+            Logger.v(TAG, brokerRelatedInfoLogging);
+        }
     }
 }

@@ -33,6 +33,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.text.TextUtils;
 import android.view.View;
 import android.webkit.HttpAuthHandler;
 import android.webkit.SslErrorHandler;
@@ -149,22 +150,30 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
-        final Uri uri = Uri.parse(url);
-        if (doesLoadingUrlContainAuthCode(url)) {
-            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath() 
-                + " Auth code is returned for the loading url.");
-        } else {
-            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath(), 
-                "Full loading url is: " + url, null);
-        }
-        
+        logPageStartLoadingUrl(url);
         super.onPageStarted(view, url, favicon);
         showSpinner(true);
     }
-    
-    private boolean doesLoadingUrlContainAuthCode(final String url) {
+
+    private void logPageStartLoadingUrl(final String url) {
+        if (TextUtils.isEmpty(url)) {
+            Logger.v(TAG, "Null url for page to load.");
+            return;
+        }
+
         final Uri uri = Uri.parse(url);
-        return !StringExtensions.IsNullOrBlank(uri.getQueryParameter(AuthenticationConstants.OAuth2.CODE));
+        if (doesLoadingUrlContainAuthCode(uri)) {
+            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath()
+                    + " Auth code is returned for the loading url.");
+        } else {
+            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath(),
+                    "Full loading url is: " + url, null);
+        }
+    }
+    
+    private boolean doesLoadingUrlContainAuthCode(final Uri uri) {
+        return !StringExtensions.IsNullOrBlank(uri.getQueryParameter(
+                    AuthenticationConstants.OAuth2.CODE));
     }
 
     @Override

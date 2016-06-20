@@ -281,9 +281,15 @@ public class AuthenticationActivity extends Activity {
 
         mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView();
-		
-		// Also log correlation id
-        Logger.v(TAG, "Correlation id for request sent is:" + mAuthRequest.getCorrelationId().toString());
+
+        // Also log correlation id
+        if (mAuthRequest.getCorrelationId() != null) {
+            Logger.v(TAG, "Correlation id for request sent is:" +
+                    mAuthRequest.getCorrelationId().toString());
+        } else {
+            Logger.v(TAG, "Null correlation id in the request.");
+        }
+
         if (savedInstanceState == null) {
             mWebView.post(new Runnable() {
                 @Override
