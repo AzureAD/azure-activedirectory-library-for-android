@@ -95,19 +95,19 @@ final class AcquireTokenWithBrokerRequest {
         //activity onActivityResult will receive the result, and result will be sent back via callback.
     }
 
-    private void logBrokerVersion () {
+    private void logBrokerVersion() {
         final String currentActiveBrokerPackageName =
                 mBrokerProxy.getCurrentActiveBrokerPackageName();
         if (!StringExtensions.IsNullOrBlank(currentActiveBrokerPackageName)) {
-            String brokerRelatedInfoLogging = "The active broker is: " +
-                    currentActiveBrokerPackageName;
+            String brokerRelatedInfoLogging = "The active broker is: "
+                    + currentActiveBrokerPackageName;
             if (mBrokerProxy.isBrokerWithPRTSupport(currentActiveBrokerPackageName)) {
-                brokerRelatedInfoLogging += ". The active broker version is: " +
-                        AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION  +
-                        ". It contains PRT support.";
+                brokerRelatedInfoLogging += ". The active broker version is: "
+                        + AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION
+                        + ". It contains PRT support.";
             } else {
-                brokerRelatedInfoLogging += " The active broker version is: v1. It doesn't " +
-                        "contain PRT support";
+                brokerRelatedInfoLogging += " The active broker version is: v1. It doesn't "
+                        + "contain PRT support";
             }
 
             Logger.v(TAG, brokerRelatedInfoLogging);

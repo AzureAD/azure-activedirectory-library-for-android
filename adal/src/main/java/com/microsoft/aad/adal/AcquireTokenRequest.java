@@ -286,8 +286,8 @@ class AcquireTokenRequest {
         // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does
         // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
         // app local cache is no longer useful, when user uninstalls broker, we should prompt user in the next sign-in.
-        Logger.d(TAG, "Cannot get AT from local cache, switch to Broker for auth, " +
-                "clear the local token cache for the user.");
+        Logger.d(TAG, "Cannot get AT from local cache, switch to Broker for auth, "
+                + "clear the local token cache for the user.");
         removeTokensForUser(authenticationRequest);
 
         return tryAcquireTokenSilentWithBroker(authenticationRequest);
@@ -514,7 +514,7 @@ class AcquireTokenRequest {
                 try {
                     waitingRequest = mAuthContext.getWaitingRequest(requestId);
                     Logger.v(TAG, "onActivityResult RequestId:" + requestId);
-                } catch(final AuthenticationException authenticationException) {
+                } catch (final AuthenticationException authenticationException) {
                     Logger.e(TAG, "onActivityResult did not find waiting request for RequestId:"
                             + requestId, "", ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
                     return;
@@ -777,7 +777,7 @@ class AcquireTokenRequest {
             final AuthenticationRequestState waitingRequest;
             try {
                 waitingRequest = mAuthContext.getWaitingRequest(receivedWaitingRequestId);
-            } catch(final AuthenticationException authenticationException) {
+            } catch (final AuthenticationException authenticationException) {
                 Logger.e(TAG, "No waiting request exists", "", ADALError.CALLBACK_IS_NOT_FOUND,
                         authenticationException);
                 (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);

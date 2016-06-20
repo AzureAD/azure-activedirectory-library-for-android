@@ -284,8 +284,8 @@ public class AuthenticationActivity extends Activity {
 
         // Also log correlation id
         if (mAuthRequest.getCorrelationId() != null) {
-            Logger.v(TAG, "Correlation id for request sent is:" +
-                    mAuthRequest.getCorrelationId().toString());
+            Logger.v(TAG, "Correlation id for request sent is:"
+                    + mAuthRequest.getCorrelationId().toString());
         } else {
             Logger.v(TAG, "Null correlation id in the request.");
         }
@@ -569,7 +569,7 @@ public class AuthenticationActivity extends Activity {
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
     
-    private void prepareForBrokerResume () {
+    private void prepareForBrokerResume() {
         final String methodName = ":prepareForBrokerResume";
         Logger.v(TAG + methodName, "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");
 
@@ -826,7 +826,7 @@ public class AuthenticationActivity extends Activity {
                 result.taskResult = oauthRequest.getToken(urlItems[0]);
                 Logger.v(TAG, "Process result returned from TokenTask.", mRequest.getLogInfo(), null);
             } catch (IOException | AuthenticationException exc) {
-                Logger.e(TAG, "Error in processing code to get a token. " ,mRequest.getLogInfo(),
+                Logger.e(TAG, "Error in processing code to get a token. ", mRequest.getLogInfo(),
                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
                 result.taskException = exc;
             }
