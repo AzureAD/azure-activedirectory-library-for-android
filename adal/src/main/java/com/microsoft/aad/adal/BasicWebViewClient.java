@@ -22,12 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -39,6 +33,12 @@ import android.webkit.HttpAuthHandler;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 abstract class BasicWebViewClient extends WebViewClient {
 
@@ -157,11 +157,16 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     private void logPageStartLoadingUrl(final String url) {
         if (TextUtils.isEmpty(url)) {
-            Logger.v(TAG, "Null url for page to load.");
+            Logger.v(TAG, "onPageStarted: Null url for page to load.");
             return;
         }
 
         final Uri uri = Uri.parse(url);
+        if (uri.isOpaque()) {
+            Logger.v(TAG, "onPageStarted: Non-hierarchical loading uri: " + url);
+            return;
+        }
+
         if (doesLoadingUrlContainAuthCode(uri)) {
             Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath()
                     + " Auth code is returned for the loading url.");

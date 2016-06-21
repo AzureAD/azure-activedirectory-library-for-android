@@ -23,6 +23,16 @@
 
 package com.microsoft.aad.adal;
 
+import android.net.Uri;
+import android.os.Build;
+import android.text.TextUtils;
+import android.util.Base64;
+
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -35,16 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-
-import android.net.Uri;
-import android.os.Build;
-import android.text.TextUtils;
-import android.util.Base64;
 
 /**
  * Base Oauth class.
@@ -250,7 +250,7 @@ class Oauth2 {
                 // response. ADFS does not return that.
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
-                    Logger.v(TAG, "Id token is returned, parsing id token.");
+                    Logger.v(TAG, "Id token was returned, parsing id token.");
                     IdToken tokenParsed = new IdToken(rawIdToken);
                     tenantId = tokenParsed.getTenantId();
                     userinfo = new UserInfo(tokenParsed);
@@ -394,7 +394,7 @@ class Oauth2 {
 
         final Map<String, String> headers = getRequestHeaders();
 
-		Logger.v(TAG, "Sending request to redeem token with auth code.");
+        Logger.v(TAG, "Sending request to redeem token with auth code.");
         return postMessage(requestMessage, headers);
     }
 

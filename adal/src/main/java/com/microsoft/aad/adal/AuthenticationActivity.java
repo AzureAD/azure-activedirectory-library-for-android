@@ -156,7 +156,7 @@ public class AuthenticationActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
 
-        Logger.v(TAG + methodName, "AuthenticationActivity is created.");
+        Logger.v(TAG + methodName, "AuthenticationActivity was created.");
         // Get the message from the intent
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
