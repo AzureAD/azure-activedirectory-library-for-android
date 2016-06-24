@@ -91,63 +91,76 @@ class Oauth2 {
     }
 
     public String getAuthorizationEndpointQueryParameters() throws UnsupportedEncodingException {
-        String requestUrl = String
-                .format("response_type=%s&client_id=%s&resource=%s&redirect_uri=%s&state=%s",
-                        AuthenticationConstants.OAuth2.CODE, URLEncoder.encode(
-                                mRequest.getClientId(), AuthenticationConstants.ENCODING_UTF8),
+        final Uri.Builder queryParameter = new Uri.Builder();
+        queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.RESPONSE_TYPE,
+                        AuthenticationConstants.OAuth2.CODE)
+                .appendQueryParameter(AuthenticationConstants.OAuth2.CLIENT_ID,
+                        URLEncoder.encode(mRequest.getClientId(),
+                                AuthenticationConstants.ENCODING_UTF8))
+                .appendQueryParameter(AuthenticationConstants.AAD.RESOURCE,
                         URLEncoder.encode(mRequest.getResource(),
-                                AuthenticationConstants.ENCODING_UTF8), URLEncoder.encode(
-                                mRequest.getRedirectUri(), AuthenticationConstants.ENCODING_UTF8),
-                        encodeProtocolState());
+                                AuthenticationConstants.ENCODING_UTF8))
+                .appendQueryParameter(AuthenticationConstants.OAuth2.REDIRECT_URI,
+                        URLEncoder.encode(mRequest.getRedirectUri(),
+                                AuthenticationConstants.ENCODING_UTF8))
+                .appendQueryParameter(AuthenticationConstants.OAuth2.STATE, encodeProtocolState());
 
-        if (mRequest.getLoginHint() != null && !mRequest.getLoginHint().isEmpty()) {
-            requestUrl = String.format("%s&%s=%s", requestUrl,
-                    AuthenticationConstants.AAD.LOGIN_HINT, URLEncoder.encode(
-                            mRequest.getLoginHint(), AuthenticationConstants.ENCODING_UTF8));
+        if (!StringExtensions.IsNullOrBlank(mRequest.getLoginHint())) {
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.LOGIN_HINT,
+                    URLEncoder.encode(mRequest.getLoginHint(),
+                            AuthenticationConstants.ENCODING_UTF8));
         }
 
-        requestUrl = String.format("%s&%s=%s", requestUrl,
-                AuthenticationConstants.AAD.ADAL_ID_PLATFORM, "Android");
-        requestUrl = String.format("%s&%s=%s", requestUrl,
-                AuthenticationConstants.AAD.ADAL_ID_VERSION, URLEncoder.encode(
-                        AuthenticationContext.getVersionName(),
-                        AuthenticationConstants.ENCODING_UTF8));
-        requestUrl = String.format("%s&%s=%s", requestUrl,
-                AuthenticationConstants.AAD.ADAL_ID_OS_VER, URLEncoder.encode(""
-                        + Build.VERSION.SDK_INT, AuthenticationConstants.ENCODING_UTF8));
-        requestUrl = String.format("%s&%s=%s", requestUrl, AuthenticationConstants.AAD.ADAL_ID_DM,
-                URLEncoder.encode("" + android.os.Build.MODEL,
-                        AuthenticationConstants.ENCODING_UTF8));
+        // append device and platform info in the query parameters
+        queryParameter.appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_PLATFORM,
+                        AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE)
+                .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_VERSION,
+                        URLEncoder.encode(AuthenticationContext.getVersionName(),
+                                AuthenticationConstants.ENCODING_UTF8))
+                .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_OS_VER,
+                        URLEncoder.encode(String.valueOf(Build.VERSION.SDK_INT),
+                                AuthenticationConstants.ENCODING_UTF8))
+                .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_DM,
+                        URLEncoder.encode(android.os.Build.MODEL,
+                                AuthenticationConstants.ENCODING_UTF8));
 
         if (mRequest.getCorrelationId() != null) {
-            requestUrl = String.format("%s&%s=%s", requestUrl,
-                    AuthenticationConstants.AAD.CLIENT_REQUEST_ID, URLEncoder.encode(mRequest
-                            .getCorrelationId().toString(), AuthenticationConstants.ENCODING_UTF8));
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.CLIENT_REQUEST_ID,
+                    URLEncoder.encode(mRequest.getCorrelationId().toString(),
+                            AuthenticationConstants.ENCODING_UTF8));
         }
 
         // Setting prompt behavior to always will skip the cookies for webview.
         // It is added to authorization url.
         if (mRequest.getPrompt() == PromptBehavior.Always) {
-            requestUrl = String.format("%s&%s=%s", requestUrl,
-                    AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
-                            AuthenticationConstants.AAD.QUERY_PROMPT_VALUE,
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.QUERY_PROMPT,
+                    URLEncoder.encode(AuthenticationConstants.AAD.QUERY_PROMPT_VALUE,
                             AuthenticationConstants.ENCODING_UTF8));
         } else if (mRequest.getPrompt() == PromptBehavior.REFRESH_SESSION) {
-            requestUrl = String.format("%s&%s=%s", requestUrl,
-                    AuthenticationConstants.AAD.QUERY_PROMPT, URLEncoder.encode(
+            queryParameter.appendQueryParameter(AuthenticationConstants.AAD.QUERY_PROMPT,
+                    URLEncoder.encode(
                             AuthenticationConstants.AAD.QUERY_PROMPT_REFRESH_SESSION_VALUE,
                             AuthenticationConstants.ENCODING_UTF8));
         }
 
-        if (!StringExtensions.IsNullOrBlank(mRequest.getExtraQueryParamsAuthentication())) {
-            String params = mRequest.getExtraQueryParamsAuthentication();
-            if (!params.startsWith("&")) {
-                params = "&" + params;
-            }
-            requestUrl = requestUrl + params;
+        // reading extra qp supplied by developer
+        final String extraQP = mRequest.getExtraQueryParamsAuthentication();
+        // append haschrome=1 if developer does not pass as extra qp
+        if (StringExtensions.IsNullOrBlank(extraQP)
+                || !extraQP.contains(AuthenticationConstants.OAuth2.HAS_CHROME)) {
+            queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.HAS_CHROME, "1");
         }
-        return requestUrl;
 
+        String requestUrl = queryParameter.build().getQuery();
+        if (!StringExtensions.IsNullOrBlank(extraQP)) {
+            String parsedQP = extraQP;
+            if (!extraQP.startsWith("&")) {
+                parsedQP = "&" + parsedQP;
+            }
+            requestUrl += parsedQP;
+        }
+
+        return requestUrl;
     }
 
     public String getCodeRequestUrl() throws UnsupportedEncodingException {
@@ -285,7 +298,8 @@ class Oauth2 {
         }
     }
 
-    public AuthenticationResult refreshToken(String refreshToken) throws IOException, AuthenticationException {
+    public AuthenticationResult refreshToken(String refreshToken) throws IOException,
+            AuthenticationException {
         final String requestMessage;
         if (mWebRequestHandler == null) {
             Logger.v(TAG, "Web request is not set correctly");
