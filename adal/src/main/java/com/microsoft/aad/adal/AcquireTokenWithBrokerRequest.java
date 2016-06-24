@@ -78,7 +78,7 @@ final class AcquireTokenWithBrokerRequest {
     void acquireTokenWithBrokerInteractively(final IWindowComponent activity)
             throws AuthenticationException {
         Logger.v(TAG, "Launch activity for interactive authentication via broker.");
-        // Also log the broker version for interactive request to broker
+        // Log the broker version for interactive request to broker
         logBrokerVersion();
 
         final Intent brokerIntent = mBrokerProxy.getIntentForBrokerActivity(mAuthRequest);
@@ -99,18 +99,21 @@ final class AcquireTokenWithBrokerRequest {
     private void logBrokerVersion() {
         final String currentActiveBrokerPackageName =
                 mBrokerProxy.getCurrentActiveBrokerPackageName();
-        if (!StringExtensions.IsNullOrBlank(currentActiveBrokerPackageName)) {
-            String brokerAppVersion;
-            try {
-                brokerAppVersion = mBrokerProxy.getBrokerAppVersion(currentActiveBrokerPackageName);
-            } catch (final PackageManager.NameNotFoundException e) {
-                // we don't want to throw for the logging purpose.
-                brokerAppVersion = "N/A";
-            }
-
-            final String brokerLogging = "Broker app is: " + currentActiveBrokerPackageName
-                    + ";Broker app version: " + brokerAppVersion;
-            Logger.i(TAG, brokerLogging, "");
+        if (StringExtensions.IsNullOrBlank(currentActiveBrokerPackageName)) {
+            Logger.i(TAG, "Broker app package name is empty.", "");
+            return;
         }
+
+        String brokerAppVersion;
+        try {
+            brokerAppVersion = mBrokerProxy.getBrokerAppVersion(currentActiveBrokerPackageName);
+        } catch (final PackageManager.NameNotFoundException e) {
+            // we don't want to throw for the logging purpose.
+            brokerAppVersion = "N/A";
+        }
+
+        final String brokerLogging = "Broker app is: " + currentActiveBrokerPackageName
+                + ";Broker app version: " + brokerAppVersion;
+        Logger.i(TAG, brokerLogging, "");
     }
 }
