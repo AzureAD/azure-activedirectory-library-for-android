@@ -287,7 +287,7 @@ class AcquireTokenRequest {
         // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
         // app local cache is no longer useful, when user uninstalls broker, we should prompt user in the next sign-in.
         Logger.d(TAG, "Cannot get AT from local cache, switch to Broker for auth, "
-                + "clear the local token cache for the user.");
+                + "clear tokens from local cache for the user.");
         removeTokensForUser(authenticationRequest);
 
         return tryAcquireTokenSilentWithBroker(authenticationRequest);

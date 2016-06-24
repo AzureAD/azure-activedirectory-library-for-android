@@ -167,18 +167,14 @@ abstract class BasicWebViewClient extends WebViewClient {
             return;
         }
 
-        if (doesLoadingUrlContainAuthCode(uri)) {
+        if (!StringExtensions.IsNullOrBlank(uri.getQueryParameter(
+                AuthenticationConstants.OAuth2.CODE))) {
             Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath()
                     + " Auth code is returned for the loading url.");
         } else {
             Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath(),
                     "Full loading url is: " + url, null);
         }
-    }
-    
-    private boolean doesLoadingUrlContainAuthCode(final Uri uri) {
-        return !StringExtensions.IsNullOrBlank(uri.getQueryParameter(
-                    AuthenticationConstants.OAuth2.CODE));
     }
 
     @Override

@@ -23,11 +23,12 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.IOException;
-
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+
+import java.io.IOException;
 
 interface IBrokerProxy {
     /**
@@ -82,10 +83,10 @@ interface IBrokerProxy {
      * or Company Portal. 
      */
     String getCurrentActiveBrokerPackageName();
-    
+
     /**
-     * @param currentBrokerPackageName Package name for currently active broker.
-     * @return True if the current active broker is on the new protocol with PRT support, false otherwise.
+     * @param brokerAppPackageName Package name for currently active broker.
+     * @return The current broker app version.
      */
-    boolean isBrokerWithPRTSupport(final String currentBrokerPackageName);
+    String getBrokerAppVersion(final String brokerAppPackageName) throws PackageManager.NameNotFoundException;
 }

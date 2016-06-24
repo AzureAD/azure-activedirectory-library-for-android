@@ -438,13 +438,15 @@ class BrokerProxy implements IBrokerProxy {
 
         return null;
     }
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean isBrokerWithPRTSupport(final String brokerPackageName) {
-        return hasSupportToAddUserThroughBroker(brokerPackageName);
+    public String getBrokerAppVersion(final String brokerAppPackageName) throws NameNotFoundException {
+        final PackageInfo packageInfo = mContext.getPackageManager().getPackageInfo(brokerAppPackageName, 0);
+
+        return "VersionName=" + packageInfo.versionName + ";VersonCode=" + packageInfo.versionCode + ".";
     }
 
     private Bundle getBrokerOptions(final AuthenticationRequest request) {

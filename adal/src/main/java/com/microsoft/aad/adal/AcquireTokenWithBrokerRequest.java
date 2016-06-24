@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 
 /**
  * Internal class handling the logic for acquire token with Broker app(Either Company Portal or Azure Authenticator).
@@ -99,18 +100,17 @@ final class AcquireTokenWithBrokerRequest {
         final String currentActiveBrokerPackageName =
                 mBrokerProxy.getCurrentActiveBrokerPackageName();
         if (!StringExtensions.IsNullOrBlank(currentActiveBrokerPackageName)) {
-            String brokerRelatedInfoLogging = "The active broker is: "
-                    + currentActiveBrokerPackageName;
-            if (mBrokerProxy.isBrokerWithPRTSupport(currentActiveBrokerPackageName)) {
-                brokerRelatedInfoLogging += ". The active broker version is: "
-                        + AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION
-                        + ". It contains PRT support.";
-            } else {
-                brokerRelatedInfoLogging += " The active broker version is: v1. It doesn't "
-                        + "contain PRT support";
+            String brokerAppVersion;
+            try {
+                brokerAppVersion = mBrokerProxy.getBrokerAppVersion(currentActiveBrokerPackageName);
+            } catch (final PackageManager.NameNotFoundException e) {
+                // we don't want to throw for the logging purpose.
+                brokerAppVersion = "N/A";
             }
 
-            Logger.v(TAG, brokerRelatedInfoLogging);
+            final String brokerLogging = "Broker app is: " + currentActiveBrokerPackageName
+                    + ";Broker app version: " + brokerAppVersion;
+            Logger.i(TAG, brokerLogging, "");
         }
     }
 }
