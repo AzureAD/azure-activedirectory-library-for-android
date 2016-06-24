@@ -67,8 +67,6 @@ public class OauthTests extends AndroidTestCase {
         super.setUp();
         getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-        getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
     }
 
     @Override
@@ -221,10 +219,8 @@ public class OauthTests extends AndroidTestCase {
         final Oauth2 oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
 
         final String actualCodeRequestNoLoginhint = oauthWithoutLoginHint.getCodeRequestUrl();
-        assertTrue(
-                "Matching message",
-                actualCodeRequestNoLoginhint.contains(
-                        "http://www.something.com/oauth2/authorize?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&resource=resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&state="));
+        assertTrue("Matching message", actualCodeRequestNoLoginhint.contains(
+                "http://www.something.com/oauth2/authorize?response_type=code&client_id=client+1234567890-%2B%3D%3B%21%23%24+++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&resource=resource%2520urn%3A%21%23%24++++%26%27%28+%29*%2B%2C%2F%3A++%3B%3D%3F%40%5B%5D&redirect_uri=redirect+1234567890&state="));
         assertFalse("Without loginhint", actualCodeRequestNoLoginhint.contains(
                 "login_hint=loginhintForCode"));
 
@@ -421,35 +417,34 @@ public class OauthTests extends AndroidTestCase {
     @SmallTest
     public void testRefreshTokenWebResponseDeviceChallengePositive()
             throws IOException, AuthenticationException, NoSuchAlgorithmException {
-        getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-
-        IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
-        KeyPair keyPair = getKeyPair();
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        String nonce = UUID.randomUUID().toString();
-        String context = "CookieConABcdeded";
-        X509Certificate mockCert = mock(X509Certificate.class);
-        String thumbPrint = "thumbPrinttest";
+        final IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
+        final KeyPair keyPair = getKeyPair();
+        final RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+        final RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+        final String nonce = UUID.randomUUID().toString();
+        final String context = "CookieConABcdeded";
+        final X509Certificate mockCert = mock(X509Certificate.class);
+        final String thumbPrint = "thumbPrinttest";
         AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.sValidIssuer = true;
         MockDeviceCertProxy.sThumbPrint = thumbPrint;
         MockDeviceCertProxy.sPrivateKey = privateKey;
         MockDeviceCertProxy.sPublicKey = publicKey;
-        IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
+        final IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
         when(
                 mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
                         eq(publicKey), eq(mockCert))).thenReturn("signedJwtHere");
-        String challengeHeaderValue = AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE
+        final String challengeHeaderValue = AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE
                 + " Nonce=\"" + nonce + "\",  Version=\"1.0\", CertThumbprint=\"" + thumbPrint
                 + "\",  Context=\"" + context + "\"";
-        String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallenge\",\"scope\":\"*\"}";
-        Map<String, List<String>> headers = getHeader(
+        final String tokenPositiveResponse = "{\"access_token\":\"accessTokenHere\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshWithDeviceChallenge\",\"scope\":\"*\"}";
+        final Map<String, List<String>> headers = getHeader(
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, challengeHeaderValue);
-        HttpWebResponse responeChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
-        HttpWebResponse responseValid = new HttpWebResponse(HttpURLConnection.HTTP_OK, tokenPositiveResponse, null);
+        final HttpWebResponse responeChallenge = new HttpWebResponse(
+                HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
+        final HttpWebResponse responseValid = new HttpWebResponse(
+                HttpURLConnection.HTTP_OK, tokenPositiveResponse, null);
         // first call returns 401 and second call returns token
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
@@ -458,7 +453,7 @@ public class OauthTests extends AndroidTestCase {
                 .thenReturn(responseValid);
 
         // send request
-        MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
+        final MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
                 mockWebRequest, mockJwsBuilder, "testRefreshToken");
 
         // Verify that callback can receive this error
@@ -601,7 +596,7 @@ public class OauthTests extends AndroidTestCase {
 
         // send call with mocks
         try {
-            oauth2.refreshToken("fakeRefresToken");
+            oauth2.refreshToken("fakeRefreshToken");
             fail("must throw exception");
         } catch (final AuthenticationException e) {
             assertNotNull(e);
