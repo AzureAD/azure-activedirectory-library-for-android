@@ -22,22 +22,23 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.text.TextUtils;
 import android.view.View;
 import android.webkit.HttpAuthHandler;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 abstract class BasicWebViewClient extends WebViewClient {
 
@@ -137,7 +138,6 @@ abstract class BasicWebViewClient extends WebViewClient {
     @Override
     public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-        Logger.v(TAG, "Page finished:" + url);
 
         /*
          * Once web view is fully loaded,set to visible
@@ -150,9 +150,31 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
-        Logger.v(TAG + "onPageStarted", "page is started with the url " + url);
+        logPageStartLoadingUrl(url);
         super.onPageStarted(view, url, favicon);
         showSpinner(true);
+    }
+
+    private void logPageStartLoadingUrl(final String url) {
+        if (TextUtils.isEmpty(url)) {
+            Logger.v(TAG, "onPageStarted: Null url for page to load.");
+            return;
+        }
+
+        final Uri uri = Uri.parse(url);
+        if (uri.isOpaque()) {
+            Logger.v(TAG, "onPageStarted: Non-hierarchical loading uri: " + url);
+            return;
+        }
+
+        if (!StringExtensions.IsNullOrBlank(uri.getQueryParameter(
+                AuthenticationConstants.OAuth2.CODE))) {
+            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath()
+                    + " Auth code is returned for the loading url.");
+        } else {
+            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath(),
+                    "Full loading url is: " + url, null);
+        }
     }
 
     @Override
@@ -182,12 +204,12 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 String loadUrl = challengeResponse.mSubmitUrl;
                                 HashMap<String, String> parameters = StringExtensions
                                         .getUrlParameters(challengeResponse.mSubmitUrl);
-                                Logger.v(TAG, "SubmitUrl:" + challengeResponse.mSubmitUrl);
                                 if (!parameters
                                         .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
                                     loadUrl = loadUrl + "?" + mQueryParam;
                                 }
-                                Logger.v(TAG, "Loadurl:" + loadUrl);
+                                Logger.v(TAG, "Respond to pkeyAuth challenge", "Challenge submit url:" 
+                                        + challengeResponse.mSubmitUrl, null);
                                 view.loadUrl(loadUrl, headers);
                             }
                         });
@@ -233,7 +255,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
-            
+            Logger.v(TAG, "Navigation starts with the redirect uri.");
             if (hasCancelError(url)) {
                 // Catch WEB-UI cancel request
                 Logger.i(TAG, "Sending intent to cancel authentication activity", "");

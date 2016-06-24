@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 
 /**
  * Internal class handling the logic for acquire token with Broker app(Either Company Portal or Azure Authenticator).
@@ -54,6 +55,9 @@ final class AcquireTokenWithBrokerRequest {
         mAuthRequest.setVersion(AuthenticationContext.getVersionName());
         mAuthRequest.setBrokerAccountName(mAuthRequest.getLoginHint());
 
+        // Log the broker version for silent request to broker
+        logBrokerVersion();
+
         final AuthenticationResult authenticationResult;
         if (!StringExtensions.IsNullOrBlank(mAuthRequest.getBrokerAccountName()) || !StringExtensions
                 .IsNullOrBlank(mAuthRequest.getUserId())) {
@@ -74,6 +78,8 @@ final class AcquireTokenWithBrokerRequest {
     void acquireTokenWithBrokerInteractively(final IWindowComponent activity)
             throws AuthenticationException {
         Logger.v(TAG, "Launch activity for interactive authentication via broker.");
+        // Log the broker version for interactive request to broker
+        logBrokerVersion();
 
         final Intent brokerIntent = mBrokerProxy.getIntentForBrokerActivity(mAuthRequest);
 
@@ -88,5 +94,26 @@ final class AcquireTokenWithBrokerRequest {
 
         //It will start activity if callback is provided.
         //activity onActivityResult will receive the result, and result will be sent back via callback.
+    }
+
+    private void logBrokerVersion() {
+        final String currentActiveBrokerPackageName =
+                mBrokerProxy.getCurrentActiveBrokerPackageName();
+        if (StringExtensions.IsNullOrBlank(currentActiveBrokerPackageName)) {
+            Logger.i(TAG, "Broker app package name is empty.", "");
+            return;
+        }
+
+        String brokerAppVersion;
+        try {
+            brokerAppVersion = mBrokerProxy.getBrokerAppVersion(currentActiveBrokerPackageName);
+        } catch (final PackageManager.NameNotFoundException e) {
+            // we don't want to throw for the logging purpose.
+            brokerAppVersion = "N/A";
+        }
+
+        final String brokerLogging = "Broker app is: " + currentActiveBrokerPackageName
+                + ";Broker app version: " + brokerAppVersion;
+        Logger.i(TAG, brokerLogging, "");
     }
 }

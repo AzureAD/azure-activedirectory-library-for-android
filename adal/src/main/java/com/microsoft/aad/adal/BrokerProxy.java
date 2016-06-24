@@ -240,7 +240,7 @@ class BrokerProxy implements IBrokerProxy {
                         mHandler);
 
                 // Making blocking request here
-                Logger.v(TAG, "Received result from Authenticator");
+                Logger.v(TAG, "Received result from broker");
                 Bundle bundleResult = result.getResult();
                 // Authenticator should throw OperationCanceledException if
                 // token is not available
@@ -254,7 +254,7 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
             }
 
-            Logger.v(TAG, "Returning result from Authenticator");
+            Logger.v(TAG, "Returning result from broker");
             return authResult;
         } else {
             Logger.v(TAG, "Target account is not found");
@@ -423,6 +423,31 @@ class BrokerProxy implements IBrokerProxy {
 
         return intent;
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getCurrentActiveBrokerPackageName() {
+        AuthenticatorDescription[] authenticators = mAcctManager.getAuthenticatorTypes();
+        for (AuthenticatorDescription authenticator : authenticators) {
+            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)) {
+                return authenticator.packageName;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getBrokerAppVersion(final String brokerAppPackageName) throws NameNotFoundException {
+        final PackageInfo packageInfo = mContext.getPackageManager().getPackageInfo(brokerAppPackageName, 0);
+
+        return "VersionName=" + packageInfo.versionName + ";VersonCode=" + packageInfo.versionCode + ".";
+    }
 
     private Bundle getBrokerOptions(final AuthenticationRequest request) {
         Bundle brokerOptions = new Bundle();
@@ -504,7 +529,6 @@ class BrokerProxy implements IBrokerProxy {
                     // requests if account exists. New version can allow to
                     // add accounts through Adal.
                     if (hasSupportToAddUserThroughBroker(authenticator.packageName)) {
-                        Logger.v(TAG, "Broker supports to add user through app");
                         return true;
                     } else if (accountList.length > 0) {
                         return verifyAccount(accountList, username, uniqueId);
@@ -613,39 +637,38 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException, IOException {
-
+        final String methodName = ":getBrokerUsers";
         // Calling this on main thread will cause exception since this is
         // waiting on AccountManagerFuture
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalArgumentException("Calling getBrokerUsers on main thread");
         }
 
-        Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        Bundle bundle = new Bundle();
+        final Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        final Bundle bundle = new Bundle();
         bundle.putBoolean(DATA_USER_INFO, true);
+        Logger.v(TAG + methodName, "Retrieve all the accounts from account manager with broker account type, "
+                + "and the account length is: " + accountList.length);
 
-        if (accountList.length > 0) {
+        // accountList will never be null, getAccountsByType will return an empty list if no matching account returned.
+        // get info for each user
+        final UserInfo[] users = new UserInfo[accountList.length];
+        for (int i = 0; i < accountList.length; i++) {
 
-            // get info for each user
-            UserInfo[] users = new UserInfo[accountList.length];
-            for (int i = 0; i < accountList.length; i++) {
+            // Use AccountManager Api method to get extended user info
+            final AccountManagerFuture<Bundle> result = mAcctManager.updateCredentials(accountList[i],
+                    AuthenticationConstants.Broker.AUTHTOKEN_TYPE, bundle, null, null, null);
+            Logger.v(TAG, "Waiting for userinfo retrieval result from Broker.");
+            final Bundle userInfoBundle = result.getResult();
 
-                // Use AccountManager Api method to get extended user info
-                AccountManagerFuture<Bundle> result = mAcctManager.updateCredentials(accountList[i],
-                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE, bundle, null, null, null);
-                Logger.v(TAG, "Waiting for the result");
-                Bundle userInfoBundle = result.getResult();
-
-                users[i] = new UserInfo(
-                        userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID),
-                        userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME),
-                        userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME),
-                        userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER),
-                        userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
-            }
-
-            return users;
+            users[i] = new UserInfo(
+                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID),
+                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME),
+                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME),
+                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER),
+                    userInfoBundle.getString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE));
         }
-        return null;
+
+        return users;
     }
 }

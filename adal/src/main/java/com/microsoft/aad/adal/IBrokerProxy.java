@@ -23,11 +23,12 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.IOException;
-
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+
+import java.io.IOException;
 
 interface IBrokerProxy {
     /**
@@ -76,4 +77,16 @@ interface IBrokerProxy {
      */
     UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
             IOException;
+    
+    /**
+     * @return The package name for the active broker. Should be either Azure Authenticator 
+     * or Company Portal. 
+     */
+    String getCurrentActiveBrokerPackageName();
+
+    /**
+     * @param brokerAppPackageName Package name for currently active broker.
+     * @return The current broker app version.
+     */
+    String getBrokerAppVersion(final String brokerAppPackageName) throws PackageManager.NameNotFoundException;
 }

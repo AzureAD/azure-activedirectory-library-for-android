@@ -23,6 +23,16 @@
 
 package com.microsoft.aad.adal;
 
+import android.net.Uri;
+import android.os.Build;
+import android.text.TextUtils;
+import android.util.Base64;
+
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -35,16 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-
-import android.net.Uri;
-import android.os.Build;
-import android.text.TextUtils;
-import android.util.Base64;
 
 /**
  * Base Oauth class.
@@ -169,6 +169,8 @@ class Oauth2 {
     }
 
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
+        Logger.v(TAG, "Building request message for redeeming token with auth code.");
+        
         return String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
@@ -184,6 +186,8 @@ class Oauth2 {
 
     public String buildRefreshTokenRequestMessage(String refreshToken)
             throws UnsupportedEncodingException {
+        Logger.v(TAG, "Building request message for redeeming token with refresh token.");
+        
         String message = String.format("%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
@@ -259,11 +263,12 @@ class Oauth2 {
                 // response. ADFS does not return that.
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
                 if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
+                    Logger.v(TAG, "Id token was returned, parsing id token.");
                     IdToken tokenParsed = new IdToken(rawIdToken);
                     tenantId = tokenParsed.getTenantId();
                     userinfo = new UserInfo(tokenParsed);
                 } else {
-                    Logger.v(TAG, "IdToken is not provided");
+                    Logger.v(TAG, "IdToken was not returned from token request.");
                 }
             }
             
@@ -320,6 +325,7 @@ class Oauth2 {
         // challenge
         headers.put(AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE,
                 AuthenticationConstants.Broker.CHALLENGE_TLS_INCAPABLE_VERSION);
+        Logger.v(TAG, "Sending request to redeem token with refresh token.");
         return postMessage(requestMessage, headers);
     }
 
@@ -401,6 +407,8 @@ class Oauth2 {
         }
 
         final Map<String, String> headers = getRequestHeaders();
+
+        Logger.v(TAG, "Sending request to redeem token with auth code.");
         return postMessage(requestMessage, headers);
     }
 
@@ -435,7 +443,7 @@ class Oauth2 {
                         // Handle each specific challenge header
                         if (StringExtensions.hasPrefixInHeader(challengeHeader,
                                 AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) {
-                            Logger.v(TAG, "Challenge is related to device certificate");
+                            Logger.v(TAG, "Received pkeyAuth device challenge.");
                             ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                     mJWSBuilder);
                             Logger.v(TAG, "Processing device challenge");

@@ -256,6 +256,7 @@ class AcquireTokenSilentHandler {
         Logger.v(TAG, "Send request to use MRRT for new AT.");
         mAttemptedWithMRRT = true;
         if (mMrrtTokenCacheItem == null) {
+            Logger.v(TAG, "MRRT does not exist, cannot proceed with MRRT for new AT.");
             return null;
         }
         
