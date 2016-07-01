@@ -40,10 +40,6 @@ public class ADALErrorTest extends InstrumentationTestCase {
 
     private static final String TAG = "ADALErrorTests";
 
-    private byte[] testSignature = null;
-
-    private String testTag = null;
-
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -53,14 +49,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
         // ADAL is set to this signature for now
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
                 .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
-        for (Signature signature : info.signatures) {
-            testSignature = signature.toByteArray();
-            MessageDigest md = MessageDigest.getInstance("SHA");
-            md.update(testSignature);
-            testTag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
-            break;
-        }
-        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Log.d(TAG, "testSignature is set");
