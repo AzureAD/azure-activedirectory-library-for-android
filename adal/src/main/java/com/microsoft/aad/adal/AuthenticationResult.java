@@ -82,8 +82,12 @@ public class AuthenticationResult implements Serializable {
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
     private boolean mInitialRequest;
-    
+
     private String mFamilyClientId;
+
+    private boolean mIsExtendedLifeTimeToken = false;
+
+    private Date mExtendedExpiresOn;
 
     AuthenticationResult() {
         mCode = null;
@@ -97,7 +101,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
-            UserInfo userInfo, String tenantId, String idToken) {
+                         UserInfo userInfo, String tenantId, String idToken) {
         mCode = null;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
@@ -109,6 +113,23 @@ public class AuthenticationResult implements Serializable {
         mIdToken = idToken;
     }
 
+    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad,
+                         UserInfo userInfo, String tenantId, String idToken, Date extendedExpires) {
+        mCode = null;
+        mAccessToken = accessToken;
+        mRefreshToken = refreshToken;
+        mExpiresOn = expires;
+        mIsMultiResourceRefreshToken = isBroad;
+        mStatus = AuthenticationStatus.Succeeded;
+        mUserInfo = userInfo;
+        mTenantId = tenantId;
+        mIdToken = idToken;
+        if(extendedExpires != null) {
+            mExtendedExpiresOn = extendedExpires;
+            mIsExtendedLifeTimeToken = true;
+        }
+    }
+
     AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad) {
         mCode = null;
         mAccessToken = accessToken;
@@ -116,6 +137,19 @@ public class AuthenticationResult implements Serializable {
         mExpiresOn = expires;
         mIsMultiResourceRefreshToken = isBroad;
         mStatus = AuthenticationStatus.Succeeded;
+    }
+
+    AuthenticationResult(String accessToken, String refreshToken, Date expires, boolean isBroad, Date extendedExpires) {
+        mCode = null;
+        mAccessToken = accessToken;
+        mRefreshToken = refreshToken;
+        mExpiresOn = expires;
+        mIsMultiResourceRefreshToken = isBroad;
+        mStatus = AuthenticationStatus.Succeeded;
+        if(extendedExpires != null) {
+            mExtendedExpiresOn = extendedExpires;
+            mIsExtendedLifeTimeToken = true;
+        }
     }
 
     AuthenticationResult(String errorCode, String errDescription, String errorCodes) {
@@ -127,21 +161,28 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Creates result from {@link TokenCacheItem}.
-     * 
+     *
      * @param cacheItem TokenCacheItem to be converted.
      * @return AuthenticationResult
      */
     static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
 
-        if (cacheItem == null) {
+        if(cacheItem == null) {
             AuthenticationResult result = new AuthenticationResult();
             result.mStatus = AuthenticationStatus.Failed;
             return result;
         }
 
-        return new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
-                cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
-                cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken());
+        final AuthenticationResult result =
+                new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
+                        cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
+                        cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken());
+
+        if(cacheItem.isExtendedLifetimeValid()) {
+            result.setIsExtendedLifeTimeToken(true);
+            result.setExtendedExpiresOn(cacheItem.getExtendedExpiresOn());
+        }
+        return result;
     }
 
     static AuthenticationResult createResultForInitialRequest() {
@@ -152,7 +193,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Uses access token to create header for web requests.
-     * 
+     *
      * @return AuthorizationHeader
      */
     public String createAuthorizationHeader() {
@@ -161,7 +202,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Access token to send to the service in Authorization Header.
-     * 
+     *
      * @return Access token
      */
     public String getAccessToken() {
@@ -170,7 +211,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Refresh token to get new tokens.
-     * 
+     *
      * @return Refresh token
      */
     public String getRefreshToken() {
@@ -179,7 +220,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Token type.
-     * 
+     *
      * @return access token type
      */
     public String getAccessTokenType() {
@@ -188,7 +229,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Epoch time for expiresOn.
-     * 
+     *
      * @return expiresOn {@link Date}
      */
     public Date getExpiresOn() {
@@ -198,7 +239,7 @@ public class AuthenticationResult implements Serializable {
     /**
      * Multi-resource refresh tokens can be used to request token for another
      * resource.
-     * 
+     *
      * @return multi resource refresh token status
      */
     public boolean getIsMultiResourceRefreshToken() {
@@ -207,7 +248,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * UserInfo returned from IdToken.
-     * 
+     *
      * @return {@link UserInfo}
      */
     public UserInfo getUserInfo() {
@@ -216,7 +257,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Set userinfo after refresh from previous idtoken.
-     * 
+     *
      * @param userinfo latest user info.
      */
     void setUserInfo(UserInfo userinfo) {
@@ -225,7 +266,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets tenantId.
-     * 
+     *
      * @return TenantId
      */
     public String getTenantId() {
@@ -234,7 +275,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets status.
-     * 
+     *
      * @return {@link AuthenticationStatus}
      */
     public AuthenticationStatus getStatus() {
@@ -251,7 +292,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error code.
-     * 
+     *
      * @return Error code
      */
     public String getErrorCode() {
@@ -260,7 +301,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error description.
-     * 
+     *
      * @return error description
      */
     public String getErrorDescription() {
@@ -269,7 +310,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error log info.
-     * 
+     *
      * @return log info
      */
     public String getErrorLogInfo() {
@@ -278,15 +319,19 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Checks expiration time.
-     * 
+     *
      * @return true if expired
      */
     public boolean isExpired() {
-        return TokenCacheItem.isTokenExpired(getExpiresOn());
+        if(mIsExtendedLifeTimeToken) {
+            return TokenCacheItem.isTokenExpired(getExtendedExpiresOn());
+        } else {
+            return TokenCacheItem.isTokenExpired(getExpiresOn());
+        }
     }
 
     String[] getErrorCodes() {
-    	return (mErrorCodes != null) ? mErrorCodes.replaceAll("[\\[\\]]", "").split("([^,]),") : null;
+        return (mErrorCodes != null) ? mErrorCodes.replaceAll("[\\[\\]]", "").split("([^,]),") : null;
     }
 
     boolean isInitialRequest() {
@@ -295,11 +340,38 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Get raw idtoken.
-     * 
+     *
      * @return IdToken
      */
     public String getIdToken() {
         return mIdToken;
+    }
+
+    /**
+     * Gets if the returned token is valid in terms of extended lifetime
+     *
+     * @return True if the returned token is valid in terms of extended lifetime
+     */
+    final public boolean isExtendedLifeTimeToken() {
+        return mIsExtendedLifeTimeToken;
+    }
+
+    /**
+     * Sets the property isExtendedLifeTimeToken to indicate whether the token
+     * being returned is a token only valid in terms of extended lifetime
+     *
+     * @param isExtendedLifeTimeToken
+     */
+    final void setIsExtendedLifeTimeToken(final boolean isExtendedLifeTimeToken) {
+        this.mIsExtendedLifeTimeToken = isExtendedLifeTimeToken;
+    }
+
+    final void setExtendedExpiresOn(final Date extendedExpiresOn) {
+        this.mExtendedExpiresOn = extendedExpiresOn;
+    }
+
+    final public Date getExtendedExpiresOn() {
+        return this.mExtendedExpiresOn;
     }
 
     void setIdToken(String idToken) {
@@ -309,16 +381,16 @@ public class AuthenticationResult implements Serializable {
     void setTenantId(String tenantid) {
         mTenantId = tenantid;
     }
-    
-    void setRefreshToken(String refreshToken){
+
+    void setRefreshToken(String refreshToken) {
         mRefreshToken = refreshToken;
     }
-    
+
     final String getFamilyClientId() {
         return mFamilyClientId;
     }
-    
-    final void setFamilyClientId (final String familyClientId) {
+
+    final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
     }
 }

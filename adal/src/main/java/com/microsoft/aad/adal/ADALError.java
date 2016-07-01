@@ -108,7 +108,7 @@ public enum ADALError {
      * Layout file does not have correct elements such as different webview id.
      */
     DEVELOPER_DIALOG_LAYOUT_INVALID("dialog_authentication.xml file has invalid elements"),
-    
+
     /**
      * Invalid request to server.
      */
@@ -118,6 +118,11 @@ public enum ADALError {
      * Server returned an error.
      */
     SERVER_ERROR("Server returned an error"),
+
+    /**
+     *
+     */
+    SERVER_ERROR_FOR_RETRY("Server returned an error which can retry"),
 
     /**
      * I/O exception.
@@ -255,7 +260,7 @@ public enum ADALError {
      * IdToken is normally returned from token endpoint.
      */
     IDTOKEN_PARSING_FAILURE("Cannot parse IdToken"),
-    
+
     /**
      * Dateformat is invalid.
      */
@@ -304,7 +309,7 @@ public enum ADALError {
      * Encryption failed.
      */
     ENCRYPTION_FAILED("Encryption failed"),
-    
+
     /**
      * Decryption failed.
      */
@@ -314,7 +319,7 @@ public enum ADALError {
      * Failed to use AndroidKeyStore.
      */
     ANDROIDKEYSTORE_FAILED("Failed to use AndroidKeyStore"),
-    
+
     /**
      * Failed to use KeyPairGeneratorSpec.
      */
@@ -360,7 +365,7 @@ public enum ADALError {
      * Authenticator has IO Exception.
      */
     BROKER_AUTHENTICATOR_IO_EXCEPTION("Authenticator has IO Exception"),
-    
+
     /**
      * Authenticator returned exception.
      */
@@ -476,7 +481,7 @@ public enum ADALError {
      * WebView returned empty redirect url.
      */
     WEBVIEW_RETURNED_EMPTY_REDIRECT_URL("Webview returned empty redirect url"),
-    
+
     /**
      * WebView  redirect url is not SSL protected.
      */
@@ -520,10 +525,10 @@ public enum ADALError {
     /**
      * Resource authentication challenge failure.
      */
-    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure"), 
-    
+    RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE("Resource authentication challenge failure"),
+
     /**
-     * The token cache item is invalid, cannot use it to create cachekey. 
+     * The token cache item is invalid, cannot use it to create cachekey.
      */
     INVALID_TOKEN_CACHE_ITEM("Invalid token cache item"),
 
@@ -531,27 +536,27 @@ public enum ADALError {
      * Export of FID failure.
      */
     FAIL_TO_EXPORT("Fail to export"),
-    
+
     /**
      * Import of FID failure.
      */
     FAIL_TO_IMPORT("Fail to import"),
-        
+
     /**
      * Incompatible blob version.
      */
-    INCOMPATIBLE_BLOB_VERSION("Fail to deserialize because the blob version is incompatible"), 
-    
+    INCOMPATIBLE_BLOB_VERSION("Fail to deserialize because the blob version is incompatible"),
+
     /**
      * Fail to get the token cache item from the cache item.
      */
     TOKEN_CACHE_ITEM_NOT_FOUND("Token cache item is not found"),
-    
+
     /**
      * Fail to parse JSON because of the problem with the JSON API.
      */
     JSON_PARSE_ERROR("Fail to parse JSON");
-    
+
     private String mDescription;
 
     ADALError(String message) {
@@ -560,7 +565,7 @@ public enum ADALError {
 
     /**
      * Gets error description.
-     * 
+     *
      * @return Error description
      */
     public String getDescription() {
@@ -569,7 +574,7 @@ public enum ADALError {
 
     /**
      * Gets localized description if provided with context.
-     * 
+     *
      * @param context {@link Context}
      * @return Error description
      */
@@ -579,7 +584,7 @@ public enum ADALError {
         // Application resource
         // merging operation will use the last one according to the import
         // order.
-        if (context != null) {
+        if(context != null) {
             Configuration conf = context.getResources().getConfiguration();
             Resources resources = new Resources(context.getAssets(), context.getResources()
                     .getDisplayMetrics(), conf);
