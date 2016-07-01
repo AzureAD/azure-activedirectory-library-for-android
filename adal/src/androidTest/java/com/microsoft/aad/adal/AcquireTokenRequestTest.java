@@ -301,7 +301,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        // verify getAuthToken called once
+        // verify getAuthToken not called
         verify(mockedAccountManager, times(0)).getAuthToken(Mockito.any(Account.class), Matchers.anyString(),
                 Matchers.any(Bundle.class), Matchers.eq(false), (AccountManagerCallback<Bundle>) Matchers.eq(null),
                 Matchers.any(Handler.class));
