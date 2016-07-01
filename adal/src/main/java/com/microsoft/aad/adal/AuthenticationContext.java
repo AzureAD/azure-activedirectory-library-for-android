@@ -128,14 +128,14 @@ public class AuthenticationContext {
 
     private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
                             boolean validateAuthority, boolean defaultCache) {
-        if(appContext == null) {
+        if (appContext == null) {
             throw new IllegalArgumentException("appContext");
         }
-        if(authority == null) {
+        if (authority == null) {
             throw new IllegalArgumentException("authority");
         }
         mBrokerProxy = new BrokerProxy(appContext);
-        if(!defaultCache && !mBrokerProxy.canUseLocalCache()) {
+        if (!defaultCache && !mBrokerProxy.canUseLocalCache()) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
         }
         mContext = appContext;
@@ -197,7 +197,7 @@ public class AuthenticationContext {
      * @return Username
      */
     public String getBrokerUser() {
-        if(mBrokerProxy != null) {
+        if (mBrokerProxy != null) {
             return mBrokerProxy.getCurrentUser();
         }
 
@@ -479,10 +479,10 @@ public class AuthenticationContext {
         final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
         final AtomicReference<Exception> exception = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
-        if(StringExtensions.IsNullOrBlank(resource)) {
+        if (StringExtensions.IsNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
-        if(StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.IsNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
@@ -493,7 +493,7 @@ public class AuthenticationContext {
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
 
         final Looper currentLooper = Looper.myLooper();
-        if(currentLooper != null && currentLooper == mContext.getMainLooper()) {
+        if (currentLooper != null && currentLooper == mContext.getMainLooper()) {
             Log.e(TAG, "Sync network calls must not be invoked in main thread. "
                             + "This method will throw android.os.NetworkOnMainThreadException in next major release",
                     new NetworkOnMainThreadException());
@@ -515,16 +515,16 @@ public class AuthenticationContext {
 
         latch.await();
         Exception e = exception.get();
-        if(e != null) {
-            if(e instanceof AuthenticationException) {
+        if (e != null) {
+            if (e instanceof AuthenticationException) {
                 throw (AuthenticationException) e;
-            } else if(e instanceof RuntimeException) {
+            } else if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
             }
-            if(e.getCause() != null) {
-                if(e.getCause() instanceof AuthenticationException) {
+            if (e.getCause() != null) {
+                if (e.getCause() instanceof AuthenticationException) {
                     throw (AuthenticationException) e.getCause();
-                } else if(e.getCause() instanceof RuntimeException) {
+                } else if (e.getCause() instanceof RuntimeException) {
                     throw (RuntimeException) e.getCause();
                 } else {
                     throw new AuthenticationException(ADALError.ERROR_SILENT_REQUEST, e.getCause()
@@ -559,11 +559,11 @@ public class AuthenticationContext {
     @Deprecated
     public Future<AuthenticationResult> acquireTokenSilent(String resource, String clientId,
                                                            String userId, final AuthenticationCallback<AuthenticationResult> callback) {
-        if(StringExtensions.IsNullOrBlank(resource)) {
+        if (StringExtensions.IsNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
 
-        if(StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.IsNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
@@ -577,7 +577,7 @@ public class AuthenticationContext {
                 new AuthenticationCallback<AuthenticationResult>() {
                     @Override
                     public void onSuccess(AuthenticationResult result) {
-                        if(callback != null) {
+                        if (callback != null) {
                             callback.onSuccess(result);
                         }
                         futureTask.set(result);
@@ -585,7 +585,7 @@ public class AuthenticationContext {
 
                     @Override
                     public void onError(Exception exc) {
-                        if(callback != null) {
+                        if (callback != null) {
                             callback.onError(exc);
                         }
                         futureTask.setException(exc);
@@ -612,15 +612,15 @@ public class AuthenticationContext {
                                         String clientId,
                                         String userId,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        if(StringExtensions.IsNullOrBlank(resource)) {
+        if (StringExtensions.IsNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
 
-        if(StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.IsNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
-        if(callback == null) {
+        if (callback == null) {
             throw new IllegalArgumentException("callback");
         }
 
@@ -647,15 +647,15 @@ public class AuthenticationContext {
     @Deprecated
     public void acquireTokenByRefreshToken(String refreshToken, String clientId,
                                            AuthenticationCallback<AuthenticationResult> callback) {
-        if(StringExtensions.IsNullOrBlank(refreshToken)) {
+        if (StringExtensions.IsNullOrBlank(refreshToken)) {
             throw new IllegalArgumentException("Refresh token is not provided");
         }
 
-        if(StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.IsNullOrBlank(clientId)) {
             throw new IllegalArgumentException("ClientId is not provided");
         }
 
-        if(callback == null) {
+        if (callback == null) {
             throw new IllegalArgumentException("Callback is not provided");
         }
 
@@ -686,15 +686,15 @@ public class AuthenticationContext {
     @Deprecated
     public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
                                            AuthenticationCallback<AuthenticationResult> callback) {
-        if(StringExtensions.IsNullOrBlank(refreshToken)) {
+        if (StringExtensions.IsNullOrBlank(refreshToken)) {
             throw new IllegalArgumentException("Refresh token is not provided");
         }
 
-        if(StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.IsNullOrBlank(clientId)) {
             throw new IllegalArgumentException("ClientId is not provided");
         }
 
-        if(callback == null) {
+        if (callback == null) {
             throw new IllegalArgumentException("Callback is not provided");
         }
 
@@ -717,7 +717,7 @@ public class AuthenticationContext {
      * @param data {@link Intent}
      */
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        if(requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
+        if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
             final AcquireTokenRequest acquireTokenRequest = new AcquireTokenRequest(mContext, this);
             acquireTokenRequest.onActivityResult(requestCode, resultCode, data);
         }
@@ -737,14 +737,14 @@ public class AuthenticationContext {
     public boolean cancelAuthenticationActivity(final int requestId) throws AuthenticationException {
         final AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
 
-        if(waitingRequest == null || waitingRequest.mDelagete == null) {
+        if (waitingRequest == null || waitingRequest.mDelagete == null) {
             // there is not any waiting callback
             Logger.v(TAG, "Current callback is empty. There is not any active authentication.");
             return true;
         }
 
         final String currentCorrelationInfo;
-        if(waitingRequest.mRequest != null) {
+        if (waitingRequest.mRequest != null) {
             currentCorrelationInfo = String.format(" CorrelationId: %s",
                     waitingRequest.mRequest.getCorrelationId().toString());
         } else {
@@ -763,7 +763,7 @@ public class AuthenticationContext {
         // it may not cancel it, if activity takes some time to launch.
 
         final boolean cancelResult = LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
-        if(cancelResult) {
+        if (cancelResult) {
             // clear callback if broadcast message was successful
             Logger.v(TAG, "Cancel broadcast message was successful." + currentCorrelationInfo);
             waitingRequest.mCancelled = true;
@@ -784,7 +784,7 @@ public class AuthenticationContext {
      * @return UUID
      */
     public UUID getRequestCorrelationId() {
-        if(mRequestCorrelationId == null) {
+        if (mRequestCorrelationId == null) {
             return UUID.randomUUID();
         }
 
@@ -802,7 +802,7 @@ public class AuthenticationContext {
     }
 
     private IWindowComponent wrapActivity(final Activity activity) {
-        if(activity == null) {
+        if (activity == null) {
             throw new IllegalArgumentException("activity");
         }
 
@@ -813,7 +813,7 @@ public class AuthenticationContext {
             public void startActivityForResult(Intent intent, int requestCode) {
                 // if user closed an app or switched to another activity
                 // mRefActivity can die before this method got invoked
-                if(mRefActivity != null) {
+                if (mRefActivity != null) {
                     mRefActivity.startActivityForResult(intent, requestCode);
                 }
             }
@@ -822,25 +822,25 @@ public class AuthenticationContext {
 
     private String checkInputParameters(final String resource, final String clientId, final String inputRedirectUri,
                                         final AuthenticationCallback<AuthenticationResult> callback) {
-        if(mContext == null) {
+        if (mContext == null) {
             throw new IllegalArgumentException("context", new AuthenticationException(
                     ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
         }
 
-        if(StringExtensions.IsNullOrBlank(resource)) {
+        if (StringExtensions.IsNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
 
-        if(StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.IsNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
-        if(callback == null) {
+        if (callback == null) {
             throw new IllegalArgumentException("callback");
         }
 
         final String redirectUri;
-        if(StringExtensions.IsNullOrBlank(inputRedirectUri)) {
+        if (StringExtensions.IsNullOrBlank(inputRedirectUri)) {
             redirectUri = mContext.getApplicationContext().getPackageName();
         } else {
             redirectUri = inputRedirectUri;
@@ -854,16 +854,16 @@ public class AuthenticationContext {
     }
 
     private static String extractAuthority(String authority) {
-        if(!StringExtensions.IsNullOrBlank(authority)) {
+        if (!StringExtensions.IsNullOrBlank(authority)) {
 
             // excluding the starting https:// or http://
             int thirdSlash = authority.indexOf("/", EXCLUDE_INDEX);
 
             // third slash is not the last character
-            if(thirdSlash >= 0 && thirdSlash != (authority.length() - 1)) {
+            if (thirdSlash >= 0 && thirdSlash != (authority.length() - 1)) {
                 int fourthSlash = authority.indexOf("/", thirdSlash + 1);
-                if(fourthSlash < 0 || fourthSlash > thirdSlash + 1) {
-                    if(fourthSlash >= 0) {
+                if (fourthSlash < 0 || fourthSlash > thirdSlash + 1) {
+                    if (fourthSlash >= 0) {
                         return authority.substring(0, fourthSlash);
                     }
 
@@ -877,7 +877,7 @@ public class AuthenticationContext {
 
     private void checkInternetPermission() {
         PackageManager pm = mContext.getPackageManager();
-        if(PackageManager.PERMISSION_GRANTED != pm.checkPermission("android.permission.INTERNET",
+        if (PackageManager.PERMISSION_GRANTED != pm.checkPermission("android.permission.INTERNET",
                 mContext.getPackageName())) {
             throw new IllegalStateException(new AuthenticationException(ADALError.DEVELOPER_INTERNET_PERMISSION_MISSING));
         }
@@ -897,11 +897,11 @@ public class AuthenticationContext {
      * @throws AuthenticationException
      */
     String serialize(final String uniqueUserId) throws AuthenticationException {
-        if(StringExtensions.IsNullOrBlank(uniqueUserId)) {
+        if (StringExtensions.IsNullOrBlank(uniqueUserId)) {
             throw new IllegalArgumentException("uniqueUserId");
         }
 
-        if(mBrokerProxy.canSwitchToBroker()) {
+        if (mBrokerProxy.canSwitchToBroker()) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
                     "Failed to export the family refresh token cache item because broker is enabled.");
         }
@@ -915,13 +915,13 @@ public class AuthenticationContext {
                 AuthenticationConstants.MS_FAMILY_ID, uniqueUserId);
         final TokenCacheItem tokenItem = this.getCache().getItem(cacheKey);
 
-        if(tokenItem == null) {
+        if (tokenItem == null) {
             Logger.i(TAG, "Cannot find the family token cache item for this userID", "");
             throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
                     "Failed to export the FID because no family token cache item is found.");
         }
 
-        if(!StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
+        if (!StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
             return SSOStateSerializer.serialize(tokenItem);
         } else {
             throw new IllegalArgumentException("tokenItem does not contain family refresh token");
@@ -940,11 +940,11 @@ public class AuthenticationContext {
      * @throws AuthenticationException
      */
     void deserialize(final String serializedBlob) throws AuthenticationException {
-        if(StringExtensions.IsNullOrBlank(serializedBlob)) {
+        if (StringExtensions.IsNullOrBlank(serializedBlob)) {
             throw new IllegalArgumentException("serializedBlob");
         }
 
-        if(mBrokerProxy.canSwitchToBroker()) {
+        if (mBrokerProxy.canSwitchToBroker()) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT, "Failed to import the serialized blob "
                     + "because broker is enabled.");
         }
@@ -966,11 +966,11 @@ public class AuthenticationContext {
         Logger.v(TAG, "Get waiting request: " + requestId);
         AuthenticationRequestState request;
 
-        synchronized(mDelegateMap) {
+        synchronized (mDelegateMap) {
             request = mDelegateMap.get(requestId);
         }
 
-        if(request == null) {
+        if (request == null) {
             Logger.e(TAG, "Request callback is not available for requestid:" + requestId,
                     "", ADALError.CALLBACK_IS_NOT_FOUND);
             throw new AuthenticationException(ADALError.CALLBACK_IS_NOT_FOUND,
@@ -984,11 +984,11 @@ public class AuthenticationContext {
         Logger.v(TAG, "Put waiting request: " + requestId
                 + getCorrelationInfoFromWaitingRequest(requestState));
 
-        if(requestState == null) {
+        if (requestState == null) {
             return;
         }
 
-        synchronized(mDelegateMap) {
+        synchronized (mDelegateMap) {
             mDelegateMap.put(requestId, requestState);
         }
     }
@@ -996,7 +996,7 @@ public class AuthenticationContext {
     void removeWaitingRequest(int requestId) {
         Logger.v(TAG, "Remove waiting request: " + requestId);
 
-        synchronized(mDelegateMap) {
+        synchronized (mDelegateMap) {
             mDelegateMap.remove(requestId);
         }
     }
@@ -1007,7 +1007,7 @@ public class AuthenticationContext {
      */
     String getCorrelationInfoFromWaitingRequest(final AuthenticationRequestState waitingRequest) {
         UUID requestCorrelationID = getRequestCorrelationId();
-        if(waitingRequest.mRequest != null) {
+        if (waitingRequest.mRequest != null) {
             requestCorrelationID = waitingRequest.mRequest.getCorrelationId();
         }
 

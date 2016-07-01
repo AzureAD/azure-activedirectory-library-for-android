@@ -39,11 +39,11 @@ class TokenCacheAccessor {
     private final String mAuthority;
 
     TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority) {
-        if(tokenCacheStore == null) {
+        if (tokenCacheStore == null) {
             throw new IllegalArgumentException("tokenCacheStore");
         }
 
-        if(StringExtensions.IsNullOrBlank(authority)) {
+        if (StringExtensions.IsNullOrBlank(authority)) {
             throw new IllegalArgumentException("authority");
         }
 
@@ -60,13 +60,13 @@ class TokenCacheAccessor {
     TokenCacheItem getATFromCache(final String resource, final String clientId, final String user)
             throws AuthenticationException {
         final TokenCacheItem accessTokenItem = getRegularRefreshTokenCacheItem(resource, clientId, user);
-        if(accessTokenItem == null) {
+        if (accessTokenItem == null) {
             Logger.v(TAG, "No access token exists.");
             return null;
         }
 
-        if(!StringExtensions.IsNullOrBlank(accessTokenItem.getAccessToken())) {
-            if(TokenCacheItem.isTokenExpired(accessTokenItem.getExpiresOn())
+        if (!StringExtensions.IsNullOrBlank(accessTokenItem.getAccessToken())) {
+            if (TokenCacheItem.isTokenExpired(accessTokenItem.getExpiresOn())
                     && TokenCacheItem.isTokenExpired(accessTokenItem.getExtendedExpiresOn())) {
                 Logger.v(TAG, "Access token exists, but already expired.");
                 return null;
@@ -74,7 +74,7 @@ class TokenCacheAccessor {
 
             // To support backward-compatibility, for old token entry, user stored in 
             // token cache item could be different from the one in cachekey. 
-            if(isUserMisMatch(user, accessTokenItem)) {
+            if (isUserMisMatch(user, accessTokenItem)) {
                 throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH);
             }
         }
@@ -102,7 +102,7 @@ class TokenCacheAccessor {
      * @return {@link TokenCacheItem} for FRT token cache entry.
      */
     TokenCacheItem getFRTItem(final String familyClientId, final String user) {
-        if(StringExtensions.IsNullOrBlank(user)) {
+        if (StringExtensions.IsNullOrBlank(user)) {
             return null;
         }
 
@@ -112,26 +112,27 @@ class TokenCacheAccessor {
 
     /**
      * Update token cache with returned auth result.
+     *
      * @throws AuthenticationException
      * @throws IllegalArgumentException If {@link AuthenticationResult} is null.
      */
     void updateCachedItemWithResult(final String resource, final String clientId, final AuthenticationResult result,
                                     final TokenCacheItem cachedItem) throws AuthenticationException {
-        if(result == null) {
+        if (result == null) {
             Logger.v(TAG, "AuthenticationResult is null, cannot update cache.");
             throw new IllegalArgumentException("result");
         }
 
-        if(result.getStatus() == AuthenticationStatus.Succeeded) {
+        if (result.getStatus() == AuthenticationStatus.Succeeded) {
             Logger.v(TAG, "Save returned AuthenticationResult into cache.");
-            if(cachedItem != null && cachedItem.getUserInfo() != null && result.getUserInfo() == null) {
+            if (cachedItem != null && cachedItem.getUserInfo() != null && result.getUserInfo() == null) {
                 result.setUserInfo(cachedItem.getUserInfo());
                 result.setIdToken(cachedItem.getRawIdToken());
                 result.setTenantId(cachedItem.getTenantId());
             }
 
             updateTokenCache(resource, clientId, result);
-        } else if(AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
+        } else if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
             // remove Item if oauth2_error is invalid_grant
             Logger.v(TAG, "Received INVALID_GRANT error code, remove existing cache entry.");
             removeTokenCacheItem(cachedItem, resource);
@@ -142,18 +143,18 @@ class TokenCacheAccessor {
      * Update token cache with returned auth result.
      */
     void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) {
-        if(result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+        if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
             return;
         }
 
-        if(result.getUserInfo() != null) {
+        if (result.getUserInfo() != null) {
             // update cache entry with displayableId
-            if(!StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
+            if (!StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
                 setItemToCacheForUser(resource, clientId, result, result.getUserInfo().getDisplayableId());
             }
 
             // update cache entry with userId
-            if(!StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
+            if (!StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
                 setItemToCacheForUser(resource, clientId, result, result.getUserInfo().getUserId());
             }
         }
@@ -174,7 +175,7 @@ class TokenCacheAccessor {
             throws AuthenticationException {
         final List<String> keys;
         final TokenEntryType tokenEntryType = tokenCacheItem.getTokenEntryType();
-        switch(tokenEntryType) {
+        switch (tokenEntryType) {
             case REGULAR_TOKEN_ENTRY:
                 Logger.v(TAG, "Regular RT was used to get access token, remove entries "
                         + "for regular RT entries.");
@@ -198,7 +199,7 @@ class TokenCacheAccessor {
                 throw new AuthenticationException(ADALError.INVALID_TOKEN_CACHE_ITEM);
         }
 
-        for(final String key : keys) {
+        for (final String key : keys) {
             mTokenCacheStore.removeItem(key);
         }
     }
@@ -216,14 +217,14 @@ class TokenCacheAccessor {
                 TokenCacheItem.createRegularTokenCacheItem(mAuthority, resource, clientId, result));
 
         // Store separate entries for MRRT.  
-        if(result.getIsMultiResourceRefreshToken()) {
+        if (result.getIsMultiResourceRefreshToken()) {
             Logger.v(TAG, "Save Multi Resource Refresh token to cache");
             mTokenCacheStore.setItem(CacheKey.createCacheKeyForMRRT(mAuthority, clientId, userId),
                     TokenCacheItem.createMRRTTokenCacheItem(mAuthority, clientId, result));
         }
 
         // Store separate entries for FRT.
-        if(!StringExtensions.IsNullOrBlank(result.getFamilyClientId()) && !StringExtensions.IsNullOrBlank(userId)) {
+        if (!StringExtensions.IsNullOrBlank(result.getFamilyClientId()) && !StringExtensions.IsNullOrBlank(userId)) {
             Logger.v(TAG, "Save Family Refresh token into cache");
             final TokenCacheItem familyTokenCacheItem = TokenCacheItem.createFRRTTokenCacheItem(mAuthority, result);
             mTokenCacheStore.setItem(CacheKey.createCacheKeyForFRT(mAuthority, result.getFamilyClientId(), userId), familyTokenCacheItem);
@@ -236,7 +237,7 @@ class TokenCacheAccessor {
     private List<String> getKeyListToRemoveForRT(final TokenCacheItem cachedItem) {
         final List<String> keysToRemove = new ArrayList<>();
         keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), null));
-        if(cachedItem.getUserInfo() != null) {
+        if (cachedItem.getUserInfo() != null) {
             keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getDisplayableId()));
             keysToRemove.add(CacheKey.createCacheKeyForRTEntry(mAuthority, cachedItem.getResource(), cachedItem.getClientId(), cachedItem.getUserInfo().getUserId()));
         }
@@ -251,7 +252,7 @@ class TokenCacheAccessor {
         final List<String> keysToRemove = new ArrayList<>();
 
         keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), null));
-        if(cachedItem.getUserInfo() != null) {
+        if (cachedItem.getUserInfo() != null) {
             keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), cachedItem.getUserInfo().getDisplayableId()));
             keysToRemove.add(CacheKey.createCacheKeyForMRRT(mAuthority, cachedItem.getClientId(), cachedItem.getUserInfo().getUserId()));
         }
@@ -264,7 +265,7 @@ class TokenCacheAccessor {
      */
     private List<String> getKeyListToRemoveForFRT(final TokenCacheItem cachedItem) {
         final List<String> keysToRemove = new ArrayList<>();
-        if(cachedItem.getUserInfo() != null) {
+        if (cachedItem.getUserInfo() != null) {
             keysToRemove.add(CacheKey.createCacheKeyForFRT(mAuthority, cachedItem.getFamilyClientId(), cachedItem.getUserInfo().getDisplayableId()));
             keysToRemove.add(CacheKey.createCacheKeyForFRT(mAuthority, cachedItem.getFamilyClientId(), cachedItem.getUserInfo().getUserId()));
         }
@@ -275,7 +276,7 @@ class TokenCacheAccessor {
     private boolean isUserMisMatch(final String user, final TokenCacheItem tokenCacheItem) {
         // If user is not passed in the request or userInfo does not exist in the token cache item, 
         // it's a match case. We do wildcard find, return whatever match with cache key. 
-        if(StringExtensions.IsNullOrBlank(user) || tokenCacheItem.getUserInfo() == null) {
+        if (StringExtensions.IsNullOrBlank(user) || tokenCacheItem.getUserInfo() == null) {
             return false;
         }
 
@@ -288,7 +289,7 @@ class TokenCacheAccessor {
      * Calculate hash for accessToken and log that.
      */
     private void logReturnedToken(final AuthenticationResult result) {
-        if(result != null && result.getAccessToken() != null) {
+        if (result != null && result.getAccessToken() != null) {
             String accessTokenHash = getTokenHash(result.getAccessToken());
             String refreshTokenHash = getTokenHash(result.getRefreshToken());
             Logger.v(TAG, String.format(
@@ -300,9 +301,9 @@ class TokenCacheAccessor {
     private String getTokenHash(String token) {
         try {
             return StringExtensions.createHash(token);
-        } catch(NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             Logger.e(TAG, "Digest error", "", ADALError.DEVICE_NO_SUCH_ALGORITHM, e);
-        } catch(UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             Logger.e(TAG, "Digest error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
         }
 

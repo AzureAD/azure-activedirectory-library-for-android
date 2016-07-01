@@ -85,7 +85,7 @@ public class TokenCacheItem implements Serializable {
         this.mIsMultiResourceRefreshToken = tokenCacheItem.getIsMultiResourceRefreshToken();
         this.mTenantId = tokenCacheItem.getTenantId();
         this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
-        if(tokenCacheItem.isExtendedLifetimeValid()) {
+        if (tokenCacheItem.isExtendedLifetimeValid()) {
             this.mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
         }
     }
@@ -94,11 +94,11 @@ public class TokenCacheItem implements Serializable {
      * Construct cache item with given authority and returned auth result.
      */
     private TokenCacheItem(final String authority, final AuthenticationResult authenticationResult) {
-        if(authenticationResult == null) {
+        if (authenticationResult == null) {
             throw new IllegalArgumentException("authenticationResult");
         }
 
-        if(StringExtensions.IsNullOrBlank(authority)) {
+        if (StringExtensions.IsNullOrBlank(authority)) {
             throw new IllegalArgumentException("authority");
         }
 
@@ -112,7 +112,7 @@ public class TokenCacheItem implements Serializable {
         mRawIdToken = authenticationResult.getIdToken();
         mRefreshtoken = authenticationResult.getRefreshToken();
         mFamilyClientId = authenticationResult.getFamilyClientId();
-        if(authenticationResult.isExtendedLifeTimeToken()) {
+        if (authenticationResult.isExtendedLifeTimeToken()) {
             mExtendedExpiresOn = authenticationResult.getExtendedExpiresOn();
         }
     }
@@ -245,7 +245,7 @@ public class TokenCacheItem implements Serializable {
 
     public final boolean isExtendedLifetimeValid() {
         //extended lifetime is only valid if it contains an access token
-        if(mExtendedExpiresOn != null && StringExtensions.IsNullOrBlank(mAccessToken)) {
+        if (mExtendedExpiresOn != null && StringExtensions.IsNullOrBlank(mAccessToken)) {
             return isTokenExpired(mExtendedExpiresOn);
         } else {
             return false;
@@ -275,10 +275,10 @@ public class TokenCacheItem implements Serializable {
      * 2) Item stored for FRT entry won't have client Id stored.
      */
     TokenEntryType getTokenEntryType() {
-        if(!StringExtensions.IsNullOrBlank(this.getResource())) {
+        if (!StringExtensions.IsNullOrBlank(this.getResource())) {
             // Only regular token cache entry is storing resouce. 
             return TokenEntryType.REGULAR_TOKEN_ENTRY;
-        } else if(StringExtensions.IsNullOrBlank(this.getClientId())) {
+        } else if (StringExtensions.IsNullOrBlank(this.getClientId())) {
             // Family token cache item does not store clientId
             return TokenEntryType.FRT_TOKEN_ENTRY;
         } else {

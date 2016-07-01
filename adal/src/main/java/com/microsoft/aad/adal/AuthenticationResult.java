@@ -124,7 +124,7 @@ public class AuthenticationResult implements Serializable {
         mUserInfo = userInfo;
         mTenantId = tenantId;
         mIdToken = idToken;
-        if(extendedExpires != null) {
+        if (extendedExpires != null) {
             mExtendedExpiresOn = extendedExpires;
             mIsExtendedLifeTimeToken = true;
         }
@@ -146,7 +146,7 @@ public class AuthenticationResult implements Serializable {
         mExpiresOn = expires;
         mIsMultiResourceRefreshToken = isBroad;
         mStatus = AuthenticationStatus.Succeeded;
-        if(extendedExpires != null) {
+        if (extendedExpires != null) {
             mExtendedExpiresOn = extendedExpires;
             mIsExtendedLifeTimeToken = true;
         }
@@ -167,7 +167,7 @@ public class AuthenticationResult implements Serializable {
      */
     static AuthenticationResult createResult(final TokenCacheItem cacheItem) {
 
-        if(cacheItem == null) {
+        if (cacheItem == null) {
             AuthenticationResult result = new AuthenticationResult();
             result.mStatus = AuthenticationStatus.Failed;
             return result;
@@ -178,7 +178,7 @@ public class AuthenticationResult implements Serializable {
                         cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
                         cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken());
 
-        if(cacheItem.isExtendedLifetimeValid()) {
+        if (cacheItem.isExtendedLifetimeValid()) {
             result.setIsExtendedLifeTimeToken(true);
             result.setExtendedExpiresOn(cacheItem.getExtendedExpiresOn());
         }
@@ -323,7 +323,7 @@ public class AuthenticationResult implements Serializable {
      * @return true if expired
      */
     public boolean isExpired() {
-        if(mIsExtendedLifeTimeToken) {
+        if (mIsExtendedLifeTimeToken) {
             return TokenCacheItem.isTokenExpired(getExtendedExpiresOn());
         } else {
             return TokenCacheItem.isTokenExpired(getExpiresOn());

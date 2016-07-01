@@ -99,7 +99,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Log.d(TAG, "setup key at settings");
         getContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-        if(AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
+        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
                     .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
@@ -432,13 +432,13 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_UPN),
                 regularRTItem);
 
-        if(storeMRRT) {
+        if (storeMRRT) {
             final TokenCacheItem mrrtItem = TokenCacheItem.createMRRTTokenCacheItem(VALID_AUTHORITY, clientId, result);
             cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_UPN), mrrtItem);
             cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_USERID), mrrtItem);
         }
 
-        if(storeFRT) {
+        if (storeFRT) {
             result.setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
             final TokenCacheItem frtItem = TokenCacheItem.createFRRTTokenCacheItem(VALID_AUTHORITY, result);
             cacheStore.setItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY,
@@ -473,13 +473,13 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_UPN),
                 regularRTItem);
 
-        if(storeMRRT) {
+        if (storeMRRT) {
             final TokenCacheItem mrrtItem = TokenCacheItem.createMRRTTokenCacheItem(VALID_AUTHORITY, clientId, result);
             cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_UPN), mrrtItem);
             cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_USERID), mrrtItem);
         }
 
-        if(storeFRT) {
+        if (storeFRT) {
             result.setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
             final TokenCacheItem frtItem = TokenCacheItem.createFRRTTokenCacheItem(VALID_AUTHORITY, result);
             cacheStore.setItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY,
@@ -922,7 +922,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             throws OperationCanceledException, IOException, AuthenticatorException {
 
         final Bundle resultBundle = new Bundle();
-        if(returnToken) {
+        if (returnToken) {
             resultBundle.putString(AccountManager.KEY_AUTHTOKEN, "I am an access token from broker");
         } else {
             resultBundle.putInt(AccountManager.KEY_ERROR_CODE, ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION);

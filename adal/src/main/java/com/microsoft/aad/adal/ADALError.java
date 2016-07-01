@@ -584,7 +584,7 @@ public enum ADALError {
         // Application resource
         // merging operation will use the last one according to the import
         // order.
-        if(context != null) {
+        if (context != null) {
             Configuration conf = context.getResources().getConfiguration();
             Resources resources = new Resources(context.getAssets(), context.getResources()
                     .getDisplayMetrics(), conf);
