@@ -47,14 +47,13 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -122,9 +121,9 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test if there is a valid AT in local cache, will use it even we can switch to broker for auth.
      */
     @SmallTest
-    public void testFavorLocalCacheValidATInLocalCache() throws PackageManager.NameNotFoundException,
-            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+    public void testFavorLocalCacheValidATInLocalCache()
+            throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
+            AuthenticatorException, InterruptedException {
 
         // Make sure AT is not expired
         final Calendar expiredTime = new GregorianCalendar();
@@ -158,9 +157,9 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * will switch to broker.
      */
     @SmallTest
-    public void testFavorLocalCacheUseLocalRTFailsSwitchToBroker() throws PackageManager.NameNotFoundException,
-            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+    public void testFavorLocalCacheUseLocalRTFailsSwitchToBroker()
+            throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
+            AuthenticatorException, InterruptedException {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
@@ -220,7 +219,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      */
     @SmallTest
     public void testFavorLocalCacheUseLocalRTFailsWithInvalidGrantSwitchToBroker()
-            throws PackageManager.NameNotFoundException, NoSuchAlgorithmException, OperationCanceledException,
+            throws PackageManager.NameNotFoundException, OperationCanceledException,
             IOException, AuthenticatorException, InterruptedException {
 
         // Make sure AT is expired
@@ -274,9 +273,9 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * will switch to broker.
      */
     @SmallTest
-    public void testFavorLocalCacheUseLocalRTSucceeds() throws PackageManager.NameNotFoundException,
-            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+    public void testFavorLocalCacheUseLocalRTSucceeds()
+            throws PackageManager.NameNotFoundException, OperationCanceledException,
+            IOException, AuthenticatorException, InterruptedException {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
@@ -319,7 +318,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     @SmallTest
     public void testBothLocalAndBrokerSilentAuthFailedSwitchedToBrokerForInteractive()
             throws OperationCanceledException, IOException, AuthenticatorException,
-            PackageManager.NameNotFoundException, NoSuchAlgorithmException, InterruptedException {
+            PackageManager.NameNotFoundException, InterruptedException {
 
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
@@ -365,7 +364,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     @SmallTest
     public void testLocalSilentFailedBrokerSilentReturnErrorCannotTryWithInteractive()
             throws OperationCanceledException, IOException, AuthenticatorException,
-            PackageManager.NameNotFoundException, NoSuchAlgorithmException, InterruptedException {
+            PackageManager.NameNotFoundException, InterruptedException {
         // Make sure AT is expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
@@ -449,9 +448,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUriValid() throws PackageManager.NameNotFoundException, InterruptedException,
-            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException {
-
+    public void testVerifyBrokerRedirectUriValid() throws PackageManager.NameNotFoundException,
+            InterruptedException, OperationCanceledException, IOException, AuthenticatorException {
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAddAccountCall(mockedAccountManager);
 
@@ -459,17 +457,17 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         mockContext.setMockedAccountManager(mockedAccountManager);
         mockContext.setMockedPackageManager(getMockedPackageManager());
 
-        final String encodedTestingSignature = getEncodedTestingSignature();
         AuthenticationSettings.INSTANCE.setUseBroker(true);
-        AuthenticationSettings.INSTANCE.setBrokerSignature(encodedTestingSignature);
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
 
         //test@case valid redirect uri
-        String testRedirectUri = authContext.getRedirectUriForBroker();
+        final String testRedirectUri = "msauth://" + mockContext.getPackageName() + "/"
+                + URLEncoder.encode(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE,
+                AuthenticationConstants.ENCODING_UTF8);
         final TestAuthCallback callback = new TestAuthCallback();
-        authContext.acquireToken(Mockito.mock(Activity.class), "resource", "clientid", testRedirectUri,
-                "loginHint", callback);
+        authContext.acquireToken(Mockito.mock(Activity.class), "resource", "clientid",
+                testRedirectUri, "loginHint", callback);
         final CountDownLatch signal = new CountDownLatch(1);
         signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -531,14 +529,12 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testVerifyBrokerRedirectUriInvalidSignature() throws PackageManager.NameNotFoundException,
-            NoSuchAlgorithmException, InterruptedException {
+    public void testVerifyBrokerRedirectUriInvalidSignature()
+            throws PackageManager.NameNotFoundException, InterruptedException {
 
         final FileMockContext mockContext = createMockContext();
 
-        final String encodedTestingSignature = getEncodedTestingSignature();
-        AuthenticationSettings.INSTANCE.setUseBroker(true);
-        AuthenticationSettings.INSTANCE.setBrokerSignature(encodedTestingSignature);
+        prepareAuthForBrokerCall();
 
         final TestAuthCallback callback = new TestAuthCallback();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -650,7 +646,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     private PackageManager getMockedPackageManager() throws PackageManager.NameNotFoundException {
         final Signature mockedSignature = Mockito.mock(Signature.class);
         when(mockedSignature.toByteArray()).thenReturn(Base64.decode(
-                AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE, Base64.NO_WRAP));
+                Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
 
         final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
         mockedPackageInfo.signatures = new Signature[] {mockedSignature};
@@ -674,10 +670,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         return mockedPackageManager;
     }
 
-    private void prepareAuthForBrokerCall() throws NoSuchAlgorithmException {
-        final String encodedTestingSignature = getEncodedTestingSignature();
+    private void prepareAuthForBrokerCall() {
         AuthenticationSettings.INSTANCE.setUseBroker(true);
-        AuthenticationSettings.INSTANCE.setBrokerSignature(encodedTestingSignature);
     }
 
     private void prepareSuccessHttpUrlConnection() throws IOException {
