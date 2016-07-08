@@ -856,7 +856,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         final String response2 = "{\"id_token\":\""
                 + TEST_IDTOKEN
-                + "\",\"access_token\":\"TokenReturnsWithIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\"}";
+                + "\",\"access_token\":\"TokenReturnsWithIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.mockedConnection = mockedConnection;
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -868,7 +868,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         // Call acquire token which will try refresh token based on cache
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
                 TEST_IDTOKEN_UPN, callback);
-        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        signal.await(CONTEXT_REQUEST_TIME_OUT*1000, TimeUnit.MILLISECONDS);
 
         // Check response in callback
         verifyRefreshTokenResponse(mockCache, callback.mException, callback.mResult);

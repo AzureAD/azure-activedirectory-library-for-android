@@ -132,6 +132,9 @@ class AcquireTokenRequest {
 
                     final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                             authenticationRequest, mTokenCacheAccessor);
+                    if(mAuthContext.getExtendedLifetimeEnabled()) {
+                        acquireTokenSilentHandler.setOutageModeIsOn(true);
+                    }
                     final AuthenticationResult authResult
                             = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
                     callbackHandle.onSuccess(authResult);
@@ -182,13 +185,13 @@ class AcquireTokenRequest {
 
     /**
      * 1. For Silent flow, we should always try to look local cache first.
-     * i> If valid AT is returned from cache, use it.
-     * ii> If no valid AT is returned, but RT is returned, use the RT.
-     * iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
+     *    i> If valid AT is returned from cache, use it.
+     *    ii> If no valid AT is returned, but RT is returned, use the RT.
+     *    iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
      * 2. For Non-Silent flow.
-     * i> Do silent cache lookup first, same as 1.
-     * a) If we can talk to broker, go to broker for auth.
-     * b) If not, launch webview with embedded flow.
+     *    i> Do silent cache lookup first, same as 1.
+     *       a) If we can talk to broker, go to broker for auth.
+     *       b) If not, launch webview with embedded flow.
      * If silent request succeeds, we'll return the token back via callback.
      * If silent request fails and no prompt is allowed, we'll return the exception back via callback.
      * If silent request fails and prompt is allowed, we'll prompt the user and launch webview.
@@ -291,32 +294,27 @@ class AcquireTokenRequest {
     }
 
     /**
-     * Try acquire token silent locally.
-     */
+    * Try acquire token silent locally.
+    */
     private AuthenticationResult tryAcquireTokenSilentLocally(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
-
+        Logger.v(TAG, "Try to silently get token from local cache.");
         final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                 authenticationRequest, mTokenCacheAccessor);
+        if(mAuthContext.getExtendedLifetimeEnabled()) {
+            acquireTokenSilentHandler.setOutageModeIsOn(true);
+        }
         final AuthenticationResult authResult;
         try {
             authResult = acquireTokenSilentHandler.getAccessToken();
-            if (authResult != null && !TokenCacheItem.isTokenExpired(authResult.getExpiresOn())) {
-                return authResult;
-            } else if (authResult != null
-                    && mAuthContext.getExtendedLifetimeEnabled()
-                    && !TokenCacheItem.isTokenExpired(authResult.getExtendedExpiresOn())) {
-                Logger.v(TAG, "Outage mode is on, stale token is returned.");
-                return authResult;
-            } else {
-                return null;
-            }
         } catch (final AuthenticationException authenticationException) {
             ClientAnalytics.logEvent(new RefreshTokenEvent(
                     new InstrumentationPropertiesBuilder(authenticationRequest, authenticationException),
                     InstrumentationIDs.EVENT_RESULT_FAIL));
             throw authenticationException;
         }
+
+        return authResult;
     }
 
     /**
@@ -412,7 +410,7 @@ class AcquireTokenRequest {
                     = new AcquireTokenInteractiveRequest(mContext, authenticationRequest, mTokenCacheAccessor);
             acquireTokenInteractiveRequest.acquireToken(activity,
                     useDialog ? new AuthenticationDialog(getHandler(), mContext, this, authenticationRequest)
-                            : null);
+                    : null);
         }
     }
 
@@ -496,7 +494,7 @@ class AcquireTokenRequest {
      * Activity class. This method is called at UI thread.
      *
      * @param resultCode Result code set from the activity.
-     * @param data       {@link Intent}
+     * @param data {@link Intent}
      */
     void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         final String methodName = ":onActivityResult";
@@ -543,7 +541,6 @@ class AcquireTokenRequest {
                     final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken);
-
                     if (brokerResult.getAccessToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                     }
@@ -763,8 +760,7 @@ class AcquireTokenRequest {
      * Responsible for receiving message from broker indicating the broker has completed the token acquisition.
      */
     protected class BrokerResumeResultReceiver extends BroadcastReceiver {
-        public BrokerResumeResultReceiver() {
-        }
+        public BrokerResumeResultReceiver() { }
 
         private boolean mReceivedResultFromBroker = false;
 

@@ -23,13 +23,23 @@
 
 package com.microsoft.aad.adal;
 
+import android.net.Uri;
+import android.os.Build;
+import android.text.TextUtils;
+import android.util.Base64;
+import android.util.Log;
+
+import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,17 +48,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
-
-import android.net.Uri;
-import android.os.Build;
-import android.text.TextUtils;
-import android.util.Base64;
-import android.util.Log;
 
 /**
  * Base Oauth class.
@@ -65,7 +64,7 @@ class Oauth2 {
 
     private boolean retryOnce = true;
 
-    private final int delayTimePeriod = 500;
+    private final int delayTimePeriod = 1000;
 
     private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
 
@@ -84,7 +83,7 @@ class Oauth2 {
     }
 
     public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
-                  IJWSBuilder jwsMessageBuilder) {
+            IJWSBuilder jwsMessageBuilder) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
@@ -331,11 +330,11 @@ class Oauth2 {
     /**
      * parse final url for code(normal flow) or token(implicit flow) and then it
      * proceeds to next step.
-     *
+     * 
      * @param authorizationUrl browser reached to this final url and it has code
-     *                         or token for next step
+     *            or token for next step
      * @return Token in the AuthenticationResult. Null result if response does
-     * not have protocol error.
+     *         not have protocol error.
      * @throws IOException
      * @throws AuthenticationException
      */
@@ -384,7 +383,7 @@ class Oauth2 {
 
     /**
      * get code and exchange for token.
-     *
+     * 
      * @param code the authorization code for which Authentication result is needed
      * @return AuthenticationResult
      * @throws IOException
@@ -428,7 +427,7 @@ class Oauth2 {
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 if (response.getResponseHeaders() != null
                         && response.getResponseHeaders().containsKey(
-                        AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
+                                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
@@ -473,7 +472,7 @@ class Oauth2 {
                 Logger.v(TAG, "Token request does not have exception");
                 try {
                     result = processTokenResponse(response);
-                } catch (AuthenticationException e) {
+                } catch (final AuthenticationException e) {
                     if (e.getCode().equals(ADALError.SERVER_ERROR_FOR_RETRY) && retryOnce) {
                         //retry once if it is a server error
                         //500, 503 and 504 are the ones we retry
@@ -487,16 +486,19 @@ class Oauth2 {
                         } catch (final InterruptedException exception) {
                             Log.e(TAG, "InterruptedException exception", exception);
                         }
-                    } else if (result == null) {
-                        // non-protocol related error
-                        String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
-                        Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
-                        throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
                     } else {
-                        ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
+                        throw e;
                     }
                 }
                 ClientMetrics.INSTANCE.setLastError(null);
+            }
+            if (result == null) {
+                // non-protocol related error
+                String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
+                Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
+                throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
+            } else {
+                ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
         } catch (UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
@@ -538,7 +540,7 @@ class Oauth2 {
 
     /**
      * extract AuthenticationResult object from response body if available
-     *
+     * 
      * @param webResponse the web response from which authentication result will be constructed
      * @return AuthenticationResult
      */
@@ -547,7 +549,7 @@ class Oauth2 {
         String correlationIdInHeader = null;
         if (webResponse.getResponseHeaders() != null
                 && webResponse.getResponseHeaders().containsKey(
-                AuthenticationConstants.AAD.CLIENT_REQUEST_ID)) {
+                        AuthenticationConstants.AAD.CLIENT_REQUEST_ID)) {
             // headers are returning as a list
             List<String> listOfHeaders = webResponse.getResponseHeaders().get(
                     AuthenticationConstants.AAD.CLIENT_REQUEST_ID);

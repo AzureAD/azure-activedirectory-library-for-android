@@ -39,6 +39,7 @@ class AcquireTokenSilentHandler {
     
     private boolean mAttemptedWithMRRT = false;
     private TokenCacheItem mMrrtTokenCacheItem;
+    private boolean mOutageModeIsOn = false;
 
     /**
      * TODO: Remove(https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626). 
@@ -129,6 +130,24 @@ class AcquireTokenSilentHandler {
                 result.setRefreshToken(refreshToken);
             }
         } catch (final IOException | AuthenticationException exc) {
+            //if get 503,504,500 && outageMode is on, return the stale token
+            if (exc instanceof AuthenticationException
+                    && ((AuthenticationException) exc).getCode().equals(ADALError.SERVER_ERROR_FOR_RETRY)
+                    && mOutageModeIsOn) {
+                final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(),
+                        mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
+                if (accessTokenItem.getAccessToken() != null
+                        && accessTokenItem.getExtendedExpiresOn() != null
+                        &&! TokenCacheItem.isTokenExpired(accessTokenItem.getExtendedExpiresOn())) {
+                    //While returning the stale token, the ExtendedExpiresOn property
+                    //should be reflected in ExpiresOn to minimize impact on client side code.
+                    accessTokenItem.setExpiresOn(accessTokenItem.getExtendedExpiresOn());
+                    final AuthenticationResult retryResult =  AuthenticationResult.createResult(accessTokenItem);
+                    retryResult.setIsExtendedLifeTimeToken(true);
+                    return retryResult;
+                }
+            }
+
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + mAuthRequest.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
@@ -155,7 +174,7 @@ class AcquireTokenSilentHandler {
     private AuthenticationResult tryRT() throws AuthenticationException {
         final TokenCacheItem regularRTItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(), 
                 mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
-        
+
         if (regularRTItem == null) {
             Logger.v(TAG, "Regular token cache entry does not exist, try with MRRT.");
             return tryMRRT(); 
@@ -269,7 +288,7 @@ class AcquireTokenSilentHandler {
             throws AuthenticationException {
         final AuthenticationResult result = acquireTokenWithRefreshToken(cachedItem.getRefreshToken());
         
-        if (result != null) {
+        if (result != null && !result.isExtendedLifeTimeToken()) {
             mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest.getResource(), mAuthRequest.getClientId(), 
                     result, cachedItem);
         }
@@ -293,5 +312,13 @@ class AcquireTokenSilentHandler {
      */
     private boolean isTokenRequestFailed(final AuthenticationResult result) {
         return result != null && !StringExtensions.IsNullOrBlank(result.getErrorCode());
+    }
+
+    /**
+     * set the outage mode according to the Authentication context
+     * @param outageMode
+     */
+    void setOutageModeIsOn(final boolean outageMode) {
+        mOutageModeIsOn = outageMode;
     }
 }
