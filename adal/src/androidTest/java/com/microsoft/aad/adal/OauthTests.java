@@ -35,7 +35,6 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyPair;
@@ -169,9 +168,7 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testGetTokenNullCode() throws ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, IOException {
+    public void testGetTokenNullCode() throws IOException {
         // with login hint
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
                 "https://officeapps.live.com", "clientID123456789", "redirect123",

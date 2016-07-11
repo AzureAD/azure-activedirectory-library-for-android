@@ -595,9 +595,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testAcquireTokenByRefreshTokenConnectionNotAvailable()
-            throws NoSuchFieldException, IllegalAccessException,
-            NoSuchAlgorithmException, NoSuchPaddingException, InterruptedException {
+    public void testAcquireTokenByRefreshTokenConnectionNotAvailable() throws InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
         mockContext.setConnectionAvaliable(false);
 
@@ -884,11 +882,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testScenarioUserIdLoginHintUse() throws InterruptedException,
-            NoSuchFieldException, IllegalAccessException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
-            AuthenticationException, IOException {
+    public void testScenarioUserIdLoginHintUse() throws InterruptedException, AuthenticationException, IOException {
         scenarioUserIdLoginHint("test@user.com", "test@user.com", "test@user.com");
     }
 
@@ -947,11 +941,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testScenarioNullUserIdToken() throws InterruptedException,
-            NoSuchFieldException, IllegalAccessException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            InvocationTargetException, NoSuchAlgorithmException, NoSuchPaddingException,
-            AuthenticationException, IOException {
+    public void testScenarioNullUserIdToken() throws InterruptedException, AuthenticationException, IOException {
         scenarioUserIdLoginHint("test@user.com", "", "");
     }
 
