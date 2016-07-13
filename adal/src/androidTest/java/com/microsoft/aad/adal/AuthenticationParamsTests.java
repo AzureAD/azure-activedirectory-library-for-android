@@ -23,12 +23,14 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -41,6 +43,8 @@ import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
 import junit.framework.Assert;
+
+import org.mockito.Mockito;
 
 public class AuthenticationParamsTests extends AndroidTestHelper {
 
@@ -94,10 +98,19 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     /**
      * test external service deployed at Azure
      */
-    @Suppress
-    // Test doesn't work because external service is down
-    public void testCreateFromResourceUrlPositive() {
+    public void testCreateFromResourceUrlPositive() throws IOException {
         Log.d(TAG, "test:" + getName() + "thread:" + android.os.Process.myTid());
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        final String response = "Bearer authorization_uri=\"https://login.windows.net/test.onmicrosoft.com\", resource=\"testresource\"";
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(401);
+
+        Mockito.when(mockedConnection.getHeaderFields()).thenReturn(Collections.singletonMap(
+                AuthenticationParameters.AUTHENTICATE_HEADER, Collections.singletonList(response)));
 
         final TestResponse testResponse = new TestResponse();
         setupAsyncParamRequest("https://testapi007.azurewebsites.net/api/WorkItem", testResponse);
@@ -105,7 +118,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         assertNull("Exception is not null", testResponse.getException());
         assertNotNull("Check parameter", testResponse.getParam());
         Log.d(TAG, "test:" + getName() + "authority:" + testResponse.getParam().getAuthority());
-        assertEquals("https://login.windows.net/omercantest.onmicrosoft.com", testResponse.getParam()
+        assertEquals("https://login.windows.net/test.onmicrosoft.com", testResponse.getParam()
                 .getAuthority().trim());
     }
 

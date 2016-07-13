@@ -32,7 +32,6 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
 import java.security.DigestException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -65,9 +64,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         encryptDecrypt(clearText);
     }
 
-    public void testEncryptDecryptNullEmpty() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
+    public void testEncryptDecryptNullEmpty() {
 
         final Context context = getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);

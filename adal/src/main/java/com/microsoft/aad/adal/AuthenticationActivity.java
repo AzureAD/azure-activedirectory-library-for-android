@@ -156,10 +156,11 @@ public class AuthenticationActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
 
+        Logger.v(TAG + methodName, "AuthenticationActivity was created.");
         // Get the message from the intent
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
-            Log.d(TAG, "Request item is null, so it returns to caller");
+            Log.d(TAG, "Intent for Authentication Activity doesn't have the request details, returning to caller");
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
                     AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
@@ -192,9 +193,8 @@ public class AuthenticationActivity extends Activity {
                     AuthenticationConstants.Broker.ACCOUNT_REDIRECT);
             return;
         }
-
         mRedirectUrl = mAuthRequest.getRedirectUri();
-        Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl);
+        
         // Create the Web View to show the page
         mWebView = (WebView) findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
@@ -204,10 +204,8 @@ public class AuthenticationActivity extends Activity {
             mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
             Log.d(TAG, "Hardware acceleration is disabled in WebView");
         }
-
-        Logger.v(TAG, "User agent:" + mWebView.getSettings().getUserAgentString());
+        
         mStartUrl = "about:blank";
-
         try {
             Oauth2 oauth = new Oauth2(mAuthRequest);
             mStartUrl = oauth.getCodeRequestUrl();
@@ -222,8 +220,8 @@ public class AuthenticationActivity extends Activity {
         }
 
         // Create the broadcast receiver for cancel
-        Logger.v(TAG, "Init broadcastReceiver with requestId:" + mAuthRequest.getRequestId() + " "
-                + mAuthRequest.getLogInfo());
+        Logger.v(TAG, "Init broadcastReceiver with requestId:" + mAuthRequest.getRequestId(),
+                mAuthRequest.getLogInfo(), null);
         mReceiver = new ActivityBroadcastReceiver();
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
@@ -239,10 +237,9 @@ public class AuthenticationActivity extends Activity {
             // This activity is started from calling app and running in
             // Authenticator's process
             mCallingPackage = getCallingPackage();
-            Logger.i(TAG, "It is a broker request for package:" + mCallingPackage, "");
 
             if (mCallingPackage == null) {
-                Logger.v(TAG, "startActivityForResult is not used to call this activity");
+                Logger.v(TAG, "Calling package is null, startActivityForResult is not used to call this activity");
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
                         AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
@@ -251,6 +248,7 @@ public class AuthenticationActivity extends Activity {
                 returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
                 return;
             }
+            Logger.i(TAG, "It is a broker request for package:" + mCallingPackage, "");
 
             mAccountAuthenticatorResponse = getIntent().getParcelableExtra(
                     AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
@@ -267,27 +265,37 @@ public class AuthenticationActivity extends Activity {
                 Logger.v(TAG, "Caller needs to be verified using special redirectUri");
                 mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             }
-            Logger.v(TAG, "OnCreate redirectUrl:" + mRedirectUrl + " startUrl:" + mStartUrl
-                    + " calling package:" + mCallingPackage + " signatureDigest:" + signatureDigest
-                    + " current Context Package: " + getPackageName());
+
+            Logger.v(TAG, "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage 
+                    + " Signature hash for calling package is: " + signatureDigest + " Current context package: " 
+                    + getPackageName(), " Start url: " + mStartUrl, null);
         } else {
-            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage());
+            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(), 
+                    " Start url: " + mStartUrl, null);
         }
 
         mRegisterReceiver = false;
         final String postUrl = mStartUrl;
-        Logger.i(TAG, "OnCreate startUrl:" + mStartUrl + " calling package:" + mCallingPackage,
-                " device:" + android.os.Build.VERSION.RELEASE + " " + android.os.Build.MANUFACTURER
-                        + android.os.Build.MODEL);
+        Logger.i(TAG, "Device info:" + android.os.Build.VERSION.RELEASE + " " + android.os.Build.MANUFACTURER
+                        + android.os.Build.MODEL, "");
 
         mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView();
+
+        // Also log correlation id
+        if (mAuthRequest.getCorrelationId() != null) {
+            Logger.v(TAG, "Correlation id for request sent is:"
+                    + mAuthRequest.getCorrelationId().toString());
+        } else {
+            Logger.v(TAG, "Null correlation id in the request.");
+        }
 
         if (savedInstanceState == null) {
             mWebView.post(new Runnable() {
                 @Override
                 public void run() {
                     // load blank first to avoid error for not loading webview
+                    Logger.v(TAG + methodName, "Lauching webview for acquiring auth code.");
                     mWebView.loadUrl("about:blank");
                     mWebView.loadUrl(postUrl);
                 }
@@ -477,7 +485,7 @@ public class AuthenticationActivity extends Activity {
 
         if (mAuthRequest != null) {
             // set request id related to this response to send the delegateId
-            Logger.v(TAG, "Return To Caller REQUEST_ID:" + mAuthRequest.getRequestId());
+            Logger.v(TAG, "REQUEST_ID for caller returned to:" + mAuthRequest.getRequestId());
             data.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthRequest.getRequestId());
         } else {
             Logger.w(TAG, "Request object is null", "",
@@ -560,7 +568,7 @@ public class AuthenticationActivity extends Activity {
         Intent resultIntent = new Intent();
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
-
+    
     private void prepareForBrokerResume() {
         final String methodName = ":prepareForBrokerResume";
         Logger.v(TAG + methodName, "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");
@@ -722,7 +730,6 @@ public class AuthenticationActivity extends Activity {
     private void displaySpinner(boolean show) {
         if (!AuthenticationActivity.this.isFinishing()
                 && !AuthenticationActivity.this.isChangingConfigurations() && mSpinner != null) {
-            Logger.v(TAG, "displaySpinner:" + show + " showing:" + mSpinner.isShowing());
             if (show && !mSpinner.isShowing()) {
                 mSpinner.show();
             }
@@ -817,16 +824,15 @@ public class AuthenticationActivity extends Activity {
             TokenTaskResult result = new TokenTaskResult();
             try {
                 result.taskResult = oauthRequest.getToken(urlItems[0]);
-                Logger.v(TAG, "TokenTask processed the result. " + mRequest.getLogInfo());
+                Logger.v(TAG, "Process result returned from TokenTask.", mRequest.getLogInfo(), null);
             } catch (IOException | AuthenticationException exc) {
-                Logger.e(TAG, "Error in processing code to get a token. " + mRequest.getLogInfo(),
-                        "Request url:" + urlItems[0],
+                Logger.e(TAG, "Error in processing code to get a token. ", mRequest.getLogInfo(),
                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
                 result.taskException = exc;
             }
 
             if (result.taskResult != null && result.taskResult.getAccessToken() != null) {
-                Logger.v(TAG, "Setting account:" + mRequest.getLogInfo());
+                Logger.v(TAG, "Token task successfully returns access token.", mRequest.getLogInfo(), null);
 
                 // Record account in the AccountManager service
                 try {
@@ -848,8 +854,8 @@ public class AuthenticationActivity extends Activity {
             String digestKey = StringExtensions
                     .createHash(AuthenticationConstants.Broker.USERDATA_UID_KEY + mAppCallingUID
                             + cacheKey);
-            Logger.v(TAG, "Cache key original:" + cacheKey + " digestKey:" + digestKey
-                    + " calling app UID:" + mAppCallingUID);
+            Logger.v(TAG, "Key hash is:" + digestKey
+                    + " calling app UID:" + mAppCallingUID, " Key is: " + cacheKey, null);
             return digestKey;
         }
 
@@ -932,8 +938,8 @@ public class AuthenticationActivity extends Activity {
                         userinfo.getDisplayableId());
             }
             result.accountName = name;
-            Logger.i(TAG, "Setting account. Account name: " + name + " package:"
-                    + mCallingPackage + " calling app UID:" + mAppCallingUID, "");
+            Logger.i(TAG, "Setting account in account manager. Package: " + mCallingPackage 
+                    + " calling app UID:" + mAppCallingUID, " Account name: " + name);
 
 
             // Cache logic will be changed based on latest logic
@@ -946,7 +952,7 @@ public class AuthenticationActivity extends Activity {
                     + " context:" + AuthenticationActivity.this.getPackageName()
                     + " calling packagename:" + getCallingPackage(), "");
             if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
-                Logger.i(TAG, "setAccount: user key is null", "");
+                Logger.i(TAG, "Calling app doesn't provide the secret key", "");
             }
 
             TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(mRequest.getAuthority(), mRequest.getResource(),
@@ -994,13 +1000,13 @@ public class AuthenticationActivity extends Activity {
                 keylist = "";
             }
             if (!keylist.contains(AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key)) {
-                Logger.v(TAG, "Account does not have this cache key:" + key
-                        + " It will save it to accoun for the callerUID:" + callingUID);
+                Logger.v(TAG, "Account does not have the cache key. Saving it to account for the callerUID:" 
+                        + callingUID, "The key to be saved is: " + key, null);
                 keylist += AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key;
                 mAccountManager.setUserData(cacheAccount,
                         AuthenticationConstants.Broker.USERDATA_CALLER_CACHEKEYS + callingUID,
                         keylist);
-                Logger.v(TAG, "keylist:" + keylist);
+                Logger.v(TAG, "Cache key saved into key list for the caller.", "keylist:" + keylist, null);
             }
         }
 

@@ -230,6 +230,7 @@ class AcquireTokenRequest {
         AuthenticationResult authenticationResult = null;
 
         if (shouldTrySilentFlow(authenticationRequest)) {
+            Logger.v(TAG, "Try to acquire token silently, return valid AT or use RT in the cache.");
             authenticationResult = acquireTokenSilentFlow(authenticationRequest);
 
             final boolean isAccessTokenReturned = isAccessTokenReturned(authenticationResult);
@@ -288,6 +289,8 @@ class AcquireTokenRequest {
         // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does
         // not return the token back silently, and we go to interactive flow, we'll still go to broker. The token in
         // app local cache is no longer useful, when user uninstalls broker, we should prompt user in the next sign-in.
+        Logger.d(TAG, "Cannot get AT from local cache, switch to Broker for auth, "
+                + "clear tokens from local cache for the user.");
         removeTokensForUser(authenticationRequest);
 
         return tryAcquireTokenSilentWithBroker(authenticationRequest);

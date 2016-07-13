@@ -152,6 +152,8 @@ public class AuthenticationConstants {
         static final String ADAL_CLIENT_FAMILY_ID = "foci";
 
         static final String HAS_CHROME = "haschrome";
+
+        static final String EXT_EXPIRES_IN = "ext_expires_in";
     }
 
     public static final class AAD {
