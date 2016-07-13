@@ -268,18 +268,17 @@ class Oauth2 {
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
-                    isMultiResourceToken, userinfo, tenantId, rawIdToken);
+                    isMultiResourceToken, userinfo, tenantId, rawIdToken, null);
 
             if (response.containsKey(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN)) {
-                result.setIsExtendedLifeTimeToken(true);
-                final String ext_expires_in = response.get(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN);
-                final Calendar ext_expires = new GregorianCalendar();
+                final String extendedExpiresIn = response.get(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN);
+                final Calendar extendedExpires = new GregorianCalendar();
                 // Compute extended token expiration
-                ext_expires.add(
+                extendedExpires.add(
                         Calendar.SECOND,
-                        ext_expires_in == null || ext_expires_in.isEmpty() ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
-                                : Integer.parseInt(ext_expires_in));
-                result.setExtendedExpiresOn(ext_expires.getTime());
+                        StringExtensions.IsNullOrBlank(extendedExpiresIn) ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
+                                : Integer.parseInt(extendedExpiresIn));
+                result.setExtendedExpiresOn(extendedExpires.getTime());
             }
 
             //Set family client id on authentication result for TokenCacheItem to pick up
@@ -473,7 +472,7 @@ class Oauth2 {
                 try {
                     result = processTokenResponse(response);
                 } catch (final AuthenticationException e) {
-                    if (e.getCode().equals(ADALError.SERVER_ERROR_FOR_RETRY) && retryOnce) {
+                    if (e.getCode().equals(ADALError.SERVER_NOT_RESPONDING) && retryOnce) {
                         //retry once if it is a server error
                         //500, 503 and 504 are the ones we retry
                         retryOnce = false;
@@ -572,7 +571,7 @@ class Oauth2 {
             case HttpURLConnection.HTTP_INTERNAL_ERROR:
             case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
             case HttpURLConnection.HTTP_UNAVAILABLE:
-                throw new AuthenticationException(ADALError.SERVER_ERROR_FOR_RETRY, "Unexpected server response " + webResponse.getBody());
+                throw new AuthenticationException(ADALError.SERVER_NOT_RESPONDING, "Unexpected server response " + webResponse.getBody());
             default:
                 throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + webResponse.getBody());
         }

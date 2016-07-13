@@ -73,10 +73,10 @@ public class AuthenticationConstants {
          * callback.
          */
         public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = 2005;
-
+        
         /**
-         * CA flow, device doesn't have company portal or azure authenticator installed.
-         * Waiting for broker package to be installed, and resume request in broker.
+         * CA flow, device doesn't have company portal or azure authenticator installed. 
+         * Waiting for broker package to be installed, and resume request in broker. 
          */
         public static final int BROKER_REQUEST_RESUME = 2006;
     }
@@ -148,10 +148,10 @@ public class AuthenticationConstants {
         static final String ID_TOKEN_PASSWORD_EXPIRATION = "pwd_exp";
 
         static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
-
+        
         static final String ADAL_CLIENT_FAMILY_ID = "foci";
 
-        static final String EXT_EXPIRES_IN = "ext_expires_in";
+        static final String HAS_CHROME = "haschrome";
     }
 
     public static final class AAD {
@@ -169,7 +169,7 @@ public class AuthenticationConstants {
         public static final String REALM = "realm";
 
         public static final String LOGIN_HINT = "login_hint";
-
+        
         public static final String WEB_UI_CANCEL = "access_denied";
 
         public static final String CORRELATION_ID = "correlation_id";
@@ -193,6 +193,8 @@ public class AuthenticationConstants {
         public final static String ADAL_ID_OS_VER = "x-client-OS";
 
         public final static String ADAL_ID_DM = "x-client-DM";
+
+        public final static String ADAL_ID_PLATFORM_VALUE = "Android";
     }
 
     public static final class Broker {
@@ -202,7 +204,7 @@ public class AuthenticationConstants {
         public static final String BROKER_REQUEST = "com.microsoft.aadbroker.adal.broker.request";
 
         public static final String BROKER_REQUEST_RESUME = "com.microsoft.aadbroker.adal.broker.request.resume";
-
+        
         /**
          * Account type string.
          */
@@ -213,11 +215,11 @@ public class AuthenticationConstants {
         public static final String BACKGROUND_REQUEST_MESSAGE = "background.request";
 
         public static final String ACCOUNT_DEFAULT_NAME = "Default";
-
+        
         public static final String BROKER_VERSION = "broker.version";
-
+        
         public static final String BROKER_PROTOCOL_VERSION = "v2";
-
+        
         public static final String BROKER_RESULT_RETURNED = "broker.result.returned";
 
         /**
@@ -262,7 +264,7 @@ public class AuthenticationConstants {
         public static final String MULTI_RESOURCE_TOKEN = "account.multi.resource.token";
 
         public static final String ACCOUNT_NAME = "account.name";
-
+        
         public static final String ACCOUNT_IDTOKEN = "account.idtoken";
 
         public static final String ACCOUNT_USERINFO_USERID = "account.userinfo.userid";
@@ -278,7 +280,7 @@ public class AuthenticationConstants {
         public static final String ACCOUNT_USERINFO_TENANTID = "account.userinfo.tenantid";
 
         public static final String ADAL_VERSION_KEY = "adal.version.key";
-
+        
         public static final String ACCOUNT_UID_CACHES = "account.uid.caches";
 
         public static final String USERDATA_PREFIX = "userdata.prefix";
@@ -317,13 +319,13 @@ public class AuthenticationConstants {
          * component.
          */
         public static final String COMPANY_PORTAL_APP_SIGNATURE = "1L4Z9FJCgn5c0VLhyAxC5O9LdlE=";
-
+        
         /**
          * Signature info for Azure authenticator app that installs authenticator
          * component.
          */
         public static final String AZURE_AUTHENTICATOR_APP_SIGNATURE = "ho040S3ffZkmxqtQrSwpTVOn9r0=";
-
+        
         public static final String AZURE_AUTHENTICATOR_APP_PACKAGE_NAME = "com.azure.authenticator";
 
         public static final String PKEYAUTH_REDIRECT = "urn:http-auth:PKeyAuth";
@@ -335,18 +337,18 @@ public class AuthenticationConstants {
         public static final String REDIRECT_PREFIX = "msauth";
 
         public static final Object REDIRECT_DELIMETER_ENCODED = "%2C";
-
+        
         public static final String BROWSER_EXT_PREFIX = "browser://";
-
+        
         public static final String BROWSER_EXT_INSTALL_PREFIX = "msauth://";
 
         public static final String CALLER_INFO_PACKAGE = "caller.info.package";
-
+        
         public static final String REDIRECT_SSL_PREFIX = "https://";
     }
 
     public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";
-
+    
     public static final String MS_FAMILY_ID = "1";
 
     /** The Constant ENCODING_UTF8. */
@@ -357,12 +359,12 @@ public class AuthenticationConstants {
     public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
     public static final String AUTHENTICATION_FILE_DIRECTORY = "com.microsoft.aad.adal.authentication";
-
+    
     protected static final class OAuth2ErrorCode {
-        /**
+        /**       
          * Oauth2 error code invalid_grant.
-         */
+         */       
         static final String INVALID_GRANT = "invalid_grant";
-    }
+    }     
 
 }

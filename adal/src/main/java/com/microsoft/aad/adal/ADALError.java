@@ -122,7 +122,7 @@ public enum ADALError {
     /**
      * Server returned the 500/503/504 error.
      */
-    SERVER_ERROR_FOR_RETRY("Server returned the 500/503/504 error"),
+    SERVER_NOT_RESPONDING("Server returned the 500/503/504 error"),
 
     /**
      * I/O exception.

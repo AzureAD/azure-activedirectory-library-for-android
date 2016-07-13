@@ -868,7 +868,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         // Call acquire token which will try refresh token based on cache
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
                 TEST_IDTOKEN_UPN, callback);
-        signal.await(CONTEXT_REQUEST_TIME_OUT*1000, TimeUnit.MILLISECONDS);
+        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
         verifyRefreshTokenResponse(mockCache, callback.mException, callback.mResult);

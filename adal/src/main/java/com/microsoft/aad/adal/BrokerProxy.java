@@ -309,7 +309,7 @@ class BrokerProxy implements IBrokerProxy {
             }
 
             return new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
-                    "", expires, false, userinfo, tenantId, "");
+                    "", expires, false, userinfo, tenantId, "", null);
         }
     }
 

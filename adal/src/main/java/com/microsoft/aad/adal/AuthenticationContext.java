@@ -166,8 +166,9 @@ public class AuthenticationContext {
     }
 
     /**
-     * The client need to set the extendedLifetimeEnabled explicitly to enable the outage mode
-     * The default value of mExtendedLifetimeEnabled is false.
+     * The client need to set the flag to true explicitly to enable the outage mode
+     * The default value of flag is false.
+     * ADAL will return the stale token when outage mode is enabled and the server is down
      *
      * @param extendedLifetimeEnabled
      */

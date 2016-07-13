@@ -129,16 +129,14 @@ class AcquireTokenSilentHandler {
                 Logger.i(TAG, "Refresh token is not returned or empty", "");
                 result.setRefreshToken(refreshToken);
             }
-        } catch (final IOException | AuthenticationException exc) {
+        } catch (final AuthenticationException exc) {
             //if get 503,504,500 && outageMode is on, return the stale token
-            if (exc instanceof AuthenticationException
-                    && ((AuthenticationException) exc).getCode().equals(ADALError.SERVER_ERROR_FOR_RETRY)
-                    && mOutageModeIsOn) {
+            if (exc.getCode().equals(ADALError.SERVER_NOT_RESPONDING) && mOutageModeIsOn) {
                 final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(),
                         mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
                 if (accessTokenItem.getAccessToken() != null
                         && accessTokenItem.getExtendedExpiresOn() != null
-                        &&! TokenCacheItem.isTokenExpired(accessTokenItem.getExtendedExpiresOn())) {
+                        && !TokenCacheItem.isTokenExpired(accessTokenItem.getExtendedExpiresOn())) {
                     //While returning the stale token, the ExtendedExpiresOn property
                     //should be reflected in ExpiresOn to minimize impact on client side code.
                     accessTokenItem.setExpiresOn(accessTokenItem.getExtendedExpiresOn());
@@ -148,6 +146,15 @@ class AcquireTokenSilentHandler {
                 }
             }
 
+            // Server side error or similar
+            Logger.e(TAG, "Error in refresh token for request:" + mAuthRequest.getLogInfo(),
+                    ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
+                    exc);
+
+            throw new AuthenticationException(
+                    ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
+                    exc);
+        } catch (final IOException exc) {
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + mAuthRequest.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,

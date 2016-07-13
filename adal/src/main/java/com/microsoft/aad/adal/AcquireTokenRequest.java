@@ -132,7 +132,7 @@ class AcquireTokenRequest {
 
                     final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                             authenticationRequest, mTokenCacheAccessor);
-                    if(mAuthContext.getExtendedLifetimeEnabled()) {
+                    if (mAuthContext.getExtendedLifetimeEnabled()) {
                         acquireTokenSilentHandler.setOutageModeIsOn(true);
                     }
                     final AuthenticationResult authResult
@@ -540,7 +540,7 @@ class AcquireTokenRequest {
                             AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                     final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
-                            expire, false, userinfo, tenantId, idtoken);
+                            expire, false, userinfo, tenantId, idtoken, null);
                     if (brokerResult.getAccessToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                     }
@@ -705,10 +705,6 @@ class AcquireTokenRequest {
                 mAuthContext.removeWaitingRequest(requestId);
             }
         }
-    }
-
-    public final boolean isOutageMode() {
-        return mAuthContext.getExtendedLifetimeEnabled();
     }
 
     private static class CallbackHandler {
