@@ -335,11 +335,11 @@ public class AuthenticationResult implements Serializable {
      * @param isExtendedLifeTimeToken
      */
     final void setIsExtendedLifeTimeToken(final boolean isExtendedLifeTimeToken) {
-        this.mIsExtendedLifeTimeToken = isExtendedLifeTimeToken;
+        mIsExtendedLifeTimeToken = isExtendedLifeTimeToken;
     }
 
     final void setExtendedExpiresOn(final Date extendedExpiresOn) {
-        this.mExtendedExpiresOn = extendedExpiresOn;
+        mExtendedExpiresOn = extendedExpiresOn;
     }
 
     final public Date getExtendedExpiresOn() {

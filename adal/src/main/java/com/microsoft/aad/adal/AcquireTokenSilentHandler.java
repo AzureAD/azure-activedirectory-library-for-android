@@ -132,6 +132,7 @@ class AcquireTokenSilentHandler {
         } catch (final AuthenticationException exc) {
             //if get 503,504,500 && outageMode is on, return the stale token
             if (exc.getCode().equals(ADALError.SERVER_NOT_RESPONDING) && mOutageModeIsOn) {
+                Logger.i(TAG, "The server is not responding after the retry with error code: " + exc.getCode(), "");
                 final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(),
                         mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
                 if (accessTokenItem.getAccessToken() != null
@@ -142,6 +143,7 @@ class AcquireTokenSilentHandler {
                     accessTokenItem.setExpiresOn(accessTokenItem.getExtendedExpiresOn());
                     final AuthenticationResult retryResult =  AuthenticationResult.createResult(accessTokenItem);
                     retryResult.setIsExtendedLifeTimeToken(true);
+                    Logger.i(TAG, "The stale access token is returned.", "");
                     return retryResult;
                 }
             }

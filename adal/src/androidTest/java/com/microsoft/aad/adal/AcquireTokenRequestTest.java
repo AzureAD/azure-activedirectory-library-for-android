@@ -560,14 +560,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
 
     /**
-     * Positive Test for Resiliency Feature
-     *
-     * If
-     * 1. outage mode is on, which means ExtendedLifetimeEnabled is set to be true in AuthenticationContext
-     * 2. the token cache item is expired but not expired in the extended expire time
-     * 3. the server is down where we get the 500,503,504 error after the retry
-     * Then
-     * The authentication result with stale access token should be returned.
+     * Test for returning a valid stale AT when outage mode is on and the server is down.
      */
     @SmallTest
     public void testResiliencyTokenReturn_outageModeOn_positive() throws PackageManager.NameNotFoundException,
@@ -600,6 +593,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             assertNotNull(result);
             assertTrue(result.getAccessToken().equals("I am a stale AT"));
             assertTrue(result.isExtendedLifeTimeToken());
+            //verify the retry
+            verify(mockedConnection, times(2)).getInputStream();
         } catch (final AuthenticationException exception) {
             fail("Not expected exception.");
         } finally {
@@ -608,14 +603,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     /**
-     * Test for Resiliency Feature if the request is rejected by server but not because server is down.
-     *
-     * If
-     * 1. outage mode is on, which means ExtendedLifetimeEnabled is set to be true in AuthenticationContext
-     * 2. the token cache item is expired but not expired in the extended expire time
-     * 3. the request is rejected by the server where we get the HTTP_BAD_GATEWAY error after the retry
-     * Then
-     * No access token should be returned and AuthenticationException with error code AUTH_FAILED_NO_TOKEN should be thrown
+     * Test for throwing exception when the request is rejected by server through there is a valid 
+     * stale AT in the cache and the outage mode is on.
      */
     @SmallTest
     public void testResiliencyTokenReturn_outageModeOn_retryFail() throws PackageManager.NameNotFoundException,
@@ -649,6 +638,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
             fail("Not expected exception.");
         } catch (final Exception exception) {
+            //verify the retry
+            verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(exception);
             assertTrue(exception instanceof AuthenticationException);
             assertTrue(((AuthenticationException)exception).getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
@@ -658,14 +649,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     /**
-     * Test for Resiliency Feature when the stale AT is also expired
-     *
-     * If
-     * 1. outage mode is on, which means ExtendedLifetimeEnabled is set to be true in AuthenticationContext
-     * 2. the token cache item is expired and also expired in the extended expire time
-     * 3. the server is down where we get the 500,503,504 error after the retry
-     * Then
-     * No access token should be returned and AuthenticationException with error code AUTH_FAILED_NO_TOKEN should be thrown
+     * Test for throwing exception when the server is down and outage mode is on
+     * but AT is expired either in terms of expires_on or ext_expires_on
      */
     @SmallTest
     public void testResiliencyTokenReturn_outageModeOn_expiredAT() throws PackageManager.NameNotFoundException,
@@ -696,6 +681,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
             fail("Not expected exception.");
         } catch (final Exception exception) {
+            //verify the retry
+            verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(exception);
             assertTrue(exception instanceof AuthenticationException);
             assertTrue(((AuthenticationException) exception).getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
@@ -705,14 +692,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     /**
-     * Test for Resiliency Feature when the AT is not expired and outage mode is on
-     *
-     * If
-     * 1. outage mode is on, which means ExtendedLifetimeEnabled is set to be true in AuthenticationContext
-     * 2. the token cache item is not expired and also not expired in the extended expire time
-     * 3. the server is not down where we get the 500, 503, 504 error at the first try and succeed retry
-     * Then
-     * The authentication result with new access token should be returned.
+     * Test for returning new AT from the server when the
+     * outage mode is on and the stale AT is valid
      */
     @SmallTest
     public void testResiliencyTokenReturn_outageModeOn_validAT() throws PackageManager.NameNotFoundException,
@@ -747,6 +728,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             assertNotNull(result);
             assertTrue(result.getAccessToken().equals("I am a new access token"));
             assertTrue(!result.isExtendedLifeTimeToken());
+            //verify the retry
+            verify(mockedConnection, times(2)).getInputStream();
         } catch (final AuthenticationException exception) {
             fail("Not expected exception.");
         } finally {
@@ -755,14 +738,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     /**
-     * Test for Resiliency Feature when the AT is expired and outage mode is off
-     *
-     * If
-     * 1. outage mode is off, which means ExtendedLifetimeEnabled is set to be false in AuthenticationContext
-     * 2. the token cache item is expired but not expired in the extended expire time
-     * 3. the server is down
-     * Then
-     * No access token should be returned and AuthenticationException with error code AUTH_FAILED_NO_TOKEN should be thrown
+     * Test for throwing an exception when outage mode is off, the server is down
+     * and AT is expired in the term of expires_in but still valid in ext_expires_in
      */
     @SmallTest
     public void testResiliencyTokenReturn_outageModeOff_expiredAT() throws PackageManager.NameNotFoundException,
@@ -795,6 +772,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
             fail("Not expected exception.");
         } catch (final Exception exception) {
+            verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(exception);
             assertTrue(exception instanceof AuthenticationException);
             assertTrue(((AuthenticationException) exception).getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
@@ -804,14 +782,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     /**
-     * Test for Resiliency Feature when the AT is not expired and outage mode is off
-     *
-     * If
-     * 1. outage mode is off, which means ExtendedLifetimeEnabled is set to be false in AuthenticationContext
-     * 2. the token cache item is not expired
-     * 3. the server is good
-     * Then
-     * An valid authentication result will be returned.
+     * Test for returning a valid AT when the AT is not expired and outage mode is off
      */
     @SmallTest
     public void testResiliencyTokenReturn_outageModeOff_validAT() throws PackageManager.NameNotFoundException,
@@ -844,67 +815,27 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     /**
-     * Test for the retry when encountering with 500/503/504
-     * The request should be posted twice with 500/503/504 error from server
+     * Test for throwing exception when the request is rejected by server through there is a valid 
+     * stale AT in the cache and the outage mode is on.
      */
-     public void testExtendedLifetimeRequest_retry_positive() throws PackageManager.NameNotFoundException,
-     NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-     InterruptedException {
-         //prepare cache
-         final Calendar expiredTime = new GregorianCalendar();
-         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-         final Calendar extendedExpiresTime = new GregorianCalendar();
-         extendedExpiresTime.add(Calendar.MINUTE, 0);
-         final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false, extendedExpiresTime.getTime());
-
-         //prepare context
-         final FileMockContext mockContext = createMockContext();
-         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
-                 VALID_AUTHORITY, false, cacheStore);
-         authContext.setExtendedLifetimeEnabled(true);
-
-         //mock http response
-         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-         HttpUrlConnectionFactory.mockedConnection = mockedConnection;
-         Util.prepareMockedUrlConnection(mockedConnection);
-         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getSuccessTokenResponse(false, false)),
-                 Util.createInputStream(Util.getSuccessTokenResponse(false, false)));
-         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
-
-         try {
-             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
-             fail("Not expected exception.");
-         } catch (final AuthenticationException exception) {
-             //verify the retry
-             verify(mockedConnection, times(2)).getInputStream();
-             assertTrue(exception.getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
-             assertTrue(exception.getCause() instanceof AuthenticationException);
-             assertTrue(((AuthenticationException)exception.getCause()).getCode() == ADALError.SERVER_NOT_RESPONDING);
-         } finally {
-             cacheStore.removeAll();
-         }
-     }
-
-    /**
-     * Test for the retry when encountering with non-500/503/504 server error, eg. 502 HTTP_BAD_GATEWAY
-     * The request should not retry if we receive other error rather than 500/503/504 from server
-     */
-    public void testExtendedLifetimeRequest_retry_negative() throws PackageManager.NameNotFoundException,
+    @SmallTest
+    public void testResiliencyTokenReturn_outageModeOn_noRetry() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
-        //prepare cache
+        // make sure AT's expires_in is expired and ext_expires_in is not expired
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
         final Calendar extendedExpiresTime = new GregorianCalendar();
         extendedExpiresTime.add(Calendar.MINUTE, EXTEND_MINUS_MINUTE);
         final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false, extendedExpiresTime.getTime());
 
-        //prepare context
         final FileMockContext mockContext = createMockContext();
+        AuthenticationSettings.INSTANCE.setUseBroker(false);
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cacheStore);
+        //turn on the outage mode
         authContext.setExtendedLifetimeEnabled(true);
+        final TestAuthCallback callback = new TestAuthCallback();
 
         //mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -917,17 +848,17 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
             fail("Not expected exception.");
-        } catch (final AuthenticationException exception) {
-            //verify no retry happens
+        } catch (final Exception exception) {
+            //verify the retry
             verify(mockedConnection, times(1)).getInputStream();
-            assertTrue(exception.getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
-            assertTrue(exception.getCause() instanceof AuthenticationException);
-            assertTrue(((AuthenticationException)exception.getCause()).getCode() == ADALError.SERVER_ERROR);
+            assertNotNull(exception);
+            assertTrue(exception instanceof AuthenticationException);
+            assertTrue(((AuthenticationException)exception).getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
         } finally {
             cacheStore.removeAll();
         }
     }
-
+    
     private FileMockContext createMockContext()
             throws PackageManager.NameNotFoundException {
 
