@@ -33,7 +33,7 @@ import android.net.NetworkInfo;
  * be removed in the next major version update. 
  * https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626
  */
-class DefaultConnectionService implements IConnectionService{
+class DefaultConnectionService implements IConnectionService {
 
     private Context mConnectionContext;
 
@@ -42,7 +42,7 @@ class DefaultConnectionService implements IConnectionService{
     }
 
     public boolean isConnectionAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager)mConnectionContext
+        ConnectivityManager connectivityManager = (ConnectivityManager) mConnectionContext
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();

@@ -36,15 +36,15 @@ import java.util.List;
  */
 public class MockDeviceCertProxy implements IDeviceCertificate {
 
-    static X509Certificate sCertificate = null;
+    private static X509Certificate sCertificate = null;
 
-    static RSAPrivateKey sPrivateKey = null;
+    private static RSAPrivateKey sPrivateKey = null;
 
-    static RSAPublicKey sPublicKey = null;
+    private static RSAPublicKey sPublicKey = null;
 
-    static String sThumbPrint = null;
+    private static String sThumbPrint = null;
 
-    static boolean sValidIssuer = false;
+    private static boolean sValidIssuer = false;
 
     public static void reset() {
         sCertificate = null;
@@ -77,5 +77,25 @@ public class MockDeviceCertProxy implements IDeviceCertificate {
     public boolean isValidIssuer(List<String> certAuthorities) {
         // TODO Auto-generated method stub
         return sValidIssuer;
+    }
+
+    static final void setCertificate(final X509Certificate certificate) {
+        sCertificate = certificate;
+    }
+
+    static final void setPrivateKey(final RSAPrivateKey privateKey) {
+        sPrivateKey = privateKey;
+    }
+
+    static final void setPublicKey(final RSAPublicKey publicKey) {
+        sPublicKey = publicKey;
+    }
+
+    static final void setThumbPrint(final String thumbPrint) {
+        sThumbPrint = thumbPrint;
+    }
+
+    static final void setIsValidIssuer(final boolean isValidIssuer) {
+        sValidIssuer = isValidIssuer;
     }
 }

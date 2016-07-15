@@ -66,7 +66,7 @@ final class Discovery {
      * Sync set of valid hosts to skip query to server if host was verified
      * before.
      */
-    private static final Set<String> sValidHosts = Collections
+    private static final Set<String> VALID_HOSTS = Collections
             .synchronizedSet(new HashSet<String>());
 
     /**
@@ -107,7 +107,7 @@ final class Discovery {
                     new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED));
         }
 
-        if (!sValidHosts.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
+        if (!VALID_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
             // host can be the instance or inside the validated list.
             // Valid hosts will help to skip validation if validated before
             // call Callback and skip the look up
@@ -129,12 +129,12 @@ final class Discovery {
      */
     private void initValidList() {
         // mValidHosts is a sync set
-        if (sValidHosts.size() == 0) {
-            sValidHosts.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list 
-            sValidHosts.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
-            sValidHosts.add("login.chinacloudapi.cn"); // Microsoft Azure China
-            sValidHosts.add("login.microsoftonline.de"); // Microsoft Azure Germany
-            sValidHosts.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
+        if (VALID_HOSTS.size() == 0) {
+            VALID_HOSTS.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
+            VALID_HOSTS.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
+            VALID_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
+            VALID_HOSTS.add("login.microsoftonline.de"); // Microsoft Azure Germany
+            VALID_HOSTS.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
         }
     }
 
@@ -180,16 +180,19 @@ final class Discovery {
 
             // parse discovery response to find tenant info
             final Map<String, String> discoveryResponse = parseResponse(webResponse);
-            if(discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES)) {
-                final String errorCodes = discoveryResponse.get(AuthenticationConstants.OAuth2.ERROR_CODES);
+            if (discoveryResponse.containsKey(AuthenticationConstants.OAuth2.ERROR_CODES)) {
+                final String errorCodes = discoveryResponse.get(
+                        AuthenticationConstants.OAuth2.ERROR_CODES);
                 ClientMetrics.INSTANCE.setLastError(errorCodes);
-                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
+                throw new AuthenticationException(
+                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
                         "Fail to valid authority with errors: " + errorCodes);
             }
             
             return (discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT));
         } finally {
-            ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);                
+            ClientMetrics.INSTANCE.endClientMetricsRecord(
+                    ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);
         }
     }
 
@@ -203,7 +206,7 @@ final class Discovery {
         if (!StringExtensions.IsNullOrBlank(validHost)) {
             // for comparisons it uses Locale.US, so it needs to be same
             // here
-            sValidHosts.add(validHost.toLowerCase(Locale.US));
+            VALID_HOSTS.add(validHost.toLowerCase(Locale.US));
         }
     }
 

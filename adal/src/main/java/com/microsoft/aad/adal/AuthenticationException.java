@@ -31,7 +31,7 @@ import android.content.Context;
 public class AuthenticationException extends Exception {
     static final long serialVersionUID = 1;
 
-    protected ADALError mCode;
+    private ADALError mCode;
 
     /**
      * Constructs a new AuthenticationException.

@@ -37,7 +37,7 @@ import java.util.GregorianCalendar;
 public class UserInfo implements Serializable {
 
     /**
-     * universal version identifier for UserInfo class
+     * universal version identifier for UserInfo class.
      */
     private static final long serialVersionUID = 8790127561636702672L;
 
@@ -55,14 +55,28 @@ public class UserInfo implements Serializable {
 
     private transient Date mPasswordExpiresOn;
 
+    /**
+     * Default constructor for {@link UserInfo}.
+     */
     public UserInfo() {
-
     }
 
+    /**
+     * Constructor for {@link UserInfo}.
+     * @param upn Upn that is used to construct the {@link UserInfo}.
+     */
     public UserInfo(String upn) {
         mDisplayableId = upn;
     }
 
+    /**
+     * Constructor for {@lin UserInfo}.
+     * @param userid Unique user id for the userInfo.
+     * @param givenName Given name for the userInfo.
+     * @param familyName Family name for the userInfo.
+     * @param identityProvider IdentityProvider for the userInfo.
+     * @param displayableId Displayable for the userInfo.
+     */
     public UserInfo(String userid, String givenName, String familyName, String identityProvider,
             String displayableId) {
         mUniqueId = userid;
@@ -72,6 +86,10 @@ public class UserInfo implements Serializable {
         mDisplayableId = displayableId;
     }
 
+    /**
+     * Constructor for creating {@link UserInfo} from {@link IdToken}.
+     * @param idToken The {@link IdToken} to create {@link UserInfo}.
+     */
     public UserInfo(IdToken idToken) {
 
         mUniqueId = null;
@@ -96,7 +114,7 @@ public class UserInfo implements Serializable {
             // pwd_exp returns seconds to expiration time
             // it returns in seconds. Date accepts milliseconds.
             Calendar expires = new GregorianCalendar();
-            expires.add(Calendar.SECOND, (int)idToken.getPasswordExpiration());
+            expires.add(Calendar.SECOND, (int) idToken.getPasswordExpiration());
             mPasswordExpiresOn = expires.getTime();
         }
 
@@ -106,6 +124,11 @@ public class UserInfo implements Serializable {
         }
     }
 
+    /**
+     * Creates the {@link UserInfo} from the bundle returned from broker.
+     * @param bundle The {@link Bundle} that broker returns.
+     * @return {@link UserInfo} created from the bundle result.
+     */
     static UserInfo getUserInfoFromBrokerResult(final Bundle bundle) {
         // Broker has one user and related to ADFS WPJ user. It does not return
         // idtoken
@@ -130,6 +153,9 @@ public class UserInfo implements Serializable {
         return mUniqueId;
     }
 
+    /**
+     * @param userid The unique user id to set.
+     */
     void setUserId(String userid) {
         mUniqueId = userid;
     }
@@ -170,6 +196,9 @@ public class UserInfo implements Serializable {
         return mDisplayableId;
     }
 
+    /**
+     * @param displayableId The displayable Id to set.
+     */
     void setDisplayableId(String displayableId) {
         mDisplayableId = displayableId;
     }
@@ -191,5 +220,4 @@ public class UserInfo implements Serializable {
     public Date getPasswordExpiresOn() {
         return mPasswordExpiresOn;
     }
-
 }

@@ -60,11 +60,11 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         String thumbPrint = "thumbprint23432432";
         X509Certificate mockCert = mock(X509Certificate.class);
         MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.sValidIssuer = true;
-        MockDeviceCertProxy.sThumbPrint = thumbPrint;
-        MockDeviceCertProxy.sPrivateKey = privateKey;
-        MockDeviceCertProxy.sPublicKey = publicKey;
-        MockDeviceCertProxy.sCertificate = mockCert;
+        MockDeviceCertProxy.setIsValidIssuer(true);
+        MockDeviceCertProxy.setThumbPrint(thumbPrint);
+        MockDeviceCertProxy.setPrivateKey(privateKey);
+        MockDeviceCertProxy.setPublicKey(publicKey);
+        MockDeviceCertProxy.setCertificate(mockCert);
         IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
         when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, mockCert))
                 .thenReturn("signedJwtHere");
@@ -99,10 +99,10 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         String context = "ABcdeded";
         X509Certificate mockCert = mock(X509Certificate.class);
         MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.sValidIssuer = true;
-        MockDeviceCertProxy.sPrivateKey = privateKey;
-        MockDeviceCertProxy.sPublicKey = publicKey;
-        MockDeviceCertProxy.sCertificate = mockCert;
+        MockDeviceCertProxy.setIsValidIssuer(true);
+        MockDeviceCertProxy.setPrivateKey(privateKey);
+        MockDeviceCertProxy.setPublicKey(publicKey);
+        MockDeviceCertProxy.setCertificate(mockCert);
         IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
         when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, mockCert))
                 .thenReturn("signedJwtHere");
@@ -175,10 +175,10 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
 
         X509Certificate mockCert = mock(X509Certificate.class);
         MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.sValidIssuer = true;
-        MockDeviceCertProxy.sPrivateKey = privateKey;
-        MockDeviceCertProxy.sPublicKey = publicKey;
-        MockDeviceCertProxy.sCertificate = mockCert;
+        MockDeviceCertProxy.setIsValidIssuer(true);
+        MockDeviceCertProxy.setPrivateKey(privateKey);
+        MockDeviceCertProxy.setPublicKey(publicKey);
+        MockDeviceCertProxy.setCertificate(mockCert);
 
         final String nonce = "123123-123213-123";
         final String context = "ABcdeded";
@@ -226,7 +226,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         Object mockJwsBuilder = mock(IJWSBuilder.class);
         Object handler = getInstance(mockJwsBuilder);
         MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.sValidIssuer = false;
+        MockDeviceCertProxy.setIsValidIssuer(false);
         Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromUri",
                 String.class);
         String submitUrl = "http://fs.contoso.com/adfs/services/trust";
@@ -269,7 +269,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         Object mockJwsBuilder = mock(IJWSBuilder.class);
         Object handler = getInstance(mockJwsBuilder);
         MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.sValidIssuer = false;
+        MockDeviceCertProxy.setIsValidIssuer(false);
         Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromUri",
                 String.class);
 
@@ -327,7 +327,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         Object mockJwsBuilder = mock(IJWSBuilder.class);
         Object handler = getInstance(mockJwsBuilder);
         MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.sValidIssuer = true;
+        MockDeviceCertProxy.setIsValidIssuer(true);
         Method m = ReflectionUtils.getTestMethod(handler, "getChallengeResponseFromUri",
                 String.class);
         String submitUrl = "http://fs.contoso.com/adfs/services/trust";
@@ -356,10 +356,10 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         String context = "ABcdeded";
         X509Certificate mockCert = mock(X509Certificate.class);
         MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.sValidIssuer = true;
-        MockDeviceCertProxy.sPrivateKey = privateKey;
-        MockDeviceCertProxy.sPublicKey = publicKey;
-        MockDeviceCertProxy.sCertificate = mockCert;
+        MockDeviceCertProxy.setIsValidIssuer(true);
+        MockDeviceCertProxy.setPrivateKey(privateKey);
+        MockDeviceCertProxy.setPublicKey(publicKey);
+        MockDeviceCertProxy.setCertificate(mockCert);
         IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
         when(mockJwsBuilder.generateSignedJWT(nonce, submitUrl, privateKey, publicKey, mockCert))
                 .thenReturn("signedJwtHere");

@@ -75,7 +75,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
 
         Mockito.when(mockedConnection.getInputStream())
                 .thenReturn(Util.createInputStream(testCorrelationId.toString()));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(400);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
 
         final HttpWebResponse testResponse = sendCorrelationIdRequest(testUrl, testCorrelationId, false);
 
@@ -135,7 +135,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getInputStream())
                 .thenReturn(Util.createInputStream("testabc-value123"));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL),
@@ -160,7 +160,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
                 .thenReturn(Util.createInputStream(AAD.ADAL_ID_PLATFORM + "-Android" + "dummy string"
                         + AAD.ADAL_ID_VERSION + "-"
                         + AuthenticationContext.getVersionName()));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL),
@@ -195,7 +195,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getInputStream())
                 .thenReturn(Util.createInputStream("test get with id"));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
         HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"), null);
@@ -216,11 +216,11 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getInputStream())
                 .thenReturn(Util.createInputStream(message.getAccessToken() + message.getUserName()));
 
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
         final HttpWebResponse httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
-                json.getBytes(ENCODING_UTF8), "application/json");
+                json.getBytes(AuthenticationConstants.ENCODING_UTF8), "application/json");
 
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         final String responseMsg = new String(httpResponse.getBody());

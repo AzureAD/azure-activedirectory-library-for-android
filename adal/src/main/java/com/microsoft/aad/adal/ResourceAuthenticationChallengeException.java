@@ -31,6 +31,11 @@ public class ResourceAuthenticationChallengeException extends AuthenticationExce
 
     static final long serialVersionUID = 1;
 
+    /**
+     * Creates the {@link ResourceAuthenticationChallengeException} with given error message.
+     * @param detailMessage The detailed message to create
+     * {@link ResourceAuthenticationChallengeException}.
+     */
     public ResourceAuthenticationChallengeException(String detailMessage) {
         super(ADALError.RESOURCE_AUTHENTICATION_CHALLENGE_FAILURE, detailMessage);
     }

@@ -46,13 +46,13 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     public static final String BLANK_PAGE = "about:blank";
 
-    protected String mRedirect;
+    private String mRedirect;
     
-    protected String mQueryParam;
+    private String mQueryParam;
 
-    protected AuthenticationRequest mRequest;
+    private AuthenticationRequest mRequest;
     
-    protected Context mCallingContext;
+    private Context mCallingContext;
 
     public BasicWebViewClient() {
         mRedirect = null;
@@ -283,8 +283,9 @@ abstract class BasicWebViewClient extends WebViewClient {
             // can be registered. openLinkInBrowser will launch activity for going to
             // playstore and broker app download page which brought the calling activity down 
             // in the activity stack.
+            final int threadSleepForCallingActivity = 1000;
             try {
-                Thread.sleep(1000);
+                Thread.sleep(threadSleepForCallingActivity);
             } catch (InterruptedException e) {
                 Logger.v(TAG + ":shouldOverrideUrlLoading", "Error occured when having thread sleeping for 1 second");
             }
@@ -299,6 +300,10 @@ abstract class BasicWebViewClient extends WebViewClient {
     public abstract void processRedirectUrl(final WebView view, String url);
 
     public abstract boolean processInvalidUrl(final WebView view, String url);
+
+    final Context getCallingContext() {
+        return mCallingContext;
+    }
     
     protected void openLinkInBrowser(String url) {
         String link = url

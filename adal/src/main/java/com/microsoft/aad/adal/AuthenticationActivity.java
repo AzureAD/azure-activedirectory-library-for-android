@@ -705,7 +705,8 @@ public class AuthenticationActivity extends Activity {
                     try {
                         final X509Certificate[] certChain = KeyChain.getCertificateChain(
                                 getApplicationContext(), alias);
-                        final PrivateKey privateKey = KeyChain.getPrivateKey(mCallingContext, alias);
+                        final PrivateKey privateKey = KeyChain.getPrivateKey(
+                                getCallingContext(), alias);
 
                         Logger.v(TAG + methodName, "Certificate is chosen by user, proceed with TLS request.");
                         request.proceed(privateKey, certChain);

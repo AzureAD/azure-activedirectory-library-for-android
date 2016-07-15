@@ -94,7 +94,7 @@ class HttpWebRequest {
         final HttpURLConnection connection = HttpUrlConnectionFactory.createHttpUrlConnection(mUrl);
         connection.setConnectTimeout(CONNECT_TIME_OUT);
         // To prevent EOF exception.
-        if (Build.VERSION.SDK_INT > 13) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB_MR2) {
             connection.setRequestProperty("Connection", "close");
         }
 
@@ -183,18 +183,16 @@ class HttpWebRequest {
     } 
 
     /**
-     * Convert stream into the string
+     * Convert stream into the string.
      *
-     * @param is
-     *            Input stream
+     * @param inputStream {@link InputStream} to be converted to be a string.
      * @return The converted string
-     * @throws IOException
-     *             Thrown when failing to access input stream.
+     * @throws IOException Thrown when failing to access inputStream stream.
      */
-    private static String convertStreamToString(InputStream is) throws IOException {
+    private static String convertStreamToString(InputStream inputStream) throws IOException {
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(is));
+            reader = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -235,7 +233,7 @@ class HttpWebRequest {
     }
 
     /**
-     * Close the stream safely
+     * Close the stream safely.
      *
      * @param stream stream to be closed
      */
