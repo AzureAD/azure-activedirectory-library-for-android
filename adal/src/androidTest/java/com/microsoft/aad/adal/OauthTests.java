@@ -403,7 +403,7 @@ public class OauthTests extends AndroidTestCase {
                 webrequest, "test");
 
         // Verify that callback can receive this error
-        assertNull("callback doesnot have error", testResult.getException());
+        assertNull("callback does not have error", testResult.getException());
         assertNotNull("Result is not null", testResult.getAuthenticationResult());
         assertEquals("Same access token", "sometokenhere",
                 testResult.getAuthenticationResult().getAccessToken());
@@ -455,7 +455,7 @@ public class OauthTests extends AndroidTestCase {
                 mockWebRequest, mockJwsBuilder, "testRefreshToken");
 
         // Verify that callback can receive this error
-        assertNull("callback doesnot have error", testResult.getException());
+        assertNull("callback does not have error", testResult.getException());
         assertNotNull("Result is not null", testResult.getAuthenticationResult());
         assertEquals("Same access token", "accessTokenHere",
                 testResult.getAuthenticationResult().getAccessToken());

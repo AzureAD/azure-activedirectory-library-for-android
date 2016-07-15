@@ -37,7 +37,7 @@ import java.util.GregorianCalendar;
 public class UserInfo implements Serializable {
 
     /**
-     * universal version identifier for UserInfo class.
+     * Universal version identifier for UserInfo class.
      */
     private static final long serialVersionUID = 8790127561636702672L;
 

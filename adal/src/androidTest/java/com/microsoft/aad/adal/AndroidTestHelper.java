@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 public class AndroidTestHelper extends InstrumentationTestCase {
 
-    protected static final int REQUEST_TIME_OUT = 40000; // miliseconds
+    protected static final int REQUEST_TIME_OUT = 40000; // milliseconds
 
     private static final String TAG = "AndroidTestHelper";
 

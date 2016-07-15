@@ -54,13 +54,6 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     private UUID mRequestCorrelationId = null;
 
-    /**
-     * Creates http request.
-     */
-    public WebRequestHandler() {
-        // Default constructor, intentionally empty.
-    }
-
     @Override
     public HttpWebResponse sendGet(URL url, Map<String, String> headers) throws IOException {
         Logger.v(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
@@ -84,10 +77,6 @@ public class WebRequestHandler implements IWebRequestHandler {
     }
 
     private Map<String, String> updateHeaders(final Map<String, String> headers) {
-
-        if (headers == null) {
-            throw new IllegalArgumentException("headers");
-        }
 
         if (mRequestCorrelationId != null) {
             headers.put(AAD.CLIENT_REQUEST_ID, mRequestCorrelationId.toString());
