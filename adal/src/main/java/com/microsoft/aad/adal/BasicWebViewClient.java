@@ -46,20 +46,14 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     public static final String BLANK_PAGE = "about:blank";
 
-    private String mRedirect;
-    
-    private String mQueryParam;
+    private final String mRedirect;
+    private final AuthenticationRequest mRequest;
+    private final String mQueryParam;
+    private final Context mCallingContext;
 
-    private AuthenticationRequest mRequest;
-    
-    private Context mCallingContext;
 
-    public BasicWebViewClient() {
-        mRedirect = null;
-        mRequest = null;
-    }
-
-    public BasicWebViewClient(Context appContext, String redirect, String queryParam, AuthenticationRequest request) {
+    public BasicWebViewClient(final Context appContext, final String redirect,
+                              final String queryParam, final AuthenticationRequest request) {
         mCallingContext = appContext;
         mRedirect = redirect;
         mRequest = request;
@@ -167,13 +161,13 @@ abstract class BasicWebViewClient extends WebViewClient {
             return;
         }
 
-        if (!StringExtensions.IsNullOrBlank(uri.getQueryParameter(
+        if (StringExtensions.IsNullOrBlank(uri.getQueryParameter(
                 AuthenticationConstants.OAuth2.CODE))) {
-            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath()
-                    + " Auth code is returned for the loading url.");
-        } else {
             Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath(),
                     "Full loading url is: " + url, null);
+        } else {
+            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath()
+                    + " Auth code is returned for the loading url.");
         }
     }
 

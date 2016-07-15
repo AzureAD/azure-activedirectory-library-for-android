@@ -32,7 +32,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Set;
 import java.util.Map;
 
 import android.content.Context;
@@ -47,10 +47,13 @@ import android.os.Process;
 class HttpWebRequest {
     static final String REQUEST_METHOD_POST = "POST";
     static final String REQUEST_METHOD_GET = "GET";
+    static final String HTTP_PORT_NUMBER = ":80";
+    static final String HTTPS_PORT_NUMBER = ":443";
+
     private static final String TAG = "HttpWebRequest";
+    private static final int DEBUG_SIMULATE_DELAY = 0;
     private static final int CONNECT_TIME_OUT = AuthenticationSettings.INSTANCE.getConnectTimeOut();
     private static final int READ_TIME_OUT = AuthenticationSettings.INSTANCE.getReadTimeOut();
-    private static int sDebugSimulateDelay = 0;
     private final String mRequestMethod;
     private final URL mUrl;
     private final byte[] mRequestContent;
@@ -99,12 +102,10 @@ class HttpWebRequest {
         }
 
         // Apply the request headers
-        final Iterator<String> headerKeys = mRequestHeaders.keySet().iterator();
-
-        while (headerKeys.hasNext()) {
-            String header = headerKeys.next();
-            Logger.v(TAG, "Setting header: " + header);
-            connection.setRequestProperty(header, mRequestHeaders.get(header));
+        final Set<Map.Entry<String, String>> headerEntries = mRequestHeaders.entrySet();
+        for (final Map.Entry<String, String> entry : headerEntries) {
+            Logger.v(TAG, "Setting header: " + entry.getKey());
+            connection.setRequestProperty(entry.getKey(), entry.getValue());
         }
 
         connection.setReadTimeout(READ_TIME_OUT);
@@ -144,11 +145,11 @@ class HttpWebRequest {
             final String responseBody = convertStreamToString(responseStream);
 
             // It will only run in debugger and set from outside for testing
-            if (Debug.isDebuggerConnected() && sDebugSimulateDelay > 0) {
+            if (Debug.isDebuggerConnected() && DEBUG_SIMULATE_DELAY > 0) {
                 // sleep background thread in debugging mode
                 Logger.v(TAG, "Sleeping to simulate slow network response");
                 try {
-                    Thread.sleep(sDebugSimulateDelay);
+                    Thread.sleep(DEBUG_SIMULATE_DELAY);
                 } catch (InterruptedException e) {
                     Logger.v(TAG, "Thread.sleep got interrupted exception " + e);
                 }
@@ -197,7 +198,7 @@ class HttpWebRequest {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (sb.length() > 0) {
-                    sb.append("\n");
+                    sb.append('\n');
                 }
                 sb.append(line);
             }
@@ -258,9 +259,9 @@ class HttpWebRequest {
             // scheme specified in the URI; only http and https are
             // supported
             if (requestURL.getProtocol().equalsIgnoreCase("http")) {
-                authority = authority + ":80";
+                authority = authority + HTTP_PORT_NUMBER;
             } else if (requestURL.getProtocol().equalsIgnoreCase("https")) {
-                authority = authority + ":443";
+                authority = authority + HTTPS_PORT_NUMBER;
             }
         }
 

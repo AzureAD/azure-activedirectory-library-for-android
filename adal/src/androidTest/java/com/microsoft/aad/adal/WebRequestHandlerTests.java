@@ -38,6 +38,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -99,9 +100,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
 
         WebRequestHandler request = new WebRequestHandler();
         request.setRequestCorrelationId(testID);
-        HashMap<String, String> headers = null;
+        final Map<String, String> headers = new HashMap<>();
         if (!withoutHeader) {
-            headers = new HashMap<String, String>();
             headers.put("Accept", "application/json");
         }
         return request.sendPost(getUrl(message), headers, null,
@@ -112,7 +112,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         assertThrowsException(IllegalArgumentException.class, "url", new ThrowableRunnable() {
             public void run() throws IOException {
                 WebRequestHandler request = new WebRequestHandler();
-                request.sendGet(null, null);
+                request.sendGet(null, new HashMap<String, String>());
             }
         });
     }
@@ -122,7 +122,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         assertThrowsException(IllegalArgumentException.class, "url", new ThrowableRunnable() {
             public void run() throws IOException {
                 WebRequestHandler request = new WebRequestHandler();
-                request.sendGet(getUrl("ftp://test.com"), null);
+                request.sendGet(getUrl("ftp://test.com"), new HashMap<String, String>());
             }
         });
     }
@@ -180,7 +180,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         WebRequestHandler request = new WebRequestHandler();
         try {
             request.sendGet(
-                    getUrl("http://www.somethingabcddnotexists.com"), null);
+                    getUrl("http://www.somethingabcddnotexists.com"),
+                    new HashMap<String, String>());
             fail("Unreachable host, should throw IOException");
         } catch (final IOException e) {
             assertTrue(e instanceof UnknownHostException);
@@ -198,7 +199,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
-        HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"), null);
+        HttpWebResponse httpResponse = request.sendGet(getUrl(TEST_WEBAPI_URL + "/1"),
+                new HashMap<String, String>());
 
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);
         final String responseMsg = new String(httpResponse.getBody());
@@ -219,7 +221,8 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final WebRequestHandler request = new WebRequestHandler();
-        final HttpWebResponse httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL), null,
+        final HttpWebResponse httpResponse = request.sendPost(getUrl(TEST_WEBAPI_URL),
+                new HashMap<String, String>(),
                 json.getBytes(AuthenticationConstants.ENCODING_UTF8), "application/json");
 
         assertTrue("status is 200", httpResponse.getStatusCode() == HttpURLConnection.HTTP_OK);

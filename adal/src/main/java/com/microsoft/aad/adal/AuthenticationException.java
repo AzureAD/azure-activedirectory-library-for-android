@@ -34,9 +34,10 @@ public class AuthenticationException extends Exception {
     private ADALError mCode;
 
     /**
-     * Constructs a new AuthenticationException.
+     * Default constructor for {@link AuthenticationException}.
      */
     public AuthenticationException() {
+        // Default constructor, intentionally empty.
     }
 
     /**

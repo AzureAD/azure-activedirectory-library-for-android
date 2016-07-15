@@ -79,7 +79,7 @@ final class Discovery {
     /**
      * interface to use in testing.
      */
-    private IWebRequestHandler mWebrequestHandler;
+    private final IWebRequestHandler mWebrequestHandler;
 
     public Discovery() {
         initValidList();
@@ -129,7 +129,7 @@ final class Discovery {
      */
     private void initValidList() {
         // mValidHosts is a sync set
-        if (VALID_HOSTS.size() == 0) {
+        if (VALID_HOSTS.isEmpty()) {
             VALID_HOSTS.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
             VALID_HOSTS.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
             VALID_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
@@ -189,7 +189,7 @@ final class Discovery {
                         "Fail to valid authority with errors: " + errorCodes);
             }
             
-            return (discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT));
+            return discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT);
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(
                     ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);

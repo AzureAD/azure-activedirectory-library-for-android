@@ -58,7 +58,7 @@ public class WebRequestHandler implements IWebRequestHandler {
      * Creates http request.
      */
     public WebRequestHandler() {
-
+        // Default constructor, intentionally empty.
     }
 
     @Override
@@ -83,10 +83,10 @@ public class WebRequestHandler implements IWebRequestHandler {
         return request.send();
     }
 
-    private Map<String, String> updateHeaders(Map<String, String> headers) {
+    private Map<String, String> updateHeaders(final Map<String, String> headers) {
 
         if (headers == null) {
-            headers = new HashMap<>();
+            throw new IllegalArgumentException("headers");
         }
 
         if (mRequestCorrelationId != null) {

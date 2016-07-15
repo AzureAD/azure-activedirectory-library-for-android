@@ -32,12 +32,13 @@ import java.net.URL;
  * to inject dependency. 
  */
 final class HttpUrlConnectionFactory {
+
+    static HttpURLConnection mockedConnection = null;
+
     /**
      * Private constructor to prevent the class from being initiated.
      */
     private HttpUrlConnectionFactory() { }
-
-    static HttpURLConnection mockedConnection = null;
     
     static HttpURLConnection createHttpUrlConnection(final URL url) throws IOException {
         if (mockedConnection != null) {

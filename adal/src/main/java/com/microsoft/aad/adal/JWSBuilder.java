@@ -114,7 +114,7 @@ class JWSBuilder implements IJWSBuilder {
         Claims claims = new Claims();
         claims.mNonce = nonce;
         claims.mAudience = audience;
-        claims.mIssueAt = (System.currentTimeMillis() / SECONDS_MS);
+        claims.mIssueAt = System.currentTimeMillis() / SECONDS_MS;
 
         JwsHeader header = new JwsHeader();
         header.mAlgorithm = JWS_HEADER_ALG;
@@ -149,9 +149,11 @@ class JWSBuilder implements IJWSBuilder {
             signature = sign(privateKey,
                     signingInput.getBytes(AuthenticationConstants.ENCODING_UTF8));
         } catch (UnsupportedEncodingException e) {
-            throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
+            throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED,
+                    "Unsupported encoding", e);
         } catch (CertificateEncodingException e) {
-            throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR);
+            throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR,
+                    "Certifiante encoding error", e);
         }
         return signingInput + "." + signature;
     }

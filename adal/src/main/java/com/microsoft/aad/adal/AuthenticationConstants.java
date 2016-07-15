@@ -32,6 +32,21 @@ public final class AuthenticationConstants {
      */
     private AuthenticationConstants() { }
 
+    /** ADAL package name. */
+    public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";
+
+    /** Microsoft apps family of client Id. */
+    public static final String MS_FAMILY_ID = "1";
+
+    /** The Constant ENCODING_UTF8. */
+    public static final String ENCODING_UTF8 = "UTF_8";
+
+    /** Bundle message. */
+    public static final String BUNDLE_MESSAGE = "Message";
+
+    /** Default access token expiration time in seconds. */
+    public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
+
     /**
      * Holding all the constant value involved in the webview.
      */
@@ -463,21 +478,6 @@ public final class AuthenticationConstants {
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
     }
-
-    /** ADAL package name. */
-    public static final String ADAL_PACKAGE_NAME = "com.microsoft.aad.adal";
-
-    /** Microsoft apps family of client Id. */
-    public static final String MS_FAMILY_ID = "1";
-
-    /** The Constant ENCODING_UTF8. */
-    public static final String ENCODING_UTF8 = "UTF_8";
-
-    /** Bundle message. */
-    public static final String BUNDLE_MESSAGE = "Message";
-
-    /** Default access token expiration time in seconds. */
-    public static final int DEFAULT_EXPIRATION_TIME_SEC = 3600;
 
     /**
      * Represents the oauth2 error code.

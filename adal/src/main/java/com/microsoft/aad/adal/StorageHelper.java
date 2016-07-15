@@ -134,6 +134,8 @@ public class StorageHelper {
     
     private static final int KEY_FILE_SIZE = 1024;
 
+    private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
+
     private final Context mContext;
     private final SecureRandom mRandom;
 
@@ -308,10 +310,10 @@ public class StorageHelper {
         }
 
         final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
-        if (secretKeyData != null) {
-            mBlobVersion = VERSION_USER_DEFINED;
-        } else {
+        if (secretKeyData == null) {
             mBlobVersion = VERSION_ANDROID_KEY_STORE;
+        } else {
+            mBlobVersion = VERSION_USER_DEFINED;
         }
 
         return getKeyOrCreate(mBlobVersion);
@@ -393,7 +395,7 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized KeyPair generateKeyPairFromAndroidKeyStore()
             throws GeneralSecurityException, IOException {
-        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
 
         Logger.v(TAG, "Generate KeyPair from AndroidKeyStore");
@@ -405,7 +407,7 @@ public class StorageHelper {
         // self signed cert stored in AndroidKeyStore to asym. encrypt key
         // to a file
         final KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA",
-                "AndroidKeyStore");
+                ANDROID_KEY_STORE);
         generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
         try {
             return generator.generateKeyPair();
@@ -434,7 +436,7 @@ public class StorageHelper {
         }
 
         Logger.v(TAG, "Reading Key entry");
-        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
 
         final KeyStore.PrivateKeyEntry entry;
@@ -460,7 +462,7 @@ public class StorageHelper {
      * Check if KeyPair exists on AndroidKeyStore. 
      */
     private synchronized boolean doesKeyPairExist() throws GeneralSecurityException, IOException {
-        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
         
         final boolean isKeyStoreCertAliasExisted;
@@ -597,7 +599,7 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized void resetKeyPairFromAndroidKeyStore() throws KeyStoreException,
             NoSuchAlgorithmException, CertificateException, IOException {
-        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
         keyStore.deleteEntry(KEY_STORE_CERT_ALIAS);
     }

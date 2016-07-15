@@ -77,6 +77,7 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
      * Default constructor for {@link DateTimeAdapter}.
      */
     public DateTimeAdapter() {
+        // Default constructor, intentionally empty.
     }
 
     /**

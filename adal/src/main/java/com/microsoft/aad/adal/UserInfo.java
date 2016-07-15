@@ -59,6 +59,7 @@ public class UserInfo implements Serializable {
      * Default constructor for {@link UserInfo}.
      */
     public UserInfo() {
+        // Default constructor, intentionally empty.
     }
 
     /**

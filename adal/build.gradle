@@ -125,7 +125,7 @@ task pmd(type: Pmd) {
     description 'Run pmd'
     group 'verification'
 
-    ruleSets = ["java-basic", "java-braces", "java-strings", "java-design", "java-unusedcode"]
+    ruleSets = ["java-basic", "java-braces", "java-strings", "java-unusedcode"]
     source = fileTree('src/main/java')
 
     reports {

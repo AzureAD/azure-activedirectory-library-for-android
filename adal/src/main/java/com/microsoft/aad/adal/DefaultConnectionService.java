@@ -35,7 +35,7 @@ import android.net.NetworkInfo;
  */
 class DefaultConnectionService implements IConnectionService {
 
-    private Context mConnectionContext;
+    private final Context mConnectionContext;
 
     DefaultConnectionService(Context ctx) {
         mConnectionContext = ctx;
