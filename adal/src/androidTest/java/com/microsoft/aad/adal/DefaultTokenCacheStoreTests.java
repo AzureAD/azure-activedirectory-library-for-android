@@ -52,13 +52,12 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        mCtx = this.getInstrumentation().getContext();
     }
 
     @Override
     protected void tearDown() throws Exception {
         AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
-        DefaultTokenCacheStore store = new DefaultTokenCacheStore(mCtx);
+        DefaultTokenCacheStore store = new DefaultTokenCacheStore(getContext());
         store.removeAll();
         super.tearDown();
     }

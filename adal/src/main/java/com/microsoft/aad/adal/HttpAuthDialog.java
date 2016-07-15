@@ -82,8 +82,8 @@ class HttpAuthDialog {
     private void createDialog() {
         LayoutInflater factory = LayoutInflater.from(mContext);
         View v = factory.inflate(R.layout.http_auth_dialog, null);
-        mUsernameView = (EditText)v.findViewById(R.id.editUserName);
-        mPasswordView = (EditText)v.findViewById(R.id.editPassword);
+        mUsernameView = (EditText) v.findViewById(R.id.editUserName);
+        mPasswordView = (EditText) v.findViewById(R.id.editPassword);
         mPasswordView.setOnEditorActionListener(new OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -112,13 +112,15 @@ class HttpAuthDialog {
                 .setNegativeButton(R.string.http_auth_dialog_cancel,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                if (mCancelListener != null)
+                                if (mCancelListener != null) {
                                     mCancelListener.onCancel();
+                                }
                             }
                         }).setOnCancelListener(new DialogInterface.OnCancelListener() {
                     public void onCancel(DialogInterface dialog) {
-                        if (mCancelListener != null)
+                        if (mCancelListener != null) {
                             mCancelListener.onCancel();
+                        }
                     }
                 }).create();
     }

@@ -66,7 +66,7 @@ public class CacheKeyTests extends AndroidTestCase {
     /**
      * empty values does not fail
      */
-    public void testcreateCacheKey_EmptyValues() {
+    public void testcreateCacheKeyEmptyValues() {
         String testKey = CacheKey.createCacheKey("", "", "", false, "", "");
         assertEquals("expected key", "$$$n$null$foci-", testKey);
 
@@ -77,17 +77,17 @@ public class CacheKeyTests extends AndroidTestCase {
         assertEquals("expected key", "$$$n$userid$foci-", testKeyWithUser);
     }
 
-    public void testcreateCacheKey_NullItem() {
+    public void testcreateCacheKeyNullItem() {
 
         try {
-            CacheKey.createCacheKey((TokenCacheItem)null);
+            CacheKey.createCacheKey((TokenCacheItem) null);
             Assert.fail("not expected");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
         }
     }
 
-    public void testcreateCacheKey_NullArgument() {
+    public void testcreateCacheKeyNullArgument() {
 
         try {
             CacheKey.createCacheKey(null, null, null, false, null, null);
@@ -97,7 +97,7 @@ public class CacheKeyTests extends AndroidTestCase {
         }
     }
 
-    public void testcreateCacheKey_NullResource() {
+    public void testcreateCacheKeyNullResource() {
 
         // Test resource is null and the cache key is not for MRRT
         try {
@@ -105,7 +105,8 @@ public class CacheKeyTests extends AndroidTestCase {
             Assert.fail("not expected");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
-            assertEquals("contains resource", "resource", ((IllegalArgumentException)exc).getMessage());
+            assertEquals("contains resource", "resource",
+                    ((IllegalArgumentException) exc).getMessage());
         }
         
         // Test resource is null but the cache key is for MRRT. 
@@ -117,7 +118,7 @@ public class CacheKeyTests extends AndroidTestCase {
         }
     }
     
-    public void testcreateCacheKey_NullClientid() {
+    public void testcreateCacheKeyNullClientid() {
 
         // Test both client id and family client id is null
         try {
@@ -125,7 +126,8 @@ public class CacheKeyTests extends AndroidTestCase {
             fail("Expect exceptions");
         } catch (Exception exc) {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
-            assertEquals("contains clientId", "both clientId and familyClientId are null", ((IllegalArgumentException)exc).getMessage());
+            assertEquals("contains clientId", "both clientId and familyClientId are null",
+                    ((IllegalArgumentException) exc).getMessage());
         }
         
         // Test client id is null but family client id is not null

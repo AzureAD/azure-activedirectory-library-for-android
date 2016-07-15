@@ -86,8 +86,8 @@ class MockWebRequestHandler implements IWebRequestHandler {
         return mRequestHeaders;
     }
 
-    public void setReturnResponse(HttpWebResponse mReturnResponse) {
-        this.mReturnResponse = mReturnResponse;
+    public void setReturnResponse(HttpWebResponse returnResponse) {
+        this.mReturnResponse = returnResponse;
     }
 
     public void setReturnException(String exception) {

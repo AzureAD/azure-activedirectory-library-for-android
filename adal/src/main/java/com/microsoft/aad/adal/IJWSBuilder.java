@@ -45,6 +45,7 @@ public interface IJWSBuilder {
      * @param pubKey Public Key of the Device Certificate
      * @param x509Certificate X509 certificate
      * @return Signed JWT
+     * @throws AuthenticationException when errors happens for generating signed JWT.
      */
     String generateSignedJWT(String nonce, String submitUrl, RSAPrivateKey privateKey,
             RSAPublicKey pubKey, X509Certificate x509Certificate) throws AuthenticationException;

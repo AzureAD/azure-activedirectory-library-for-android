@@ -92,7 +92,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                 objectStream.close();
 
                 if (cacheObj instanceof MemoryTokenCacheStore) {
-                    mInMemoryCache = (MemoryTokenCacheStore)cacheObj;
+                    mInMemoryCache = (MemoryTokenCacheStore) cacheObj;
                 } else {
                     Logger.w(TAG, "Existing cache format is wrong", "",
                             ADALError.DEVICE_FILE_CACHE_FORMAT_IS_WRONG);

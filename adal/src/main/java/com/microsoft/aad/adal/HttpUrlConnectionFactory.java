@@ -31,14 +31,20 @@ import java.net.URL;
  * For testability, test case could set mocked {@link HttpURLConnection} 
  * to inject dependency. 
  */
-class HttpUrlConnectionFactory {
+final class HttpUrlConnectionFactory {
+
     static HttpURLConnection mockedConnection = null;
+
+    /**
+     * Private constructor to prevent the class from being initiated.
+     */
+    private HttpUrlConnectionFactory() { }
     
     static HttpURLConnection createHttpUrlConnection(final URL url) throws IOException {
         if (mockedConnection != null) {
             return mockedConnection;
         }
         
-        return (HttpURLConnection)url.openConnection();
+        return (HttpURLConnection) url.openConnection();
     }
 }

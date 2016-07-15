@@ -46,20 +46,14 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     public static final String BLANK_PAGE = "about:blank";
 
-    protected String mRedirect;
-    
-    protected String mQueryParam;
+    private final String mRedirect;
+    private final AuthenticationRequest mRequest;
+    private final String mQueryParam;
+    private final Context mCallingContext;
 
-    protected AuthenticationRequest mRequest;
-    
-    protected Context mCallingContext;
 
-    public BasicWebViewClient() {
-        mRedirect = null;
-        mRequest = null;
-    }
-
-    public BasicWebViewClient(Context appContext, String redirect, String queryParam, AuthenticationRequest request) {
+    public BasicWebViewClient(final Context appContext, final String redirect,
+                              final String queryParam, final AuthenticationRequest request) {
         mCallingContext = appContext;
         mRedirect = redirect;
         mRequest = request;
@@ -167,13 +161,13 @@ abstract class BasicWebViewClient extends WebViewClient {
             return;
         }
 
-        if (!StringExtensions.IsNullOrBlank(uri.getQueryParameter(
+        if (StringExtensions.IsNullOrBlank(uri.getQueryParameter(
                 AuthenticationConstants.OAuth2.CODE))) {
-            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath()
-                    + " Auth code is returned for the loading url.");
-        } else {
             Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath(),
                     "Full loading url is: " + url, null);
+        } else {
+            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath()
+                    + " Auth code is returned for the loading url.");
         }
     }
 
@@ -283,8 +277,9 @@ abstract class BasicWebViewClient extends WebViewClient {
             // can be registered. openLinkInBrowser will launch activity for going to
             // playstore and broker app download page which brought the calling activity down 
             // in the activity stack.
+            final int threadSleepForCallingActivity = 1000;
             try {
-                Thread.sleep(1000);
+                Thread.sleep(threadSleepForCallingActivity);
             } catch (InterruptedException e) {
                 Logger.v(TAG + ":shouldOverrideUrlLoading", "Error occured when having thread sleeping for 1 second");
             }
@@ -299,6 +294,10 @@ abstract class BasicWebViewClient extends WebViewClient {
     public abstract void processRedirectUrl(final WebView view, String url);
 
     public abstract boolean processInvalidUrl(final WebView view, String url);
+
+    final Context getCallingContext() {
+        return mCallingContext;
+    }
     
     protected void openLinkInBrowser(String url) {
         String link = url

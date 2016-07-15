@@ -50,10 +50,11 @@ import android.util.Base64;
 public class PackageHelperTests extends AndroidTestCase {
 
     private static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal.testapp";
+    private static final int TEST_UID = 13;
 
-    private byte[] testSignature;
+    private byte[] mTestSignature;
 
-    private String testTag;
+    private String mTestTag;
 
     protected void setUp() throws Exception {
         super.setUp();
@@ -61,10 +62,12 @@ public class PackageHelperTests extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
+            final int iterationCount = 100;
+            final int keyLength = 256;
             SecretKeyFactory keyFactory = SecretKeyFactory
                     .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+                    "abcdedfdfd".getBytes("UTF-8"), iterationCount, keyLength));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
@@ -78,10 +81,10 @@ public class PackageHelperTests extends AndroidTestCase {
         // all of them
         // until it finds the correct one for ADAL broker.
         for (Signature signature : info.signatures) {
-            testSignature = signature.toByteArray();
+            mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
-            md.update(testSignature);
-            testTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
+            md.update(mTestSignature);
+            mTestTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
             break;
         }
     }
@@ -94,7 +97,7 @@ public class PackageHelperTests extends AndroidTestCase {
     public void testGetCurrentSignatureForPackage() throws NameNotFoundException,
             IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
-        Context mockContext = getMockContext(new Signature(testSignature), TEST_PACKAGE_NAME, 0);
+        Context mockContext = getMockContext(new Signature(mTestSignature), TEST_PACKAGE_NAME, 0);
         Object packageHelper = getInstance(mockContext);
         Method m = ReflectionUtils.getTestMethod(packageHelper, "getCurrentSignatureForPackage",
                 String.class);
@@ -103,7 +106,7 @@ public class PackageHelperTests extends AndroidTestCase {
         String actual = (String) m.invoke(packageHelper, TEST_PACKAGE_NAME);
 
         // assert
-        assertEquals("should be same info", testTag, actual);
+        assertEquals("should be same info", mTestTag, actual);
 
         // act
         actual = (String) m.invoke(packageHelper, (String) null);
@@ -115,9 +118,8 @@ public class PackageHelperTests extends AndroidTestCase {
     public void testGetUIDForPackage() throws NameNotFoundException, IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
-        int expectedUID = 13;
-        Context mockContext = getMockContext(new Signature(testSignature), TEST_PACKAGE_NAME,
-                expectedUID);
+        Context mockContext = getMockContext(new Signature(mTestSignature), TEST_PACKAGE_NAME,
+                TEST_UID);
         Object packageHelper = getInstance(mockContext);
         Method m = ReflectionUtils.getTestMethod(packageHelper, "getUIDForPackage", String.class);
 
@@ -125,7 +127,7 @@ public class PackageHelperTests extends AndroidTestCase {
         int actual = (Integer) m.invoke(packageHelper, TEST_PACKAGE_NAME);
 
         // assert
-        assertEquals("should be same UID", expectedUID, actual);
+        assertEquals("should be same UID", TEST_UID, actual);
 
         // act
         actual = (Integer) m.invoke(packageHelper, (String) null);
@@ -137,18 +139,18 @@ public class PackageHelperTests extends AndroidTestCase {
     public void testRedirectUrl() throws NameNotFoundException, IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, UnsupportedEncodingException {
-        Context mockContext = getMockContext(new Signature(testSignature), TEST_PACKAGE_NAME, 0);
+        Context mockContext = getMockContext(new Signature(mTestSignature), TEST_PACKAGE_NAME, 0);
         Object packageHelper = getInstance(mockContext);
         Method m = ReflectionUtils.getTestMethod(packageHelper, "getBrokerRedirectUrl",
                 String.class, String.class);
 
         // act
-        String actual = (String) m.invoke(packageHelper, TEST_PACKAGE_NAME, testTag);
+        String actual = (String) m.invoke(packageHelper, TEST_PACKAGE_NAME, mTestTag);
 
         // assert
         assertTrue("should have packagename", actual.contains(TEST_PACKAGE_NAME));
         assertTrue("should have signature url encoded",
-                actual.contains(URLEncoder.encode(testTag, AuthenticationConstants.ENCODING_UTF8)));
+                actual.contains(URLEncoder.encode(mTestTag, AuthenticationConstants.ENCODING_UTF8)));
     }
 
     private static Object getInstance(Context mockContext) throws IllegalArgumentException,

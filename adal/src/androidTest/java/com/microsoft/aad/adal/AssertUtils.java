@@ -32,7 +32,7 @@ import junit.framework.Assert;
 public class AssertUtils extends Assert {
 
     private static final String TAG = "AssertUtils";
-    protected final static int REQUEST_TIME_OUT = 20000; // miliseconds
+    protected static final int REQUEST_TIME_OUT = 20000; // milliseconds
     
     public static void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
             final Runnable testCode) {

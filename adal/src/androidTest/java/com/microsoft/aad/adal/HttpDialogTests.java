@@ -66,7 +66,7 @@ public class HttpDialogTests extends AndroidTestCase {
         AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        Log.d(TAG, "testSignature is set");
+        Log.d(TAG, "mTestSignature is set");
     }
 
     public void testCreateDialogTest() throws NoSuchMethodException, ClassNotFoundException, IllegalArgumentException,
