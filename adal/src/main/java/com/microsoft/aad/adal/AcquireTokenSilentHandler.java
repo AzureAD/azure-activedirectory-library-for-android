@@ -133,19 +133,12 @@ class AcquireTokenSilentHandler {
             //if get 503,504,500 && outageMode is on, return the stale token
             if (exc.getCode().equals(ADALError.SERVER_NOT_RESPONDING) && mIsExtendedLifetimeEnabled) {
                 Logger.i(TAG, "The server is not responding after the retry with error code: " + exc.getCode(), "");
-                final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(),
-                        mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
-                if (accessTokenItem.getAccessToken() != null
-                        && accessTokenItem.getExtendedExpiresOn() != null
-                        && !TokenCacheItem.isTokenExpired(accessTokenItem.getExtendedExpiresOn())) {
-                    //While returning the stale token, the ExtendedExpiresOn property
-                    //should be reflected in ExpiresOn to minimize impact on client side code.
-                    accessTokenItem.setExpiresOn(accessTokenItem.getExtendedExpiresOn());
-                    final AuthenticationResult retryResult =  AuthenticationResult.createResult(accessTokenItem);
-                    retryResult.setIsExtendedLifeTimeToken(true);
-                    Logger.i(TAG, "The stale access token is returned.", "");
-                    return retryResult;
-                }
+                final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getStaleToken(mAuthRequest);
+                final AuthenticationResult retryResult =  AuthenticationResult.createResult(accessTokenItem);
+                retryResult.setExpiresOn(retryResult.getExtendedExpiresOn());
+                retryResult.setIsExtendedLifeTimeToken(true);
+                Logger.i(TAG, "The result with stale access token is returned.", "");
+                return retryResult;
             }
 
             // Server side error or similar

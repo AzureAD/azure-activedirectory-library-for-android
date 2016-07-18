@@ -148,11 +148,7 @@ public class AuthenticationResult implements Serializable {
         final AuthenticationResult result =
                 new AuthenticationResult(cacheItem.getAccessToken(), cacheItem.getRefreshToken(),
                         cacheItem.getExpiresOn(), cacheItem.getIsMultiResourceRefreshToken(),
-                        cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken(), null);
-
-        if (cacheItem.isExtendedLifetimeValid()) {
-            result.setExtendedExpiresOn(cacheItem.getExtendedExpiresOn());
-        }
+                        cacheItem.getUserInfo(), cacheItem.getTenantId(), cacheItem.getRawIdToken(), cacheItem.getExtendedExpiresOn());
 
         return result;
     }
@@ -344,6 +340,10 @@ public class AuthenticationResult implements Serializable {
 
     final Date getExtendedExpiresOn() {
         return this.mExtendedExpiresOn;
+    }
+    
+    final void setExpiresOn(final Date expiresOn) {
+        mExpiresOn = expiresOn;
     }
 
     void setIdToken(String idToken) {
