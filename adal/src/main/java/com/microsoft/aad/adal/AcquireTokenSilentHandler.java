@@ -39,7 +39,7 @@ class AcquireTokenSilentHandler {
     
     private boolean mAttemptedWithMRRT = false;
     private TokenCacheItem mMrrtTokenCacheItem;
-    private boolean mOutageModeIsOn = false;
+    private boolean mIsExtendedLifetimeEnabled = false;
 
     /**
      * TODO: Remove(https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626). 
@@ -131,7 +131,7 @@ class AcquireTokenSilentHandler {
             }
         } catch (final AuthenticationException exc) {
             //if get 503,504,500 && outageMode is on, return the stale token
-            if (exc.getCode().equals(ADALError.SERVER_NOT_RESPONDING) && mOutageModeIsOn) {
+            if (exc.getCode().equals(ADALError.SERVER_NOT_RESPONDING) && mIsExtendedLifetimeEnabled) {
                 Logger.i(TAG, "The server is not responding after the retry with error code: " + exc.getCode(), "");
                 final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(),
                         mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
@@ -328,7 +328,7 @@ class AcquireTokenSilentHandler {
      * set the outage mode according to the Authentication context
      * @param outageMode
      */
-    void setOutageModeIsOn(final boolean outageMode) {
-        mOutageModeIsOn = outageMode;
+    void setExtendedLifetimeMode(final boolean outageMode) {
+        mIsExtendedLifetimeEnabled = outageMode;
     }
 }

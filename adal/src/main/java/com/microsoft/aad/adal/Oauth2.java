@@ -499,14 +499,12 @@ class Oauth2 {
                         //500, 503 and 504 are the ones we retry
                         retryOnce = false;
                         try {
-                            //retry once after half second
-                            final CountDownLatch signal = new CountDownLatch(1);
-                            signal.await(delayTimePeriod, TimeUnit.MILLISECONDS);
-                            Logger.v(TAG, "WebResponse is not a success due to :-" + response.getStatusCode() + "Retrying one more time..");
-                            return postMessage(requestMessage, headers);
-                        } catch (final InterruptedException exception) {
+                            Thread.sleep(delayTimePeriod);
+                        } catch (InterruptedException exception) {
                             Log.e(TAG, "InterruptedException exception", exception);
                         }
+                        Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode() + " Retrying one more time..");
+                        return postMessage(requestMessage, headers);
                     } else {
                         throw e;
                     }

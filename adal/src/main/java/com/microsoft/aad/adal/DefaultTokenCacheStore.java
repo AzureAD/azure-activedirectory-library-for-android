@@ -336,14 +336,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
-            if (tokenCacheItem.getExtendedExpiresOn() != null) {
-                if (isAboutToExpire(tokenCacheItem.getExtendedExpiresOn())) {
+                if (isAboutToExpire(tokenCacheItem.getExpiresOn())) {
                     tokenItems.add(tokenCacheItem);
                 }
-            } else if (isAboutToExpire(tokenCacheItem.getExpiresOn())) {
-                tokenItems.add(tokenCacheItem);
             }
-        }
 
         return tokenItems;
     }

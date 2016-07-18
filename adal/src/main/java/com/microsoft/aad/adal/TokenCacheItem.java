@@ -111,9 +111,7 @@ public class TokenCacheItem implements Serializable {
         mRawIdToken = authenticationResult.getIdToken();
         mRefreshtoken = authenticationResult.getRefreshToken();
         mFamilyClientId = authenticationResult.getFamilyClientId();
-        if (authenticationResult.getExtendedExpiresOn() != null) {
-            mExtendedExpiresOn = authenticationResult.getExtendedExpiresOn();
-        }
+        mExtendedExpiresOn = authenticationResult.getExtendedExpiresOn();
     }
     
     /**

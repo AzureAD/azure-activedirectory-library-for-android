@@ -133,7 +133,7 @@ class AcquireTokenRequest {
                     final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                             authenticationRequest, mTokenCacheAccessor);
                     if (mAuthContext.getExtendedLifetimeEnabled()) {
-                        acquireTokenSilentHandler.setOutageModeIsOn(true);
+                        acquireTokenSilentHandler.setExtendedLifetimeMode(true);
                     }
                     final AuthenticationResult authResult
                             = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
@@ -305,8 +305,9 @@ class AcquireTokenRequest {
         final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                 authenticationRequest, mTokenCacheAccessor);
         if(mAuthContext.getExtendedLifetimeEnabled()) {
-            acquireTokenSilentHandler.setOutageModeIsOn(true);
+            acquireTokenSilentHandler.setExtendedLifetimeMode(true);
         }
+        
         final AuthenticationResult authResult;
         try {
             authResult = acquireTokenSilentHandler.getAccessToken();

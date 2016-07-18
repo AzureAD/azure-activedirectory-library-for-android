@@ -297,9 +297,9 @@ public class AuthenticationResult implements Serializable {
     public boolean isExpired() {
         if (mIsExtendedLifeTimeToken) {
             return TokenCacheItem.isTokenExpired(getExtendedExpiresOn());
-        } else {
-            return TokenCacheItem.isTokenExpired(getExpiresOn());
         }
+        
+        return TokenCacheItem.isTokenExpired(getExpiresOn());        
     }
 
     String[] getErrorCodes() {
@@ -324,7 +324,7 @@ public class AuthenticationResult implements Serializable {
      *
      * @return True if the returned token is valid in terms of extended lifetime
      */
-    final public boolean isExtendedLifeTimeToken() {
+    public boolean isExtendedLifeTimeToken() {
         return mIsExtendedLifeTimeToken;
     }
 
@@ -342,7 +342,7 @@ public class AuthenticationResult implements Serializable {
         mExtendedExpiresOn = extendedExpiresOn;
     }
 
-    final public Date getExtendedExpiresOn() {
+    final Date getExtendedExpiresOn() {
         return this.mExtendedExpiresOn;
     }
 
