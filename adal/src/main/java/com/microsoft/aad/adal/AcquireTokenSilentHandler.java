@@ -39,7 +39,6 @@ class AcquireTokenSilentHandler {
     
     private boolean mAttemptedWithMRRT = false;
     private TokenCacheItem mMrrtTokenCacheItem;
-    private boolean mIsExtendedLifetimeEnabled = false;
 
     /**
      * TODO: Remove(https://github.com/AzureAD/azure-activedirectory-library-for-android/issues/626). 
@@ -131,7 +130,7 @@ class AcquireTokenSilentHandler {
             }
         } catch (final AuthenticationException exc) {
             //if get 503,504,500 && ExtendedLifetime mode is on, return the stale token
-            if (exc.getCode().equals(ADALError.NO_ACTIVE_SERVER_RESPONSE) && mIsExtendedLifetimeEnabled) {
+            if (exc.getCode().equals(ADALError.NO_ACTIVE_SERVER_RESPONSE) && mAuthRequest.getIsExtendedLifetimeEnabled()) {
                 Logger.i(TAG, "The server is not responding after the retry with error code: " + exc.getCode(), "");
                 final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getStaleToken(mAuthRequest);
                 final AuthenticationResult retryResult =  AuthenticationResult.createResult(accessTokenItem);
@@ -315,13 +314,5 @@ class AcquireTokenSilentHandler {
      */
     private boolean isTokenRequestFailed(final AuthenticationResult result) {
         return result != null && !StringExtensions.IsNullOrBlank(result.getErrorCode());
-    }
-
-    /**
-     * set the ExtendedLifetime mode according to the Authentication context
-     * @param isExtendedLifetimeEnabled
-     */
-    void setExtendedLifetimeMode(final boolean isExtendedLifetimeEnabled) {
-        mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 }

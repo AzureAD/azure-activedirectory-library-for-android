@@ -132,9 +132,6 @@ class AcquireTokenRequest {
 
                     final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                             authenticationRequest, mTokenCacheAccessor);
-                    if (mAuthContext.getExtendedLifetimeEnabled()) {
-                        acquireTokenSilentHandler.setExtendedLifetimeMode(true);
-                    }
                     final AuthenticationResult authResult
                             = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
                     callbackHandle.onSuccess(authResult);
@@ -304,9 +301,6 @@ class AcquireTokenRequest {
         Logger.v(TAG, "Try to silently get token from local cache.");
         final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                 authenticationRequest, mTokenCacheAccessor);
-        if(mAuthContext.getExtendedLifetimeEnabled()) {
-            acquireTokenSilentHandler.setExtendedLifetimeMode(true);
-        }
         
         final AuthenticationResult authResult;
         try {

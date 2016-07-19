@@ -261,7 +261,7 @@ public class AuthenticationContext {
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
-                getRequestCorrelationId());
+                getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setUserIdentifierType(UserIdentifierType.LoginHint);
         createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
     }
@@ -295,7 +295,7 @@ public class AuthenticationContext {
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
-                getRequestCorrelationId());
+                getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setUserIdentifierType(UserIdentifierType.LoginHint);
         createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
     }
@@ -325,7 +325,7 @@ public class AuthenticationContext {
         redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, null, prompt, null, getRequestCorrelationId());
+                clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled());
         createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
     }
 
@@ -355,7 +355,7 @@ public class AuthenticationContext {
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, extraQueryParameters,
-                getRequestCorrelationId());
+                getRequestCorrelationId(), getExtendedLifetimeEnabled());
         createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
     }
 
@@ -387,7 +387,7 @@ public class AuthenticationContext {
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                getRequestCorrelationId());
+                getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setUserIdentifierType(UserIdentifierType.LoginHint);
         createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
     }
@@ -419,7 +419,7 @@ public class AuthenticationContext {
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                getRequestCorrelationId());
+                getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setUserIdentifierType(UserIdentifierType.LoginHint);
         createAcquireTokenRequest().acquireToken(fragment, false, request, callback);
     }
@@ -452,7 +452,7 @@ public class AuthenticationContext {
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                getRequestCorrelationId());
+                getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setUserIdentifierType(UserIdentifierType.LoginHint);
         createAcquireTokenRequest().acquireToken(null, true, request, callback);
     }
@@ -488,7 +488,7 @@ public class AuthenticationContext {
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId());
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
@@ -569,7 +569,7 @@ public class AuthenticationContext {
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId());
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
@@ -626,7 +626,7 @@ public class AuthenticationContext {
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, userId, getRequestCorrelationId());
+                clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
         request.setSilent(true);
         request.setPrompt(PromptBehavior.Auto);
         request.setUserIdentifierType(UserIdentifierType.UniqueId);
@@ -661,7 +661,7 @@ public class AuthenticationContext {
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
-                null, clientId, getRequestCorrelationId());
+                null, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
 
         // It is not using cache and refresh is not expected to
         // show authentication activity.
@@ -701,7 +701,7 @@ public class AuthenticationContext {
 
         // Authenticator is not supported if user is managing the cache
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
-                resource, clientId, getRequestCorrelationId());
+                resource, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
 
         // It is not using cache and refresh is not expected to
         // show authentication activity.

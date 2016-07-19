@@ -515,9 +515,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     }
 
     public static AuthenticationRequest createAuthenticationRequest(final String authority, final String resource,
-            final String client, final String redirect, final String loginhint) {
+            final String client, final String redirect, final String loginhint, final boolean isExtendedLifetimeEnabled) {
 
-        return new AuthenticationRequest(authority, resource, client, redirect, loginhint);
+        return new AuthenticationRequest(authority, resource, client, redirect, loginhint, isExtendedLifetimeEnabled);
     }
 
     /**
@@ -1106,7 +1106,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final Intent intent = new Intent();
         intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
         final AuthenticationRequest authRequest = new AuthenticationRequest(VALID_AUTHORITY,
-                resource, clientid, redirect, loginHint);
+                resource, clientid, redirect, loginHint, false);
         intent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                 (Serializable) authRequest);
         intent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, VALID_AUTHORITY

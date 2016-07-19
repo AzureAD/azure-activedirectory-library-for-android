@@ -409,7 +409,7 @@ public class AuthenticationActivity extends Activity {
                 }
             }
             authRequest = new AuthenticationRequest(authority, resource, clientidKey, redirect,
-                    loginhint, correlationIdParsed);
+                    loginhint, correlationIdParsed, false);
             authRequest.setBrokerAccountName(accountName);
             authRequest.setPrompt(promptBehavior);
             authRequest.setRequestId(mWaitingRequestId);
