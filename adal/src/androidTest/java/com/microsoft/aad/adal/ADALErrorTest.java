@@ -52,7 +52,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
 
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        Log.d(TAG, "testSignature is set");
+        Log.d(TAG, "mTestSignature is set");
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)

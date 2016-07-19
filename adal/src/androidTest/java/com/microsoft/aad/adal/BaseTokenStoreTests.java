@@ -24,22 +24,41 @@
 package com.microsoft.aad.adal;
 
 import java.util.Locale;
-
 import android.content.Context;
 
 public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 
     protected static final String TEST_AUTHORITY2 = "https://Developer.AndroiD.com/reference/android";
 
-    protected Context mCtx;
+    private Context mCtx;
 
-    protected TokenCacheItem mTestItem;
+    private TokenCacheItem mTestItem;
 
-    protected TokenCacheItem mTestItem2;
+    private TokenCacheItem mTestItem2;
 
-    protected TokenCacheItem mTestItemUser2;
+    private TokenCacheItem mTestItemUser2;
 
-    protected TokenCacheItem mTestItemMultiResourceUser2;
+    private TokenCacheItem mTestItemMultiResourceUser2;
+
+    Context getContext() {
+        return mCtx;
+    }
+
+    TokenCacheItem getTestItem() {
+        return mTestItem;
+    }
+
+    TokenCacheItem getTestItem2() {
+        return mTestItem2;
+    }
+
+    TokenCacheItem getTestItemUser2() {
+        return mTestItemUser2;
+    }
+
+    TokenCacheItem getTestItemMultiResourceUser2() {
+        return mTestItemMultiResourceUser2;
+    }
 
     @Override
     protected void setUp() throws Exception {

@@ -215,8 +215,8 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         mActivity = getActivity();
         AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
         MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.sValidIssuer = true;
-        MockDeviceCertProxy.sPrivateKey = null;
+        MockDeviceCertProxy.setIsValidIssuer(true);
+        MockDeviceCertProxy.setPrivateKey(null);
         String url = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
                 + "?Nonce=nonce1234&CertAuthorities=ABC&Version=1.0&SubmitUrl=submiturl&Context=serverContext";
         WebViewClient client = getCustomWebViewClient();

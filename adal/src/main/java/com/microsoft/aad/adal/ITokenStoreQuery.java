@@ -29,15 +29,36 @@ import java.util.Set;
 
 public interface ITokenStoreQuery {
 
+    /**
+     * @return {@link Iterator} of all the {@link TokenCacheItem}s.
+     */
     Iterator<TokenCacheItem> getAll();
 
+    /**
+     * @return {@link Set} of unique users in the token cache.
+     */
     Set<String> getUniqueUsersWithTokenCache();
 
+    /**
+     * @param resource The resource to retrieve the token for.
+     * @return {@link List} of {@link TokenCacheItem}s for the given resource.
+     */
     List<TokenCacheItem> getTokensForResource(String resource);
 
+    /**
+     * @param userid The user id to retrieve the token for.
+     * @return {@link List} of tokens for the given user id.
+     */
     List<TokenCacheItem> getTokensForUser(String userid);
 
+    /**
+     * Clear tokens for given user.
+     * @param userId The unique user id to clear the token for.
+     */
     void clearTokensForUser(String userId);
 
+    /**
+     * @return A {@link List} of {@link TokenCacheItem}s that are going to expire.
+     */
     List<TokenCacheItem> getTokensAboutToExpire();
 }

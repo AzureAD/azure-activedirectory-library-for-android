@@ -52,7 +52,7 @@ final class AcquireTokenInteractiveRequest {
         mAuthRequest = authRequest;
     }
 
-     void acquireToken(final IWindowComponent activity, final AuthenticationDialog dialog)
+    void acquireToken(final IWindowComponent activity, final AuthenticationDialog dialog)
             throws AuthenticationException {
         //Check if there is network connection
         HttpWebRequest.throwIfNetworkNotAvaliable(mContext);

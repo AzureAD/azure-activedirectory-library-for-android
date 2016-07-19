@@ -38,12 +38,8 @@ import java.util.concurrent.CountDownLatch;
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
-
-import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
-
 import junit.framework.Assert;
-
 import org.mockito.Mockito;
 
 public class AuthenticationParamsTests extends AndroidTestHelper {
@@ -106,8 +102,10 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         Util.prepareMockedUrlConnection(mockedConnection);
 
         final String response = "Bearer authorization_uri=\"https://login.windows.net/test.onmicrosoft.com\", resource=\"testresource\"";
-        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(401);
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(
+                Util.createInputStream(response));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(
+                HttpURLConnection.HTTP_UNAUTHORIZED);
 
         Mockito.when(mockedConnection.getHeaderFields()).thenReturn(Collections.singletonMap(
                 AuthenticationParameters.AUTHENTICATE_HEADER, Collections.singletonList(response)));
