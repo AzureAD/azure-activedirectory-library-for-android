@@ -291,7 +291,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
         private String mLogMessage;
 
-        ADALError mLogErrorCode;
+        private ADALError mLogErrorCode;
 
         @Override
         public void Log(String tag, String message, String additionalMessage, LogLevel level,
@@ -302,6 +302,10 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
         public String getLogMessage() {
             return mLogMessage;
+        }
+
+        public ADALError getErrorCode() {
+            return mLogErrorCode;
         }
     }
 }

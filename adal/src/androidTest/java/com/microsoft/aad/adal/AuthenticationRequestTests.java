@@ -31,6 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 
 public class AuthenticationRequestTests extends AndroidTestCase {
+    static final int REQUEST_ID = 1234;
 
     @Override
     protected void setUp() throws Exception {
@@ -128,9 +129,8 @@ public class AuthenticationRequestTests extends AndroidTestCase {
             InvocationTargetException {
         Object o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".AuthenticationRequest", "authority1", "resource2", "client3", false);
-        ReflectionUtils.setterValue(o, "setRequestId", Integer.valueOf(1234));
+        ReflectionUtils.setterValue(o, "setRequestId", Integer.valueOf(REQUEST_ID));
         int actual = ReflectionUtils.getterValue(Integer.class, o, "getRequestId");
-        assertEquals("Same RequestId", 1234, actual);
+        assertEquals("Same RequestId", REQUEST_ID, actual);
     }
-
 }

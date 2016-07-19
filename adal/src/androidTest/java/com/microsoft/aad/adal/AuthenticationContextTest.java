@@ -606,9 +606,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         context.acquireTokenByRefreshToken("refresh", "clientId", "resource", mockCallback);
 
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        assertTrue("Exception type", mockCallback.mException instanceof AuthenticationException);
+        assertTrue("Exception type", mockCallback.getException() instanceof AuthenticationException);
         assertEquals("Connection related error code", ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
-                ((AuthenticationException) mockCallback.mException).getCode());
+                ((AuthenticationException) mockCallback.getException()).getCode());
     }
 
 
@@ -643,8 +643,10 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that new refresh token is matching to mock response
-        assertEquals("Same token", "I am a new access token", callback.mResult.getAccessToken());
-        assertEquals("Same refresh token", "I am a new refresh token", callback.mResult.getRefreshToken());
+        assertEquals("Same token", "I am a new access token",
+                callback.getAuthenticationResult().getAccessToken());
+        assertEquals("Same refresh token", "I am a new refresh token",
+                callback.getAuthenticationResult().getRefreshToken());
 
         final CountDownLatch signal2 = new CountDownLatch(1);
         callback = new MockAuthenticationCallback(signal2);
@@ -653,12 +655,15 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that new refresh token is matching to mock response
-        assertEquals("Same token", "I am a new access token", callback.mResult.getAccessToken());
-        assertEquals("Same refresh token", "I am a new refresh token", callback.mResult.getRefreshToken());
+        assertEquals("Same token", "I am a new access token",
+                callback.getAuthenticationResult().getAccessToken());
+        assertEquals("Same refresh token", "I am a new refresh token",
+                callback.getAuthenticationResult().getRefreshToken());
 
-        assertNotNull("Result has user info from idtoken", callback.mResult.getUserInfo());
+        assertNotNull("Result has user info from idtoken",
+                callback.getAuthenticationResult().getUserInfo());
         assertEquals("Result has user info from idtoken", TEST_IDTOKEN_UPN,
-                callback.mResult.getUserInfo().getDisplayableId());
+                callback.getAuthenticationResult().getUserInfo().getDisplayableId());
     }
 
     public void testAcquireTokenByRefreshTokenNotReturningRefreshToken() throws IOException, InterruptedException {
@@ -683,8 +688,10 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that new refresh token is matching to mock response
-        assertEquals("Same token", "I am a new access token", callback.mResult.getAccessToken());
-        assertEquals("Same refresh token", refreshToken, callback.mResult.getRefreshToken());
+        assertEquals("Same token", "I am a new access token",
+                callback.getAuthenticationResult().getAccessToken());
+        assertEquals("Same refresh token", refreshToken,
+                callback.getAuthenticationResult().getRefreshToken());
     }
 
     /**
@@ -706,9 +713,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result
-        assertNotNull("Error is not null", callback.mException);
+        assertNotNull("Error is not null", callback.getException());
         assertEquals("NOT_VALID_URL", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
-                ((AuthenticationException) callback.mException).getCode());
+                ((AuthenticationException) callback.getException()).getCode());
     }
 
     /**
@@ -734,7 +741,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result
-        assertNull("Error is null", callback.mException);
+        assertNull("Error is null", callback.getException());
         assertEquals("Activity was attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
@@ -757,7 +764,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check correlationID that was set in the Discovery obj
-        assertNull("Error is null", callback.mException);
+        assertNull("Error is null", callback.getException());
         assertEquals("Activity was attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
@@ -784,9 +791,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result
-        assertNotNull("Error is not null", callback.mException);
+        assertNotNull("Error is not null", callback.getException());
         assertEquals("NOT_VALID_URL", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
-                ((AuthenticationException) callback.mException).getCode());
+                ((AuthenticationException) callback.getException()).getCode());
         assertTrue(
                 "Activity was not attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW != testActivity.mStartActivityRequestCode);
@@ -825,7 +832,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback result
-        assertNull("Error is null", callback.mException);
+        assertNull("Error is null", callback.getException());
         assertEquals("Activity was attempted to start with request code",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
@@ -869,7 +876,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
-        verifyRefreshTokenResponse(mockCache, callback.mException, callback.mResult);
+        verifyRefreshTokenResponse(mockCache, callback.getException(),
+                callback.getAuthenticationResult());
 
         // Do silent token request and return idtoken in the result
 
@@ -922,15 +930,15 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 "resource", "clientid", "redirectUri", acquireTokenHint, callback);
 
         // Token will return to callback with idToken
-        verifyTokenResult(idtoken, callback.mResult);
+        verifyTokenResult(idtoken, callback.getAuthenticationResult());
 
         // Same call should get token from cache
         final CountDownLatch signalCallback2 = new CountDownLatch(1);
-        callback.mSignal = signalCallback2;
+        callback.setSignal(signalCallback2);
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", acquireTokenHint,
                 callback);
         signalCallback2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        verifyTokenResult(idtoken, callback.mResult);
+        verifyTokenResult(idtoken, callback.getAuthenticationResult());
 
         // Call with userId should return from cache as well
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
@@ -983,14 +991,14 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 "resource", "clientid", "redirectUri", loginHint, callback);
 
         // Token will return to callback with idToken
-        verifyTokenResult(idtoken, callback.mResult);
+        verifyTokenResult(idtoken, callback.getAuthenticationResult());
 
         // Same call with correct upn will return from cache
         final CountDownLatch signalCallback2 = new CountDownLatch(1);
-        callback.mSignal = signalCallback2;
+        callback.setSignal(signalCallback2);
         context.acquireToken(testActivity, "resource", "clientid", "redirectUri", loginHint, callback);
         signalCallback2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
-        verifyTokenResult(idtoken, callback.mResult);
+        verifyTokenResult(idtoken, callback.getAuthenticationResult());
 
         // Call with userId should return from cache as well
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid",
@@ -1029,7 +1037,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 "resource", "clientid", "redirectUri", null, callback);
 
         // Token will return to callback with idToken
-        verifyTokenResult(null, callback.mResult);
+        verifyTokenResult(null, callback.getAuthenticationResult());
 
         // Call with userId should return from cache as well
         AuthenticationResult result = context.acquireTokenSilentSync("resource", "clientid", null);
@@ -1076,7 +1084,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
-        verifyRefreshTokenResponse(mockCache, callback.mException, callback.mResult);
+        verifyRefreshTokenResponse(mockCache, callback.getException(),
+                callback.getAuthenticationResult());
         verifyFamilyIdStoredInTokenCacheItem(mockCache,
                 CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_IDTOKEN_UPN), "1");
 
@@ -1298,18 +1307,24 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
-        assertNull("Error is null", callback.mException);
-        assertEquals("Same access token in cache", tokenToTest, callback.mResult.getAccessToken());
+        assertNull("Error is null", callback.getException());
+        assertEquals("Same access token in cache", tokenToTest,
+                callback.getAuthenticationResult().getAccessToken());
         assertEquals("Same refresh token in cache", "refreshToken",
-                callback.mResult.getRefreshToken());
-        assertEquals("Same userid in cache", "userId124", callback.mResult.getUserInfo()
+                callback.getAuthenticationResult().getRefreshToken());
+        assertEquals("Same userid in cache", "userId124",
+                callback.getAuthenticationResult().getUserInfo()
                 .getUserId());
-        assertEquals("Same name in cache", "name", callback.mResult.getUserInfo().getGivenName());
-        assertEquals("Same familyName in cache", "familyName", callback.mResult.getUserInfo()
+        assertEquals("Same name in cache", "name",
+                callback.getAuthenticationResult().getUserInfo().getGivenName());
+        assertEquals("Same familyName in cache", "familyName",
+                callback.getAuthenticationResult().getUserInfo()
                 .getFamilyName());
-        assertEquals("Same displayid in cache", "userA", callback.mResult.getUserInfo()
+        assertEquals("Same displayid in cache", "userA",
+                callback.getAuthenticationResult().getUserInfo()
                 .getDisplayableId());
-        assertEquals("Same tenantid in cache", "tenantId", callback.mResult.getTenantId());
+        assertEquals("Same tenantid in cache", "tenantId",
+                callback.getAuthenticationResult().getTenantId());
         clearCache(context);
     }
 
@@ -1351,10 +1366,10 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         context.acquireTokenSilentAsync(resource, clientId, "user1", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        assertNotNull("Error is not null", callback.mException);
+        assertNotNull("Error is not null", callback.getException());
         assertTrue(
                 "Error is related to user mismatch",
-                callback.mException.getMessage().contains(
+                callback.getException().getMessage().contains(
                         "User returned by service does not match the one in the request"));
         clearCache(context);
     }
@@ -1391,9 +1406,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         context.acquireTokenSilentAsync(resource, clientId, null, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        assertNull(callback.mException);
-        assertNotNull(callback.mResult);
-        assertNotNull(callback.mResult.getAccessToken());
+        assertNull(callback.getException());
+        assertNotNull(callback.getAuthenticationResult());
+        assertNotNull(callback.getAuthenticationResult().getAccessToken());
     }
 
     @SmallTest
@@ -1445,10 +1460,13 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
-        assertNull("Error is null", callback.mException);
-        assertEquals("token for user1", "token1", callback.mResult.getAccessToken());
-        assertEquals("idtoken for user1", "userName1", callback.mResult.getUserInfo().getDisplayableId());
-        assertEquals("idtoken for user1", "userAname", callback.mResult.getUserInfo().getGivenName());
+        assertNull("Error is null", callback.getException());
+        assertEquals("token for user1", "token1",
+                callback.getAuthenticationResult().getAccessToken());
+        assertEquals("idtoken for user1", "userName1",
+                callback.getAuthenticationResult().getUserInfo().getDisplayableId());
+        assertEquals("idtoken for user1", "userAname",
+                callback.getAuthenticationResult().getUserInfo().getGivenName());
 
         // User2 with userid call
         final CountDownLatch signal2 = new CountDownLatch(1);
@@ -1459,9 +1477,11 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
-        assertNull("Error is null", callback2.mException);
-        assertEquals("token for user1", "token2", callback2.mResult.getAccessToken());
-        assertEquals("idtoken for user1", "userName2", callback2.mResult.getUserInfo().getDisplayableId());
+        assertNull("Error is null", callback2.getException());
+        assertEquals("token for user1", "token2",
+                callback2.getAuthenticationResult().getAccessToken());
+        assertEquals("idtoken for user1", "userName2",
+                callback2.getAuthenticationResult().getUserInfo().getDisplayableId());
 
         // User2 with loginHint call
         final CountDownLatch signal3 = new CountDownLatch(1);
@@ -1473,13 +1493,14 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal3.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
-        assertNull("Error is null", callback3.mException);
-        assertEquals("token for user1", "token1", callback3.mResult.getAccessToken());
-        assertEquals("idtoken for user1", "userName1", callback3.mResult.getUserInfo().getDisplayableId());
+        assertNull("Error is null", callback3.getException());
+        assertEquals("token for user1", "token1",
+                callback3.getAuthenticationResult().getAccessToken());
+        assertEquals("idtoken for user1", "userName1",
+                callback3.getAuthenticationResult().getUserInfo().getDisplayableId());
 
         clearCache(context);
     }
-
 
     @SmallTest
     public void testOnActivityResultMissingIntentData() throws NoSuchAlgorithmException,
@@ -1727,9 +1748,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         // 1st token request, read from cache.
         context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", TEST_IDTOKEN_UPN, callback);
         signal.await(requestWaitMs, TimeUnit.MILLISECONDS);
-        assertNull("Error is null", callback.mException);
+        assertNull("Error is null", callback.getException());
         assertEquals("Same token in response as in cache", tokenToTest,
-                callback.mResult.getAccessToken());
+                callback.getAuthenticationResult().getAccessToken());
 
         // 2nd token request, use MRRT to refresh
         signal = new CountDownLatch(1);
@@ -1738,9 +1759,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 callback);
         signal.await(requestWaitMs, TimeUnit.MILLISECONDS);
 
-        assertNull("Error is null", callback.mException);
+        assertNull("Error is null", callback.getException());
         assertEquals("Same token as refresh token result", expectedAT,
-                callback.mResult.getAccessToken());
+                callback.getAuthenticationResult().getAccessToken());
 
         // 3rd request, different resource with same userid
         signal = new CountDownLatch(1);
@@ -1751,21 +1772,21 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(requestWaitMs, TimeUnit.MILLISECONDS);
 
         assertEquals("Token is returned from refresh token request", expectedAT,
-                callback.mResult.getAccessToken());
+                callback.getAuthenticationResult().getAccessToken());
         assertFalse("Multiresource is not set in the mocked response",
-                callback.mResult.getIsMultiResourceRefreshToken());
+                callback.getAuthenticationResult().getIsMultiResourceRefreshToken());
 
         // Same call again to use it from cache
         signal = new CountDownLatch(1);
         callback = new MockAuthenticationCallback(signal);
-        callback.mResult = null;
+        callback.setAuthenticationResult(null);
         HttpUrlConnectionFactory.mockedConnection = null;
         context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri", TEST_IDTOKEN_UPN,
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         assertEquals("Same token in response as in cache for same call", expectedAT,
-                callback.mResult.getAccessToken());
+                callback.getAuthenticationResult().getAccessToken());
 
         // Empty userid will prompt.
         // Items are linked to userid. If it is not there, it can't use for
@@ -1776,7 +1797,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", "", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
-        assertNull("Result is null since it tries to start activity", callback.mResult);
+        assertNull("Result is null since it tries to start activity",
+                callback.getAuthenticationResult());
         assertEquals("Activity was attempted to start.",
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
@@ -1822,9 +1844,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
-        assertNull("Error is null", callback.mException);
+        assertNull("Error is null", callback.getException());
         assertEquals("Same token in response as in cache", tokenToTest,
-                callback.mResult.getAccessToken());
+                callback.getAuthenticationResult().getAccessToken());
 
         // Request with different resource will result in prompt since Cache
         // does not have multi resource token

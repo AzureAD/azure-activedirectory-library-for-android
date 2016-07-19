@@ -30,11 +30,11 @@ import java.util.concurrent.CountDownLatch;
  */
 class MockAuthenticationCallback implements AuthenticationCallback<AuthenticationResult> {
 
-    Exception mException = null;
+    private Exception mException = null;
 
-    AuthenticationResult mResult = null;
+    private AuthenticationResult mResult = null;
 
-    CountDownLatch mSignal;
+    private CountDownLatch mSignal;
 
     public MockAuthenticationCallback() {
         mSignal = null;
@@ -47,14 +47,40 @@ class MockAuthenticationCallback implements AuthenticationCallback<Authenticatio
     @Override
     public void onSuccess(AuthenticationResult result) {
         mResult = result;
-        if (mSignal != null)
+        if (mSignal != null) {
             mSignal.countDown();
+        }
     }
 
     @Override
     public void onError(Exception exc) {
         mException = exc;
-        if (mSignal != null)
+        if (mSignal != null) {
             mSignal.countDown();
+        }
+    }
+
+    final void setException(final Exception exception) {
+        mException = exception;
+    }
+
+    final Exception getException() {
+        return mException;
+    }
+
+    final void setAuthenticationResult(final AuthenticationResult result) {
+        mResult = result;
+    }
+
+    final AuthenticationResult getAuthenticationResult() {
+        return mResult;
+    }
+
+    final void setSignal(final CountDownLatch signal) {
+        mSignal = signal;
+    }
+
+    final CountDownLatch getSignal() {
+        return mSignal;
     }
 }

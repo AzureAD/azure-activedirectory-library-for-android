@@ -335,9 +335,9 @@ public class OauthTests extends AndroidTestCase {
                 refreshToken);
 
         // Verify that we have error for request handler
-        assertTrue("web request argument error", testResult.mException.getMessage()
+        assertTrue("web request argument error", testResult.getException().getMessage()
                 .contains("webRequestHandler"));
-        assertNull("Result is null", testResult.mResult);
+        assertNull("Result is null", testResult.getAuthenticationResult());
     }
 
     @SmallTest
@@ -351,9 +351,9 @@ public class OauthTests extends AndroidTestCase {
         MockAuthenticationCallback testResult = refreshToken(request, webrequest, "test");
 
         // Verify that we have error for request handler
-        assertTrue("web request argument error", testResult.mException.getMessage()
+        assertTrue("web request argument error", testResult.getException().getMessage()
                 .contains("url"));
-        assertNull("Result is null", testResult.mResult);
+        assertNull("Result is null", testResult.getAuthenticationResult());
     }
 
     @SmallTest
@@ -366,9 +366,9 @@ public class OauthTests extends AndroidTestCase {
                 webrequest, "test");
 
         // Verify that callback can receive this error
-        assertTrue("callback receives error", testResult.mException.getMessage()
+        assertTrue("callback receives error", testResult.getException().getMessage()
                 .contains("request should return error"));
-        assertNull("Result is null", testResult.mResult);
+        assertNull("Result is null", testResult.getAuthenticationResult());
     }
 
     @SmallTest
@@ -384,10 +384,10 @@ public class OauthTests extends AndroidTestCase {
                 webrequest, "test");
 
         // Verify that callback can receive this error
-        assertNull("AuthenticationResult is null", testResult.mResult);
-        assertNotNull("Exception is not null", testResult.mException);
+        assertNull("AuthenticationResult is null", testResult.getAuthenticationResult());
+        assertNotNull("Exception is not null", testResult.getException());
         assertEquals("Exception has same error message", TEST_RETURNED_EXCEPTION,
-                testResult.mException.getMessage());
+                testResult.getException().getMessage());
     }
 
     @SmallTest
@@ -403,11 +403,12 @@ public class OauthTests extends AndroidTestCase {
                 webrequest, "test");
 
         // Verify that callback can receive this error
-        assertNull("callback doesnot have error", testResult.mException);
-        assertNotNull("Result is not null", testResult.mResult);
-        assertEquals("Same access token", "sometokenhere", testResult.mResult.getAccessToken());
+        assertNull("callback does not have error", testResult.getException());
+        assertNotNull("Result is not null", testResult.getAuthenticationResult());
+        assertEquals("Same access token", "sometokenhere",
+                testResult.getAuthenticationResult().getAccessToken());
         assertEquals("Same refresh token", "refreshfasdfsdf435",
-                testResult.mResult.getRefreshToken());
+                testResult.getAuthenticationResult().getRefreshToken());
     }
 
     @SuppressWarnings("unchecked")
@@ -424,10 +425,10 @@ public class OauthTests extends AndroidTestCase {
         final String thumbPrint = "thumbPrinttest";
         AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
         MockDeviceCertProxy.reset();
-        MockDeviceCertProxy.sValidIssuer = true;
-        MockDeviceCertProxy.sThumbPrint = thumbPrint;
-        MockDeviceCertProxy.sPrivateKey = privateKey;
-        MockDeviceCertProxy.sPublicKey = publicKey;
+        MockDeviceCertProxy.setIsValidIssuer(true);
+        MockDeviceCertProxy.setThumbPrint(thumbPrint);
+        MockDeviceCertProxy.setPrivateKey(privateKey);
+        MockDeviceCertProxy.setPublicKey(publicKey);
         final IJWSBuilder mockJwsBuilder = mock(IJWSBuilder.class);
         when(
                 mockJwsBuilder.generateSignedJWT(eq(nonce), any(String.class), eq(privateKey),
@@ -454,11 +455,12 @@ public class OauthTests extends AndroidTestCase {
                 mockWebRequest, mockJwsBuilder, "testRefreshToken");
 
         // Verify that callback can receive this error
-        assertNull("callback doesnot have error", testResult.mException);
-        assertNotNull("Result is not null", testResult.mResult);
-        assertEquals("Same access token", "accessTokenHere", testResult.mResult.getAccessToken());
+        assertNull("callback does not have error", testResult.getException());
+        assertNotNull("Result is not null", testResult.getAuthenticationResult());
+        assertEquals("Same access token", "accessTokenHere",
+                testResult.getAuthenticationResult().getAccessToken());
         assertEquals("Same refresh token", "refreshWithDeviceChallenge",
-                testResult.mResult.getRefreshToken());
+                testResult.getAuthenticationResult().getRefreshToken());
     }
 
     @SuppressWarnings("unchecked")
@@ -479,11 +481,11 @@ public class OauthTests extends AndroidTestCase {
                 mockWebRequest, "testRefreshToken");
 
         // Verify that callback can receive this error
-        assertNotNull("Callback has error", testResult.mException);
-        assertNotNull(testResult.mException);
-        assertTrue(testResult.mException instanceof AuthenticationException);
+        assertNotNull("Callback has error", testResult.getException());
+        assertNotNull(testResult.getException());
+        assertTrue(testResult.getException() instanceof AuthenticationException);
         assertEquals("Check error message", "Challenge header is empty",
-                testResult.mException.getMessage());
+                testResult.getException().getMessage());
     }
 
     @SmallTest
@@ -648,9 +650,9 @@ public class OauthTests extends AndroidTestCase {
         final Oauth2 oauth2 = createOAuthInstance(request, webRequest);
 
         try {
-            callback.mResult = oauth2.refreshToken(refreshToken);
+            callback.setAuthenticationResult(oauth2.refreshToken(refreshToken));
         } catch (Exception e) {
-            callback.mException = e;
+            callback.setException(e);
         }
 
         // callback has set the result from the call
@@ -665,9 +667,9 @@ public class OauthTests extends AndroidTestCase {
         final MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         final Oauth2 oauth2 = createOAuthInstance(request, webRequest, jwsBuilder);
         try {
-            callback.mResult = oauth2.refreshToken(refreshToken);
+            callback.setAuthenticationResult(oauth2.refreshToken(refreshToken));
         } catch (Exception e) {
-            callback.mException = e;
+            callback.setException(e);
         }
 
         // callback has set the result from the call

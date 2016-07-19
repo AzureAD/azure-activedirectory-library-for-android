@@ -40,8 +40,12 @@ final class TestAuthCallback implements AuthenticationCallback<AuthenticationRes
     }
 
     @Override
-    public void onSuccess(AuthenticationResult result) { mCallbackResult = result; }
+    public void onSuccess(AuthenticationResult result) {
+        mCallbackResult = result;
+    }
 
     @Override
-    public void onError(Exception exc) { mCallbackException = exc; }
+    public void onError(Exception exc) {
+        mCallbackException = exc;
+    }
 }

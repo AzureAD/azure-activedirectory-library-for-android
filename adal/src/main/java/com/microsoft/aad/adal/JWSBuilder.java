@@ -60,13 +60,13 @@ class JWSBuilder implements IJWSBuilder {
      */
     class Claims {
         @com.google.gson.annotations.SerializedName("aud")
-        protected String mAudience;
+        private String mAudience;
 
         @com.google.gson.annotations.SerializedName("iat")
-        protected long mIssueAt;
+        private long mIssueAt;
 
         @com.google.gson.annotations.SerializedName("nonce")
-        protected String mNonce;
+        private String mNonce;
     }
 
     /**
@@ -74,17 +74,17 @@ class JWSBuilder implements IJWSBuilder {
      */
     class JwsHeader {
         @com.google.gson.annotations.SerializedName("alg")
-        protected String mAlgorithm;
+        private String mAlgorithm;
 
         @com.google.gson.annotations.SerializedName("typ")
-        protected String mType;
+        private String mType;
 
         @com.google.gson.annotations.SerializedName("x5c")
-        protected String[] mCert;
+        private String[] mCert;
     }
 
     /**
-     * 
+     * Generate the signed JWT.
      */
     public String generateSignedJWT(String nonce, String audience, RSAPrivateKey privateKey,
             RSAPublicKey pubKey, X509Certificate cert) throws AuthenticationException {
@@ -114,7 +114,7 @@ class JWSBuilder implements IJWSBuilder {
         Claims claims = new Claims();
         claims.mNonce = nonce;
         claims.mAudience = audience;
-        claims.mIssueAt = (System.currentTimeMillis() / SECONDS_MS);
+        claims.mIssueAt = System.currentTimeMillis() / SECONDS_MS;
 
         JwsHeader header = new JwsHeader();
         header.mAlgorithm = JWS_HEADER_ALG;
@@ -149,9 +149,11 @@ class JWSBuilder implements IJWSBuilder {
             signature = sign(privateKey,
                     signingInput.getBytes(AuthenticationConstants.ENCODING_UTF8));
         } catch (UnsupportedEncodingException e) {
-            throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED);
+            throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED,
+                    "Unsupported encoding", e);
         } catch (CertificateEncodingException e) {
-            throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR);
+            throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR,
+                    "Certifiante encoding error", e);
         }
         return signingInput + "." + signature;
     }

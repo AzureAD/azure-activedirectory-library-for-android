@@ -62,7 +62,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         final String response = "{\"tenant_discovery_endpoint\":\"valid endpoint\"}";
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final URL testingURL = new URL("https://login.somewhere.com/path");
         try {
@@ -115,7 +115,8 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         final String response = "{\"error_codes\":\"errors\"}";
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(400);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(
+                HttpURLConnection.HTTP_BAD_REQUEST);
 
         try {
             discovery.validateAuthority(endpointFull);
@@ -135,7 +136,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         final String response = "{invalidJson}";
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
         try {
@@ -211,7 +212,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         final String response = "{\"tenant_discovery_endpoint\":\"valid endpoint\"}";
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         try {
             discovery.validateAuthority(endpointFull);
@@ -236,7 +237,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         final String addHostResponse = "{\"tenant_discovery_endpoint\":\"valid endpoint\"}";
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(addHostResponse));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(200);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final URL endpointTest = new URL("https://login.test-direct-add.net/common");
         try {

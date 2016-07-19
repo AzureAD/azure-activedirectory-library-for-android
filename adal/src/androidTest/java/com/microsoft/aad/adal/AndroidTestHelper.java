@@ -39,16 +39,13 @@ import java.util.concurrent.TimeUnit;
 
 public class AndroidTestHelper extends InstrumentationTestCase {
 
-    protected final static int REQUEST_TIME_OUT = 40000; // miliseconds
-
-    /** The Constant ENCODING_UTF8. */
-    public static final String ENCODING_UTF8 = "UTF_8";
+    protected static final int REQUEST_TIME_OUT = 40000; // milliseconds
 
     private static final String TAG = "AndroidTestHelper";
 
-    protected byte[] testSignature = null;
+    protected byte[] mTestSignature;
 
-    protected String testTag = null;
+    protected String mTestTag;
 
     @Override
     protected void setUp() throws Exception {
@@ -60,16 +57,16 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         PackageInfo info = getInstrumentation().getContext().getPackageManager()
                 .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
         for (Signature signature : info.signatures) {
-            testSignature = signature.toByteArray();
+            mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
-            md.update(testSignature);
-            testTag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+            md.update(mTestSignature);
+            mTestTag = Base64.encodeToString(md.digest(), Base64.DEFAULT);
             break;
         }
-        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        Log.d(TAG, "testSignature is set");
+        Log.d(TAG, "mTestSignature is set");
     }
 
     @Override
