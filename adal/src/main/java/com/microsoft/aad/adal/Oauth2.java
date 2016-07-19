@@ -37,6 +37,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Calendar;
@@ -46,8 +47,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Base Oauth class.
@@ -494,7 +493,7 @@ class Oauth2 {
                 try {
                     result = processTokenResponse(response);
                 } catch (final AuthenticationException e) {
-                    if (e.getCode().equals(ADALError.SERVER_NOT_RESPONDING) && retryOnce) {
+                    if (e.getCode().equals(ADALError.NO_ACTIVE_SERVER_RESPONSE) && retryOnce) {
                         //retry once if it is a server error
                         //500, 503 and 504 are the ones we retry
                         retryOnce = false;
@@ -524,6 +523,19 @@ class Oauth2 {
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             throw e;
         } catch (IOException e) {
+            //retry once if there is an observation of a network timeout by the client 
+            if (e instanceof SocketTimeoutException){
+                if (retryOnce) {
+                    retryOnce = false;
+                    try {
+                        Thread.sleep(delayTimePeriod);
+                    } catch (InterruptedException exception) {
+                        Log.e(TAG, "InterruptedException exception", exception);
+                    }
+                    Logger.v(TAG, e.getMessage() + " Retrying one more time..");
+                    return postMessage(requestMessage, headers);
+                } 
+            }
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
@@ -591,7 +603,7 @@ class Oauth2 {
             case HttpURLConnection.HTTP_INTERNAL_ERROR:
             case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
             case HttpURLConnection.HTTP_UNAVAILABLE:
-                throw new AuthenticationException(ADALError.SERVER_NOT_RESPONDING, "Unexpected server response " + webResponse.getBody());
+                throw new AuthenticationException(ADALError.NO_ACTIVE_SERVER_RESPONSE, "Unexpected server response " + webResponse.getBody());
             default:
                 throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + webResponse.getBody());
         }

@@ -157,18 +157,18 @@ public class AuthenticationContext {
     }
 
     /**
-     * Gets if the outage mode is enabled
+     * Gets if the ExtendedLifetime mode is enabled
      *
-     * @return True when outage mode is enabled
+     * @return True when ExtendedLifetime mode is enabled
      */
     public boolean getExtendedLifetimeEnabled() {
         return mExtendedLifetimeEnabled;
     }
 
     /**
-     * The client need to set the flag to true explicitly to enable the outage mode
+     * The client need to set the flag to true explicitly to enable the ExtendedLifetime mode
      * The default value of flag is false.
-     * ADAL will return the stale token when outage mode is enabled and the server is down
+     * ADAL will return the stale token when ExtendedLifetime mode is enabled and the server is down
      *
      * @param extendedLifetimeEnabled
      */

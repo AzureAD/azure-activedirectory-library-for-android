@@ -130,8 +130,8 @@ class AcquireTokenSilentHandler {
                 result.setRefreshToken(refreshToken);
             }
         } catch (final AuthenticationException exc) {
-            //if get 503,504,500 && outageMode is on, return the stale token
-            if (exc.getCode().equals(ADALError.SERVER_NOT_RESPONDING) && mIsExtendedLifetimeEnabled) {
+            //if get 503,504,500 && ExtendedLifetime mode is on, return the stale token
+            if (exc.getCode().equals(ADALError.NO_ACTIVE_SERVER_RESPONSE) && mIsExtendedLifetimeEnabled) {
                 Logger.i(TAG, "The server is not responding after the retry with error code: " + exc.getCode(), "");
                 final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getStaleToken(mAuthRequest);
                 final AuthenticationResult retryResult =  AuthenticationResult.createResult(accessTokenItem);
@@ -318,10 +318,10 @@ class AcquireTokenSilentHandler {
     }
 
     /**
-     * set the outage mode according to the Authentication context
-     * @param outageMode
+     * set the ExtendedLifetime mode according to the Authentication context
+     * @param isExtendedLifetimeEnabled
      */
-    void setExtendedLifetimeMode(final boolean outageMode) {
-        mIsExtendedLifetimeEnabled = outageMode;
+    void setExtendedLifetimeMode(final boolean isExtendedLifetimeEnabled) {
+        mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
     }
 }
