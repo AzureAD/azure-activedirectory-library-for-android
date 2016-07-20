@@ -84,9 +84,7 @@ public class TokenCacheItem implements Serializable {
         this.mIsMultiResourceRefreshToken = tokenCacheItem.getIsMultiResourceRefreshToken();
         this.mTenantId = tokenCacheItem.getTenantId();
         this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
-        if (tokenCacheItem.isExtendedLifetimeValid()) {
-            this.mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
-        }
+        this.mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
     }
     
     /**
@@ -233,20 +231,20 @@ public class TokenCacheItem implements Serializable {
     }
 
     public final void setExtendedExpiresOn(final Date extendedExpiresOn) {
-        this.mExtendedExpiresOn = extendedExpiresOn;
+        mExtendedExpiresOn = extendedExpiresOn;
     }
 
     public final Date getExtendedExpiresOn() {
-        return this.mExtendedExpiresOn;
+        return mExtendedExpiresOn;
     }
 
     public final boolean isExtendedLifetimeValid() {
         //extended lifetime is only valid if it contains an access token
         if (mExtendedExpiresOn != null && !StringExtensions.IsNullOrBlank(mAccessToken)) {
             return !isTokenExpired(mExtendedExpiresOn);
-        } else {
-            return false;
         }
+        
+        return false;
     }
 
     /**

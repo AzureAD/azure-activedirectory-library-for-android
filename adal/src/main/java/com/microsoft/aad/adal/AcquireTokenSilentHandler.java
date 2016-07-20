@@ -128,35 +128,31 @@ class AcquireTokenSilentHandler {
                 Logger.i(TAG, "Refresh token is not returned or empty", "");
                 result.setRefreshToken(refreshToken);
             }
-        } catch (final AuthenticationException exc) {
-            //if get 503,504,500 && ExtendedLifetime mode is on, return the stale token
-            if (exc.getCode().equals(ADALError.NO_ACTIVE_SERVER_RESPONSE) && mAuthRequest.getIsExtendedLifetimeEnabled()) {
-                Logger.i(TAG, "The server is not responding after the retry with error code: " + exc.getCode(), "");
-                final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getStaleToken(mAuthRequest);
-                final AuthenticationResult retryResult =  AuthenticationResult.createResult(accessTokenItem);
-                retryResult.setExpiresOn(retryResult.getExtendedExpiresOn());
-                retryResult.setIsExtendedLifeTimeToken(true);
+        } catch (final ServerRespondingWithRetryableException exc) {
+            Logger.i(TAG, "The server is not responding after the retry with error code: " + exc.getCode(), "");
+            final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getStaleToken(mAuthRequest);
+            if (accessTokenItem != null) {
+                final AuthenticationResult retryResult =  AuthenticationResult.createExtendedLifeTimeResult(accessTokenItem);
                 Logger.i(TAG, "The result with stale access token is returned.", "");
                 return retryResult;
             }
-
-            // Server side error or similar
+            
             Logger.e(TAG, "Error in refresh token for request:" + mAuthRequest.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
-                    exc);
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
 
             throw new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
-                    exc);
-        } catch (final IOException exc) {
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
+        } catch (final IOException | AuthenticationException exc) {
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + mAuthRequest.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
-                    exc);
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
 
             throw new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
-                    exc);
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
         }
 
         return result;

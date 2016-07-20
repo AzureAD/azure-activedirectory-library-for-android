@@ -261,7 +261,7 @@ class AcquireTokenRequest {
 
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
-        return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
+       return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
     }
 
     /**
@@ -294,14 +294,14 @@ class AcquireTokenRequest {
     }
 
     /**
-    * Try acquire token silent locally.
-    */
+     * Try acquire token silent locally.
+     */
     private AuthenticationResult tryAcquireTokenSilentLocally(final AuthenticationRequest authenticationRequest)
             throws AuthenticationException {
         Logger.v(TAG, "Try to silently get token from local cache.");
         final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                 authenticationRequest, mTokenCacheAccessor);
-        
+
         final AuthenticationResult authResult;
         try {
             authResult = acquireTokenSilentHandler.getAccessToken();

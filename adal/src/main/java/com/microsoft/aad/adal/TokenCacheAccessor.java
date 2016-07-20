@@ -108,7 +108,7 @@ class TokenCacheAccessor {
         final String cacheKey = CacheKey.createCacheKeyForFRT(mAuthority, familyClientId, user);
         return mTokenCacheStore.getItem(cacheKey);
     }
-    
+
     TokenCacheItem getStaleToken(AuthenticationRequest authRequest) {
         final TokenCacheItem accessTokenItem = getRegularRefreshTokenCacheItem(authRequest.getResource(),
                 authRequest.getClientId(), authRequest.getUserFromRequest());
@@ -123,7 +123,6 @@ class TokenCacheAccessor {
         return null;
     }
 
-    
     /**
      * Update token cache with returned auth result.
      * @throws AuthenticationException 

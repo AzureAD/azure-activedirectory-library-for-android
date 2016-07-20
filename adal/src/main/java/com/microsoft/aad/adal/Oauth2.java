@@ -27,7 +27,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
@@ -61,9 +60,9 @@ class Oauth2 {
 
     private final static String TAG = "Oauth";
 
-    private boolean retryOnce = true;
+    private boolean mRetryOnce = true;
 
-    private final int delayTimePeriod = 1000;
+    private final int mDelayTimePeriod = 1000;
 
     private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
 
@@ -393,7 +392,6 @@ class Oauth2 {
                 throw new AuthenticationException(ADALError.AUTH_FAILED_BAD_STATE);
             }
         } else {
-
             // The response from the server had no state
             throw new AuthenticationException(ADALError.AUTH_FAILED_NO_STATE);
         }
@@ -492,20 +490,18 @@ class Oauth2 {
                 Logger.v(TAG, "Token request does not have exception");
                 try {
                     result = processTokenResponse(response);
-                } catch (final AuthenticationException e) {
-                    if (e.getCode().equals(ADALError.NO_ACTIVE_SERVER_RESPONSE) && retryOnce) {
-                        //retry once if it is a server error
-                        //500, 503 and 504 are the ones we retry
-                        retryOnce = false;
-                        try {
-                            Thread.sleep(delayTimePeriod);
-                        } catch (InterruptedException exception) {
-                            Log.e(TAG, "InterruptedException exception", exception);
-                        }
-                        Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode() + " Retrying one more time..");
-                        return postMessage(requestMessage, headers);
-                    } else {
+                } catch (final ServerRespondingWithRetryableException e) {
+                    result = retry(requestMessage, headers);
+                    if (result != null) {
+                        return result;
+                    }
+
+                    if (mRequest.getIsExtendedLifetimeEnabled()) {
+                        Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode());
                         throw e;
+                    } else {
+                        Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode());
+                        throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode());
                     }
                 }
                 ClientMetrics.INSTANCE.setLastError(null);
@@ -518,24 +514,25 @@ class Oauth2 {
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             throw e;
-        } catch (IOException e) {
-            //retry once if there is an observation of a network timeout by the client 
-            if (e instanceof SocketTimeoutException){
-                if (retryOnce) {
-                    retryOnce = false;
-                    try {
-                        Thread.sleep(delayTimePeriod);
-                    } catch (InterruptedException exception) {
-                        Log.e(TAG, "InterruptedException exception", exception);
-                    }
-                    Logger.v(TAG, e.getMessage() + " Retrying one more time..");
-                    return postMessage(requestMessage, headers);
-                } 
+        } catch (final SocketTimeoutException e) {
+            result = retry(requestMessage, headers);
+            if (result != null) {
+                return result;
             }
+
+            ClientMetrics.INSTANCE.setLastError(null);
+            if (mRequest.getIsExtendedLifetimeEnabled()) {
+                Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+                throw new ServerRespondingWithRetryableException(e.getMessage(), e);
+            } else {
+                Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+                throw e;
+            }
+        } catch (final IOException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
@@ -545,6 +542,23 @@ class Oauth2 {
         }
 
         return result;
+    }
+    
+    private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
+        //retry once if there is an observation of a network timeout by the client 
+        if (mRetryOnce) {
+            mRetryOnce = false;
+            try {
+                Thread.sleep(mDelayTimePeriod);
+            } catch (final InterruptedException exception) {
+                Logger.v(TAG, "The thread is interrupted while it is sleeping. " + exception);
+            }
+
+            Logger.v(TAG, "Try again...");
+            return postMessage(requestMessage, headers);
+        }
+
+        return null;
     }
 
     public static String decodeProtocolState(String encodedState) {
@@ -603,7 +617,7 @@ class Oauth2 {
             case HttpURLConnection.HTTP_INTERNAL_ERROR:
             case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
             case HttpURLConnection.HTTP_UNAVAILABLE:
-                throw new AuthenticationException(ADALError.NO_ACTIVE_SERVER_RESPONSE, "Unexpected server response " + webResponse.getBody());
+                throw new ServerRespondingWithRetryableException("Unexpected server response " + webResponse.getBody());
             default:
                 throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + webResponse.getBody());
         }

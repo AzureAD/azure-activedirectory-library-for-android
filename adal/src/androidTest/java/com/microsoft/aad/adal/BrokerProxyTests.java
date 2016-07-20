@@ -853,7 +853,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
 
         Constructor<?> constructor = c.getDeclaredConstructor(String.class, String.class, String.class, String.class,
-                String.class, PromptBehavior.class, String.class, UUID.class, Boolean.class);
+                String.class, PromptBehavior.class, String.class, UUID.class, boolean.class);
         constructor.setAccessible(true);
         Object o = constructor.newInstance(authority, resource, client, redirect, loginhint, prompt, extraQueryParams,
                 correlationId, isExtendedLifetimeEnabled);

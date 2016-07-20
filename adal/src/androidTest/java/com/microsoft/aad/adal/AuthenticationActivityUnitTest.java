@@ -119,7 +119,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         // getConstructor() returns only public constructors,
 
         Constructor<?> constructor = c.getDeclaredConstructor(String.class, String.class,
-                String.class, String.class, String.class, Boolean.class);
+                String.class, String.class, String.class, boolean.class);
         constructor.setAccessible(true);
         Object o = constructor.newInstance("authority", "client", "resource", "redirect",
                 "loginhint", false);

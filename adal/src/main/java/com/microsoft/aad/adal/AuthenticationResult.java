@@ -158,6 +158,13 @@ public class AuthenticationResult implements Serializable {
         result.mInitialRequest = true;
         return result;
     }
+    
+    static AuthenticationResult createExtendedLifeTimeResult(final TokenCacheItem accessTokenItem) {
+        final AuthenticationResult retryResult = createResult(accessTokenItem);
+        retryResult.setExpiresOn(retryResult.getExtendedExpiresOn());
+        retryResult.setIsExtendedLifeTimeToken(true);
+        return retryResult;
+    }
 
     /**
      * Uses access token to create header for web requests.
@@ -294,8 +301,8 @@ public class AuthenticationResult implements Serializable {
         if (mIsExtendedLifeTimeToken) {
             return TokenCacheItem.isTokenExpired(getExtendedExpiresOn());
         }
-        
-        return TokenCacheItem.isTokenExpired(getExpiresOn());        
+
+        return TokenCacheItem.isTokenExpired(getExpiresOn());
     }
 
     String[] getErrorCodes() {
@@ -339,9 +346,9 @@ public class AuthenticationResult implements Serializable {
     }
 
     final Date getExtendedExpiresOn() {
-        return this.mExtendedExpiresOn;
+        return mExtendedExpiresOn;
     }
-    
+
     final void setExpiresOn(final Date expiresOn) {
         mExpiresOn = expiresOn;
     }
