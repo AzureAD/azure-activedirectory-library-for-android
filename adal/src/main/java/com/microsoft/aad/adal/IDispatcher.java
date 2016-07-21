@@ -27,6 +27,6 @@ import android.util.Pair;
 
 import java.util.List;
 
-public interface Dispatcher {
+public interface IDispatcher {
     void dispatch(List<Pair<String,String>> events);
 }

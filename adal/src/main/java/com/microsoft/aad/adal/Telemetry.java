@@ -25,22 +25,19 @@ package com.microsoft.aad.adal;
 
 import android.util.Pair;
 
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Telemetry {
     private DefaultDispatcher mDispatcher;
-    private Map<Pair<String, String>, String> mEventTracking;
-    private static Telemetry sInstance = null;
+    private final Map<Pair<String, String>, String> mEventTracking = new ConcurrentHashMap<Pair<String, String>, String>();
+    private final static Telemetry sInstance = new Telemetry();
 
     public static synchronized Telemetry getInstance() {
-        if (sInstance == null) {
-            sInstance = new Telemetry();
-        }
         return sInstance;
     }
 
-    public void registerDispatcher(Dispatcher dispatcher, boolean aggregationRequired) {
+    public void registerDispatcher(IDispatcher dispatcher, boolean aggregationRequired) {
         if (aggregationRequired) {
             mDispatcher = new AggregatedDispatcher(dispatcher);
         } else {
@@ -57,8 +54,7 @@ public class Telemetry {
 
     }
 
-    void stopEvent(final String requestId, final EventsInterface events) {
+    void stopEvent(final String requestId, final IEvents events) {
 
     }
-
 }

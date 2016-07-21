@@ -23,17 +23,19 @@
 
 package com.microsoft.aad.adal;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 class DefaultDispatcher {
-    Map <String, List<EventsInterface>> mObjectsToBeDispatched;
-    Dispatcher mDispatcher;
+    final Map<String, List<IEvents>> mObjectsToBeDispatched = new HashMap<String, List<IEvents>>();
+    IDispatcher mDispatcher;
 
     DefaultDispatcher() {
         mDispatcher = null;
     }
-    DefaultDispatcher(Dispatcher dispatcher) {
+
+    DefaultDispatcher(IDispatcher dispatcher) {
         mDispatcher = dispatcher;
     }
 
@@ -44,7 +46,7 @@ class DefaultDispatcher {
         }
     }
 
-    void receive(String requestId, EventsInterface events) {
+    void receive(String requestId, IEvents events) {
         //TODO: Get the List from the requestID and add the events interface to it
         flush();
     }
@@ -52,7 +54,7 @@ class DefaultDispatcher {
 
 class AggregatedDispatcher extends DefaultDispatcher {
 
-    AggregatedDispatcher(Dispatcher dispatcher) {
+    AggregatedDispatcher(IDispatcher dispatcher) {
         mDispatcher = dispatcher;
     }
 
@@ -63,7 +65,7 @@ class AggregatedDispatcher extends DefaultDispatcher {
         }
     }
 
-    void receive(String requestId, EventsInterface events) {
+    void receive(String requestId, IEvents events) {
         //TODO: Get the List from the requestID and add the events interface to it
     }
 }

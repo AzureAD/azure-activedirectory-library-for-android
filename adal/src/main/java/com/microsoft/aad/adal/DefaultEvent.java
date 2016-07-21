@@ -27,24 +27,23 @@ import android.text.TextUtils;
 import android.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-interface EventsInterface {
-    void setEvent(String name, String value);
+interface IEvents {
+    void setEvent(final String name, final String value);
     List<Pair<String,String>> getEvents();
-    int getDefaultEventCount();
 }
 
-class DefaultEvent implements EventsInterface {
-    List<Pair<String,String>> mEventList = null;
-    int mDefaultEventCount = 0;
+class DefaultEvent implements IEvents {
+    final List<Pair<String,String>> mEventList;
 
     DefaultEvent() {
         mEventList = new ArrayList<>();
     }
 
     @Override
-    public void setEvent(String name, String value) {
+    public void setEvent(final String name, final String value) {
         if (!TextUtils.isEmpty(name)) {
             mEventList.add(Pair.create(name, value));
         }
@@ -52,12 +51,7 @@ class DefaultEvent implements EventsInterface {
 
     @Override
     public List<Pair<String, String>> getEvents() {
-        return mEventList;
-    }
-
-    @Override
-    public int getDefaultEventCount() {
-        return mDefaultEventCount;
+        return Collections.unmodifiableList(mEventList);
     }
 }
 
@@ -73,8 +67,8 @@ class UIEvent extends DefaultEvent{
     }
 }
 
-class GrantEvent extends DefaultEvent{
-    GrantEvent(final String eventName) {
+class APIEvent extends DefaultEvent{
+    APIEvent(final String eventName) {
         mEventList.add(Pair.create("Event", eventName));
     }
 }
