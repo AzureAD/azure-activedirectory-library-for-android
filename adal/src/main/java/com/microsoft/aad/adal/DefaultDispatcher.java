@@ -28,15 +28,17 @@ import java.util.List;
 import java.util.Map;
 
 class DefaultDispatcher {
-    final Map<String, List<IEvents>> mObjectsToBeDispatched = new HashMap<String, List<IEvents>>();
-    IDispatcher mDispatcher;
+    final Map mObjectsToBeDispatched;
+    final IDispatcher mDispatcher;
 
     DefaultDispatcher() {
         mDispatcher = null;
+        mObjectsToBeDispatched = new HashMap<String, List<IEvents>>();
     }
 
     DefaultDispatcher(IDispatcher dispatcher) {
         mDispatcher = dispatcher;
+        mObjectsToBeDispatched = new HashMap<String, List<IEvents>>();
     }
 
     void flush() {
@@ -55,7 +57,7 @@ class DefaultDispatcher {
 class AggregatedDispatcher extends DefaultDispatcher {
 
     AggregatedDispatcher(IDispatcher dispatcher) {
-        mDispatcher = dispatcher;
+        super(dispatcher);
     }
 
     void flush() {
