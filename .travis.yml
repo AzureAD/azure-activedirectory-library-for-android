@@ -24,4 +24,4 @@ before_install:
 
 script:
   - cd $PWD
-  - ./gradlew clean build
+  - ./gradlew clean build --info
