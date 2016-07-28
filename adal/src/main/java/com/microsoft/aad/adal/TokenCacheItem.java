@@ -65,6 +65,8 @@ public class TokenCacheItem implements Serializable {
     
     private String mFamilyClientId;
 
+    private Date mExtendedExpiresOn;
+
     /**
      * Default constructor for cache item.
      */
@@ -82,6 +84,7 @@ public class TokenCacheItem implements Serializable {
         this.mIsMultiResourceRefreshToken = tokenCacheItem.getIsMultiResourceRefreshToken();
         this.mTenantId = tokenCacheItem.getTenantId();
         this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
+        this.mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
     }
     
     /**
@@ -106,6 +109,7 @@ public class TokenCacheItem implements Serializable {
         mRawIdToken = authenticationResult.getIdToken();
         mRefreshtoken = authenticationResult.getRefreshToken();
         mFamilyClientId = authenticationResult.getFamilyClientId();
+        mExtendedExpiresOn = authenticationResult.getExtendedExpiresOn();
     }
     
     /**
@@ -224,6 +228,23 @@ public class TokenCacheItem implements Serializable {
     
     public final void setFamilyClientId(final String familyClientId) {
         this.mFamilyClientId = familyClientId;
+    }
+
+    public final void setExtendedExpiresOn(final Date extendedExpiresOn) {
+        mExtendedExpiresOn = extendedExpiresOn;
+    }
+
+    public final Date getExtendedExpiresOn() {
+        return mExtendedExpiresOn;
+    }
+
+    public final boolean isExtendedLifetimeValid() {
+        //extended lifetime is only valid if it contains an access token
+        if (mExtendedExpiresOn != null && !StringExtensions.IsNullOrBlank(mAccessToken)) {
+            return !isTokenExpired(mExtendedExpiresOn);
+        }
+        
+        return false;
     }
 
     /**

@@ -60,7 +60,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
 
         // call with params
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".AuthenticationRequest", "authority1", "resource2", "client3");
+                + ".AuthenticationRequest", "authority1", "resource2", "client3", false);
         actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
         assertEquals("authority is same", "authority1", actual);
         actual = ReflectionUtils.getterValue(String.class, o, "getResource");
@@ -70,7 +70,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
 
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".AuthenticationRequest", "authority31", "resource32", "client33", "redirect34",
-                "loginhint35");
+                "loginhint35", false);
 
         actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
         assertEquals("authority is same", "authority31", actual);
@@ -86,7 +86,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         UUID correlationId = UUID.randomUUID();
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".AuthenticationRequest", "authority41", "resource42", "client43", "redirect44",
-                "loginhint45", correlationId);
+                "loginhint45", correlationId, false);
 
         actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
         assertEquals("authority is same", "authority41", actual);
@@ -103,7 +103,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
 
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
                 + ".AuthenticationRequest", "authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Always, "extraQueryPAram56", correlationId);
+                "loginhint55", PromptBehavior.Always, "extraQueryPAram56", correlationId, false);
 
         actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
         assertEquals("authority is same", "authority51", actual);
@@ -128,7 +128,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException {
         Object o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".AuthenticationRequest", "authority1", "resource2", "client3");
+                + ".AuthenticationRequest", "authority1", "resource2", "client3", false);
         ReflectionUtils.setterValue(o, "setRequestId", Integer.valueOf(REQUEST_ID));
         int actual = ReflectionUtils.getterValue(Integer.class, o, "getRequestId");
         assertEquals("Same RequestId", REQUEST_ID, actual);

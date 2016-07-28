@@ -83,6 +83,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     private static final String VALID_AUTHORITY = "https://login.windows.net/test.onmicrosoft.com";
     private static final int ACTIVITY_TIME_OUT = 1000;
     private static final int MINUS_MINUITE = 10;
+    private static final int EXTEND_MINUS_MINUTE = 60;
     private static final String TEST_UPN = "testupn";
     private static final String TEST_USERID = "testuserid";
     private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
@@ -114,6 +115,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     protected void tearDown() throws Exception {
         HttpUrlConnectionFactory.mockedConnection = null;
         Logger.getInstance().setExternalLogger(null);
+        AuthenticationSettings.INSTANCE.setUseBroker(false);
         super.tearDown();
     }
 
@@ -126,9 +128,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             AuthenticatorException, InterruptedException {
 
         // Make sure AT is not expired
-        final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -161,9 +161,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
             AuthenticatorException, InterruptedException {
         // Make sure AT is expired
-        final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), true, true);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), true, true, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -223,9 +221,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             IOException, AuthenticatorException, InterruptedException {
 
         // Make sure AT is expired
-        final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), true, false);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), true, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -277,9 +273,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             throws PackageManager.NameNotFoundException, OperationCanceledException,
             IOException, AuthenticatorException, InterruptedException {
         // Make sure AT is expired
-        final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -321,9 +315,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             PackageManager.NameNotFoundException, InterruptedException {
 
         // Make sure AT is expired
-        final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -366,9 +358,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             throws OperationCanceledException, IOException, AuthenticatorException,
             PackageManager.NameNotFoundException, InterruptedException {
         // Make sure AT is expired
-        final Calendar expiredTime = new GregorianCalendar();
-        expiredTime.add(Calendar.MINUTE, -MINUS_MINUITE);
-        final ITokenCacheStore cacheStore = getTokenCache(expiredTime.getTime(), false, false);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -406,20 +396,26 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         cacheStore.removeAll();
     }
 
-    private ITokenCacheStore getTokenCache(final Date expiresOn, final boolean storeMRRT, final boolean storeFRT) {
+    private ITokenCacheStore getTokenCache(final Date expiresOn, final boolean storeMRRT, final boolean storeFRT, final Date extendedExpiresOn) {
         // prepare valid item in cache
         final UserInfo userInfo = new UserInfo();
         userInfo.setDisplayableId(TEST_UPN);
         userInfo.setUserId(TEST_USERID);
-
         final String accessToken = "I am an AT";
         final String refreshToken = "I am a RT";
         final String idToken = "I am an id token";
         final String resource = "resource";
         final String clientId = "clientid";
-        final AuthenticationResult result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT,
-                userInfo, "", idToken);
-
+        
+        final AuthenticationResult result;
+        if (extendedExpiresOn == null) {
+            result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT, 
+                    userInfo, "", idToken, null);
+        } else {
+            result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT, 
+                    userInfo, "", idToken, extendedExpiresOn);
+        }
+        
         final ITokenCacheStore cacheStore = new DefaultTokenCacheStore(getContext());
         cacheStore.removeAll();
         final TokenCacheItem regularRTItem = TokenCacheItem.createRegularTokenCacheItem(VALID_AUTHORITY,
@@ -554,6 +550,237 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
 
+    /**
+     * Test for returning a valid stale AT when ExtendedLifetime is on and the server is down.
+     */
+    @SmallTest
+    public void testResiliencyTokenReturnExtendedLifetimeOnPositive() throws PackageManager.NameNotFoundException,
+            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
+            InterruptedException {
+        // make sure AT's expires_in is expired and ext_expires_in is not expired
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(true);
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
+
+        try {
+            final AuthenticationResult result = authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            verify(mockedConnection, times(2)).getInputStream();
+            assertNotNull(result);
+            assertTrue(result.getAccessToken().equals("I am an AT"));
+            assertTrue(result.isExtendedLifeTimeToken());
+            assertNotNull(result.getExtendedExpiresOn());
+            assertTrue(!TokenCacheItem.isTokenExpired(result.getExtendedExpiresOn()));
+        } catch (final AuthenticationException exception) {
+            fail("Did not expect an exeption");
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+
+    /**
+     * Test for throwing exception when the request is rejected by server through there is a valid 
+     * stale AT in the cache and the ExtendedLifetime is on.
+     */
+    @SmallTest
+    public void testResiliencyTokenReturnExtendedLifetimeOnwithRetryFail() throws PackageManager.NameNotFoundException,
+            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
+            InterruptedException {
+        // make sure AT's expires_in is expired and ext_expires_in is not expired
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(true);
+        final TestAuthCallback callback = new TestAuthCallback();
+
+        //mock http response
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                Util.createInputStream(Util.getErrorResponseBody("HTTP_BAD_GATEWAY")));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_BAD_GATEWAY);
+
+        try {
+            authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            fail("Expect an exeption");
+        } catch (final AuthenticationException exception) {
+            verify(mockedConnection, times(2)).getInputStream();
+            assertNotNull(exception);
+            assertTrue(exception.getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
+            assertTrue(exception.getCause() instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception.getCause()).getCode() == ADALError.SERVER_ERROR);
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+
+    /**
+     * Test for throwing exception when the server is down and ExtendedLifetime is on
+     * but AT is expired either in terms of expires_on or ext_expires_on
+     */
+    @SmallTest
+    public void testResiliencyTokenReturnExtendedLifetimeOnwithExpiredStaleAT() throws PackageManager.NameNotFoundException,
+            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
+            InterruptedException {
+        // make sure AT's expires_in is expired and ext_expires_in is expired
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(-1));
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(true);
+        
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
+
+        try {
+            authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            fail("Expect an exeption");
+        } catch (final AuthenticationException exception) {
+            verify(mockedConnection, times(2)).getInputStream();
+            assertNotNull(exception);
+            assertTrue( exception.getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
+            assertTrue(exception.getCause() instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception.getCause()).getCode() == ADALError.SERVER_ERROR);
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+
+    /**
+     * Test for returning new AT from the server when the
+     * ExtendedLifetime is on and the retry succeeds
+     */
+    @SmallTest
+    public void testResiliencyTokenReturnExtendedLifetimeOnwithValidRetry() throws PackageManager.NameNotFoundException,
+            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
+            InterruptedException {
+        // make sure AT's expires_in is expired and ext_expires_in is not expired
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(true);
+
+        //mock http response
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                Util.createInputStream(Util.getSuccessTokenResponse(false, false)));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_OK);
+
+        try {
+            final AuthenticationResult result = authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            verify(mockedConnection, times(2)).getInputStream();
+            assertNotNull(result);
+            assertTrue(result.getAccessToken().equals("I am a new access token"));
+            assertTrue(!result.isExtendedLifeTimeToken());
+        } catch (final AuthenticationException exception) {
+            fail("Did not expect an exeption");
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+
+    /**
+     * Test for throwing an exception when ExtendedLifetime is off, the server is down
+     * and AT is expired in the term of expires_in but still valid in ext_expires_in
+     */
+    @SmallTest
+    public void testResiliencyTokenReturnExtendedLifetimeOff() throws PackageManager.NameNotFoundException,
+            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
+            InterruptedException {
+        // make sure AT's expires_in is expired and ext_expires_in is not expired
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(false);
+
+        //mock http response
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
+
+        try {
+            authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            fail("Expect an exeption");
+        } catch (final AuthenticationException exception) {
+            verify(mockedConnection, times(2)).getInputStream();
+            assertNotNull(exception);
+            assertTrue(exception.getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
+            assertTrue(exception.getCause() instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception.getCause()).getCode() == ADALError.SERVER_ERROR);
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+
+    /**
+     * Test for throwing exception when the request is rejected by server through there is a valid 
+     * stale AT in the cache and the ExtendedLifetime is on.
+     */
+    @SmallTest
+    public void testResiliencyTokenReturnExtendedLifetimeOnwithoutRetry() throws PackageManager.NameNotFoundException,
+            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
+            InterruptedException {
+        // make sure AT's expires_in is expired and ext_expires_in is not expired
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(true);
+        final TestAuthCallback callback = new TestAuthCallback();
+
+        //mock http response
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_BAD_GATEWAY")));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_GATEWAY);
+
+        try {
+            authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            fail("Expect an exeption");
+        } catch (final AuthenticationException exception) {
+            verify(mockedConnection, times(1)).getInputStream();
+            assertNotNull(exception);
+            assertTrue(exception.getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
+            assertTrue(exception.getCause() instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception.getCause()).getCode() == ADALError.SERVER_ERROR);
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+    
     private FileMockContext createMockContext()
             throws PackageManager.NameNotFoundException {
 
@@ -701,5 +928,11 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         md.update(Base64.decode(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE, Base64.NO_WRAP));
         final byte[] testingSignature = md.digest();
         return Base64.encodeToString(testingSignature, Base64.NO_WRAP);
+    }
+    
+    private Date getExpireDate(int expireTime) {
+        final Calendar expiredTime = new GregorianCalendar();
+        expiredTime.add(Calendar.MINUTE, expireTime);
+        return expiredTime.getTime();
     }
 }

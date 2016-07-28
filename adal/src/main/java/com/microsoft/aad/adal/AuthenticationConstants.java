@@ -213,6 +213,8 @@ public final class AuthenticationConstants {
 
         /** String of has_chrome sent as extra query param to hide back button in the webview. */
         static final String HAS_CHROME = "haschrome";
+
+        static final String EXT_EXPIRES_IN = "ext_expires_in";
     }
 
     /**

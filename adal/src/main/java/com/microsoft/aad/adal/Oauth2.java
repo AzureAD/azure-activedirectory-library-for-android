@@ -36,6 +36,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Calendar;
@@ -58,6 +59,10 @@ class Oauth2 {
     private IJWSBuilder mJWSBuilder = new JWSBuilder();
 
     private final static String TAG = "Oauth";
+
+    private boolean mRetryOnce = true;
+
+    private final int mDelayTimePeriod = 1000;
 
     private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
 
@@ -238,11 +243,10 @@ class Oauth2 {
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
-        } 
-        else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
+        } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
             boolean isMultiResourceToken = false;
-            String expires_in = response.get("expires_in");
+            String expires_in = response.get(AuthenticationConstants.OAuth2.EXPIRES_IN);
             Calendar expires = new GregorianCalendar();
 
             // Compute token expiration
@@ -271,7 +275,7 @@ class Oauth2 {
                     Logger.v(TAG, "IdToken was not returned from token request.");
                 }
             }
-            
+
             String familyClientId = null;
             if (response.containsKey(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID)) {
                 familyClientId = response.get(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID);
@@ -280,8 +284,19 @@ class Oauth2 {
             result = new AuthenticationResult(
                     response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
                     response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
-                    isMultiResourceToken, userinfo, tenantId, rawIdToken);
-            
+                    isMultiResourceToken, userinfo, tenantId, rawIdToken, null);
+
+            if (response.containsKey(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN)) {
+                final String extendedExpiresIn = response.get(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN);
+                final Calendar extendedExpires = new GregorianCalendar();
+                // Compute extended token expiration
+                extendedExpires.add(
+                        Calendar.SECOND,
+                        StringExtensions.IsNullOrBlank(extendedExpiresIn) ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
+                                : Integer.parseInt(extendedExpiresIn));
+                result.setExtendedExpiresOn(extendedExpires.getTime());
+            }
+
             //Set family client id on authentication result for TokenCacheItem to pick up
             result.setFamilyClientId(familyClientId);
         } else {
@@ -377,7 +392,6 @@ class Oauth2 {
                 throw new AuthenticationException(ADALError.AUTH_FAILED_BAD_STATE);
             }
         } else {
-
             // The response from the server had no state
             throw new AuthenticationException(ADALError.AUTH_FAILED_NO_STATE);
         }
@@ -474,7 +488,22 @@ class Oauth2 {
                 // Protocol related errors will read the error stream and report
                 // the error and error description
                 Logger.v(TAG, "Token request does not have exception");
-                result = processTokenResponse(response);
+                try {
+                    result = processTokenResponse(response);
+                } catch (final ServerRespondingWithRetryableException e) {
+                    result = retry(requestMessage, headers);
+                    if (result != null) {
+                        return result;
+                    }
+
+                    if (mRequest.getIsExtendedLifetimeEnabled()) {
+                        Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode());
+                        throw e;
+                    } else {
+                        Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode());
+                        throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode());
+                    }
+                }
                 ClientMetrics.INSTANCE.setLastError(null);
             }
             if (result == null) {
@@ -485,11 +514,25 @@ class Oauth2 {
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
             }
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
             throw e;
-        } catch (IOException e) {
+        } catch (final SocketTimeoutException e) {
+            result = retry(requestMessage, headers);
+            if (result != null) {
+                return result;
+            }
+
+            ClientMetrics.INSTANCE.setLastError(null);
+            if (mRequest.getIsExtendedLifetimeEnabled()) {
+                Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+                throw new ServerRespondingWithRetryableException(e.getMessage(), e);
+            } else {
+                Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+                throw e;
+            }
+        } catch (final IOException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
@@ -499,6 +542,23 @@ class Oauth2 {
         }
 
         return result;
+    }
+    
+    private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
+        //retry once if there is an observation of a network timeout by the client 
+        if (mRetryOnce) {
+            mRetryOnce = false;
+            try {
+                Thread.sleep(mDelayTimePeriod);
+            } catch (final InterruptedException exception) {
+                Logger.v(TAG, "The thread is interrupted while it is sleeping. " + exception);
+            }
+
+            Logger.v(TAG, "Try again...");
+            return postMessage(requestMessage, headers);
+        }
+
+        return null;
     }
 
     public static String decodeProtocolState(String encodedState) {
@@ -545,18 +605,21 @@ class Oauth2 {
 
         final int statusCode = webResponse.getStatusCode();
         switch (statusCode) {
-        case HttpURLConnection.HTTP_OK:
-        case HttpURLConnection.HTTP_BAD_REQUEST:
-        case HttpURLConnection.HTTP_UNAUTHORIZED:
-            try {
-                result = parseJsonResponse(webResponse.getBody());
-            } catch (final JSONException jsonException) {
-                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
-            }
-
-        break;
-        default: 
-            throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + webResponse.getBody());
+            case HttpURLConnection.HTTP_OK:
+            case HttpURLConnection.HTTP_BAD_REQUEST:
+            case HttpURLConnection.HTTP_UNAUTHORIZED:
+                try {
+                    result = parseJsonResponse(webResponse.getBody());
+                } catch (final JSONException jsonException) {
+                    throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
+                }
+                break;
+            case HttpURLConnection.HTTP_INTERNAL_ERROR:
+            case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
+            case HttpURLConnection.HTTP_UNAVAILABLE:
+                throw new ServerRespondingWithRetryableException("Unexpected server response " + webResponse.getBody());
+            default:
+                throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + webResponse.getBody());
         }
 
         // Set correlationId in the result
@@ -577,7 +640,7 @@ class Oauth2 {
 
         return result;
     }
-    
+
     private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException,
             AuthenticationException {
         final Map<String, String> responseItems = new HashMap<>();

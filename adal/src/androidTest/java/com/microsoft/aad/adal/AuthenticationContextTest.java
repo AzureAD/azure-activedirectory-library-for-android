@@ -515,9 +515,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     }
 
     public static AuthenticationRequest createAuthenticationRequest(final String authority, final String resource,
-            final String client, final String redirect, final String loginhint) {
+            final String client, final String redirect, final String loginhint, final boolean isExtendedLifetimeEnabled) {
 
-        return new AuthenticationRequest(authority, resource, client, redirect, loginhint);
+        return new AuthenticationRequest(authority, resource, client, redirect, loginhint, isExtendedLifetimeEnabled);
     }
 
     /**
@@ -861,7 +861,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         final String response2 = "{\"id_token\":\""
                 + TEST_IDTOKEN
-                + "\",\"access_token\":\"TokenReturnsWithIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\"}";
+                + "\",\"access_token\":\"TokenReturnsWithIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.mockedConnection = mockedConnection;
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -1115,7 +1115,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final Intent intent = new Intent();
         intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
         final AuthenticationRequest authRequest = new AuthenticationRequest(VALID_AUTHORITY,
-                resource, clientid, redirect, loginHint);
+                resource, clientid, redirect, loginHint, false);
         intent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                 (Serializable) authRequest);
         intent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, VALID_AUTHORITY

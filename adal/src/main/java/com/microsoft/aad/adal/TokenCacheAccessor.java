@@ -108,7 +108,21 @@ class TokenCacheAccessor {
         final String cacheKey = CacheKey.createCacheKeyForFRT(mAuthority, familyClientId, user);
         return mTokenCacheStore.getItem(cacheKey);
     }
-    
+
+    TokenCacheItem getStaleToken(AuthenticationRequest authRequest) {
+        final TokenCacheItem accessTokenItem = getRegularRefreshTokenCacheItem(authRequest.getResource(),
+                authRequest.getClientId(), authRequest.getUserFromRequest());
+        if (accessTokenItem.getAccessToken() != null
+                && accessTokenItem.getExtendedExpiresOn() != null
+                && !TokenCacheItem.isTokenExpired(accessTokenItem.getExtendedExpiresOn())) {
+            Logger.i(TAG, "The stale access token is returned.", "");
+            return accessTokenItem;
+        } 
+        
+        Logger.i(TAG, "The stale access token is not found.", "");
+        return null;
+    }
+
     /**
      * Update token cache with returned auth result.
      * @throws AuthenticationException 

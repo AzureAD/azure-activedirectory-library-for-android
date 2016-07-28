@@ -301,6 +301,7 @@ class AcquireTokenRequest {
         Logger.v(TAG, "Try to silently get token from local cache.");
         final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                 authenticationRequest, mTokenCacheAccessor);
+
         final AuthenticationResult authResult;
         try {
             authResult = acquireTokenSilentHandler.getAccessToken();
@@ -434,7 +435,7 @@ class AcquireTokenRequest {
         if (StringExtensions.IsNullOrBlank(inputUri)) {
             errMsg = "The redirectUri is null or blank. "
                     + "so the redirect uri is expected to be:" + actualRedirectUri;
-            Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
+            Logger.e(TAG + methodName, errMsg, "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
         }
 
@@ -443,7 +444,7 @@ class AcquireTokenRequest {
             errMsg = "The prefix of the redirect uri does not match the expected value. "
                     + " The valid broker redirect URI prefix: " + AuthenticationConstants.Broker.REDIRECT_PREFIX
                     + " so the redirect uri is expected to be: " + actualRedirectUri;
-            Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
+            Logger.e(TAG + methodName, errMsg, "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
         }
 
@@ -478,7 +479,7 @@ class AcquireTokenRequest {
             errMsg = "The base64 url encoded signature component of the redirect uri does not match the "
                     + "expected value. This apps signature is: " + base64URLEncodeSignature
                     + " so the redirect uri is expected to be: " + actualRedirectUri;
-            Logger.e(TAG + methodName, errMsg , "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
+            Logger.e(TAG + methodName, errMsg, "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
             throw new UsageAuthenticationException(ADALError.DEVELOPER_REDIRECTURI_INVALID, errMsg);
         }
 
@@ -537,7 +538,7 @@ class AcquireTokenRequest {
                             AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                     final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
-                            expire, false, userinfo, tenantId, idtoken);
+                            expire, false, userinfo, tenantId, idtoken, null);
                     if (brokerResult.getAccessToken() != null) {
                         waitingRequest.mDelagete.onSuccess(brokerResult);
                     }

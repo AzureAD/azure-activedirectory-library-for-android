@@ -148,7 +148,7 @@ final class Util {
         expiredTime.add(Calendar.MINUTE, -TOKENS_EXPIRES_MINUTE);
         final UserInfo userInfo = new UserInfo(userId, "GivenName", "FamilyName", "idp", displayableId);
         final AuthenticationResult authResult = new AuthenticationResult("accessToken", "refresh_token", expiredTime.getTime(), 
-                isMRRT, userInfo, "TenantId", "IdToken");
+                isMRRT, userInfo, "TenantId", "IdToken", null);
         
         if (StringExtensions.IsNullOrBlank(familyClientId)) {
             return authResult;

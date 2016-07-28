@@ -128,15 +128,31 @@ class AcquireTokenSilentHandler {
                 Logger.i(TAG, "Refresh token is not returned or empty", "");
                 result.setRefreshToken(refreshToken);
             }
+        } catch (final ServerRespondingWithRetryableException exc) {
+            Logger.i(TAG, "The server is not responding after the retry with error code: " + exc.getCode(), "");
+            final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getStaleToken(mAuthRequest);
+            if (accessTokenItem != null) {
+                final AuthenticationResult retryResult =  AuthenticationResult.createExtendedLifeTimeResult(accessTokenItem);
+                Logger.i(TAG, "The result with stale access token is returned.", "");
+                return retryResult;
+            }
+            
+            Logger.e(TAG, "Error in refresh token for request:" + mAuthRequest.getLogInfo(),
+                    ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
+
+            throw new AuthenticationException(
+                    ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
         } catch (final IOException | AuthenticationException exc) {
             // Server side error or similar
             Logger.e(TAG, "Error in refresh token for request:" + mAuthRequest.getLogInfo(),
                     ExceptionExtensions.getExceptionMessage(exc), ADALError.AUTH_FAILED_NO_TOKEN,
-                    exc);
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
 
             throw new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
-                    exc);
+                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
         }
 
         return result;
@@ -155,7 +171,7 @@ class AcquireTokenSilentHandler {
     private AuthenticationResult tryRT() throws AuthenticationException {
         final TokenCacheItem regularRTItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(), 
                 mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
-        
+
         if (regularRTItem == null) {
             Logger.v(TAG, "Regular token cache entry does not exist, try with MRRT.");
             return tryMRRT(); 
@@ -270,7 +286,7 @@ class AcquireTokenSilentHandler {
             throws AuthenticationException {
         final AuthenticationResult result = acquireTokenWithRefreshToken(cachedItem.getRefreshToken());
         
-        if (result != null) {
+        if (result != null && !result.isExtendedLifeTimeToken()) {
             mTokenCacheAccessor.updateCachedItemWithResult(mAuthRequest.getResource(), mAuthRequest.getClientId(), 
                     result, cachedItem);
         }

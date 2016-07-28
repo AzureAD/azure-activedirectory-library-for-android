@@ -91,7 +91,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
 
         final String resource = "resource";
         final String clientId = "clientId";
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId);
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -141,7 +141,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
         saveTokenIntoCache(mockedCache, mrrtTokenCacheItem);
 
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId);
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -202,7 +202,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
         saveTokenIntoCache(mockedCache, mrrtTokenCacheItem);
 
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId);
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -259,7 +259,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
         saveTokenIntoCache(mockedCache, mrrtTokenCacheItem);
 
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId);
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -312,7 +312,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
 
         final String resource = "resource";
         final String clientId = "clientId";
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId);
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -367,7 +367,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
 
         final String resource = "resource";
         final String clientId = "clientId";
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId);
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -424,7 +424,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         frtTokenCacheItem.setIsMultiResourceRefreshToken(true);
         saveTokenIntoCache(mockCache, frtTokenCacheItem);
 
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", clientId);
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", clientId, false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -492,7 +492,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         frtTokenCacheItem.setFamilyClientId(familyClientId);
         saveTokenIntoCache(mockCache, frtTokenCacheItem);
 
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId);
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -571,7 +571,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         frtTokenCacheItem.setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
         saveTokenIntoCache(mockCache, frtTokenCacheItem);
 
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId);
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -638,7 +638,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid");
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -680,7 +680,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
-        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid");
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", false);
         authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
         authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
         final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
@@ -767,8 +767,8 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     }
 
     private AuthenticationRequest getAuthenticationRequest(final String authority, final String resource,
-                                                           final String clientId) {
-        final AuthenticationRequest authRequest = new AuthenticationRequest(authority, resource, clientId);
+                                                           final String clientId, final boolean IsExtendedLifetimeEnabled) {
+        final AuthenticationRequest authRequest = new AuthenticationRequest(authority, resource, clientId, IsExtendedLifetimeEnabled);
         return authRequest;
     }
 

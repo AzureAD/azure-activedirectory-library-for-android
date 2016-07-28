@@ -109,7 +109,7 @@ public class OauthTests extends AndroidTestCase {
         final String authority = "http://www.something.com";
         final AuthenticationRequest request = createAuthenticationRequest(
                 authority, resource,
-                "client", "redirect", "loginhint@ggg.com", null, null, null);
+                "client", "redirect", "loginhint@ggg.com", null, null, null, false);
         final Oauth2 oauth = createOAuthInstance(request);
 
         final String encoded = oauth.encodeProtocolState();
@@ -172,7 +172,7 @@ public class OauthTests extends AndroidTestCase {
         // with login hint
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
                 "https://officeapps.live.com", "clientID123456789", "redirect123",
-                "loginhint", null, null, null);
+                "loginhint", null, null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request);
         final String uriWithNoCode = "http://www.nocodeurl.com?state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L2NvbW1vbiZyPWh0dHBzOi8vb2ZmaWNlYXBwcy5saXZlLmNvbQ";
         try {
@@ -198,7 +198,7 @@ public class OauthTests extends AndroidTestCase {
         final AuthenticationRequest request = createAuthenticationRequest(
                 "http://www.something.com", "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
                 "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890",
-                "loginhint 1234567890-+=;'", null, null, null);
+                "loginhint 1234567890-+=;'", null, null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request);
         final String actualCodeRequestUrl = oauth2.getCodeRequestUrl();
         assertTrue("Matching message",
@@ -211,7 +211,7 @@ public class OauthTests extends AndroidTestCase {
                 "http://www.something.com",
                 "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
                 "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890", "", null,
-                null, null);
+                null, null, false);
 
         final Oauth2 oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
 
@@ -225,7 +225,7 @@ public class OauthTests extends AndroidTestCase {
                 "http://www.something.com",
                 "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
                 "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890", "",
-                PromptBehavior.Always, null, null);
+                PromptBehavior.Always, null, null, false);
 
         final Oauth2 oauthAlways = createOAuthInstance(requestAlways);
         final String actualCodeRequestWithPrompt = oauthAlways.getCodeRequestUrl();
@@ -240,7 +240,7 @@ public class OauthTests extends AndroidTestCase {
                 "http://www.something.com",
                 "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
                 "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890", "",
-                PromptBehavior.Always, "extra=1", null);
+                PromptBehavior.Always, "extra=1", null, false);
         final Oauth2 oauth2WithExtraPara = createOAuthInstance(requestExtraParam);
         final String actualCodeRequestWithExtraParam = oauth2WithExtraPara.getCodeRequestUrl();
         assertTrue("Prompt", actualCodeRequestWithExtraParam.contains("&prompt=login&haschrome=1&extra=1"));
@@ -249,7 +249,7 @@ public class OauthTests extends AndroidTestCase {
                 "http://www.something.com",
                 "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
                 "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890", "",
-                PromptBehavior.Always, "extra=1&haschrome=1", null);
+                PromptBehavior.Always, "extra=1&haschrome=1", null, false);
         final Oauth2 oAuthxtraQPContainHasChrome = createOAuthInstance(extraQPContainHasChrome);
         final String actualCodeRequestQPHasChrome = oAuthxtraQPContainHasChrome.getCodeRequestUrl();
         assertTrue("Prompt", actualCodeRequestQPHasChrome.contains("&prompt=login&extra=1&haschrome=1"));
@@ -261,7 +261,7 @@ public class OauthTests extends AndroidTestCase {
         final AuthenticationRequest request = createAuthenticationRequest("http://www.something.com",
                 "resource%20urn:!#$    &'( )*+,/:  ;=?@[]",
                 "client 1234567890-+=;!#$   &'( )*+,/:  ;=?@[]", "redirect 1234567890",
-                "loginhint 1234567890-+=;'", null, null, null);
+                "loginhint 1234567890-+=;'", null, null, null, false);
 
         final Oauth2 oauth2 = createOAuthInstance(request);
 
@@ -276,7 +276,7 @@ public class OauthTests extends AndroidTestCase {
         // with login hint
         final AuthenticationRequest request = createAuthenticationRequest(
                 "http://www.something.com", "resource%20 ", "client 1234567890-+=;'",
-                "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null);
+                "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request);
         assertEquals(
                 "Token request",
@@ -286,7 +286,7 @@ public class OauthTests extends AndroidTestCase {
         // without login hint
         final AuthenticationRequest requestWithoutLogin = createAuthenticationRequest("http://www.something.com",
                 "resource%20 ", "client 1234567890-+=;'", "redirect 1234567890-+=;'", "", null,
-                null, null);
+                null, null, false);
 
         final Oauth2 oauthWithoutLoginHint = createOAuthInstance(requestWithoutLogin);
         assertEquals(
@@ -304,7 +304,7 @@ public class OauthTests extends AndroidTestCase {
         final AuthenticationRequest request = createAuthenticationRequest(
                 "http://www.something.com", "resource%20 ",
                 "client 1234567890-+=;'", "redirect 1234567890-+=;'", "loginhint@ggg.com", null,
-                null, null);
+                null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request);
         assertEquals(
                 "Token request",
@@ -314,7 +314,7 @@ public class OauthTests extends AndroidTestCase {
         // without resource
         final AuthenticationRequest requestWithoutResource = createAuthenticationRequest(
                 "http://www.something.com", "", "client 1234567890-+=;'",
-                "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null);
+                "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null, false);
 
         final Oauth2 oauthWithoutResource = createOAuthInstance(requestWithoutResource);
         assertEquals(
@@ -344,7 +344,7 @@ public class OauthTests extends AndroidTestCase {
     public void testRefreshTokenMalformedUrl() {
         final AuthenticationRequest request = createAuthenticationRequest(
                 "malformedurl", "resource%20 ", "client 1234567890-+=;'",
-                "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null);
+                "redirect 1234567890-+=;'", "loginhint@ggg.com", null, null, null, false);
         final MockWebRequestHandler webrequest = new MockWebRequestHandler();
 
         // send request
@@ -492,7 +492,7 @@ public class OauthTests extends AndroidTestCase {
     public void testprocessTokenResponse() throws  IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
-                "resource", "client", "redirect", "loginhint", null, null, null);
+                "resource", "client", "redirect", "loginhint", null, null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request, new WebRequestHandler());
         final String idToken = Util.getIdToken();
         final String jsonResponse = "{\"id_token\":\"" + idToken
@@ -525,7 +525,7 @@ public class OauthTests extends AndroidTestCase {
     @SmallTest
     public void testprocessTokenResponseWrongCorrelationId() throws IOException {
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY, "resource",
-                "client", "redirect", "loginhint", null, null, UUID.randomUUID());
+                "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
         final Oauth2 oauth2 = createOAuthInstance(request, new WebRequestHandler());
 
         final String jsonResponse = "{\"access_token\":\"sometokenhere2343=\",\"token_type\":" +
@@ -581,7 +581,7 @@ public class OauthTests extends AndroidTestCase {
     public void testprocessTokenResponseNegative() throws IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY, "resource",
-                "client", "redirect", "loginhint", null, null, null);
+                "client", "redirect", "loginhint", null, null, null, false);
         final Oauth2 oauth2 = createOAuthInstance(request, new WebRequestHandler());
         final String jsonResponse = "{invalid";
 
@@ -639,7 +639,7 @@ public class OauthTests extends AndroidTestCase {
     private AuthenticationRequest getValidAuthenticationRequest() {
         return createAuthenticationRequest(TEST_AUTHORITY, "resource%20 ",
                 "client 1234567890-+=;'", "redirect 1234567890-+=;'", "loginhint@ggg.com", null,
-                null, null);
+                null, null, false);
     }
 
     private MockAuthenticationCallback refreshToken(final AuthenticationRequest request,
@@ -683,10 +683,11 @@ public class OauthTests extends AndroidTestCase {
                                                                     final String loginhint,
                                                                     final PromptBehavior prompt,
                                                                     final String extraQueryParams,
-                                                                    final UUID correlationId) {
+                                                                    final UUID correlationId,
+                                                                    final boolean isExtendedLifetimeEnabled) {
 
         return new AuthenticationRequest(authority, resource, client, redirect, loginhint, prompt,
-                extraQueryParams, correlationId);
+                extraQueryParams, correlationId, isExtendedLifetimeEnabled);
 
     }
 

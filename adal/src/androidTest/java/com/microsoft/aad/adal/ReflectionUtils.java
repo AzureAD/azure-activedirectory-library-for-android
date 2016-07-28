@@ -146,7 +146,12 @@ public class ReflectionUtils {
         if (params != null) {
             paramTypes = new Class<?>[params.length];
             for (int i = 0; i < params.length; i++) {
-                paramTypes[i] = params[i].getClass();
+                //paramTypes[i] = params[i].getClass();
+                if (params[i].getClass().getSimpleName().equals("Boolean")) {                    
+                    paramTypes[i] = boolean.class;
+                } else {
+                    paramTypes[i] = params[i].getClass();
+                }
             }
         }
 

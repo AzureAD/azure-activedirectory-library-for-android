@@ -312,7 +312,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
         AccountManager mockAcctManager = mock(AccountManager.class);
         when(mockAcctManager.getAccountsByType(anyString())).thenReturn(new Account[0]);
         Context mockContext = mock(Context.class);
@@ -341,7 +341,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
         String acctType = "loginhint";
         Account[] accts = getAccountList(acctType, authenticatorType);
         AccountManager mockAcctManager = mock(AccountManager.class);
@@ -374,7 +374,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String acctName = "LoginHint234FDFs";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                "redirect", acctName.toLowerCase(), PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", acctName.toLowerCase(), PromptBehavior.Auto, "", UUID.randomUUID(), false);
         // check case sensitivity for account name
         Account[] accts = getAccountList(acctName, authenticatorType);
         AccountManager mockAcctManager = mock(AccountManager.class);
@@ -408,7 +408,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
         // check case sensitivity for account name
         Account[] accts = getAccountList(acctName, authenticatorType);
         AccountManager mockAcctManager = mock(AccountManager.class);
@@ -453,7 +453,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/authtest", "resource", "client",
-                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
         Account[] accts = getAccountList(acctName, authenticatorType);
         Bundle expected = new Bundle();
@@ -502,7 +502,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/authtest", "resource", "client",
-                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
         Account[] accts = getAccountList(acctName, authenticatorType);
         Bundle expected = new Bundle();
@@ -573,7 +573,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
         setMockProxyForErrorCheck(brokerProxy, acctName, AccountManager.ERROR_CODE_BAD_ARGUMENTS, "testErrorMessage");
 
         // action
@@ -595,7 +595,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
         setMockProxyForErrorCheck(brokerProxy, acctName, AccountManager.ERROR_CODE_BAD_AUTHENTICATION,
                 "testErrorMessage");
 
@@ -618,7 +618,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
         setMockProxyForErrorCheck(brokerProxy, acctName, AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION,
                 "testErrorMessage");
 
@@ -639,7 +639,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             NoSuchFieldException, OperationCanceledException, IOException, AuthenticatorException {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
         AccountManager mockAcctManager = mock(AccountManager.class);
         Bundle expected = new Bundle();
         prepareAddAccount(brokerProxy, mockAcctManager, expected);
@@ -657,7 +657,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             NoSuchFieldException, OperationCanceledException, IOException, AuthenticatorException {
         Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
-                "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID());
+                "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
         AccountManager mockAcctManager = mock(AccountManager.class);
         Bundle expected = new Bundle();
         Intent expectedIntent = new Intent();
@@ -846,17 +846,17 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     private static Object createAuthenticationRequest(String authority, String resource, String client, String redirect,
-            String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId)
+            String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId, boolean isExtendedLifetimeEnabled)
                     throws ClassNotFoundException, NoSuchMethodException,
                     InstantiationException, IllegalAccessException, InvocationTargetException {
 
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationRequest");
 
         Constructor<?> constructor = c.getDeclaredConstructor(String.class, String.class, String.class, String.class,
-                String.class, PromptBehavior.class, String.class, UUID.class);
+                String.class, PromptBehavior.class, String.class, UUID.class, boolean.class);
         constructor.setAccessible(true);
         Object o = constructor.newInstance(authority, resource, client, redirect, loginhint, prompt, extraQueryParams,
-                correlationId);
+                correlationId, isExtendedLifetimeEnabled);
         return o;
     }
 }
