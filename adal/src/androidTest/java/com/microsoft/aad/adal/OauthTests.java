@@ -393,9 +393,9 @@ public class OauthTests extends AndroidTestCase {
     @SmallTest
     public void testRefreshTokenWebResponsePositive() {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
-        String json = "{\"access_token\":\"sometokenhere\",\"token_type\":\"Bearer\"," +
-                "\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":" +
-                "\"refreshfasdfsdf435\",\"scope\":\"*\"}";
+        String json = "{\"access_token\":\"sometokenhere\",\"token_type\":\"Bearer\","
+                + "\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":"
+                + "\"refreshfasdfsdf435\",\"scope\":\"*\"}";
         webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_OK, json, null));
 
         // send request
@@ -496,9 +496,9 @@ public class OauthTests extends AndroidTestCase {
         final Oauth2 oauth2 = createOAuthInstance(request, new WebRequestHandler());
         final String idToken = Util.getIdToken();
         final String jsonResponse = "{\"id_token\":\"" + idToken
-                + "\",\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\"," +
-                "\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":" +
-                "\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
+                + "\",\"access_token\":\"sometokenhere2343=\",\"token_type\":\"Bearer\","
+                + "\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":"
+                + "\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
 
         // mock token request response
         final HttpURLConnection mockedConnection = mock(HttpURLConnection.class);
@@ -528,9 +528,9 @@ public class OauthTests extends AndroidTestCase {
                 "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
         final Oauth2 oauth2 = createOAuthInstance(request, new WebRequestHandler());
 
-        final String jsonResponse = "{\"access_token\":\"sometokenhere2343=\",\"token_type\":" +
-                "\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\"," +
-                "\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
+        final String jsonResponse = "{\"access_token\":\"sometokenhere2343=\",\"token_type\":"
+                + "\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\","
+                + "\"refresh_token\":\"refreshfasdfsdf435=\",\"scope\":\"*\"}";
 
         // mock token request response
         final HttpURLConnection mockedConnection = mock(HttpURLConnection.class);

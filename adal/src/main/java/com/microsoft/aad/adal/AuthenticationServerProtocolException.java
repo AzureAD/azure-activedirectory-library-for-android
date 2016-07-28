@@ -24,7 +24,7 @@
 package com.microsoft.aad.adal;
 
 /**
- * ADAL exception for device challenge processing
+ * ADAL exception for device challenge processing.
  */
 class AuthenticationServerProtocolException extends AuthenticationException {
 

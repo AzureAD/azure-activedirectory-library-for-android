@@ -157,7 +157,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * Gets if the ExtendedLifetime mode is enabled
+     * Gets if the ExtendedLifetime mode is enabled.
      *
      * @return True when ExtendedLifetime mode is enabled
      */
@@ -170,7 +170,7 @@ public class AuthenticationContext {
      * The default value of flag is false.
      * ADAL will return the stale token when ExtendedLifetime mode is enabled and the server is down
      *
-     * @param extendedLifetimeEnabled
+     * @param extendedLifetimeEnabled true if the ExtendedLifetime mode is on
      */
     public void setExtendedLifetimeEnabled(final boolean extendedLifetimeEnabled) {
         mExtendedLifetimeEnabled = extendedLifetimeEnabled;
@@ -205,8 +205,9 @@ public class AuthenticationContext {
         return null;
     }
 
-    /*
+    /**
      * Gets user info from broker. This should not be called on main thread.
+     * 
      * @return An array of {@link UserInfo} that haven been authenticated via broker(can be null).
      * 
      * @throws IOException if the broker returned an error response that indicates that it encountered an IOException
@@ -481,10 +482,10 @@ public class AuthenticationContext {
         final AtomicReference<Exception> exception = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
         if (StringExtensions.IsNullOrBlank(resource)) {
-            throw new IllegalArgumentException("resource");
+            throw new IllegalArgumentException("The input resource is null.");
         }
         if (StringExtensions.IsNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("clientId");
+            throw new IllegalArgumentException("The input clientId is null.");
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -734,6 +735,7 @@ public class AuthenticationContext {
      * @return true: if there is a valid waiting request and cancel message send
      *         successfully. false: Request does not exist or cancel message not
      *         send
+     * @throws AuthenticationException if failed to get the waiting request
      */
     public boolean cancelAuthenticationActivity(final int requestId) throws AuthenticationException {
         final  AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
@@ -808,14 +810,14 @@ public class AuthenticationContext {
         }
 
         return new IWindowComponent() {
-            Activity mRefActivity = activity;
+            Activity refActivity = activity;
 
             @Override
             public void startActivityForResult(Intent intent, int requestCode) {
                 // if user closed an app or switched to another activity
-                // mRefActivity can die before this method got invoked
-                if (mRefActivity != null) {
-                    mRefActivity.startActivityForResult(intent, requestCode);
+                // refActivity can die before this method got invoked
+                if (refActivity != null) {
+                    refActivity.startActivityForResult(intent, requestCode);
                 }
             }
         };
@@ -858,7 +860,7 @@ public class AuthenticationContext {
         if (!StringExtensions.IsNullOrBlank(authority)) {
 
             // excluding the starting https:// or http://
-            int thirdSlash = authority.indexOf("/", EXCLUDE_INDEX);
+            int thirdSlash = authority.indexOf('/', EXCLUDE_INDEX);
 
             // third slash is not the last character
             if (thirdSlash >= 0 && thirdSlash != (authority.length() - 1)) {
@@ -975,19 +977,19 @@ public class AuthenticationContext {
             Logger.e(TAG, "Request callback is not available for requestid:" + requestId,
                     "", ADALError.CALLBACK_IS_NOT_FOUND);
             throw new AuthenticationException(ADALError.CALLBACK_IS_NOT_FOUND,
-                    "Request callback is not available for requestid:" + String.valueOf(requestId));
+                    "Request callback is not available for requestid:" + requestId);
         }
 
         return request;
     }
 
     void putWaitingRequest(final int requestId, final AuthenticationRequestState requestState) {
-        Logger.v(TAG, "Put waiting request: " + requestId
-                + getCorrelationInfoFromWaitingRequest(requestState));
-
         if (requestState == null) {
             return;
         }
+        
+        Logger.v(TAG, "Put waiting request: " + requestId
+                + getCorrelationInfoFromWaitingRequest(requestState));
 
         synchronized (mDelegateMap) {
             mDelegateMap.put(requestId, requestState);
@@ -1039,6 +1041,7 @@ public class AuthenticationContext {
                 }
             });
         }
+        
         @Override
         public void set(V v) {
             super.set(v);

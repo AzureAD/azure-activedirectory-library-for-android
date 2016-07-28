@@ -39,12 +39,12 @@ import com.google.gson.annotations.SerializedName;
  * deserialization details. It provides a serializer to serialize the
  * TokenCacheItem and a deserializer to return the TokenCacheItem.
  */
-class SSOStateSerializer {
+final class SSOStateSerializer {
     /**
-     * The version number of {@link SSOStateSerializer }
+     * The version number of {@link SSOStateSerializer }.
      */
     @SerializedName("version")
-    private final int version = 1;
+    private final int mVersion = 1;
 
     /**
      * The {@link SSOStateSerializer } stores the FRT tokenCacheItem of the
@@ -58,12 +58,12 @@ class SSOStateSerializer {
      * lightweight TokenCacheItem, FamilyTokenCacheItemAdapter is used here to
      * register custom serializer.
      */
-    private static final Gson mGson = new GsonBuilder()
+    private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(TokenCacheItem.class, new TokenCacheItemSerializationAdapater())
             .create();
 
     private int getVersion() {
-        return version;
+        return mVersion;
     }
 
     /**
@@ -81,7 +81,7 @@ class SSOStateSerializer {
     }
 
     /**
-     * default constructor
+     * Default constructor.
      */
     private SSOStateSerializer() {
     }
@@ -101,18 +101,16 @@ class SSOStateSerializer {
     }
 
     /**
-     * Serialize the TokenCacheItem
-     * 
      * serialize the tokenCacheItem with Adapter.
      * 
      * @return String
      */
     private String internalSerialize() {
-        return mGson.toJson(this);
+        return GSON.toJson(this);
     }
 
     /**
-     * Deserialize the serializedBlob
+     * Deserialize the serializedBlob.
      * 
      * this function covers the details of the deserialization process
      * 
@@ -124,7 +122,7 @@ class SSOStateSerializer {
         try {
             final JSONObject jsonObject = new JSONObject(serializedBlob);
             if (jsonObject.getInt("version") == this.getVersion()) {
-                return mGson.fromJson(serializedBlob, SSOStateSerializer.class).getTokenItem();
+                return GSON.fromJson(serializedBlob, SSOStateSerializer.class).getTokenItem();
             } else {
                 throw new DeserializationAuthenticationException(
                         "Fail to deserialize because the blob version is incompatible. The version of the serializedBlob is "

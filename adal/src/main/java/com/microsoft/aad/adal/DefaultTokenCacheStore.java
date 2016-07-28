@@ -65,7 +65,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     .registerTypeAdapter(Date.class, new DateTimeAdapter())
     .create();
     private static StorageHelper sHelper;
-    private final static Object sLock = new Object();
+    private static final Object LOCK = new Object();
     /**
      * @param context {@link Context}
      */
@@ -102,10 +102,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     /**
-     * Method that allows to mock StorageHelper class and use custom encryption in UTs
+     * Method that allows to mock StorageHelper class and use custom encryption in UTs.
      */
     protected StorageHelper getStorageHelper() {
-        synchronized (sLock) {
+        synchronized (LOCK) {
             if (sHelper == null) {
                 Logger.v(TAG, "Started to initialize storage helper");
                 sHelper = new StorageHelper(mContext);
@@ -146,7 +146,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     @Override
     public TokenCacheItem getItem(String key) {
         if (key == null) {
-            throw new IllegalArgumentException("key");
+            throw new IllegalArgumentException("The key is null.");
         }
 
         if (mPrefs.contains(key)) {
@@ -209,25 +209,25 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * User can query over iterator values.
+     * 
+     * @return TokenCacheItem list iterator
      */
     @Override
     public Iterator<TokenCacheItem> getAll() {
         @SuppressWarnings("unchecked")
-        Map<String, String> results = (Map<String, String>)mPrefs.getAll();
+        Map<String, String> results = (Map<String, String>) mPrefs.getAll();
 
         // create objects
         final List<TokenCacheItem> tokens = new ArrayList<>(results.values().size());
         
         Iterator<Entry<String, String>> tokenResultEntrySet = results.entrySet().iterator();
-        while (tokenResultEntrySet.hasNext())
-        {
+        while (tokenResultEntrySet.hasNext()) {
             final Entry<String, String> tokenEntry = tokenResultEntrySet.next();
             final String tokenKey = tokenEntry.getKey();
             final String tokenValue = tokenEntry.getValue();
             
             final String decryptedValue = decrypt(tokenKey, tokenValue);
-            if (decryptedValue != null)
-            {
+            if (decryptedValue != null) {
                 final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
                 tokens.add(tokenCacheItem);
             }
@@ -347,9 +347,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     private void validateSecretKeySetting() {
         final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
-        if(secretKeyData == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            throw new IllegalArgumentException("Secret key must be provided for API < 18. " +
-                    "Use AuthenticationSettings.INSTANCE.setSecretKey()");
+        if (secretKeyData == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            throw new IllegalArgumentException("Secret key must be provided for API < 18. "
+                    + "Use AuthenticationSettings.INSTANCE.setSecretKey()");
         }
     }
 
@@ -376,7 +376,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return mPrefs.contains(key);
     }
     
-    private static class EncryptionDecryptionFailureEvent extends ClientAnalytics.Event {
+    private static final class EncryptionDecryptionFailureEvent extends ClientAnalytics.Event {
         private EncryptionDecryptionFailureEvent(final InstrumentationPropertiesBuilder builder, final boolean isEncryption) {
             super(isEncryption ? InstrumentationIDs.ENCRYPTION_EVENT : InstrumentationIDs.DECRYPTION_EVENT,
                     builder.add(InstrumentationIDs.EVENT_RESULT, InstrumentationIDs.EVENT_RESULT_FAIL)
