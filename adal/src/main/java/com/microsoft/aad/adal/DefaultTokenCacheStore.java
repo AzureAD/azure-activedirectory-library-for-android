@@ -74,7 +74,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             throw new IllegalArgumentException("Context is null");
         }
         mContext = context;
-        if (!StringExtensions.IsNullOrBlank(AuthenticationSettings.INSTANCE
+        if (!StringExtensions.isNullOrBlank(AuthenticationSettings.INSTANCE
                 .getSharedPrefPackageName())) {
             try {
                 // Context is created from specified packagename in order to
@@ -127,7 +127,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     }
 
     private String decrypt(final String key, final String value) {
-        if (StringExtensions.IsNullOrBlank(key)) {
+        if (StringExtensions.isNullOrBlank(key)) {
             throw new IllegalArgumentException("key is null or blank");
         }
         

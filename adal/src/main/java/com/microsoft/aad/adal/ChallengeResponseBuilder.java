@@ -37,16 +37,32 @@ class ChallengeResponseBuilder {
 
     private static final String TAG = "ChallengeResponseBuilder";
 
-    private IJWSBuilder mJWSBuilder;
+    private final IJWSBuilder mJWSBuilder;
 
     ChallengeResponseBuilder(IJWSBuilder jwsBuilder) {
         mJWSBuilder = jwsBuilder;
     }
 
     class ChallengeResponse {
-        String mSubmitUrl;
+        private String mSubmitUrl;
 
-        String mAuthorizationHeaderValue;
+        private String mAuthorizationHeaderValue;
+
+        String getSubmitUrl() {
+            return mSubmitUrl;
+        }
+
+        void setSubmitUrl(String submitUrl) {
+            mSubmitUrl = submitUrl;
+        }
+
+        String getAuthorizationHeaderValue() {
+            return mAuthorizationHeaderValue;
+        }
+
+        void setAuthorizationHeaderValue(String authorizationHeaderValue) {
+            mAuthorizationHeaderValue = authorizationHeaderValue;
+        }
     }
 
     enum RequestField {
@@ -54,23 +70,23 @@ class ChallengeResponseBuilder {
     }
 
     class ChallengeRequest {
-        String mNonce = "";
+        private String mNonce = "";
 
-        String mContext = "";
+        private String mContext = "";
 
         /**
          * Authorization endpoint will return accepted authorities.
          */
-        List<String> mCertAuthorities;
+        private List<String> mCertAuthorities;
 
         /**
          * Token endpoint will return thumbprint.
          */
-        String mThumbprint = "";
+        private String mThumbprint = "";
 
-        String mVersion = null;
+        private String mVersion = null;
 
-        String mSubmitUrl = "";
+        private String mSubmitUrl = "";
     }
 
     /**
@@ -103,37 +119,35 @@ class ChallengeResponseBuilder {
         // If not device cert exists, alias or privatekey will not exist on the
         // device
         @SuppressWarnings("unchecked")
-        Class<IDeviceCertificate> certClazz = (Class<IDeviceCertificate>)AuthenticationSettings.INSTANCE
+        Class<IDeviceCertificate> certClazz = (Class<IDeviceCertificate>) AuthenticationSettings.INSTANCE
                 .getDeviceCertificateProxy();
         if (certClazz != null) {
 
             IDeviceCertificate deviceCertProxy = getWPJAPIInstance(certClazz);
             if (deviceCertProxy.isValidIssuer(request.mCertAuthorities)
-                    || (deviceCertProxy.getThumbPrint() != null && deviceCertProxy.getThumbPrint()
-                            .equalsIgnoreCase(request.mThumbprint))) {
+                    || deviceCertProxy.getThumbPrint() != null && deviceCertProxy.getThumbPrint()
+                            .equalsIgnoreCase(request.mThumbprint)) {
                 RSAPrivateKey privateKey = deviceCertProxy.getRSAPrivateKey();
-                if (privateKey != null) {
-                    String jwt = mJWSBuilder.generateSignedJWT(request.mNonce, request.mSubmitUrl,
-                            privateKey, deviceCertProxy.getRSAPublicKey(),
-                            deviceCertProxy.getCertificate());
-                    response.mAuthorizationHeaderValue = String.format(
-                            "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
-                            AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, jwt,
-                            request.mContext, request.mVersion);
-                    Logger.v(TAG, "Challenge response:" + response.mAuthorizationHeaderValue);
-                } else {
+                if (privateKey == null) {
                     throw new AuthenticationException(ADALError.KEY_CHAIN_PRIVATE_KEY_EXCEPTION);
                 }
+                String jwt = mJWSBuilder.generateSignedJWT(request.mNonce, request.mSubmitUrl,
+                        privateKey, deviceCertProxy.getRSAPublicKey(),
+                        deviceCertProxy.getCertificate());
+                response.mAuthorizationHeaderValue = String.format(
+                        "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
+                        AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, jwt,
+                        request.mContext, request.mVersion);
+                Logger.v(TAG, "Challenge response:" + response.mAuthorizationHeaderValue);
             }
         }
 
         return response;
     }
     
-    private boolean isWorkplaceJoined()
-    {
+    private boolean isWorkplaceJoined() {
         @SuppressWarnings("unchecked")
-        Class<IDeviceCertificate> certClass = (Class<IDeviceCertificate>)AuthenticationSettings.INSTANCE.getDeviceCertificateProxy();
+        Class<IDeviceCertificate> certClass = (Class<IDeviceCertificate>) AuthenticationSettings.INSTANCE.getDeviceCertificateProxy();
         return certClass != null;
     }
 
@@ -143,9 +157,9 @@ class ChallengeResponseBuilder {
         final Constructor<?> constructor;
         try {
             constructor = certClazz.getDeclaredConstructor();
-            deviceCertProxy = (IDeviceCertificate)constructor.newInstance((Object[])null);
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
-                IllegalArgumentException | InvocationTargetException e) {
+            deviceCertProxy = (IDeviceCertificate) constructor.newInstance((Object[]) null);
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
+                | IllegalArgumentException | InvocationTargetException e) {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_API_EXCEPTION,
                     "WPJ Api constructor is not defined", e);
         }
@@ -165,14 +179,13 @@ class ChallengeResponseBuilder {
             throws UnsupportedEncodingException, AuthenticationException {
         final String methodName = ":getChallengeRequestFromHeader";
         
-        if (StringExtensions.IsNullOrBlank(headerValue)) {
+        if (StringExtensions.isNullOrBlank(headerValue)) {
             throw new AuthenticationServerProtocolException("headerValue");
         }
 
         // Header value should start with correct challenge type
         if (!StringExtensions.hasPrefixInHeader(headerValue,
-                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) 
-        {
+                AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
                     headerValue);
         }
@@ -183,21 +196,18 @@ class ChallengeResponseBuilder {
         ArrayList<String> queryPairs = StringExtensions.splitWithQuotes(authenticateHeader, ',');
         Map<String, String> headerItems = new HashMap<>();
 
-        for (String queryPair : queryPairs) 
-        {
+        for (String queryPair : queryPairs) {
             ArrayList<String> pair = StringExtensions.splitWithQuotes(queryPair, '=');
-            if (pair.size() == 2 && !StringExtensions.IsNullOrBlank(pair.get(0))
-                    && !StringExtensions.IsNullOrBlank(pair.get(1))) {
+            if (pair.size() == 2 && !StringExtensions.isNullOrBlank(pair.get(0))
+                    && !StringExtensions.isNullOrBlank(pair.get(1))) {
                 String key = pair.get(0);
                 String value = pair.get(1);
-                key = StringExtensions.URLFormDecode(key);
-                value = StringExtensions.URLFormDecode(value);
+                key = StringExtensions.urlFormDecode(key);
+                value = StringExtensions.urlFormDecode(value);
                 key = key.trim();
                 value = StringExtensions.removeQuoteInHeaderValue(value.trim());
                 headerItems.put(key, value);
-            } 
-            else 
-            {
+            } else {
                 // invalid format
                 throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
                         authenticateHeader);
@@ -206,7 +216,7 @@ class ChallengeResponseBuilder {
 
         validateChallengeRequest(headerItems, false);
         challenge.mNonce = headerItems.get(RequestField.Nonce.name());
-        if (StringExtensions.IsNullOrBlank(challenge.mNonce)) {
+        if (StringExtensions.isNullOrBlank(challenge.mNonce)) {
             challenge.mNonce = headerItems.get(RequestField.Nonce.name().toLowerCase(Locale.US));
         }
         
@@ -214,25 +224,18 @@ class ChallengeResponseBuilder {
         // challenge will be returned via 401 challenge), ADFS is sending back an empty cert thumbprint when they found
         // the device is not managed. To account for the behavior of how ADFS performs device auth, below code is checking 
         // if it's already workplace joined before checking the existence of cert thumprint or authority from returned challenge. 
-        if (!isWorkplaceJoined())
-        {
+        if (!isWorkplaceJoined()) {
             Logger.v(TAG + methodName, "Device is not workplace joined. ");
-        }
-        else if (!StringExtensions.IsNullOrBlank(headerItems.get(RequestField.CertThumbprint.name())))
-        {
+        } else if (!StringExtensions.isNullOrBlank(headerItems.get(RequestField.CertThumbprint.name()))) {
             Logger.v(TAG + methodName, "CertThumbprint exists in the device auth challenge.");
             challenge.mThumbprint = headerItems.get(RequestField.CertThumbprint.name());
-        }
-        else if (headerItems.containsKey(RequestField.CertAuthorities.name())) 
-        {
+        } else if (headerItems.containsKey(RequestField.CertAuthorities.name())) {
             Logger.v(TAG + methodName, "CertAuthorities exists in the device auth challenge.");
             String authorities = headerItems.get(RequestField.CertAuthorities.name());
             challenge.mCertAuthorities = StringExtensions.getStringTokens(authorities, 
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_CERT_AUTH_DELIMETER);
-        }
-        else 
-        {
-            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, 
+        } else {
+            throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
                 "Both certThumbprint and certauthorities are not present");
         }
         
@@ -242,7 +245,7 @@ class ChallengeResponseBuilder {
     }
 
     private void validateChallengeRequest(Map<String, String> headerItems,
-            boolean redirectFormat) throws AuthenticationException{
+            boolean redirectFormat) throws AuthenticationException {
         if (!(headerItems.containsKey(RequestField.Nonce.name()) || headerItems
                 .containsKey(RequestField.Nonce.name().toLowerCase(Locale.US)))) {
             throw new AuthenticationException(ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID, "Nonce");
@@ -267,7 +270,7 @@ class ChallengeResponseBuilder {
 
     private ChallengeRequest getChallengeRequest(final String redirectUri)
             throws AuthenticationException {
-        if (StringExtensions.IsNullOrBlank(redirectUri)) {
+        if (StringExtensions.isNullOrBlank(redirectUri)) {
             throw new AuthenticationServerProtocolException("redirectUri");
         }
 
@@ -275,7 +278,7 @@ class ChallengeResponseBuilder {
         HashMap<String, String> parameters = StringExtensions.getUrlParameters(redirectUri);
         validateChallengeRequest(parameters, true);
         challenge.mNonce = parameters.get(RequestField.Nonce.name());
-        if (StringExtensions.IsNullOrBlank(challenge.mNonce)) {
+        if (StringExtensions.isNullOrBlank(challenge.mNonce)) {
             challenge.mNonce = parameters.get(RequestField.Nonce.name().toLowerCase(Locale.US));
         }
         String authorities = parameters.get(RequestField.CertAuthorities.name());

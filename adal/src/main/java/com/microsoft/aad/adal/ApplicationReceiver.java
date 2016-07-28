@@ -52,58 +52,81 @@ public class ApplicationReceiver extends BroadcastReceiver {
 
     private static final String TAG = ApplicationReceiver.class.getSimpleName() + ":";
 
+    /**
+     *  Shared preference to track broker install.
+     */
     public static final String INSTALL_REQUEST_TRACK_FILE = "adal.broker.install.track";
 
+    /**
+     * Shared preference key for install request.
+     */
     public static final String INSTALL_REQUEST_KEY = "adal.broker.install.request";
-    
+
+    /**
+     * Shared preference timestamp for install.
+     */
     public static final String INSTALL_REQUEST_TIMESTAMP_KEY = "adal.broker.install.request.timestamp";
 
     private static final String INSTALL_UPN_KEY = "username";
 
+    /**
+     * Application link to open in the browser.
+     */
     public static final String INSTALL_URL_KEY = "app_link";
     
     // Allow 5 mins for broker app to be installed
     private static final int BROKER_APP_INSTALLATION_TIME_OUT = 5;
     
-    private BrokerProxy brokerProxy;
+    private BrokerProxy mBrokerProxy;
 
     /**
      * This method receives message for any application status based on filters
      * defined in your manifest.
+     *
+     * @param context ApplicationContext
+     * @param intent to get the installed package name
      */
     @Override
     public void onReceive(Context context, Intent intent) {
         // Check if the application is install and belongs to the broker package
         final String methodName = "onReceive";
-        if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
-            Logger.v(TAG + methodName, "Application install message is received");
-            if (intent.getData() != null) {
-                Logger.v(TAG + methodName, "ApplicationReceiver detectes the installation of " + intent.getData().toString());
-                final String receivedInstalledPackageName = intent.getData().toString();
-                if (receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME) ||
-                        receivedInstalledPackageName.equalsIgnoreCase("package:" + AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
-                    
-                    String request = getInstallRequestInthisApp(context);
-                    brokerProxy = new BrokerProxy(context);
-                    final Date dateTimeForSavedRequest = new Date(getInstallRequestTimeStamp(context));
-                    
-                    // Broker request will be resumed if 
-                    // 1) there is saved request in sharedPreference
-                    // 2) app has the correct configuration to get token from broker
-                    // 3) the saved request is not timeout
-                    if (!StringExtensions.IsNullOrBlank(request) && brokerProxy.canSwitchToBroker() 
-                            && isRequestTimestampValidForResume(dateTimeForSavedRequest)) {
-                        Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
-                        resumeRequestInBroker(context, request);
-                    } else {
-                        Logger.v(TAG + methodName, "No request saved in sharedpreferences or request already timeout"
-                                + ", cannot resume broker request.");
-                    }
-                }
+        if (!intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED) || intent.getData() == null) {
+            return;
+        }
+        Logger.v(TAG + methodName, "Application install message is received");
+        Logger.v(TAG + methodName, "ApplicationReceiver detectes the installation of " + intent.getData().toString());
+        final String receivedInstalledPackageName = intent.getData().toString();
+        if (receivedInstalledPackageName.equalsIgnoreCase("package:"
+                + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
+                || receivedInstalledPackageName.equalsIgnoreCase("package:"
+                + AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
+
+            String request = getInstallRequestInthisApp(context);
+            mBrokerProxy = new BrokerProxy(context);
+            final Date dateTimeForSavedRequest = new Date(getInstallRequestTimeStamp(context));
+
+            // Broker request will be resumed if
+            // 1) there is saved request in sharedPreference
+            // 2) app has the correct configuration to get token from broker
+            // 3) the saved request is not timeout
+            if (!StringExtensions.isNullOrBlank(request) && mBrokerProxy.canSwitchToBroker()
+                    && isRequestTimestampValidForResume(dateTimeForSavedRequest)) {
+                Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
+                resumeRequestInBroker(context, request);
+            } else {
+                Logger.v(TAG + methodName, "No request saved in sharedpreferences or request already timeout"
+                        + ", cannot resume broker request.");
             }
         }
     }
 
+    /**
+     * Save request fields into shared preference.
+     *
+     * @param ctx application context
+     * @param request AuthenticationRequest object
+     * @param url request url
+     */
     public static void saveRequest(final Context ctx, final AuthenticationRequest request, final String url) {
         final String methodName = "saveRequest";
         
@@ -128,9 +151,8 @@ public class ApplicationReceiver extends BroadcastReceiver {
             prefsEditor.putLong(INSTALL_REQUEST_TIMESTAMP_KEY, calendar.getTimeInMillis());
             
             prefsEditor.apply();
-        }
-        else {
-            Logger.v(TAG + methodName, "SharePreference is null, nothing saved.");
+        } else {
+            Logger.v(TAG + methodName, "SharedPreference is null, nothing saved.");
         }
     }
 
@@ -143,7 +165,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
     public static String getUserName(Context ctx) {
         Logger.v(TAG, "ApplicationReceiver:getUserName");
         String request = getInstallRequestInthisApp(ctx);
-        if (!StringExtensions.IsNullOrBlank(request)) {
+        if (!StringExtensions.isNullOrBlank(request)) {
             Gson gson = new Gson();
             AuthenticationRequest pendingRequest = gson.fromJson(request,
                     AuthenticationRequest.class);
@@ -154,7 +176,13 @@ public class ApplicationReceiver extends BroadcastReceiver {
 
         return null;
     }
-    
+
+    /**
+     * Read install request key from shared preference.
+     *
+     * @param context application context
+     * @return the request key stored in SharedPreference
+     */
     public static String getInstallRequestInthisApp(final Context context) {
         final String methodName = "getInstallRequestInthisApp";
         
@@ -214,7 +242,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
             public void run() {
                 Logger.v(TAG + methodName, "Running task in thread:" + android.os.Process.myTid() + ", trying to get intent for "
                         + "broker activity.");
-                final Intent resumeIntent = brokerProxy.getIntentForBrokerActivity(pendingRequest);
+                final Intent resumeIntent = mBrokerProxy.getIntentForBrokerActivity(pendingRequest);
                 resumeIntent.setAction(Intent.ACTION_PICK);
                 
                 Logger.v(TAG + methodName, "Setting flag for broker resume request for calling package " + context.getPackageName());
@@ -223,9 +251,9 @@ public class ApplicationReceiver extends BroadcastReceiver {
                 resumeIntent.putExtra(AuthenticationConstants.Broker.CALLER_INFO_PACKAGE, context.getPackageName());
 
                 final String brokerProtocolVersion = resumeIntent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
-                if (StringExtensions.IsNullOrBlank(brokerProtocolVersion)) {
+                if (StringExtensions.isNullOrBlank(brokerProtocolVersion)) {
                     Logger.v(TAG + methodName, "Broker request resume is not supported in the older version of broker.");
-                    return ;
+                    return;
                 }
                 
                 PackageManager packageManager = context.getPackageManager();

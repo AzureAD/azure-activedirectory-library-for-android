@@ -32,6 +32,10 @@ import junit.framework.Assert;
  */
 public class AuthenticationSettingsTests extends AndroidTestCase {
 
+    private static final int READ_TIMEOUT_1 = 1000;
+
+    private static final int READ_TIMEOUT_2 = 30000;
+
     public void testActivityPackageName() {
 
         // verify setter/getter
@@ -44,12 +48,12 @@ public class AuthenticationSettingsTests extends AndroidTestCase {
 
     public void testTimeOut() {
         // verify setter/getter for timeout
-        assertEquals("default timeout", 30000, AuthenticationSettings.INSTANCE.getReadTimeOut());
+        assertEquals("default timeout", READ_TIMEOUT_2, AuthenticationSettings.INSTANCE.getReadTimeOut());
 
         // Modify
-        AuthenticationSettings.INSTANCE.setReadTimeOut(1000);
+        AuthenticationSettings.INSTANCE.setReadTimeOut(READ_TIMEOUT_1);
 
-        assertEquals(1000, AuthenticationSettings.INSTANCE.getReadTimeOut());
+        assertEquals(READ_TIMEOUT_1, AuthenticationSettings.INSTANCE.getReadTimeOut());
 
         try {
             AuthenticationSettings.INSTANCE.setReadTimeOut(-1);
@@ -58,7 +62,7 @@ public class AuthenticationSettingsTests extends AndroidTestCase {
             assertTrue("argument exception", exc instanceof IllegalArgumentException);
         }
 
-        AuthenticationSettings.INSTANCE.setReadTimeOut(30000);
+        AuthenticationSettings.INSTANCE.setReadTimeOut(READ_TIMEOUT_2);
     }
 
     public void testHardwareAcceleration() {

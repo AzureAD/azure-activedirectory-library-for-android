@@ -38,6 +38,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -56,6 +57,7 @@ public class PackageHelperTests extends AndroidTestCase {
 
     private String mTestTag;
 
+    @SuppressLint("PackageManagerGetSignatures")
     protected void setUp() throws Exception {
         super.setUp();
         getContext().getCacheDir();
@@ -159,8 +161,7 @@ public class PackageHelperTests extends AndroidTestCase {
         Class<?> c = Class.forName("com.microsoft.aad.adal.PackageHelper");
         Constructor<?> constructorParams = c.getDeclaredConstructor(Context.class);
         constructorParams.setAccessible(true);
-        Object o = constructorParams.newInstance(mockContext);
-        return o;
+        return constructorParams.newInstance(mockContext);
     }
 
     private Context getMockContext(final Signature signature, final String packageName,
@@ -173,6 +174,7 @@ public class PackageHelperTests extends AndroidTestCase {
         return mockContext;
     }
 
+    @SuppressLint("PackageManagerGetSignatures")
     private PackageManager getPackageManager(final Signature signature, final String packageName,
                                              final int callingUID) throws NameNotFoundException {
         PackageManager mockPackage = mock(PackageManager.class);

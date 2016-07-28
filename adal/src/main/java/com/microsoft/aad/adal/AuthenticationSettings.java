@@ -36,6 +36,10 @@ public enum AuthenticationSettings {
 
     private static final int SECRET_RAW_KEY_LENGTH = 32;
 
+    private static final int DEFAULT_EXPIRATION_BUFFER = 300;
+
+    private static final int DEFAULT_READ_CONNECT_TIMEOUT = 30000;
+
     private AtomicReference<byte[]> mSecretKeyData = new AtomicReference<>();
 
     private String mBrokerPackageName = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
@@ -54,7 +58,7 @@ public enum AuthenticationSettings {
     private String mSharedPrefPackageName;
 
     /**
-     * set to be false in default 
+     * set to be false in default.
      * if user want to use broker
      * the mUseBroker should be set explicitly by calling {@link #setUseBroker(boolean)}
      */
@@ -63,11 +67,11 @@ public enum AuthenticationSettings {
     /**
      * Expiration buffer in seconds.
      */
-    private int mExpirationBuffer = 300;
+    private int mExpirationBuffer = DEFAULT_EXPIRATION_BUFFER;
 
-    private int mConnectTimeOut = 30000;
+    private int mConnectTimeOut = DEFAULT_READ_CONNECT_TIMEOUT;
 
-    private int mReadTimeOut = 30000;
+    private int mReadTimeOut = DEFAULT_READ_CONNECT_TIMEOUT;
 
     /**
      * Get bytes to derive secretKey to use in encrypt/decrypt.
@@ -107,6 +111,9 @@ public enum AuthenticationSettings {
      * @param packageName package name related to broker
      */
     public void setBrokerPackageName(String packageName) {
+        if (StringExtensions.isNullOrBlank(packageName)) {
+            throw new IllegalArgumentException("packageName cannot be empty or null");
+        }
         mBrokerPackageName = packageName;
     }
 
@@ -125,6 +132,9 @@ public enum AuthenticationSettings {
      * @param brokerSignature Signature for broker
      */
     public void setBrokerSignature(String brokerSignature) {
+        if (StringExtensions.isNullOrBlank(brokerSignature)) {
+            throw new IllegalArgumentException("brokerSignature cannot be empty or null");
+        }
         this.mBrokerSignature = brokerSignature;
     }
 
@@ -167,11 +177,16 @@ public enum AuthenticationSettings {
      * @param activityPackageName activity to use from different package
      */
     public void setActivityPackageName(String activityPackageName) {
-        this.mActivityPackageName = activityPackageName;
+        if (StringExtensions.isNullOrBlank(activityPackageName)) {
+            throw new IllegalArgumentException("activityPackageName cannot be empty or null");
+        }
+        mActivityPackageName = activityPackageName;
     }
 
     /**
      * @deprecated As of release 1.1.14, replaced by {@link #getUseBroker()}
+     *
+     * @return true if broker is not used, false otherwise
      */
     @Deprecated 
     public boolean getSkipBroker() {
@@ -180,6 +195,8 @@ public enum AuthenticationSettings {
 
     /**
      * @deprecated As of release 1.1.14, replaced by {@link #setUseBroker(boolean)}
+     *
+     * @param skip true if broker has to be skipped, false otherwise
      */
     @Deprecated 
     public void setSkipBroker(boolean skip) {
@@ -245,6 +262,11 @@ public enum AuthenticationSettings {
         this.mExpirationBuffer = expirationBuffer;
     }
 
+    /**
+     * Get the connect timeout.
+     *
+     * @return connect timeout
+     */
     public int getConnectTimeOut() {
         return mConnectTimeOut;
     }
@@ -256,7 +278,6 @@ public enum AuthenticationSettings {
      * 30000 milliseconds.
      * 
      * @param timeOutMillis the non-negative connect timeout in milliseconds.
-     * @throws IllegalArgumentException if timeoutMillis < 0.
      */
     public void setConnectTimeOut(int timeOutMillis) {
         if (timeOutMillis < 0) {
@@ -265,6 +286,11 @@ public enum AuthenticationSettings {
         this.mConnectTimeOut = timeOutMillis;
     }
 
+    /**
+     * Get the read timeout
+     *
+     * @return read timeout
+     */
     public int getReadTimeOut() {
         return mReadTimeOut;
     }

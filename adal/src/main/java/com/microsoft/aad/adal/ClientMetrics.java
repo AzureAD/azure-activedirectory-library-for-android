@@ -98,11 +98,11 @@ enum ClientMetrics {
     }
 
     public void setLastError(String errorCode) {
-        mLastError = (errorCode != null) ? errorCode.replaceAll("[\\[\\]]", "") : "";
+        mLastError = (errorCode == null) ? "" : errorCode.replaceAll("[\\[\\]]", "");
     }
 
     public void setLastErrorCodes(String[] errorCodes) {
-        mLastError = (errorCodes != null) ? android.text.TextUtils.join(",", errorCodes) : null;
+        mLastError = (errorCodes == null) ? null : android.text.TextUtils.join(",", errorCodes);
     }
 
     private void addClientMetricsHeadersToRequest(Map<String, String> headers) {

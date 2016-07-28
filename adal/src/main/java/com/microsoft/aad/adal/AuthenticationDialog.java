@@ -44,19 +44,17 @@ import java.io.UnsupportedEncodingException;
 class AuthenticationDialog {
     protected static final String TAG = "AuthenticationDialog";
 
-    private Context mContext;
+    private final Context mContext;
 
-    private AcquireTokenRequest mAcquireTokenRequest;
+    private final AcquireTokenRequest mAcquireTokenRequest;
 
-    private AuthenticationRequest mRequest;
+    private final AuthenticationRequest mRequest;
 
-    private Handler mHandlerInView;
+    private final Handler mHandlerInView;
 
     private Dialog mDialog;
 
     private WebView mWebView;
-
-    private String mQueryParameters;
 
     public AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
             AuthenticationRequest request) {
@@ -80,14 +78,14 @@ class AuthenticationDialog {
 
             @Override
             public void run() {
-                LayoutInflater inflater = (LayoutInflater)mContext
+                LayoutInflater inflater = (LayoutInflater) mContext
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
 
                 // using static layout
                 View webviewInDialog = inflater.inflate(
                         getResourceId("dialog_authentication", "layout"), null);
-                mWebView = (WebView)webviewInDialog.findViewById(getResourceId(
+                mWebView = (WebView) webviewInDialog.findViewById(getResourceId(
                         "com_microsoft_aad_adal_webView1", "id"));
                 if (mWebView == null) {
                     Logger.e(
@@ -130,10 +128,9 @@ class AuthenticationDialog {
                     @Override
                     public boolean onTouch(View view, MotionEvent event) {
                         int action = event.getAction();
-                        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP) {
-                            if (!view.hasFocus()) {
-                                view.requestFocus();
-                            }
+                        if ((action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP)
+                                && !view.hasFocus()) {
+                            view.requestFocus();
                         }
                         return false;
                     }
@@ -147,10 +144,10 @@ class AuthenticationDialog {
                 try {
                     Oauth2 oauth = new Oauth2(mRequest);
                     final String startUrl = oauth.getCodeRequestUrl();
-                    mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
+                    final String queryParameters = oauth.getAuthorizationEndpointQueryParameters();
                     final String stopRedirect = mRequest.getRedirectUri();
                     mWebView.setWebViewClient(new DialogWebViewClient(mContext, stopRedirect,
-                            mQueryParameters, mRequest
+                            queryParameters, mRequest
 
                     ));
                     mWebView.post(new Runnable() {
@@ -212,7 +209,7 @@ class AuthenticationDialog {
                     @Override
                     public void run() {
                         if (mDialog != null && mDialog.isShowing()) {
-                            ProgressBar progressBar = (ProgressBar)mDialog
+                            ProgressBar progressBar = (ProgressBar) mDialog
                                     .findViewById(getResourceId(
                                             "com_microsoft_aad_adal_progressBar", "id"));
                             if (progressBar != null) {
@@ -262,8 +259,8 @@ class AuthenticationDialog {
         }
 
         @Override
-        public void prepareForBrokerResumeRequest() 
-        {
+        public void prepareForBrokerResumeRequest() {
+            // Method intentionally left blank
         }
     }
 }

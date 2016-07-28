@@ -65,6 +65,8 @@ final class PRNGFixes {
 
     private static final byte[] BUILD_FINGERPRINT_AND_DEVICE_SERIAL = getBuildFingerprintAndDeviceSerial();
 
+    private static final int ONE_KB = 1024;
+
     private static final String TAG = "PRNGFixes";
 
     /** Hidden constructor to prevent instantiation. */
@@ -88,8 +90,8 @@ final class PRNGFixes {
      * @throws SecurityException if the fix is needed but could not be applied.
      */
     private static void applyOpenSSLFix() throws SecurityException {
-        if ((Build.VERSION.SDK_INT < VERSION_CODE_JELLY_BEAN)
-                || (Build.VERSION.SDK_INT > VERSION_CODE_JELLY_BEAN_MR2)) {
+        if (Build.VERSION.SDK_INT < VERSION_CODE_JELLY_BEAN
+                || Build.VERSION.SDK_INT > VERSION_CODE_JELLY_BEAN_MR2) {
             // No need to apply the fix
             Logger.v(TAG, "No need to apply the fix");
             return;
@@ -99,11 +101,11 @@ final class PRNGFixes {
             Class.forName("org.apache.harmony.xnet.provider.jsse.NativeCrypto")
                     .getMethod("RAND_seed", byte[].class).invoke(null, generateSeed());
             // Mix output of Linux PRNG into OpenSSL's PRNG
-            int bytesRead = (Integer)Class
+            int bytesRead = (Integer) Class
                     .forName("org.apache.harmony.xnet.provider.jsse.NativeCrypto")
                     .getMethod("RAND_load_file", String.class, long.class)
-                    .invoke(null, "/dev/urandom", 1024);
-            if (bytesRead != 1024) {
+                    .invoke(null, "/dev/urandom", ONE_KB);
+            if (bytesRead != ONE_KB) {
                 throw new IOException("Unexpected number of bytes read from Linux PRNG: "
                         + bytesRead);
             }
@@ -129,10 +131,9 @@ final class PRNGFixes {
         // Install a Linux PRNG-based SecureRandom implementation as the
         // default, if not yet installed.
         Provider[] secureRandomProviders = Security.getProviders("SecureRandom.SHA1PRNG");
-        if ((secureRandomProviders == null)
-                || (secureRandomProviders.length < 1)
-                || (!LinuxPRNGSecureRandomProvider.class
-                        .equals(secureRandomProviders[0].getClass()))) {
+        if (secureRandomProviders == null
+                || secureRandomProviders.length < 1
+                || !LinuxPRNGSecureRandomProvider.class.equals(secureRandomProviders[0].getClass())) {
             Logger.v(TAG, "insert provider as LinuxPRNGSecureRandomProvider");
             Security.insertProviderAt(new LinuxPRNGSecureRandomProvider(), 1);
         }
@@ -184,18 +185,18 @@ final class PRNGFixes {
          * this class seed themselves by mixing in the current time, PID, UID,
          * build fingerprint, and hardware serial number (where available) into
          * Linux PRNG. Concurrency: Read requests to the underlying Linux PRNG
-         * are serialized (on sLock) to ensure that multiple threads do not get
+         * are serialized (on SLOCK) to ensure that multiple threads do not get
          * duplicated PRNG output.
          */
         private static final File URANDOM_FILE = new File("/dev/urandom");
 
-        private static final Object sLock = new Object();
+        private static final Object SLOCK = new Object();
 
         /**
          * Input stream for reading from Linux PRNG or {@code null} if not yet
          * opened.
          * 
-         * GuardedBy("sLock")
+         * GuardedBy("SLOCK")
          */
         private static DataInputStream sUrandomIn;
 
@@ -203,7 +204,7 @@ final class PRNGFixes {
          * Output stream for writing to Linux PRNG or {@code null} if not yet
          * opened.
          * 
-         * GuardedBy("sLock")
+         * GuardedBy("SLOCK")
          */
         private static OutputStream sUrandomOut;
 
@@ -218,7 +219,7 @@ final class PRNGFixes {
         protected void engineSetSeed(byte[] bytes) {
             try {
                 OutputStream out;
-                synchronized (sLock) {
+                synchronized (SLOCK) {
                     out = getUrandomOutputStream();
                 }
                 out.write(bytes);
@@ -240,7 +241,7 @@ final class PRNGFixes {
             }
             try {
                 DataInputStream in;
-                synchronized (sLock) {
+                synchronized (SLOCK) {
                     in = getUrandomInputStream();
                     in.readFully(bytes);
                 }
@@ -257,7 +258,7 @@ final class PRNGFixes {
         }
 
         private DataInputStream getUrandomInputStream() {
-            synchronized (sLock) {
+            synchronized (SLOCK) {
                 if (sUrandomIn == null) {
                     // NOTE: Consider inserting a BufferedInputStream between
                     // DataInputStream and FileInputStream if you need higher
@@ -275,7 +276,7 @@ final class PRNGFixes {
         }
 
         private OutputStream getUrandomOutputStream() throws IOException {
-            synchronized (sLock) {
+            synchronized (SLOCK) {
                 if (sUrandomOut == null) {
                     sUrandomOut = new FileOutputStream(URANDOM_FILE);
                 }
@@ -313,7 +314,7 @@ final class PRNGFixes {
         // We're using the Reflection API because Build.SERIAL is only available
         // since API Level 9 (Gingerbread, Android 2.3).
         try {
-            return (String)Build.class.getField("SERIAL").get(null);
+            return (String) Build.class.getField("SERIAL").get(null);
         } catch (Exception ignored) {
             return null;
         }
@@ -332,7 +333,7 @@ final class PRNGFixes {
         try {
             return result.toString().getBytes("UTF-8");
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("UTF-8 encoding not supported");
+            throw new RuntimeException("UTF-8 encoding not supported", e);
         }
     }
 }

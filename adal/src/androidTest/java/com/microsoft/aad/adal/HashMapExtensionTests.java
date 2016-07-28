@@ -41,7 +41,7 @@ public class HashMapExtensionTests extends AndroidTestHelper {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
 
-        final String methodName = "URLFormDecode";
+        final String methodName = "urlFormDecode";
         Object foo = ReflectionUtils.getNonPublicInstance("com.microsoft.aad.adal.HashMapExtensions");
         Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
         HashMap<String, String> result = (HashMap<String, String>) m.invoke(foo, "nokeyvalue");
@@ -78,7 +78,7 @@ public class HashMapExtensionTests extends AndroidTestHelper {
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
 
-        final String methodName = "URLFormDecode";
+        final String methodName = "urlFormDecode";
         Object foo = ReflectionUtils.getNonPublicInstance("com.microsoft.aad.adal.HashMapExtensions");
         Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
         HashMap<String, String> result = (HashMap<String, String>) m.invoke(foo, "a=b&c=2");

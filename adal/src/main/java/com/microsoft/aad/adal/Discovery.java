@@ -90,11 +90,11 @@ final class Discovery {
         // For comparison purposes, convert to lowercase Locale.US
         // getProtocol returns scheme and it is available if it is absolute url
         // Authority is in the form of https://Instance/tenant/somepath
-        if (authorizationEndpoint == null || StringExtensions.IsNullOrBlank(authorizationEndpoint.getHost())
+        if (authorizationEndpoint == null || StringExtensions.isNullOrBlank(authorizationEndpoint.getHost())
                 || !authorizationEndpoint.getProtocol().equals("https")
-                || !StringExtensions.IsNullOrBlank(authorizationEndpoint.getQuery())
-                || !StringExtensions.IsNullOrBlank(authorizationEndpoint.getRef())
-                || StringExtensions.IsNullOrBlank(authorizationEndpoint.getPath())) {
+                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getQuery())
+                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getRef())
+                || StringExtensions.isNullOrBlank(authorizationEndpoint.getPath())) {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
         }
 
@@ -203,7 +203,7 @@ final class Discovery {
      */
     private void addValidHostToList(URL validhost) {
         String validHost = validhost.getHost();
-        if (!StringExtensions.IsNullOrBlank(validHost)) {
+        if (!StringExtensions.isNullOrBlank(validHost)) {
             // for comparisons it uses Locale.US, so it needs to be same
             // here
             VALID_HOSTS.add(validHost.toLowerCase(Locale.US));

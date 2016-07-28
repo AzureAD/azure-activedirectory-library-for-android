@@ -36,7 +36,6 @@ import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -52,6 +51,7 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorDescription;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -78,6 +78,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     private String mTestTag;
 
     @Override
+    @SuppressLint("PackageManagerGetSignatures")
     protected void setUp() throws Exception {
         super.setUp();
         getContext().getCacheDir();
@@ -596,7 +597,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
-        setMockProxyForErrorCheck(brokerProxy, acctName, AccountManager.ERROR_CODE_BAD_AUTHENTICATION,
+        setMockProxyForErrorCheck(brokerProxy, acctName, AccountManager.ERROR_CODE_BAD_ARGUMENTS,
                 "testErrorMessage");
 
         // action
@@ -606,7 +607,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             Assert.fail("should throw");
         } catch (Exception ex) {
             assertTrue("Exception type check", ex.getCause() instanceof AuthenticationException);
-            assertEquals("check error code", ADALError.BROKER_AUTHENTICATOR_BAD_AUTHENTICATION,
+            assertEquals("check error code", ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS,
                     ((AuthenticationException) ex.getCause()).getCode());
         }
     }
@@ -825,6 +826,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         return mockContext;
     }
 
+    @SuppressLint("PackageManagerGetSignatures")
     private PackageManager getPackageManager(final Signature signature, final String packageName,
             boolean permissionStatus) throws NameNotFoundException {
         PackageManager mockPackage = mock(PackageManager.class);

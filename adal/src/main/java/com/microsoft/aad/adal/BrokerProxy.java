@@ -49,6 +49,7 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorDescription;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -92,6 +93,8 @@ class BrokerProxy implements IBrokerProxy {
     public static final String DATA_USER_INFO = "com.microsoft.workaccount.user.info";
 
     private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
+
+    private static final String AUTHENTICATOR_CANCELS_REQUEST = "uthenticator cancels the request";
 
     public BrokerProxy() {
         mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
@@ -259,12 +262,12 @@ class BrokerProxy implements IBrokerProxy {
                 // token is not available
                 authResult = getResultFromBrokerResponse(bundleResult);
             } catch (OperationCanceledException e) {
-                Logger.e(TAG, "Authenticator cancels the request", "", ADALError.AUTH_FAILED_CANCELLED, e);
+                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
             } catch (AuthenticatorException e) {
-                Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
             } catch (IOException e) {
                 // Authenticator gets problem from webrequest or file read/write
-                Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
+                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
             }
 
             Logger.v(TAG, "Returning result from broker");
@@ -283,8 +286,8 @@ class BrokerProxy implements IBrokerProxy {
 
         int errCode = bundleResult.getInt(AccountManager.KEY_ERROR_CODE);
         String msg = bundleResult.getString(AccountManager.KEY_ERROR_MESSAGE);
-        if (!StringExtensions.IsNullOrBlank(msg)) {
-            ADALError adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
+        if (!StringExtensions.isNullOrBlank(msg)) {
+            final ADALError adalErrorCode;
             switch (errCode) {
             case AccountManager.ERROR_CODE_BAD_ARGUMENTS:
                 adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS;
@@ -295,6 +298,8 @@ class BrokerProxy implements IBrokerProxy {
             case AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION:
                 adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
                 break;
+            default:
+                adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
             }
 
             throw new AuthenticationException(adalErrorCode, msg);
@@ -423,15 +428,15 @@ class BrokerProxy implements IBrokerProxy {
                 }
             }
         } catch (OperationCanceledException e) {
-            Logger.e(TAG, "Authenticator cancels the request", "", ADALError.AUTH_FAILED_CANCELLED, e);
+            Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
         } catch (AuthenticatorException e) {
             //
             // TODO add retry logic since authenticator is not responding to
             // the request
-            Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, e);
+            Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, e);
         } catch (IOException e) {
             // Authenticator gets problem from webrequest or file read/write
-            Logger.e(TAG, "Authenticator cancels the request", "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
+            Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
         }
 
         return intent;
@@ -479,7 +484,7 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         String username = request.getBrokerAccountName();
-        if (StringExtensions.IsNullOrBlank(username)) {
+        if (StringExtensions.isNullOrBlank(username)) {
             username = request.getLoginHint();
         }
 
@@ -554,11 +559,11 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private boolean verifyAccount(Account[] accountList, String username, String uniqueId) {
-        if (!StringExtensions.IsNullOrBlank(username)) {
+        if (!StringExtensions.isNullOrBlank(username)) {
             return username.equalsIgnoreCase(accountList[0].name);
         }
 
-        if (!StringExtensions.IsNullOrBlank(uniqueId)) {
+        if (!StringExtensions.isNullOrBlank(uniqueId)) {
             // Uniqueid for account at authenticator is not available with
             // Account
             UserInfo[] users;
@@ -631,8 +636,8 @@ class BrokerProxy implements IBrokerProxy {
 
             // Check the hash for signer cert is the same as what we hardcoded.
             final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
-            if (mBrokerTag.equals(signatureHash) ||
-                    AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE.equals(signatureHash)) {
+            if (mBrokerTag.equals(signatureHash)
+                    || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_SIGNATURE.equals(signatureHash)) {
                 return;
             }
         }
@@ -640,6 +645,7 @@ class BrokerProxy implements IBrokerProxy {
         throw new AuthenticationException(ADALError.BROKER_APP_VERIFICATION_FAILED);
     }
 
+    @SuppressLint("PackageManagerGetSignatures")
     private List<X509Certificate> readCertDataForBrokerApp(final String brokerPackageName)
             throws NameNotFoundException, AuthenticationException, IOException,
             GeneralSecurityException {

@@ -43,6 +43,10 @@ android {
 
     lintOptions {
         abortOnError false
+        disable 'MissingPermission'
+        disable 'LongLogTag'
+        disable 'DefaultLocale'
+        disable 'UnusedResources'
     }
 
     libraryVariants.all { variant ->

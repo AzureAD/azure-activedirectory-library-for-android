@@ -29,6 +29,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -64,6 +65,7 @@ class PackageHelper {
      * @param packagename name of the package for which signature should be returned
      * @return signature for package
      */
+    @SuppressLint("PackageManagerGetSignatures")
     public String getCurrentSignatureForPackage(final String packagename) {
         try {
             PackageInfo info = mContext.getPackageManager().getPackageInfo(packagename,
@@ -113,8 +115,8 @@ class PackageHelper {
      * @return broker redirect url
      */
     public static String getBrokerRedirectUrl(final String packageName, final String signatureDigest) {
-        if (!StringExtensions.IsNullOrBlank(packageName)
-                && !StringExtensions.IsNullOrBlank(signatureDigest)) {
+        if (!StringExtensions.isNullOrBlank(packageName)
+                && !StringExtensions.isNullOrBlank(signatureDigest)) {
             try {
                 return String.format("%s://%s/%s", AuthenticationConstants.Broker.REDIRECT_PREFIX,
                         URLEncoder.encode(packageName, AuthenticationConstants.ENCODING_UTF8),

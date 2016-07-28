@@ -169,7 +169,7 @@ public class StorageHelper {
             throws GeneralSecurityException, IOException {
         Logger.v(TAG, "Starting encryption");
 
-        if (StringExtensions.IsNullOrBlank(clearText)) {
+        if (StringExtensions.isNullOrBlank(clearText)) {
             throw new IllegalArgumentException("Input is empty or null");
         }
 
@@ -231,7 +231,7 @@ public class StorageHelper {
             throws GeneralSecurityException, IOException {
         Logger.v(TAG, "Starting decryption");
 
-        if (StringExtensions.IsNullOrBlank(encryptedBlob)) {
+        if (StringExtensions.isNullOrBlank(encryptedBlob)) {
             throw new IllegalArgumentException("Input is empty or null");
         }
 

@@ -104,9 +104,9 @@ public class AuthenticationActivity extends Activity {
 
     private Bundle mAuthenticatorResultBundle = null;
 
-    private IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
+    private final IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
 
-    private IJWSBuilder mJWSBuilder = new JWSBuilder();
+    private final IJWSBuilder mJWSBuilder = new JWSBuilder();
 
     private String mQueryParameters;
 
@@ -283,11 +283,11 @@ public class AuthenticationActivity extends Activity {
         setupWebView();
 
         // Also log correlation id
-        if (mAuthRequest.getCorrelationId() != null) {
+        if (mAuthRequest.getCorrelationId() == null) {
+            Logger.v(TAG, "Null correlation id in the request.");
+        } else {
             Logger.v(TAG, "Correlation id for request sent is:"
                     + mAuthRequest.getCorrelationId().toString());
-        } else {
-            Logger.v(TAG, "Null correlation id in the request.");
         }
 
         if (savedInstanceState == null) {
@@ -309,7 +309,7 @@ public class AuthenticationActivity extends Activity {
         // Allow intune's signature check
         PackageHelper info = new PackageHelper(AuthenticationActivity.this);
         String packageName = getCallingPackage();
-        if (!StringExtensions.IsNullOrBlank(packageName)) {
+        if (!StringExtensions.isNullOrBlank(packageName)) {
 
             if (packageName.equals(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
                 Logger.v(TAG, "isCallerBrokerInstaller: same package as broker " + packageName);
@@ -354,10 +354,8 @@ public class AuthenticationActivity extends Activity {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
                 int action = event.getAction();
-                if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP) {
-                    if (!view.hasFocus()) {
-                        view.requestFocus();
-                    }
+                if ((action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP) && !view.hasFocus()) {
+                    view.requestFocus();
                 }
                 return false;
             }
@@ -392,14 +390,14 @@ public class AuthenticationActivity extends Activity {
             String prompt = callingIntent
                     .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT);
             PromptBehavior promptBehavior = PromptBehavior.Auto;
-            if (!StringExtensions.IsNullOrBlank(prompt)) {
+            if (!StringExtensions.isNullOrBlank(prompt)) {
                 promptBehavior = PromptBehavior.valueOf(prompt);
             }
 
             mWaitingRequestId = callingIntent.getIntExtra(
                     AuthenticationConstants.Browser.REQUEST_ID, 0);
             UUID correlationIdParsed = null;
-            if (!StringExtensions.IsNullOrBlank(correlationId)) {
+            if (!StringExtensions.isNullOrBlank(correlationId)) {
                 try {
                     correlationIdParsed = UUID.fromString(correlationId);
                 } catch (IllegalArgumentException ex) {
@@ -445,8 +443,8 @@ public class AuthenticationActivity extends Activity {
     }
 
     private String getBrokerStartUrl(String loadUrl, String packageName, String signatureDigest) {
-        if (!StringExtensions.IsNullOrBlank(packageName)
-                && !StringExtensions.IsNullOrBlank(signatureDigest)) {
+        if (!StringExtensions.isNullOrBlank(packageName)
+                && !StringExtensions.isNullOrBlank(signatureDigest)) {
             try {
                 return loadUrl + "&package_name="
                         + URLEncoder.encode(packageName, AuthenticationConstants.ENCODING_UTF8)
@@ -465,7 +463,7 @@ public class AuthenticationActivity extends Activity {
     private boolean isBrokerRequest(Intent callingIntent) {
         // Intent should have a flag and activity is hosted inside broker
         return callingIntent != null
-                && !StringExtensions.IsNullOrBlank(callingIntent
+                && !StringExtensions.isNullOrBlank(callingIntent
                 .getStringExtra(AuthenticationConstants.Broker.BROKER_REQUEST));
     }
 
@@ -483,13 +481,13 @@ public class AuthenticationActivity extends Activity {
             data = new Intent();
         }
 
-        if (mAuthRequest != null) {
+        if (mAuthRequest == null) {
+            Logger.w(TAG, "Request object is null", "",
+                    ADALError.ACTIVITY_REQUEST_INTENT_DATA_IS_NULL);
+        } else {
             // set request id related to this response to send the delegateId
             Logger.v(TAG, "REQUEST_ID for caller returned to:" + mAuthRequest.getRequestId());
             data.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthRequest.getRequestId());
-        } else {
-            Logger.w(TAG, "Request object is null", "",
-                    ADALError.ACTIVITY_REQUEST_INTENT_DATA_IS_NULL);
         }
 
         setResult(resultCode, data);
@@ -592,18 +590,7 @@ public class AuthenticationActivity extends Activity {
         }
 
         public void processRedirectUrl(final WebView view, String url) {
-            if (!isBrokerRequest(getIntent())) {
-                // It is pointing to redirect. Final url can be processed to
-                // get the code or error.
-                Logger.i(TAG, "It is not a broker request", "");
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
-                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                        mAuthRequest);
-                returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
-                        resultIntent);
-                view.stopLoading();
-            } else {
+            if (isBrokerRequest(getIntent())) {
                 Logger.i(TAG, "It is a broker request", "");
                 displaySpinnerWithMessage(AuthenticationActivity.this
                         .getText(AuthenticationActivity.this.getResources().getIdentifier(
@@ -615,7 +602,19 @@ public class AuthenticationActivity extends Activity {
                 // access token
                 new TokenTask(mWebRequestHandler, mAuthRequest, mCallingPackage, mCallingUID)
                         .execute(url);
+                return;
             }
+
+            // It is pointing to redirect. Final url can be processed to
+            // get the code or error.
+            Logger.i(TAG, "It is not a broker request", "");
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
+            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                    mAuthRequest);
+            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
+                    resultIntent);
+            view.stopLoading();
         }
 
         public boolean processInvalidUrl(final WebView view, String url) {
@@ -630,17 +629,20 @@ public class AuthenticationActivity extends Activity {
                         mRedirectUrl));
                 view.stopLoading();
                 return true;
-            } else if (url.toLowerCase(Locale.US).equals("about:blank")) {
+            }
+
+            if (url.toLowerCase(Locale.US).equals("about:blank")) {
                 Logger.v(TAG, "It is an blank page request");
                 return true;
-            } else if (!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX)) {
+            }
+
+            if (!url.toLowerCase(Locale.US).startsWith(AuthenticationConstants.Broker.REDIRECT_SSL_PREFIX)) {
                 Logger.e(TAG + methodName, "The webview was redirected to an unsafe URL.", "", ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED);
                 returnError(ADALError.WEBVIEW_REDIRECTURL_NOT_SSL_PROTECTED, "The webview was redirected to an unsafe URL.");
                 view.stopLoading();
                 return true;
-            } else {
-                return false;
             }
+            return false;
         }
 
         public void showSpinner(boolean status) {
@@ -765,11 +767,11 @@ public class AuthenticationActivity extends Activity {
         if (isBrokerRequest(getIntent()) && mAccountAuthenticatorResponse != null) {
             // send the result bundle back if set, otherwise send an error.
             Logger.v(TAG, "It is a broker request");
-            if (mAuthenticatorResultBundle != null) {
-                mAccountAuthenticatorResponse.onResult(mAuthenticatorResultBundle);
-            } else {
+            if (mAuthenticatorResultBundle == null) {
                 mAccountAuthenticatorResponse.onError(AccountManager.ERROR_CODE_CANCELED,
                         "canceled");
+            } else {
+                mAccountAuthenticatorResponse.onResult(mAuthenticatorResultBundle);
             }
             mAccountAuthenticatorResponse = null;
         }
@@ -797,17 +799,18 @@ public class AuthenticationActivity extends Activity {
      */
     class TokenTask extends AsyncTask<String, String, TokenTaskResult> {
 
-        String mPackageName;
+        private String mPackageName;
 
-        int mAppCallingUID;
+        private int mAppCallingUID;
 
-        AuthenticationRequest mRequest;
+        private AuthenticationRequest mRequest;
 
-        AccountManager mAccountManager;
+        private AccountManager mAccountManager;
 
-        IWebRequestHandler mRequestHandler;
+        private IWebRequestHandler mRequestHandler;
 
         public TokenTask() {
+            // Intentionally left blank
         }
 
         public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
@@ -824,15 +827,15 @@ public class AuthenticationActivity extends Activity {
             Oauth2 oauthRequest = new Oauth2(mRequest, mRequestHandler, mJWSBuilder);
             TokenTaskResult result = new TokenTaskResult();
             try {
-                result.taskResult = oauthRequest.getToken(urlItems[0]);
+                result.mTaskResult = oauthRequest.getToken(urlItems[0]);
                 Logger.v(TAG, "Process result returned from TokenTask.", mRequest.getLogInfo(), null);
             } catch (IOException | AuthenticationException exc) {
                 Logger.e(TAG, "Error in processing code to get a token. ", mRequest.getLogInfo(),
                         ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, exc);
-                result.taskException = exc;
+                result.mTaskException = exc;
             }
 
-            if (result.taskResult != null && result.taskResult.getAccessToken() != null) {
+            if (result.mTaskResult != null && result.mTaskResult.getAccessToken() != null) {
                 Logger.v(TAG, "Token task successfully returns access token.", mRequest.getLogInfo(), null);
 
                 // Record account in the AccountManager service
@@ -841,7 +844,7 @@ public class AuthenticationActivity extends Activity {
                 } catch (GeneralSecurityException | IOException exc) {
                     Logger.e(TAG, "Error in setting the account" + mRequest.getLogInfo(), "",
                             ADALError.BROKER_ACCOUNT_SAVE_FAILED, exc);
-                    result.taskException = exc;
+                    result.mTaskException = exc;
                 }
             }
 
@@ -903,8 +906,8 @@ public class AuthenticationActivity extends Activity {
                     .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
             if (accountList.length != 1) {
-                result.taskResult = null;
-                result.taskException = new AuthenticationException(
+                result.mTaskResult = null;
+                result.mTaskException = new AuthenticationException(
                         ADALError.BROKER_SINGLE_USER_EXPECTED);
                 return;
             }
@@ -913,12 +916,12 @@ public class AuthenticationActivity extends Activity {
 
             // Single user in authenticator is already created.
             // This is only registering UID for the app
-            UserInfo userinfo = result.taskResult.getUserInfo();
-            if (userinfo == null || StringExtensions.IsNullOrBlank(userinfo.getUserId())) {
+            UserInfo userinfo = result.mTaskResult.getUserInfo();
+            if (userinfo == null || StringExtensions.isNullOrBlank(userinfo.getUserId())) {
                 // return userid in the userinfo and use only account name
                 // for all fields
                 Logger.i(TAG, "Set userinfo from account", "");
-                result.taskResult.setUserInfo(new UserInfo(name, name, "", "", name));
+                result.mTaskResult.setUserInfo(new UserInfo(name, name, "", "", name));
                 mRequest.setLoginHint(name);
             } else {
                 Logger.i(TAG, "Saving userinfo to account", "");
@@ -938,7 +941,7 @@ public class AuthenticationActivity extends Activity {
                         AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
                         userinfo.getDisplayableId());
             }
-            result.accountName = name;
+            result.mAccountName = name;
             Logger.i(TAG, "Setting account in account manager. Package: " + mCallingPackage 
                     + " calling app UID:" + mAppCallingUID, " Account name: " + name);
 
@@ -957,7 +960,7 @@ public class AuthenticationActivity extends Activity {
             }
 
             TokenCacheItem item = TokenCacheItem.createRegularTokenCacheItem(mRequest.getAuthority(), mRequest.getResource(),
-                    mRequest.getClientId(), result.taskResult);
+                    mRequest.getClientId(), result.mTaskResult);
             String json = gson.toJson(item);
             String encrypted = mStorageHelper.encrypt(json);
 
@@ -970,9 +973,9 @@ public class AuthenticationActivity extends Activity {
                     getBrokerAppCacheKey(key),
                     encrypted);
 
-            if (result.taskResult.getIsMultiResourceRefreshToken()) {
+            if (result.mTaskResult.getIsMultiResourceRefreshToken()) {
                 // ADAL stores MRRT refresh token separately
-                TokenCacheItem itemMRRT = TokenCacheItem.createMRRTTokenCacheItem(mRequest.getAuthority(), mRequest.getClientId(), result.taskResult);
+                TokenCacheItem itemMRRT = TokenCacheItem.createMRRTTokenCacheItem(mRequest.getAuthority(), mRequest.getClientId(), result.mTaskResult);
                 json = gson.toJson(itemMRRT);
                 encrypted = mStorageHelper.encrypt(json);
                 key = CacheKey.createCacheKeyForMRRT(mAuthRequest.getAuthority(), mAuthRequest.getClientId(), null);
@@ -1017,59 +1020,59 @@ public class AuthenticationActivity extends Activity {
             displaySpinner(false);
             Intent intent = new Intent();
 
-            if (result.taskResult != null) {
-
-                if (result.taskResult.getStatus().equals(AuthenticationStatus.Succeeded)) {
-                    intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN,
-                            result.taskResult.getAccessToken());
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, result.accountName);
-
-                    if (result.taskResult.getExpiresOn() != null) {
-                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
-                                result.taskResult.getExpiresOn().getTime());
-                    }
-
-                    if (result.taskResult.getTenantId() != null) {
-                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID,
-                                result.taskResult.getTenantId());
-                    }
-
-                    UserInfo userinfo = result.taskResult.getUserInfo();
-                    if (userinfo != null) {
-                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
-                                userinfo.getUserId());
-                        intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
-                                userinfo.getGivenName());
-                        intent.putExtra(
-                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
-                                userinfo.getFamilyName());
-                        intent.putExtra(
-                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
-                                userinfo.getIdentityProvider());
-                        intent.putExtra(
-                                AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
-                                userinfo.getDisplayableId());
-                    }
-
-                    returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
-                } else {
-                    returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                            result.taskResult.getErrorDescription());
-                }
-            } else {
+            if (result.mTaskResult == null) {
                 Logger.v(TAG, "Token task has exception");
                 returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                        result.taskException.getMessage());
+                        result.mTaskException.getMessage());
+                return;
+            }
+
+            if (result.mTaskResult.getStatus().equals(AuthenticationStatus.Succeeded)) {
+                intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mWaitingRequestId);
+                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_ACCESS_TOKEN,
+                        result.mTaskResult.getAccessToken());
+                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_NAME, result.mAccountName);
+
+                if (result.mTaskResult.getExpiresOn() != null) {
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE,
+                            result.mTaskResult.getExpiresOn().getTime());
+                }
+
+                if (result.mTaskResult.getTenantId() != null) {
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID,
+                            result.mTaskResult.getTenantId());
+                }
+
+                UserInfo userinfo = result.mTaskResult.getUserInfo();
+                if (userinfo != null) {
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID,
+                            userinfo.getUserId());
+                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_GIVEN_NAME,
+                            userinfo.getGivenName());
+                    intent.putExtra(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME,
+                            userinfo.getFamilyName());
+                    intent.putExtra(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_IDENTITY_PROVIDER,
+                            userinfo.getIdentityProvider());
+                    intent.putExtra(
+                            AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID_DISPLAYABLE,
+                            userinfo.getDisplayableId());
+                }
+
+                returnResult(AuthenticationConstants.UIResponse.TOKEN_BROKER_RESPONSE, intent);
+            } else {
+                returnError(ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+                        result.mTaskResult.getErrorDescription());
             }
         }
     }
 
     class TokenTaskResult {
-        AuthenticationResult taskResult;
+        private AuthenticationResult mTaskResult;
 
-        Exception taskException;
+        private Exception mTaskException;
 
-        String accountName;
+        private String mAccountName;
     }
 }

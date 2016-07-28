@@ -27,6 +27,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -39,11 +40,12 @@ public class HttpDialogTests extends AndroidTestCase {
 
     private static final String TAG = "HttpDialogTests";
 
-    private byte[] testSignature;
+    private byte[] mTestSignature;
 
-    private String testTag;
+    private String mTestTag;
 
     @Override
+    @SuppressLint("PackageManagerGetSignatures")
     protected void setUp() throws Exception {
         super.setUp();
         getContext().getCacheDir();
@@ -57,13 +59,13 @@ public class HttpDialogTests extends AndroidTestCase {
         // all of them
         // until it finds the correct one for ADAL broker.
         for (Signature signature : info.signatures) {
-            testSignature = signature.toByteArray();
+            mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");
-            md.update(testSignature);
-            testTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
+            md.update(mTestSignature);
+            mTestTag = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
             break;
         }
-        AuthenticationSettings.INSTANCE.setBrokerSignature(testTag);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Log.d(TAG, "mTestSignature is set");

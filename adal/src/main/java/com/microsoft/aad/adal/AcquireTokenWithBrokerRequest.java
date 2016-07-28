@@ -59,13 +59,13 @@ final class AcquireTokenWithBrokerRequest {
         logBrokerVersion();
 
         final AuthenticationResult authenticationResult;
-        if (!StringExtensions.IsNullOrBlank(mAuthRequest.getBrokerAccountName()) || !StringExtensions
-                .IsNullOrBlank(mAuthRequest.getUserId())) {
-            Logger.v(TAG, "User is specified for background(silent) token request, trying to acquire token silently.");
-            authenticationResult = mBrokerProxy.getAuthTokenInBackground(mAuthRequest);
-        } else {
+        if (StringExtensions.isNullOrBlank(mAuthRequest.getBrokerAccountName()) && StringExtensions
+                .isNullOrBlank(mAuthRequest.getUserId())) {
             Logger.v(TAG, "User is not specified, skipping background(silent) token request");
             authenticationResult = null;
+        } else {
+            Logger.v(TAG, "User is specified for background(silent) token request, trying to acquire token silently.");
+            authenticationResult = mBrokerProxy.getAuthTokenInBackground(mAuthRequest);
         }
 
         return authenticationResult;
@@ -99,7 +99,7 @@ final class AcquireTokenWithBrokerRequest {
     private void logBrokerVersion() {
         final String currentActiveBrokerPackageName =
                 mBrokerProxy.getCurrentActiveBrokerPackageName();
-        if (StringExtensions.IsNullOrBlank(currentActiveBrokerPackageName)) {
+        if (StringExtensions.isNullOrBlank(currentActiveBrokerPackageName)) {
             Logger.i(TAG, "Broker app package name is empty.", "");
             return;
         }

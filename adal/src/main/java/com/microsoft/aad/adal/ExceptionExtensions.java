@@ -29,7 +29,11 @@ import java.io.StringWriter;
 /**
  * A helper for getting logging info out of an Exception.
  */
-final class ExceptionExtensions {
+class ExceptionExtensions {
+
+    private ExceptionExtensions() {
+        // Intentionally left blank
+    }
     static String getExceptionMessage(Exception ex) {
         String message = null;
 
