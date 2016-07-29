@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 /**
@@ -428,6 +429,7 @@ public class Logger {
         return "";
     }
 
+    @SuppressLint("SimpleDateFormat")
     private static String getUTCDateTimeAsString() {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));

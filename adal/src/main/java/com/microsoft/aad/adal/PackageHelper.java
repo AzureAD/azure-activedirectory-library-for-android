@@ -47,7 +47,7 @@ class PackageHelper {
 
     private Context mContext;
 
-    AccountManager mAcctManager;
+    private AccountManager mAcctManager;
 
     /**
      * Creates helper to check caller info.

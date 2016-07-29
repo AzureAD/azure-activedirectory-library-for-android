@@ -56,7 +56,7 @@ final class StringExtensions {
      * @return boolean if the string was null or blank
      */
     static boolean isNullOrBlank(String param) {
-        return param == null || param.trim().length() == 0;
+        return param == null || param.trim().length() == 0; //NOPMD
     }
 
     public static String createHash(String msg) throws NoSuchAlgorithmException,

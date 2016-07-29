@@ -287,7 +287,7 @@ public enum AuthenticationSettings {
     }
 
     /**
-     * Get the read timeout
+     * Get the read timeout.
      *
      * @return read timeout
      */

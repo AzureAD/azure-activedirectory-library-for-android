@@ -38,6 +38,7 @@ import java.util.Set;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -69,6 +70,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     /**
      * @param context {@link Context}
      */
+    @SuppressLint("WrongConstant")
     public DefaultTokenCacheStore(Context context) {
         if (context == null) {
             throw new IllegalArgumentException("Context is null");

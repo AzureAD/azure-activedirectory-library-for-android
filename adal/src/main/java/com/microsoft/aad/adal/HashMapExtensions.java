@@ -35,7 +35,7 @@ import org.json.JSONObject;
 import android.text.TextUtils;
 import android.util.Log;
 
-class HashMapExtensions {
+final class HashMapExtensions {
 
     private static final String TAG = "HashMapExtensions";
 

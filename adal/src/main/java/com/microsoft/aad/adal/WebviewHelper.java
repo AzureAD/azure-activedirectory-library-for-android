@@ -180,7 +180,7 @@ public class WebviewHelper {
         private final String mLoadUrl;
 
         /**
-         *  Construct the PreKeyAuthInfo
+         *  Construct the PreKeyAuthInfo.
          *
          * @param httpHeaders the http headers
          * @param loadUrl load Url

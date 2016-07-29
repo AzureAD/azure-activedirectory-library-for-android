@@ -80,6 +80,7 @@ public final class ClientAnalytics {
      * @param eventName event name to be sent to the listener
      * @param properties map to be logged
      */
+    @SuppressWarnings("unused")
     private void log(final String eventName, Map<String, String> properties) {
         if (mEventListener != null) {
             mEventListener.logEvent(eventName, properties);

@@ -772,6 +772,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         return mockedAccoutManager;
     }
 
+    @SuppressLint("CommitPrefEdits")
     private void updateContextToSaveAccount(Context mockContext, String initialList, String savingAccount) {
         SharedPreferences mockPrefs = mock(SharedPreferences.class);
         when(mockPrefs.getString(anyString(), Mockito.eq(""))).thenReturn(initialList);

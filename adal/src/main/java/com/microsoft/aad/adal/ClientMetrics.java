@@ -27,10 +27,14 @@ import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
-class ClientMetricsEndpointType {
+final class ClientMetricsEndpointType {
     public static final String TOKEN = "token";
 
     public static final String INSTANCE_DISCOVERY = "instance";
+
+    private ClientMetricsEndpointType() {
+        // Intentionally left blank
+    }
 }
 
 enum ClientMetrics {

@@ -54,6 +54,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
@@ -605,6 +606,7 @@ public class StorageHelper {
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @SuppressLint("GetInstance")
     private byte[] wrap(final SecretKey key) throws GeneralSecurityException {
         Logger.v(TAG, "Wrap secret key.");
         final Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
@@ -613,6 +615,7 @@ public class StorageHelper {
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @SuppressLint("GetInstance")
     private SecretKey unwrap(final byte[] keyBlob) throws GeneralSecurityException {
         final Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
         wrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());

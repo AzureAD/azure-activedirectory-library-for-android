@@ -47,6 +47,7 @@ android {
         disable 'LongLogTag'
         disable 'DefaultLocale'
         disable 'UnusedResources'
+        disable 'GradleDependency'
     }
 
     libraryVariants.all { variant ->

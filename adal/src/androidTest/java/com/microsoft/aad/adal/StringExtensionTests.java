@@ -45,7 +45,7 @@ public class StringExtensionTests extends AndroidTestHelper {
     public void testIsNullOrBlankNotEmpty() throws IllegalArgumentException,
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException {
-        assertFalse("not empty",StringExtensions.isNullOrBlank("non-Empty"));
+        assertFalse("not empty", StringExtensions.isNullOrBlank("non-Empty"));
     }
 
     public void testIsNullOrBlankEmpty() throws IllegalArgumentException, IllegalAccessException,
