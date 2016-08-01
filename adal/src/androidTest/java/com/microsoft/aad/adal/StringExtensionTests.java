@@ -53,10 +53,7 @@ public class StringExtensionTests extends AndroidTestHelper {
             InstantiationException {
         assertTrue("empty", StringExtensions.isNullOrBlank(""));
 
-        assertTrue("empty", StringExtensions.isNullOrBlank("  "));
-
         assertTrue("empty", StringExtensions.isNullOrBlank("          "));
-
     }
 
     public void testURLFormEncodeDecode() {

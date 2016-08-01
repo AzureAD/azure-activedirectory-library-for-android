@@ -48,6 +48,7 @@ android {
         disable 'DefaultLocale'
         disable 'UnusedResources'
         disable 'GradleDependency'
+        disable 'GradleOverrides'
     }
 
     libraryVariants.all { variant ->

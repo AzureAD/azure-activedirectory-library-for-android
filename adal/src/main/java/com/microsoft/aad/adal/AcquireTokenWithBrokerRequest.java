@@ -59,13 +59,13 @@ final class AcquireTokenWithBrokerRequest {
         logBrokerVersion();
 
         final AuthenticationResult authenticationResult;
-        if (StringExtensions.isNullOrBlank(mAuthRequest.getBrokerAccountName()) && StringExtensions
+        if (!StringExtensions.isNullOrBlank(mAuthRequest.getBrokerAccountName()) || !StringExtensions
                 .isNullOrBlank(mAuthRequest.getUserId())) {
-            Logger.v(TAG, "User is not specified, skipping background(silent) token request");
-            authenticationResult = null;
-        } else {
             Logger.v(TAG, "User is specified for background(silent) token request, trying to acquire token silently.");
             authenticationResult = mBrokerProxy.getAuthTokenInBackground(mAuthRequest);
+        } else {
+            Logger.v(TAG, "User is not specified, skipping background(silent) token request");
+            authenticationResult = null;
         }
 
         return authenticationResult;

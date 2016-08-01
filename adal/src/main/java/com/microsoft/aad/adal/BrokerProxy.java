@@ -94,7 +94,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
 
-    private static final String AUTHENTICATOR_CANCELS_REQUEST = "uthenticator cancels the request";
+    private static final String AUTHENTICATOR_CANCELS_REQUEST = "Authenticator cancels the request";
 
     public BrokerProxy() {
         mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();

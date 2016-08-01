@@ -181,7 +181,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
      * Read install request key from shared preference.
      *
      * @param context application context
-     * @return the request key stored in SharedPreference
+     * @return the saved request stored in SharedPreference
      */
     public static String getInstallRequestInthisApp(final Context context) {
         final String methodName = "getInstallRequestInthisApp";

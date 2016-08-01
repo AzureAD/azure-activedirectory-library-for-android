@@ -590,7 +590,18 @@ public class AuthenticationActivity extends Activity {
         }
 
         public void processRedirectUrl(final WebView view, String url) {
-            if (isBrokerRequest(getIntent())) {
+            if (!isBrokerRequest(getIntent())) {
+                // It is pointing to redirect. Final url can be processed to
+                // get the code or error.
+                Logger.i(TAG, "It is not a broker request", "");
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
+                resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
+                        mAuthRequest);
+                returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
+                        resultIntent);
+                view.stopLoading();
+            } else {
                 Logger.i(TAG, "It is a broker request", "");
                 displaySpinnerWithMessage(AuthenticationActivity.this
                         .getText(AuthenticationActivity.this.getResources().getIdentifier(
@@ -602,19 +613,7 @@ public class AuthenticationActivity extends Activity {
                 // access token
                 new TokenTask(mWebRequestHandler, mAuthRequest, mCallingPackage, mCallingUID)
                         .execute(url);
-                return;
             }
-
-            // It is pointing to redirect. Final url can be processed to
-            // get the code or error.
-            Logger.i(TAG, "It is not a broker request", "");
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, url);
-            resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                    mAuthRequest);
-            returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
-                    resultIntent);
-            view.stopLoading();
         }
 
         public boolean processInvalidUrl(final WebView view, String url) {
