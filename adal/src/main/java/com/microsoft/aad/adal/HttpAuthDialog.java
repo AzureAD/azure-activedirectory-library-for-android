@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -79,6 +80,7 @@ class HttpAuthDialog {
         mUsernameView.requestFocus();
     }
 
+    @SuppressLint("InflateParams")
     private void createDialog() {
         LayoutInflater factory = LayoutInflater.from(mContext);
         View v = factory.inflate(R.layout.http_auth_dialog, null);

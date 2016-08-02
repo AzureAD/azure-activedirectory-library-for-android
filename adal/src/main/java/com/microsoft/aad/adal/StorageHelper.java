@@ -54,6 +54,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
@@ -169,7 +170,7 @@ public class StorageHelper {
             throws GeneralSecurityException, IOException {
         Logger.v(TAG, "Starting encryption");
 
-        if (StringExtensions.IsNullOrBlank(clearText)) {
+        if (StringExtensions.isNullOrBlank(clearText)) {
             throw new IllegalArgumentException("Input is empty or null");
         }
 
@@ -231,7 +232,7 @@ public class StorageHelper {
             throws GeneralSecurityException, IOException {
         Logger.v(TAG, "Starting decryption");
 
-        if (StringExtensions.IsNullOrBlank(encryptedBlob)) {
+        if (StringExtensions.isNullOrBlank(encryptedBlob)) {
             throw new IllegalArgumentException("Input is empty or null");
         }
 
@@ -605,6 +606,7 @@ public class StorageHelper {
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @SuppressLint("GetInstance")
     private byte[] wrap(final SecretKey key) throws GeneralSecurityException {
         Logger.v(TAG, "Wrap secret key.");
         final Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
@@ -613,6 +615,7 @@ public class StorageHelper {
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @SuppressLint("GetInstance")
     private SecretKey unwrap(final byte[] keyBlob) throws GeneralSecurityException {
         final Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
         wrapCipher.init(Cipher.UNWRAP_MODE, mKeyPair.getPrivate());

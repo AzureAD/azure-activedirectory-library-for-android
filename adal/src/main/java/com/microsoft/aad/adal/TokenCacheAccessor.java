@@ -43,7 +43,7 @@ class TokenCacheAccessor {
             throw new IllegalArgumentException("tokenCacheStore");
         }
         
-        if (StringExtensions.IsNullOrBlank(authority)) {
+        if (StringExtensions.isNullOrBlank(authority)) {
             throw new IllegalArgumentException("authority");
         }
         
@@ -65,7 +65,7 @@ class TokenCacheAccessor {
             return null;
         }
         
-        if (!StringExtensions.IsNullOrBlank(accessTokenItem.getAccessToken())) {
+        if (!StringExtensions.isNullOrBlank(accessTokenItem.getAccessToken())) {
             if (TokenCacheItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
                 Logger.v(TAG, "Access token exists, but already expired.");
                 return null;
@@ -101,7 +101,7 @@ class TokenCacheAccessor {
      * @return {@link TokenCacheItem} for FRT token cache entry.  
      */
     TokenCacheItem getFRTItem(final String familyClientId, final String user) {
-        if (StringExtensions.IsNullOrBlank(user)) {
+        if (StringExtensions.isNullOrBlank(user)) {
             return null;
         }
         
@@ -155,18 +155,18 @@ class TokenCacheAccessor {
      * Update token cache with returned auth result.
      */
     void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) {
-        if (result == null || StringExtensions.IsNullOrBlank(result.getAccessToken())) {
+        if (result == null || StringExtensions.isNullOrBlank(result.getAccessToken())) {
             return;
         }
         
         if (result.getUserInfo() != null) {
             // update cache entry with displayableId
-            if (!StringExtensions.IsNullOrBlank(result.getUserInfo().getDisplayableId())) {
+            if (!StringExtensions.isNullOrBlank(result.getUserInfo().getDisplayableId())) {
                 setItemToCacheForUser(resource, clientId, result, result.getUserInfo().getDisplayableId());
             }
             
             // update cache entry with userId
-            if (!StringExtensions.IsNullOrBlank(result.getUserInfo().getUserId())) {
+            if (!StringExtensions.isNullOrBlank(result.getUserInfo().getUserId())) {
                 setItemToCacheForUser(resource, clientId, result, result.getUserInfo().getUserId());
             }
         }
@@ -235,7 +235,7 @@ class TokenCacheAccessor {
         }
         
         // Store separate entries for FRT.
-        if (!StringExtensions.IsNullOrBlank(result.getFamilyClientId()) && !StringExtensions.IsNullOrBlank(userId)) {
+        if (!StringExtensions.isNullOrBlank(result.getFamilyClientId()) && !StringExtensions.isNullOrBlank(userId)) {
             Logger.v(TAG, "Save Family Refresh token into cache");
             final TokenCacheItem familyTokenCacheItem = TokenCacheItem.createFRRTTokenCacheItem(mAuthority, result);
             mTokenCacheStore.setItem(CacheKey.createCacheKeyForFRT(mAuthority, result.getFamilyClientId(), userId), familyTokenCacheItem);
@@ -287,7 +287,7 @@ class TokenCacheAccessor {
     private boolean isUserMisMatch(final String user, final TokenCacheItem tokenCacheItem) {
         // If user is not passed in the request or userInfo does not exist in the token cache item, 
         // it's a match case. We do wildcard find, return whatever match with cache key. 
-        if (StringExtensions.IsNullOrBlank(user) || tokenCacheItem.getUserInfo() == null) {
+        if (StringExtensions.isNullOrBlank(user) || tokenCacheItem.getUserInfo() == null) {
             return false;
         }
         

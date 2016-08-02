@@ -161,7 +161,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             return;
         }
 
-        if (StringExtensions.IsNullOrBlank(uri.getQueryParameter(
+        if (StringExtensions.isNullOrBlank(uri.getQueryParameter(
                 AuthenticationConstants.OAuth2.CODE))) {
             Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath(),
                     "Full loading url is: " + url, null);
@@ -190,20 +190,20 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 .getChallengeResponseFromUri(challengeUrl);
                         final Map<String, String> headers = new HashMap<>();
                         headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
-                                challengeResponse.mAuthorizationHeaderValue);
+                                challengeResponse.getAuthorizationHeaderValue());
                         postRunnable(new Runnable() {
 
                             @Override
                             public void run() {
-                                String loadUrl = challengeResponse.mSubmitUrl;
+                                String loadUrl = challengeResponse.getSubmitUrl();
                                 HashMap<String, String> parameters = StringExtensions
-                                        .getUrlParameters(challengeResponse.mSubmitUrl);
+                                        .getUrlParameters(challengeResponse.getSubmitUrl());
                                 if (!parameters
                                         .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
                                     loadUrl = loadUrl + "?" + mQueryParam;
                                 }
                                 Logger.v(TAG, "Respond to pkeyAuth challenge", "Challenge submit url:" 
-                                        + challengeResponse.mSubmitUrl, null);
+                                        + challengeResponse.getSubmitUrl(), null);
                                 view.loadUrl(loadUrl, headers);
                             }
                         });
@@ -311,7 +311,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         String error = parameters.get("error");
         String errorDescription = parameters.get("error_description");
 
-        if (!StringExtensions.IsNullOrBlank(error)) {
+        if (!StringExtensions.isNullOrBlank(error)) {
             Logger.w(TAG, "Cancel error:" + error, errorDescription, null);
             return true;
         }

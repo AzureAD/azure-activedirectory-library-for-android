@@ -36,7 +36,6 @@ import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -52,6 +51,7 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorDescription;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -78,6 +78,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     private String mTestTag;
 
     @Override
+    @SuppressLint("PackageManagerGetSignatures")
     protected void setUp() throws Exception {
         super.setUp();
         getContext().getCacheDir();
@@ -588,6 +589,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         }
     }
 
+    @SuppressLint("InlinedApi")
     public void testGetAuthTokenInBackgroundVerifyErrorMessageBadAuth()
             throws IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, OperationCanceledException,
@@ -771,6 +773,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         return mockedAccoutManager;
     }
 
+    @SuppressLint("CommitPrefEdits")
     private void updateContextToSaveAccount(Context mockContext, String initialList, String savingAccount) {
         SharedPreferences mockPrefs = mock(SharedPreferences.class);
         when(mockPrefs.getString(anyString(), Mockito.eq(""))).thenReturn(initialList);
@@ -825,6 +828,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         return mockContext;
     }
 
+    @SuppressLint("PackageManagerGetSignatures")
     private PackageManager getPackageManager(final Signature signature, final String packageName,
             boolean permissionStatus) throws NameNotFoundException {
         PackageManager mockPackage = mock(PackageManager.class);

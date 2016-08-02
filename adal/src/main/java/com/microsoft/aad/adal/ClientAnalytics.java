@@ -26,20 +26,19 @@ package com.microsoft.aad.adal;
 import java.util.Map;
 
 /**
- * Interface that provides ability to client application
- * send telemetry events to server
+ * Interface that provides ability to client application send telemetry events to server.
  *
  * In order to send ADAL instrumentation events to any instrumentation service
  * client application needs to implement IEventListener interface
  * and set it for ClientAnalytics
  * (@use ClientAnalytics.getInstance().setEventListener)
  */
-public class ClientAnalytics {
+public final class ClientAnalytics {
 
     private IEventListener mEventListener;
 
     /**
-     * Empty constructor, use ClientAnalytics.getInstance()
+     * Empty constructor, use ClientAnalytics.getInstance().
      */
     private ClientAnalytics() {
     }
@@ -52,7 +51,7 @@ public class ClientAnalytics {
     }
 
     /**
-     * send event to listener
+     * send event to listener.
      * @param event to be logged
      */
     static void logEvent(final Event event) {
@@ -60,7 +59,7 @@ public class ClientAnalytics {
     }
 
     /**
-     * send event to listener
+     * send event to listener.
      * @param eventName event name to be logged
      * @param properties map to be logged
      */
@@ -77,10 +76,11 @@ public class ClientAnalytics {
     }
 
     /**
-     * if there is event listener set send event to listener
+     * if there is event listener set send event to listener.
      * @param eventName event name to be sent to the listener
      * @param properties map to be logged
      */
+    @SuppressWarnings("unused")
     private void log(final String eventName, Map<String, String> properties) {
         if (mEventListener != null) {
             mEventListener.logEvent(eventName, properties);
@@ -97,12 +97,12 @@ public class ClientAnalytics {
         }
     }
     /**
-     * Event listener interface
+     * Event listener interface.
      */
     public interface IEventListener {
 
         /**
-         * Sends event info to server
+         * Sends event info to server.
          * @param eventName specified name that defines this event on server in DB
          * @param properties set of metrics that classifies this event
          */
@@ -110,7 +110,7 @@ public class ClientAnalytics {
     }
 
     /**
-     * The instance holder
+     * The instance holder.
      */
     private static final class InstanceHolder {
         private static ClientAnalytics sInstance = new ClientAnalytics();

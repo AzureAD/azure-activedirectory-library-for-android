@@ -67,7 +67,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("context");
         }
 
-        if (StringExtensions.IsNullOrBlank(fileName)) {
+        if (StringExtensions.isNullOrBlank(fileName)) {
             throw new IllegalArgumentException("fileName");
         }
 

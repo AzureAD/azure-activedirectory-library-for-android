@@ -23,8 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import android.util.Log;
 
@@ -45,62 +45,41 @@ public class StringExtensionTests extends AndroidTestHelper {
     public void testIsNullOrBlankNotEmpty() throws IllegalArgumentException,
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException {
-        final String methodName = "IsNullOrBlank";
-        Object foo = ReflectionUtils.getNonPublicInstance("com.microsoft.aad.adal.StringExtensions");
-        Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
-        boolean result = (Boolean) m.invoke(foo, "non-empty");
-        assertFalse("not empty", result);
+        assertFalse("not empty", StringExtensions.isNullOrBlank("non-Empty"));
     }
 
     public void testIsNullOrBlankEmpty() throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException {
-        final String methodName = "IsNullOrBlank";
-        Object foo = ReflectionUtils.getNonPublicInstance("com.microsoft.aad.adal.StringExtensions");
+        assertTrue("empty", StringExtensions.isNullOrBlank(""));
 
-        Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
-        boolean result = (Boolean) m.invoke(foo, "");
-        assertTrue("empty", result);
-
-        result = (Boolean) m.invoke(foo, "  ");
-        assertTrue("empty", result);
-
-        result = (Boolean) m.invoke(foo, "          ");
-        assertTrue("empty", result);
-
+        assertTrue("empty", StringExtensions.isNullOrBlank("          "));
     }
 
     public void testURLFormEncodeDecode() {
-        final String methodName = "URLFormEncode";
+
         try {
-            Object foo = ReflectionUtils
-                    .getNonPublicInstance("com.microsoft.aad.adal.StringExtensions");
-            Method m = ReflectionUtils.getTestMethod(foo, methodName, String.class);
-            Method decodeMethod = ReflectionUtils.getTestMethod(foo, "URLFormDecode", String.class);
+            assertEquals("https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F",
+                    StringExtensions.urlFormEncode("https://login.windows.net/aaltests.onmicrosoft.com/"));
 
-            String result = (String) m.invoke(foo,
-                    "https://login.windows.net/aaltests.onmicrosoft.com/");
-            assertEquals("https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F", result);
+            assertEquals("https://login.windows.net/aaltests.onmicrosoft.com/",
+                    StringExtensions.urlFormDecode("https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F"));
 
-            result = (String) decodeMethod.invoke(foo,
-                    "https%3A%2F%2Flogin.windows.net%2Faaltests.onmicrosoft.com%2F");
-            assertEquals("https://login.windows.net/aaltests.onmicrosoft.com/", result);
+            assertEquals("abc+d1234567890-",
+                    StringExtensions.urlFormEncode("abc d1234567890-"));
 
-            result = (String) m.invoke(foo, "abc d1234567890-");
-            assertEquals("abc+d1234567890-", result);
-
-            result = (String) decodeMethod.invoke(foo, "abc+d1234567890-");
-            assertEquals("abc d1234567890-", result);
+            assertEquals("abc d1234567890-",
+                    StringExtensions.urlFormDecode("abc+d1234567890-"));
 
             String longString = "asdfk+j0a-=skjwe43;1l234 1#$!$#%345903485qrq@#$!@#$!(rekr341!#$%Ekfaآزمايشsdsdfsddfdgsfgjsglk==CVADS";
-            result = (String) m.invoke(foo, longString);
+            String result = StringExtensions.urlFormEncode(longString);
 
-            String decodeResult = (String) decodeMethod.invoke(foo, result);
+            String decodeResult = StringExtensions.urlFormDecode(result);
             assertEquals(longString, decodeResult);
 
-        } catch (Exception ex) {
-            Log.e(getName(), ex.getMessage());
-            Assert.fail("Dont expect exception");
+        } catch (UnsupportedEncodingException ueex) {
+            Log.e(getName(), ueex.getMessage());
+            Assert.fail("Did not expect exception");
         }
     }
 }

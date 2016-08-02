@@ -110,7 +110,7 @@ class Oauth2 {
                                 AuthenticationConstants.ENCODING_UTF8))
                 .appendQueryParameter(AuthenticationConstants.OAuth2.STATE, encodeProtocolState());
 
-        if (!StringExtensions.IsNullOrBlank(mRequest.getLoginHint())) {
+        if (!StringExtensions.isNullOrBlank(mRequest.getLoginHint())) {
             queryParameter.appendQueryParameter(AuthenticationConstants.AAD.LOGIN_HINT,
                     URLEncoder.encode(mRequest.getLoginHint(),
                             AuthenticationConstants.ENCODING_UTF8));
@@ -151,13 +151,13 @@ class Oauth2 {
         // reading extra qp supplied by developer
         final String extraQP = mRequest.getExtraQueryParamsAuthentication();
         // append haschrome=1 if developer does not pass as extra qp
-        if (StringExtensions.IsNullOrBlank(extraQP)
+        if (StringExtensions.isNullOrBlank(extraQP)
                 || !extraQP.contains(AuthenticationConstants.OAuth2.HAS_CHROME)) {
             queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.HAS_CHROME, "1");
         }
 
         String requestUrl = queryParameter.build().getQuery();
-        if (!StringExtensions.IsNullOrBlank(extraQP)) {
+        if (!StringExtensions.isNullOrBlank(extraQP)) {
             String parsedQP = extraQP;
             if (!extraQP.startsWith("&")) {
                 parsedQP = "&" + parsedQP;
@@ -178,15 +178,15 @@ class Oauth2 {
         
         return String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
-                StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
+                StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
 
-                AuthenticationConstants.OAuth2.CODE, StringExtensions.URLFormEncode(code),
+                AuthenticationConstants.OAuth2.CODE, StringExtensions.urlFormEncode(code),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
-                StringExtensions.URLFormEncode(mRequest.getClientId()),
+                StringExtensions.urlFormEncode(mRequest.getClientId()),
 
                 AuthenticationConstants.OAuth2.REDIRECT_URI,
-                StringExtensions.URLFormEncode(mRequest.getRedirectUri()));
+                StringExtensions.urlFormEncode(mRequest.getRedirectUri()));
     }
 
     public String buildRefreshTokenRequestMessage(String refreshToken)
@@ -195,17 +195,17 @@ class Oauth2 {
         
         String message = String.format("%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
-                StringExtensions.URLFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
+                StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
 
                 AuthenticationConstants.OAuth2.REFRESH_TOKEN,
-                StringExtensions.URLFormEncode(refreshToken),
+                StringExtensions.urlFormEncode(refreshToken),
 
                 AuthenticationConstants.OAuth2.CLIENT_ID,
-                StringExtensions.URLFormEncode(mRequest.getClientId()));
+                StringExtensions.urlFormEncode(mRequest.getClientId()));
 
-        if (!StringExtensions.IsNullOrBlank(mRequest.getResource())) {
+        if (!StringExtensions.isNullOrBlank(mRequest.getResource())) {
             message = String.format("%s&%s=%s", message, AuthenticationConstants.AAD.RESOURCE,
-                    StringExtensions.URLFormEncode(mRequest.getResource()));
+                    StringExtensions.urlFormEncode(mRequest.getResource()));
         }
 
         return message;
@@ -221,7 +221,7 @@ class Oauth2 {
             // CorrelationID will be same as in request headers. This is
             // retrieved in result in case it was not set.
             String correlationInResponse = response.get(AuthenticationConstants.AAD.CORRELATION_ID);
-            if (!StringExtensions.IsNullOrBlank(correlationInResponse)) {
+            if (!StringExtensions.isNullOrBlank(correlationInResponse)) {
                 try {
                     final UUID correlationId = UUID.fromString(correlationInResponse);
                     Logger.setCorrelationId(correlationId);
@@ -266,7 +266,7 @@ class Oauth2 {
                 // IDtoken is related to Azure AD and returned with token
                 // response. ADFS does not return that.
                 rawIdToken = response.get(AuthenticationConstants.OAuth2.ID_TOKEN);
-                if (!StringExtensions.IsNullOrBlank(rawIdToken)) {
+                if (!StringExtensions.isNullOrBlank(rawIdToken)) {
                     Logger.v(TAG, "Id token was returned, parsing id token.");
                     IdToken tokenParsed = new IdToken(rawIdToken);
                     tenantId = tokenParsed.getTenantId();
@@ -292,7 +292,7 @@ class Oauth2 {
                 // Compute extended token expiration
                 extendedExpires.add(
                         Calendar.SECOND,
-                        StringExtensions.IsNullOrBlank(extendedExpiresIn) ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
+                        StringExtensions.isNullOrBlank(extendedExpiresIn) ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
                                 : Integer.parseInt(extendedExpiresIn));
                 result.setExtendedExpiresOn(extendedExpires.getTime());
             }
@@ -358,7 +358,7 @@ class Oauth2 {
     public AuthenticationResult getToken(String authorizationUrl)
             throws IOException, AuthenticationException {
 
-        if (StringExtensions.IsNullOrBlank(authorizationUrl)) {
+        if (StringExtensions.isNullOrBlank(authorizationUrl)) {
             throw new IllegalArgumentException("authorizationUrl");
         }
 
@@ -367,15 +367,15 @@ class Oauth2 {
         String encodedState = parameters.get("state");
         String state = decodeProtocolState(encodedState);
 
-        if (!StringExtensions.IsNullOrBlank(state)) {
+        if (!StringExtensions.isNullOrBlank(state)) {
 
             // We have encoded state at the end of the url
             Uri stateUri = Uri.parse("http://state/path?" + state);
             String authorizationUri = stateUri.getQueryParameter("a");
             String resource = stateUri.getQueryParameter("r");
 
-            if (!StringExtensions.IsNullOrBlank(authorizationUri)
-                    && !StringExtensions.IsNullOrBlank(resource)
+            if (!StringExtensions.isNullOrBlank(authorizationUri)
+                    && !StringExtensions.isNullOrBlank(resource)
                     && resource.equalsIgnoreCase(mRequest.getResource())) {
 
                 AuthenticationResult result = processUIResponseParams(parameters);
@@ -452,7 +452,7 @@ class Oauth2 {
                     String challengeHeader = response.getResponseHeaders()
                             .get(AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER).get(0);
                     Logger.v(TAG, "Device certificate challenge request:" + challengeHeader);
-                    if (!StringExtensions.IsNullOrBlank(challengeHeader)) {
+                    if (!StringExtensions.isNullOrBlank(challengeHeader)) {
 
                         // Handle each specific challenge header
                         if (StringExtensions.hasPrefixInHeader(challengeHeader,
@@ -465,7 +465,7 @@ class Oauth2 {
                                     .getChallengeResponseFromHeader(challengeHeader,
                                             authority.toString());
                             headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
-                                    challengeResponse.mAuthorizationHeaderValue);
+                                    challengeResponse.getAuthorizationHeaderValue());
                             Logger.v(TAG, "Sending request with challenge response");
                             response = mWebRequestHandler.sendPost(authority, headers,
                                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
@@ -563,7 +563,7 @@ class Oauth2 {
 
     public static String decodeProtocolState(String encodedState) {
 
-        if (!StringExtensions.IsNullOrBlank(encodedState)) {
+        if (!StringExtensions.isNullOrBlank(encodedState)) {
             byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
 
             return new String(stateBytes);

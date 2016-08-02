@@ -110,13 +110,13 @@ final class AcquireTokenInteractiveRequest {
                     ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, getCorrelationInfo());
         }
 
-        if (!StringExtensions.IsNullOrBlank(result.getErrorCode())) {
+        if (!StringExtensions.isNullOrBlank(result.getErrorCode())) {
             Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
             throw new AuthenticationException(ADALError.AUTH_FAILED,
                     result.getErrorLogInfo());
         }
 
-        if (!StringExtensions.IsNullOrBlank(result.getAccessToken()) && mTokenCacheAccessor != null) {
+        if (!StringExtensions.isNullOrBlank(result.getAccessToken()) && mTokenCacheAccessor != null) {
             // Developer may pass null for the acquireToken flow.
             mTokenCacheAccessor.updateTokenCache(mAuthRequest.getResource(),
                     mAuthRequest.getClientId(), result);

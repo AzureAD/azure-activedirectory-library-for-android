@@ -342,7 +342,7 @@ class AcquireTokenRequest {
             return;
         }
 
-        final String user = !StringExtensions.IsNullOrBlank(request.getUserId()) ? request.getUserId()
+        final String user = !StringExtensions.isNullOrBlank(request.getUserId()) ? request.getUserId()
                 : request.getLoginHint();
 
         // Usually we only clear tokens for a particular user and a particular client id which identifies an app.
@@ -432,7 +432,7 @@ class AcquireTokenRequest {
 
         final String errMsg;
         // verify the redirect uri passed in by developer is non-null and non-blank
-        if (StringExtensions.IsNullOrBlank(inputUri)) {
+        if (StringExtensions.isNullOrBlank(inputUri)) {
             errMsg = "The redirectUri is null or blank. "
                     + "so the redirect uri is expected to be:" + actualRedirectUri;
             Logger.e(TAG + methodName, errMsg, "", ADALError.DEVELOPER_REDIRECTURI_INVALID);
@@ -668,7 +668,7 @@ class AcquireTokenRequest {
     }
 
     private boolean isAccessTokenReturned(final AuthenticationResult authResult) {
-        return authResult != null && !StringExtensions.IsNullOrBlank(authResult.getAccessToken());
+        return authResult != null && !StringExtensions.isNullOrBlank(authResult.getAccessToken());
     }
 
     private synchronized Handler getHandler() {
@@ -786,7 +786,7 @@ class AcquireTokenRequest {
             }
 
             final String errorCode = intent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
-            if (!StringExtensions.IsNullOrBlank(errorCode)) {
+            if (!StringExtensions.isNullOrBlank(errorCode)) {
                 final String errorMessage = intent.getStringExtra(
                         AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
                 final String returnedErrorMessage = "ErrorCode: " + errorCode + " ErrorMessage" + errorMessage
@@ -804,7 +804,7 @@ class AcquireTokenRequest {
                     String userId = intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
 
                     // For acquireTokenSilentSync, uniqueId should be passed.
-                    if (StringExtensions.IsNullOrBlank(userId)) {
+                    if (StringExtensions.isNullOrBlank(userId)) {
                         userId = authenticationRequest.getUserId();
                     }
 

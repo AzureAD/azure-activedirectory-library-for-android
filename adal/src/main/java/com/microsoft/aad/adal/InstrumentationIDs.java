@@ -24,7 +24,7 @@
 package com.microsoft.aad.adal;
 
 /**
- * Index of instrumentation event IDs used for logging
+ * Index of instrumentation event IDs used for logging.
  */
 final class InstrumentationIDs {
     /* Event invoked when refresh token request fails or successes */
@@ -58,4 +58,8 @@ final class InstrumentationIDs {
     static final String CORRELATION_ID = "CorrelationId";
     static final String AUTHORITY_ID = "Authority";
     static final String IS_BROKER_APP = "BrokerApp";
+
+    private InstrumentationIDs() {
+        // Intentionally left blank
+    }
 }

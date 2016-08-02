@@ -95,7 +95,7 @@ public class TokenCacheItem implements Serializable {
             throw new IllegalArgumentException("authenticationResult");
         }
         
-        if (StringExtensions.IsNullOrBlank(authority)) {
+        if (StringExtensions.isNullOrBlank(authority)) {
             throw new IllegalArgumentException("authority");
         }
         
@@ -240,7 +240,7 @@ public class TokenCacheItem implements Serializable {
 
     public final boolean isExtendedLifetimeValid() {
         //extended lifetime is only valid if it contains an access token
-        if (mExtendedExpiresOn != null && !StringExtensions.IsNullOrBlank(mAccessToken)) {
+        if (mExtendedExpiresOn != null && !StringExtensions.isNullOrBlank(mAccessToken)) {
             return !isTokenExpired(mExtendedExpiresOn);
         }
         
@@ -270,10 +270,10 @@ public class TokenCacheItem implements Serializable {
      * 2) Item stored for FRT entry won't have client Id stored. 
      */
     TokenEntryType getTokenEntryType() {
-        if (!StringExtensions.IsNullOrBlank(this.getResource())) {
+        if (!StringExtensions.isNullOrBlank(this.getResource())) {
             // Only regular token cache entry is storing resouce. 
             return TokenEntryType.REGULAR_TOKEN_ENTRY;
-        } else if (StringExtensions.IsNullOrBlank(this.getClientId())) {
+        } else if (StringExtensions.isNullOrBlank(this.getClientId())) {
             // Family token cache item does not store clientId
             return TokenEntryType.FRT_TOKEN_ENTRY;
         } else {
@@ -285,7 +285,7 @@ public class TokenCacheItem implements Serializable {
      * @return True if the {@link TokenCacheItem} has FoCI flag, false otherwise. 
      */
     boolean isFamilyToken() {
-        return !StringExtensions.IsNullOrBlank(mFamilyClientId);
+        return !StringExtensions.isNullOrBlank(mFamilyClientId);
     }
 }
 

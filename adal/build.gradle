@@ -43,6 +43,12 @@ android {
 
     lintOptions {
         abortOnError false
+        disable 'MissingPermission'
+        disable 'LongLogTag'
+        disable 'DefaultLocale'
+        disable 'UnusedResources'
+        disable 'GradleDependency'
+        disable 'GradleOverrides'
     }
 
     libraryVariants.all { variant ->
