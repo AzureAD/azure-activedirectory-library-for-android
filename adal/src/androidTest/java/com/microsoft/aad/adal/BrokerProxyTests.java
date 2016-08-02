@@ -589,6 +589,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         }
     }
 
+    @SuppressLint("InlinedApi")
     public void testGetAuthTokenInBackgroundVerifyErrorMessageBadAuth()
             throws IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, OperationCanceledException,
@@ -597,7 +598,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         String acctName = "testAcct123";
         Object authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
-        setMockProxyForErrorCheck(brokerProxy, acctName, AccountManager.ERROR_CODE_BAD_ARGUMENTS,
+        setMockProxyForErrorCheck(brokerProxy, acctName, AccountManager.ERROR_CODE_BAD_AUTHENTICATION,
                 "testErrorMessage");
 
         // action
@@ -607,7 +608,7 @@ public class BrokerProxyTests extends AndroidTestCase {
             Assert.fail("should throw");
         } catch (Exception ex) {
             assertTrue("Exception type check", ex.getCause() instanceof AuthenticationException);
-            assertEquals("check error code", ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS,
+            assertEquals("check error code", ADALError.BROKER_AUTHENTICATOR_BAD_AUTHENTICATION,
                     ((AuthenticationException) ex.getCause()).getCode());
         }
     }
