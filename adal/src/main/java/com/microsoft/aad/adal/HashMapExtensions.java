@@ -39,14 +39,17 @@ final class HashMapExtensions {
 
     private static final String TAG = "HashMapExtensions";
 
+    private HashMapExtensions() {
+        // Intentionally left blank
+    }
     /**
      * decode url string into a key value pairs with default query delimiter.
      * 
      * @param parameters URL query parameter
      * @return key value pairs
      */
-    static HashMap<String, String> URLFormDecode(String parameters) {
-        return URLFormDecodeData(parameters, "&");
+    static HashMap<String, String> urlFormDecode(String parameters) {
+        return urlFormDecodeData(parameters, "&");
     }
 
     /**
@@ -57,10 +60,10 @@ final class HashMapExtensions {
      * @param delimiter query delimiter
      * @return Map key value pairs
      */
-    static HashMap<String, String> URLFormDecodeData(String parameters, String delimiter) {
+    static HashMap<String, String> urlFormDecodeData(String parameters, String delimiter) {
         final HashMap<String, String> result = new HashMap<>();
 
-        if (!StringExtensions.IsNullOrBlank(parameters)) {
+        if (!StringExtensions.isNullOrBlank(parameters)) {
             StringTokenizer parameterTokenizer = new StringTokenizer(parameters, delimiter);
 
             while (parameterTokenizer.hasMoreTokens()) {
@@ -71,14 +74,14 @@ final class HashMapExtensions {
                     String key = null;
                     String value = null;
                     try {
-                        key = StringExtensions.URLFormDecode(elements[0].trim());
-                        value = StringExtensions.URLFormDecode(elements[1].trim());
+                        key = StringExtensions.urlFormDecode(elements[0].trim());
+                        value = StringExtensions.urlFormDecode(elements[1].trim());
                     } catch (UnsupportedEncodingException e) {
                         Log.d(TAG, e.getMessage());
                     }
 
-                    if (!StringExtensions.IsNullOrBlank(key)
-                            && !StringExtensions.IsNullOrBlank(value)) {
+                    if (!StringExtensions.isNullOrBlank(key)
+                            && !StringExtensions.isNullOrBlank(value)) {
                         result.put(key, value);
                     }
                 }
@@ -95,9 +98,9 @@ final class HashMapExtensions {
      * @return Map
      * @throws JSONException
      */
-    static Map<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException{
+    static Map<String, String> getJsonResponse(HttpWebResponse webResponse) throws JSONException {
         final Map<String, String> response = new HashMap<>();
-        if(webResponse != null && !TextUtils.isEmpty(webResponse.getBody())) {
+        if (webResponse != null && !TextUtils.isEmpty(webResponse.getBody())) {
             JSONObject jsonObject = new JSONObject(webResponse.getBody());
             Iterator<?> i = jsonObject.keys();
             while (i.hasNext()) {

@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import android.annotation.SuppressLint;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -48,6 +49,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
     protected String mTestTag;
 
     @Override
+    @SuppressLint("PackageManagerGetSignatures")
     protected void setUp() throws Exception {
         super.setUp();
         getInstrumentation().getTargetContext().getCacheDir();

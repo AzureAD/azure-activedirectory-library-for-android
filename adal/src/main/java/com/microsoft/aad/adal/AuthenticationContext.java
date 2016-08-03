@@ -481,11 +481,11 @@ public class AuthenticationContext {
         final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
         final AtomicReference<Exception> exception = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
-        if (StringExtensions.IsNullOrBlank(resource)) {
-            throw new IllegalArgumentException("The input resource is null.");
+        if (StringExtensions.isNullOrBlank(resource)) {
+            throw new IllegalArgumentException("resource");
         }
-        if (StringExtensions.IsNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("The input clientId is null.");
+        if (StringExtensions.isNullOrBlank(clientId)) {
+            throw new IllegalArgumentException("clientId");
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -561,11 +561,11 @@ public class AuthenticationContext {
     @Deprecated
     public Future<AuthenticationResult> acquireTokenSilent(String resource, String clientId,
             String userId, final AuthenticationCallback<AuthenticationResult> callback) {
-        if (StringExtensions.IsNullOrBlank(resource)) {
+        if (StringExtensions.isNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
 
-        if (StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.isNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
@@ -614,11 +614,11 @@ public class AuthenticationContext {
                                    String clientId,
                                    String userId,
                                    AuthenticationCallback<AuthenticationResult> callback) {
-        if (StringExtensions.IsNullOrBlank(resource)) {
+        if (StringExtensions.isNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
 
-        if (StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.isNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
@@ -649,11 +649,11 @@ public class AuthenticationContext {
     @Deprecated
     public void acquireTokenByRefreshToken(String refreshToken, String clientId,
             AuthenticationCallback<AuthenticationResult> callback) {
-        if (StringExtensions.IsNullOrBlank(refreshToken)) {
+        if (StringExtensions.isNullOrBlank(refreshToken)) {
             throw new IllegalArgumentException("Refresh token is not provided");
         }
 
-        if (StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.isNullOrBlank(clientId)) {
             throw new IllegalArgumentException("ClientId is not provided");
         }
 
@@ -688,11 +688,11 @@ public class AuthenticationContext {
     @Deprecated
     public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
             AuthenticationCallback<AuthenticationResult> callback) {
-        if (StringExtensions.IsNullOrBlank(refreshToken)) {
+        if (StringExtensions.isNullOrBlank(refreshToken)) {
             throw new IllegalArgumentException("Refresh token is not provided");
         }
 
-        if (StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.isNullOrBlank(clientId)) {
             throw new IllegalArgumentException("ClientId is not provided");
         }
 
@@ -830,11 +830,11 @@ public class AuthenticationContext {
                     ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
         }
 
-        if (StringExtensions.IsNullOrBlank(resource)) {
+        if (StringExtensions.isNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
 
-        if (StringExtensions.IsNullOrBlank(clientId)) {
+        if (StringExtensions.isNullOrBlank(clientId)) {
             throw new IllegalArgumentException("clientId");
         }
 
@@ -843,7 +843,7 @@ public class AuthenticationContext {
         }
 
         final String redirectUri;
-        if (StringExtensions.IsNullOrBlank(inputRedirectUri)) {
+        if (StringExtensions.isNullOrBlank(inputRedirectUri)) {
             redirectUri = mContext.getApplicationContext().getPackageName();
         } else {
             redirectUri = inputRedirectUri;
@@ -857,7 +857,7 @@ public class AuthenticationContext {
     }
 
     private static String extractAuthority(String authority) {
-        if (!StringExtensions.IsNullOrBlank(authority)) {
+        if (!StringExtensions.isNullOrBlank(authority)) {
 
             // excluding the starting https:// or http://
             int thirdSlash = authority.indexOf('/', EXCLUDE_INDEX);
@@ -900,7 +900,7 @@ public class AuthenticationContext {
      * @throws AuthenticationException
      */
     String serialize(final String uniqueUserId) throws AuthenticationException {
-        if (StringExtensions.IsNullOrBlank(uniqueUserId)) {
+        if (StringExtensions.isNullOrBlank(uniqueUserId)) {
             throw new IllegalArgumentException("uniqueUserId");
         }
 
@@ -924,7 +924,7 @@ public class AuthenticationContext {
                     "Failed to export the FID because no family token cache item is found.");
         }
 
-        if (!StringExtensions.IsNullOrBlank(tokenItem.getFamilyClientId())) {
+        if (!StringExtensions.isNullOrBlank(tokenItem.getFamilyClientId())) {
             return SSOStateSerializer.serialize(tokenItem);
         } else {
             throw new IllegalArgumentException("tokenItem does not contain family refresh token");
@@ -943,7 +943,7 @@ public class AuthenticationContext {
      * @throws AuthenticationException
      */
     void deserialize(final String serializedBlob) throws AuthenticationException {
-        if (StringExtensions.IsNullOrBlank(serializedBlob)) {
+        if (StringExtensions.isNullOrBlank(serializedBlob)) {
             throw new IllegalArgumentException("serializedBlob");
         }
 

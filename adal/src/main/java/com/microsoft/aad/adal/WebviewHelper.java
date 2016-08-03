@@ -40,11 +40,11 @@ public class WebviewHelper {
 
     private static final String TAG = "WebviewHelper";
 
-    private Intent mRequestIntent;
+    private final Intent mRequestIntent;
 
-    private AuthenticationRequest mRequest;
+    private final AuthenticationRequest mRequest;
 
-    private Oauth2 mOauth;
+    private final Oauth2 mOauth;
 
     /**
      * Construct with incoming requestIntent that you receive at
@@ -89,7 +89,7 @@ public class WebviewHelper {
      * Gets startUrl to use as url to start webview.
      * 
      * @return Url
-     * @throws UnsupportedEncodingException
+     * @throws UnsupportedEncodingException if the url is malformed
      */
     public String getStartUrl() throws UnsupportedEncodingException {
         return mOauth.getCodeRequestUrl();
@@ -107,7 +107,7 @@ public class WebviewHelper {
     /**
      * Creates result intent to pass into onActivityResult method.
      * 
-     * @param finalUrl
+     * @param finalUrl url to be passed to the intent
      * @return Intent
      */
     public Intent getResultIntent(final String finalUrl) {
@@ -134,12 +134,19 @@ public class WebviewHelper {
                 .getSerializableExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE);
 
         if (request instanceof AuthenticationRequest) {
-            authRequest = (AuthenticationRequest)request;
+            authRequest = (AuthenticationRequest) request;
         }
 
         return authRequest;
     }
 
+    /**
+     *
+     * @param challengeUrl URL from which challenge response is received
+     * @return PreKeyAuth class filled in
+     * @throws UnsupportedEncodingException on malformed exception
+     * @throws AuthenticationException on parameter validation failure
+     */
     public PreKeyAuthInfo getPreKeyAuthInfo(String challengeUrl)
             throws UnsupportedEncodingException, AuthenticationException {
         IJWSBuilder jwsBuilder = new JWSBuilder();
@@ -151,37 +158,51 @@ public class WebviewHelper {
 
         final HashMap<String, String> headers = new HashMap<String, String>();
         headers.put(AuthenticationConstants.Broker.CHALLENGE_RESPONSE_HEADER,
-                challengeResponse.mAuthorizationHeaderValue);
+                challengeResponse.getAuthorizationHeaderValue());
 
-        String loadUrl = challengeResponse.mSubmitUrl;
+        String loadUrl = challengeResponse.getSubmitUrl();
 
         HashMap<String, String> parameters = StringExtensions
-                .getUrlParameters(challengeResponse.mSubmitUrl);
+                .getUrlParameters(challengeResponse.getSubmitUrl());
 
-        Logger.v(TAG, "SubmitUrl:" + challengeResponse.mSubmitUrl);
+        Logger.v(TAG, "SubmitUrl:" + challengeResponse.getSubmitUrl());
 
         if (!parameters.containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
             loadUrl = loadUrl + "?" + mOauth.getAuthorizationEndpointQueryParameters();
         }
-        PreKeyAuthInfo preKeyAuthInfo = new PreKeyAuthInfo(headers, loadUrl);
-        return preKeyAuthInfo;
+        return new PreKeyAuthInfo(headers, loadUrl);
     }
 
     public static class PreKeyAuthInfo {
 
-        private HashMap<String, String> mHttpHeaders;
+        private final HashMap<String, String> mHttpHeaders;
 
-        private String mLoadUrl;
+        private final String mLoadUrl;
 
+        /**
+         *  Construct the PreKeyAuthInfo.
+         *
+         * @param httpHeaders the http headers
+         * @param loadUrl load Url
+         */
         public PreKeyAuthInfo(HashMap<String, String> httpHeaders, String loadUrl) {
             this.mHttpHeaders = httpHeaders;
             this.mLoadUrl = loadUrl;
         }
 
+        /**
+         * Get the HTTP headers.
+         * @return HashMap containing http headers
+         */
         public HashMap<String, String> getHttpHeaders() {
             return mHttpHeaders;
         }
 
+        /**
+         * Get the load Url.
+         *
+         * @return load Url
+         */
         public String getLoadUrl() {
             return mLoadUrl;
         }

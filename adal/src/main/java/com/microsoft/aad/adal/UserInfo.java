@@ -96,15 +96,15 @@ public class UserInfo implements Serializable {
         mUniqueId = null;
         mDisplayableId = null;
 
-        if (!StringExtensions.IsNullOrBlank(idToken.getObjectId())) {
+        if (!StringExtensions.isNullOrBlank(idToken.getObjectId())) {
             mUniqueId = idToken.getObjectId();
-        } else if (!StringExtensions.IsNullOrBlank(idToken.getSubject())) {
+        } else if (!StringExtensions.isNullOrBlank(idToken.getSubject())) {
             mUniqueId = idToken.getSubject();
         }
 
-        if (!StringExtensions.IsNullOrBlank(idToken.getUpn())) {
+        if (!StringExtensions.isNullOrBlank(idToken.getUpn())) {
             mDisplayableId = idToken.getUpn();
-        } else if (!StringExtensions.IsNullOrBlank(idToken.getEmail())) {
+        } else if (!StringExtensions.isNullOrBlank(idToken.getEmail())) {
             mDisplayableId = idToken.getEmail();
         }
 
@@ -120,7 +120,7 @@ public class UserInfo implements Serializable {
         }
 
         mPasswordChangeUrl = null;
-        if (!StringExtensions.IsNullOrBlank(idToken.getPasswordChangeUrl())) {
+        if (!StringExtensions.isNullOrBlank(idToken.getPasswordChangeUrl())) {
             mPasswordChangeUrl = Uri.parse(idToken.getPasswordChangeUrl());
         }
     }

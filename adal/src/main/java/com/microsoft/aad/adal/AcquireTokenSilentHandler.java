@@ -124,7 +124,7 @@ class AcquireTokenSilentHandler {
             final JWSBuilder jwsBuilder = new JWSBuilder();
             final Oauth2 oauthRequest = new Oauth2(mAuthRequest, mWebRequestHandler, jwsBuilder);
             result = oauthRequest.refreshToken(refreshToken);
-            if (result != null && StringExtensions.IsNullOrBlank(result.getRefreshToken())) {
+            if (result != null && StringExtensions.isNullOrBlank(result.getRefreshToken())) {
                 Logger.i(TAG, "Refresh token is not returned or empty", "");
                 result.setRefreshToken(refreshToken);
             }
@@ -221,7 +221,7 @@ class AcquireTokenSilentHandler {
         if (isTokenRequestFailed(mrrtResult)) {
             // If MRRT fails, we still want to retry on FRT in case there is one there. 
             // MRRT may not be marked as FRT, hard-code it as "1" in this case. 
-            final String familyClientId = StringExtensions.IsNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())
+            final String familyClientId = StringExtensions.isNullOrBlank(mMrrtTokenCacheItem.getFamilyClientId())
                     ? AuthenticationConstants.MS_FAMILY_ID : mMrrtTokenCacheItem.getFamilyClientId();
 
             // Pass the failed MRRT result to tryFRT, if FRT does not exist, return the MRRT result. 
@@ -302,13 +302,13 @@ class AcquireTokenSilentHandler {
     private boolean isMRRTEntryExisted() {
         final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), 
                 mAuthRequest.getUserFromRequest());
-        return mrrtItem != null && !StringExtensions.IsNullOrBlank(mrrtItem.getRefreshToken());
+        return mrrtItem != null && !StringExtensions.isNullOrBlank(mrrtItem.getRefreshToken());
     }
     
     /**
      * Check if the {@link AuthenticationResult} contains oauth2 error. 
      */
     private boolean isTokenRequestFailed(final AuthenticationResult result) {
-        return result != null && !StringExtensions.IsNullOrBlank(result.getErrorCode());
+        return result != null && !StringExtensions.isNullOrBlank(result.getErrorCode());
     }
 }

@@ -6,5 +6,27 @@
     <Match>
         <Class name="~.*Manifest\$.*"/>
     </Match>
-
+    <Match>
+        <Class name="com.microsoft.aad.adal.AuthenticationSettings" />
+        <Method name="setDisableWebViewHardwareAcceleration" />
+        <Bug pattern="ME_ENUM_FIELD_SETTER" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.AuthenticationSettings" />
+        <Method name="setExpirationBuffer" />
+        <Bug pattern="ME_ENUM_FIELD_SETTER" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.AuthenticationSettings" />
+        <Method name="setSharedPrefPackageName" />
+        <Bug pattern="ME_ENUM_FIELD_SETTER" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.AuthenticationSettings" />
+        <Method name="setUseBroker" />
+        <Bug pattern="ME_ENUM_FIELD_SETTER" />
+    </Match>
+    <Match>
+        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC" />
+    </Match>
 </FindBugsFilter>

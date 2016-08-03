@@ -25,6 +25,7 @@ package com.microsoft.aad.adal;
 
 import java.util.Locale;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -38,6 +39,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
     private static final String TAG = "ADALErrorTests";
 
     @Override
+    @SuppressLint("PackageManagerGetSignatures")
     protected void setUp() throws Exception {
         super.setUp();
         getInstrumentation().getTargetContext().getCacheDir();

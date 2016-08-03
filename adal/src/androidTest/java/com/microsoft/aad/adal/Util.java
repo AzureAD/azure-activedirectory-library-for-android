@@ -150,7 +150,7 @@ final class Util {
         final AuthenticationResult authResult = new AuthenticationResult("accessToken", "refresh_token", expiredTime.getTime(), 
                 isMRRT, userInfo, "TenantId", "IdToken", null);
         
-        if (StringExtensions.IsNullOrBlank(familyClientId)) {
+        if (StringExtensions.isNullOrBlank(familyClientId)) {
             return authResult;
         }
         

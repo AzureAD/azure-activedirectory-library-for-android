@@ -76,7 +76,7 @@ class IdToken {
             this.mObjectId = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_OBJECT_ID);
             final String expiration = responseItems.get(AuthenticationConstants.OAuth2.ID_TOKEN_PASSWORD_EXPIRATION);
 
-            if (!StringExtensions.IsNullOrBlank(expiration)) {
+            if (!StringExtensions.isNullOrBlank(expiration)) {
                 this.mPasswordExpiration = Long.parseLong(expiration);
             }
 

@@ -202,7 +202,7 @@ public class AuthenticationParameters {
             String authenticateHeader) throws ResourceAuthenticationChallengeException {
         final AuthenticationParameters authParams;
 
-        if (StringExtensions.IsNullOrBlank(authenticateHeader)) {
+        if (StringExtensions.isNullOrBlank(authenticateHeader)) {
             throw new ResourceAuthenticationChallengeException(AUTH_HEADER_MISSING);
         } else {
             Pattern p = Pattern.compile(REGEX);
@@ -223,14 +223,14 @@ public class AuthenticationParameters {
                 while (values.find()) {
 
                     // values.group(0) is matching string
-                    if (!StringExtensions.IsNullOrBlank(values.group(1))
-                            && !StringExtensions.IsNullOrBlank(values.group(2))) {
+                    if (!StringExtensions.isNullOrBlank(values.group(1))
+                            && !StringExtensions.isNullOrBlank(values.group(2))) {
                         String key = values.group(1);
                         String value = values.group(2);
 
                         try {
-                            key = StringExtensions.URLFormDecode(key);
-                            value = StringExtensions.URLFormDecode(value);
+                            key = StringExtensions.urlFormDecode(key);
+                            value = StringExtensions.urlFormDecode(value);
                         } catch (UnsupportedEncodingException e) {
                             Logger.v(TAG, e.getMessage());
                         }
@@ -252,7 +252,7 @@ public class AuthenticationParameters {
                 }
 
                 String authority = headerItems.get(AUTHORITY_KEY);
-                if (!StringExtensions.IsNullOrBlank(authority)) {
+                if (!StringExtensions.isNullOrBlank(authority)) {
                     authParams = new AuthenticationParameters(
                             StringExtensions.removeQuoteInHeaderValue(authority),
                             StringExtensions.removeQuoteInHeaderValue(headerItems.get(RESOURCE_KEY)));

@@ -46,19 +46,22 @@ final class StringExtensions {
 
     private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
+    private StringExtensions() {
+        // Intentionally left blank
+    }
     /**
      * checks if string is null or empty.
      * 
      * @param param String to check for null or blank
      * @return boolean if the string was null or blank
      */
-    static boolean IsNullOrBlank(String param) {
-        return (param == null || param.trim().length() == 0);
+    static boolean isNullOrBlank(String param) {
+        return param == null || param.trim().length() == 0; //NOPMD
     }
 
     public static String createHash(String msg) throws NoSuchAlgorithmException,
             UnsupportedEncodingException {
-        if (!StringExtensions.IsNullOrBlank(msg)) {
+        if (!StringExtensions.isNullOrBlank(msg)) {
             MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
             final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
             return new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
@@ -74,7 +77,7 @@ final class StringExtensions {
      * @return the decoded
      * @throws UnsupportedEncodingException
      */
-    static String URLFormEncode(String source) throws UnsupportedEncodingException {
+    static String urlFormEncode(String source) throws UnsupportedEncodingException {
         return URLEncoder.encode(source, ENCODING_UTF8);
     }
 
@@ -85,7 +88,7 @@ final class StringExtensions {
      * @return the encoded string
      * @throws UnsupportedEncodingException
      */
-    static String URLFormDecode(String source) throws UnsupportedEncodingException {
+    static String urlFormDecode(String source) throws UnsupportedEncodingException {
 
         // Decode everything else
         return URLDecoder.decode(source, ENCODING_UTF8);
@@ -118,11 +121,11 @@ final class StringExtensions {
     static HashMap<String, String> getUrlParameters(String finalUrl) {
         Uri response = Uri.parse(finalUrl);
         String fragment = response.getFragment();
-        HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
+        HashMap<String, String> parameters = HashMapExtensions.urlFormDecode(fragment);
 
         if (parameters == null || parameters.isEmpty()) {
             String queryParameters = response.getEncodedQuery();
-            parameters = HashMapExtensions.URLFormDecode(queryParameters);
+            parameters = HashMapExtensions.urlFormDecode(queryParameters);
         }
         return parameters;
     }
@@ -133,7 +136,7 @@ final class StringExtensions {
         if (st.hasMoreTokens()) {
             while (st.hasMoreTokens()) {
                 String name = st.nextToken();
-                if (!StringExtensions.IsNullOrBlank(name)) {
+                if (!StringExtensions.isNullOrBlank(name)) {
                     itemList.add(name);
                 }
             }
@@ -150,7 +153,7 @@ final class StringExtensions {
         for (int i = 0; i < input.length(); i++) {
             if (input.charAt(i) == delimiter && !insideString) {
                 item = input.substring(startIndex, i);
-                if (!StringExtensions.IsNullOrBlank(item.trim())) {
+                if (!StringExtensions.isNullOrBlank(item.trim())) {
                     items.add(item);
                 }
 
@@ -161,7 +164,7 @@ final class StringExtensions {
         }
 
         item = input.substring(startIndex);
-        if (!StringExtensions.IsNullOrBlank(item.trim())) {
+        if (!StringExtensions.isNullOrBlank(item.trim())) {
             items.add(item);
         }
 
@@ -169,7 +172,7 @@ final class StringExtensions {
     }
 
     static String removeQuoteInHeaderValue(String value) {
-        if (!StringExtensions.IsNullOrBlank(value)) {
+        if (!StringExtensions.isNullOrBlank(value)) {
             return value.replace("\"", "");
         }
         return null;

@@ -27,10 +27,14 @@ import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
-class ClientMetricsEndpointType {
+final class ClientMetricsEndpointType {
     public static final String TOKEN = "token";
 
     public static final String INSTANCE_DISCOVERY = "instance";
+
+    private ClientMetricsEndpointType() {
+        // Intentionally left blank
+    }
 }
 
 enum ClientMetrics {
@@ -98,11 +102,11 @@ enum ClientMetrics {
     }
 
     public void setLastError(String errorCode) {
-        mLastError = (errorCode != null) ? errorCode.replaceAll("[\\[\\]]", "") : "";
+        mLastError = (errorCode == null) ? "" : errorCode.replaceAll("[\\[\\]]", "");
     }
 
     public void setLastErrorCodes(String[] errorCodes) {
-        mLastError = (errorCodes != null) ? android.text.TextUtils.join(",", errorCodes) : null;
+        mLastError = (errorCodes == null) ? null : android.text.TextUtils.join(",", errorCodes);
     }
 
     private void addClientMetricsHeadersToRequest(Map<String, String> headers) {

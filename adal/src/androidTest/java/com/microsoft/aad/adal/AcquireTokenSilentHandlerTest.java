@@ -710,12 +710,12 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     }
 
     private void saveTokenIntoCache(final ITokenCacheStore mockedCache, final TokenCacheItem token) {
-        if (!StringExtensions.IsNullOrBlank(token.getResource())) {
+        if (!StringExtensions.isNullOrBlank(token.getResource())) {
             mockedCache.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, token.getResource(), token.getClientId(),
                     token.getUserInfo().getUserId()), token);
             mockedCache.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, token.getResource(), token.getClientId(),
                     token.getUserInfo().getDisplayableId()), token);
-        } else if (StringExtensions.IsNullOrBlank(token.getClientId())) {
+        } else if (StringExtensions.isNullOrBlank(token.getClientId())) {
             mockedCache.setItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY, token.getFamilyClientId(),
                     token.getUserInfo().getUserId()), token);
             mockedCache.setItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY, token.getFamilyClientId(),

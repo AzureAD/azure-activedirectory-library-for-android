@@ -56,7 +56,7 @@ public final class CacheKey implements Serializable {
     @Override
     public String toString() {
         // only family token cache item will have the family client id as the key
-        if (StringExtensions.IsNullOrBlank(mFamilyClientId)) {
+        if (StringExtensions.isNullOrBlank(mFamilyClientId)) {
             return String.format(Locale.US, "%s$%s$%s$%s$%s", mAuthority, mResource, mClientId,
                     (mIsMultipleResourceRefreshToken ? "y" : "n"), mUserId);
         }
@@ -119,7 +119,7 @@ public final class CacheKey implements Serializable {
         key.mIsMultipleResourceRefreshToken = isMultiResourceRefreshToken;
 
         // optional
-        if (!StringExtensions.IsNullOrBlank(userId)) {
+        if (!StringExtensions.isNullOrBlank(userId)) {
             key.mUserId = userId.toLowerCase(Locale.US);
         }
 

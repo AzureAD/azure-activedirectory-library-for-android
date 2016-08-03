@@ -97,6 +97,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     private static final String TAG = "AuthenticationContextTest";
 
     @Override
+    @SuppressLint("PackageManagerGetSignatures")
     protected void setUp() throws Exception {
         super.setUp();
         Log.d(TAG, "setup key at settings");

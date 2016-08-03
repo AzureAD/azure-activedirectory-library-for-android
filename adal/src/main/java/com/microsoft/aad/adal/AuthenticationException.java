@@ -93,7 +93,7 @@ public class AuthenticationException extends Exception {
      * @return Error message
      */
     public String getLocalizedMessage(Context context) {
-        if (!StringExtensions.IsNullOrBlank(super.getMessage())) {
+        if (!StringExtensions.isNullOrBlank(super.getMessage())) {
             return super.getMessage();
         }
         if (mCode != null) {

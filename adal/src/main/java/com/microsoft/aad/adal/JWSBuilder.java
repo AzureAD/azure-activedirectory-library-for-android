@@ -97,10 +97,10 @@ class JWSBuilder implements IJWSBuilder {
         // concatenated in that order, with the three strings being separated by
         // two period ('.') characters.
         // Base64 encoding without padding, wrapping and urlsafe.
-        if (StringExtensions.IsNullOrBlank(nonce)) {
+        if (StringExtensions.isNullOrBlank(nonce)) {
             throw new IllegalArgumentException("nonce");
         }
-        if (StringExtensions.IsNullOrBlank(audience)) {
+        if (StringExtensions.isNullOrBlank(audience)) {
             throw new IllegalArgumentException("audience");
         }
         if (privateKey == null) {

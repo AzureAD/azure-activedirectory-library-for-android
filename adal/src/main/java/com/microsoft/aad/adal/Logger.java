@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 /**
@@ -71,10 +72,10 @@ public class Logger {
         Debug(4);
 
         @SuppressWarnings("unused")
-        private int value;
+        private int mValue;
 
         LogLevel(int val) {
-            this.value = val;
+            mValue = val;
         }
     }
 
@@ -102,14 +103,33 @@ public class Logger {
     }
 
     public interface ILogger {
+        /**
+         * Interface method for apps to get the log message.
+         *
+         * @param tag tag for the log message
+         * @param message body of the log message
+         * @param additionalMessage additional parameters
+         * @param level log level of the message
+         * @param errorCode ADAL error code being logged
+         */
         void Log(String tag, String message, String additionalMessage, LogLevel level,
                 ADALError errorCode);
     }
 
+    /**
+     * The log level being used by the logger.
+     *
+     * @return Log level being used
+     */
     public LogLevel getLogLevel() {
         return mLogLevel;
     }
 
+    /**
+     * Set log level.
+     *
+     * @param level log level to set.
+     */
     public void setLogLevel(LogLevel level) {
         this.mLogLevel = level;
     }
@@ -133,8 +153,13 @@ public class Logger {
                 + AuthenticationContext.getVersionName();
     }
 
+    /**
+     *
+     * @param tag TAG for the log message
+     * @param message Body of the message
+     */
     public void debug(String tag, String message) {
-        if (mLogLevel.compareTo(LogLevel.Debug) < 0 || StringExtensions.IsNullOrBlank(message)) {
+        if (mLogLevel.compareTo(LogLevel.Debug) < 0 || StringExtensions.isNullOrBlank(message)) {
             return;
         }
 
@@ -145,6 +170,13 @@ public class Logger {
         logCommon(tag, message, "", LogLevel.Info, null);
     }
 
+    /**
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     * @param errorCode ADAL error code being logged
+     */
     public void verbose(String tag, String message, String additionalMessage, ADALError errorCode) {
         if (mLogLevel.compareTo(LogLevel.Verbose) < 0) {
             return;
@@ -157,6 +189,13 @@ public class Logger {
         logCommon(tag, message, additionalMessage, LogLevel.Verbose, errorCode);
     }
 
+    /**
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     * @param errorCode ADAL error code being logged
+     */
     public void inform(String tag, String message, String additionalMessage, ADALError errorCode) {
         if (mLogLevel.compareTo(LogLevel.Info) < 0) {
             return;
@@ -169,6 +208,13 @@ public class Logger {
         logCommon(tag, message, additionalMessage, LogLevel.Info, errorCode);
     }
 
+    /**
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     * @param errorCode ADAL error code being logged
+     */
     public void warn(String tag, String message, String additionalMessage, ADALError errorCode) {
         if (mLogLevel.compareTo(LogLevel.Warn) < 0) {
             return;
@@ -181,6 +227,13 @@ public class Logger {
         logCommon(tag, message, additionalMessage, LogLevel.Warn, errorCode);
     }
 
+    /**
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     * @param errorCode ADAL error code being logged
+     */
     public void error(String tag, String message, String additionalMessage, ADALError errorCode) {
         if (mAndroidLogEnabled) {
             Log.e(tag, getLogMessage(message, additionalMessage, errorCode));
@@ -189,6 +242,14 @@ public class Logger {
         logCommon(tag, message, additionalMessage, LogLevel.Error, errorCode);
     }
 
+    /**
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     * @param errorCode ADAL error code being logged
+     * @param err Exception being logged
+     */
     public void error(String tag, String message, String additionalMessage, ADALError errorCode,
             Throwable err) {
         if (mAndroidLogEnabled) {
@@ -219,7 +280,7 @@ public class Logger {
             msg.append(additionalMessage);
         }
         if (throwable != null) {
-            msg.append(" ").append(Log.getStackTraceString(throwable));
+            msg.append(' ').append(Log.getStackTraceString(throwable));
         }
         logCommon(tag, message, msg.toString(), level, errorCode);
     }
@@ -229,43 +290,93 @@ public class Logger {
             ADALError errorCode) {
         StringBuilder msg = new StringBuilder();
         if (errorCode != null) {
-            msg.append(getCodeName(errorCode)).append(":");
+            msg.append(getCodeName(errorCode)).append(':');
         }
         if (message != null) {
             message = addMoreInfo(message);
             msg.append(message);
         }
         if (additionalMessage != null) {
-            msg.append(" ").append(additionalMessage);
+            msg.append(' ').append(additionalMessage);
         }
 
         return msg.toString();
     }
 
+    /**
+     * Logs debug message.
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     */
     public static void d(String tag, String message) {
         Logger.getInstance().debug(tag, message);
     }
 
+    /**
+     * Logs informational message.
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     */
     public static void i(String tag, String message, String additionalMessage) {
         Logger.getInstance().inform(tag, message, additionalMessage, null);
     }
-    
+
+    /**
+     * Logs informational messages with error codes.
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     * @param errorCode ADAL error code being logged
+     */
     public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().inform(tag, message, additionalMessage, errorCode);
     }
 
+    /**
+     * Logs verbose message.
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     */
     public static void v(String tag, String message) {
         Logger.getInstance().verbose(tag, message, null, null);
     }
 
+    /**
+     * Logs verbose message with error code.
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     * @param errorCode ADAL error code being logged
+     */
     public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().verbose(tag, message, additionalMessage, errorCode);
     }
 
+    /**
+     * Logs warning message.
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     * @param errorCode ADAL error code being logged
+     */
     public static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().warn(tag, message, additionalMessage, errorCode);
     }
 
+    /**
+     * Logs error message.
+     * @param tag tag for the log message
+     * @param message body of the log message
+     * @param additionalMessage additional parameters
+     * @param errorCode ADAL error code being logged
+     */
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
         Logger.getInstance().error(tag, message, additionalMessage, errorCode);
     }
@@ -282,6 +393,11 @@ public class Logger {
         Logger.getInstance().error(tag, message, additionalMessage, errorCode, err);
     }
 
+    /**
+     * Sets the correlation id for the logger.
+     *
+     * @param correlation Correlation ID to be used
+     */
     public static void setCorrelationId(UUID correlation) {
         Logger.getInstance().mCorrelationId = "";
         if (correlation != null) {
@@ -289,10 +405,18 @@ public class Logger {
         }
     }
 
+    /**
+     *
+     * @return True if log if enabled, False otherwise
+     */
     public boolean isAndroidLogEnabled() {
         return mAndroidLogEnabled;
     }
 
+    /**
+     *
+     * @param androidLogEnable True if log needs to be enables, false otherwise
+     */
     public void setAndroidLogEnabled(boolean androidLogEnable) {
         this.mAndroidLogEnabled = androidLogEnable;
     }
@@ -305,6 +429,7 @@ public class Logger {
         return "";
     }
 
+    @SuppressLint("SimpleDateFormat")
     private static String getUTCDateTimeAsString() {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -312,6 +437,10 @@ public class Logger {
 
     }
 
+    /**
+     *
+     * @return the correlation id for the logger.
+     */
     public String getCorrelationId() {
         return mCorrelationId;
     }
