@@ -550,34 +550,36 @@ class AcquireTokenRequest {
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
-                    Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker "
+                    synchronized (this) {
+                        Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker "
                             + "installation. Once broker is installed, request will be resumed and result "
                             + "will be received");
 
-                    //Register the broker resume result receiver with intent filter as broker_request_resume and
-                    // specific app package name
-                    mBrokerResumeResultReceiver = new BrokerResumeResultReceiver();
-                    (new ContextWrapper(mContext)).registerReceiver(mBrokerResumeResultReceiver,
-                            new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME
-                                    + mContext.getPackageName()), null, mHandler);
-
-                    // Send cancel result back to caller if doesn't receive result from broker within 5 minuites
-                    final int timoutForBrokerResult = 10 * 60 * 1000;
-                    mHandler.postDelayed(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            if (!mBrokerResumeResultReceiver.isResultReceivedFromBroker()) {
-                                Logger.v(TAG + "onActivityResult", "BrokerResumeResultReceiver doesn't receive "
-                                        + "result from broker within 10 minuites, unregister the receiver and "
-                                        + "cancelling the request");
-
-                                (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
-                                waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
-                                        "Broker doesn't return back the result within 10 minuites"));
+                        //Register the broker resume result receiver with intent filter as broker_request_resume and
+                        // specific app package name
+                        mBrokerResumeResultReceiver = new BrokerResumeResultReceiver();
+                        (new ContextWrapper(mContext)).registerReceiver(mBrokerResumeResultReceiver,
+                                new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME
+                                        + mContext.getPackageName()), null, mHandler);
+    
+                        // Send cancel result back to caller if doesn't receive result from broker within 5 minuites
+                        final int timoutForBrokerResult = 10 * 60 * 1000;
+                        mHandler.postDelayed(new Runnable() {
+    
+                            @Override
+                            public void run() {
+                                if (!mBrokerResumeResultReceiver.isResultReceivedFromBroker()) {
+                                    Logger.v(TAG + "onActivityResult", "BrokerResumeResultReceiver doesn't receive "
+                                            + "result from broker within 10 minuites, unregister the receiver and "
+                                            + "cancelling the request");
+    
+                                    (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
+                                    waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
+                                            "Broker doesn't return back the result within 10 minuites"));
+                                }
                             }
-                        }
-                    }, timoutForBrokerResult);
+                        }, timoutForBrokerResult);
+                    }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
@@ -622,45 +624,47 @@ class AcquireTokenRequest {
                     } else {
                         // Browser has the url and it will exchange auth code
                         // for token
-                        final CallbackHandler callbackHandle = new CallbackHandler(mHandler,
-                                waitingRequest.mDelagete);
+                        synchronized (this) {
+                            final CallbackHandler callbackHandle = new CallbackHandler(mHandler,
+                                    waitingRequest.mDelagete);
 
-                        // Executes all the calls inside the Runnable to return
-                        // immediately to
-                        // UI thread. All UI
-                        // related actions will be performed using the Handler.
-                        THREAD_EXECUTOR.execute(new Runnable() {
+                            // Executes all the calls inside the Runnable to return
+                            // immediately to
+                            // UI thread. All UI
+                            // related actions will be performed using the Handler.
+                            THREAD_EXECUTOR.execute(new Runnable() {
 
-                            @Override
-                            public void run() {
-                                try {
-                                    final AcquireTokenInteractiveRequest acquireTokenInteractiveRequest
-                                            = new AcquireTokenInteractiveRequest(mContext, waitingRequest.mRequest,
-                                            mTokenCacheAccessor);
-                                    final AuthenticationResult authenticationResult
-                                            = acquireTokenInteractiveRequest.acquireTokenWithAuthCode(endingUrl);
+                                @Override
+                                public void run() {
+                                    try {
+                                        final AcquireTokenInteractiveRequest acquireTokenInteractiveRequest
+                                                = new AcquireTokenInteractiveRequest(mContext, waitingRequest.mRequest,
+                                                mTokenCacheAccessor);
+                                        final AuthenticationResult authenticationResult
+                                                = acquireTokenInteractiveRequest.acquireTokenWithAuthCode(endingUrl);
 
-                                    if (waitingRequest.mDelagete != null) {
-                                        Logger.v(TAG, "Sending result to callback. "
-                                                + waitingRequest.mRequest.getLogInfo());
-                                        callbackHandle.onSuccess(authenticationResult);
+                                        if (waitingRequest.mDelagete != null) {
+                                            Logger.v(TAG, "Sending result to callback. "
+                                                    + waitingRequest.mRequest.getLogInfo());
+                                            callbackHandle.onSuccess(authenticationResult);
+                                        }
+                                    } catch (final AuthenticationException authenticationException) {
+                                        final StringBuilder message
+                                                = new StringBuilder(authenticationException.getMessage());
+                                        if (authenticationException.getCause() != null) {
+                                            message.append(authenticationException.getCause().getMessage());
+                                        }
+
+                                        Logger.e(TAG, message.toString(),
+                                                ExceptionExtensions.getExceptionMessage(authenticationException),
+                                                ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
+                                                authenticationException);
+                                        waitingRequestOnError(callbackHandle, waitingRequest, requestId,
+                                                authenticationException);
                                     }
-                                } catch (final AuthenticationException authenticationException) {
-                                    final StringBuilder message
-                                            = new StringBuilder(authenticationException.getMessage());
-                                    if (authenticationException.getCause() != null) {
-                                        message.append(authenticationException.getCause().getMessage());
-                                    }
-
-                                    Logger.e(TAG, message.toString(),
-                                            ExceptionExtensions.getExceptionMessage(authenticationException),
-                                            ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                                            authenticationException);
-                                    waitingRequestOnError(callbackHandle, waitingRequest, requestId,
-                                            authenticationException);
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
                 }
             }
@@ -781,8 +785,10 @@ class AcquireTokenRequest {
             } catch (final AuthenticationException authenticationException) {
                 Logger.e(TAG, "No waiting request exists", "", ADALError.CALLBACK_IS_NOT_FOUND,
                         authenticationException);
-                (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
-                return;
+                synchronized (mBrokerResumeResultReceiver) {
+                    (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
+                    return;
+                }
             }
 
             final String errorCode = intent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
@@ -819,7 +825,9 @@ class AcquireTokenRequest {
                                     "Broker doesn't send back error nor the completion notification."));
                 }
             }
-            (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
+            synchronized (mBrokerResumeResultReceiver) {
+                (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
+            }
         }
 
         public boolean isResultReceivedFromBroker() {

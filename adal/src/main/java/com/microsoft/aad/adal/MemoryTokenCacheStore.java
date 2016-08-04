@@ -104,7 +104,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         out.defaultWriteObject();
     }
 
-    private synchronized void readObject(ObjectInputStream inputStream) throws IOException,
+    private void readObject(ObjectInputStream inputStream) throws IOException,
             ClassNotFoundException {
         inputStream.defaultReadObject();
 

@@ -92,6 +92,7 @@ final class SSOStateSerializer {
      * @return tokenCacheItem
      * @throws AuthenticationException
      */
+    @SuppressWarnings("PMD")
     private TokenCacheItem getTokenItem() throws AuthenticationException {
         if (mTokenCacheItems == null || mTokenCacheItems.isEmpty()) {
             throw new AuthenticationException(ADALError.TOKEN_CACHE_ITEM_NOT_FOUND,

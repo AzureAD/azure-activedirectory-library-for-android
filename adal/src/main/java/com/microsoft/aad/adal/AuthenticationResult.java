@@ -208,7 +208,7 @@ public class AuthenticationResult implements Serializable {
      * @return expiresOn {@link Date}
      */
     public Date getExpiresOn() {
-        return mExpiresOn;
+        return new Date(mExpiresOn.getTime());
     }
 
     /**

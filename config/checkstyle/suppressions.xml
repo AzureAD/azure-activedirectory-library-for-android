@@ -10,4 +10,5 @@
     <suppress checks="Javadoc.*" files=".*Test.java"/>
     <suppress checks="MethodName" files=".*Logger.java"/>
     <suppress checks="MethodName" files=".*LoggerTest.java"/>
+	<suppress checks="MemberName" files=".*AuthenticationContext.java" lines="813"/>
 </suppressions>

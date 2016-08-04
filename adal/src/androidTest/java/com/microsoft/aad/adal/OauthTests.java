@@ -104,7 +104,7 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testEncodeDecodeProtocolState() {
+    public void testEncodeDecodeProtocolState() throws UnsupportedEncodingException {
         final String resource = "resource:" + UUID.randomUUID().toString();
         final String authority = "http://www.something.com";
         final AuthenticationRequest request = createAuthenticationRequest(

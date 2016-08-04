@@ -482,10 +482,10 @@ public class AuthenticationContext {
         final AtomicReference<Exception> exception = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
         if (StringExtensions.isNullOrBlank(resource)) {
-            throw new IllegalArgumentException("resource");
+            throw new IllegalArgumentException("The required resource is null or blank.");
         }
         if (StringExtensions.isNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("clientId");
+            throw new IllegalArgumentException("The required clientId is null or blank");
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
