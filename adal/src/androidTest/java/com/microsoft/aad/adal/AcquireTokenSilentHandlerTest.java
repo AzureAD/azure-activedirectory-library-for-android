@@ -768,8 +768,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
 
     private AuthenticationRequest getAuthenticationRequest(final String authority, final String resource,
                                                            final String clientId, final boolean isExtendedLifetimeEnabled) {
-        final AuthenticationRequest authRequest = new AuthenticationRequest(authority, resource, clientId, isExtendedLifetimeEnabled);
-        return authRequest;
+        return new AuthenticationRequest(authority, resource, clientId, isExtendedLifetimeEnabled);
     }
 
     private AcquireTokenSilentHandler getAcquireTokenHandler(final Context context, final AuthenticationRequest authRequest,
