@@ -23,15 +23,14 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import android.os.Build;
 
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 
-import android.os.Build;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple

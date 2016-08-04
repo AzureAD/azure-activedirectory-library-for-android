@@ -44,9 +44,9 @@ public class AndroidTestHelper extends InstrumentationTestCase {
 
     private static final String TAG = "AndroidTestHelper";
 
-    protected byte[] mTestSignature;
+    private byte[] mTestSignature;
 
-    protected String mTestTag;
+    private String mTestTag;
 
     @Override
     @SuppressLint("PackageManagerGetSignatures")
@@ -73,7 +73,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
 
     @Override
     protected void tearDown() throws Exception {
-        HttpUrlConnectionFactory.mockedConnection = null;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         super.tearDown();
     }
 

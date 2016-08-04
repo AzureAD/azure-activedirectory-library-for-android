@@ -23,15 +23,15 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import android.util.Base64;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Base64;
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * IdToken class is used to initialize the IdToken object with the raw idToken
@@ -39,7 +39,7 @@ import android.util.Base64;
  */
 class IdToken {
 
-    final private static String TAG = "IdToken";
+    private static final String TAG = "IdToken";
 
     private String mSubject;
 

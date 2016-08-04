@@ -33,16 +33,24 @@ import java.net.URL;
  */
 final class HttpUrlConnectionFactory {
 
-    static HttpURLConnection mockedConnection = null;
+    private static HttpURLConnection sMockedConnection = null;
 
     /**
      * Private constructor to prevent the class from being initiated.
      */
     private HttpUrlConnectionFactory() { }
+
+    /**
+     * Set the mocked {@link HttpURLConnection}.
+     * @param mockedHttpUrlConnection The mocked {@link HttpURLConnection} to set.
+     */
+    static void setMockedHttpUrlConnection(final HttpURLConnection mockedHttpUrlConnection) {
+        sMockedConnection = mockedHttpUrlConnection;
+    }
     
     static HttpURLConnection createHttpUrlConnection(final URL url) throws IOException {
-        if (mockedConnection != null) {
-            return mockedConnection;
+        if (sMockedConnection != null) {
+            return sMockedConnection;
         }
         
         return (HttpURLConnection) url.openConnection();

@@ -49,7 +49,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
@@ -136,7 +135,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
     @Override
     protected void tearDown() throws Exception {
-        HttpUrlConnectionFactory.mockedConnection = null;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         Logger.getInstance().setExternalLogger(null);
         super.tearDown();
     }
@@ -274,7 +273,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 + requestCorrelationId.toString() + "\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream())
@@ -633,7 +632,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getSuccessTokenResponse(false, false)),
@@ -679,7 +678,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.
@@ -864,7 +863,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 + TEST_IDTOKEN
                 + "\",\"access_token\":\"TokenReturnsWithIdToken\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refreshABC\",\"scope\":\"*\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
@@ -916,7 +915,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
@@ -977,7 +976,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
@@ -1024,7 +1023,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final String response = "{\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":" +
                 "\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
@@ -1072,7 +1071,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         // response2 has FoCI as "familyClientId"
         final String response2 = Util.getSuccessTokenResponse(true, true);
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
@@ -1182,7 +1181,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 "\"scope\":\"*\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response));
@@ -1209,7 +1208,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         testActivity.mSignal = signal;
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(
@@ -1734,7 +1733,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 "\"refresh_token\":\""
                 + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(response),
@@ -1781,7 +1780,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal = new CountDownLatch(1);
         callback = new MockAuthenticationCallback(signal);
         callback.setAuthenticationResult(null);
-        HttpUrlConnectionFactory.mockedConnection = null;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri", TEST_IDTOKEN_UPN,
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
@@ -1909,7 +1908,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         final String responseBody = getErrorResponseBody("interaction_required");
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenThrow(new IOException());

@@ -23,6 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+import android.os.Build;
+import android.os.Debug;
+import android.os.Process;
+
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
@@ -32,13 +37,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.Map;
-
-import android.content.Context;
-import android.os.Build;
-import android.os.Debug;
-import android.os.Process;
+import java.util.Set;
 
 /**
  * Webrequest are called in background thread from API level. HttpWebRequest
@@ -47,8 +47,6 @@ import android.os.Process;
 class HttpWebRequest {
     static final String REQUEST_METHOD_POST = "POST";
     static final String REQUEST_METHOD_GET = "GET";
-    static final String HTTP_PORT_NUMBER = ":80";
-    static final String HTTPS_PORT_NUMBER = ":443";
 
     private static final String TAG = "HttpWebRequest";
     private static final int DEBUG_SIMULATE_DELAY = 0;
@@ -74,7 +72,7 @@ class HttpWebRequest {
         mRequestMethod = requestMethod;
         mRequestHeaders = new HashMap<>();
         if (mUrl != null) {
-            mRequestHeaders.put("Host", getURLAuthority(mUrl));
+            mRequestHeaders.put("Host", mUrl.getAuthority());
         }
         mRequestHeaders.putAll(headers);
         mRequestContent = requestContent;
@@ -247,24 +245,5 @@ class HttpWebRequest {
                 Logger.e(TAG, "Failed to close the stream: ", "", ADALError.IO_EXCEPTION, e);
             }
         }
-    }
-
-    private static String getURLAuthority(URL requestURL) {
-        // We assume that the parameter has already passed the tests in
-        // validateRequestURI
-        String authority = requestURL.getAuthority();
-
-        if (requestURL.getPort() == -1) {
-            // No port in the URI so append a default using the
-            // scheme specified in the URI; only http and https are
-            // supported
-            if (requestURL.getProtocol().equalsIgnoreCase("http")) {
-                authority = authority + HTTP_PORT_NUMBER;
-            } else if (requestURL.getProtocol().equalsIgnoreCase("https")) {
-                authority = authority + HTTPS_PORT_NUMBER;
-            }
-        }
-
-        return authority;
     }
 }
