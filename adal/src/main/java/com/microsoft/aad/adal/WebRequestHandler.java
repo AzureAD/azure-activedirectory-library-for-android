@@ -23,15 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import android.os.Build;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import com.microsoft.aad.adal.AuthenticationConstants.AAD;
-
-import android.os.Build;
 
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple
@@ -79,13 +75,13 @@ public class WebRequestHandler implements IWebRequestHandler {
     private Map<String, String> updateHeaders(final Map<String, String> headers) {
 
         if (mRequestCorrelationId != null) {
-            headers.put(AAD.CLIENT_REQUEST_ID, mRequestCorrelationId.toString());
+            headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, mRequestCorrelationId.toString());
         }
 
-        headers.put(AAD.ADAL_ID_PLATFORM, "Android");
-        headers.put(AAD.ADAL_ID_VERSION, AuthenticationContext.getVersionName());
-        headers.put(AAD.ADAL_ID_OS_VER, "" + Build.VERSION.SDK_INT);
-        headers.put(AAD.ADAL_ID_DM, android.os.Build.MODEL);
+        headers.put(AuthenticationConstants.AAD.ADAL_ID_PLATFORM, "Android");
+        headers.put(AuthenticationConstants.AAD.ADAL_ID_VERSION, AuthenticationContext.getVersionName());
+        headers.put(AuthenticationConstants.AAD.ADAL_ID_OS_VER, "" + Build.VERSION.SDK_INT);
+        headers.put(AuthenticationConstants.AAD.ADAL_ID_DM, android.os.Build.MODEL);
 
         return headers;
     }

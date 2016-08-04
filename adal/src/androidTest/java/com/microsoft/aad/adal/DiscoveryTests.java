@@ -46,7 +46,7 @@ public class DiscoveryTests extends AndroidTestHelper {
     }
 
     protected void tearDown() throws Exception {
-        HttpUrlConnectionFactory.mockedConnection = null;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         super.tearDown();
     }
 
@@ -57,7 +57,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         final Discovery discovery = new Discovery();
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
         final String response = "{\"tenant_discovery_endpoint\":\"valid endpoint\"}";
@@ -70,7 +70,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         } catch (final AuthenticationException e) {
             fail("non-expected exception. ");
         } finally {
-            HttpUrlConnectionFactory.mockedConnection = null;
+            HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         }
     }
 
@@ -110,7 +110,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
         final String response = "{\"error_codes\":\"errors\"}";
@@ -131,7 +131,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         final Discovery discovery = new Discovery();
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
         final String response = "{invalidJson}";
@@ -207,7 +207,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         final URL endpointFull = new URL("https://login.windows-ppe.net/common");
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
         final String response = "{\"tenant_discovery_endpoint\":\"valid endpoint\"}";
@@ -219,10 +219,10 @@ public class DiscoveryTests extends AndroidTestHelper {
         } catch (final AuthenticationException e) {
             fail();
         } finally {
-            HttpUrlConnectionFactory.mockedConnection = null;
+            HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         }
 
-        HttpUrlConnectionFactory.mockedConnection = null;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         // case sensitivity check
         final URL endpointCaseDifferent = new URL("https://logiN.Windows-PPE.Net/Common");
         try {
@@ -232,7 +232,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         }
 
         final HttpURLConnection mockedConnection2 = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection2;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection2);
         Util.prepareMockedUrlConnection(mockedConnection);
 
         final String addHostResponse = "{\"tenant_discovery_endpoint\":\"valid endpoint\"}";
@@ -243,7 +243,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         try {
             discovery.validateAuthority(endpointTest);
 
-            HttpUrlConnectionFactory.mockedConnection = null;
+            HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
             discovery.validateAuthority(endpointTest);
         } catch (final AuthenticationException e) {
             fail();

@@ -10,4 +10,8 @@
     <suppress checks="Javadoc.*" files=".*Test.java"/>
     <suppress checks="MethodName" files=".*Logger.java"/>
     <suppress checks="MethodName" files=".*LoggerTest.java"/>
+    <!-- suppress this for Log method in test-->
+    <suppress checks="MethodName" files="AuthenticationParamsTests.java"/>
+    <suppress checks="MethodName" files="FileTokenCacheStoreTests.java"/>
+    <suppress checks="MethodName" files="TestLogResponse.java"/>
 </suppressions>
