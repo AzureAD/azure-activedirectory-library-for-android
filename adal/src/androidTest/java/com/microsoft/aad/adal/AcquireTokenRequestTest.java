@@ -114,7 +114,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
     @Override
     protected void tearDown() throws Exception {
-        HttpUrlConnectionFactory.mockedConnection = null;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         Logger.getInstance().setExternalLogger(null);
         AuthenticationSettings.INSTANCE.setUseBroker(false);
         super.tearDown();
@@ -567,7 +567,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         authContext.setExtendedLifetimeEnabled(true);
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
@@ -608,7 +608,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         //mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
@@ -646,7 +646,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         authContext.setExtendedLifetimeEnabled(true);
         
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
@@ -658,7 +658,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         } catch (final AuthenticationException exception) {
             verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(exception);
-            assertTrue( exception.getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
+            assertTrue(exception.getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
             assertTrue(exception.getCause() instanceof AuthenticationException);
             assertTrue(((AuthenticationException) exception.getCause()).getCode() == ADALError.SERVER_ERROR);
         } finally {
@@ -684,7 +684,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         //mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
@@ -722,7 +722,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         //mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
@@ -762,7 +762,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         //mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_BAD_GATEWAY")));
@@ -904,7 +904,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
     private void prepareSuccessHttpUrlConnection() throws IOException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(
@@ -914,7 +914,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
     private void prepareFailedHttpUrlConnection(final String errorCode, final String ...errorCodes) throws IOException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
 

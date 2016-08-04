@@ -23,6 +23,13 @@
 
 package com.microsoft.aad.adal;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.os.Build;
+import android.security.KeyPairGeneratorSpec;
+import android.util.Base64;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,13 +60,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
-
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.content.Context;
-import android.os.Build;
-import android.security.KeyPairGeneratorSpec;
-import android.util.Base64;
 
 /**
  * Shared preferences store clear text. This class helps to encrypt/decrypt text
@@ -532,7 +532,7 @@ public class StorageHelper {
 
     private void assertHMac(final byte[] digest, final int start, final int end, final byte[] calculated)
             throws DigestException {
-        if (calculated.length != (end - start)) {
+        if (calculated.length != (end - start)) { //NOPMD
             throw new IllegalArgumentException("Unexpected HMAC length");
         }
 

@@ -22,6 +22,11 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import android.util.Base64;
+import android.util.Log;
+
+import org.mockito.Mockito;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,11 +35,6 @@ import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-
-import org.mockito.Mockito;
-
-import android.util.Base64;
-import android.util.Log;
 
 final class Util {
     /**
@@ -163,7 +163,7 @@ final class Util {
     }
     
     static void prepareMockedUrlConnection(final HttpURLConnection mockedConnection) throws IOException {
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Mockito.doNothing().when(mockedConnection).setConnectTimeout(Mockito.anyInt());
         Mockito.doNothing().when(mockedConnection).setDoInput(Mockito.anyBoolean());
     }

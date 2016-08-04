@@ -27,6 +27,27 @@
         <Bug pattern="ME_ENUM_FIELD_SETTER" />
     </Match>
     <Match>
+        <Class name="com.microsoft.aad.adal.HttpWebRequest" />
+        <Method name="convertStreamToString" />
+        <Bug pattern="DM_DEFAULT_ENCODING" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.UserInfo" />
+        <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.StorageHelper" />
+        <Bug code="IS" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.JWSBuilder$Claims" />
+        <Bug code="UrF" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.JWSBuilder$JwsHeader" />
+        <Bug code="UrF" />
+    </Match>
+    <Match>
         <Bug pattern="SIC_INNER_SHOULD_BE_STATIC" />
     </Match>
 	<Match>

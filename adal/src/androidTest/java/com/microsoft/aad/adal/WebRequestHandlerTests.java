@@ -38,7 +38,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -65,7 +64,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Log.d(TAG, "Test correlationid:" + testCorrelationId.toString());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
         final List<String> headerValues = new ArrayList<>();
@@ -131,7 +130,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getInputStream())
                 .thenReturn(Util.createInputStream("testabc-value123"));
@@ -154,7 +153,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getInputStream())
                 .thenReturn(Util.createInputStream(AAD.ADAL_ID_PLATFORM + "-Android" + "dummy string"
@@ -192,7 +191,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
     public void testGetWithIdRequest() throws IOException {
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getInputStream())
                 .thenReturn(Util.createInputStream("test get with id"));
@@ -212,7 +211,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         final String json = new Gson().toJson(message);
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream())

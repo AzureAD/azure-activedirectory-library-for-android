@@ -70,7 +70,7 @@ public class OauthTests extends AndroidTestCase {
 
     @Override
     protected void tearDown() throws Exception {
-        HttpUrlConnectionFactory.mockedConnection = null;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         super.tearDown();
     }
 
@@ -502,7 +502,7 @@ public class OauthTests extends AndroidTestCase {
 
         // mock token request response
         final HttpURLConnection mockedConnection = mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         when(mockedConnection.getOutputStream()).thenReturn(mock(OutputStream.class));
         when(mockedConnection.getInputStream()).thenReturn(
@@ -534,7 +534,7 @@ public class OauthTests extends AndroidTestCase {
 
         // mock token request response
         final HttpURLConnection mockedConnection = mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         when(mockedConnection.getOutputStream()).thenReturn(mock(OutputStream.class));
         when(mockedConnection.getInputStream()).thenReturn(
@@ -586,7 +586,7 @@ public class OauthTests extends AndroidTestCase {
         final String jsonResponse = "{invalid";
 
         final HttpURLConnection mockedConnection = mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         when(mockedConnection.getOutputStream()).thenReturn(mock(OutputStream.class));
         when(mockedConnection.getInputStream()).thenReturn(

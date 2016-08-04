@@ -98,7 +98,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         Log.d(TAG, "test:" + getName() + "thread:" + android.os.Process.myTid());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
-        HttpUrlConnectionFactory.mockedConnection = mockedConnection;
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
 
         final String response = "Bearer authorization_uri=\"https://login.windows.net/test.onmicrosoft.com\", resource=\"testresource\"";
