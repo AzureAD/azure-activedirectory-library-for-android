@@ -170,7 +170,7 @@ public class AuthenticationContext {
      * The default value of flag is false.
      * ADAL will return the stale token when ExtendedLifetime mode is enabled and the server is down
      *
-     * @param extendedLifetimeEnabled true if the ExtendedLifetime mode is on
+     * @param extendedLifetimeEnabled true if the ExtendedLifetime mode is on, false otherwise
      */
     public void setExtendedLifetimeEnabled(final boolean extendedLifetimeEnabled) {
         mExtendedLifetimeEnabled = extendedLifetimeEnabled;
@@ -485,7 +485,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("The required resource is null or blank.");
         }
         if (StringExtensions.isNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("The required clientId is null or blank");
+            throw new IllegalArgumentException("The required clientId is null or blank.");
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -740,16 +740,16 @@ public class AuthenticationContext {
     public boolean cancelAuthenticationActivity(final int requestId) throws AuthenticationException {
         final  AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
 
-        if (waitingRequest == null || waitingRequest.mDelagete == null) {
+        if (waitingRequest == null || waitingRequest.getDelegate() == null) {
             // there is not any waiting callback
             Logger.v(TAG, "Current callback is empty. There is not any active authentication.");
             return true;
         }
 
         final String currentCorrelationInfo;
-        if (waitingRequest.mRequest != null) {
+        if (waitingRequest.getRequest() != null) {
             currentCorrelationInfo = String.format(" CorrelationId: %s",
-                    waitingRequest.mRequest.getCorrelationId().toString());
+                    waitingRequest.getRequest().getCorrelationId().toString());
         } else {
             currentCorrelationInfo = "No correlation id associated with waiting request";
         }
@@ -769,8 +769,8 @@ public class AuthenticationContext {
         if (cancelResult) {
             // clear callback if broadcast message was successful
             Logger.v(TAG, "Cancel broadcast message was successful." + currentCorrelationInfo);
-            waitingRequest.mCancelled = true;
-            waitingRequest.mDelagete.onError(new AuthenticationCancelError(
+            waitingRequest.setCancelled(true);
+            waitingRequest.getDelegate().onError(new AuthenticationCancelError(
                     "Cancel broadcast message was successful."));
         } else {
             // Activity is not launched yet or receiver is not registered
@@ -810,14 +810,14 @@ public class AuthenticationContext {
         }
 
         return new IWindowComponent() {
-            Activity refActivity = activity;
+            Activity mRefActivity = activity;
 
             @Override
             public void startActivityForResult(Intent intent, int requestCode) {
                 // if user closed an app or switched to another activity
-                // refActivity can die before this method got invoked
-                if (refActivity != null) {
-                    refActivity.startActivityForResult(intent, requestCode);
+                // mRefActivity can die before this method got invoked
+                if (mRefActivity != null) {
+                    mRefActivity.startActivityForResult(intent, requestCode);
                 }
             }
         };
@@ -974,10 +974,10 @@ public class AuthenticationContext {
         }
 
         if (request == null) {
-            Logger.e(TAG, "Request callback is not available for requestid:" + requestId,
+            Logger.e(TAG, "Request callback is not available for requestId:" + requestId,
                     "", ADALError.CALLBACK_IS_NOT_FOUND);
             throw new AuthenticationException(ADALError.CALLBACK_IS_NOT_FOUND,
-                    "Request callback is not available for requestid:" + requestId);
+                    "Request callback is not available for requestId:" + requestId);
         }
 
         return request;
@@ -1010,8 +1010,8 @@ public class AuthenticationContext {
      */
     String getCorrelationInfoFromWaitingRequest(final AuthenticationRequestState waitingRequest) {
         UUID requestCorrelationID = getRequestCorrelationId();
-        if (waitingRequest.mRequest != null) {
-            requestCorrelationID = waitingRequest.mRequest.getCorrelationId();
+        if (waitingRequest.getRequest() != null) {
+            requestCorrelationID = waitingRequest.getRequest().getCorrelationId();
         }
 
         return String.format(" CorrelationId: %s", requestCorrelationID.toString());
@@ -1042,11 +1042,13 @@ public class AuthenticationContext {
             });
         }
         
+        @SuppressWarnings("PMD.UselessOverridingMethod")
         @Override
         public void set(V v) {
             super.set(v);
         }
 
+        @SuppressWarnings("PMD.UselessOverridingMethod")
         @Override
         public void setException(Throwable t) {
             super.setException(t);

@@ -70,21 +70,23 @@ public class TokenCacheItem implements Serializable {
     /**
      * Default constructor for cache item.
      */
-    public TokenCacheItem() { }
+    public TokenCacheItem() {
+        // Intentionally left blank
+    }
     
     TokenCacheItem(final TokenCacheItem tokenCacheItem) {
-        this.mAuthority = tokenCacheItem.getAuthority();
-        this.mResource = tokenCacheItem.getResource();
-        this.mClientId = tokenCacheItem.getClientId();
-        this.mAccessToken = tokenCacheItem.getAccessToken();
-        this.mRefreshtoken = tokenCacheItem.getRefreshToken();
-        this.mRawIdToken = tokenCacheItem.getRawIdToken();
-        this.mUserInfo = tokenCacheItem.getUserInfo();
-        this.mExpiresOn = tokenCacheItem.getExpiresOn();
-        this.mIsMultiResourceRefreshToken = tokenCacheItem.getIsMultiResourceRefreshToken();
-        this.mTenantId = tokenCacheItem.getTenantId();
-        this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
-        this.mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
+        mAuthority = tokenCacheItem.getAuthority();
+        mResource = tokenCacheItem.getResource();
+        mClientId = tokenCacheItem.getClientId();
+        mAccessToken = tokenCacheItem.getAccessToken();
+        mRefreshtoken = tokenCacheItem.getRefreshToken();
+        mRawIdToken = tokenCacheItem.getRawIdToken();
+        mUserInfo = tokenCacheItem.getUserInfo();
+        mExpiresOn = tokenCacheItem.getExpiresOn();
+        mIsMultiResourceRefreshToken = tokenCacheItem.getIsMultiResourceRefreshToken();
+        mTenantId = tokenCacheItem.getTenantId();
+        mFamilyClientId = tokenCacheItem.getFamilyClientId();
+        mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
     }
     
     /**
@@ -175,7 +177,7 @@ public class TokenCacheItem implements Serializable {
      * @param info UserInfo object which contains user information.
      */
     public void setUserInfo(UserInfo info) {
-        this.mUserInfo = info;
+        mUserInfo = info;
     }
 
     /**
@@ -193,7 +195,7 @@ public class TokenCacheItem implements Serializable {
      * @param resource resource identifier.
      */
     public void setResource(String resource) {
-        this.mResource = resource;
+        mResource = resource;
     }
 
     /**
@@ -211,7 +213,7 @@ public class TokenCacheItem implements Serializable {
      * @param authority String authority url.
      */
     public void setAuthority(String authority) {
-        this.mAuthority = authority;
+        mAuthority = authority;
     }
 
     /**
@@ -229,7 +231,7 @@ public class TokenCacheItem implements Serializable {
      * @param clientId client identifier string.
      */
     public void setClientId(String clientId) {
-        this.mClientId = clientId;
+        mClientId = clientId;
     }
 
     /**
@@ -247,7 +249,7 @@ public class TokenCacheItem implements Serializable {
      * @param accessToken the access token string.
      */
     public void setAccessToken(String accessToken) {
-        this.mAccessToken = accessToken;
+        mAccessToken = accessToken;
     }
 
     /**
@@ -265,7 +267,7 @@ public class TokenCacheItem implements Serializable {
      * @param refreshToken the refresh token string.
      */
     public void setRefreshToken(String refreshToken) {
-        this.mRefreshtoken = refreshToken;
+        mRefreshtoken = refreshToken;
     }
 
     /**
@@ -274,7 +276,7 @@ public class TokenCacheItem implements Serializable {
      * @return the time the token get expired.
      */
     public Date getExpiresOn() {
-        return new Date(mExpiresOn.getTime());
+        return Utility.getImmutableDateObject(mExpiresOn);
     }
 
     /**
@@ -282,8 +284,8 @@ public class TokenCacheItem implements Serializable {
      * 
      * @param expiresOn the expire time.
      */
-    public void setExpiresOn(Date expiresOn) {
-        this.mExpiresOn = (Date) expiresOn.clone();
+    public void setExpiresOn(final Date expiresOn) {
+        mExpiresOn = Utility.getImmutableDateObject(expiresOn);
     }
 
     /**
@@ -301,7 +303,7 @@ public class TokenCacheItem implements Serializable {
      * @param isMultiResourceRefreshToken true if the token is a multi-resource refresh token.
      */
     public void setIsMultiResourceRefreshToken(boolean isMultiResourceRefreshToken) {
-        this.mIsMultiResourceRefreshToken = isMultiResourceRefreshToken;
+        mIsMultiResourceRefreshToken = isMultiResourceRefreshToken;
     }
 
     /**
@@ -319,7 +321,7 @@ public class TokenCacheItem implements Serializable {
      * @param tenantId the tenant identifier string.
      */
     public void setTenantId(String tenantId) {
-        this.mTenantId = tenantId;
+        mTenantId = tenantId;
     }
 
     /**
@@ -337,7 +339,7 @@ public class TokenCacheItem implements Serializable {
      * @param rawIdToken raw ID token string.
      */
     public void setRawIdToken(String rawIdToken) {
-        this.mRawIdToken = rawIdToken;
+        mRawIdToken = rawIdToken;
     }
 
     /**
@@ -355,7 +357,7 @@ public class TokenCacheItem implements Serializable {
      * @param familyClientId the family client ID string.
      */
     public final void setFamilyClientId(final String familyClientId) {
-        this.mFamilyClientId = familyClientId;
+        mFamilyClientId = familyClientId;
     }
 
     /**
@@ -364,7 +366,7 @@ public class TokenCacheItem implements Serializable {
      * @param extendedExpiresOn extended expired date.
      */
     public final void setExtendedExpiresOn(final Date extendedExpiresOn) {
-        mExtendedExpiresOn = (Date) extendedExpiresOn.clone();
+        mExtendedExpiresOn = Utility.getImmutableDateObject(extendedExpiresOn);
     }
 
     /**
@@ -373,7 +375,7 @@ public class TokenCacheItem implements Serializable {
      * @return the extended expired date.
      */
     public final Date getExtendedExpiresOn() {
-        return new Date(mExtendedExpiresOn.getTime());
+        return Utility.getImmutableDateObject(mExtendedExpiresOn);
     }
 
     /**
@@ -394,11 +396,11 @@ public class TokenCacheItem implements Serializable {
     /**
      * Checks expiration time.
      * 
-     * @param expiresOn expired time
+     * @param expiresOn the time in type Date to check if it is expired
      * 
      * @return true if expired
      */
-    public static boolean isTokenExpired(Date expiresOn) {
+    public static boolean isTokenExpired(final Date expiresOn) {
         Calendar calendarWithBuffer = Calendar.getInstance();
         calendarWithBuffer.add(Calendar.SECOND,
                 AuthenticationSettings.INSTANCE.getExpirationBuffer());

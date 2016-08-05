@@ -196,6 +196,7 @@ public class AuthenticationParameters {
      * ADAL will parse the header response to get the authority and the resource
      * info.
      * @param authenticateHeader Header to check authority and resource.
+     * @throws {@link ResourceAuthenticationChallengeException}
      * @return {@link AuthenticationParameters}
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
@@ -240,7 +241,7 @@ public class AuthenticationParameters {
 
                         if (headerItems.containsKey(key)) {
                             Logger.w(TAG, String.format(
-                                    "Key/value pair list contains redundant key '{0}'.", key), "",
+                                    "Key/value pair list contains redundant key '%s'.", key), "",
                                     ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
                         }
 

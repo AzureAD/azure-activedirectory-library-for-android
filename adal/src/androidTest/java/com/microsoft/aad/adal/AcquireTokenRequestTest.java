@@ -48,7 +48,6 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.security.MessageDigest;

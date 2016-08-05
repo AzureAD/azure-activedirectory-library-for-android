@@ -50,7 +50,7 @@
     <Match>
         <Bug pattern="SIC_INNER_SHOULD_BE_STATIC" />
     </Match>
-	<Match>
+    <Match>
         <Class name="com.microsoft.aad.adal.AuthenticationResult" />
         <Bug pattern="UWF_UNWRITTEN_FIELD" />
     </Match>

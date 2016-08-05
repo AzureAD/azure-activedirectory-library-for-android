@@ -813,10 +813,10 @@ public class AuthenticationActivity extends Activity {
         }
 
         public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
-                         final String packagename, final int callingUID) {
+                         final String packageName, final int callingUID) {
             mRequestHandler = webHandler;
             mRequest = request;
-            mPackageName = packagename;
+            mPackageName = packageName;
             mAppCallingUID = callingUID;
             mAccountManager = AccountManager.get(AuthenticationActivity.this);
         }
@@ -941,7 +941,7 @@ public class AuthenticationActivity extends Activity {
                         userinfo.getDisplayableId());
             }
             result.mAccountName = name;
-            Logger.i(TAG, "Setting account in account manager. Package: " + mCallingPackage 
+            Logger.i(TAG, "Setting account in account manager. Package: " + mPackageName 
                     + " calling app UID:" + mAppCallingUID, " Account name: " + name);
 
 

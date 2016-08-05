@@ -28,9 +28,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class ReflectionUtils {
+public final class ReflectionUtils {
 
-    public final static String TEST_PACKAGE_NAME = "com.microsoft.aad.adal";
+    public static final String TEST_PACKAGE_NAME = "com.microsoft.aad.adal";
 
     /**
      * get non public method from class
@@ -106,7 +106,7 @@ public class ReflectionUtils {
             throws NoSuchMethodException, IllegalArgumentException, IllegalAccessException,
             InvocationTargetException {
         Method m = instance.getClass().getDeclaredMethod(methodName);
-        Object object = m.invoke(instance, (Object[])null);
+        Object object = m.invoke(instance, (Object[]) null);
         return clazz.cast(object);
     }
 

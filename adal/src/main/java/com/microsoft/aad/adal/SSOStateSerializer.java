@@ -44,7 +44,7 @@ final class SSOStateSerializer {
      * The version number of {@link SSOStateSerializer }.
      */
     @SerializedName("version")
-    private final int mVersion = 1;
+    private final int version = 1;
 
     /**
      * The {@link SSOStateSerializer } stores the FRT tokenCacheItem of the
@@ -63,7 +63,7 @@ final class SSOStateSerializer {
             .create();
 
     private int getVersion() {
-        return mVersion;
+        return version;
     }
 
     /**
