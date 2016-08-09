@@ -24,18 +24,50 @@
 package com.microsoft.aad.adal;
 
 class AuthenticationRequestState {
+    private int mRequestId = 0;
+
+    private AuthenticationCallback<AuthenticationResult> mDelegate = null;
+
+    private boolean mCancelled = false;
+
+    private AuthenticationRequest mRequest = null;
+    
     public AuthenticationRequestState(int requestCallbackId, AuthenticationRequest request,
             AuthenticationCallback<AuthenticationResult> delegate) {
         mRequestId = requestCallbackId;
-        mDelagete = delegate;
+        mDelegate = delegate;
         mRequest = request;
     }
 
-    public int mRequestId = 0;
+    public int getRequestId() {
+        return mRequestId;
+    }
 
-    public AuthenticationCallback<AuthenticationResult> mDelagete = null;
+    public void setRequestId(int requestId) {
+        mRequestId = requestId;
+    }
 
-    public boolean mCancelled = false;
+    public AuthenticationCallback<AuthenticationResult> getDelegate() {
+        return mDelegate;
+    }
 
-    public AuthenticationRequest mRequest = null;
+    public void setDelegate(AuthenticationCallback<AuthenticationResult> delegate) {
+        mDelegate = delegate;
+    }
+    
+    public boolean isCancelled() {
+        return mCancelled;
+    }
+
+    public void setCancelled(boolean cancelled) {
+        mCancelled = cancelled;
+    }
+    
+    public AuthenticationRequest getRequest() {
+        return mRequest;
+    }
+
+    public void setRequest(AuthenticationRequest request) {
+        this.mRequest = request;
+    }
 }

@@ -70,21 +70,23 @@ public class TokenCacheItem implements Serializable {
     /**
      * Default constructor for cache item.
      */
-    public TokenCacheItem() {}
+    public TokenCacheItem() {
+        // Intentionally left blank
+    }
     
     TokenCacheItem(final TokenCacheItem tokenCacheItem) {
-        this.mAuthority = tokenCacheItem.getAuthority();
-        this.mResource = tokenCacheItem.getResource();
-        this.mClientId = tokenCacheItem.getClientId();
-        this.mAccessToken = tokenCacheItem.getAccessToken();
-        this.mRefreshtoken = tokenCacheItem.getRefreshToken();
-        this.mRawIdToken = tokenCacheItem.getRawIdToken();
-        this.mUserInfo = tokenCacheItem.getUserInfo();
-        this.mExpiresOn = tokenCacheItem.getExpiresOn();
-        this.mIsMultiResourceRefreshToken = tokenCacheItem.getIsMultiResourceRefreshToken();
-        this.mTenantId = tokenCacheItem.getTenantId();
-        this.mFamilyClientId = tokenCacheItem.getFamilyClientId();
-        this.mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
+        mAuthority = tokenCacheItem.getAuthority();
+        mResource = tokenCacheItem.getResource();
+        mClientId = tokenCacheItem.getClientId();
+        mAccessToken = tokenCacheItem.getAccessToken();
+        mRefreshtoken = tokenCacheItem.getRefreshToken();
+        mRawIdToken = tokenCacheItem.getRawIdToken();
+        mUserInfo = tokenCacheItem.getUserInfo();
+        mExpiresOn = tokenCacheItem.getExpiresOn();
+        mIsMultiResourceRefreshToken = tokenCacheItem.getIsMultiResourceRefreshToken();
+        mTenantId = tokenCacheItem.getTenantId();
+        mFamilyClientId = tokenCacheItem.getFamilyClientId();
+        mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
     }
     
     /**
@@ -111,9 +113,16 @@ public class TokenCacheItem implements Serializable {
         mFamilyClientId = authenticationResult.getFamilyClientId();
         mExtendedExpiresOn = authenticationResult.getExtendedExpiresOn();
     }
-    
+
     /**
      * Create regular RT token cache item. 
+     * 
+     * @param authority required authority identifier.
+     * @param resource required resource identifier.
+     * @param clientId required client identifier.
+     * @param authResult required authentication result to create regular token cache item.
+     *                   
+     * @return TokenCacheItem
      */
     public static TokenCacheItem createRegularTokenCacheItem(final String authority, final String resource, final String clientId, final AuthenticationResult authResult) {
         final TokenCacheItem item = new TokenCacheItem(authority, authResult);
@@ -122,10 +131,16 @@ public class TokenCacheItem implements Serializable {
         item.setAccessToken(authResult.getAccessToken());
         return item;
     }
-    
+
     /**
      * Create MRRT token cache item. 
      * Will not store AT and resource in the token cache.
+     * 
+     * @param authority required authority identifier.
+     * @param clientId required client identifier.
+     * @param authResult required authentication result to create multi-resource refresh token cache item.
+     * 
+     * @return TokenCacheItem
      */
     public static TokenCacheItem createMRRTTokenCacheItem(final String authority, final String clientId, final AuthenticationResult authResult) {
         final TokenCacheItem item = new TokenCacheItem(authority, authResult);
@@ -133,111 +148,242 @@ public class TokenCacheItem implements Serializable {
         
         return item;
     }
-    
+
     /**
      * Create FRT token cache entry. 
      * Will not store clientId, resource and AT. 
+     * 
+     * @param authority required authority identifier.
+     * @param authResult required authentication result to create FRRT refresh token cache item.
+     *                   
+     * @return TokenCacheItem
      */
     public static TokenCacheItem createFRRTTokenCacheItem(final String authority, final AuthenticationResult authResult) {
         return new TokenCacheItem(authority, authResult);
     }
 
+    /**
+     * Get the user information.
+     * 
+     * @return UserInfo object.
+     */
     public UserInfo getUserInfo() {
         return mUserInfo;
     }
 
+    /**
+     * Set the user information.
+     * 
+     * @param info UserInfo object which contains user information.
+     */
     public void setUserInfo(UserInfo info) {
-        this.mUserInfo = info;
+        mUserInfo = info;
     }
 
+    /**
+     * Get the resource.
+     * 
+     * @return resource String.
+     */
     public String getResource() {
         return mResource;
     }
 
+    /**
+     * Set the resource.
+     * 
+     * @param resource resource identifier.
+     */
     public void setResource(String resource) {
-        this.mResource = resource;
+        mResource = resource;
     }
 
+    /**
+     * Get the authority.
+     * 
+     * @return authority url string.
+     */
     public String getAuthority() {
         return mAuthority;
     }
 
+    /**
+     * Set the authority.
+     * 
+     * @param authority String authority url.
+     */
     public void setAuthority(String authority) {
-        this.mAuthority = authority;
+        mAuthority = authority;
     }
 
+    /**
+     * Get the client identifier.
+     * 
+     * @return client identifier string.
+     */
     public String getClientId() {
         return mClientId;
     }
 
+    /**
+     * Set the client identifier.
+     * 
+     * @param clientId client identifier string.
+     */
     public void setClientId(String clientId) {
-        this.mClientId = clientId;
+        mClientId = clientId;
     }
 
+    /**
+     * Get the access token.
+     * 
+     * @return the access token string.
+     */
     public String getAccessToken() {
         return mAccessToken;
     }
 
+    /**
+     * Set the access token string.
+     * 
+     * @param accessToken the access token string.
+     */
     public void setAccessToken(String accessToken) {
-        this.mAccessToken = accessToken;
+        mAccessToken = accessToken;
     }
 
+    /**
+     * Get the refresh token string.
+     * 
+     * @return the refresh token string.
+     */
     public String getRefreshToken() {
         return mRefreshtoken;
     }
 
+    /**
+     * Set the fresh token string.
+     * 
+     * @param refreshToken the refresh token string.
+     */
     public void setRefreshToken(String refreshToken) {
-        this.mRefreshtoken = refreshToken;
+        mRefreshtoken = refreshToken;
     }
 
+    /**
+     * Get the expire date.
+     * 
+     * @return the time the token get expired.
+     */
     public Date getExpiresOn() {
-        return mExpiresOn;
+        return Utility.getImmutableDateObject(mExpiresOn);
     }
 
-    public void setExpiresOn(Date expiresOn) {
-        this.mExpiresOn = expiresOn;
+    /**
+     * Set the expire date.
+     * 
+     * @param expiresOn the expire time.
+     */
+    public void setExpiresOn(final Date expiresOn) {
+        mExpiresOn = Utility.getImmutableDateObject(expiresOn);
     }
 
+    /**
+     * Get the multi-resource refresh token flag.
+     * 
+     * @return true if the token is a multi-resource refresh token, else return false.
+     */
     public boolean getIsMultiResourceRefreshToken() {
         return mIsMultiResourceRefreshToken;
     }
 
+    /**
+     * Set the multi-resource refresh token flag.
+     * 
+     * @param isMultiResourceRefreshToken true if the token is a multi-resource refresh token.
+     */
     public void setIsMultiResourceRefreshToken(boolean isMultiResourceRefreshToken) {
-        this.mIsMultiResourceRefreshToken = isMultiResourceRefreshToken;
+        mIsMultiResourceRefreshToken = isMultiResourceRefreshToken;
     }
 
+    /**
+     * Get tenant identifier.
+     * 
+     * @return the tenant identifier string.
+     */
     public String getTenantId() {
         return mTenantId;
     }
 
+    /**
+     * Set tenant identifier.
+     * 
+     * @param tenantId the tenant identifier string.
+     */
     public void setTenantId(String tenantId) {
-        this.mTenantId = tenantId;
+        mTenantId = tenantId;
     }
 
+    /**
+     * Get raw ID token.
+     * 
+     * @return raw ID token string.
+     */
     public String getRawIdToken() {
         return mRawIdToken;
     }
 
+    /**
+     * Set raw ID token.
+     * 
+     * @param rawIdToken raw ID token string.
+     */
     public void setRawIdToken(String rawIdToken) {
-        this.mRawIdToken = rawIdToken;
+        mRawIdToken = rawIdToken;
     }
-    
+
+    /**
+     * Get family client identifier.
+     * 
+     * @return the family client ID string.
+     */
     public final String getFamilyClientId() {
         return mFamilyClientId;
     }
-    
+
+    /**
+     * Set family client identifier.
+     * 
+     * @param familyClientId the family client ID string.
+     */
     public final void setFamilyClientId(final String familyClientId) {
-        this.mFamilyClientId = familyClientId;
+        mFamilyClientId = familyClientId;
     }
 
+    /**
+     * Set the extended expired time.
+     * 
+     * @param extendedExpiresOn extended expired date.
+     */
     public final void setExtendedExpiresOn(final Date extendedExpiresOn) {
-        mExtendedExpiresOn = extendedExpiresOn;
+        mExtendedExpiresOn = Utility.getImmutableDateObject(extendedExpiresOn);
     }
 
+    /**
+     * Get the extended expired time.
+     * 
+     * @return the extended expired date.
+     */
     public final Date getExtendedExpiresOn() {
-        return mExtendedExpiresOn;
+        return Utility.getImmutableDateObject(mExtendedExpiresOn);
     }
 
+    /**
+     * Verify if the token cache token is valid for the extended expired time. 
+     * 
+     * @return true if the access token is not null and is not expired in the extended 
+     *         expired time, else return false.
+     */
     public final boolean isExtendedLifetimeValid() {
         //extended lifetime is only valid if it contains an access token
         if (mExtendedExpiresOn != null && !StringExtensions.isNullOrBlank(mAccessToken)) {
@@ -250,9 +396,11 @@ public class TokenCacheItem implements Serializable {
     /**
      * Checks expiration time.
      * 
+     * @param expiresOn the time in type Date to check if it is expired
+     * 
      * @return true if expired
      */
-    public static boolean isTokenExpired(Date expiresOn) {
+    public static boolean isTokenExpired(final Date expiresOn) {
         Calendar calendarWithBuffer = Calendar.getInstance();
         calendarWithBuffer.add(Calendar.SECOND,
                 AuthenticationSettings.INSTANCE.getExpirationBuffer());
@@ -260,7 +408,7 @@ public class TokenCacheItem implements Serializable {
         Logger.v(TAG, "expiresOn:" + expiresOn + " timeWithBuffer:" + calendarWithBuffer.getTime()
                 + " Buffer:" + AuthenticationSettings.INSTANCE.getExpirationBuffer());
 
-        return (expiresOn != null && expiresOn.before(validity));
+        return expiresOn != null && expiresOn.before(validity);
     }
     
     /**
@@ -290,7 +438,7 @@ public class TokenCacheItem implements Serializable {
 }
 
 /**
- * Internal class representing the entry type for stored {@link TokenCacheItem}
+ * Internal class representing the entry type for stored {@link TokenCacheItem}.
  */
 enum TokenEntryType {
     /**

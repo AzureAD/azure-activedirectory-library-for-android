@@ -23,18 +23,15 @@
 
 package com.microsoft.aad.adal;
 
-import java.security.MessageDigest;
 import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.test.InstrumentationTestCase;
-import android.util.Base64;
 import android.util.Log;
 
 public class ADALErrorTest extends InstrumentationTestCase {

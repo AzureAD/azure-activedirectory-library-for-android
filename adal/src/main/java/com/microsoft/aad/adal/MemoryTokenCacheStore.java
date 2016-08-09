@@ -55,7 +55,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
     @Override
     public TokenCacheItem getItem(String key) {
         if (key == null) {
-            throw new IllegalArgumentException("key");
+            throw new IllegalArgumentException("The input key is null.");
         }
 
         Logger.v(TAG, "Get Item from cache. Key:" + key);
@@ -104,7 +104,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
         out.defaultWriteObject();
     }
 
-    private synchronized void readObject(ObjectInputStream inputStream) throws IOException,
+    private void readObject(ObjectInputStream inputStream) throws IOException,
             ClassNotFoundException {
         inputStream.defaultReadObject();
 

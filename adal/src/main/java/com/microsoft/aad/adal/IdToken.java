@@ -146,9 +146,9 @@ class IdToken {
     }
 
     private String extractJWTBody(final String idToken) throws AuthenticationException {
-        final int firstDot = idToken.indexOf(".");
-        final int secondDot = idToken.indexOf(".", firstDot + 1);
-        final int invalidDot = idToken.indexOf(".", secondDot + 1);
+        final int firstDot = idToken.indexOf('.');
+        final int secondDot = idToken.indexOf('.', firstDot + 1);
+        final int invalidDot = idToken.indexOf('.', secondDot + 1);
 
         if (invalidDot == -1 && firstDot > 0 && secondDot > 0) {
             return idToken.substring(firstDot + 1, secondDot);

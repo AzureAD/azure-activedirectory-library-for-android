@@ -20,22 +20,26 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 package com.microsoft.aad.adal;
 
-/**
- * deserialization authentication error.
- */
-class DeserializationAuthenticationException extends AuthenticationException {
-    static final long serialVersionUID = 1;
+import java.util.Date;
 
+final class Utility {
     /**
-     * Constructs a new DeserializationAuthenticationException with message.
-     * 
-     * @param msg Message for cancel request
+     * Private constructor to prevent the class from being initiated.
      */
-    public DeserializationAuthenticationException(String msg) {
-        super(ADALError.INCOMPATIBLE_BLOB_VERSION, msg);
-    }
+    private Utility() { }
+    
+    /**
+     * Create an immutable object for the input Date object 
+     * to avoid exposing the internal references.
+     */
+    static Date getImmutableDateObject(final Date date) {
+        if (date != null) {
+            return new Date(date.getTime());
+        }
 
+        return date;
+    }
+    
 }

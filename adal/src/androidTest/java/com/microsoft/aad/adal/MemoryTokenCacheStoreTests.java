@@ -37,7 +37,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
-    int activeTestThreads = 10;
+    private static final int ACTIVE_TEST_THREADS = 10;
 
     @Override
     protected void setUp() throws Exception {
@@ -62,7 +62,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
     public void testSharedCacheGetItem() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
         final ITokenCacheStore store = setupItems();
 
-        final CountDownLatch signal = new CountDownLatch(activeTestThreads);
+        final CountDownLatch signal = new CountDownLatch(ACTIVE_TEST_THREADS);
 
         final Runnable runnable = new Runnable() {
 
@@ -90,7 +90,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
             }
         };
 
-        testMultiThread(activeTestThreads, signal, runnable);
+        testMultiThread(ACTIVE_TEST_THREADS, signal, runnable);
 
         TokenCacheItem item = store.getItem(CacheKey.createCacheKey(getTestItem()));
         assertNull("Token cache item is expected to be null", item);
@@ -111,7 +111,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
         // read now
         ByteArrayInputStream fileIn = new ByteArrayInputStream(output);
         ObjectInputStream in = new ObjectInputStream(fileIn);
-        ITokenCacheStore deSerialized = (ITokenCacheStore)in.readObject();
+        ITokenCacheStore deSerialized = (ITokenCacheStore) in.readObject();
         in.close();
         fileIn.close();
 

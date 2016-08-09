@@ -268,8 +268,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        final String errorResponse =  "{\"error\":\"invalid_request\", \"error_description\":\"Authentication failed. " +
-                "correlation_id:" + requestCorrelationId.toString() + "\", \"correlation_id\": \""
+        final String errorResponse =  "{\"error\":\"invalid_request\", \"error_description\":\"Authentication failed. "
+                + "correlation_id:" + requestCorrelationId.toString() + "\", \"correlation_id\": \""
                 + requestCorrelationId.toString() + "\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -278,7 +278,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream())
                 .thenReturn(Util.createInputStream(errorResponse));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(400);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
 
         final TestLogResponse response = new TestLogResponse();
         response.listenLogForMessageSegments("Authentication failed", "correlation_id:\"\""
@@ -911,8 +911,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         idtoken.setOid("userid123");
         final String response = "{\"id_token\":\""
                 + idtoken.getIdToken()
-                + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\"," +
-                "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
+                + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\","
+                + "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -972,8 +972,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final String loginHint = "user1@user.com";
         final String response = "{\"id_token\":\""
                 + idtoken.getIdToken()
-                + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\"," +
-                "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
+                + "\",\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\","
+                + "\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -1020,8 +1020,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
 
-        final String response = "{\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":" +
-                "\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
+        final String response = "{\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":" 
+                + "\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -1176,9 +1176,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
-        final String response = "{\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\"," +
-                "\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\"," +
-                "\"scope\":\"*\"}";
+        final String response = "{\"access_token\":\"TokenFortestRefreshTokenPositive\",\"token_type\":\"Bearer\","
+                + "\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\","
+                + "\"scope\":\"*\"}";
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -1729,8 +1729,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 VALID_AUTHORITY, false, mockCache);
 
         final String response = "{\"access_token\":\"accesstoken"
-                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\"," +
-                "\"refresh_token\":\""
+                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"29344\",\"expires_on\":\"1368768616\","
+                + "\"refresh_token\":\""
                 + "refreshToken" + "\",\"scope\":\"*\",\"id_token\":\"" + TEST_IDTOKEN + "\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -1895,8 +1895,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     }
 
      @SmallTest
-     public void testAutoFlow_RefreshTokenRequestFailedWithOauthError() throws IOException, InterruptedException {
-
+     public void testAutoFlowRefreshTokenRequestFailedWithOauthError() throws IOException, InterruptedException {
          final FileMockContext mockContext = new FileMockContext(getContext());
          final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
          final AuthenticationContext context = getAuthenticationContext(mockContext,

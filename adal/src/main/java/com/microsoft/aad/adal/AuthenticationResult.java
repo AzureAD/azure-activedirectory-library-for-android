@@ -208,7 +208,7 @@ public class AuthenticationResult implements Serializable {
      * @return expiresOn {@link Date}
      */
     public Date getExpiresOn() {
-        return mExpiresOn;
+        return Utility.getImmutableDateObject(mExpiresOn);
     }
 
     /**
@@ -323,7 +323,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     /**
-     * Gets if the returned token is valid in terms of extended lifetime
+     * Gets if the returned token is valid in terms of extended lifetime.
      *
      * @return True if the returned token is valid in terms of extended lifetime
      */
@@ -333,7 +333,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Sets the flag to indicate whether the token being returned is a token only
-     * valid in terms of extended lifetime
+     * valid in terms of extended lifetime.
      *
      * @param isExtendedLifeTimeToken
      */
@@ -361,7 +361,7 @@ public class AuthenticationResult implements Serializable {
         mTenantId = tenantid;
     }
     
-    void setRefreshToken(String refreshToken){
+    void setRefreshToken(String refreshToken) {
         mRefreshToken = refreshToken;
     }
     
@@ -369,7 +369,7 @@ public class AuthenticationResult implements Serializable {
         return mFamilyClientId;
     }
     
-    final void setFamilyClientId (final String familyClientId) {
+    final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
     }
 }

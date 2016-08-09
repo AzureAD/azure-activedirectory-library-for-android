@@ -58,15 +58,15 @@ class Oauth2 {
 
     private IJWSBuilder mJWSBuilder = new JWSBuilder();
 
-    private final static String TAG = "Oauth";
+    private static final String TAG = "Oauth";
 
     private boolean mRetryOnce = true;
 
-    private final int mDelayTimePeriod = 1000;
+    private static final int DELAY_TIME_PERIOD = 1000;
 
-    private final static String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
+    private static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
 
-    private final static String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
+    private static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
 
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
@@ -246,14 +246,14 @@ class Oauth2 {
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
             boolean isMultiResourceToken = false;
-            String expires_in = response.get(AuthenticationConstants.OAuth2.EXPIRES_IN);
+            String expiresIn = response.get(AuthenticationConstants.OAuth2.EXPIRES_IN);
             Calendar expires = new GregorianCalendar();
 
             // Compute token expiration
             expires.add(
                     Calendar.SECOND,
-                    expires_in == null || expires_in.isEmpty() ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
-                            : Integer.parseInt(expires_in));
+                    expiresIn == null || expiresIn.isEmpty() ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
+                            : Integer.parseInt(expiresIn));
 
             if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)) {
                 isMultiResourceToken = true;
@@ -549,7 +549,7 @@ class Oauth2 {
         if (mRetryOnce) {
             mRetryOnce = false;
             try {
-                Thread.sleep(mDelayTimePeriod);
+                Thread.sleep(DELAY_TIME_PERIOD);
             } catch (final InterruptedException exception) {
                 Logger.v(TAG, "The thread is interrupted while it is sleeping. " + exception);
             }
@@ -561,20 +561,20 @@ class Oauth2 {
         return null;
     }
 
-    public static String decodeProtocolState(String encodedState) {
+    public static String decodeProtocolState(String encodedState) throws UnsupportedEncodingException {
 
         if (!StringExtensions.isNullOrBlank(encodedState)) {
             byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
 
-            return new String(stateBytes);
+            return new String(stateBytes, "UTF-8");
         }
 
         return null;
     }
 
-    public String encodeProtocolState() {
+    public String encodeProtocolState() throws UnsupportedEncodingException {
         String state = String.format("a=%s&r=%s", mRequest.getAuthority(), mRequest.getResource());
-        return Base64.encodeToString(state.getBytes(), Base64.NO_PADDING | Base64.URL_SAFE);
+        return Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
     private Map<String, String> getRequestHeaders() {
@@ -584,7 +584,7 @@ class Oauth2 {
     }
 
     /**
-     * extract AuthenticationResult object from response body if available
+     * Extract AuthenticationResult object from response body if available.
      * 
      * @param webResponse the web response from which authentication result will be constructed
      * @return AuthenticationResult

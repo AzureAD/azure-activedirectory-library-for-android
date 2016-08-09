@@ -157,7 +157,7 @@ public class AuthenticationContext {
     }
 
     /**
-     * Gets if the ExtendedLifetime mode is enabled
+     * Gets if the ExtendedLifetime mode is enabled.
      *
      * @return True when ExtendedLifetime mode is enabled
      */
@@ -170,7 +170,7 @@ public class AuthenticationContext {
      * The default value of flag is false.
      * ADAL will return the stale token when ExtendedLifetime mode is enabled and the server is down
      *
-     * @param extendedLifetimeEnabled
+     * @param extendedLifetimeEnabled true if the ExtendedLifetime mode is on, false otherwise
      */
     public void setExtendedLifetimeEnabled(final boolean extendedLifetimeEnabled) {
         mExtendedLifetimeEnabled = extendedLifetimeEnabled;
@@ -205,8 +205,9 @@ public class AuthenticationContext {
         return null;
     }
 
-    /*
+    /**
      * Gets user info from broker. This should not be called on main thread.
+     * 
      * @return An array of {@link UserInfo} that haven been authenticated via broker(can be null).
      * 
      * @throws IOException if the broker returned an error response that indicates that it encountered an IOException
@@ -481,10 +482,10 @@ public class AuthenticationContext {
         final AtomicReference<Exception> exception = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
         if (StringExtensions.isNullOrBlank(resource)) {
-            throw new IllegalArgumentException("resource");
+            throw new IllegalArgumentException("The required resource is null or blank.");
         }
         if (StringExtensions.isNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("clientId");
+            throw new IllegalArgumentException("The required clientId is null or blank.");
         }
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -734,20 +735,21 @@ public class AuthenticationContext {
      * @return true: if there is a valid waiting request and cancel message send
      *         successfully. false: Request does not exist or cancel message not
      *         send
+     * @throws AuthenticationException if failed to get the waiting request
      */
     public boolean cancelAuthenticationActivity(final int requestId) throws AuthenticationException {
         final  AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
 
-        if (waitingRequest == null || waitingRequest.mDelagete == null) {
+        if (waitingRequest == null || waitingRequest.getDelegate() == null) {
             // there is not any waiting callback
             Logger.v(TAG, "Current callback is empty. There is not any active authentication.");
             return true;
         }
 
         final String currentCorrelationInfo;
-        if (waitingRequest.mRequest != null) {
+        if (waitingRequest.getRequest() != null) {
             currentCorrelationInfo = String.format(" CorrelationId: %s",
-                    waitingRequest.mRequest.getCorrelationId().toString());
+                    waitingRequest.getRequest().getCorrelationId().toString());
         } else {
             currentCorrelationInfo = "No correlation id associated with waiting request";
         }
@@ -767,8 +769,8 @@ public class AuthenticationContext {
         if (cancelResult) {
             // clear callback if broadcast message was successful
             Logger.v(TAG, "Cancel broadcast message was successful." + currentCorrelationInfo);
-            waitingRequest.mCancelled = true;
-            waitingRequest.mDelagete.onError(new AuthenticationCancelError(
+            waitingRequest.setCancelled(true);
+            waitingRequest.getDelegate().onError(new AuthenticationCancelError(
                     "Cancel broadcast message was successful."));
         } else {
             // Activity is not launched yet or receiver is not registered
@@ -858,7 +860,7 @@ public class AuthenticationContext {
         if (!StringExtensions.isNullOrBlank(authority)) {
 
             // excluding the starting https:// or http://
-            int thirdSlash = authority.indexOf("/", EXCLUDE_INDEX);
+            int thirdSlash = authority.indexOf('/', EXCLUDE_INDEX);
 
             // third slash is not the last character
             if (thirdSlash >= 0 && thirdSlash != (authority.length() - 1)) {
@@ -972,22 +974,22 @@ public class AuthenticationContext {
         }
 
         if (request == null) {
-            Logger.e(TAG, "Request callback is not available for requestid:" + requestId,
+            Logger.e(TAG, "Request callback is not available for requestId:" + requestId,
                     "", ADALError.CALLBACK_IS_NOT_FOUND);
             throw new AuthenticationException(ADALError.CALLBACK_IS_NOT_FOUND,
-                    "Request callback is not available for requestid:" + String.valueOf(requestId));
+                    "Request callback is not available for requestId:" + requestId);
         }
 
         return request;
     }
 
     void putWaitingRequest(final int requestId, final AuthenticationRequestState requestState) {
-        Logger.v(TAG, "Put waiting request: " + requestId
-                + getCorrelationInfoFromWaitingRequest(requestState));
-
         if (requestState == null) {
             return;
         }
+        
+        Logger.v(TAG, "Put waiting request: " + requestId
+                + getCorrelationInfoFromWaitingRequest(requestState));
 
         synchronized (mDelegateMap) {
             mDelegateMap.put(requestId, requestState);
@@ -1008,8 +1010,8 @@ public class AuthenticationContext {
      */
     String getCorrelationInfoFromWaitingRequest(final AuthenticationRequestState waitingRequest) {
         UUID requestCorrelationID = getRequestCorrelationId();
-        if (waitingRequest.mRequest != null) {
-            requestCorrelationID = waitingRequest.mRequest.getCorrelationId();
+        if (waitingRequest.getRequest() != null) {
+            requestCorrelationID = waitingRequest.getRequest().getCorrelationId();
         }
 
         return String.format(" CorrelationId: %s", requestCorrelationID.toString());
@@ -1039,11 +1041,14 @@ public class AuthenticationContext {
                 }
             });
         }
+        
+        @SuppressWarnings("PMD.UselessOverridingMethod")
         @Override
         public void set(V v) {
             super.set(v);
         }
 
+        @SuppressWarnings("PMD.UselessOverridingMethod")
         @Override
         public void setException(Throwable t) {
             super.setException(t);
