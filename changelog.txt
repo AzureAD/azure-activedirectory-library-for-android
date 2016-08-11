@@ -1,3 +1,7 @@
+Version 1.2.2
+--------------
+Fix for silent RT request, if TokenCacheItem desn't contain RT, don't continue with RT request. 
+
 Version 1.2.1
 --------------
 Add certificate chain validation

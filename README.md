@@ -9,7 +9,7 @@ A Work Account is an identity you use to get work done no matter if at your busi
 
 ## ADAL for Android 1.2 Released!
 
-Recent version is 1.2.1
+Recent version is 1.2.2
 
 ## Features
 * Industry standard Oauth2 protocol support.
