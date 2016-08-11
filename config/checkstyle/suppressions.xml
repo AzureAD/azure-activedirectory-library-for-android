@@ -10,8 +10,6 @@
     <suppress checks="Javadoc.*" files=".*Test.java"/>
     <suppress checks="MethodName" files=".*Logger.java"/>
     <suppress checks="MethodName" files=".*LoggerTest.java"/>
-    <suppress checks="MemberName" files="AuthenticationContext.java" lines="813"/>
-    <suppress checks="VisibilityModifier" files="AuthenticationContext.java" lines="813"/>
     <suppress checks="MemberName" files="SSOStateSerializer.java" lines="47"/>
     <suppress checks="HideUtilityClassConstructor" files="ReflectionUtils.java" lines="31"/>
     <!-- suppress this for Log method in test-->

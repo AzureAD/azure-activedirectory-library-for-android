@@ -190,14 +190,13 @@ public final class AuthenticationContextTest extends AndroidTestCase {
             NoSuchPaddingException {
         String authority = "https://github.com/MSOpenTech";
         FileMockContext mockContext = new FileMockContext(getContext());
-        mockContext.setRequestedPermissionName("android.permission.INTERNET");
-        mockContext.setResponsePermissionFlag(PackageManager.PERMISSION_GRANTED);
+        mockContext.addPermission("android.permission.INTERNET");
 
         // no exception
         new AuthenticationContext(mockContext, authority, false);
 
         try {
-            mockContext.setResponsePermissionFlag(PackageManager.PERMISSION_DENIED);
+            mockContext.removePermission("android.permission.INTERNET");
             new AuthenticationContext(mockContext, authority, false);
             Assert.fail("Supposed to fail");
         } catch (Exception e) {

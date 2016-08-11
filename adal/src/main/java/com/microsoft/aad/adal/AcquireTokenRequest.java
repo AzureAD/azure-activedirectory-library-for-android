@@ -157,7 +157,17 @@ class AcquireTokenRequest {
         }
 
         // Verify broker redirect uri for non-silent request
-        if (canSwitchToBroker(authenticationRequest) && !authenticationRequest.isSilent()) {
+        final BrokerProxy.SwitchToBroker canSwitchToBrokerFlag = mBrokerProxy.canSwitchToBroker();
+
+        if (canSwitchToBrokerFlag != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
+                && mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(), authenticationRequest.getUserId())
+                && !authenticationRequest.isSilent()) {
+
+            if (canSwitchToBrokerFlag == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
+                throw new UsageAuthenticationException(
+                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                        "Broker related permissions are missing for GET_ACCOUNTS.");
+            }
             // Verify redirect uri match what we expecting for broker non-silent request. For silent request,
             // since we don't require developer to pass us the redirect uri, we won't perform the validation.
             verifyBrokerRedirectUri(authenticationRequest);
@@ -280,7 +290,8 @@ class AcquireTokenRequest {
         }
 
         // If we cannot switch to broker, return the result from local flow.
-        if (!canSwitchToBroker(authenticationRequest)) {
+        if (mBrokerProxy.canSwitchToBroker() == BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
+                || !mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(), authenticationRequest.getUserId())) {
             return authResult;
         }
 
@@ -393,9 +404,18 @@ class AcquireTokenRequest {
         authenticationRequest.setRequestId(requestId);
         mAuthContext.putWaitingRequest(requestId, new AuthenticationRequestState(requestId, authenticationRequest,
                 callbackHandle.getCallback()));
-        if (canSwitchToBroker(authenticationRequest)) {
-            // Always go to broker if the sdk can talk to broker for interactive flow
+        final BrokerProxy.SwitchToBroker switchToBrokerFlag = mBrokerProxy.canSwitchToBroker();
 
+        if (switchToBrokerFlag != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
+                && mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(), authenticationRequest.getUserId())) {
+
+            if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
+                throw new UsageAuthenticationException(
+                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                        "Broker related permissions are missing for GET_ACCOUNTS");
+            }
+
+            // Always go to broker if the sdk can talk to broker for interactive flow
             Logger.v(TAG, "Launch activity for interactive authentication via broker with callback: "
                     + callbackHandle.getCallback().hashCode());
             final AcquireTokenWithBrokerRequest acquireTokenWithBrokerRequest
@@ -411,14 +431,6 @@ class AcquireTokenRequest {
                     useDialog ? new AuthenticationDialog(getHandler(), mContext, this, authenticationRequest)
                     : null);
         }
-    }
-
-    /**
-     * True if the sdk can switch to broker for auth, false otherwise.
-     */
-    private boolean canSwitchToBroker(final AuthenticationRequest authenticationRequest) {
-        return mBrokerProxy.canSwitchToBroker() && mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(),
-                authenticationRequest.getUserId());
     }
 
     /**

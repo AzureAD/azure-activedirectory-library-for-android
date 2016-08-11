@@ -65,7 +65,7 @@ public class AuthenticationContext {
 
     private ITokenCacheStore mTokenCacheStore;
 
-    private IBrokerProxy mBrokerProxy = null;
+    private BrokerProxy mBrokerProxy = null;
 
     private boolean mExtendedLifetimeEnabled = false;
 
@@ -257,14 +257,15 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String loginHint,
             AuthenticationCallback<AuthenticationResult> callback) {
+        if (checkPreRequirements(resource, clientId, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
-                getRequestCorrelationId(), getExtendedLifetimeEnabled());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
-        createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+            request.setUserIdentifierType(UserIdentifierType.LoginHint);
+            createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+        }
     }
 
     /**
@@ -291,14 +292,15 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String loginHint, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
+        if (checkPreRequirements(resource, clientId, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
-                getRequestCorrelationId(), getExtendedLifetimeEnabled());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
-        createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+            request.setUserIdentifierType(UserIdentifierType.LoginHint);
+            createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+        }
     }
 
     /**
@@ -322,12 +324,13 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt,
             AuthenticationCallback<AuthenticationResult> callback) {
+        if (checkPreRequirements(resource, clientId, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled());
-        createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled());
+            createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+        }
     }
 
     /**
@@ -351,13 +354,14 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
+        if (checkPreRequirements(resource, clientId, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, null, prompt, extraQueryParameters,
-                getRequestCorrelationId(), getExtendedLifetimeEnabled());
-        createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, null, prompt, extraQueryParameters,
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+            createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+        }
     }
 
     /**
@@ -383,14 +387,15 @@ public class AuthenticationContext {
     public void acquireToken(Activity activity, String resource, String clientId,
             String redirectUri, String loginHint, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
+        if (checkPreRequirements(resource, clientId, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                getRequestCorrelationId(), getExtendedLifetimeEnabled());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
-        createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+            request.setUserIdentifierType(UserIdentifierType.LoginHint);
+            createAcquireTokenRequest().acquireToken(wrapActivity(activity), false, request, callback);
+        }
     }
 
     /**
@@ -415,14 +420,15 @@ public class AuthenticationContext {
     public void acquireToken(IWindowComponent fragment, String resource, String clientId,
             String redirectUri, String loginHint, PromptBehavior prompt,
             String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
+        if (checkPreRequirements(resource, clientId, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                getRequestCorrelationId(), getExtendedLifetimeEnabled());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
-        createAcquireTokenRequest().acquireToken(fragment, false, request, callback);
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+            request.setUserIdentifierType(UserIdentifierType.LoginHint);
+            createAcquireTokenRequest().acquireToken(fragment, false, request, callback);
+        }
     }
 
     /**
@@ -448,14 +454,15 @@ public class AuthenticationContext {
     public void acquireToken(String resource, String clientId, String redirectUri,
             String loginHint, PromptBehavior prompt, String extraQueryParameters,
             AuthenticationCallback<AuthenticationResult> callback) {
+        if (checkPreRequirements(resource, clientId, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
 
-        redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
-
-        final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                getRequestCorrelationId(), getExtendedLifetimeEnabled());
-        request.setUserIdentifierType(UserIdentifierType.LoginHint);
-        createAcquireTokenRequest().acquireToken(null, true, request, callback);
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+            request.setUserIdentifierType(UserIdentifierType.LoginHint);
+            createAcquireTokenRequest().acquireToken(null, true, request, callback);
+        }
     }
 
     /**
@@ -810,7 +817,7 @@ public class AuthenticationContext {
         }
 
         return new IWindowComponent() {
-            Activity mRefActivity = activity;
+            private Activity mRefActivity = activity;
 
             @Override
             public void startActivityForResult(Intent intent, int requestCode) {
@@ -823,8 +830,18 @@ public class AuthenticationContext {
         };
     }
 
-    private String checkInputParameters(final String resource, final String clientId, final String inputRedirectUri,
+    private boolean checkPreRequirements(final String resource, final String clientId,
                                         final AuthenticationCallback<AuthenticationResult> callback) {
+        //check the permissions required for the broker usage
+        if (AuthenticationSettings.INSTANCE.getUseBroker()) {
+            try {
+                mBrokerProxy.verifyBrokerPermissionsAPI22AndLess();
+            } catch (final UsageAuthenticationException exception) {
+                callback.onError(exception);
+                return false;
+            }
+        }
+
         if (mContext == null) {
             throw new IllegalArgumentException("context", new AuthenticationException(
                     ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
@@ -842,6 +859,10 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("callback");
         }
 
+        return true;
+    }
+    
+    private String getRedirectUri(String inputRedirectUri) {
         final String redirectUri;
         if (StringExtensions.isNullOrBlank(inputRedirectUri)) {
             redirectUri = mContext.getApplicationContext().getPackageName();
@@ -904,7 +925,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("uniqueUserId");
         }
 
-        if (mBrokerProxy.canSwitchToBroker()) {
+        if (mBrokerProxy.canSwitchToBroker() != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
                     "Failed to export the family refresh token cache item because broker is enabled.");
         }
@@ -947,7 +968,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("serializedBlob");
         }
 
-        if (mBrokerProxy.canSwitchToBroker()) {
+        if (mBrokerProxy.canSwitchToBroker() != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT, "Failed to import the serialized blob "
                     + "because broker is enabled.");
         }
