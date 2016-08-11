@@ -266,6 +266,12 @@ class AcquireTokenSilentHandler {
      */
     private AuthenticationResult acquireTokenWithCachedItem(final TokenCacheItem cachedItem)
             throws AuthenticationException {
+        if (StringExtensions.IsNullOrBlank(cachedItem.getRefreshToken())) {
+            Logger.v(TAG, "Token cache item contains empty refresh token, cannot continue refresh "
+                   + "token request", mAuthRequest.getLogInfo(), null);
+            return null;
+        }
+
         final AuthenticationResult result = acquireTokenWithRefreshToken(cachedItem.getRefreshToken());
         
         if (result != null) {
