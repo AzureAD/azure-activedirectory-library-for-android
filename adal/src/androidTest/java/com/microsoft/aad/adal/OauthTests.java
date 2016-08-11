@@ -628,11 +628,19 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("Token is same", "token", result.getAccessToken());
         assertFalse("MultiResource token", result.getIsMultiResourceRefreshToken());
 
-        // multi resource token
+        // resource returned in JSON response, but RT is not returned.
         response.put(AuthenticationConstants.AAD.RESOURCE, "resource");
         result = Oauth2.processUIResponseParams(response);
         assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
         assertEquals("Token is same", "token", result.getAccessToken());
+        assertFalse("MultiResource token", result.getIsMultiResourceRefreshToken());
+
+        // resource returned in JSON response and RT is also returned.
+        response.put(AuthenticationConstants.OAuth2.REFRESH_TOKEN, "refresh_token");
+        result = Oauth2.processUIResponseParams(response);
+        assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
+        assertEquals("Token is same", "token", result.getAccessToken());
+        assertEquals("RT is the same", "refresh_token", result.getRefreshToken());
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
     }
 

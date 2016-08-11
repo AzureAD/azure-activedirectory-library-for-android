@@ -709,6 +709,106 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         clearCache(mockCache);
     }
 
+    @SmallTest
+    public void testMRRTItemNotContainRT() {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        final String resource = "resource";
+        final String clientId = "clientId";
+
+        // Add MRRT in the cache
+        final TokenCacheItem mrrtTokenCacheItem = Util.getTokenCacheItem(VALID_AUTHORITY, resource,
+                clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        mrrtTokenCacheItem.setRefreshToken(null);
+        mrrtTokenCacheItem.setResource(null);
+        mrrtTokenCacheItem.setFamilyClientId("familyClientId");
+        mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        saveTokenIntoCache(mockedCache, mrrtTokenCacheItem);
+
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(
+                VALID_AUTHORITY, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockedCache);
+
+        try {
+            final AuthenticationResult authenticationResult = acquireTokenSilentHandler.getAccessToken();
+            assertNull(authenticationResult);
+        } catch (AuthenticationException authException) {
+            fail("Unexpected Exception");
+        }
+
+        // verify MRRT entry exist
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_UPN)));
+
+        clearCache(mockedCache);
+    }
+
+    @SmallTest
+    public void testAllTokenItemNotContainRT() {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        final String resource = "resource";
+        final String clientId = "clientId";
+
+        // Add regular RT item without RT in the cache
+        final TokenCacheItem rtTokenCacheItem = Util.getTokenCacheItem(VALID_AUTHORITY, resource, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        rtTokenCacheItem.setRefreshToken(null);
+        rtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        saveTokenIntoCache(mockedCache, rtTokenCacheItem);
+
+        // Add MRRT in the cache
+        final TokenCacheItem mrrtTokenCacheItem = Util.getTokenCacheItem(VALID_AUTHORITY, resource,
+                clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        mrrtTokenCacheItem.setRefreshToken(null);
+        mrrtTokenCacheItem.setResource(null);
+        mrrtTokenCacheItem.setFamilyClientId("familyId");
+        mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        saveTokenIntoCache(mockedCache, mrrtTokenCacheItem);
+
+        // Add FRT item into cache without rt
+        final TokenCacheItem frtTokenCacheItem = Util.getTokenCacheItem(VALID_AUTHORITY, resource, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        frtTokenCacheItem.setClientId(null);
+        frtTokenCacheItem.setRefreshToken(null);
+        frtTokenCacheItem.setResource(null);
+        frtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        frtTokenCacheItem.setFamilyClientId("familyId");
+        saveTokenIntoCache(mockedCache, frtTokenCacheItem);
+
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(
+                VALID_AUTHORITY, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockedCache);
+
+        try {
+            final AuthenticationResult authenticationResult = acquireTokenSilentHandler.getAccessToken();
+            assertNull(authenticationResult);
+        } catch (AuthenticationException authException) {
+            fail("Unexpected Exception");
+        }
+
+        // verify RT entry exist
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId,
+                TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId,
+                TEST_IDTOKEN_UPN)));
+
+        // verify MRRT entry exist
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_UPN)));
+
+        // verify FRT entry exist
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY, "familyId", TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY, "familyId", TEST_IDTOKEN_UPN)));
+        clearCache(mockedCache);
+    }
+
     private void saveTokenIntoCache(final ITokenCacheStore mockedCache, final TokenCacheItem token) {
         if (!StringExtensions.isNullOrBlank(token.getResource())) {
             mockedCache.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, token.getResource(), token.getClientId(),

@@ -1249,6 +1249,35 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         clearCache(context);
     }
 
+    @SmallTest
+    public void testSilentRequestTokenItemNotContainRT() throws InterruptedException {
+        final FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        final String resource = "resource";
+        final String clientId = "clientId";
+
+        // Add MRRT in the cache
+        final TokenCacheItem mrrtTokenCacheItem = Util.getTokenCacheItem(VALID_AUTHORITY, resource,
+                clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        mrrtTokenCacheItem.setRefreshToken(null);
+        mrrtTokenCacheItem.setResource(null);
+        mrrtTokenCacheItem.setFamilyClientId("familyClientId");
+        mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        mockedCache.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_USERID), mrrtTokenCacheItem);
+        mockedCache.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_IDTOKEN_UPN), mrrtTokenCacheItem);
+
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockedCache);
+        try {
+            context.acquireTokenSilentSync(resource, clientId, TEST_IDTOKEN_USERID);
+            fail("Expecting exception to be thrown");
+        } catch (final AuthenticationException e) {
+            assertTrue(e.getCode() == ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+        } finally {
+            clearCache(context);
+        }
+    }
+
     private void verifyRefreshTokenResponse(ITokenCacheStore mockCache, Exception resultException,
                                             AuthenticationResult result) {
         assertNull("Error is null", resultException);
