@@ -255,7 +255,9 @@ class Oauth2 {
                     expiresIn == null || expiresIn.isEmpty() ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
                             : Integer.parseInt(expiresIn));
 
-            if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)) {
+            final String refreshToken = response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN);
+            if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)
+                    && !StringExtensions.isNullOrBlank(refreshToken)) {
                 isMultiResourceToken = true;
             }
 
@@ -282,8 +284,7 @@ class Oauth2 {
             }
 
             result = new AuthenticationResult(
-                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
-                    response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
+                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN), refreshToken, expires.getTime(),
                     isMultiResourceToken, userinfo, tenantId, rawIdToken, null);
 
             if (response.containsKey(AuthenticationConstants.OAuth2.EXT_EXPIRES_IN)) {
