@@ -239,7 +239,9 @@ class Oauth2 {
                     expires_in == null || expires_in.isEmpty() ? AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC
                             : Integer.parseInt(expires_in));
 
-            if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)) {
+            final String refreshToken = response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN);
+            if (response.containsKey(AuthenticationConstants.AAD.RESOURCE)
+                    && !StringExtensions.IsNullOrBlank(refreshToken)) {
                 isMultiResourcetoken = true;
             }
 
@@ -265,8 +267,7 @@ class Oauth2 {
             }
 
             result = new AuthenticationResult(
-                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN),
-                    response.get(AuthenticationConstants.OAuth2.REFRESH_TOKEN), expires.getTime(),
+                    response.get(AuthenticationConstants.OAuth2.ACCESS_TOKEN), refreshToken, expires.getTime(),
                     isMultiResourcetoken, userinfo, tenantId, rawIdToken);
             
             //Set family client id on authentication result for TokenCacheItem to pick up
