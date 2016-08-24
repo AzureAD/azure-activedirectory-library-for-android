@@ -50,6 +50,9 @@ final class AcquireTokenInteractiveRequest {
         mContext = context;
         mTokenCacheAccessor = tokenCacheAccessor;
         mAuthRequest = authRequest;
+        if (mTokenCacheAccessor != null) {
+            mTokenCacheAccessor.setAuthRequest(authRequest);
+        }
     }
 
     void acquireToken(final IWindowComponent activity, final AuthenticationDialog dialog)

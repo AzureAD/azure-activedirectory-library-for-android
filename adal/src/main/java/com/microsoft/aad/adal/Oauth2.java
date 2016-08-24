@@ -430,8 +430,11 @@ class Oauth2 {
     private AuthenticationResult postMessage(String requestMessage, Map<String, String> headers)
             throws IOException, AuthenticationException {
         AuthenticationResult result = null;
+        HttpEvent httpEvent = startHttpEvent();
+
         final URL authority = StringExtensions.getUrl(getTokenEndpoint());
         if (authority == null) {
+            httpEvent.setSuccessStatus(false);
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
@@ -442,11 +445,15 @@ class Oauth2 {
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
+            httpEvent.setResponseCode(response.getStatusCode());
 
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 if (response.getResponseHeaders() != null
                         && response.getResponseHeaders().containsKey(
                                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
+
+                    stopHttpEventWithFailure(httpEvent);
+                    httpEvent = startHttpEvent();
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
@@ -471,8 +478,10 @@ class Oauth2 {
                             response = mWebRequestHandler.sendPost(authority, headers,
                                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                                     "application/x-www-form-urlencoded");
+                            httpEvent.setResponseCode(response.getStatusCode());
                         }
                     } else {
+                        stopHttpEventWithFailure(httpEvent);
                         throw new AuthenticationException(
                                 ADALError.DEVICE_CERTIFICATE_REQUEST_INVALID,
                                 "Challenge header is empty");
@@ -480,6 +489,7 @@ class Oauth2 {
                 } else {
                     // AAD server returns 401 response for wrong request
                     // messages
+                    httpEvent.setSuccessStatus(false);
                     Logger.v(TAG, "401 http status code is returned without authorization header");
                 }
             }
@@ -498,10 +508,12 @@ class Oauth2 {
                     }
 
                     if (mRequest.getIsExtendedLifetimeEnabled()) {
+                        stopHttpEventWithFailure(httpEvent);
                         Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode());
                         throw e;
                     } else {
                         Logger.v(TAG, "WebResponse is not a success due to: " + response.getStatusCode());
+                        stopHttpEventWithFailure(httpEvent);
                         throw new AuthenticationException(ADALError.SERVER_ERROR, "WebResponse is not a success due to: " + response.getStatusCode());
                     }
                 }
@@ -511,6 +523,7 @@ class Oauth2 {
                 // non-protocol related error
                 String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
                 Logger.e(TAG, "Server error message", errMessage, ADALError.SERVER_ERROR);
+                stopHttpEventWithFailure(httpEvent);
                 throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
@@ -518,6 +531,7 @@ class Oauth2 {
         } catch (final UnsupportedEncodingException e) {
             ClientMetrics.INSTANCE.setLastError(null);
             Logger.e(TAG, e.getMessage(), "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+            stopHttpEventWithFailure(httpEvent);
             throw e;
         } catch (final SocketTimeoutException e) {
             result = retry(requestMessage, headers);
@@ -528,20 +542,25 @@ class Oauth2 {
             ClientMetrics.INSTANCE.setLastError(null);
             if (mRequest.getIsExtendedLifetimeEnabled()) {
                 Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+                stopHttpEventWithFailure(httpEvent);
                 throw new ServerRespondingWithRetryableException(e.getMessage(), e);
             } else {
                 Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
+                stopHttpEventWithFailure(httpEvent);
                 throw e;
             }
         } catch (final IOException e) {
             ClientMetrics.INSTANCE.setLastError(null);
+            stopHttpEventWithFailure(httpEvent);
             Logger.e(TAG, e.getMessage(), "", ADALError.SERVER_ERROR, e);
             throw e;
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.TOKEN,
                     mRequest.getCorrelationId());
         }
-
+        httpEvent.setSuccessStatus(true);
+        Telemetry.getInstance().stopEvent(mRequest.getTelemetryRequestId(), httpEvent,
+                EventStrings.HTTP_EVENT);
         return result;
     }
     
@@ -647,5 +666,19 @@ class Oauth2 {
         final Map<String, String> responseItems = new HashMap<>();
         extractJsonObjects(responseItems, responseBody);
         return processUIResponseParams(responseItems);
+    }
+
+    private HttpEvent startHttpEvent() {
+        HttpEvent httpEvent = new HttpEvent(EventStrings.HTTP_EVENT);
+        httpEvent.setRequestId(mRequest.getTelemetryRequestId());
+        httpEvent.setMethod(EventStrings.HTTP_METHOD_POST);
+        Telemetry.getInstance().startEvent(mRequest.getTelemetryRequestId(), EventStrings.HTTP_EVENT);
+        return httpEvent;
+    }
+
+    private void stopHttpEventWithFailure(HttpEvent httpEvent) {
+        httpEvent.setSuccessStatus(false);
+        Telemetry.getInstance().stopEvent(mRequest.getTelemetryRequestId(), httpEvent,
+                EventStrings.HTTP_EVENT);
     }
 }

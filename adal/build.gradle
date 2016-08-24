@@ -41,6 +41,13 @@ android {
         }
     }
 
+    sourceSets {
+        main {
+            java {
+                srcDir 'src/telemetry/java'
+            }
+        }
+    }
     lintOptions {
         abortOnError true
         disable 'MissingPermission'

@@ -54,4 +54,9 @@
         <Class name="com.microsoft.aad.adal.AuthenticationResult" />
         <Bug pattern="UWF_UNWRITTEN_FIELD" />
     </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.DefaultEvent" />
+        <Method name="setDefaults" />
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+    </Match>
 </FindBugsFilter>

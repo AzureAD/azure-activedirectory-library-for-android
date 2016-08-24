@@ -194,7 +194,11 @@ public class AuthenticationActivity extends Activity {
             return;
         }
         mRedirectUrl = mAuthRequest.getRedirectUri();
-        
+
+        Telemetry.getInstance().startEvent(mAuthRequest.getTelemetryRequestId(), EventStrings.UI_EVENT);
+        UIEvent uiEvent = new UIEvent(EventStrings.UI_EVENT);
+        uiEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
+
         // Create the Web View to show the page
         mWebView = (WebView) findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
@@ -303,6 +307,7 @@ public class AuthenticationActivity extends Activity {
         } else {
             Logger.v(TAG, "Reuse webview");
         }
+        Telemetry.getInstance().stopEvent(mAuthRequest.getTelemetryRequestId(), uiEvent, EventStrings.UI_EVENT);
     }
 
     private boolean isCallerBrokerInstaller() {
