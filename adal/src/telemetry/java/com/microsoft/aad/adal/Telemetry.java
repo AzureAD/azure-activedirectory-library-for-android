@@ -48,6 +48,11 @@ public class Telemetry {
     }
 
     /**
+     * registerDispatcher is called by the app to register their own implementation of IDispatcher.
+     * If aggregation is required, a single call to IDispatcher.dispatch is made per call to acquireToken
+     * If aggregation is not required, every event as it is fired is sent to the dispatcher.
+     * The choice between aggregation required or not should be made based on what Telemetry system is being used and
+     * whether its optimized to aggregate or handle large telemetry payloads.
      *
      * @param dispatcher the IDispatcher interface to be registered
      * @param aggregationRequired true if client wants a single event per call to AcquireToken, false otherwise
@@ -81,10 +86,19 @@ public class Telemetry {
     }
 
     void startEvent(final String requestId, final String eventName) {
+        // We do not need to log if we do not have a dispatcher.
+        if (mDispatcher == null) {
+            return;
+        }
+
         mEventTracking.put(new Pair<>(requestId, eventName), getCurrentTimeAsString());
     }
 
     void stopEvent(final String requestId, final IEvents events, final String eventName) {
+        // We do not need to log if we do not have a dispatcher.
+        if (mDispatcher == null) {
+            return;
+        }
         final String startTime = mEventTracking.get(new Pair<>(requestId, eventName));
         final String stopTime = getCurrentTimeAsString();
 
@@ -99,6 +113,12 @@ public class Telemetry {
 
         if (mDispatcher != null) {
             mDispatcher.receive(requestId, events);
+        }
+    }
+
+    void flush(final String requestId) {
+        if (mDispatcher != null) {
+            mDispatcher.flush(requestId);
         }
     }
 }

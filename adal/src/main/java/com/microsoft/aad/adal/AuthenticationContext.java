@@ -260,13 +260,8 @@ public class AuthenticationContext {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_1);
-        apiEvent.setAuthority(getAuthority());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_1);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
@@ -305,13 +300,8 @@ public class AuthenticationContext {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_2);
-        apiEvent.setAuthority(getAuthority());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_2);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
@@ -347,14 +337,9 @@ public class AuthenticationContext {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_3);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_3);
         apiEvent.setSilentRequestPromptBehavior(prompt.toString());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -388,14 +373,10 @@ public class AuthenticationContext {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_4);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_4);
         apiEvent.setSilentRequestPromptBehavior(prompt.toString());
 
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, null, prompt, extraQueryParameters,
                 getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -431,14 +412,9 @@ public class AuthenticationContext {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_5);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_5);
         apiEvent.setSilentRequestPromptBehavior(prompt.toString());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
@@ -475,14 +451,9 @@ public class AuthenticationContext {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_6);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_6);
         apiEvent.setSilentRequestPromptBehavior(prompt.toString());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
@@ -520,14 +491,10 @@ public class AuthenticationContext {
 
         redirectUri = checkInputParameters(resource, clientId, redirectUri, callback);
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_7);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_7);
         apiEvent.setSilentRequestPromptBehavior(prompt.toString());
 
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, redirectUri, loginHint, prompt, extraQueryParameters,
                 getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -568,14 +535,9 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("The required clientId is null or blank.");
         }
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
         apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -594,12 +556,22 @@ public class AuthenticationContext {
                 new AuthenticationCallback<AuthenticationResult>() {
                     @Override
                     public void onSuccess(AuthenticationResult result) {
+                        apiEvent.setWasApiCallSuccessful(true);
+                        Telemetry.getInstance().stopEvent(requestId, apiEvent,
+                                apiEvent.getEventName());
+                        Telemetry.getInstance().flush(requestId);
+
                         authenticationResult.set(result);
                         latch.countDown();
                     }
 
                     @Override
                     public void onError(Exception exc) {
+                        apiEvent.setWasApiCallSuccessful(false);
+                        Telemetry.getInstance().stopEvent(requestId, apiEvent,
+                                apiEvent.getEventName());
+                        Telemetry.getInstance().flush(requestId);
+
                         exception.set(exc);
                         latch.countDown();
                     }
@@ -660,15 +632,10 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("clientId");
         }
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setIsDeprecated(true);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_SILENT);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT);
         apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
+        apiEvent.setIsDeprecated(true);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -683,17 +650,29 @@ public class AuthenticationContext {
                 new AuthenticationCallback<AuthenticationResult>() {
             @Override
             public void onSuccess(AuthenticationResult result) {
+                apiEvent.setWasApiCallSuccessful(true);
+                Telemetry.getInstance().stopEvent(requestId, apiEvent,
+                        apiEvent.getEventName());
+                Telemetry.getInstance().flush(requestId);
+
                 if (callback != null) {
                     callback.onSuccess(result);
                 }
+
                 futureTask.set(result);
             }
 
             @Override
             public void onError(Exception exc) {
+                apiEvent.setWasApiCallSuccessful(false);
+                Telemetry.getInstance().stopEvent(requestId, apiEvent,
+                        apiEvent.getEventName());
+                Telemetry.getInstance().flush(requestId);
+
                 if (callback != null) {
                     callback.onError(exc);
                 }
+
                 futureTask.setException(exc);
             }
         });
@@ -730,14 +709,10 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("callback");
         }
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
+                EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC);
         apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -777,15 +752,11 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("Callback is not provided");
         }
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setIsDeprecated(true);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
+                EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN);
         apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
+        apiEvent.setIsDeprecated(true);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
                 null, clientId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -828,15 +799,11 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("Callback is not provided");
         }
 
-        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, mContext, clientId);
         final String requestId = Telemetry.registerNewRequest();
-        apiEvent.setRequestId(requestId);
-        apiEvent.setIsDeprecated(true);
-        apiEvent.setAPIId(EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN_2);
-        apiEvent.setAuthority(getAuthority());
+        final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
+                EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN_2);
         apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
-
-        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
+        apiEvent.setIsDeprecated(true);
 
         // Authenticator is not supported if user is managing the cache
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
@@ -860,8 +827,31 @@ public class AuthenticationContext {
      */
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
-            final AcquireTokenRequest acquireTokenRequest = new AcquireTokenRequest(mContext, this);
-            acquireTokenRequest.onActivityResult(requestCode, resultCode, data);
+
+            if (data == null) {
+                // If data is null, RequestId is unknown. It could not find
+                // callback to respond to this request.
+                Logger.e(TAG, "onActivityResult BROWSER_FLOW data is null.", "",
+                        ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
+                return;
+            }
+
+            AuthenticationRequestState waitingRequest;
+            final Bundle extras = data.getExtras();
+            final int requestId = extras.getInt(AuthenticationConstants.Browser.REQUEST_ID);
+
+            synchronized (mDelegateMap) {
+                waitingRequest = mDelegateMap.get(requestId);
+            }
+
+            if (waitingRequest != null) {
+                final AcquireTokenRequest acquireTokenRequest =
+                        new AcquireTokenRequest(mContext, this, waitingRequest.getAPIEvent());
+                acquireTokenRequest.onActivityResult(requestCode, resultCode, data);
+            } else {
+                Logger.e(TAG, "onActivityResult did not find waiting request for RequestId:"
+                        + requestId, "", ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
+            }
         }
     }
 
@@ -993,9 +983,7 @@ public class AuthenticationContext {
     }
 
     private AcquireTokenRequest createAcquireTokenRequest(final APIEvent apiEvent) {
-        final AcquireTokenRequest request = new AcquireTokenRequest(mContext, this);
-        request.setAPIEvent(apiEvent);
-        return request;
+        return new AcquireTokenRequest(mContext, this, apiEvent);
     }
 
     private static String extractAuthority(String authority) {
@@ -1195,5 +1183,14 @@ public class AuthenticationContext {
         public void setException(Throwable t) {
             super.setException(t);
         }
+    }
+
+    private APIEvent createApiEvent(Context context, String clientId, String requestId, String apiId) {
+        final APIEvent apiEvent = new APIEvent(EventStrings.API_EVENT, context, clientId);
+        apiEvent.setRequestId(requestId);
+        apiEvent.setAPIId(apiId);
+        apiEvent.setAuthority(getAuthority());
+        Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
+        return apiEvent;
     }
 }

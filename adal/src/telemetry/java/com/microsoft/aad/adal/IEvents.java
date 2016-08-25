@@ -28,6 +28,8 @@ import android.util.Pair;
 import java.util.List;
 
 interface IEvents {
+    
     void setEvent(final String name, final String value);
+
     List<Pair<String, String>> getEvents();
 }

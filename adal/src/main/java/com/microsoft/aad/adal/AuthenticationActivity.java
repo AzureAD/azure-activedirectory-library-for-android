@@ -113,6 +113,8 @@ public class AuthenticationActivity extends Activity {
     private boolean mPkeyAuthRedirect = false;
     private StorageHelper mStorageHelper;
 
+    private UIEvent mUIEvent = null;
+
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
     // one active activity
@@ -196,8 +198,8 @@ public class AuthenticationActivity extends Activity {
         mRedirectUrl = mAuthRequest.getRedirectUri();
 
         Telemetry.getInstance().startEvent(mAuthRequest.getTelemetryRequestId(), EventStrings.UI_EVENT);
-        UIEvent uiEvent = new UIEvent(EventStrings.UI_EVENT);
-        uiEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
+        mUIEvent = new UIEvent(EventStrings.UI_EVENT);
+        mUIEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
 
         // Create the Web View to show the page
         mWebView = (WebView) findViewById(this.getResources().getIdentifier("webView1", "id",
@@ -307,7 +309,6 @@ public class AuthenticationActivity extends Activity {
         } else {
             Logger.v(TAG, "Reuse webview");
         }
-        Telemetry.getInstance().stopEvent(mAuthRequest.getTelemetryRequestId(), uiEvent, EventStrings.UI_EVENT);
     }
 
     private boolean isCallerBrokerInstaller() {
@@ -585,6 +586,15 @@ public class AuthenticationActivity extends Activity {
             InputMethodManager imm = (InputMethodManager) this
                     .getSystemService(Service.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(mWebView.getApplicationWindowToken(), 0);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (mUIEvent != null) {
+            Telemetry.getInstance().stopEvent(mAuthRequest.getTelemetryRequestId(), mUIEvent, EventStrings.UI_EVENT);
         }
     }
 

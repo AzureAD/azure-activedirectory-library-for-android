@@ -25,7 +25,7 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.provider.Settings.Secure;
+//import android.provider.Settings.Secure;
 import android.text.TextUtils;
 import android.util.Pair;
 
@@ -47,15 +47,17 @@ class DefaultEvent implements IEvents {
 
     private static String sDeviceId = null;
 
+    private String mRequestId;
+
     private static final int DEFAULT_EVENT_COUNT = 5;
 
     DefaultEvent() {
         mEventList = new ArrayList<>();
 
-        mEventList.add(new Pair<>(EventStrings.CORRELATION_ID, sApplicationName));
-        mEventList.add(new Pair<>(EventStrings.CORRELATION_ID, sApplicationVersion));
-        mEventList.add(new Pair<>(EventStrings.CORRELATION_ID, sClientId));
-        mEventList.add(new Pair<>(EventStrings.CORRELATION_ID, sClientIp));
+        mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
+        mEventList.add(new Pair<>(EventStrings.APPLICATION_VERSION, sApplicationVersion));
+        mEventList.add(new Pair<>(EventStrings.CLIENT_ID, sClientId));
+        mEventList.add(new Pair<>(EventStrings.CLIENT_IP, sClientIp));
         mEventList.add(new Pair<>(EventStrings.DEVICE_ID, sDeviceId));
     }
 
@@ -81,11 +83,11 @@ class DefaultEvent implements IEvents {
         try {
             sApplicationVersion = context.getPackageManager().getPackageInfo(sApplicationName, 0).versionName;
         } catch (PackageManager.NameNotFoundException nnfe) {
-            sApplicationVersion = "0.0.0.0";
+            sApplicationVersion = "NA";
         }
-        //TODO: Getting IP will require network permissions do we want to do it?
-        sClientIp = "0.0.0.0";
 
+        //TODO: Getting IP will require network permissions do we want to do it?
+        sClientIp = "NA";
         //sDeviceId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
     }
 
@@ -94,10 +96,15 @@ class DefaultEvent implements IEvents {
     }
 
     void setRequestId(final String requestId) {
+        mRequestId = requestId;
         mEventList.add(new Pair<>(EventStrings.REQUEST_ID, requestId));
     }
 
     List<Pair<String, String>> getEventList() {
         return mEventList;
+    }
+
+    String getRequestId() {
+        return mRequestId;
     }
 }

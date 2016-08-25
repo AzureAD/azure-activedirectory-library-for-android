@@ -37,47 +37,36 @@ class AggregatedDispatcher extends DefaultDispatcher {
     }
 
     @SuppressWarnings("unchecked")
-    List<IEvents> getObjectToBeDispatched(final String requestId) {
-        final Object listOfEvents = getObjectsToBeDispatched().get(requestId);
-
-        if (listOfEvents != null && listOfEvents instanceof List) {
-
-            return (List<IEvents>) listOfEvents;
-        }
-
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    synchronized void flush() {
+    synchronized void flush(final String requestId) {
         final int defaultEventCount = DefaultEvent.getDefaultEventCount();
         final List<Pair<String, String>> dispatchList = new ArrayList<>();
-        if (getDispatcher() != null) {
-            final Set<Map.Entry<String, List<IEvents>>> entries = getObjectsToBeDispatched().entrySet();
-            for (final Map.Entry<String, List<IEvents>> entry : entries) {
-                final List<IEvents> events = entry.getValue();
-                boolean first = true;
-                for (final IEvents event : events) {
-                    if (first) {
-                        dispatchList.addAll(event.getEvents());
-                        first = false;
-                        continue;
-                    }
-                    dispatchList.addAll(event.getEvents().subList(defaultEventCount, event.getEvents().size()));
-                }
-            }
-            getDispatcher().dispatch(dispatchList);
+        if (getDispatcher() == null) {
+            return;
         }
+
+        final List<IEvents> events = getObjectsToBeDispatched().get(requestId);
+        boolean first = true;
+        for (final IEvents event : events) {
+            if (first) {
+                dispatchList.addAll(event.getEvents());
+                first = false;
+                continue;
+            }
+
+            dispatchList.addAll(event.getEvents().subList(defaultEventCount, event.getEvents().size()));
+        }
+
+        getDispatcher().dispatch(dispatchList);
     }
 
     @SuppressWarnings("unchecked")
     void receive(final String requestId, final IEvents events) {
-        List<IEvents> eventsList = getObjectToBeDispatched(requestId);
+        List<IEvents> eventsList = getObjectsToBeDispatched().get(requestId);
         if (eventsList == null) {
             eventsList = new ArrayList<>();
         }
+
         eventsList.add(events);
         getObjectsToBeDispatched().put(requestId, eventsList);
-        flush();
     }
 }

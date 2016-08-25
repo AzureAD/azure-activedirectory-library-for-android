@@ -28,9 +28,14 @@ import android.util.Pair;
 
 import java.net.URL;
 
+/**
+ * This class tracks flows for certain API calls. Most notably in those all acquireToken* calls
+ * All other Events will be called within the timeline of APIEvent
+ */
 class APIEvent extends DefaultEvent {
 
     private final String mEventName;
+
     APIEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
         mEventName = eventName;
@@ -48,7 +53,7 @@ class APIEvent extends DefaultEvent {
 
         getEventList().add(new Pair<>(EventStrings.AUTHORITY_NAME, authority));
         final URL authorityUrl = StringExtensions.getUrl(authority);
-        if(authorityUrl == null) {
+        if (authorityUrl == null) {
             return;
         }
 
@@ -87,7 +92,7 @@ class APIEvent extends DefaultEvent {
         return mEventName;
     }
 
-    void setSuccessStatus(final Boolean isSuccess) {
+    void setWasApiCallSuccessful(final Boolean isSuccess) {
         getEventList().add(new Pair<>(EventStrings.WAS_SUCCESSFUL, isSuccess.toString()));
     }
 }

@@ -46,15 +46,7 @@ class HttpEvent extends DefaultEvent {
         getEventList().add(new Pair<>(EventStrings.HTTP_RESPONSE_CODE, responseCode.toString()));
     }
 
-    void setResponseMethod(final String responseMethod) {
-        getEventList().add(new Pair<>(EventStrings.HTTP_RESPONSE_METHOD, responseMethod));
-    }
-
     void setApiVersion(final String apiVersion) {
         getEventList().add(new Pair<>(EventStrings.HTTP_API_VERSION, apiVersion));
-    }
-
-    void setSuccessStatus(final Boolean isSuccess) {
-        getEventList().add(new Pair<>(EventStrings.WAS_SUCCESSFUL, isSuccess.toString()));
     }
 }

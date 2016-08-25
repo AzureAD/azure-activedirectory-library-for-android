@@ -122,7 +122,7 @@ final class EventStrings {
 
     static final String BROKER_APP = "broker_app";
 
-    static final String BROKER_VERSION = "x-broker_version";
+    static final String BROKER_VERSION = "broker_version";
 
     static final String TOKEN_TYPE = "token_type";
 
@@ -151,8 +151,6 @@ final class EventStrings {
     static final String HTTP_QUERY_PARAMETERS = "query_parameters";
 
     static final String HTTP_RESPONSE_CODE = "response_code";
-
-    static final String HTTP_RESPONSE_METHOD = "response_method";
 
     static final String HTTP_API_VERSION = "api_version";
 

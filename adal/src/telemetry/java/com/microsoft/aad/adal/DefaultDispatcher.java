@@ -39,8 +39,7 @@ class DefaultDispatcher {
         mDispatcher = dispatcher;
     }
 
-    synchronized void flush() {
-
+    synchronized void flush(final String requestId) {
     }
 
     void receive(final String requestId, final IEvents events) {
@@ -53,7 +52,7 @@ class DefaultDispatcher {
         return mDispatcher;
     }
 
-    Map getObjectsToBeDispatched() {
+    Map<String, List<IEvents>> getObjectsToBeDispatched() {
         return mObjectsToBeDispatched;
     }
 }

@@ -69,23 +69,29 @@ class AcquireTokenRequest {
      */
     private Discovery mDiscovery = new Discovery();
 
+    /**
+     * Event Variable for the acquireToken API called. This will track whether the API succeeded or not.
+     */
     private APIEvent mAPIEvent;
+
     /**
      * Constructor for {@link AcquireTokenRequest}.
      */
-    AcquireTokenRequest(final Context appContext, final AuthenticationContext authContext) {
+    AcquireTokenRequest(final Context appContext, final AuthenticationContext authContext, final APIEvent apiEvent) {
         mContext = appContext;
         mAuthContext = authContext;
 
-        if (authContext.getCache() != null) {
+        if (authContext.getCache() != null && apiEvent != null) {
             mTokenCacheAccessor = new TokenCacheAccessor(authContext.getCache(),
-                    authContext.getAuthority());
+                    authContext.getAuthority(), apiEvent.getRequestId());
         }
         mBrokerProxy = new BrokerProxy(appContext);
+
+        mAPIEvent = apiEvent;
     }
 
     /**
-     * Handles the acquire token logic. Will do authority validation first if developer set valiateAuthority to be
+     * Handles the acquire token logic. Will do authority validation first if developer set validateAuthority to be
      * true.
      */
     void acquireToken(final IWindowComponent activity, final boolean useDialog, final AuthenticationRequest authRequest,
@@ -105,9 +111,10 @@ class AcquireTokenRequest {
                     validateAcquireTokenRequest(authRequest);
                     performAcquireTokenRequest(callbackHandle, activity, useDialog, authRequest);
                 } catch (final AuthenticationException authenticationException) {
-                    mAPIEvent.setSuccessStatus(false);
+                    mAPIEvent.setWasApiCallSuccessful(false);
                     Telemetry.getInstance().stopEvent(authRequest.getTelemetryRequestId(), mAPIEvent,
                             mAPIEvent.getEventName());
+                    Telemetry.getInstance().flush(authRequest.getTelemetryRequestId());
                     callbackHandle.onError(authenticationException);
                 }
             }
@@ -139,14 +146,15 @@ class AcquireTokenRequest {
                             authenticationRequest, mTokenCacheAccessor);
                     final AuthenticationResult authResult
                             = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
-                    mAPIEvent.setSuccessStatus(true);
+                    mAPIEvent.setWasApiCallSuccessful(true);
                     callbackHandle.onSuccess(authResult);
                 } catch (final AuthenticationException authenticationException) {
-                    mAPIEvent.setSuccessStatus(false);
+                    mAPIEvent.setWasApiCallSuccessful(false);
                     callbackHandle.onError(authenticationException);
                 } finally {
                     Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), mAPIEvent,
                             mAPIEvent.getEventName());
+                    Telemetry.getInstance().flush(authenticationRequest.getTelemetryRequestId());
                 }
             }
         });
@@ -160,9 +168,6 @@ class AcquireTokenRequest {
                     ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
-        if (mTokenCacheAccessor != null) {
-            mTokenCacheAccessor.setAuthRequest(authenticationRequest);
-        }
         // validate authority
         Telemetry.getInstance().startEvent(authenticationRequest.getTelemetryRequestId(),
                 EventStrings.AUTHORITY_VALIDATION_EVENT);
@@ -179,6 +184,7 @@ class AcquireTokenRequest {
                 Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
                         EventStrings.AUTHORITY_VALIDATION_EVENT);
             }
+
         } else {
             apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_NOT_DONE);
             Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
@@ -244,9 +250,10 @@ class AcquireTokenRequest {
         //       broker 2) broker doesn't return any token back.
         final AuthenticationResult authenticationResultFromSilentRequest = tryAcquireTokenSilent(authenticationRequest);
         if (isAccessTokenReturned(authenticationResultFromSilentRequest)) {
-            mAPIEvent.setSuccessStatus(true);
+            mAPIEvent.setWasApiCallSuccessful(true);
             Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), mAPIEvent,
                     mAPIEvent.getEventName());
+            Telemetry.getInstance().flush(authenticationRequest.getTelemetryRequestId());
             callbackHandle.onSuccess(authenticationResultFromSilentRequest);
             return;
         }
@@ -671,9 +678,11 @@ class AcquireTokenRequest {
                                     final AuthenticationResult authenticationResult
                                             = acquireTokenInteractiveRequest.acquireTokenWithAuthCode(endingUrl);
 
-                                    waitingRequest.getAPIEvent().setSuccessStatus(true);
-                                    Telemetry.getInstance().stopEvent(waitingRequest.getRequest().getTelemetryRequestId(),
+                                    waitingRequest.getAPIEvent().setWasApiCallSuccessful(true);
+                                    Telemetry.getInstance().stopEvent(
+                                            waitingRequest.getRequest().getTelemetryRequestId(),
                                             waitingRequest.getAPIEvent(), waitingRequest.getAPIEvent().getEventName());
+                                    Telemetry.getInstance().flush(waitingRequest.getRequest().getTelemetryRequestId());
 
                                     if (waitingRequest.getDelegate() != null) {
                                         Logger.v(TAG, "Sending result to callback. "
@@ -727,9 +736,10 @@ class AcquireTokenRequest {
             if (waitingRequest != null && waitingRequest.getDelegate() != null) {
                 Logger.v(TAG, "Sending error to callback"
                         + mAuthContext.getCorrelationInfoFromWaitingRequest(waitingRequest));
-                waitingRequest.getAPIEvent().setSuccessStatus(false);
+                waitingRequest.getAPIEvent().setWasApiCallSuccessful(false);
                 Telemetry.getInstance().stopEvent(waitingRequest.getRequest().getTelemetryRequestId(),
                         waitingRequest.getAPIEvent(), waitingRequest.getAPIEvent().getEventName());
+                Telemetry.getInstance().flush(waitingRequest.getRequest().getTelemetryRequestId());
 
                 if (handler != null) {
                     handler.onError(exc);
@@ -864,10 +874,6 @@ class AcquireTokenRequest {
         public boolean isResultReceivedFromBroker() {
             return mReceivedResultFromBroker;
         }
-    }
-
-    void setAPIEvent(final APIEvent event) {
-        mAPIEvent = event;
     }
 
     private static final class RefreshTokenEvent extends ClientAnalytics.Event {

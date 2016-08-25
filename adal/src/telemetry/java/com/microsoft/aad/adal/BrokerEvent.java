@@ -30,11 +30,11 @@ class BrokerEvent extends DefaultEvent {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
     }
 
-    void setBrokerApp(final String brokerApp) {
-        getEventList().add(new Pair<>(EventStrings.BROKER_APP, brokerApp));
+    void setBrokerAppName(final String brokerAppName) {
+        getEventList().add(new Pair<>(EventStrings.BROKER_APP, brokerAppName));
     }
 
-    void setBrokerVersion(final String brokerVersion) {
-        getEventList().add(new Pair<>(EventStrings.BROKER_VERSION, brokerVersion));
+    void setBrokerAppVersion(final String brokerAppVersion) {
+        getEventList().add(new Pair<>(EventStrings.BROKER_VERSION, brokerAppVersion));
     }
 }

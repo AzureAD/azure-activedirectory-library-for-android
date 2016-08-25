@@ -37,9 +37,9 @@ class TokenCacheAccessor {
     
     private final ITokenCacheStore mTokenCacheStore;
     private final String mAuthority;
-    private AuthenticationRequest mAuthRequest;
+    private String mTelemetryRequestId;
     
-    TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority) {
+    TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority, final String requestId) {
         if (tokenCacheStore == null) {
             throw new IllegalArgumentException("tokenCacheStore");
         }
@@ -47,10 +47,14 @@ class TokenCacheAccessor {
         if (StringExtensions.isNullOrBlank(authority)) {
             throw new IllegalArgumentException("authority");
         }
-        
+
+        if (StringExtensions.isNullOrBlank(requestId)) {
+            throw new IllegalArgumentException("requestId");
+        }
+
         mTokenCacheStore = tokenCacheStore;
         mAuthority = authority;
-        mAuthRequest = null;
+        mTelemetryRequestId = requestId;
     }
     
     /**
@@ -82,33 +86,60 @@ class TokenCacheAccessor {
         
         return accessTokenItem;
     }
-    
+
     /**
      * @return {@link TokenCacheItem} for regular token cache entry.  
      */
     TokenCacheItem getRegularRefreshTokenCacheItem(final String resource, final String clientId, final String user) {
+        CacheEvent cacheEvent = startCacheTelemetryRequest(EventStrings.TOKEN_TYPE_RT);
+
         final String cacheKey = CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, user);
-        return mTokenCacheStore.getItem(cacheKey);
+        final TokenCacheItem item =  mTokenCacheStore.getItem(cacheKey);
+
+        if (item != null) {
+            cacheEvent.setTokenTypeRT(true);
+        }
+        Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent, EventStrings.TOKEN_CACHE_LOOKUP);
+
+        return item;
     }
     
     /**
      * @return {@link TokenCacheItem} for MRRT token cache entry.  
      */
     TokenCacheItem getMRRTItem(final String clientId, final String user) {
+        final CacheEvent cacheEvent = startCacheTelemetryRequest(EventStrings.TOKEN_TYPE_MRRT);
         final String cacheKey = CacheKey.createCacheKeyForMRRT(mAuthority, clientId, user);
-        return mTokenCacheStore.getItem(cacheKey);
+        final TokenCacheItem item = mTokenCacheStore.getItem(cacheKey);
+
+        if (item != null) {
+            cacheEvent.setTokenTypeMRRT(true);
+            cacheEvent.setTokenTypeFRT(item.isFamilyToken());
+        }
+        Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent, EventStrings.TOKEN_CACHE_LOOKUP);
+
+        return item;
     }
     
     /**
      * @return {@link TokenCacheItem} for FRT token cache entry.  
      */
     TokenCacheItem getFRTItem(final String familyClientId, final String user) {
+        final CacheEvent cacheEvent = startCacheTelemetryRequest(EventStrings.TOKEN_TYPE_FRT);
         if (StringExtensions.isNullOrBlank(user)) {
+            Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent, EventStrings.TOKEN_CACHE_LOOKUP);
             return null;
         }
         
         final String cacheKey = CacheKey.createCacheKeyForFRT(mAuthority, familyClientId, user);
-        return mTokenCacheStore.getItem(cacheKey);
+        final TokenCacheItem item = mTokenCacheStore.getItem(cacheKey);
+
+        if (item != null) {
+            cacheEvent.setTokenTypeFRT(true);
+        }
+        Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent, EventStrings.TOKEN_CACHE_LOOKUP);
+
+        return item;
     }
 
     TokenCacheItem getStaleToken(AuthenticationRequest authRequest) {
@@ -187,8 +218,8 @@ class TokenCacheAccessor {
     void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource)
             throws AuthenticationException {
         CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_DELETE);
-        cacheEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
-        Telemetry.getInstance().startEvent(mAuthRequest.getTelemetryRequestId(), EventStrings.TOKEN_CACHE_DELETE);
+        cacheEvent.setRequestId(mTelemetryRequestId);
+        Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_DELETE);
 
         final List<String> keys;
         final TokenEntryType tokenEntryType = tokenCacheItem.getTokenEntryType();
@@ -200,7 +231,9 @@ class TokenCacheAccessor {
             keys = getKeyListToRemoveForRT(tokenCacheItem);
             break;
         case MRRT_TOKEN_ENTRY :
+            // We delete both MRRT and RT in this case.
             cacheEvent.setTokenTypeMRRT(true);
+            cacheEvent.setTokenTypeRT(true);
             Logger.v(TAG, "MRRT was used to get access token, remove entries for both "
                     + "MRRT entries and regular RT entries.");
             keys = getKeyListToRemoveForMRRT(tokenCacheItem);
@@ -222,7 +255,7 @@ class TokenCacheAccessor {
         for (final String key : keys) {
             mTokenCacheStore.removeItem(key);
         }
-        Telemetry.getInstance().stopEvent(mAuthRequest.getTelemetryRequestId(), cacheEvent,
+        Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent,
                 EventStrings.TOKEN_CACHE_DELETE);
     }
     
@@ -237,8 +270,8 @@ class TokenCacheAccessor {
         Logger.v(TAG, "Save regular token into cache.");
 
         CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_WRITE);
-        cacheEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
-        Telemetry.getInstance().startEvent(mAuthRequest.getTelemetryRequestId(), EventStrings.TOKEN_CACHE_WRITE);
+        cacheEvent.setRequestId(mTelemetryRequestId);
+        Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_WRITE);
 
         mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, userId), 
                 TokenCacheItem.createRegularTokenCacheItem(mAuthority, resource, clientId, result));
@@ -258,7 +291,7 @@ class TokenCacheAccessor {
             mTokenCacheStore.setItem(CacheKey.createCacheKeyForFRT(mAuthority, result.getFamilyClientId(), userId), familyTokenCacheItem);
             cacheEvent.setTokenTypeFRT(true);
         }
-        Telemetry.getInstance().stopEvent(mAuthRequest.getTelemetryRequestId(), cacheEvent,
+        Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent,
                 EventStrings.TOKEN_CACHE_WRITE);
     }
     
@@ -341,7 +374,12 @@ class TokenCacheAccessor {
         return "";
     }
 
-    void setAuthRequest(final AuthenticationRequest request) {
-        mAuthRequest = request;
+    private CacheEvent startCacheTelemetryRequest(String tokenType) {
+        final CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_LOOKUP);
+        cacheEvent.setTokenType(tokenType);
+        cacheEvent.setRequestId(mTelemetryRequestId);
+        Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_LOOKUP);
+
+        return cacheEvent;
     }
 }
