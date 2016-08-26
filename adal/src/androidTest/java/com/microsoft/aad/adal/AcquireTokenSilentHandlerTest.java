@@ -869,7 +869,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
 
     private AuthenticationRequest getAuthenticationRequest(final String authority, final String resource,
                                                            final String clientId, final boolean isExtendedLifetimeEnabled) {
-        AuthenticationRequest request = new AuthenticationRequest(authority, resource, clientId,
+        AuthenticationRequest request = new AuthenticationRequest(authority, resource, clientId, UUID.randomUUID(),
                 isExtendedLifetimeEnabled);
 
         request.setTelemetryRequestId(UUID.randomUUID().toString());

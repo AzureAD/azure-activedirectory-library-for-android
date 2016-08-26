@@ -37,6 +37,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -124,6 +125,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         Object o = constructor.newInstance("authority", "client", "resource", "redirect",
                 "loginhint", false);
         ReflectionUtils.setFieldValue(o, "mRequestId", TEST_REQUEST_ID);
+        ReflectionUtils.setFieldValue(o, "mCorrelationId", UUID.randomUUID());
 
         return o;
     }
@@ -313,7 +315,8 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         String username = "admin@aaltests.onmicrosoft.com";
         final AuthenticationRequest authRequest = new AuthenticationRequest(
                 "https://login.windows.net/test.test.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect", username, false);
+                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect", username, UUID.randomUUID(),
+                false);
         Method setAcctName = ReflectionUtils.getTestMethod(authRequest, "setBrokerAccountName",
                 String.class);
         setAcctName.invoke(authRequest, username);
@@ -372,7 +375,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         final AuthenticationRequest authRequest = new AuthenticationRequest(
                 "https://login.windows.net/test.test.com",
                 "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect",
-                "different@aaltests.onmicrosoft.com", false);
+                "different@aaltests.onmicrosoft.com", UUID.randomUUID(), false);
         AsyncTask<String, ?, ?> tokenTask = (AsyncTask<String, ?, ?>) getTokenTask();
         Method executeDirect = ReflectionUtils.getTestMethod(tokenTask, "doInBackground",
                 String[].class);
@@ -412,7 +415,8 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         String username = "admin@aaltests.onmicrosoft.com";
         final AuthenticationRequest authRequest = new AuthenticationRequest(
                 "https://login.windows.net/test.test.com",
-                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect", username, false);
+                "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect", username, UUID.randomUUID(),
+                false);
         Method setAcctName = ReflectionUtils.getTestMethod(authRequest, "setBrokerAccountName",
                 String.class);
         setAcctName.invoke(authRequest, username);

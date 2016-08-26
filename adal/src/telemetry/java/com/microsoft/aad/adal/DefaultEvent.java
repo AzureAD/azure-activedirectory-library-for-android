@@ -54,8 +54,8 @@ class DefaultEvent implements IEvents {
     DefaultEvent() {
         mEventList = new ArrayList<>();
 
-        // Keying off Application version not being null to decide if the defaults have been set
-        if (sApplicationVersion != null) {
+        // Keying off Application name not being null to decide if the defaults have been set
+        if (sApplicationName != null) {
             mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
             mEventList.add(new Pair<>(EventStrings.APPLICATION_VERSION, sApplicationVersion));
             mEventList.add(new Pair<>(EventStrings.CLIENT_ID, sClientId));
@@ -84,6 +84,7 @@ class DefaultEvent implements IEvents {
     }
 
     void setDefaults(final Context context, final String clientId) {
+
         sClientId = clientId;
         sApplicationName = context.getPackageName();
         try {
@@ -96,12 +97,14 @@ class DefaultEvent implements IEvents {
         sClientIp = "NA";
         //sDeviceId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
 
-        mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
-        mEventList.add(new Pair<>(EventStrings.APPLICATION_VERSION, sApplicationVersion));
-        mEventList.add(new Pair<>(EventStrings.CLIENT_ID, sClientId));
-        mEventList.add(new Pair<>(EventStrings.CLIENT_IP, sClientIp));
-        mEventList.add(new Pair<>(EventStrings.DEVICE_ID, sDeviceId));
-        mDefaultEventCount = mEventList.size();
+        if (mDefaultEventCount == 0) {
+            mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
+            mEventList.add(new Pair<>(EventStrings.APPLICATION_VERSION, sApplicationVersion));
+            mEventList.add(new Pair<>(EventStrings.CLIENT_ID, sClientId));
+            mEventList.add(new Pair<>(EventStrings.CLIENT_IP, sClientIp));
+            mEventList.add(new Pair<>(EventStrings.DEVICE_ID, sDeviceId));
+            mDefaultEventCount = mEventList.size();
+        }
     }
 
     // Sets the correlation id to the top of the list
