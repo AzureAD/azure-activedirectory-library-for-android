@@ -557,9 +557,8 @@ public class AuthenticationContext {
                     @Override
                     public void onSuccess(AuthenticationResult result) {
                         apiEvent.setWasApiCallSuccessful(true);
-                        Telemetry.getInstance().stopEvent(requestId, apiEvent,
-                                apiEvent.getEventName());
-                        Telemetry.getInstance().flush(requestId);
+                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
+                        apiEvent.stopTelemetryAndFlush();
 
                         authenticationResult.set(result);
                         latch.countDown();
@@ -568,9 +567,8 @@ public class AuthenticationContext {
                     @Override
                     public void onError(Exception exc) {
                         apiEvent.setWasApiCallSuccessful(false);
-                        Telemetry.getInstance().stopEvent(requestId, apiEvent,
-                                apiEvent.getEventName());
-                        Telemetry.getInstance().flush(requestId);
+                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
+                        apiEvent.stopTelemetryAndFlush();
 
                         exception.set(exc);
                         latch.countDown();
@@ -651,9 +649,8 @@ public class AuthenticationContext {
             @Override
             public void onSuccess(AuthenticationResult result) {
                 apiEvent.setWasApiCallSuccessful(true);
-                Telemetry.getInstance().stopEvent(requestId, apiEvent,
-                        apiEvent.getEventName());
-                Telemetry.getInstance().flush(requestId);
+                apiEvent.setCorrelationId(request.getCorrelationId().toString());
+                apiEvent.stopTelemetryAndFlush();
 
                 if (callback != null) {
                     callback.onSuccess(result);
@@ -665,9 +662,8 @@ public class AuthenticationContext {
             @Override
             public void onError(Exception exc) {
                 apiEvent.setWasApiCallSuccessful(false);
-                Telemetry.getInstance().stopEvent(requestId, apiEvent,
-                        apiEvent.getEventName());
-                Telemetry.getInstance().flush(requestId);
+                apiEvent.setCorrelationId(request.getCorrelationId().toString());
+                apiEvent.stopTelemetryAndFlush();
 
                 if (callback != null) {
                     callback.onError(exc);

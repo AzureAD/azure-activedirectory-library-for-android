@@ -446,6 +446,7 @@ class Oauth2 {
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
             httpEvent.setResponseCode(response.getStatusCode());
+            httpEvent.setCorrelationId(mRequest.getCorrelationId().toString());
             stopHttpEvent(httpEvent);
 
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
@@ -478,6 +479,7 @@ class Oauth2 {
                                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                                     "application/x-www-form-urlencoded");
                             challengeHttpEvent.setResponseCode(response.getStatusCode());
+                            challengeHttpEvent.setCorrelationId(mRequest.getCorrelationId().toString());
                             stopHttpEvent(challengeHttpEvent);
                         }
                     } else {
@@ -657,14 +659,14 @@ class Oauth2 {
     }
 
     private HttpEvent startHttpEvent() {
-        HttpEvent httpEvent = new HttpEvent(EventStrings.HTTP_EVENT);
+        final HttpEvent httpEvent = new HttpEvent(EventStrings.HTTP_EVENT);
         httpEvent.setRequestId(mRequest.getTelemetryRequestId());
         httpEvent.setMethod(EventStrings.HTTP_METHOD_POST);
         Telemetry.getInstance().startEvent(mRequest.getTelemetryRequestId(), EventStrings.HTTP_EVENT);
         return httpEvent;
     }
 
-    private void stopHttpEvent(HttpEvent httpEvent) {
+    private void stopHttpEvent(final HttpEvent httpEvent) {
         Telemetry.getInstance().stopEvent(mRequest.getTelemetryRequestId(), httpEvent,
                 EventStrings.HTTP_EVENT);
     }

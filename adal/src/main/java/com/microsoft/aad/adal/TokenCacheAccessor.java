@@ -37,7 +37,7 @@ class TokenCacheAccessor {
     
     private final ITokenCacheStore mTokenCacheStore;
     private final String mAuthority;
-    private String mTelemetryRequestId;
+    private final String mTelemetryRequestId;
     
     TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority, final String requestId) {
         if (tokenCacheStore == null) {
@@ -91,7 +91,7 @@ class TokenCacheAccessor {
      * @return {@link TokenCacheItem} for regular token cache entry.  
      */
     TokenCacheItem getRegularRefreshTokenCacheItem(final String resource, final String clientId, final String user) {
-        CacheEvent cacheEvent = startCacheTelemetryRequest(EventStrings.TOKEN_TYPE_RT);
+        final CacheEvent cacheEvent = startCacheTelemetryRequest(EventStrings.TOKEN_TYPE_RT);
 
         final String cacheKey = CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, user);
         final TokenCacheItem item =  mTokenCacheStore.getItem(cacheKey);
@@ -217,7 +217,7 @@ class TokenCacheAccessor {
      */
     void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource)
             throws AuthenticationException {
-        CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_DELETE);
+        final CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_DELETE);
         cacheEvent.setRequestId(mTelemetryRequestId);
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_DELETE);
 
@@ -269,7 +269,7 @@ class TokenCacheAccessor {
         logReturnedToken(result);
         Logger.v(TAG, "Save regular token into cache.");
 
-        CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_WRITE);
+        final CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_WRITE);
         cacheEvent.setRequestId(mTelemetryRequestId);
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_WRITE);
 

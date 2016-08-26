@@ -85,7 +85,7 @@ class APIEvent extends DefaultEvent {
     }
 
     void setAPIId(final String id) {
-        getEventList().add(new Pair<>(EventStrings.PROMPT_BEHAVIOR, id));
+        getEventList().add(new Pair<>(EventStrings.API_ID, id));
     }
 
     String getEventName() {
@@ -94,5 +94,10 @@ class APIEvent extends DefaultEvent {
 
     void setWasApiCallSuccessful(final Boolean isSuccess) {
         getEventList().add(new Pair<>(EventStrings.WAS_SUCCESSFUL, isSuccess.toString()));
+    }
+
+    void stopTelemetryAndFlush() {
+        Telemetry.getInstance().stopEvent(getRequestId(), this, getEventName());
+        Telemetry.getInstance().flush(getRequestId());
     }
 }

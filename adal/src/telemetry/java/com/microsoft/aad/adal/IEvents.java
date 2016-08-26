@@ -32,4 +32,6 @@ interface IEvents {
     void setEvent(final String name, final String value);
 
     List<Pair<String, String>> getEvents();
+
+    int getDefaultEventCount();
 }

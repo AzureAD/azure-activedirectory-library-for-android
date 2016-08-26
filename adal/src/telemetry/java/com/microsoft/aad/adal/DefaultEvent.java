@@ -49,27 +49,33 @@ class DefaultEvent implements IEvents {
 
     private String mRequestId;
 
-    private static final int DEFAULT_EVENT_COUNT = 5;
+    private int mDefaultEventCount;
 
     DefaultEvent() {
         mEventList = new ArrayList<>();
 
-        mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
-        mEventList.add(new Pair<>(EventStrings.APPLICATION_VERSION, sApplicationVersion));
-        mEventList.add(new Pair<>(EventStrings.CLIENT_ID, sClientId));
-        mEventList.add(new Pair<>(EventStrings.CLIENT_IP, sClientIp));
-        mEventList.add(new Pair<>(EventStrings.DEVICE_ID, sDeviceId));
+        // Keying off Application version not being null to decide if the defaults have been set
+        if (sApplicationVersion != null) {
+            mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
+            mEventList.add(new Pair<>(EventStrings.APPLICATION_VERSION, sApplicationVersion));
+            mEventList.add(new Pair<>(EventStrings.CLIENT_ID, sClientId));
+            mEventList.add(new Pair<>(EventStrings.CLIENT_IP, sClientIp));
+            mEventList.add(new Pair<>(EventStrings.DEVICE_ID, sDeviceId));
+            mDefaultEventCount = mEventList.size();
+        }
     }
 
-    static int getDefaultEventCount() {
-        return DEFAULT_EVENT_COUNT;
+    @Override
+    public int getDefaultEventCount() {
+        return mDefaultEventCount;
     }
 
     @Override
     public void setEvent(final String name, final String value) {
-        if (!TextUtils.isEmpty(name)) {
-            mEventList.add(Pair.create(name, value));
+        if (TextUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("Telemetry setEvent on null name");
         }
+        mEventList.add(Pair.create(name, value));
     }
 
     @Override
@@ -89,15 +95,25 @@ class DefaultEvent implements IEvents {
         //TODO: Getting IP will require network permissions do we want to do it?
         sClientIp = "NA";
         //sDeviceId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
+
+        mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
+        mEventList.add(new Pair<>(EventStrings.APPLICATION_VERSION, sApplicationVersion));
+        mEventList.add(new Pair<>(EventStrings.CLIENT_ID, sClientId));
+        mEventList.add(new Pair<>(EventStrings.CLIENT_IP, sClientIp));
+        mEventList.add(new Pair<>(EventStrings.DEVICE_ID, sDeviceId));
+        mDefaultEventCount = mEventList.size();
     }
 
+    // Sets the correlation id to the top of the list
     void setCorrelationId(final String correlationId) {
-        mEventList.add(new Pair<>(EventStrings.CORRELATION_ID, correlationId));
+        mEventList.add(0, new Pair<>(EventStrings.CORRELATION_ID, correlationId));
+        mDefaultEventCount++;
     }
 
     void setRequestId(final String requestId) {
         mRequestId = requestId;
-        mEventList.add(new Pair<>(EventStrings.REQUEST_ID, requestId));
+        mEventList.add(0, new Pair<>(EventStrings.REQUEST_ID, requestId));
+        mDefaultEventCount++;
     }
 
     List<Pair<String, String>> getEventList() {

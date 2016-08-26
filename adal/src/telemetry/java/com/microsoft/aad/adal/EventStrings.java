@@ -25,7 +25,7 @@ package com.microsoft.aad.adal;
 
 final class EventStrings {
 
-    static final String EVENT_NAME = "event";
+    static final String EVENT_NAME = "event_name";
 
     // Event names
     static final String API_EVENT = "api_event";
@@ -49,6 +49,8 @@ final class EventStrings {
     static final String TOKEN_CACHE_DELETE = "token_cache_delete";
 
     // API ID
+    static final String API_ID = "api_id";
+
     static final String ACQUIRE_TOKEN_SILENT_SYNC = "1";
 
     static final String ACQUIRE_TOKEN_SILENT = "2";

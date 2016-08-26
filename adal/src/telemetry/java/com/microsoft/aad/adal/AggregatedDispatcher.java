@@ -27,8 +27,6 @@ import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 class AggregatedDispatcher extends DefaultDispatcher {
 
@@ -38,22 +36,20 @@ class AggregatedDispatcher extends DefaultDispatcher {
 
     @SuppressWarnings("unchecked")
     synchronized void flush(final String requestId) {
-        final int defaultEventCount = DefaultEvent.getDefaultEventCount();
         final List<Pair<String, String>> dispatchList = new ArrayList<>();
         if (getDispatcher() == null) {
             return;
         }
 
-        final List<IEvents> events = getObjectsToBeDispatched().get(requestId);
-        boolean first = true;
-        for (final IEvents event : events) {
-            if (first) {
-                dispatchList.addAll(event.getEvents());
-                first = false;
-                continue;
-            }
+        final List<IEvents> events = getObjectsToBeDispatched().remove(requestId);
+        if (events == null || events.isEmpty()) {
+            return;
+        }
 
-            dispatchList.addAll(event.getEvents().subList(defaultEventCount, event.getEvents().size()));
+        dispatchList.addAll(events.get(0).getEvents());
+        for (int i = 1; i < events.size(); i++) {
+            IEvents event = events.get(i);
+            dispatchList.addAll(event.getEvents().subList(event.getDefaultEventCount(), event.getEvents().size()));
         }
 
         getDispatcher().dispatch(dispatchList);

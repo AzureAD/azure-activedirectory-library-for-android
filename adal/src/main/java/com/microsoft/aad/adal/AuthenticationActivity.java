@@ -200,6 +200,7 @@ public class AuthenticationActivity extends Activity {
         Telemetry.getInstance().startEvent(mAuthRequest.getTelemetryRequestId(), EventStrings.UI_EVENT);
         mUIEvent = new UIEvent(EventStrings.UI_EVENT);
         mUIEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
+        mUIEvent.setCorrelationId(mAuthRequest.getCorrelationId().toString());
 
         // Create the Web View to show the page
         mWebView = (WebView) findViewById(this.getResources().getIdentifier("webView1", "id",

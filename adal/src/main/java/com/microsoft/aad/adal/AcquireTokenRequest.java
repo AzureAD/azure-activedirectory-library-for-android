@@ -36,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -112,9 +113,9 @@ class AcquireTokenRequest {
                     performAcquireTokenRequest(callbackHandle, activity, useDialog, authRequest);
                 } catch (final AuthenticationException authenticationException) {
                     mAPIEvent.setWasApiCallSuccessful(false);
-                    Telemetry.getInstance().stopEvent(authRequest.getTelemetryRequestId(), mAPIEvent,
-                            mAPIEvent.getEventName());
-                    Telemetry.getInstance().flush(authRequest.getTelemetryRequestId());
+                    mAPIEvent.setCorrelationId(authRequest.getCorrelationId().toString());
+                    mAPIEvent.stopTelemetryAndFlush();
+
                     callbackHandle.onError(authenticationException);
                 }
             }
@@ -152,9 +153,8 @@ class AcquireTokenRequest {
                     mAPIEvent.setWasApiCallSuccessful(false);
                     callbackHandle.onError(authenticationException);
                 } finally {
-                    Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), mAPIEvent,
-                            mAPIEvent.getEventName());
-                    Telemetry.getInstance().flush(authenticationRequest.getTelemetryRequestId());
+                    mAPIEvent.setCorrelationId(authenticationRequest.getCorrelationId().toString());
+                    mAPIEvent.stopTelemetryAndFlush();
                 }
             }
         });
@@ -172,10 +172,12 @@ class AcquireTokenRequest {
         Telemetry.getInstance().startEvent(authenticationRequest.getTelemetryRequestId(),
                 EventStrings.AUTHORITY_VALIDATION_EVENT);
         APIEvent apiEvent = new APIEvent(EventStrings.AUTHORITY_VALIDATION_EVENT);
+        apiEvent.setCorrelationId(authenticationRequest.getCorrelationId().toString());
+        apiEvent.setRequestId(authenticationRequest.getTelemetryRequestId());
 
         if (mAuthContext.getValidateAuthority()) {
             try {
-                validateAuthority(authorityUrl);
+                validateAuthority(authorityUrl, authenticationRequest.getCorrelationId());
                 apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_SUCCESS);
             } catch (AuthenticationException ex) {
                 apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_FAILURE);
@@ -184,7 +186,6 @@ class AcquireTokenRequest {
                 Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
                         EventStrings.AUTHORITY_VALIDATION_EVENT);
             }
-
         } else {
             apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_NOT_DONE);
             Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
@@ -203,13 +204,13 @@ class AcquireTokenRequest {
      * Perform authority validation.
      * True if the passed in authority is valid, false otherwise.
      */
-    private void validateAuthority(final URL authorityUrl) throws AuthenticationException {
+    private void validateAuthority(final URL authorityUrl, final UUID correlationId) throws AuthenticationException {
         if (mAuthContext.getIsAuthorityValidated()) {
             return;
         }
 
         Logger.v(TAG, "Start validating authority");
-        mDiscovery.setCorrelationId(mAuthContext.getRequestCorrelationId());
+        mDiscovery.setCorrelationId(correlationId);
         mDiscovery.validateAuthority(authorityUrl);
 
         Logger.v(TAG, "The passe in authority is valid.");
@@ -251,9 +252,8 @@ class AcquireTokenRequest {
         final AuthenticationResult authenticationResultFromSilentRequest = tryAcquireTokenSilent(authenticationRequest);
         if (isAccessTokenReturned(authenticationResultFromSilentRequest)) {
             mAPIEvent.setWasApiCallSuccessful(true);
-            Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), mAPIEvent,
-                    mAPIEvent.getEventName());
-            Telemetry.getInstance().flush(authenticationRequest.getTelemetryRequestId());
+            mAPIEvent.setCorrelationId(authenticationRequest.getCorrelationId().toString());
+            mAPIEvent.stopTelemetryAndFlush();
             callbackHandle.onSuccess(authenticationResultFromSilentRequest);
             return;
         }
@@ -679,10 +679,9 @@ class AcquireTokenRequest {
                                             = acquireTokenInteractiveRequest.acquireTokenWithAuthCode(endingUrl);
 
                                     waitingRequest.getAPIEvent().setWasApiCallSuccessful(true);
-                                    Telemetry.getInstance().stopEvent(
-                                            waitingRequest.getRequest().getTelemetryRequestId(),
-                                            waitingRequest.getAPIEvent(), waitingRequest.getAPIEvent().getEventName());
-                                    Telemetry.getInstance().flush(waitingRequest.getRequest().getTelemetryRequestId());
+                                    waitingRequest.getAPIEvent().setCorrelationId(
+                                            waitingRequest.getRequest().getCorrelationId().toString());
+                                    waitingRequest.getAPIEvent().stopTelemetryAndFlush();
 
                                     if (waitingRequest.getDelegate() != null) {
                                         Logger.v(TAG, "Sending result to callback. "
@@ -737,9 +736,9 @@ class AcquireTokenRequest {
                 Logger.v(TAG, "Sending error to callback"
                         + mAuthContext.getCorrelationInfoFromWaitingRequest(waitingRequest));
                 waitingRequest.getAPIEvent().setWasApiCallSuccessful(false);
-                Telemetry.getInstance().stopEvent(waitingRequest.getRequest().getTelemetryRequestId(),
-                        waitingRequest.getAPIEvent(), waitingRequest.getAPIEvent().getEventName());
-                Telemetry.getInstance().flush(waitingRequest.getRequest().getTelemetryRequestId());
+                waitingRequest.getAPIEvent().setCorrelationId(
+                        waitingRequest.getRequest().getCorrelationId().toString());
+                waitingRequest.getAPIEvent().stopTelemetryAndFlush();
 
                 if (handler != null) {
                     handler.onError(exc);
