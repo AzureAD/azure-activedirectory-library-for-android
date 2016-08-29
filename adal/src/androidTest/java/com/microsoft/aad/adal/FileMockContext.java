@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.accounts.AccountManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,9 +33,14 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.os.Looper;
+import android.provider.Settings;
+import android.test.mock.MockContentProvider;
+import android.test.mock.MockContentResolver;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
+
 
 import org.mockito.Mockito;
 
@@ -124,7 +130,23 @@ class FileMockContext extends MockContext {
 
         return mMockedPackageManager;
     }
-    
+
+    @Override
+    public ContentResolver getContentResolver() {
+
+        MockContentProvider mcp = new MockContentProvider(mContext) {
+            @Override
+            public Bundle call(String method, String request, Bundle args) {
+                return new Bundle();
+            }
+        };
+
+        MockContentResolver mockContentResolver = new MockContentResolver();
+        mockContentResolver.addProvider(Settings.AUTHORITY, mcp);
+
+        return mockContentResolver;
+    }
+
     public void setMockedAccountManager(final AccountManager mockedAccountManager) {
         if (mockedAccountManager == null) {
             throw new IllegalArgumentException("mockedAccountManager");

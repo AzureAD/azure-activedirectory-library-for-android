@@ -23,14 +23,9 @@
 
 package com.microsoft.aad.adal;
 
-import android.annotation.SuppressLint;
 import android.util.Pair;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -69,29 +64,13 @@ public class Telemetry {
         return UUID.randomUUID().toString();
     }
 
-    @SuppressLint("SimpleDateFormat")
-    private String getCurrentTimeAsString() {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ssZ");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return dateFormat.format(new Date());
-    }
-
-    @SuppressLint("SimpleDateFormat")
-    private String diffTime(final String startTime, final String stopTime) throws ParseException {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ssZ");
-
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        return Long.toString(dateFormat.parse(stopTime).getTime() - dateFormat.parse(startTime).getTime());
-    }
-
     void startEvent(final String requestId, final String eventName) {
         // We do not need to log if we do not have a dispatcher.
         if (mDispatcher == null) {
             return;
         }
 
-        mEventTracking.put(new Pair<>(requestId, eventName), getCurrentTimeAsString());
+        mEventTracking.put(new Pair<>(requestId, eventName), Long.toString(System.currentTimeMillis()));
     }
 
     void stopEvent(final String requestId, final IEvents events, final String eventName) {
@@ -99,21 +78,20 @@ public class Telemetry {
         if (mDispatcher == null) {
             return;
         }
+
         final String startTime = mEventTracking.get(new Pair<>(requestId, eventName));
-        final String stopTime = getCurrentTimeAsString();
+        long startTimeLong = Long.parseLong(startTime);
+        long stopTimeLong  = System.currentTimeMillis();
+        long diffTime = stopTimeLong - startTimeLong;
+
+        final String stopTime = Long.toString(stopTimeLong);
 
         events.setEvent(EventStrings.START_TIME, startTime);
         events.setEvent(EventStrings.STOP_TIME, stopTime);
+        events.setEvent(EventStrings.RESPONSE_TIME, Long.toString(diffTime));
 
-        try {
-            events.setEvent(EventStrings.RESPONSE_TIME, diffTime(startTime, stopTime));
-        } catch (ParseException e) {
-            events.setEvent(EventStrings.RESPONSE_TIME, "0");
-        }
+        mDispatcher.receive(requestId, events);
 
-        if (mDispatcher != null) {
-            mDispatcher.receive(requestId, events);
-        }
     }
 
     void flush(final String requestId) {

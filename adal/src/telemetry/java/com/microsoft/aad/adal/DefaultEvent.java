@@ -25,7 +25,7 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-//import android.provider.Settings.Secure;
+import android.provider.Settings.Secure;
 import android.text.TextUtils;
 import android.util.Pair;
 
@@ -95,7 +95,7 @@ class DefaultEvent implements IEvents {
 
         //TODO: Getting IP will require network permissions do we want to do it?
         sClientIp = "NA";
-        //sDeviceId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
+        sDeviceId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
 
         if (mDefaultEventCount == 0) {
             mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
