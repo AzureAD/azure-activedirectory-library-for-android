@@ -37,7 +37,7 @@ interface IBrokerProxy {
      * @return True package is available and authenticator is installed at
      *         Account manager
      */
-    boolean canSwitchToBroker();
+    BrokerProxy.SwitchToBroker canSwitchToBroker();
     
     boolean verifyUser(String username, String uniqueid);
 

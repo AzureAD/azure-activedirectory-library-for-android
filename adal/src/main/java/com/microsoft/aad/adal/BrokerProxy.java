@@ -107,28 +107,42 @@ class BrokerProxy implements IBrokerProxy {
         mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
+    enum SwitchToBroker { CAN_SWITCH_TO_BROKER, CANNOT_SWITCH_TO_BROKER, NEED_PERMISSIONS_TO_SWITCH_TO_BROKER }
+
     /**
      * Verifies the broker related app and AD-Authenticator in Account Manager
      * ADAL directs call to AccountManager if component is valid and present. It
      * does not direct call if the caller is from Authenticator itself.
      */
     @Override
-    public boolean canSwitchToBroker() {
-        String packageName = mContext.getPackageName();
+    public SwitchToBroker canSwitchToBroker() {
+        final String packageName = mContext.getPackageName();
 
         // ADAL switches broker for following conditions:
         // 1- app is not skipping the broker
-        // 2- permissions are set in the manifest,
+        // 2- account exists
         // 3- if package is not broker itself for both company portal and azure
         // authenticator
         // 4- signature of the broker is valid
-        // 5- account exists
-        return AuthenticationSettings.INSTANCE.getUseBroker() 
-                && verifyManifestPermissions()
+        // 5- permissions are set
+        boolean switchToBrokerFlag =
+                AuthenticationSettings.INSTANCE.getUseBroker()
                 && checkAccount(mAcctManager, "", "")
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
                 && !packageName.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
                 && verifyAuthenticator(mAcctManager);
+
+        if (!switchToBrokerFlag) {
+            return SwitchToBroker.CANNOT_SWITCH_TO_BROKER;
+        }
+
+        try {
+            verifyBrokerPermissionsAPI23AndHigher();
+        } catch (final UsageAuthenticationException exception) {
+            return SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER;
+        }
+
+        return SwitchToBroker.CAN_SWITCH_TO_BROKER;
     }
 
     /**
@@ -140,8 +154,7 @@ class BrokerProxy implements IBrokerProxy {
 
     @Override
     public boolean canUseLocalCache() {
-        boolean brokerSwitch = canSwitchToBroker();
-        if (!brokerSwitch) {
+        if (canSwitchToBroker() == SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
             Logger.v(TAG, "It does not use broker");
             return true;
         }
@@ -156,22 +169,73 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     /**
-     * App needs to give permission to AccountManager to use broker.
+     * To verify if App gives permissions to AccountManager to use broker.
+     * If target version is lower than 23, calling app has to have GET_ACCOUNTS,
+     * MANAGE_ACCOUNTS, USE_CREDENTIALS permissions granted in the Manifest.xml.
+     *
+     * @return true if all required permissions are granted, otherwise the exception will be thrown.
+     * @throws UsageAuthenticationException
      */
-    private boolean verifyManifestPermissions() {
-        PackageManager pm = mContext.getPackageManager();
-        boolean permission = PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                "android.permission.GET_ACCOUNTS", mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                        "android.permission.MANAGE_ACCOUNTS", mContext.getPackageName())
-                && PackageManager.PERMISSION_GRANTED == pm.checkPermission(
-                        "android.permission.USE_CREDENTIALS", mContext.getPackageName());
-        if (!permission) {
-            Logger.w(TAG, "Broker related permissions are missing for GET_ACCOUNTS, MANAGE_ACCOUNTS, USE_CREDENTIALS",
-                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+    public boolean verifyBrokerPermissionsAPI22AndLess() throws UsageAuthenticationException {
+        final StringBuilder permissionMissing = new StringBuilder();
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            permissionMissing.append(checkPermission("android.permission.GET_ACCOUNTS"));
+            permissionMissing.append(checkPermission("android.permission.MANAGE_ACCOUNTS"));
+            permissionMissing.append(checkPermission("android.permission.USE_CREDENTIALS"));
+
+            if (permissionMissing.length() == 0) {
+                return true;
+            }
+
+            throw new UsageAuthenticationException(
+                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                    "Broker related permissions are missing for " + permissionMissing.toString());
         }
 
-        return permission;
+        Logger.v(TAG, "Misused of the checking function. This is function is only used to checking the broker permissions of API 22 or less.");
+        return true;
+    }
+
+    /**
+     * To verify if App gives permissions to AccountManager to use broker.
+     * Beginning in Android 6.0 (API level 23), the run-time permission GET_ACCOUNTS is required
+     * which need to be requested in the runtime by the calling app.
+     *
+     * @return true if all required permissions are granted, otherwise the exception will be thrown.
+     * @throws UsageAuthenticationException
+     */
+    @TargetApi(Build.VERSION_CODES.M)
+    public boolean verifyBrokerPermissionsAPI23AndHigher() throws UsageAuthenticationException {
+        final StringBuilder permissionMissing = new StringBuilder();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            permissionMissing.append(checkPermission("android.permission.GET_ACCOUNTS"));
+
+            if (permissionMissing.length() == 0) {
+                return true;
+            }
+
+            throw new UsageAuthenticationException(
+                    ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                    "Broker related permissions are missing for " + permissionMissing.toString());
+        }
+
+        Logger.v(TAG, "Misused of the checking function. This is function is only used to checking the broker permissions of API 23 or higher.");
+        return true;
+    }
+
+    private String checkPermission(final String permissionName) {
+        final PackageManager pm = mContext.getPackageManager();
+        if (pm.checkPermission(permissionName, mContext.getPackageName()) != PackageManager.PERMISSION_GRANTED) {
+            Logger.w(
+                    TAG,
+                    "Broker related permissions are missing for " + permissionName,
+                    "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
+            return permissionName + ' ';
+        }
+
+        return "";
     }
 
     private void verifyNotOnMainThread() {
