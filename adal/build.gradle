@@ -24,7 +24,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
-        versionName "1.2.0"
+        versionName "1.10.0"
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
     }

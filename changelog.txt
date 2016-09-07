@@ -1,3 +1,12 @@
+Version 1.10.0
+--------------
+Move from using Eclipse to Android Studio
+Upgrad the SDK to Marshmallow and Target SDK version to 23
+Fix to better support Marshmallow. If ADAL does not have permission to access the AccountManager when the broker needs to be invoked then ADAL will throw a specific exception.
+Add the capability for developer to ask for extended lifetime of AT in cases of outages and network errors.
+The code is Checkstyle, PMD, Findbugs and Lint warnings clean. These are now treated as compile errors.
+Fix for favoring RT in local cache over going to the broker.
+
 Version 1.2.2
 --------------
 Fix for silent RT request, if TokenCacheItem desn't contain RT, don't continue with RT request. 
