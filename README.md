@@ -5,9 +5,9 @@ The ADAL SDK for Android gives you the ability to add support for Work Accounts 
 
 A Work Account is an identity you use to get work done no matter if at your business or on a college campus. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
-## ADAL for Android 1.2 Released!
+## ADAL for Android 1.10 Released!
 
-Recent version is 1.2.2
+Recent version is 1.10.0
 
 ## Features
 * Industry standard Oauth2 protocol support.
@@ -64,7 +64,7 @@ Jar packages will be also submitted beside the aar package.
 
 We've made it easy for you to have multiple options to use this library in your Android project:
 
-* You can use the source code to import this library into Eclipse and link to your application. 
+* You can use the source code to import this library into Android Studio and link to your application. 
 * If using Android Studio, you can use *aar* package format and reference the binaries.
 
 ###Option 1: Source Zip
