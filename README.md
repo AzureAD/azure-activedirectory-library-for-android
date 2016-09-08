@@ -9,7 +9,7 @@ A Work Account is an identity you use to get work done no matter if at your busi
 
 ## Versions
 Current version - 1.10.0  
-Minimum  recommended version - 1.1.16  
+Minimum recommended version - 1.1.16  
 You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
 ## Features
