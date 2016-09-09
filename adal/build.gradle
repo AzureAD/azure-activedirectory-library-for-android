@@ -94,8 +94,8 @@ task createPom  {
 
             developers {
                 developer {
-                    id 'msopentech'
-                    name 'Microsoft Open Technologies, Inc.'
+                    id 'microsoft'
+                    name 'Microsoft'
                 }
             }
 
@@ -104,7 +104,7 @@ task createPom  {
                     name 'Apache License, Version 2.0'
                 }
             }
-            inceptionYear '2003'
+            inceptionYear '2014'
 
             properties {
                 branch 'master'
