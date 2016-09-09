@@ -84,20 +84,27 @@ task createPom  {
     pom {
         project {
             groupId 'com.microsoft.aad'
-            artifactId 'adal-aggregator'
-            version '1.0.0-SNAPSHOT'
-            packaging 'jar'
-            name 'ADAL ANDROID-API'
-            inceptionYear '2013'
+            artifactId 'adal'
+            version = project.version
+            packaging 'aar'
+            name 'adal'
 
-            modules {
-                module 'adal'
-                module 'sample'
-                module 'testapp'
-                module 'userappwithbroker'
+            description 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+            url 'https://github.com/MSOpenTech/azure-activedirectory-library-for-android'
+
+            developers {
+                developer {
+                    id 'msopentech'
+                    name 'Microsoft Open Technologies, Inc.'
+                }
             }
 
-            url 'https://github.com/MSOpenTech/azure-activedirectory-library-for-android'
+            licenses {
+                license {
+                    name 'Apache License, Version 2.0'
+                }
+            }
+            inceptionYear '2003'
 
             properties {
                 branch 'master'
@@ -106,8 +113,6 @@ task createPom  {
 
             scm {
                 url "https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/master"
-                connection 'scm:git:git://github.com/MSOpenTech/azure-activedirectory-library-for-android.git'
-                developerConnection 'scm:git:https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git'
             }
         }
     }.writeTo("pom.xml")
