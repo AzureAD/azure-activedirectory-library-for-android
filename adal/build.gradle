@@ -4,6 +4,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
+apply plugin: 'maven-publish'
 
 group = 'com.microsoft.aad'
 
@@ -76,6 +77,40 @@ dependencies {
 
     // Test Dependencies
     testCompile 'junit:junit:4.12'
+}
+
+
+task createPom  {
+    pom {
+        project {
+            groupId 'com.microsoft.aad'
+            artifactId 'adal-aggregator'
+            version '1.0.0-SNAPSHOT'
+            packaging 'jar'
+            name 'ADAL ANDROID-API'
+            inceptionYear '2013'
+
+            modules {
+                module 'adal'
+                module 'sample'
+                module 'testapp'
+                module 'userappwithbroker'
+            }
+
+            url 'https://github.com/MSOpenTech/azure-activedirectory-library-for-android'
+
+            properties {
+                branch 'master'
+                adalVersion = project.version
+            }
+
+            scm {
+                url "https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/master"
+                connection 'scm:git:git://github.com/MSOpenTech/azure-activedirectory-library-for-android.git'
+                developerConnection 'scm:git:https://github.com/MSOpenTech/azure-activedirectory-library-for-android.git'
+            }
+        }
+    }.writeTo("pom.xml")
 }
 
 task sourcesJar(type: Jar) {
@@ -161,4 +196,4 @@ task checkstyle(type: Checkstyle) {
     classpath = files()
 }
 
-assembleDebug.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint'
+assembleDebug.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'
