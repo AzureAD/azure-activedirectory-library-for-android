@@ -115,7 +115,7 @@ task createPom  {
                 url "https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/master"
             }
         }
-    }.writeTo("pom.xml")
+    }.writeTo("${archivesBaseName}-${version}.pom")
 }
 
 task sourcesJar(type: Jar) {
