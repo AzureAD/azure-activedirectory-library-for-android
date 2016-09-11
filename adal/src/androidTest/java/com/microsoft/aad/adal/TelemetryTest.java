@@ -74,8 +74,8 @@ public class TelemetryTest extends AndroidTestCase {
 
         dispatcher.flush("1");
 
-        // We should have one extra event over the default event
-        assertEquals(default1.getDefaultEventCount() + 1, dispatch.getEventCount());
+        // We should not have any extra event over the default event
+        assertEquals(default1.getDefaultEventCount(), dispatch.getEventCount());
     }
 
     @SmallTest

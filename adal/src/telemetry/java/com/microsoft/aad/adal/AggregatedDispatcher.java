@@ -26,17 +26,29 @@ package com.microsoft.aad.adal;
 import android.util.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 class AggregatedDispatcher extends DefaultDispatcher {
+
 
     AggregatedDispatcher(final IDispatcher dispatcher) {
         super(dispatcher);
     }
 
+    /**
+     * This class is invoked when the developer wants only one callback for telemetry per call to AcquireToken.
+     * This class condenses multiple telemetry events to a single one.
+     * A part of the work done in this class is to remove the duplicate event properties from the events which all
+     * have the common fields like application_name et al from DefaultEvents class
+     * @param requestId to be aggregated
+     */
     @SuppressWarnings("unchecked")
     synchronized void flush(final String requestId) {
         final List<Pair<String, String>> dispatchList = new ArrayList<>();
+        final Map<String, String> dispatchMap = new HashMap<>();
         if (getDispatcher() == null) {
             return;
         }
@@ -46,10 +58,18 @@ class AggregatedDispatcher extends DefaultDispatcher {
             return;
         }
 
-        dispatchList.addAll(events.get(0).getEvents());
-        for (int i = 1; i < events.size(); i++) {
+        for (int i = 0; i < events.size(); i++) {
             IEvents event = events.get(i);
-            dispatchList.addAll(event.getEvents().subList(event.getDefaultEventCount(), event.getEvents().size()));
+
+            // The child class of IEvent that is received here will call its processEvent
+            event.processEvent(dispatchMap);
+        }
+
+        Iterator iterator = dispatchMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry pair = (Map.Entry) iterator.next();
+            dispatchList.add(new Pair<>((String) pair.getKey(), (String) pair.getValue()));
+            iterator.remove();
         }
 
         getDispatcher().dispatch(dispatchList);
@@ -65,4 +85,5 @@ class AggregatedDispatcher extends DefaultDispatcher {
         eventsList.add(events);
         getObjectsToBeDispatched().put(requestId, eventsList);
     }
+
 }

@@ -26,7 +26,11 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.util.Pair;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class tracks flows for certain API calls. Most notably in those all acquireToken* calls
@@ -34,6 +38,7 @@ import java.net.URL;
  */
 class APIEvent extends DefaultEvent {
 
+    private static final String TAG = DefaultEvent.class.getSimpleName();
     private final String mEventName;
 
     APIEvent(final String eventName) {
@@ -99,5 +104,62 @@ class APIEvent extends DefaultEvent {
     void stopTelemetryAndFlush() {
         Telemetry.getInstance().stopEvent(getRequestId(), this, getEventName());
         Telemetry.getInstance().flush(getRequestId());
+    }
+
+    void setIdToken(final String rawIdToken) {
+        if (StringExtensions.isNullOrBlank(rawIdToken)) {
+            return;
+        }
+
+        final IdToken idToken;
+        try {
+            idToken = new IdToken(rawIdToken);
+        } catch (AuthenticationException ae) {
+            return;
+        }
+
+        final UserInfo userInfo = new UserInfo(idToken);
+        getEventList().add(new Pair<>(EventStrings.IDP_NAME, idToken.getIdentityProvider()));
+
+        try {
+            getEventList().add(new Pair<>(EventStrings.TENANT_ID, StringExtensions.createHash(idToken.getTenantId())));
+            getEventList().add(new Pair<>(EventStrings.USER_ID,
+                    StringExtensions.createHash(userInfo.getDisplayableId())));
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
+            Logger.i(TAG, "Skipping TENANT_ID and USER_ID", "");
+        }
+    }
+
+    void setLoginHint(final String loginHint) {
+        try {
+            getEventList().add(new Pair<>(EventStrings.LOGIN_HINT,  StringExtensions.createHash(loginHint)));
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
+            Logger.i(TAG, "Skipping LOGIN_HINT", "");
+        }
+    }
+
+    @Override
+    public void processEvent(final Map<String, String> dispatchMap) {
+        super.processEvent(dispatchMap);
+        final List eventList = getEventList();
+        final int size = eventList.size();
+
+        for (int i = 0; i < size; i++) {
+            final Pair eventPair = (Pair<String, String>) eventList.get(i);
+            final String name = (String) eventPair.first;
+
+            // API Event specific parameters, push all except the time values
+            if (name.equals(EventStrings.AUTHORITY_TYPE) || name.equals(EventStrings.API_DEPRECATED)
+                    || name.equals(EventStrings.AUTHORITY_VALIDATION)
+                    || name.equals(EventStrings.EXTENDED_EXPIRES_ON_SETTING)
+                    || name.equals(EventStrings.PROMPT_BEHAVIOR) || name.equals(EventStrings.WAS_SUCCESSFUL)
+                    || name.equals(EventStrings.IDP_NAME) || name.equals(EventStrings.TENANT_ID)
+                    || name.equals(EventStrings.USER_ID) || name.equals(EventStrings.LOGIN_HINT)
+                    || name.equals(EventStrings.RESPONSE_TIME) || name.equals(EventStrings.CORRELATION_ID)
+                    || name.equals(EventStrings.REQUEST_ID) || name.equals(EventStrings.API_ID)) {
+                dispatchMap.put(name, (String) eventPair.second);
+            }
+        }
+
     }
 }

@@ -102,6 +102,14 @@ final class EventStrings {
 
     static final String WAS_SUCCESSFUL = "is_successful";
 
+    static final String IDP_NAME = "idp";
+
+    static final String TENANT_ID = "tenant";
+
+    static final String LOGIN_HINT = "login_hint";
+
+    static final String USER_ID = "user_id";
+
     static final String AUTHORITY_VALIDATION_SUCCESS = "authority_validation_status_success";
 
     static final String AUTHORITY_VALIDATION_FAILURE = "authority_validation_status_failure";
@@ -122,23 +130,33 @@ final class EventStrings {
 
     static final String REDIRECT_COUNT = "redirect_count";
 
+    static final String USER_CANCEL = "user_cancel";
+
     static final String BROKER_APP = "broker_app";
 
     static final String BROKER_VERSION = "broker_version";
 
+    static final String BROKER_APP_USED = "broker_app_used";
+
     static final String TOKEN_TYPE = "token_type";
 
-    static final String TOKEN_TYPE_IS_RT = "is_RT";
+    static final String TOKEN_TYPE_IS_RT = "is_rt";
 
-    static final String TOKEN_TYPE_IS_MRRT = "is_MRRT";
+    static final String TOKEN_TYPE_IS_MRRT = "is_mrrt";
 
-    static final String TOKEN_TYPE_IS_FRT = "is_FRT";
+    static final String TOKEN_TYPE_IS_FRT = "is_frt";
 
-    static final String TOKEN_TYPE_RT = "RT";
+    static final String TOKEN_TYPE_RT = "rt";
 
-    static final String TOKEN_TYPE_MRRT = "MRRT";
+    static final String TOKEN_TYPE_MRRT = "mrrt";
 
-    static final String TOKEN_TYPE_FRT = "FRT";
+    static final String TOKEN_TYPE_FRT = "frt";
+
+    static final String CACHE_EVENT_COUNT = "cache_event_count";
+
+    static final String UI_EVENT_COUNT = "ui_event_count";
+
+    static final String HTTP_EVENT_COUNT = "http_event_count";
 
     static final String CRYPTOGRAPHY_STATUS = "status";
 

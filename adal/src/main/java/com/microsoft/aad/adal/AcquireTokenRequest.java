@@ -61,9 +61,6 @@ class AcquireTokenRequest {
     private BrokerResumeResultReceiver mBrokerResumeResultReceiver = null;
     private static final int TIMEOUT_FOR_BROKER_RESULT = 10 * 60 * 1000;
 
-    /*Used for silent request telemetry data logging.*/
-    private boolean mAcquireTokenSilentWithBroker = false;
-
     /**
      * Instance validation related calls are serviced inside Discovery as a
      * module.
@@ -148,6 +145,7 @@ class AcquireTokenRequest {
                     final AuthenticationResult authResult
                             = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
                     mAPIEvent.setWasApiCallSuccessful(true);
+                    mAPIEvent.setIdToken(authResult.getIdToken());
                     callbackHandle.onSuccess(authResult);
                 } catch (final AuthenticationException authenticationException) {
                     mAPIEvent.setWasApiCallSuccessful(false);
@@ -253,6 +251,7 @@ class AcquireTokenRequest {
         if (isAccessTokenReturned(authenticationResultFromSilentRequest)) {
             mAPIEvent.setWasApiCallSuccessful(true);
             mAPIEvent.setCorrelationId(authenticationRequest.getCorrelationId().toString());
+            mAPIEvent.setIdToken(authenticationResultFromSilentRequest.getIdToken());
             mAPIEvent.stopTelemetryAndFlush();
             callbackHandle.onSuccess(authenticationResultFromSilentRequest);
             return;
@@ -290,9 +289,6 @@ class AcquireTokenRequest {
 
             if (isAccessTokenReturned) {
                 Logger.v(TAG, "Token is successfully returned from silent flow. ");
-                ClientAnalytics.logEvent(new RefreshTokenEvent(
-                        new InstrumentationPropertiesBuilder(authenticationRequest, authenticationResult),
-                        InstrumentationIDs.EVENT_RESULT_SUCCESS, mAcquireTokenSilentWithBroker));
             }
         }
 
@@ -342,17 +338,7 @@ class AcquireTokenRequest {
         final AcquireTokenSilentHandler acquireTokenSilentHandler = new AcquireTokenSilentHandler(mContext,
                 authenticationRequest, mTokenCacheAccessor);
 
-        final AuthenticationResult authResult;
-        try {
-            authResult = acquireTokenSilentHandler.getAccessToken();
-        } catch (final AuthenticationException authenticationException) {
-            ClientAnalytics.logEvent(new RefreshTokenEvent(
-                    new InstrumentationPropertiesBuilder(authenticationRequest, authenticationException),
-                    InstrumentationIDs.EVENT_RESULT_FAIL));
-            throw authenticationException;
-        }
-
-        return authResult;
+        return acquireTokenSilentHandler.getAccessToken();
     }
 
     /**
@@ -362,17 +348,10 @@ class AcquireTokenRequest {
             throws AuthenticationException {
 
         final AuthenticationResult authResult;
-        mAcquireTokenSilentWithBroker = true;
-        try {
-            final AcquireTokenWithBrokerRequest acquireTokenWithBrokerRequest
-                    = new AcquireTokenWithBrokerRequest(authenticationRequest, mBrokerProxy);
-            authResult = acquireTokenWithBrokerRequest.acquireTokenWithBrokerSilent();
-        } catch (final AuthenticationException authenticationException) {
-            ClientAnalytics.logEvent(new RefreshTokenEvent(
-                    new InstrumentationPropertiesBuilder(authenticationRequest, authenticationException),
-                    InstrumentationIDs.EVENT_RESULT_FAIL, true));
-            throw authenticationException;
-        }
+
+        final AcquireTokenWithBrokerRequest acquireTokenWithBrokerRequest
+                = new AcquireTokenWithBrokerRequest(authenticationRequest, mBrokerProxy);
+        authResult = acquireTokenWithBrokerRequest.acquireTokenWithBrokerSilent();
 
         return authResult;
     }
@@ -681,6 +660,7 @@ class AcquireTokenRequest {
                                     waitingRequest.getAPIEvent().setWasApiCallSuccessful(true);
                                     waitingRequest.getAPIEvent().setCorrelationId(
                                             waitingRequest.getRequest().getCorrelationId().toString());
+                                    waitingRequest.getAPIEvent().setIdToken(authenticationResult.getIdToken());
                                     waitingRequest.getAPIEvent().stopTelemetryAndFlush();
 
                                     if (waitingRequest.getDelegate() != null) {
@@ -875,17 +855,4 @@ class AcquireTokenRequest {
         }
     }
 
-    private static final class RefreshTokenEvent extends ClientAnalytics.Event {
-
-        private RefreshTokenEvent(InstrumentationPropertiesBuilder builder, String result) {
-            this(builder, result, false);
-        }
-
-        private RefreshTokenEvent(InstrumentationPropertiesBuilder builder, String result, boolean isBroker) {
-            super(InstrumentationIDs.REFRESH_TOKEN_EVENT,
-                    builder.add(InstrumentationIDs.EVENT_RESULT, result)
-                            .add(InstrumentationIDs.IS_BROKER_APP, Boolean.valueOf(isBroker).toString())
-                            .build());
-        }
-    }
 }

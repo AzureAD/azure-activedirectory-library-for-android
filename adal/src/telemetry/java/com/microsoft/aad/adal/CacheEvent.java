@@ -25,6 +25,9 @@ package com.microsoft.aad.adal;
 
 import android.util.Pair;
 
+import java.util.List;
+import java.util.Map;
+
 class CacheEvent extends DefaultEvent {
     CacheEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
@@ -44,5 +47,33 @@ class CacheEvent extends DefaultEvent {
 
     void setTokenTypeFRT(final Boolean tokenTypeFRT) {
         getEventList().add(Pair.create(EventStrings.TOKEN_TYPE_IS_FRT, tokenTypeFRT.toString()));
+    }
+
+    @Override
+    public void processEvent(final Map<String, String> dispatchMap) {
+        final List eventList = getEventList();
+        final int size = eventList.size();
+
+        final Object countObject = dispatchMap.get(EventStrings.CACHE_EVENT_COUNT);
+        if (countObject == null) {
+            dispatchMap.put(EventStrings.CACHE_EVENT_COUNT, "1");
+        } else {
+            dispatchMap.put(EventStrings.CACHE_EVENT_COUNT,
+                    Integer.toString(Integer.parseInt((String) countObject) + 1));
+        }
+
+        dispatchMap.put(EventStrings.TOKEN_TYPE_IS_FRT, "");
+        dispatchMap.put(EventStrings.TOKEN_TYPE_IS_MRRT, "");
+        dispatchMap.put(EventStrings.TOKEN_TYPE_IS_RT, "");
+
+        for (int i = 0; i < size; i++) {
+            final Pair eventPair = (Pair<String, String>) eventList.get(i);
+            final String name = (String) eventPair.first;
+
+            if (name.equals(EventStrings.TOKEN_TYPE_IS_FRT) || name.equals(EventStrings.TOKEN_TYPE_IS_RT)
+                    || name.equals(EventStrings.TOKEN_TYPE_IS_MRRT)) {
+                dispatchMap.put(name, (String) eventPair.second);
+            }
+        }
     }
 }

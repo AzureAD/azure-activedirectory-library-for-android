@@ -571,6 +571,11 @@ public class AuthenticationActivity extends Activity {
     private void cancelRequest() {
         Logger.v(TAG, "Sending intent to cancel authentication activity");
         Intent resultIntent = new Intent();
+
+        if (mUIEvent != null) {
+            mUIEvent.setUserCancel();
+        }
+
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
     

@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import android.util.Pair;
 
+import java.util.Map;
+
 class HttpEvent extends DefaultEvent {
     HttpEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
@@ -48,5 +50,17 @@ class HttpEvent extends DefaultEvent {
 
     void setApiVersion(final String apiVersion) {
         getEventList().add(new Pair<>(EventStrings.HTTP_API_VERSION, apiVersion));
+    }
+
+    @Override
+    public void processEvent(final Map<String, String> dispatchMap) {
+        final Object countObject = dispatchMap.get(EventStrings.HTTP_EVENT_COUNT);
+
+        if (countObject == null) {
+            dispatchMap.put(EventStrings.HTTP_EVENT_COUNT, "1");
+        } else {
+            dispatchMap.put(EventStrings.HTTP_EVENT_COUNT,
+                    Integer.toString(Integer.parseInt((String) countObject) + 1));
+        }
     }
 }

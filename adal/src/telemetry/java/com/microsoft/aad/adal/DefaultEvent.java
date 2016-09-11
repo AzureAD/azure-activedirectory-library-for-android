@@ -29,9 +29,12 @@ import android.provider.Settings.Secure;
 import android.text.TextUtils;
 import android.util.Pair;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 
 class DefaultEvent implements IEvents {
@@ -83,6 +86,15 @@ class DefaultEvent implements IEvents {
         return Collections.unmodifiableList(mEventList);
     }
 
+    @Override
+    public void processEvent(final Map<String, String> dispatchMap) {
+        dispatchMap.put(EventStrings.APPLICATION_NAME, sApplicationName);
+        dispatchMap.put(EventStrings.APPLICATION_VERSION, sApplicationVersion);
+        dispatchMap.put(EventStrings.CLIENT_ID, sClientId);
+        dispatchMap.put(EventStrings.CLIENT_IP, sClientIp);
+        dispatchMap.put(EventStrings.DEVICE_ID, sDeviceId);
+    }
+
     void setDefaults(final Context context, final String clientId) {
 
         sClientId = clientId;
@@ -95,7 +107,12 @@ class DefaultEvent implements IEvents {
 
         //TODO: Getting IP will require network permissions do we want to do it?
         sClientIp = "NA";
-        sDeviceId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
+
+        try {
+            sDeviceId = StringExtensions.createHash(Secure.getString(context.getContentResolver(), Secure.ANDROID_ID));
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
+            sDeviceId = "";
+        }
 
         if (mDefaultEventCount == 0) {
             mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));

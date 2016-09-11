@@ -25,6 +25,9 @@ package com.microsoft.aad.adal;
 
 import android.util.Pair;
 
+import java.util.List;
+import java.util.Map;
+
 class UIEvent extends DefaultEvent {
     UIEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
@@ -32,5 +35,32 @@ class UIEvent extends DefaultEvent {
 
     void setRedirectCount(final Integer redirectCount) {
         getEventList().add(new Pair<>(EventStrings.REDIRECT_COUNT, redirectCount.toString()));
+    }
+
+    void setUserCancel() {
+        getEventList().add(new Pair<>(EventStrings.USER_CANCEL, "true"));
+    }
+
+    @Override
+    public void processEvent(final Map<String, String> dispatchMap) {
+        final List eventList = getEventList();
+        final int size = eventList.size();
+
+        final Object countObject = dispatchMap.get(EventStrings.UI_EVENT_COUNT);
+        if (countObject == null) {
+            dispatchMap.put(EventStrings.UI_EVENT_COUNT, "1");
+        } else {
+            dispatchMap.put(EventStrings.UI_EVENT_COUNT,
+                    Integer.toString(Integer.parseInt((String) countObject) + 1));
+        }
+
+        for (int i = 0; i < size; i++) {
+            final Pair eventPair = (Pair<String, String>) eventList.get(i);
+            final String name = (String) eventPair.first;
+
+            if (name.equals(EventStrings.USER_CANCEL)) {
+                dispatchMap.put(name, (String) eventPair.second);
+            }
+        }
     }
 }

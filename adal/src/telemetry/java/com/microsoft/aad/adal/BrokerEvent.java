@@ -25,6 +25,9 @@ package com.microsoft.aad.adal;
 
 import android.util.Pair;
 
+import java.util.List;
+import java.util.Map;
+
 class BrokerEvent extends DefaultEvent {
     BrokerEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
@@ -36,5 +39,21 @@ class BrokerEvent extends DefaultEvent {
 
     void setBrokerAppVersion(final String brokerAppVersion) {
         getEventList().add(new Pair<>(EventStrings.BROKER_VERSION, brokerAppVersion));
+    }
+
+    @Override
+    public void processEvent(final Map<String, String> dispatchMap) {
+        final List eventList = getEventList();
+        final int size = eventList.size();
+
+        dispatchMap.put(EventStrings.BROKER_APP_USED, "true");
+        for (int i = 0; i < size; i++) {
+            final Pair eventPair = (Pair<String, String>) eventList.get(i);
+            final String name = (String) eventPair.first;
+
+            if (name.equals(EventStrings.BROKER_APP) || name.equals(EventStrings.BROKER_VERSION)) {
+                dispatchMap.put(name, (String) eventPair.second);
+            }
+        }
     }
 }

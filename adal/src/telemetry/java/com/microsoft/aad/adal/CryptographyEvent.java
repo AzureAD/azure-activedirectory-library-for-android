@@ -25,6 +25,9 @@ package com.microsoft.aad.adal;
 
 import android.util.Pair;
 
+import java.util.List;
+import java.util.Map;
+
 class CryptographyEvent extends DefaultEvent {
     CryptographyEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
@@ -36,5 +39,20 @@ class CryptographyEvent extends DefaultEvent {
 
     void setException(final String exception) {
         getEventList().add(Pair.create(EventStrings.CRYPTOGRAPHY_EXCEPTION, exception));
+    }
+
+    @Override
+    public void processEvent(final Map<String, String> dispatchMap) {
+        final List eventList = getEventList();
+        final int size = eventList.size();
+
+        for (int i = 0; i < size; i++) {
+            final Pair eventPair = (Pair<String, String>) eventList.get(i);
+            final String name = (String) eventPair.first;
+
+            if (name.equals(EventStrings.CRYPTOGRAPHY_EXCEPTION) || name.equals(EventStrings.CRYPTOGRAPHY_STATUS)) {
+                dispatchMap.put(name, (String) eventPair.second);
+            }
+        }
     }
 }

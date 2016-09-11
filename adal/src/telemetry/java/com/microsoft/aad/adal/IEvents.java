@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import android.util.Pair;
 
 import java.util.List;
+import java.util.Map;
 
 interface IEvents {
     
@@ -34,4 +35,6 @@ interface IEvents {
     List<Pair<String, String>> getEvents();
 
     int getDefaultEventCount();
+
+    void processEvent(final Map<String, String> dispatchMap);
 }
