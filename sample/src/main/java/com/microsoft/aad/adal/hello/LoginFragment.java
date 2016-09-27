@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.FragmentWindowComponent;
 import com.microsoft.aad.adal.IWindowComponent;
 import com.microsoft.aad.adal.PromptBehavior;
 
@@ -89,14 +90,7 @@ public class LoginFragment extends Fragment {
     }
 
     private IWindowComponent wrapFragment(final Fragment fragment) {
-        return new IWindowComponent() {
-            Fragment refFragment = fragment;
-
-            @Override
-            public void startActivityForResult(Intent intent, int requestCode) {
-                refFragment.startActivityForResult(intent, requestCode);
-            }
-        };
+        return new FragmentWindowComponent(fragment);
     }
 
     @Override

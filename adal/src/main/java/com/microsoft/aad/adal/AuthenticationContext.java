@@ -816,18 +816,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("activity");
         }
 
-        return new IWindowComponent() {
-            private Activity mRefActivity = activity;
-
-            @Override
-            public void startActivityForResult(Intent intent, int requestCode) {
-                // if user closed an app or switched to another activity
-                // mRefActivity can die before this method got invoked
-                if (mRefActivity != null) {
-                    mRefActivity.startActivityForResult(intent, requestCode);
-                }
-            }
-        };
+        return new ActivityWindowComponent(activity);
     }
 
     private boolean checkPreRequirements(final String resource, final String clientId,
