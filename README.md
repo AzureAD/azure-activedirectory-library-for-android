@@ -217,26 +217,22 @@ You can get the jar file from maven the repo and drop into the *libs* folder in 
 10. Finally, ask for a token using that callback:
 
     ```Java
-     mContext.acquireToken(MainActivity.this, resource, clientId, redirect, user_loginhint, PromptBehavior.Auto, "",
+     mContext.acquireToken(MainActivity.this, resource, clientId, redirect, loginHint, PromptBehavior.Auto, "",
                     callback);
     ```
-If you're implementing your authentication logic in a Fragment, you'll need to wrap it in a `IWindowComponent` before passing it as a parameter like this:
+If you're implementing your authentication logic in a Fragment, you'll need to wrap it in a `IWindowComponent` before passing it as a parameter. We provide `ActivityWindowComponent` and `FragmentWindowComponent` classes to simplify this for you, which you can use like this:
 
     ```Java
-    mContext.acquireToken(wrapFragment(MainFragment.this), resource, clientId, redirect, user_loginhint, PromptBehavior.Auto, "",
+    mContext.acquireToken(wrapFragment(MainFragment.this), resource, clientId, redirect, loginHint, PromptBehavior.Auto, "",
                     callback);
                     
-    private IWindowComponent wrapFragment(final Fragment fragment){
-       return new IWindowComponent() {
-          Fragment refFragment = fragment;
-          @Override
-          public void startActivityForResult(Intent intent, int requestCode) {
-             refFragment.startActivityForResult(intent, requestCode);
-          }
-       };
+    private IWindowComponent wrapFragment(final Fragment fragment) {
+       return new FragmentWindowComponent(fragment);
     }
     ```
-
+    
+    If you wish to wrap any other component, you must implement the `IWindowComponent` interface and pass that in as the first parameter to `mContext.acquireToken()`.
+	
 	Explanation of the parameters(Example of those parameters could be found at [Android Native Client Sample](https://github.com/AzureADSamples/NativeClient-Android)):
     
 	* Resource is required and is the resource you are trying to access.
@@ -254,7 +250,9 @@ If you're implementing your authentication logic in a Fragment, you'll need to w
 	```java
 	mContext.acquireTokenSilentSync(String resource, String clientId, String userId);
 	```
-	or 
+	
+	or
+	
 	```java
 	mContext.acquireTokenSilent(String resource, String clientId, String userId, final AuthenticationCallback<AuthenticationResult> callback);
 	```
