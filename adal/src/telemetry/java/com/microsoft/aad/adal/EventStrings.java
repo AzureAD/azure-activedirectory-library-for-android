@@ -102,6 +102,10 @@ final class EventStrings {
 
     static final String WAS_SUCCESSFUL = "is_successful";
 
+    static final String API_ERROR_CODE = "api_error_code";
+
+    static final String OAUTH_ERROR_CODE = "oauth_error_code";
+
     static final String IDP_NAME = "idp";
 
     static final String TENANT_ID = "tenant";
@@ -129,6 +133,8 @@ final class EventStrings {
     static final String RESPONSE_TIME = "response_time";
 
     static final String REDIRECT_COUNT = "redirect_count";
+
+    static final String NTLM = "ntlm";
 
     static final String USER_CANCEL = "user_cancel";
 
@@ -158,6 +164,8 @@ final class EventStrings {
 
     static final String HTTP_EVENT_COUNT = "http_event_count";
 
+    static final String HTTP_PATH = "http_path";
+
     static final String CRYPTOGRAPHY_STATUS = "status";
 
     static final String CRYPTOGRAPHY_EXCEPTION = "exception";
@@ -173,6 +181,8 @@ final class EventStrings {
     static final String HTTP_RESPONSE_CODE = "response_code";
 
     static final String HTTP_API_VERSION = "api_version";
+
+    static final String REQUEST_ID_HEADER = "x-ms-request-id";
 
     // Private constructor to prevent initialization
     private EventStrings() {

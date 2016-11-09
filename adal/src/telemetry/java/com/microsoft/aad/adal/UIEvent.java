@@ -34,11 +34,15 @@ class UIEvent extends DefaultEvent {
     }
 
     void setRedirectCount(final Integer redirectCount) {
-        getEventList().add(new Pair<>(EventStrings.REDIRECT_COUNT, redirectCount.toString()));
+        setEvent(EventStrings.REDIRECT_COUNT, redirectCount.toString());
+    }
+
+    void setNTLM(Boolean ntlm) {
+        setEvent(EventStrings.NTLM, ntlm.toString());
     }
 
     void setUserCancel() {
-        getEventList().add(new Pair<>(EventStrings.USER_CANCEL, "true"));
+        setEvent(EventStrings.USER_CANCEL, "true");
     }
 
     @Override
@@ -58,7 +62,7 @@ class UIEvent extends DefaultEvent {
             final Pair eventPair = (Pair<String, String>) eventList.get(i);
             final String name = (String) eventPair.first;
 
-            if (name.equals(EventStrings.USER_CANCEL)) {
+            if (name.equals(EventStrings.USER_CANCEL) || name.equals(EventStrings.NTLM)) {
                 dispatchMap.put(name, (String) eventPair.second);
             }
         }

@@ -30,15 +30,15 @@ import java.util.Map;
 
 class BrokerEvent extends DefaultEvent {
     BrokerEvent(final String eventName) {
-        getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
+        setEvent(EventStrings.EVENT_NAME, eventName);
     }
 
     void setBrokerAppName(final String brokerAppName) {
-        getEventList().add(new Pair<>(EventStrings.BROKER_APP, brokerAppName));
+        setEvent(EventStrings.BROKER_APP, brokerAppName);
     }
 
     void setBrokerAppVersion(final String brokerAppVersion) {
-        getEventList().add(new Pair<>(EventStrings.BROKER_VERSION, brokerAppVersion));
+        setEvent(EventStrings.BROKER_VERSION, brokerAppVersion);
     }
 
     @Override

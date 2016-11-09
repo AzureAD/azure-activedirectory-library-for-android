@@ -438,6 +438,8 @@ class Oauth2 {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
 
+        httpEvent.setHttpPath(authority);
+
         try {
             mWebRequestHandler.setRequestCorrelationId(mRequest.getCorrelationId());
             ClientMetrics.INSTANCE.beginClientMetricsRecord(authority, mRequest.getCorrelationId(),
@@ -465,6 +467,7 @@ class Oauth2 {
                         if (StringExtensions.hasPrefixInHeader(challengeHeader,
                                 AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE)) {
                             final HttpEvent challengeHttpEvent = startHttpEvent();
+                            challengeHttpEvent.setHttpPath(authority);
                             Logger.v(TAG, "Received pkeyAuth device challenge.");
                             ChallengeResponseBuilder certHandler = new ChallengeResponseBuilder(
                                     mJWSBuilder);
@@ -500,7 +503,7 @@ class Oauth2 {
                 // the error and error description
                 Logger.v(TAG, "Token request does not have exception");
                 try {
-                    result = processTokenResponse(response);
+                    result = processTokenResponse(response, httpEvent);
                 } catch (final ServerRespondingWithRetryableException e) {
                     result = retry(requestMessage, headers);
                     if (result != null) {
@@ -599,17 +602,29 @@ class Oauth2 {
      * @param webResponse the web response from which authentication result will be constructed
      * @return AuthenticationResult
      */
-    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse) throws AuthenticationException {
+    private AuthenticationResult processTokenResponse(HttpWebResponse webResponse, final HttpEvent httpEvent)
+            throws AuthenticationException {
         AuthenticationResult result;
         String correlationIdInHeader = null;
-        if (webResponse.getResponseHeaders() != null
-                && webResponse.getResponseHeaders().containsKey(
-                        AuthenticationConstants.AAD.CLIENT_REQUEST_ID)) {
-            // headers are returning as a list
-            List<String> listOfHeaders = webResponse.getResponseHeaders().get(
-                    AuthenticationConstants.AAD.CLIENT_REQUEST_ID);
-            if (listOfHeaders != null && listOfHeaders.size() > 0) {
-                correlationIdInHeader = listOfHeaders.get(0);
+        if (webResponse.getResponseHeaders() != null) {
+            if (webResponse.getResponseHeaders().containsKey(
+                    AuthenticationConstants.AAD.CLIENT_REQUEST_ID)) {
+                // headers are returning as a list
+                List<String> listOfHeaders = webResponse.getResponseHeaders().get(
+                        AuthenticationConstants.AAD.CLIENT_REQUEST_ID);
+                if (listOfHeaders != null && listOfHeaders.size() > 0) {
+                    correlationIdInHeader = listOfHeaders.get(0);
+                }
+            }
+
+            if (webResponse.getResponseHeaders().containsKey(AuthenticationConstants.AAD.REQUEST_ID_HEADER)) {
+                // headers are returning as a list
+                List<String> listOfHeaders = webResponse.getResponseHeaders().get(
+                        AuthenticationConstants.AAD.CLIENT_REQUEST_ID);
+                if (listOfHeaders != null && listOfHeaders.size() > 0) {
+                    Logger.v(TAG, "x-ms-request-id: " + listOfHeaders.get(0));
+                    httpEvent.setRequestIdHeader(listOfHeaders.get(0));
+                }
             }
         }
 
@@ -619,7 +634,7 @@ class Oauth2 {
             case HttpURLConnection.HTTP_BAD_REQUEST:
             case HttpURLConnection.HTTP_UNAUTHORIZED:
                 try {
-                    result = parseJsonResponse(webResponse.getBody());
+                    result = parseJsonResponse(webResponse.getBody(), httpEvent);
                 } catch (final JSONException jsonException) {
                     throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
                 }
@@ -651,11 +666,15 @@ class Oauth2 {
         return result;
     }
 
-    private AuthenticationResult parseJsonResponse(final String responseBody) throws JSONException,
+    private AuthenticationResult parseJsonResponse(final String responseBody, final HttpEvent httpEvent)
+            throws JSONException,
             AuthenticationException {
         final Map<String, String> responseItems = new HashMap<>();
         extractJsonObjects(responseItems, responseBody);
-        return processUIResponseParams(responseItems);
+        AuthenticationResult result = processUIResponseParams(responseItems);
+        httpEvent.setOauthErrorCode(result.getErrorCode());
+
+        return result;
     }
 
     private HttpEvent startHttpEvent() {

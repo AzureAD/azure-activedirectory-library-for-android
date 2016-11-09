@@ -109,7 +109,7 @@ class AcquireTokenRequest {
                     validateAcquireTokenRequest(authRequest);
                     performAcquireTokenRequest(callbackHandle, activity, useDialog, authRequest);
                 } catch (final AuthenticationException authenticationException) {
-                    mAPIEvent.setWasApiCallSuccessful(false);
+                    mAPIEvent.setWasApiCallSuccessful(false, authenticationException);
                     mAPIEvent.setCorrelationId(authRequest.getCorrelationId().toString());
                     mAPIEvent.stopTelemetryAndFlush();
 
@@ -144,11 +144,11 @@ class AcquireTokenRequest {
                             authenticationRequest, mTokenCacheAccessor);
                     final AuthenticationResult authResult
                             = acquireTokenSilentHandler.acquireTokenWithRefreshToken(refreshToken);
-                    mAPIEvent.setWasApiCallSuccessful(true);
+                    mAPIEvent.setWasApiCallSuccessful(true, null);
                     mAPIEvent.setIdToken(authResult.getIdToken());
                     callbackHandle.onSuccess(authResult);
                 } catch (final AuthenticationException authenticationException) {
-                    mAPIEvent.setWasApiCallSuccessful(false);
+                    mAPIEvent.setWasApiCallSuccessful(false, authenticationException);
                     callbackHandle.onError(authenticationException);
                 } finally {
                     mAPIEvent.setCorrelationId(authenticationRequest.getCorrelationId().toString());
@@ -249,7 +249,7 @@ class AcquireTokenRequest {
         //       broker 2) broker doesn't return any token back.
         final AuthenticationResult authenticationResultFromSilentRequest = tryAcquireTokenSilent(authenticationRequest);
         if (isAccessTokenReturned(authenticationResultFromSilentRequest)) {
-            mAPIEvent.setWasApiCallSuccessful(true);
+            mAPIEvent.setWasApiCallSuccessful(true, null);
             mAPIEvent.setCorrelationId(authenticationRequest.getCorrelationId().toString());
             mAPIEvent.setIdToken(authenticationResultFromSilentRequest.getIdToken());
             mAPIEvent.stopTelemetryAndFlush();
@@ -657,7 +657,7 @@ class AcquireTokenRequest {
                                     final AuthenticationResult authenticationResult
                                             = acquireTokenInteractiveRequest.acquireTokenWithAuthCode(endingUrl);
 
-                                    waitingRequest.getAPIEvent().setWasApiCallSuccessful(true);
+                                    waitingRequest.getAPIEvent().setWasApiCallSuccessful(true, null);
                                     waitingRequest.getAPIEvent().setCorrelationId(
                                             waitingRequest.getRequest().getCorrelationId().toString());
                                     waitingRequest.getAPIEvent().setIdToken(authenticationResult.getIdToken());
@@ -715,7 +715,7 @@ class AcquireTokenRequest {
             if (waitingRequest != null && waitingRequest.getDelegate() != null) {
                 Logger.v(TAG, "Sending error to callback"
                         + mAuthContext.getCorrelationInfoFromWaitingRequest(waitingRequest));
-                waitingRequest.getAPIEvent().setWasApiCallSuccessful(false);
+                waitingRequest.getAPIEvent().setWasApiCallSuccessful(false, exc);
                 waitingRequest.getAPIEvent().setCorrelationId(
                         waitingRequest.getRequest().getCorrelationId().toString());
                 waitingRequest.getAPIEvent().stopTelemetryAndFlush();

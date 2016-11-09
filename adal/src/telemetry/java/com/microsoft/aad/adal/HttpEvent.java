@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import android.util.Pair;
 
+import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 class HttpEvent extends DefaultEvent {
@@ -33,23 +35,35 @@ class HttpEvent extends DefaultEvent {
     }
 
     void setUserAgent(final String userAgent) {
-        getEventList().add(new Pair<>(EventStrings.HTTP_USER_AGENT, userAgent));
+        setEvent(EventStrings.HTTP_USER_AGENT, userAgent);
     }
 
     void setMethod(final String method) {
-        getEventList().add(new Pair<>(EventStrings.HTTP_METHOD, method));
+        setEvent(EventStrings.HTTP_METHOD, method);
     }
 
     void setQueryParameters(final String queryParameters) {
-        getEventList().add(new Pair<>(EventStrings.HTTP_QUERY_PARAMETERS, queryParameters));
+        setEvent(EventStrings.HTTP_QUERY_PARAMETERS, queryParameters);
     }
 
     void setResponseCode(final Integer responseCode) {
-        getEventList().add(new Pair<>(EventStrings.HTTP_RESPONSE_CODE, responseCode.toString()));
+        setEvent(EventStrings.HTTP_RESPONSE_CODE, responseCode.toString());
     }
 
     void setApiVersion(final String apiVersion) {
-        getEventList().add(new Pair<>(EventStrings.HTTP_API_VERSION, apiVersion));
+        setEvent(EventStrings.HTTP_API_VERSION, apiVersion);
+    }
+
+    void setHttpPath(final URL httpPath) {
+        setEvent(EventStrings.HTTP_PATH, httpPath.toString());
+    }
+
+    void setOauthErrorCode(final String errorCode) {
+        setEvent(EventStrings.OAUTH_ERROR_CODE, errorCode);
+    }
+
+    void setRequestIdHeader(final String requestIdHeader) {
+        setEvent(EventStrings.REQUEST_ID_HEADER, requestIdHeader);
     }
 
     @Override
@@ -61,6 +75,18 @@ class HttpEvent extends DefaultEvent {
         } else {
             dispatchMap.put(EventStrings.HTTP_EVENT_COUNT,
                     Integer.toString(Integer.parseInt((String) countObject) + 1));
+        }
+
+        final List eventList = getEventList();
+        final int size = eventList.size();
+        for (int i = 0; i < size; i++) {
+            final Pair eventPair = (Pair<String, String>) eventList.get(i);
+            final String name = (String) eventPair.first;
+
+            if (name.equals(EventStrings.HTTP_RESPONSE_CODE) || name.equals(EventStrings.REQUEST_ID_HEADER)
+                    || name.equals(EventStrings.OAUTH_ERROR_CODE) || name.equals(EventStrings.HTTP_PATH)) {
+                dispatchMap.put(name, (String) eventPair.second);
+            }
         }
     }
 }

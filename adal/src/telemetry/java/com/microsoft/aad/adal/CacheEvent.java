@@ -29,8 +29,12 @@ import java.util.List;
 import java.util.Map;
 
 class CacheEvent extends DefaultEvent {
+
+    private final String mEventName;
+
     CacheEvent(final String eventName) {
-        getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
+        mEventName = eventName;
+        setEvent(EventStrings.EVENT_NAME, eventName);
     }
 
     void setTokenType(final String tokenType) {
@@ -38,19 +42,24 @@ class CacheEvent extends DefaultEvent {
     }
 
     void setTokenTypeRT(final Boolean tokenTypeRT) {
-        getEventList().add(Pair.create(EventStrings.TOKEN_TYPE_IS_RT, tokenTypeRT.toString()));
+        setEvent(EventStrings.TOKEN_TYPE_IS_RT, tokenTypeRT.toString());
     }
 
     void setTokenTypeMRRT(final Boolean tokenTypeMRRT) {
-        getEventList().add(Pair.create(EventStrings.TOKEN_TYPE_IS_MRRT, tokenTypeMRRT.toString()));
+        setEvent(EventStrings.TOKEN_TYPE_IS_MRRT, tokenTypeMRRT.toString());
     }
 
     void setTokenTypeFRT(final Boolean tokenTypeFRT) {
-        getEventList().add(Pair.create(EventStrings.TOKEN_TYPE_IS_FRT, tokenTypeFRT.toString()));
+        setEvent(EventStrings.TOKEN_TYPE_IS_FRT, tokenTypeFRT.toString());
     }
 
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
+
+        if (mEventName != EventStrings.TOKEN_CACHE_LOOKUP) {
+            return;
+        }
+
         final List eventList = getEventList();
         final int size = eventList.size();
 

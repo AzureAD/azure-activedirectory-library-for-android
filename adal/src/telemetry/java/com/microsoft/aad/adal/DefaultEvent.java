@@ -42,13 +42,13 @@ class DefaultEvent implements IEvents {
 
     private static String sApplicationName = null;
 
-    private static String sApplicationVersion = null;
+    private static String sApplicationVersion = "NA";
 
-    private static String sClientId = null;
+    private static String sClientId = "NA";
 
-    private static String sClientIp = null;
+    private static String sClientIp = "NA";
 
-    private static String sDeviceId = null;
+    private static String sDeviceId = "NA";
 
     private String mRequestId;
 
@@ -59,11 +59,11 @@ class DefaultEvent implements IEvents {
 
         // Keying off Application name not being null to decide if the defaults have been set
         if (sApplicationName != null) {
-            mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
-            mEventList.add(new Pair<>(EventStrings.APPLICATION_VERSION, sApplicationVersion));
-            mEventList.add(new Pair<>(EventStrings.CLIENT_ID, sClientId));
-            mEventList.add(new Pair<>(EventStrings.CLIENT_IP, sClientIp));
-            mEventList.add(new Pair<>(EventStrings.DEVICE_ID, sDeviceId));
+            setEvent(EventStrings.APPLICATION_NAME, sApplicationName);
+            setEvent(EventStrings.APPLICATION_VERSION, sApplicationVersion);
+            setEvent(EventStrings.CLIENT_ID, sClientId);
+            setEvent(EventStrings.CLIENT_IP, sClientIp);
+            setEvent(EventStrings.DEVICE_ID, sDeviceId);
             mDefaultEventCount = mEventList.size();
         }
     }
@@ -78,6 +78,11 @@ class DefaultEvent implements IEvents {
         if (TextUtils.isEmpty(name)) {
             throw new IllegalArgumentException("Telemetry setEvent on null name");
         }
+
+        if (value == null) {
+            return;
+        }
+
         mEventList.add(Pair.create(name, value));
     }
 
@@ -115,11 +120,11 @@ class DefaultEvent implements IEvents {
         }
 
         if (mDefaultEventCount == 0) {
-            mEventList.add(new Pair<>(EventStrings.APPLICATION_NAME, sApplicationName));
-            mEventList.add(new Pair<>(EventStrings.APPLICATION_VERSION, sApplicationVersion));
-            mEventList.add(new Pair<>(EventStrings.CLIENT_ID, sClientId));
-            mEventList.add(new Pair<>(EventStrings.CLIENT_IP, sClientIp));
-            mEventList.add(new Pair<>(EventStrings.DEVICE_ID, sDeviceId));
+            setEvent(EventStrings.APPLICATION_NAME, sApplicationName);
+            setEvent(EventStrings.APPLICATION_VERSION, sApplicationVersion);
+            setEvent(EventStrings.CLIENT_ID, sClientId);
+            setEvent(EventStrings.CLIENT_IP, sClientIp);
+            setEvent(EventStrings.DEVICE_ID, sDeviceId);
             mDefaultEventCount = mEventList.size();
         }
     }

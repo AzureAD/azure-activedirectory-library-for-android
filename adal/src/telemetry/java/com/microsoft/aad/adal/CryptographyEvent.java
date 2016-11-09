@@ -30,15 +30,15 @@ import java.util.Map;
 
 class CryptographyEvent extends DefaultEvent {
     CryptographyEvent(final String eventName) {
-        getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
+        setEvent(EventStrings.EVENT_NAME, eventName);
     }
 
     void setStatus(final String status) {
-        getEventList().add(Pair.create(EventStrings.CRYPTOGRAPHY_STATUS, status));
+        setEvent(EventStrings.CRYPTOGRAPHY_STATUS, status);
     }
 
     void setException(final String exception) {
-        getEventList().add(Pair.create(EventStrings.CRYPTOGRAPHY_EXCEPTION, exception));
+        setEvent(EventStrings.CRYPTOGRAPHY_EXCEPTION, exception);
     }
 
     @Override

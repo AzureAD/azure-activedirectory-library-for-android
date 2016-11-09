@@ -199,7 +199,7 @@ class AuthenticationDialog {
 
         public DialogWebViewClient(Context ctx, String stopRedirect, String queryParam,
                 AuthenticationRequest request) {
-            super(ctx, stopRedirect, queryParam, request);
+            super(ctx, stopRedirect, queryParam, request, null);
         }
 
         public void showSpinner(final boolean status) {

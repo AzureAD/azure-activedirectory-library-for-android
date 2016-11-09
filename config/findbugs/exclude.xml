@@ -59,4 +59,14 @@
         <Method name="setDefaults" />
         <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
     </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.AuthenticationContext$1" />
+        <Method name="onError" />
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
+    <Match>
+        <Class name="com.microsoft.aad.adal.AuthenticationContext$2" />
+        <Method name="onError" />
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
 </FindBugsFilter>

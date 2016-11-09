@@ -42,7 +42,7 @@ class APIEvent extends DefaultEvent {
     private final String mEventName;
 
     APIEvent(final String eventName) {
-        getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
+        setEvent(EventStrings.EVENT_NAME, eventName);
         mEventName = eventName;
     }
 
@@ -56,7 +56,7 @@ class APIEvent extends DefaultEvent {
             return;
         }
 
-        getEventList().add(new Pair<>(EventStrings.AUTHORITY_NAME, authority));
+        setEvent(EventStrings.AUTHORITY_NAME, authority);
         final URL authorityUrl = StringExtensions.getUrl(authority);
         if (authorityUrl == null) {
             return;
@@ -70,35 +70,42 @@ class APIEvent extends DefaultEvent {
     }
 
     void setAuthorityType(final String authorityType) {
-        getEventList().add(new Pair<>(EventStrings.AUTHORITY_TYPE, authorityType));
+        setEvent(EventStrings.AUTHORITY_TYPE, authorityType);
     }
 
     void setIsDeprecated(final Boolean isDeprecated) {
-        getEventList().add(new Pair<>(EventStrings.API_DEPRECATED, isDeprecated.toString()));
+        setEvent(EventStrings.API_DEPRECATED, isDeprecated.toString());
     }
 
     void setValidationStatus(final String validationStatus) {
-        getEventList().add(new Pair<>(EventStrings.AUTHORITY_VALIDATION, validationStatus));
+        setEvent(EventStrings.AUTHORITY_VALIDATION, validationStatus);
     }
 
     void setExtendedExpiresOnSetting(final Boolean extendedExpiresOnSetting) {
-        getEventList().add(new Pair<>(EventStrings.EXTENDED_EXPIRES_ON_SETTING, extendedExpiresOnSetting.toString()));
+        setEvent(EventStrings.EXTENDED_EXPIRES_ON_SETTING, extendedExpiresOnSetting.toString());
     }
 
     void setSilentRequestPromptBehavior(final String promptBehavior) {
-        getEventList().add(new Pair<>(EventStrings.PROMPT_BEHAVIOR, promptBehavior));
+        setEvent(EventStrings.PROMPT_BEHAVIOR, promptBehavior);
     }
 
     void setAPIId(final String id) {
-        getEventList().add(new Pair<>(EventStrings.API_ID, id));
+        setEvent(EventStrings.API_ID, id);
     }
 
     String getEventName() {
         return mEventName;
     }
 
-    void setWasApiCallSuccessful(final Boolean isSuccess) {
-        getEventList().add(new Pair<>(EventStrings.WAS_SUCCESSFUL, isSuccess.toString()));
+    void setWasApiCallSuccessful(final Boolean isSuccess, final Exception exception) {
+        setEvent(EventStrings.WAS_SUCCESSFUL, isSuccess.toString());
+
+        if (exception != null) {
+            if (exception instanceof AuthenticationException) {
+                final AuthenticationException authException = (AuthenticationException) exception;
+                setEvent(EventStrings.API_ERROR_CODE, authException.getCode().toString());
+            }
+        }
     }
 
     void stopTelemetryAndFlush() {
@@ -119,12 +126,11 @@ class APIEvent extends DefaultEvent {
         }
 
         final UserInfo userInfo = new UserInfo(idToken);
-        getEventList().add(new Pair<>(EventStrings.IDP_NAME, idToken.getIdentityProvider()));
+        setEvent(EventStrings.IDP_NAME, idToken.getIdentityProvider());
 
         try {
-            getEventList().add(new Pair<>(EventStrings.TENANT_ID, StringExtensions.createHash(idToken.getTenantId())));
-            getEventList().add(new Pair<>(EventStrings.USER_ID,
-                    StringExtensions.createHash(userInfo.getDisplayableId())));
+            setEvent(EventStrings.TENANT_ID, StringExtensions.createHash(idToken.getTenantId()));
+            setEvent(EventStrings.USER_ID, StringExtensions.createHash(userInfo.getDisplayableId()));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             Logger.i(TAG, "Skipping TENANT_ID and USER_ID", "");
         }
@@ -132,9 +138,9 @@ class APIEvent extends DefaultEvent {
 
     void setLoginHint(final String loginHint) {
         try {
-            getEventList().add(new Pair<>(EventStrings.LOGIN_HINT,  StringExtensions.createHash(loginHint)));
+            setEvent(EventStrings.LOGIN_HINT,  StringExtensions.createHash(loginHint));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
-            Logger.i(TAG, "Skipping LOGIN_HINT", "");
+            Logger.i(TAG, "Skipping telemetry for LOGIN_HINT", "");
         }
     }
 
@@ -156,7 +162,8 @@ class APIEvent extends DefaultEvent {
                     || name.equals(EventStrings.IDP_NAME) || name.equals(EventStrings.TENANT_ID)
                     || name.equals(EventStrings.USER_ID) || name.equals(EventStrings.LOGIN_HINT)
                     || name.equals(EventStrings.RESPONSE_TIME) || name.equals(EventStrings.CORRELATION_ID)
-                    || name.equals(EventStrings.REQUEST_ID) || name.equals(EventStrings.API_ID)) {
+                    || name.equals(EventStrings.REQUEST_ID) || name.equals(EventStrings.API_ID)
+                    || name.equals(EventStrings.API_ERROR_CODE)) {
                 dispatchMap.put(name, (String) eventPair.second);
             }
         }

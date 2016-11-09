@@ -607,7 +607,7 @@ public class AuthenticationActivity extends Activity {
     class CustomWebViewClient extends BasicWebViewClient {
 
         public CustomWebViewClient() {
-            super(AuthenticationActivity.this, mRedirectUrl, mQueryParameters, mAuthRequest);
+            super(AuthenticationActivity.this, mRedirectUrl, mQueryParameters, mAuthRequest, mUIEvent);
         }
 
         public void processRedirectUrl(final WebView view, String url) {
