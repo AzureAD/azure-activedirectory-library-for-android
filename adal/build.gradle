@@ -39,6 +39,7 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'src/main/AndroidManifest.xml'
+            java.srcDirs = ['src/main/java', 'src/main/aidl']
         }
     }
 
@@ -126,6 +127,7 @@ task sourcesJar(type: Jar) {
 
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
+    exclude {'*.aidl'}
     classpath = configurations.compile
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }

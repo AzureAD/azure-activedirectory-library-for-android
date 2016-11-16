@@ -47,12 +47,20 @@
         android:layout_centerHorizontal="true"
         android:text="@string/AcquireTokenSilentForR2" />
 
+    <Button
+        android:id="@+id/GetBrokerUsers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/AcquireTokenSilentForR2"
+        android:layout_centerHorizontal="true"
+        android:text="@string/GetBrokerUsers" />
+
     <EditText
         android:id="@+id/editTextUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/AcquireTokenSilentForR2"
+        android:layout_below="@+id/GetBrokerUsers"
         android:ems="10"
         android:hint="@string/login_hint" >
 
