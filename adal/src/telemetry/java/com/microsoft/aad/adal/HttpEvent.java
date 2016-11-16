@@ -55,7 +55,21 @@ class HttpEvent extends DefaultEvent {
     }
 
     void setHttpPath(final URL httpPath) {
-        setEvent(EventStrings.HTTP_PATH, httpPath.toString());
+        final String[] splitArray = httpPath.getPath().split("/");
+        final StringBuilder logPath = new StringBuilder();
+        logPath.append(httpPath.getProtocol());
+        logPath.append("://");
+        logPath.append(httpPath.getAuthority());
+        logPath.append("/");
+
+        // we do not want to send tenant information
+        // index 0 is blank
+        // index 1 is tenant
+        for (int i = 2; i < splitArray.length; i++) {
+            logPath.append(splitArray[i]);
+            logPath.append("/");
+        }
+        setEvent(EventStrings.HTTP_PATH, logPath.toString());
     }
 
     void setOauthErrorCode(final String errorCode) {
