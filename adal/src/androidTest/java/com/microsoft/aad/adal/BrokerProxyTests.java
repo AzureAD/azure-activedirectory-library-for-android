@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -35,11 +36,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.List;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -61,6 +64,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
+import android.content.pm.ResolveInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.test.AndroidTestCase;
@@ -112,14 +117,14 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = "wrong";
         Signature signature = new Signature(mTestSignature);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        boolean result = (Boolean) m.invoke(brokerProxy);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
 
         // assert
-        assertFalse("verify should return false", result);
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
     }
 
     public void testCanSwitchToBrokerInvalidAuthenticatorType()
@@ -130,14 +135,14 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = "invalid";
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature(mTestSignature);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        boolean result = (Boolean) m.invoke(brokerProxy);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
 
         // assert
-        assertFalse("verify should return false", result);
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
     }
 
     public void testCanSwitchToBrokerInvalidSignature()
@@ -148,14 +153,14 @@ public class BrokerProxyTests extends AndroidTestCase {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         Signature signature = new Signature("74657374696e67");
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        boolean result = (Boolean) m.invoke(brokerProxy);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
 
         // assert
-        assertFalse("verify should return false", result);
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
     }
 
     public void testCanSwitchToBrokerValid()
@@ -170,14 +175,14 @@ public class BrokerProxyTests extends AndroidTestCase {
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         AuthenticationSettings.INSTANCE.setUseBroker(true);
         Account[] accts = getAccountList("valid", authenticatorType);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, true, accts);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, true, accts, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        boolean result = (Boolean) m.invoke(brokerProxy);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
 
         // assert
-        assertTrue("verify should return true", result);
+        assertEquals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER, result);
     }
 
     public void testCanSwitchToBrokerValidSkip()
@@ -190,15 +195,15 @@ public class BrokerProxyTests extends AndroidTestCase {
         Signature signature = new Signature(mTestSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         Account[] accts = getAccountList("valid", authenticatorType);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, true, accts);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, true, accts, false);
         AuthenticationSettings.INSTANCE.setUseBroker(false);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        boolean result = (Boolean) m.invoke(brokerProxy);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
 
         // assert
-        assertFalse("This should skip broker", result);
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
     }
 
     public void testGetCurrentUser()
@@ -211,7 +216,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         Signature signature = new Signature(mTestSignature);
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         Account[] accts = getAccountList("currentUserName", authenticatorType);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, true, accts);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, true, accts, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "getCurrentUser");
@@ -269,14 +274,16 @@ public class BrokerProxyTests extends AndroidTestCase {
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         String contextPackage = "com.test";
         Signature signature = new Signature(mTestSignature);
-        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, false, null);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, false, null, true);
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        boolean result = (Boolean) m.invoke(brokerProxy);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
 
         // assert
-        assertFalse("missing permissions in the manifest", result);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            assertEquals(BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER, result);
+        }
     }
 
     public void testCanSwitchToBrokerValidBrokerAuthenticatorInternalCall()
@@ -301,10 +308,10 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // action
         Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        boolean result = (Boolean) m.invoke(brokerProxy);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
 
         // assert
-        assertFalse("It should not try to call Ad-Authenticator again for internal call from Ad-Authenticator", result);
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
     }
 
     public void testGetAuthTokenInBackgroundEmptyAccts()
@@ -806,16 +813,24 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     private void prepareProxyForTest(Object brokerProxy, String authenticatorType, String brokerPackage,
-            String contextPackage, Signature signature, boolean permissionStatus, Account[] accounts)
+            String contextPackage, Signature signature, boolean permissionStatus, Account[] accounts, boolean useBroker)
                     throws NoSuchFieldException, IllegalAccessException, NameNotFoundException {
-        AccountManager mockAcctManager = mock(AccountManager.class);
-        AuthenticatorDescription[] descriptions = getAuthenticator(authenticatorType, brokerPackage);
+        final AccountManager mockAcctManager = Mockito.mock(AccountManager.class);
+        final AuthenticatorDescription authenticatorDescription
+                = new AuthenticatorDescription(authenticatorType,
+                brokerPackage, 0, 0, 0, 0);
+        final AuthenticatorDescription mockedAuthenticator = Mockito.spy(authenticatorDescription);
+        final AuthenticatorDescription[] mockedAuthenticatorTypes
+                = new AuthenticatorDescription[] {mockedAuthenticator};
         Context mockContext = getMockContext(signature, brokerPackage, contextPackage, permissionStatus);
-        when(mockAcctManager.getAuthenticatorTypes()).thenReturn(descriptions);
-        when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accounts);
+        AuthenticationSettings.INSTANCE.setUseBroker(useBroker);
+        Mockito.when(mockAcctManager.getAuthenticatorTypes()).thenReturn(mockedAuthenticatorTypes);
+        Mockito.when(mockAcctManager.getAccountsByType(anyString())).thenReturn(accounts);
 
         ReflectionUtils.setFieldValue(brokerProxy, "mContext", mockContext);
         ReflectionUtils.setFieldValue(brokerProxy, "mAcctManager", mockAcctManager);
+
+
     }
 
     private Context getMockContext(final Signature signature, final String brokerPackageName,
@@ -825,6 +840,9 @@ public class BrokerProxyTests extends AndroidTestCase {
         PackageManager mockPackageManager = getPackageManager(signature, brokerPackageName, permissionStatus);
         when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
         when(mockContext.getPackageName()).thenReturn(contextPackageName);
+        List<ResolveInfo> mockList = new ArrayList<>();
+        mockList.add(new ResolveInfo());
+        when(mockPackageManager.queryIntentActivities(Matchers.any(Intent.class), anyInt())).thenReturn(mockList);
         return mockContext;
     }
 

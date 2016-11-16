@@ -4,6 +4,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
+apply plugin: 'maven-publish'
 
 group = 'com.microsoft.aad'
 
@@ -24,7 +25,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
-        versionName "1.2.0"
+        versionName "1.10.0"
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
     }
@@ -86,6 +87,45 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+
+task createPom  {
+    pom {
+        project {
+            groupId 'com.microsoft.aad'
+            artifactId 'adal'
+            version = project.version
+            packaging 'aar'
+            name 'adal'
+
+            description 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+            url 'https://github.com/MSOpenTech/azure-activedirectory-library-for-android'
+
+            developers {
+                developer {
+                    id 'microsoft'
+                    name 'Microsoft'
+                }
+            }
+
+            licenses {
+                license {
+                    name 'Apache License, Version 2.0'
+                }
+            }
+            inceptionYear '2014'
+
+            properties {
+                branch 'master'
+                adalVersion = project.version
+            }
+
+            scm {
+                url "https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/master"
+            }
+        }
+    }.writeTo("${archivesBaseName}-${version}.pom")
+}
+
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
@@ -95,11 +135,12 @@ task sourcesJar(type: Jar) {
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath = configurations.compile
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
+    from javadoc.destinationDir
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
 }
 
@@ -168,4 +209,4 @@ task checkstyle(type: Checkstyle) {
     classpath = files()
 }
 
-assembleDebug.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint'
+assembleDebug.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'

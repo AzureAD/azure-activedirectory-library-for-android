@@ -45,6 +45,8 @@ import android.test.mock.MockPackageManager;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 
@@ -60,9 +62,7 @@ class FileMockContext extends MockContext {
 
     private int mFileWriteMode;
 
-    private String mRequestedPermissionName;
-
-    private int mResponsePermissionFlag;
+    private Map<String, Integer> mPermissionMap = new HashMap<String, Integer>();
     
     private boolean mIsConnectionAvaliable = true;
     
@@ -73,8 +73,7 @@ class FileMockContext extends MockContext {
     public FileMockContext(Context context) {
         mContext = context;
         // default
-        mRequestedPermissionName = "android.permission.INTERNET";
-        mResponsePermissionFlag = PackageManager.PERMISSION_GRANTED;
+        mPermissionMap.put("android.permission.INTERNET", PackageManager.PERMISSION_GRANTED);
     }
 
     @Override
@@ -155,12 +154,20 @@ class FileMockContext extends MockContext {
         mMockedAccountManager = mockedAccountManager;
     }
 
-    public void setRequestedPermissionName(String requestedPermissionName) {
-        mRequestedPermissionName = requestedPermissionName;
+    public void addPermission(String permissionName) {
+        mPermissionMap.put(permissionName, PackageManager.PERMISSION_GRANTED);
+    }
+    
+    public void removePermission(String permissionName) {
+        mPermissionMap.remove(permissionName);
     }
 
-    public void setResponsePermissionFlag(int responsePermissionFlag) {
-        mResponsePermissionFlag = responsePermissionFlag;
+    public int checkPermission(String permName, String pkgName) {
+        if (mPermissionMap.containsKey(permName)) {
+            return PackageManager.PERMISSION_GRANTED;
+        }
+
+        return PackageManager.PERMISSION_DENIED;
     }
 
     public void setConnectionAvaliable(boolean connectionAvaliable) {
@@ -203,9 +210,10 @@ class FileMockContext extends MockContext {
 
         @Override
         public int checkPermission(String permName, String pkgName) {
-            if (permName.equals(mRequestedPermissionName)) {
-                return mResponsePermissionFlag;
+            if (mPermissionMap.containsKey(permName)) {
+                return PackageManager.PERMISSION_GRANTED;
             }
+            
             return PackageManager.PERMISSION_DENIED;
         }
 

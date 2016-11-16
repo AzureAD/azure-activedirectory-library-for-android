@@ -3,9 +3,14 @@
 
 The ADAL SDK for Android gives you the ability to add support for Work Accounts to your application with just a few lines of additional code. This SDK gives your application the full functionality of Microsoft Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
 
-## ADAL for Android 1.2 Released!
+A Work Account is an identity you use to get work done no matter if at your business or on a college campus. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
-Recent version is 1.2.0
+## ADAL for Android 1.10 Released!
+
+## Versions
+Current version - 1.10.0  
+Minimum recommended version - 1.1.16  
+You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
 ## Features
 * Industry standard Oauth2 protocol support.
@@ -62,7 +67,7 @@ Jar packages will be also submitted beside the aar package.
 
 We've made it easy for you to have multiple options to use this library in your Android project:
 
-* You can use the source code to import this library into Eclipse and link to your application. 
+* You can use the source code to import this library into Android Studio and link to your application. 
 * If using Android Studio, you can use *aar* package format and reference the binaries.
 
 ###Option 1: Source Zip
