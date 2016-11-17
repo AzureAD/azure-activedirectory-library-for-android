@@ -48,6 +48,16 @@ More details [about contribution](https://github.com/AzureAD/azure-activedirecto
 Please check the releases for updates.
 
 ## Quick Start
+To build with Gradle,
+
+  * Clone this repo in to a directory of your choice
+  * Setup emulator with SDK 23
+  * Go to the root folder where you cloned this repo
+  * To run the sample app, connect the test device and run the command: ./gradlew :sample:installDebug
+  * You should see app 'hello' installed in the test device
+  * Enter test user credentials to try
+
+
 
 To build with Maven, you can use the pom.xml at top level
 
