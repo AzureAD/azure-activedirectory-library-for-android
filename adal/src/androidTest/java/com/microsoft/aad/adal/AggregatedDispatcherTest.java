@@ -63,7 +63,7 @@ public final class AggregatedDispatcherTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testOneEventOneRequestId() throws MalformedURLException{
+    public void testOneEventOneRequestId() throws MalformedURLException {
         final AggregatedTelemetryTestClass aggregated = new AggregatedTelemetryTestClass();
         final AggregatedDispatcher dispatcher = new AggregatedDispatcher(aggregated);
         final HttpEvent httpEvent = new HttpEvent(EventStrings.HTTP_EVENT);
@@ -82,7 +82,7 @@ public final class AggregatedDispatcherTest extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testOneEventMultipleRequestId() throws MalformedURLException{
+    public void testOneEventMultipleRequestId() throws MalformedURLException {
         final AggregatedTelemetryTestClass aggregated = new AggregatedTelemetryTestClass();
         final AggregatedDispatcher dispatcher = new AggregatedDispatcher(aggregated);
         final HttpEvent httpEvent = new HttpEvent(EventStrings.HTTP_EVENT);

@@ -78,7 +78,7 @@ public class TelemetryTest extends AndroidTestCase {
         dispatcher.flush("1");
 
         // We should not have any extra event over the default event
-        assert(default1.getDefaultEventCount() >= dispatch.getEventCount());
+        assertTrue(default1.getDefaultEventCount() >= dispatch.getEventCount());
     }
 
     @SmallTest
@@ -144,7 +144,7 @@ public class TelemetryTest extends AndroidTestCase {
     }
 }
 
-class AggregatedTelemetryTestClass implements IDispatcher{
+class AggregatedTelemetryTestClass implements IDispatcher {
 
     private List<Pair<String, String>> eventData;
 
@@ -170,7 +170,7 @@ class AggregatedTelemetryTestClass implements IDispatcher{
 
         // No event property should contain PII
         for (Pair<String, String> eventProperty : eventData) {
-            if(eventProperty.second.equalsIgnoreCase(piiValue)) {
+            if (eventProperty.second.equalsIgnoreCase(piiValue)) {
                 return false;
             }
         }
@@ -195,25 +195,25 @@ class AggregatedTelemetryTestClass implements IDispatcher{
     }
 }
 
-class DefaultTelemetryTestClass implements IDispatcher{
+class DefaultTelemetryTestClass implements IDispatcher {
 
-    private List<EventBlocks> eventData;
+    private List<EventBlocks> mEventData;
 
     DefaultTelemetryTestClass() {
-        eventData = new ArrayList<EventBlocks>();
+        mEventData = new ArrayList<EventBlocks>();
     }
 
     @Override
     public void dispatchEvent(List<Pair<String, String>> events) {
-        eventData.add(new EventBlocks(events));
+        mEventData.add(new EventBlocks(events));
     }
 
     class EventBlocks {
 
-        private List<Pair<String, String>> eventData;
+        private List<Pair<String, String>> mEventData;
 
         EventBlocks(List<Pair<String, String>> eventProperties) {
-            eventData = eventProperties;
+            mEventData = eventProperties;
         }
     }
 

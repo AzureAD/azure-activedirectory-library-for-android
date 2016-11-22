@@ -25,12 +25,10 @@ package com.microsoft.aad.adal;
 
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Pair;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public final class HttpEventTest extends AndroidTestCase {

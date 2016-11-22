@@ -28,7 +28,6 @@ import android.util.Pair;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 class HttpEvent extends DefaultEvent {
     HttpEvent(final String eventName) {

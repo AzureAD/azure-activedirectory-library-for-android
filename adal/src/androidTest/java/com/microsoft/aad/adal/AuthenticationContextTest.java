@@ -61,7 +61,6 @@ import java.util.GregorianCalendar;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;

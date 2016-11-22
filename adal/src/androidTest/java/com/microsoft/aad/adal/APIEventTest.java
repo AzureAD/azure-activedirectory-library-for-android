@@ -34,8 +34,8 @@ import java.util.Map;
 public final class APIEventTest extends AndroidTestCase {
 
     @SmallTest
-    public void testProcessEvent() throws UnsupportedEncodingException, NoSuchAlgorithmException{
-        APIEvent event = new APIEvent(EventStrings.API_EVENT);
+    public void testProcessEvent() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        final APIEvent event = new APIEvent(EventStrings.API_EVENT);
 
         event.setAPIId("123");
         event.setAuthority("AAD");
