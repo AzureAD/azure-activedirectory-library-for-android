@@ -44,6 +44,8 @@ import com.google.gson.Gson;
 import junit.framework.Assert;
 
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -59,6 +61,7 @@ import java.util.GregorianCalendar;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -66,6 +69,8 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 
 public final class AuthenticationContextTest extends AndroidTestCase {
@@ -305,6 +310,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         final AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
                 false);
+        final AggregatedTelemetryTestClass telemetry = new AggregatedTelemetryTestClass();
+        Telemetry.getInstance().registerDispatcher(telemetry, true);
+
         final TestAuthCallback callback = new TestAuthCallback();
         context.acquireToken(Mockito.mock(Activity.class), "resource", "clientid", "redirect",
                 PromptBehavior.Always, callback);
@@ -316,6 +324,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         final AuthenticationException authenticationException = (AuthenticationException) callback.getCallbackException();
         assertTrue(authenticationException.getCode() == ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED);
+
+        assertTrue(telemetry.eventsReceived());
     }
 
     /**
@@ -335,7 +345,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
                     @Override
                     public void run() {
-                        context.acquireToken(testActivity, "resource", "clientId", "redirectUri",
+                        context.acquireToken(testActivity.getTestActivity(), "resource", "clientId", "redirectUri",
                                 "userid", null);
                     }
                 });
@@ -345,7 +355,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
                     @Override
                     public void run() {
-                        context.acquireToken(testActivity, null, "clientId", "redirectUri",
+                        context.acquireToken(testActivity.getTestActivity(), null, "clientId", "redirectUri",
                                 "userid", testEmptyCallback);
                     }
                 });
@@ -355,7 +365,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
                     @Override
                     public void run() {
-                        context.acquireToken(testActivity, "", "clientId", "redirectUri", "userid",
+                        context.acquireToken(testActivity.getTestActivity(), "", "clientId", "redirectUri", "userid",
                                 testEmptyCallback);
                     }
                 });
@@ -365,7 +375,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
                     @Override
                     public void run() {
-                        context.acquireToken(testActivity, "resource", null, "redirectUri",
+                        context.acquireToken(testActivity.getTestActivity(), "resource", null, "redirectUri",
                                 "userid", testEmptyCallback);
                     }
                 });
@@ -382,7 +392,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         testActivity.mSignal = signal;
 
-        context.acquireToken(testActivity, "resource56", "clientId345", "redirect123", "userid123",
+        context.acquireToken(testActivity.getTestActivity(), "resource56", "clientId345", "redirect123", "userid123",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -399,6 +409,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("client is same", "clientId345", authenticationRequest.getClientId());
         assertEquals("authority is same", "https://login.windows.net/common", authenticationRequest.getAuthority());
         assertEquals("resource is same", "resource56", authenticationRequest.getResource());
+
     }
 
     @SmallTest
@@ -412,7 +423,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         testActivity.mSignal = signal;
 
-        context.acquireToken(testActivity, "resource", "clientId", "", "userid", callback);
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientId", "", "userid", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         Intent intent = testActivity.mStartActivityIntent;
@@ -437,7 +448,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         testActivity.mSignal = signal;
 
         // 1 - Send prompt always
-        context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
+        context.acquireToken(testActivity.getTestActivity(), "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -455,7 +466,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal2 = new CountDownLatch(1);
         MockAuthenticationCallback callback2 = new MockAuthenticationCallback(signal2);
         testActivity.mSignal = signal2;
-        context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
+        context.acquireToken(testActivity.getTestActivity(), "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.REFRESH_SESSION, callback2);
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -482,7 +493,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         testActivity.mSignal = signal;
 
         // 1 - Send extra param
-        context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
+        context.acquireToken(testActivity.getTestActivity(), "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, expected, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -499,7 +510,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         CountDownLatch signal2 = new CountDownLatch(1);
         callback = new MockAuthenticationCallback(signal2);
         testActivity.mSignal = signal2;
-        context.acquireToken(testActivity, "testExtraParamsResource", "testExtraParamsClientId",
+        context.acquireToken(testActivity.getTestActivity(), "testExtraParamsResource", "testExtraParamsClientId",
                 "testExtraParamsredirectUri", PromptBehavior.Always, null, callback);
         signal2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -707,7 +718,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        context.acquireToken(testActivity, "resource", "clientId", "redirectUri", "userid",
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientId", "redirectUri", "userid",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -735,7 +746,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         testActivity.mSignal = signal;
         final MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -759,7 +770,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         // API call
         authContext.setRequestCorrelationId(correlationId);
-        authContext.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid", callback);
+        authContext.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid",
+                callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check correlationID that was set in the Discovery obj
@@ -785,7 +797,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -826,7 +838,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         testActivity.mSignal = signal;
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", "userid",
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -870,7 +882,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         // Call acquire token which will try refresh token based on cache
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri",
                 TEST_IDTOKEN_UPN, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -934,7 +946,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         // Same call should get token from cache
         final CountDownLatch signalCallback2 = new CountDownLatch(1);
         callback.setSignal(signalCallback2);
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", acquireTokenHint,
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", acquireTokenHint,
                 callback);
         signalCallback2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         verifyTokenResult(idtoken, callback.getAuthenticationResult());
@@ -995,7 +1007,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         // Same call with correct upn will return from cache
         final CountDownLatch signalCallback2 = new CountDownLatch(1);
         callback.setSignal(signalCallback2);
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri", loginHint, callback);
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", loginHint, callback);
         signalCallback2.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         verifyTokenResult(idtoken, callback.getAuthenticationResult());
 
@@ -1078,7 +1090,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         // Call acquire token which will try refresh token based on cache
-        context.acquireToken(testActivity, "resource", "clientid", "redirectUri",
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri",
                 TEST_IDTOKEN_UPN, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -1129,7 +1141,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
             throws InterruptedException {
 
         // Call acquire token
-        context.acquireToken(testActivity, resource, clientid, redirect, loginHint, callback);
+        context.acquireToken(testActivity.getTestActivity(), resource, clientid, redirect, loginHint, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Activity will start
@@ -1330,7 +1342,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         // acquire token call will return from cache
-        context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", "userA",
+        context.acquireToken(testActivity.getTestActivity(), resource, "ClienTid", "redirectUri", "userA",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -1517,7 +1529,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         final MockActivity testActivity = new MockActivity();
         testActivity.mSignal = signal3;
-        context.acquireToken(testActivity, resource, clientId, "http://redirectUri", "userName1", callback3);
+        context.acquireToken(testActivity.getTestActivity(), resource, clientId, "http://redirectUri", "userName1",
+                callback3);
         signal3.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
@@ -1774,7 +1787,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
         // 1st token request, read from cache.
-        context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", TEST_IDTOKEN_UPN, callback);
+        context.acquireToken(testActivity.getTestActivity(), resource, "ClienTid", "redirectUri",
+                TEST_IDTOKEN_UPN, callback);
         signal.await(requestWaitMs, TimeUnit.MILLISECONDS);
         assertNull("Error is null", callback.getException());
         assertEquals("Same token in response as in cache", tokenToTest,
@@ -1783,8 +1797,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         // 2nd token request, use MRRT to refresh
         signal = new CountDownLatch(1);
         callback = new MockAuthenticationCallback(signal);
-        context.acquireToken(testActivity, "dummyResource2", "ClienTid", "redirectUri", TEST_IDTOKEN_UPN,
-                callback);
+        context.acquireToken(testActivity.getTestActivity(), "dummyResource2", "ClienTid", "redirectUri",
+                TEST_IDTOKEN_UPN, callback);
         signal.await(requestWaitMs, TimeUnit.MILLISECONDS);
 
         assertNull("Error is null", callback.getException());
@@ -1795,8 +1809,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal = new CountDownLatch(1);
         testActivity = new MockActivity(signal);
         callback = new MockAuthenticationCallback(signal);
-        context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri", TEST_IDTOKEN_UPN,
-                callback);
+        context.acquireToken(testActivity.getTestActivity(), "anotherResource123", "ClienTid", "redirectUri",
+                TEST_IDTOKEN_UPN, callback);
         signal.await(requestWaitMs, TimeUnit.MILLISECONDS);
 
         assertEquals("Token is returned from refresh token request", expectedAT,
@@ -1809,8 +1823,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         callback = new MockAuthenticationCallback(signal);
         callback.setAuthenticationResult(null);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
-        context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri", TEST_IDTOKEN_UPN,
-                callback);
+        context.acquireToken(testActivity.getTestActivity(), "anotherResource123", "ClienTid", "redirectUri",
+                TEST_IDTOKEN_UPN, callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         assertEquals("Same token in response as in cache for same call", expectedAT,
@@ -1822,7 +1836,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         signal = new CountDownLatch(1);
         testActivity = new MockActivity(signal);
         callback = new MockAuthenticationCallback(signal);
-        context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", "", callback);
+        context.acquireToken(testActivity.getTestActivity(), resource, "ClienTid", "redirectUri", "", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         assertNull("Result is null since it tries to start activity",
@@ -1868,7 +1882,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         // Acquire token call will return from cache
-        context.acquireToken(testActivity, resource, "clientid", "redirectUri", "userA", callback);
+        context.acquireToken(testActivity.getTestActivity(), resource, "clientid", "redirectUri", "userA", callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Check response in callback
@@ -1882,7 +1896,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         testActivity = new MockActivity();
         testActivity.mSignal = signal;
         callback = new MockAuthenticationCallback(signal);
-        context.acquireToken(testActivity, "anotherResource123", "ClienTid", "redirectUri", "",
+        context.acquireToken(testActivity.getTestActivity(), "anotherResource123", "ClienTid", "redirectUri", "",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -1894,7 +1908,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         testActivity = new MockActivity();
         testActivity.mSignal = signal;
         callback = new MockAuthenticationCallback(signal);
-        context.acquireToken(testActivity, resource, "ClienTid", "redirectUri", "someuser",
+        context.acquireToken(testActivity.getTestActivity(), resource, "ClienTid", "redirectUri", "someuser",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         assertTrue("Attemps to launch", testActivity.mStartActivityRequestCode != -1);
@@ -1928,6 +1942,10 @@ public final class AuthenticationContextTest extends AndroidTestCase {
          final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
          final AuthenticationContext context = getAuthenticationContext(mockContext,
                  VALID_AUTHORITY, false, mockCache);
+
+         final AggregatedTelemetryTestClass telemetry = new AggregatedTelemetryTestClass();
+         Telemetry.getInstance().registerDispatcher(telemetry, true);
+
          final CountDownLatch signal = new CountDownLatch(1);
          final MockActivity testActivity = new MockActivity(signal);
          final CountDownLatch signalCallback = new CountDownLatch(1);
@@ -1942,7 +1960,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getErrorStream()).thenReturn(Util.createInputStream(responseBody));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
 
-        context.acquireToken(testActivity, "resource", "clientId", "redirect", TEST_IDTOKEN_UPN,
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientId", "redirect", TEST_IDTOKEN_UPN,
                 callback);
 
         final int requestWaitMs = 200000;
@@ -1957,6 +1975,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                  AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
                  getResponseIntent(callback, "resource", "clientid", "redirect", TEST_IDTOKEN_UPN));
          signalCallback.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+
+         assertTrue(telemetry.checkOauthError());
+         assertTrue(telemetry.checkNoPIIPresent(EventStrings.LOGIN_HINT, TEST_IDTOKEN_UPN));
      }
 
     /**
@@ -2380,7 +2401,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     /**
      * Mock activity
      */
-    class MockActivity extends Activity {
+    class MockActivity {
 
         // No idea why this is the starting value.  Will have to wait for test rewrites to fix.
         private static final int STARTING_ACTIVITY_REQUEST_CODE = -123;
@@ -2395,42 +2416,49 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         private Bundle mStartActivityOptions;
 
+        private Activity mActivity;
+
         public MockActivity(CountDownLatch signal) {
             mSignal = signal;
+            doMockActivity();
         }
 
         @SuppressLint("Registered")
         public MockActivity() {
-            // TODO Auto-generated constructor stub
+            doMockActivity();
         }
 
-        @Override
-        public String getPackageName() {
-            return ReflectionUtils.TEST_PACKAGE_NAME;
+        private void doMockActivity() {
+            mActivity = Mockito.mock(Activity.class);
+            Mockito.when(mActivity.getPackageName()).thenReturn(ReflectionUtils.TEST_PACKAGE_NAME);
+
+            Mockito.doAnswer(new Answer() {
+                @Override
+                public Object answer(InvocationOnMock invocationOnMock) {
+                    mStartActivityIntent = invocationOnMock.getArgumentAt(0, Intent.class);
+                    mStartActivityRequestCode = invocationOnMock.getArgumentAt(1, Integer.class);
+                    countDownLatch();
+                    return null;
+                }
+            }).when(mActivity).startActivityForResult(any(Intent.class), anyInt());
+
+            Mockito.doAnswer(new Answer() {
+                @Override
+                public Object answer(InvocationOnMock invocationOnMock) {
+                    mStartActivityIntent = invocationOnMock.getArgumentAt(0, Intent.class);
+                    mStartActivityRequestCode = invocationOnMock.getArgumentAt(1, Integer.class);
+                    mStartActivityOptions = invocationOnMock.getArgumentAt(2, Bundle.class);
+                    countDownLatch();
+                    return null;
+                }
+            }).when(mActivity).startActivityForResult(any(Intent.class), anyInt(), any(Bundle.class));
         }
 
-        @Override
-        public void startActivityForResult(Intent intent, int requestCode) {
-            Log.d(TAG, "startActivityForResult:" + requestCode);
-            mStartActivityIntent = intent;
-            mStartActivityRequestCode = requestCode;
-            // test call needs to stop the tests at this point. If it reaches
-            // here, it means authenticationActivity was attempted to launch.
-            // Since it is mock activity, it will not launch something.
-            if (mSignal != null) {
-                mSignal.countDown();
-            }
+        Activity getTestActivity() {
+            return mActivity;
         }
 
-        @Override
-        public void startActivityForResult(Intent intent, int requestCode, Bundle options) {
-            Log.d(TAG, "startActivityForResult:" + requestCode);
-            mStartActivityIntent = intent;
-            mStartActivityRequestCode = requestCode;
-            mStartActivityOptions = options;
-            // test call needs to stop the tests at this point. If it reaches
-            // here, it means authenticationActivity was attempted to launch.
-            // Since it is mock activity, it will not launch something.
+        void countDownLatch() {
             if (mSignal != null) {
                 mSignal.countDown();
             }

@@ -255,4 +255,8 @@ final class Discovery {
                 .appendQueryParameter(AUTHORIZATION_ENDPOINT_KEY, authorizationEndpointUrl);
         return new URL(builder.build().toString());
     }
+
+    Set<String> getValidHosts() {
+        return VALID_HOSTS;
+    }
 }

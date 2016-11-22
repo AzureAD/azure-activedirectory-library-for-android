@@ -72,7 +72,7 @@ class AggregatedDispatcher extends DefaultDispatcher {
             iterator.remove();
         }
 
-        getDispatcher().dispatch(dispatchList);
+        getDispatcher().dispatchEvent(dispatchList);
     }
 
     @SuppressWarnings("unchecked")

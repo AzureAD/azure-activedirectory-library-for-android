@@ -32,9 +32,12 @@ import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
 
 import org.mockito.Mockito;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +78,7 @@ public class TelemetryTest extends AndroidTestCase {
         dispatcher.flush("1");
 
         // We should not have any extra event over the default event
-        assertEquals(default1.getDefaultEventCount(), dispatch.getEventCount());
+        assert(default1.getDefaultEventCount() >= dispatch.getEventCount());
     }
 
     @SmallTest
@@ -131,7 +134,7 @@ public class TelemetryTest extends AndroidTestCase {
     class TestDispatcher implements IDispatcher {
         private int mEventCount = 0;
 
-        public void dispatch(List events) {
+        public void dispatchEvent(List events) {
             mEventCount = events.size();
         }
 
@@ -139,4 +142,79 @@ public class TelemetryTest extends AndroidTestCase {
             return mEventCount;
         }
     }
+}
+
+class AggregatedTelemetryTestClass implements IDispatcher{
+
+    private List<Pair<String, String>> eventData;
+
+    AggregatedTelemetryTestClass() {
+        eventData = new ArrayList<Pair<String, String>>();
+    }
+
+    @Override
+    public void dispatchEvent(List<Pair<String, String>> events) {
+        eventData.addAll(events);
+    }
+
+    boolean checkOauthError() {
+        for (Pair<String, String> eventProperty : eventData) {
+            if (eventProperty.first.equals(EventStrings.OAUTH_ERROR_CODE)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean checkNoPIIPresent(final String piiKey, final String piiValue) {
+
+        // No event property should contain PII
+        for (Pair<String, String> eventProperty : eventData) {
+            if(eventProperty.second.equalsIgnoreCase(piiValue)) {
+                return false;
+            }
+        }
+
+        // Now check if we got the correct hash
+        for (Pair<String, String> eventProperty : eventData) {
+            if (eventProperty.first.equals(piiKey)) {
+                try {
+                    if (eventProperty.second.equals(StringExtensions.createHash(piiValue))) {
+                        return true;
+                    }
+                } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    boolean eventsReceived() {
+        return (eventData.size() > 0);
+    }
+}
+
+class DefaultTelemetryTestClass implements IDispatcher{
+
+    private List<EventBlocks> eventData;
+
+    DefaultTelemetryTestClass() {
+        eventData = new ArrayList<EventBlocks>();
+    }
+
+    @Override
+    public void dispatchEvent(List<Pair<String, String>> events) {
+        eventData.add(new EventBlocks(events));
+    }
+
+    class EventBlocks {
+
+        private List<Pair<String, String>> eventData;
+
+        EventBlocks(List<Pair<String, String>> eventProperties) {
+            eventData = eventProperties;
+        }
+    }
+
 }

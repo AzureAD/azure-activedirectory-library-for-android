@@ -28,6 +28,7 @@ import android.util.Pair;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 class HttpEvent extends DefaultEvent {
     HttpEvent(final String eventName) {
@@ -55,11 +56,18 @@ class HttpEvent extends DefaultEvent {
     }
 
     void setHttpPath(final URL httpPath) {
+        final String authority = httpPath.getAuthority();
+        final Discovery discovery = new Discovery();
+        if (!discovery.getValidHosts().contains(authority)) {
+            return;
+        }
+
         final String[] splitArray = httpPath.getPath().split("/");
+
         final StringBuilder logPath = new StringBuilder();
         logPath.append(httpPath.getProtocol());
         logPath.append("://");
-        logPath.append(httpPath.getAuthority());
+        logPath.append(authority);
         logPath.append("/");
 
         // we do not want to send tenant information
