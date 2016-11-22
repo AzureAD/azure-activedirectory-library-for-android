@@ -672,7 +672,9 @@ class Oauth2 {
         final Map<String, String> responseItems = new HashMap<>();
         extractJsonObjects(responseItems, responseBody);
         AuthenticationResult result = processUIResponseParams(responseItems);
-        httpEvent.setOauthErrorCode(result.getErrorCode());
+        if (result != null) {
+            httpEvent.setOauthErrorCode(result.getErrorCode());
+        }
 
         return result;
     }

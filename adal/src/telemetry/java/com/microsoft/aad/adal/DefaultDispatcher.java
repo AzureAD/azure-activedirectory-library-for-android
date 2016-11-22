@@ -44,7 +44,7 @@ class DefaultDispatcher {
 
     void receive(final String requestId, final IEvents events) {
         if (mDispatcher != null) {
-            mDispatcher.dispatch(events.getEvents());
+            mDispatcher.dispatchEvent(events.getEvents());
         }
     }
 

@@ -93,11 +93,26 @@ class DefaultEvent implements IEvents {
 
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
-        dispatchMap.put(EventStrings.APPLICATION_NAME, sApplicationName);
-        dispatchMap.put(EventStrings.APPLICATION_VERSION, sApplicationVersion);
-        dispatchMap.put(EventStrings.CLIENT_ID, sClientId);
-        dispatchMap.put(EventStrings.CLIENT_IP, sClientIp);
-        dispatchMap.put(EventStrings.DEVICE_ID, sDeviceId);
+
+        if (sApplicationName != null) {
+            dispatchMap.put(EventStrings.APPLICATION_NAME, sApplicationName);
+        }
+
+        if (sApplicationVersion != null) {
+            dispatchMap.put(EventStrings.APPLICATION_VERSION, sApplicationVersion);
+        }
+
+        if (sClientId != null) {
+            dispatchMap.put(EventStrings.CLIENT_ID, sClientId);
+        }
+
+        if (sClientIp != null) {
+            dispatchMap.put(EventStrings.CLIENT_IP, sClientIp);
+        }
+
+        if (sDeviceId != null) {
+            dispatchMap.put(EventStrings.DEVICE_ID, sDeviceId);
+        }
     }
 
     void setDefaults(final Context context, final String clientId) {

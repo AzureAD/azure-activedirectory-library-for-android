@@ -32,5 +32,5 @@ public interface IDispatcher {
      * The interface function for apps to override if they want to get the Telemetry from ADAL.
      * @param events List of pairs of string with event name and event value, filled in and returned by ADAL
      */
-    void dispatch(final List<Pair<String, String>> events);
+    void dispatchEvent(final List<Pair<String, String>> events);
 }
