@@ -27,13 +27,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.DateTimeAdapter;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.TokenCacheItem;
 
 import org.json.JSONException;
@@ -51,16 +54,34 @@ public class MainActivity extends AppCompatActivity {
     public static final int INVALIDATE_ACCESS_TOKEN = 1003;
     public static final int INVALIDATE_REFRESH_TOKEN = 1004;
     public static final int READ_CACHE = 1005;
-
-    private Context mContext;
+    
+    private StringBuffer mADALLogs;
+    private Context mContext;    
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         mContext = getApplicationContext();
+        mADALLogs = new StringBuffer();
+        Logger.getInstance().setExternalLogger(new Logger.ILogger() {
 
+            @Override
+            public void Log(String tag, String message, String additionalMessage, Logger.LogLevel level, ADALError errorCode) {
+                mADALLogs.append("tag:" + tag + ", message:" + message + ", additionalMessage:" 
+                    + additionalMessage + ", level:" + level + ", errorCode:" + errorCode + "\n");
+            }
+        });
+        
+        final Button getLogTokenButton = (Button) findViewById(R.id.getadallog);
+        getLogTokenButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                processShowLogs();
+            }
+        });
+        
+        
         // Button for acquireToken call
         final Button acquireTokenButton = (Button) findViewById(R.id.acquireToken);
         acquireTokenButton.setOnClickListener(new View.OnClickListener() {
@@ -149,6 +170,14 @@ public class MainActivity extends AppCompatActivity {
 
         launchResultActivity(intent);
     }
+    
+    private void processShowLogs() {
+        Intent intent = new Intent();
+        final ArrayList<String> allLogs = new ArrayList<>();
+        allLogs.add(getADALLogs());
+        intent.putStringArrayListExtra(Constants.READ_LOGS, allLogs);
+        launchResultActivity(intent);
+    }
 
     private ArrayList<String> getAllSerializedCacheItem(final AuthenticationContext authenticationContext) throws JSONException {
         final ArrayList<String> allItems = new ArrayList<>();
@@ -194,5 +223,9 @@ public class MainActivity extends AppCompatActivity {
     private void launchResultActivity(final Intent intent) {
         intent.setClass(this.getApplicationContext(), ResultActivity.class);
         this.startActivity(intent);
+    }
+    
+    public String getADALLogs() {
+        return mADALLogs.toString();
     }
 }

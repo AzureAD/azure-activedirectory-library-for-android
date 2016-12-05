@@ -94,4 +94,14 @@
         android:layout_below="@+id/readCache"
         android:layout_centerHorizontal="true"
         android:text="@string/empty_cache" />
+    
+    <!-- EmptyCache Button -->
+    <Button
+        android:id="@+id/getadallog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get ADAL Log"
+        android:layout_below="@+id/clearCache"
+        android:layout_alignLeft="@+id/readCache"
+        android:layout_alignStart="@+id/readCache" />
 </RelativeLayout>
