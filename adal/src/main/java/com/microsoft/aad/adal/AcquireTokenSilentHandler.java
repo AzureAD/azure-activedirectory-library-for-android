@@ -95,7 +95,7 @@ class AcquireTokenSilentHandler {
         if (mTokenCacheAccessor == null) {
             return null;
         }
-        
+
         // Check for if there is valid access token item in the cache.
         final TokenCacheItem accessTokenItem = mTokenCacheAccessor.getATFromCache(mAuthRequest.getResource(), 
                 mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
@@ -169,6 +169,7 @@ class AcquireTokenSilentHandler {
      * Attempt to get new access token with regular RT. 
      */
     private AuthenticationResult tryRT() throws AuthenticationException {
+
         final TokenCacheItem regularRTItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(), 
                 mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
 
@@ -176,8 +177,8 @@ class AcquireTokenSilentHandler {
             Logger.v(TAG, "Regular token cache entry does not exist, try with MRRT.");
             return tryMRRT(); 
         }
-        
-        // When MRRT is returned, we store separate entries for both regular RT entry and MRRT entry, 
+
+        // When MRRT is returned, we store separate entries for both regular RT entry and MRRT entry,
         // we should look for MRRT entry if the token in regular RT entry is marked as MRRT.
         // However, the current cache implementation never mark the token stored in regular RT entry
         // as MRRT. To support the backward compatibility and improve cache lookup, when successfully
@@ -186,10 +187,11 @@ class AcquireTokenSilentHandler {
             final String statusMessage = regularRTItem.getIsMultiResourceRefreshToken()
                     ? "Found RT and it's also a MRRT, retry with MRRT"
                     : "RT is found and there is a MRRT entry existed, try with MRRT";
+
             Logger.v(TAG, statusMessage);
             return tryMRRT();
         }
-        
+
         Logger.v(TAG, "Send request to use regular RT for new AT.");
         return acquireTokenWithCachedItem(regularRTItem);
     }
@@ -201,6 +203,7 @@ class AcquireTokenSilentHandler {
      * 3) If MRRT request fails, fall back to FRT.  
      */
     private AuthenticationResult tryMRRT() throws AuthenticationException {
+
         // Try to get it from cache
         mMrrtTokenCacheItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), 
                 mAuthRequest.getUserFromRequest());
@@ -210,7 +213,7 @@ class AcquireTokenSilentHandler {
             Logger.v(TAG, "MRRT token does not exist, try with FRT");
             return tryFRT(AuthenticationConstants.MS_FAMILY_ID, null);
         } 
-        
+
         // If MRRT is also a FRT, we try FRT first. 
         if (mMrrtTokenCacheItem.isFamilyToken()) {
             Logger.v(TAG, "MRRT item exists but it's also a FRT, try with FRT.");
@@ -227,7 +230,7 @@ class AcquireTokenSilentHandler {
             // Pass the failed MRRT result to tryFRT, if FRT does not exist, return the MRRT result. 
             mrrtResult = tryFRT(familyClientId, mrrtResult);
         }
-        
+
         return mrrtResult;
     }
     
@@ -239,13 +242,14 @@ class AcquireTokenSilentHandler {
      */
     private AuthenticationResult tryFRT(final String familyClientId, final AuthenticationResult mrrtResult) 
             throws AuthenticationException {
+
         final TokenCacheItem frtTokenCacheItem = mTokenCacheAccessor.getFRTItem(familyClientId, 
                 mAuthRequest.getUserFromRequest());
         
         if (frtTokenCacheItem  == null) {
             // If we haven't tried with MRRT, use the MRRT. MRRT either exists or not, if it does not exist, we've 
             // already tried our best, null will be retured. If it eixsts, try with it. 
-            // If we have already tried an MRRT and no FRT found, we return the MRRT result passed in. 
+            // If we have already tried an MRRT and no FRT found, we return the MRRT result passed in.
             if (!mAttemptedWithMRRT) {
                 Logger.v(TAG, "FRT cache item does not exist, fall back to try MRRT.");
                 return useMRRT();
@@ -253,7 +257,7 @@ class AcquireTokenSilentHandler {
                 return mrrtResult;
             }
         }
-        
+
         Logger.v(TAG, "Send request to use FRT for new AT.");
         AuthenticationResult frtResult = acquireTokenWithCachedItem(frtTokenCacheItem);
         if (isTokenRequestFailed(frtResult) && !mAttemptedWithMRRT) {
@@ -261,7 +265,7 @@ class AcquireTokenSilentHandler {
             final AuthenticationResult retryMrrtResult = useMRRT();
             frtResult = retryMrrtResult == null ? frtResult : retryMrrtResult;
         }
-        
+
         return frtResult;
     }
 

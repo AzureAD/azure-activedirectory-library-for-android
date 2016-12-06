@@ -121,7 +121,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         try {
             return getStorageHelper().encrypt(value);
         } catch (GeneralSecurityException | IOException e) {
-            ClientAnalytics.logEvent(new EncryptionDecryptionFailureEvent(new InstrumentationPropertiesBuilder(e), true));
             Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
         }
 
@@ -136,7 +135,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         try {
             return getStorageHelper().decrypt(value);
         } catch (GeneralSecurityException | IOException e) {
-            ClientAnalytics.logEvent(new EncryptionDecryptionFailureEvent(new InstrumentationPropertiesBuilder(e), false));
             Logger.e(TAG, "Decryption failure", "", ADALError.DECRYPTION_FAILED, e);
             removeItem(key);
             Logger.v(TAG, String.format("Decryption error, item removed for key: '%s'", key));
@@ -378,11 +376,4 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         return mPrefs.contains(key);
     }
     
-    private static final class EncryptionDecryptionFailureEvent extends ClientAnalytics.Event {
-        private EncryptionDecryptionFailureEvent(final InstrumentationPropertiesBuilder builder, final boolean isEncryption) {
-            super(isEncryption ? InstrumentationIDs.ENCRYPTION_EVENT : InstrumentationIDs.DECRYPTION_EVENT,
-                    builder.add(InstrumentationIDs.EVENT_RESULT, InstrumentationIDs.EVENT_RESULT_FAIL)
-                            .build());
-        }
-    }
 }

@@ -278,6 +278,9 @@ public final class AuthenticationConstants {
 
         /** String of platform value for the sdk. */
         public static final String ADAL_ID_PLATFORM_VALUE = "Android";
+
+        /** String for request id returned from Evo. **/
+        public static final String REQUEST_ID_HEADER = "x-ms-request-id";
     }
 
     /**
@@ -479,6 +482,7 @@ public final class AuthenticationConstants {
 
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
+
     }
 
     /**

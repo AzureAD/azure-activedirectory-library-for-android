@@ -12,6 +12,7 @@
     <suppress checks="MethodName" files=".*LoggerTest.java"/>
     <suppress checks="MemberName" files="SSOStateSerializer.java" lines="47"/>
     <suppress checks="HideUtilityClassConstructor" files="ReflectionUtils.java" lines="31"/>
+    <suppress checks="JavadocPackage" files="APIEvent.java" />
     <!-- suppress this for Log method in test-->
     <suppress checks="MethodName" files="AuthenticationParamsTests.java"/>
     <suppress checks="MethodName" files="FileTokenCacheStoreTests.java"/>
