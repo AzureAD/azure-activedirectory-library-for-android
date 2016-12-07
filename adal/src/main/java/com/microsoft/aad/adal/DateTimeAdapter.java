@@ -23,14 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.lang.reflect.Type;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
-
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -38,6 +30,14 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+
+import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerializer<Date> {
 
@@ -58,14 +58,14 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
         iso8601Format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return iso8601Format;
     }
-    
+
     /**
      * Add new en-us date format for parsing date string if it doesn't contain AM/PM.
      */
     private static DateFormat buildEnUs24HourDateFormat() {
         return new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.US);
     }
-    
+
     /**
      * Add new local date format when parsing date string if it doesn't contain AM/PM.
      */
@@ -85,7 +85,7 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
      */
     @Override
     public synchronized Date deserialize(JsonElement json, Type typeOfT,
-            JsonDeserializationContext context) throws JsonParseException {
+                                         JsonDeserializationContext context) throws JsonParseException {
         String jsonString = json.getAsString();
 
         // Datetime string is serialized with iso8601 format by default, should
@@ -97,14 +97,14 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
         } catch (final ParseException ignored) {
             Logger.v(TAG, "Cannot parse with ISO8601, try again with local format.");
         }
-        
+
         // fallback logic for old date format parsing. 
         try {
             return mLocalFormat.parse(jsonString);
         } catch (final ParseException ignored) {
             Logger.v(TAG, "Cannot parse with local format, try again with local 24 hour format.");
         }
-        
+
         try {
             return mLocal24HourFormat.parse(jsonString);
         } catch (final ParseException ignored) {
@@ -132,7 +132,7 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
      */
     @Override
     public synchronized JsonElement serialize(Date src, Type typeOfSrc,
-            JsonSerializationContext context) {
+                                              JsonSerializationContext context) {
         return new JsonPrimitive(mISO8601Format.format(src));
     }
 }

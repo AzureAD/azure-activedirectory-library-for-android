@@ -22,9 +22,9 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import java.io.UnsupportedEncodingException;
-
 import android.util.Base64;
+
+import java.io.UnsupportedEncodingException;
 
 class MockedIdToken {
 

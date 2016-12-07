@@ -23,8 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import junit.framework.Assert;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -37,7 +36,8 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-import junit.framework.Assert;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ChallengeResponseBuilderTests extends AndroidTestHelper {
 

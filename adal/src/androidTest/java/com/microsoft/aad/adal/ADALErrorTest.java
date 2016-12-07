@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.Locale;
-
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.pm.PackageInfo;
@@ -33,6 +31,8 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.test.InstrumentationTestCase;
 import android.util.Log;
+
+import java.util.Locale;
 
 public class ADALErrorTest extends InstrumentationTestCase {
 

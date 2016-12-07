@@ -31,7 +31,7 @@ class ServerRespondingWithRetryableException extends AuthenticationException {
 
     /**
      * Constructs a new ServerRespondingWithRetryableException with message.
-     * 
+     *
      * @param msg Detailed message for the reason causing the exception.
      */
     public ServerRespondingWithRetryableException(String msg) {
@@ -41,7 +41,7 @@ class ServerRespondingWithRetryableException extends AuthenticationException {
     /**
      * Constructs a new ServerRespondingWithRetryableException with message and the cause exception.
      *
-     * @param msg Detailed message for the reason causing the exception.
+     * @param msg       Detailed message for the reason causing the exception.
      * @param throwable {@link Throwable}
      */
     public ServerRespondingWithRetryableException(String msg, Throwable throwable) {

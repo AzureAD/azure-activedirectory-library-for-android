@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  * Interface that provides ability to client application send telemetry events to server.
- *
+ * <p>
  * In order to send ADAL instrumentation events to any instrumentation service
  * client application needs to implement IEventListener interface
  * and set it for ClientAnalytics
@@ -52,6 +52,7 @@ public final class ClientAnalytics {
 
     /**
      * send event to listener.
+     *
      * @param event to be logged
      */
     static void logEvent(final Event event) {
@@ -60,7 +61,8 @@ public final class ClientAnalytics {
 
     /**
      * send event to listener.
-     * @param eventName event name to be logged
+     *
+     * @param eventName  event name to be logged
      * @param properties map to be logged
      */
     static void logEvent(final String eventName, Map<String, String> properties) {
@@ -69,6 +71,7 @@ public final class ClientAnalytics {
 
     /**
      * Set custom event listener.
+     *
      * @param eventListener client implementation of instrumentation event logger
      */
     public void setEventListener(IEventListener eventListener) {
@@ -77,7 +80,8 @@ public final class ClientAnalytics {
 
     /**
      * if there is event listener set send event to listener.
-     * @param eventName event name to be sent to the listener
+     *
+     * @param eventName  event name to be sent to the listener
      * @param properties map to be logged
      */
     @SuppressWarnings("unused")
@@ -96,6 +100,7 @@ public final class ClientAnalytics {
             mProperties = properties;
         }
     }
+
     /**
      * Event listener interface.
      */
@@ -103,7 +108,8 @@ public final class ClientAnalytics {
 
         /**
          * Sends event info to server.
-         * @param eventName specified name that defines this event on server in DB
+         *
+         * @param eventName  specified name that defines this event on server in DB
          * @param properties set of metrics that classifies this event
          */
         void logEvent(final String eventName, final Map<String, String> properties);

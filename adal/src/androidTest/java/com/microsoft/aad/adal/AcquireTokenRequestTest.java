@@ -407,16 +407,16 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final String idToken = "I am an id token";
         final String resource = "resource";
         final String clientId = "clientid";
-        
+
         final AuthenticationResult result;
         if (extendedExpiresOn == null) {
-            result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT, 
+            result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT,
                     userInfo, "", idToken, null);
         } else {
-            result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT, 
+            result = new AuthenticationResult(accessToken, refreshToken, expiresOn, storeMRRT,
                     userInfo, "", idToken, extendedExpiresOn);
         }
-        
+
         final ITokenCacheStore cacheStore = new DefaultTokenCacheStore(getContext());
         cacheStore.removeAll();
         final TokenCacheItem regularRTItem = TokenCacheItem.createRegularTokenCacheItem(VALID_AUTHORITY,
@@ -590,7 +590,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     /**
-     * Test for throwing exception when the request is rejected by server through there is a valid 
+     * Test for throwing exception when the request is rejected by server through there is a valid
      * stale AT in the cache and the ExtendedLifetime is on.
      */
     @SmallTest
@@ -644,7 +644,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cacheStore);
         authContext.setExtendedLifetimeEnabled(true);
-        
+
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -744,7 +744,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     }
 
     /**
-     * Test for throwing exception when the request is rejected by server through there is a valid 
+     * Test for throwing exception when the request is rejected by server through there is a valid
      * stale AT in the cache and the ExtendedLifetime is on.
      */
     @SmallTest
@@ -791,7 +791,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
-        
+
         final TestAuthCallback callback = new TestAuthCallback();
         authContext.acquireToken(Mockito.mock(Activity.class), "resource", "clientid", authContext.getRedirectUriForBroker(),
                 "loginHint", callback);
@@ -864,7 +864,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, 0, 0, 0, 0);
         final AuthenticatorDescription mockedAuthenticator = Mockito.spy(authenticatorDescription);
         final AuthenticatorDescription[] mockedAuthenticatorTypes
-                = new AuthenticatorDescription[] {mockedAuthenticator};
+                = new AuthenticatorDescription[]{mockedAuthenticator};
         Mockito.when(mockedAccountManager.getAuthenticatorTypes()).thenReturn(mockedAuthenticatorTypes);
 
         return mockedAccountManager;
@@ -874,7 +874,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             throws OperationCanceledException, IOException, AuthenticatorException {
         final Account account = new Account(TEST_UPN, AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         when(mockedAccountManger.getAccountsByType(Matchers.refEq(
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE))).thenReturn(new Account[] {account});
+                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE))).thenReturn(new Account[]{account});
 
         final Bundle bundle = new Bundle();
         bundle.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID, TEST_USERID);
@@ -938,7 +938,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 Util.ENCODED_SIGNATURE, Base64.NO_WRAP));
 
         final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
-        mockedPackageInfo.signatures = new Signature[] {mockedSignature};
+        mockedPackageInfo.signatures = new Signature[]{mockedSignature};
 
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
@@ -974,7 +974,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
     }
 
-    private void prepareFailedHttpUrlConnection(final String errorCode, final String ...errorCodes) throws IOException {
+    private void prepareFailedHttpUrlConnection(final String errorCode, final String... errorCodes) throws IOException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -992,7 +992,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final byte[] testingSignature = md.digest();
         return Base64.encodeToString(testingSignature, Base64.NO_WRAP);
     }
-    
+
     private Date getExpireDate(int expireTime) {
         final Calendar expiredTime = new GregorianCalendar();
         expiredTime.add(Calendar.MINUTE, expireTime);

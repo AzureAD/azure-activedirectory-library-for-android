@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.test.AndroidTestCase;
+
 import junit.framework.Assert;
 
 public class CacheKeyTests extends AndroidTestCase {
@@ -58,7 +59,7 @@ public class CacheKeyTests extends AndroidTestCase {
                 "ClientId123", false, "user123", null);
         assertEquals("expected key", "authority123endsslash$Resource123$clientid123$n$user123",
                 testKeySlash);
-        
+
         final String testKeyWithFamilyCientId = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
         assertEquals("authority$null$null$y$user123$foci-family123", testKeyWithFamilyCientId);
     }
@@ -108,7 +109,7 @@ public class CacheKeyTests extends AndroidTestCase {
             assertEquals("contains resource", "resource",
                     ((IllegalArgumentException) exc).getMessage());
         }
-        
+
         // Test resource is null but the cache key is for MRRT. 
         try {
             final String cacheKey = CacheKey.createCacheKey("authority", null, "clientid", true, "user123", null);
@@ -117,7 +118,7 @@ public class CacheKeyTests extends AndroidTestCase {
             fail("Non expected exceptions");
         }
     }
-    
+
     public void testcreateCacheKeyNullClientid() {
 
         // Test both client id and family client id is null
@@ -129,7 +130,7 @@ public class CacheKeyTests extends AndroidTestCase {
             assertEquals("contains clientId", "both clientId and familyClientId are null",
                     ((IllegalArgumentException) exc).getMessage());
         }
-        
+
         // Test client id is null but family client id is not null
         try {
             final String key = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");

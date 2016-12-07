@@ -23,10 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.security.MessageDigest;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -35,6 +31,10 @@ import android.content.pm.Signature;
 import android.test.AndroidTestCase;
 import android.util.Base64;
 import android.util.Log;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.security.MessageDigest;
 
 public class HttpDialogTests extends AndroidTestCase {
 

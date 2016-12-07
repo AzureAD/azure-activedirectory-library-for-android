@@ -111,7 +111,7 @@ class HttpWebRequest {
         connection.setUseCaches(false);
         connection.setRequestMethod(mRequestMethod);
         connection.setDoInput(true); // it will at least read status
-                                     // code. Default is true.
+        // code. Default is true.
         setRequestBody(connection, mRequestContent, mRequestContentType);
 
         return connection;
@@ -167,7 +167,7 @@ class HttpWebRequest {
 
         return response;
     }
-    
+
     static void throwIfNetworkNotAvaliable(final Context context) throws AuthenticationException {
         final DefaultConnectionService connectionService = new DefaultConnectionService(context);
         if (!connectionService.isConnectionAvailable()) {
@@ -176,10 +176,10 @@ class HttpWebRequest {
                     "Connection is not available to refresh token");
             Logger.w(TAG, "Connection is not available to refresh token", "",
                     ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            
+
             throw authenticationException;
         }
-    } 
+    }
 
     /**
      * Convert stream into the string.

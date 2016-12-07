@@ -53,6 +53,7 @@ public interface ITokenStoreQuery {
 
     /**
      * Clear tokens for given user.
+     *
      * @param userId The unique user id to clear the token for.
      */
     void clearTokensForUser(String userId);

@@ -30,7 +30,7 @@ public interface IConnectionService {
 
     /**
      * Gets status for connection status.
-     * 
+     *
      * @return connection status
      */
     boolean isConnectionAvailable();

@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import android.net.Uri;
+import android.util.Base64;
+
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,11 +38,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import android.net.Uri;
-import android.util.Base64;
-
 final class StringExtensions {
-    /** The Constant ENCODING_UTF8. */
+    /**
+     * The Constant ENCODING_UTF8.
+     */
     public static final String ENCODING_UTF8 = "UTF_8";
 
     private static final String TAG = "StringExtensions";
@@ -49,9 +51,10 @@ final class StringExtensions {
     private StringExtensions() {
         // Intentionally left blank
     }
+
     /**
      * checks if string is null or empty.
-     * 
+     *
      * @param param String to check for null or blank
      * @return boolean if the string was null or blank
      */
@@ -72,7 +75,7 @@ final class StringExtensions {
 
     /**
      * encode string with url form encoding. Space will be +
-     * 
+     *
      * @param source the string to encode
      * @return the decoded
      * @throws UnsupportedEncodingException
@@ -83,7 +86,7 @@ final class StringExtensions {
 
     /**
      * replace + to space and decode.
-     * 
+     *
      * @param source the string to decode
      * @return the encoded string
      * @throws UnsupportedEncodingException
@@ -103,7 +106,7 @@ final class StringExtensions {
 
     /**
      * create url from given endpoint. return null if format is not right.
-     * 
+     *
      * @param endpoint url as a string
      * @return URL object for this string
      */
@@ -143,7 +146,7 @@ final class StringExtensions {
         }
         return itemList;
     }
-    
+
     static ArrayList<String> splitWithQuotes(String input, char delimiter) {
         final ArrayList<String> items = new ArrayList<>();
 
@@ -181,8 +184,8 @@ final class StringExtensions {
     /**
      * Checks if header value has this prefix. Prefix + whitespace is
      * acceptable.
-     * 
-     * @param value String to check
+     *
+     * @param value  String to check
      * @param prefix prefix to check the above string
      * @return boolean true if the string starts with prefix and has some body after it.
      */

@@ -23,22 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.Locale;
-import java.util.UUID;
-
-import com.google.gson.Gson;
-
-import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
@@ -66,6 +50,21 @@ import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
+
+import com.google.gson.Gson;
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
@@ -191,7 +190,7 @@ public class AuthenticationActivity extends Activity {
             return;
         }
         mRedirectUrl = mAuthRequest.getRedirectUri();
-        
+
         // Create the Web View to show the page
         mWebView = (WebView) findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
@@ -201,7 +200,7 @@ public class AuthenticationActivity extends Activity {
             mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
             Log.d(TAG, "Hardware acceleration is disabled in WebView");
         }
-        
+
         mStartUrl = "about:blank";
         try {
             Oauth2 oauth = new Oauth2(mAuthRequest);
@@ -262,18 +261,18 @@ public class AuthenticationActivity extends Activity {
                 mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             }
 
-            Logger.v(TAG, "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage 
-                    + " Signature hash for calling package is: " + signatureDigest + " Current context package: " 
+            Logger.v(TAG, "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage
+                    + " Signature hash for calling package is: " + signatureDigest + " Current context package: "
                     + getPackageName(), " Start url: " + mStartUrl, null);
         } else {
-            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(), 
+            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(),
                     " Start url: " + mStartUrl, null);
         }
 
         mRegisterReceiver = false;
         final String postUrl = mStartUrl;
         Logger.i(TAG, "Device info:" + android.os.Build.VERSION.RELEASE + " " + android.os.Build.MANUFACTURER
-                        + android.os.Build.MODEL, "");
+                + android.os.Build.MODEL, "");
 
         mStorageHelper = new StorageHelper(getApplicationContext());
         setupWebView();
@@ -467,7 +466,7 @@ public class AuthenticationActivity extends Activity {
      * Activity sets result to go back to the caller.
      *
      * @param resultCode result code to be returned to the called
-     * @param data intent to be returned to the caller
+     * @param data       intent to be returned to the caller
      */
     private void returnToCaller(int resultCode, Intent data) {
         Logger.v(TAG, "Return To Caller:" + resultCode);
@@ -562,7 +561,7 @@ public class AuthenticationActivity extends Activity {
         Intent resultIntent = new Intent();
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
-    
+
     private void prepareForBrokerResume() {
         final String methodName = ":prepareForBrokerResume";
         Logger.v(TAG + methodName, "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");
@@ -937,7 +936,7 @@ public class AuthenticationActivity extends Activity {
                         userinfo.getDisplayableId());
             }
             result.mAccountName = name;
-            Logger.i(TAG, "Setting account in account manager. Package: " + mPackageName 
+            Logger.i(TAG, "Setting account in account manager. Package: " + mPackageName
                     + " calling app UID:" + mAppCallingUID, " Account name: " + name);
 
 
@@ -999,7 +998,7 @@ public class AuthenticationActivity extends Activity {
                 keylist = "";
             }
             if (!keylist.contains(AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key)) {
-                Logger.v(TAG, "Account does not have the cache key. Saving it to account for the callerUID:" 
+                Logger.v(TAG, "Account does not have the cache key. Saving it to account for the callerUID:"
                         + callingUID, "The key to be saved is: " + key, null);
                 keylist += AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key;
                 mAccountManager.setUserData(cacheAccount,

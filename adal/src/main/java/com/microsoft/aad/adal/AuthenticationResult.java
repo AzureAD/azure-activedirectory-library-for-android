@@ -82,7 +82,7 @@ public class AuthenticationResult implements Serializable {
     private AuthenticationStatus mStatus = AuthenticationStatus.Failed;
 
     private boolean mInitialRequest;
-    
+
     private String mFamilyClientId;
 
     private boolean mIsExtendedLifeTimeToken = false;
@@ -133,7 +133,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Creates result from {@link TokenCacheItem}.
-     * 
+     *
      * @param cacheItem TokenCacheItem to be converted.
      * @return AuthenticationResult
      */
@@ -158,7 +158,7 @@ public class AuthenticationResult implements Serializable {
         result.mInitialRequest = true;
         return result;
     }
-    
+
     static AuthenticationResult createExtendedLifeTimeResult(final TokenCacheItem accessTokenItem) {
         final AuthenticationResult retryResult = createResult(accessTokenItem);
         retryResult.setExpiresOn(retryResult.getExtendedExpiresOn());
@@ -168,7 +168,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Uses access token to create header for web requests.
-     * 
+     *
      * @return AuthorizationHeader
      */
     public String createAuthorizationHeader() {
@@ -177,7 +177,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Access token to send to the service in Authorization Header.
-     * 
+     *
      * @return Access token
      */
     public String getAccessToken() {
@@ -186,7 +186,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Refresh token to get new tokens.
-     * 
+     *
      * @return Refresh token
      */
     public String getRefreshToken() {
@@ -195,7 +195,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Token type.
-     * 
+     *
      * @return access token type
      */
     public String getAccessTokenType() {
@@ -204,7 +204,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Epoch time for expiresOn.
-     * 
+     *
      * @return expiresOn {@link Date}
      */
     public Date getExpiresOn() {
@@ -214,7 +214,7 @@ public class AuthenticationResult implements Serializable {
     /**
      * Multi-resource refresh tokens can be used to request token for another
      * resource.
-     * 
+     *
      * @return multi resource refresh token status
      */
     public boolean getIsMultiResourceRefreshToken() {
@@ -223,7 +223,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * UserInfo returned from IdToken.
-     * 
+     *
      * @return {@link UserInfo}
      */
     public UserInfo getUserInfo() {
@@ -232,7 +232,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Set userinfo after refresh from previous idtoken.
-     * 
+     *
      * @param userinfo latest user info.
      */
     void setUserInfo(UserInfo userinfo) {
@@ -241,7 +241,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets tenantId.
-     * 
+     *
      * @return TenantId
      */
     public String getTenantId() {
@@ -250,7 +250,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets status.
-     * 
+     *
      * @return {@link AuthenticationStatus}
      */
     public AuthenticationStatus getStatus() {
@@ -267,7 +267,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error code.
-     * 
+     *
      * @return Error code
      */
     public String getErrorCode() {
@@ -276,7 +276,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error description.
-     * 
+     *
      * @return error description
      */
     public String getErrorDescription() {
@@ -285,7 +285,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Gets error log info.
-     * 
+     *
      * @return log info
      */
     public String getErrorLogInfo() {
@@ -294,7 +294,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Checks expiration time.
-     * 
+     *
      * @return true if expired
      */
     public boolean isExpired() {
@@ -315,7 +315,7 @@ public class AuthenticationResult implements Serializable {
 
     /**
      * Get raw idtoken.
-     * 
+     *
      * @return IdToken
      */
     public String getIdToken() {
@@ -360,15 +360,15 @@ public class AuthenticationResult implements Serializable {
     void setTenantId(String tenantid) {
         mTenantId = tenantid;
     }
-    
+
     void setRefreshToken(String refreshToken) {
         mRefreshToken = refreshToken;
     }
-    
+
     final String getFamilyClientId() {
         return mFamilyClientId;
     }
-    
+
     final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
     }

@@ -27,9 +27,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Internal class for creating {@link HttpURLConnection}. 
- * For testability, test case could set mocked {@link HttpURLConnection} 
- * to inject dependency. 
+ * Internal class for creating {@link HttpURLConnection}.
+ * For testability, test case could set mocked {@link HttpURLConnection}
+ * to inject dependency.
  */
 final class HttpUrlConnectionFactory {
 
@@ -38,21 +38,23 @@ final class HttpUrlConnectionFactory {
     /**
      * Private constructor to prevent the class from being initiated.
      */
-    private HttpUrlConnectionFactory() { }
+    private HttpUrlConnectionFactory() {
+    }
 
     /**
      * Set the mocked {@link HttpURLConnection}.
+     *
      * @param mockedHttpUrlConnection The mocked {@link HttpURLConnection} to set.
      */
     static void setMockedHttpUrlConnection(final HttpURLConnection mockedHttpUrlConnection) {
         sMockedConnection = mockedHttpUrlConnection;
     }
-    
+
     static HttpURLConnection createHttpUrlConnection(final URL url) throws IOException {
         if (sMockedConnection != null) {
             return sMockedConnection;
         }
-        
+
         return (HttpURLConnection) url.openConnection();
     }
 }

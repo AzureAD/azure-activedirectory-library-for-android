@@ -61,6 +61,7 @@ public class OauthTests extends AndroidTestCase {
     private static final String TEST_RETURNED_EXCEPTION = "test-returned-exception";
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -489,7 +490,7 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testprocessTokenResponse() throws  IOException {
+    public void testprocessTokenResponse() throws IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
                 "resource", "client", "redirect", "loginhint", null, null, null, false);

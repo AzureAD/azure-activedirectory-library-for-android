@@ -23,8 +23,11 @@
 
 package com.microsoft.aad.adal;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -39,11 +42,8 @@ import java.util.TimeZone;
 
 import javax.crypto.NoSuchPaddingException;
 
-import org.mockito.Mockito;
-
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
 

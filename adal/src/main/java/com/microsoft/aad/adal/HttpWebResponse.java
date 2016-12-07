@@ -36,8 +36,9 @@ public class HttpWebResponse {
 
     /**
      * Constructor for {@link HttpWebResponse}.
-     * @param statusCode Status code returned for the http call.
-     * @param responseBody Response body returned from the http network call.
+     *
+     * @param statusCode      Status code returned for the http call.
+     * @param responseBody    Response body returned from the http network call.
      * @param responseHeaders Response header for the network call.
      */
     public HttpWebResponse(int statusCode, String responseBody, Map<String, List<String>> responseHeaders) {

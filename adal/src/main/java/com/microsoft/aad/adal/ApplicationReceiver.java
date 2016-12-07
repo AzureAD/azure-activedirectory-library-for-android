@@ -23,17 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TimeZone;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import com.google.gson.Gson;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -42,6 +31,17 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+
+import com.google.gson.Gson;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Receives system broadcast message for application install events. You need to
@@ -53,7 +53,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
     private static final String TAG = ApplicationReceiver.class.getSimpleName() + ":";
 
     /**
-     *  Shared preference to track broker install.
+     * Shared preference to track broker install.
      */
     public static final String INSTALL_REQUEST_TRACK_FILE = "adal.broker.install.track";
 
@@ -73,10 +73,10 @@ public class ApplicationReceiver extends BroadcastReceiver {
      * Application link to open in the browser.
      */
     public static final String INSTALL_URL_KEY = "app_link";
-    
+
     // Allow 5 mins for broker app to be installed
     private static final int BROKER_APP_INSTALLATION_TIME_OUT = 5;
-    
+
     private BrokerProxy mBrokerProxy;
 
     /**
@@ -84,7 +84,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
      * defined in your manifest.
      *
      * @param context ApplicationContext
-     * @param intent to get the installed package name
+     * @param intent  to get the installed package name
      */
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -123,17 +123,17 @@ public class ApplicationReceiver extends BroadcastReceiver {
     /**
      * Save request fields into shared preference.
      *
-     * @param ctx application context
+     * @param ctx     application context
      * @param request AuthenticationRequest object
-     * @param url request url
+     * @param url     request url
      */
     public static void saveRequest(final Context ctx, final AuthenticationRequest request, final String url) {
         final String methodName = "saveRequest";
-        
+
         Logger.v(TAG + methodName, "ApplicationReceiver starts to save the request in shared preference.");
         SharedPreferences prefs = ctx.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
                 Activity.MODE_PRIVATE);
-        
+
         if (prefs != null) {
             HashMap<String, String> parameters = StringExtensions.getUrlParameters(url);
             if (parameters != null && parameters.containsKey(INSTALL_UPN_KEY)) {
@@ -145,11 +145,11 @@ public class ApplicationReceiver extends BroadcastReceiver {
             Gson gson = new Gson();
             String jsonRequest = gson.toJson(request);
             prefsEditor.putString(INSTALL_REQUEST_KEY, jsonRequest);
-            
+
             // Also saving the timestamp
             final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
             prefsEditor.putLong(INSTALL_REQUEST_TIMESTAMP_KEY, calendar.getTimeInMillis());
-            
+
             prefsEditor.apply();
         } else {
             Logger.v(TAG + methodName, "SharedPreference is null, nothing saved.");
@@ -158,7 +158,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
 
     /**
      * Get username that started the install flow.
-     * 
+     *
      * @param ctx app/activity context
      * @return the username that started the install flow
      */
@@ -185,7 +185,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
      */
     public static String getInstallRequestInthisApp(final Context context) {
         final String methodName = "getInstallRequestInthisApp";
-        
+
         Logger.v(TAG + methodName, "Retrieve saved request from shared preference.");
         SharedPreferences prefs = context.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
                 Activity.MODE_PRIVATE);
@@ -201,7 +201,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
 
     /**
      * Clear the username after resuming login.
-     * 
+     *
      * @param ctx app/activity context
      */
     public static void clearUserName(Context ctx) {
@@ -214,10 +214,10 @@ public class ApplicationReceiver extends BroadcastReceiver {
             prefsEditor.apply();
         }
     }
-    
+
     private boolean isRequestTimestampValidForResume(final Date savedRequestTimestamp) {
         final String methodName = "isRequestTimestampValidForResume";
-        
+
         // Get current UTC time
         final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.add(Calendar.MINUTE, BROKER_APP_INSTALLATION_TIME_OUT * (-1));
@@ -225,7 +225,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
             Logger.v(TAG + methodName, "Saved request is valid, not timeout yet.");
             return true;
         }
-        
+
         Logger.v(TAG + methodName, "Saved request is already timeout");
         return false;
     }
@@ -236,7 +236,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
         Gson gson = new Gson();
         final AuthenticationRequest pendingRequest = gson.fromJson(request, AuthenticationRequest.class);
         ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
-        
+
         sThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -244,10 +244,10 @@ public class ApplicationReceiver extends BroadcastReceiver {
                         + "broker activity.");
                 final Intent resumeIntent = mBrokerProxy.getIntentForBrokerActivity(pendingRequest);
                 resumeIntent.setAction(Intent.ACTION_PICK);
-                
+
                 Logger.v(TAG + methodName, "Setting flag for broker resume request for calling package " + context.getPackageName());
                 resumeIntent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME,
-                AuthenticationConstants.Broker.BROKER_REQUEST_RESUME);
+                        AuthenticationConstants.Broker.BROKER_REQUEST_RESUME);
                 resumeIntent.putExtra(AuthenticationConstants.Broker.CALLER_INFO_PACKAGE, context.getPackageName());
 
                 final String brokerProtocolVersion = resumeIntent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
@@ -255,7 +255,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
                     Logger.v(TAG + methodName, "Broker request resume is not supported in the older version of broker.");
                     return;
                 }
-                
+
                 PackageManager packageManager = context.getPackageManager();
                 // Get activities that can handle the intent
                 List<ResolveInfo> activities = packageManager.queryIntentActivities(resumeIntent, 0);
@@ -273,10 +273,10 @@ public class ApplicationReceiver extends BroadcastReceiver {
             }
         });
     }
-    
+
     private long getInstallRequestTimeStamp(final Context context) {
         final String methodName = "getInstallRequestTimeStamp";
-        
+
         Logger.v(TAG + methodName, "Retrieve timestamp for saved request from shared preference.");
         SharedPreferences prefs = context.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
                 Activity.MODE_PRIVATE);
@@ -285,7 +285,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
             Logger.v(TAG + methodName, "Timestamp for saved request is: " + savedRequestTimeStamp);
             return savedRequestTimeStamp;
         }
-        
+
         return 0;
     }
 }

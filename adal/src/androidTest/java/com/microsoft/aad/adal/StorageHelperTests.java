@@ -201,11 +201,11 @@ public class StorageHelperTests extends AndroidTestHelper {
         final Context context = getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String clearText = "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXH";
-        String encrypted =  storageHelper.encrypt(clearText);
+        String encrypted = storageHelper.encrypt(clearText);
         assertNotNull("encrypted string is not null", encrypted);
         assertFalse("encrypted string is not same as cleartex", encrypted.equals(clearText));
 
-        String decrypted =  storageHelper.decrypt(encrypted);
+        String decrypted = storageHelper.decrypt(encrypted);
         assertTrue("Same without Tampering", decrypted.equals(clearText));
         final String flagVersion = encrypted.substring(0, 3);
         final byte[] bytes = Base64.decode(encrypted.substring(3), Base64.DEFAULT);
@@ -223,7 +223,6 @@ public class StorageHelperTests extends AndroidTestHelper {
     /**
      * Make sure that version sets correctly. It needs to be tested at different
      * emulator(18 and before 18).
-     * 
      */
     public void testVersion() throws GeneralSecurityException, IOException {
 
@@ -305,7 +304,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         Log.d(TAG, "Key1:" + key2.toString());
         assertTrue("Key info is same", key.toString().equals(key2.toString()));
     }
-    
+
     private void setSecretKeyData() throws NoSuchAlgorithmException, InvalidKeySpecException, UnsupportedEncodingException {
         // use same key for tests
         SecretKeyFactory keyFactory = SecretKeyFactory

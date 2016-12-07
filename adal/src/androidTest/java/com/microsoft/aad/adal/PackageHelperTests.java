@@ -23,8 +23,15 @@
 
 package com.microsoft.aad.adal;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.Signature;
+import android.test.AndroidTestCase;
+import android.util.Base64;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
@@ -38,15 +45,8 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.Signature;
-import android.test.AndroidTestCase;
-import android.util.Base64;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PackageHelperTests extends AndroidTestCase {
 

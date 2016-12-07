@@ -36,6 +36,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
+
 import java.io.UnsupportedEncodingException;
 
 @SuppressLint({
@@ -57,7 +58,7 @@ class AuthenticationDialog {
     private WebView mWebView;
 
     public AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
-            AuthenticationRequest request) {
+                                AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
         mAcquireTokenRequest = acquireTokenRequest;
@@ -194,7 +195,7 @@ class AuthenticationDialog {
     class DialogWebViewClient extends BasicWebViewClient {
 
         public DialogWebViewClient(Context ctx, String stopRedirect,
-                AuthenticationRequest request) {
+                                   AuthenticationRequest request) {
             super(ctx, stopRedirect, request);
         }
 

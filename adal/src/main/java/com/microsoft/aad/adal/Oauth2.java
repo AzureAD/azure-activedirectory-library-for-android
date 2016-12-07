@@ -81,7 +81,7 @@ class Oauth2 {
     }
 
     public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
-            IJWSBuilder jwsMessageBuilder) {
+                  IJWSBuilder jwsMessageBuilder) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
@@ -98,7 +98,7 @@ class Oauth2 {
     public String getAuthorizationEndpointQueryParameters() throws UnsupportedEncodingException {
         final Uri.Builder queryParameter = new Uri.Builder();
         queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.RESPONSE_TYPE,
-                        AuthenticationConstants.OAuth2.CODE)
+                AuthenticationConstants.OAuth2.CODE)
                 .appendQueryParameter(AuthenticationConstants.OAuth2.CLIENT_ID,
                         URLEncoder.encode(mRequest.getClientId(),
                                 AuthenticationConstants.ENCODING_UTF8))
@@ -118,7 +118,7 @@ class Oauth2 {
 
         // append device and platform info in the query parameters
         queryParameter.appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_PLATFORM,
-                        AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE)
+                AuthenticationConstants.AAD.ADAL_ID_PLATFORM_VALUE)
                 .appendQueryParameter(AuthenticationConstants.AAD.ADAL_ID_VERSION,
                         URLEncoder.encode(AuthenticationContext.getVersionName(),
                                 AuthenticationConstants.ENCODING_UTF8))
@@ -175,7 +175,7 @@ class Oauth2 {
 
     public String buildTokenRequestMessage(String code) throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with auth code.");
-        
+
         return String.format("%s=%s&%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.AUTHORIZATION_CODE),
@@ -192,7 +192,7 @@ class Oauth2 {
     public String buildRefreshTokenRequestMessage(String refreshToken)
             throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with refresh token.");
-        
+
         String message = String.format("%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
@@ -348,11 +348,11 @@ class Oauth2 {
     /**
      * parse final url for code(normal flow) or token(implicit flow) and then it
      * proceeds to next step.
-     * 
+     *
      * @param authorizationUrl browser reached to this final url and it has code
-     *            or token for next step
+     *                         or token for next step
      * @return Token in the AuthenticationResult. Null result if response does
-     *         not have protocol error.
+     * not have protocol error.
      * @throws IOException
      * @throws AuthenticationException
      */
@@ -400,7 +400,7 @@ class Oauth2 {
 
     /**
      * get code and exchange for token.
-     * 
+     *
      * @param code the authorization code for which Authentication result is needed
      * @return AuthenticationResult
      * @throws IOException
@@ -446,7 +446,7 @@ class Oauth2 {
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 if (response.getResponseHeaders() != null
                         && response.getResponseHeaders().containsKey(
-                                AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
+                        AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
@@ -544,7 +544,7 @@ class Oauth2 {
 
         return result;
     }
-    
+
     private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
         //retry once if there is an observation of a network timeout by the client 
         if (mRetryOnce) {
@@ -586,7 +586,7 @@ class Oauth2 {
 
     /**
      * Extract AuthenticationResult object from response body if available.
-     * 
+     *
      * @param webResponse the web response from which authentication result will be constructed
      * @return AuthenticationResult
      */
@@ -595,7 +595,7 @@ class Oauth2 {
         String correlationIdInHeader = null;
         if (webResponse.getResponseHeaders() != null
                 && webResponse.getResponseHeaders().containsKey(
-                        AuthenticationConstants.AAD.CLIENT_REQUEST_ID)) {
+                AuthenticationConstants.AAD.CLIENT_REQUEST_ID)) {
             // headers are returning as a list
             List<String> listOfHeaders = webResponse.getResponseHeaders().get(
                     AuthenticationConstants.AAD.CLIENT_REQUEST_ID);

@@ -23,17 +23,17 @@
 
 package com.microsoft.aad.adal;
 
+import android.text.TextUtils;
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.text.TextUtils;
-import android.util.Log;
 
 final class HashMapExtensions {
 
@@ -42,9 +42,10 @@ final class HashMapExtensions {
     private HashMapExtensions() {
         // Intentionally left blank
     }
+
     /**
      * decode url string into a key value pairs with default query delimiter.
-     * 
+     *
      * @param parameters URL query parameter
      * @return key value pairs
      */
@@ -55,9 +56,9 @@ final class HashMapExtensions {
     /**
      * decode url string into a key value pairs with given query delimiter given
      * string as a=1&b=2 will return key value of [[a,1],[b,2]].
-     * 
+     *
      * @param parameters URL parameter to be decoded
-     * @param delimiter query delimiter
+     * @param delimiter  query delimiter
      * @return Map key value pairs
      */
     static HashMap<String, String> urlFormDecodeData(String parameters, String delimiter) {
@@ -90,10 +91,11 @@ final class HashMapExtensions {
 
         return result;
     }
-    
-    
+
+
     /**
      * get key value pairs from response.
+     *
      * @param webResponse HttpWebResponse to convert to a map
      * @return Map
      * @throws JSONException

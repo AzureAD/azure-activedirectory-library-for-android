@@ -23,14 +23,15 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
 import android.net.Uri;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
+
 import junit.framework.TestCase;
+
+import java.io.UnsupportedEncodingException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 public class UserInfoTests extends TestCase {
     static final int MILLISECONDS_TO_SECONDS = 1000;
