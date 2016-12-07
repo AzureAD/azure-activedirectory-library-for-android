@@ -33,10 +33,6 @@ class AuthenticationRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final int DELIM_NOT_FOUND = -1;
-
-    private static final String UPN_DOMAIN_SUFFIX_DELIM = "@";
-
     private int mRequestId = 0;
 
     private String mAuthority = null;
@@ -80,7 +76,7 @@ class AuthenticationRequest implements Serializable {
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId, boolean isExtendedLifetimeEnabled) {
+            String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -95,7 +91,7 @@ class AuthenticationRequest implements Serializable {
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, UUID requestCorrelationId, boolean isExtendedLifetimeEnabled) {
+            String loginhint, UUID requestCorrelationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -107,7 +103,7 @@ class AuthenticationRequest implements Serializable {
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, boolean isExtendedLifetimeEnabled) {
+            String loginhint, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -126,15 +122,15 @@ class AuthenticationRequest implements Serializable {
 
     /**
      * Cache usage and refresh token requests.
-     *
-     * @param authority     Authority URL
-     * @param resource      Resource that is requested
-     * @param clientid      ClientId for the app
-     * @param userid        user id
+     * 
+     * @param authority Authority URL
+     * @param resource Resource that is requested
+     * @param clientid ClientId for the app
+     * @param userid user id
      * @param correlationId for logging
      */
     public AuthenticationRequest(String authority, String resource, String clientid, String userid,
-                                 UUID correlationId, boolean isExtendedLifetimeEnabled) {
+            UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mResource = resource;
         mClientId = clientid;
@@ -144,7 +140,7 @@ class AuthenticationRequest implements Serializable {
     }
 
     public AuthenticationRequest(String authority, String resource, String clientId,
-                                 UUID correlationId, boolean isExtendedLifetimeEnabled) {
+            UUID correlationId, boolean isExtendedLifetimeEnabled) {
         mAuthority = authority;
         mClientId = clientId;
         mResource = resource;
@@ -254,13 +250,13 @@ class AuthenticationRequest implements Serializable {
     public void setUserIdentifierType(UserIdentifierType user) {
         mIdentifierType = user;
     }
-
-    public boolean getIsExtendedLifetimeEnabled() {
-        return mIsExtendedLifetimeEnabled;
+    
+    public boolean getIsExtendedLifetimeEnabled() { 
+        return mIsExtendedLifetimeEnabled; 
     }
 
     /**
-     * Get either loginhint or user id based what's passed in the request.
+     * Get either loginhint or user id based what's passed in the request. 
      */
     String getUserFromRequest() {
         if (UserIdentifierType.LoginHint == mIdentifierType) {
@@ -268,18 +264,7 @@ class AuthenticationRequest implements Serializable {
         } else if (UserIdentifierType.UniqueId == mIdentifierType) {
             return mUserId;
         }
-
+        
         return null;
-    }
-
-    public String getUpnSuffix() {
-        final String hint = getLoginHint();
-        final int dIndex = hint.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
-
-        if (DELIM_NOT_FOUND == dIndex) { // check UPN has domain
-            // TODO throw exception?
-        }
-
-        return hint.substring(dIndex + 1);
     }
 }

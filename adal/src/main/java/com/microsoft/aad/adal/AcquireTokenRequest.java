@@ -153,7 +153,7 @@ class AcquireTokenRequest {
 
         // validate authority
         if (mAuthContext.getValidateAuthority()) {
-            validateAuthority(authorityUrl, authenticationRequest.getUpnSuffix());
+            validateAuthority(authorityUrl);
         }
 
         // Verify broker redirect uri for non-silent request
@@ -178,14 +178,14 @@ class AcquireTokenRequest {
      * Perform authority validation.
      * True if the passed in authority is valid, false otherwise.
      */
-    private void validateAuthority(final URL authorityUrl, final String domain) throws AuthenticationException {
+    private void validateAuthority(final URL authorityUrl) throws AuthenticationException {
         if (mAuthContext.getIsAuthorityValidated()) {
             return;
         }
 
         Logger.v(TAG, "Start validating authority");
         mDiscovery.setCorrelationId(mAuthContext.getRequestCorrelationId());
-        mDiscovery.validateAuthority(authorityUrl, domain);
+        mDiscovery.validateAuthority(authorityUrl);
 
         Logger.v(TAG, "The passe in authority is valid.");
         mAuthContext.setIsAuthorityValidated(true);
@@ -193,13 +193,13 @@ class AcquireTokenRequest {
 
     /**
      * 1. For Silent flow, we should always try to look local cache first.
-     * i> If valid AT is returned from cache, use it.
-     * ii> If no valid AT is returned, but RT is returned, use the RT.
-     * iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
+     *    i> If valid AT is returned from cache, use it.
+     *    ii> If no valid AT is returned, but RT is returned, use the RT.
+     *    iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
      * 2. For Non-Silent flow.
-     * i> Do silent cache lookup first, same as 1.
-     * a) If we can talk to broker, go to broker for auth.
-     * b) If not, launch webview with embedded flow.
+     *    i> Do silent cache lookup first, same as 1.
+     *       a) If we can talk to broker, go to broker for auth.
+     *       b) If not, launch webview with embedded flow.
      * If silent request succeeds, we'll return the token back via callback.
      * If silent request fails and no prompt is allowed, we'll return the exception back via callback.
      * If silent request fails and prompt is allowed, we'll prompt the user and launch webview.
@@ -272,7 +272,7 @@ class AcquireTokenRequest {
 
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
-        return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
+       return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
     }
 
     /**
@@ -429,7 +429,7 @@ class AcquireTokenRequest {
                     = new AcquireTokenInteractiveRequest(mContext, authenticationRequest, mTokenCacheAccessor);
             acquireTokenInteractiveRequest.acquireToken(activity,
                     useDialog ? new AuthenticationDialog(getHandler(), mContext, this, authenticationRequest)
-                            : null);
+                    : null);
         }
     }
 
@@ -505,7 +505,7 @@ class AcquireTokenRequest {
      * Activity class. This method is called at UI thread.
      *
      * @param resultCode Result code set from the activity.
-     * @param data       {@link Intent}
+     * @param data {@link Intent}
      */
     void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         final String methodName = ":onActivityResult";
@@ -564,8 +564,8 @@ class AcquireTokenRequest {
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
                     Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker "
-                            + "installation. Once broker is installed, request will be resumed and result "
-                            + "will be received");
+                        + "installation. Once broker is installed, request will be resumed and result "
+                        + "will be received");
 
                     //Register the broker resume result receiver with intent filter as broker_request_resume and
                     // specific app package name
@@ -765,8 +765,7 @@ class AcquireTokenRequest {
      * Responsible for receiving message from broker indicating the broker has completed the token acquisition.
      */
     protected class BrokerResumeResultReceiver extends BroadcastReceiver {
-        public BrokerResumeResultReceiver() {
-        }
+        public BrokerResumeResultReceiver() { }
 
         private boolean mReceivedResultFromBroker = false;
 
