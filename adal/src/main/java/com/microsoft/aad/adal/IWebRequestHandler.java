@@ -34,7 +34,8 @@ import java.util.UUID;
 public interface IWebRequestHandler {
     /**
      * Send the http GET request.
-     * @param url {@link URL} for the GET request.
+     *
+     * @param url     {@link URL} for the GET request.
      * @param headers Non-null, and mutable Map of headers sent in the GET request.
      * @return {@link HttpWebResponse} containing the status code and response headers.
      * @throws IOException when error occurs on reading the http response.
@@ -43,18 +44,20 @@ public interface IWebRequestHandler {
 
     /**
      * Send the HTTP POST request.
-     * @param url {@link URL} for the POST request.
-     * @param headers Non-null, and mutable Map of headers sent int the POST request.
-     * @param content The content sent as POST message.
+     *
+     * @param url         {@link URL} for the POST request.
+     * @param headers     Non-null, and mutable Map of headers sent int the POST request.
+     * @param content     The content sent as POST message.
      * @param contentType Content type of the POST request.
      * @return {@link HttpWebResponse} containing the status code and response header.
      * @throws IOException when error occurs on reading the http response.
      */
     HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
-            String contentType) throws IOException;
+                             String contentType) throws IOException;
 
     /**
      * Set the correlation id for the web request.
+     *
      * @param requestCorrelationId {@link UUID} of the correlation id to set in the web request.
      */
     void setRequestCorrelationId(UUID requestCorrelationId);

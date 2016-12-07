@@ -23,12 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.aad.adal.Logger.ILogger;
+import com.microsoft.aad.adal.Logger.LogLevel;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
-
-import com.microsoft.aad.adal.Logger.ILogger;
-import com.microsoft.aad.adal.Logger.LogLevel;
 
 public class LoggerTest extends AndroidTestHelper {
 

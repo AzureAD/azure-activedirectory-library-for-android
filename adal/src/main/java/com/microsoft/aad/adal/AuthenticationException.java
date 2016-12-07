@@ -42,7 +42,7 @@ public class AuthenticationException extends Exception {
 
     /**
      * Constructs a new AuthenticationException with error code.
-     * 
+     *
      * @param code {@link ADALError}
      */
     public AuthenticationException(ADALError code) {
@@ -50,10 +50,10 @@ public class AuthenticationException extends Exception {
     }
 
     /**
-     * @param code Resource file related error code. Message will be derived
-     *            from resource with using app context
+     * @param code    Resource file related error code. Message will be derived
+     *                from resource with using app context
      * @param details Details related to the error such as query string, request
-     *            info
+     *                info
      */
     public AuthenticationException(ADALError code, String details) {
         super(details);
@@ -61,10 +61,10 @@ public class AuthenticationException extends Exception {
     }
 
     /**
-     * @param code Resource file related error code. Message will be derived
-     *            from resource with using app context
-     * @param details Details related to the error such as query string, request
-     *            info
+     * @param code      Resource file related error code. Message will be derived
+     *                  from resource with using app context
+     * @param details   Details related to the error such as query string, request
+     *                  info
      * @param throwable {@link Throwable}
      */
     public AuthenticationException(ADALError code, String details, Throwable throwable) {
@@ -74,7 +74,7 @@ public class AuthenticationException extends Exception {
 
     /**
      * Gets {@link ADALError} code.
-     * 
+     *
      * @return {@link ADALError} code
      */
     public ADALError getCode() {
@@ -88,7 +88,7 @@ public class AuthenticationException extends Exception {
 
     /**
      * Gets localized {@link ADALError} code if provided by context.
-     * 
+     *
      * @param context {@link Context}
      * @return Error message
      */

@@ -36,7 +36,7 @@ import java.util.Map;
 public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 3465700945655867086L;
 

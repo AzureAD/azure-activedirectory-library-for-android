@@ -23,6 +23,17 @@
 
 package com.microsoft.aad.adal;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Build;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -34,17 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Build;
 
 /**
  * Store/Retrieve TokenCacheItem from private SharedPreferences.
@@ -63,10 +63,11 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     private Context mContext;
 
     private Gson mGson = new GsonBuilder()
-    .registerTypeAdapter(Date.class, new DateTimeAdapter())
-    .create();
+            .registerTypeAdapter(Date.class, new DateTimeAdapter())
+            .create();
     private static StorageHelper sHelper;
     private static final Object LOCK = new Object();
+
     /**
      * @param context {@link Context}
      */
@@ -96,7 +97,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         if (mPrefs == null) {
             throw new IllegalStateException(ADALError.DEVICE_SHARED_PREF_IS_NOT_AVAILABLE.getDescription());
         }
-        
+
         // Check upfront when initializing DefaultTokenCacheStore. 
         // If it's under API 18 and secretkey is not provided, we should fail upfront to inform 
         // notify developers. 
@@ -132,7 +133,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         if (StringExtensions.isNullOrBlank(key)) {
             throw new IllegalArgumentException("key is null or blank");
         }
-        
+
         try {
             return getStorageHelper().decrypt(value);
         } catch (GeneralSecurityException | IOException e) {
@@ -211,7 +212,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * User can query over iterator values.
-     * 
+     *
      * @return TokenCacheItem list iterator
      */
     @Override
@@ -221,13 +222,13 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         // create objects
         final List<TokenCacheItem> tokens = new ArrayList<>(results.values().size());
-        
+
         Iterator<Entry<String, String>> tokenResultEntrySet = results.entrySet().iterator();
         while (tokenResultEntrySet.hasNext()) {
             final Entry<String, String> tokenEntry = tokenResultEntrySet.next();
             final String tokenKey = tokenEntry.getKey();
             final String tokenValue = tokenEntry.getValue();
-            
+
             final String decryptedValue = decrypt(tokenKey, tokenValue);
             if (decryptedValue != null) {
                 final TokenCacheItem tokenCacheItem = mGson.fromJson(decryptedValue, TokenCacheItem.class);
@@ -240,14 +241,14 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Unique users with tokens.
-     * 
+     *
      * @return unique users
      */
     @Override
     public Set<String> getUniqueUsersWithTokenCache() {
         Iterator<TokenCacheItem> results = this.getAll();
         final Set<String> users = new HashSet<>();
-        
+
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
             if (tokenCacheItem.getUserInfo() != null && !users.contains(tokenCacheItem.getUserInfo().getUserId())) {
@@ -260,7 +261,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Tokens for resource.
-     * 
+     *
      * @param resource Resource identifier
      * @return list of {@link TokenCacheItem}
      */
@@ -282,7 +283,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Get tokens for user.
-     * 
+     *
      * @param userId userId
      * @return list of {@link TokenCacheItem}
      */
@@ -290,7 +291,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     public List<TokenCacheItem> getTokensForUser(String userId) {
         Iterator<TokenCacheItem> results = this.getAll();
         final List<TokenCacheItem> tokenItems = new ArrayList<>();
-        
+
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
             if (tokenCacheItem.getUserInfo() != null
@@ -304,7 +305,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Clear tokens for user without additional retry.
-     * 
+     *
      * @param userId UserId
      */
     @Override
@@ -328,7 +329,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
     /**
      * Get tokens about to expire.
-     * 
+     *
      * @return list of {@link TokenCacheItem}
      */
     @Override
@@ -338,10 +339,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         while (results.hasNext()) {
             final TokenCacheItem tokenCacheItem = results.next();
-                if (isAboutToExpire(tokenCacheItem.getExpiresOn())) {
-                    tokenItems.add(tokenCacheItem);
-                }
+            if (isAboutToExpire(tokenCacheItem.getExpiresOn())) {
+                tokenItems.add(tokenCacheItem);
             }
+        }
 
 
         return tokenItems;
@@ -377,7 +378,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
 
         return mPrefs.contains(key);
     }
-    
+
     private static final class EncryptionDecryptionFailureEvent extends ClientAnalytics.Event {
         private EncryptionDecryptionFailureEvent(final InstrumentationPropertiesBuilder builder, final boolean isEncryption) {
             super(isEncryption ? InstrumentationIDs.ENCRYPTION_EVENT : InstrumentationIDs.DECRYPTION_EVENT,

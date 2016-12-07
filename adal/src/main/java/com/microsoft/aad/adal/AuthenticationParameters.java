@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+import android.os.Handler;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -34,9 +37,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import android.content.Context;
-import android.os.Handler;
 
 /**
  * Matching to ADAL.NET It provides helper methods to get the
@@ -106,7 +106,7 @@ public class AuthenticationParameters {
 
     /**
      * get authority from the header.
-     * 
+     *
      * @return Authority extracted from the header.
      */
     public String getAuthority() {
@@ -115,7 +115,7 @@ public class AuthenticationParameters {
 
     /**
      * get resource from the header.
-     * 
+     *
      * @return resource from the header.
      */
     public String getResource() {
@@ -140,20 +140,20 @@ public class AuthenticationParameters {
 
         /**
          * @param exception {@link Exception}
-         * @param param {@link AuthenticationParameters}
+         * @param param     {@link AuthenticationParameters}
          */
         void onCompleted(Exception exception, AuthenticationParameters param);
     }
 
     /**
      * ADAL will make the call to get authority and resource info.
-     * 
-     * @param context {@link Context}
+     *
+     * @param context     {@link Context}
      * @param resourceUrl Url for resource to query for 401 response.
-     * @param callback  {@link AuthenticationParamCallback}
+     * @param callback    {@link AuthenticationParamCallback}
      */
     public static void createFromResourceUrl(Context context, final URL resourceUrl,
-            final AuthenticationParamCallback callback) {
+                                             final AuthenticationParamCallback callback) {
 
         if (callback == null) {
             throw new IllegalArgumentException("callback");
@@ -195,9 +195,10 @@ public class AuthenticationParameters {
     /**
      * ADAL will parse the header response to get the authority and the resource
      * info.
+     *
      * @param authenticateHeader Header to check authority and resource.
-     * @throws {@link ResourceAuthenticationChallengeException}
      * @return {@link AuthenticationParameters}
+     * @throws {@link ResourceAuthenticationChallengeException}
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
             String authenticateHeader) throws ResourceAuthenticationChallengeException {

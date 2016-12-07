@@ -23,8 +23,9 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.Locale;
 import android.content.Context;
+
+import java.util.Locale;
 
 public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 
@@ -134,7 +135,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertNotNull("Token cache item is expected to be NOT null", item);
         assertEquals("same item", mTestItem.getTenantId(), item.getTenantId());
         assertEquals("same item", mTestItem.getAccessToken(), item.getAccessToken());
-        
+
         item = store.getItem(CacheKey.createCacheKey("", "", "", true, "", null));
         assertNull("Token cache item is expected to be null", item);
 

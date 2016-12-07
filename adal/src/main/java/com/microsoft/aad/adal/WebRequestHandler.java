@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.os.Build;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     @Override
     public HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
-            String contentType) throws IOException {
+                                    String contentType) throws IOException {
         Logger.v(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         final HttpWebRequest request = new HttpWebRequest(
@@ -88,7 +89,7 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     /**
      * Sets correlationId.
-     * 
+     *
      * @param requestCorrelationId {@link UUID}
      */
     public void setRequestCorrelationId(UUID requestCorrelationId) {

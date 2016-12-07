@@ -54,10 +54,10 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
     /**
      * test the usage of cache from different threads. It is expected to work
      * with multiThreads
-     * 
+     *
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
-     * @throws AuthenticationException 
+     * @throws AuthenticationException
      */
     public void testSharedCacheGetItem() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
         final ITokenCacheStore store = setupItems();
@@ -130,10 +130,10 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
     /**
      * memory cache is shared between context
-     * 
+     *
      * @throws NoSuchPaddingException
      * @throws NoSuchAlgorithmException
-     * @throws AuthenticationException 
+     * @throws AuthenticationException
      */
     public void testMemoryCacheMultipleContext() throws NoSuchAlgorithmException,
             NoSuchPaddingException, AuthenticationException {

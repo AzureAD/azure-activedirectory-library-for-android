@@ -23,6 +23,16 @@
 
 package com.microsoft.aad.adal;
 
+import android.util.Log;
+
+import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
+import com.microsoft.aad.adal.Logger.ILogger;
+import com.microsoft.aad.adal.Logger.LogLevel;
+
+import junit.framework.Assert;
+
+import org.mockito.Mockito;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,13 +44,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-
-import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
-import com.microsoft.aad.adal.Logger.ILogger;
-import com.microsoft.aad.adal.Logger.LogLevel;
-import android.util.Log;
-import junit.framework.Assert;
-import org.mockito.Mockito;
 
 public class AuthenticationParamsTests extends AndroidTestHelper {
 

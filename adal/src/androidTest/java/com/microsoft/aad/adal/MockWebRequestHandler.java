@@ -23,12 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import junit.framework.Assert;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
-
-import junit.framework.Assert;
 
 /**
  * handler to return mock responses
@@ -60,7 +60,7 @@ class MockWebRequestHandler implements IWebRequestHandler {
 
     @Override
     public HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
-            String contentType) throws IOException {
+                                    String contentType) throws IOException {
         mRequestUrl = url;
         mRequestHeaders = headers;
         if (content != null) {

@@ -28,10 +28,11 @@ final class Utility {
     /**
      * Private constructor to prevent the class from being initiated.
      */
-    private Utility() { }
-    
+    private Utility() {
+    }
+
     /**
-     * Create an immutable object for the input Date object 
+     * Create an immutable object for the input Date object
      * to avoid exposing the internal references.
      */
     static Date getImmutableDateObject(final Date date) {
@@ -41,5 +42,5 @@ final class Utility {
 
         return date;
     }
-    
+
 }

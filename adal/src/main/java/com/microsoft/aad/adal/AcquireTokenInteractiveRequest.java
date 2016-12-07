@@ -81,7 +81,6 @@ final class AcquireTokenInteractiveRequest {
     }
 
     /**
-     *
      * @param url Url containing the auth code.
      * @return {@link AuthenticationResult} for acquire token request with grant_type as code.
      * @throws AuthenticationException

@@ -55,7 +55,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
     /**
      * send invalid request to production service
      *
-     * @throws IOException 
+     * @throws IOException
      */
     @SmallTest
     public void testCorrelationIdInRequest() throws IOException {

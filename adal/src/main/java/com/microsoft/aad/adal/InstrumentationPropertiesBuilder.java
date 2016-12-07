@@ -31,9 +31,9 @@ import java.util.Map;
  */
 class InstrumentationPropertiesBuilder {
     private final Map<String, String> mProperties = new HashMap<>();
-    
+
     /**
-     * Initialize properties for event failed with exception. 
+     * Initialize properties for event failed with exception.
      */
     InstrumentationPropertiesBuilder(final Exception exception) {
         addProperty(InstrumentationIDs.ERROR_CLASS, exception.getClass().getSimpleName());
@@ -42,8 +42,9 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Initializes properties for request that had exception during execution.
+     *
      * @param request AuthenticationRequest for which properties to be added
-     * @param exc Exception from which error messages to be added
+     * @param exc     Exception from which error messages to be added
      */
     InstrumentationPropertiesBuilder(AuthenticationRequest request, Exception exc) {
         addPropertiesForRequest(request);
@@ -59,8 +60,9 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Initializes properties for request that got results at the end of execution.
+     *
      * @param request AuthenticationRequest for which properties are to be added
-     * @param result AuthenticationResult for which errors to be added
+     * @param result  AuthenticationResult for which errors to be added
      */
     InstrumentationPropertiesBuilder(AuthenticationRequest request, AuthenticationResult result) {
         addPropertiesForRequest(request);
@@ -72,7 +74,8 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Adds property.
-     * @param propertyName property name to be added
+     *
+     * @param propertyName  property name to be added
      * @param propertyValue property value to be added
      * @return InstrumentationPropertiesBuilder
      */
@@ -83,6 +86,7 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Returns map of properties for event.
+     *
      * @return Map the entire Map of property names and values
      */
     Map<String, String> build() {
@@ -91,7 +95,8 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Adds property if the value isn't null.
-     * @param propertyName property name to be added
+     *
+     * @param propertyName  property name to be added
      * @param propertyValue property value to be added
      */
     private void addProperty(String propertyName, String propertyValue) {
@@ -102,6 +107,7 @@ class InstrumentationPropertiesBuilder {
 
     /**
      * Add basic properties for request.
+     *
      * @param request AuthenticationRequest for which properties are to be added
      */
     private void addPropertiesForRequest(AuthenticationRequest request) {

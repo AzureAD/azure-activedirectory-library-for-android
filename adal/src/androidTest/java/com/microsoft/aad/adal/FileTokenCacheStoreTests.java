@@ -23,16 +23,16 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+
+import com.microsoft.aad.adal.Logger.ILogger;
+import com.microsoft.aad.adal.Logger.LogLevel;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
-
-import com.microsoft.aad.adal.Logger.ILogger;
-import com.microsoft.aad.adal.Logger.LogLevel;
-
-import android.content.Context;
 
 public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
@@ -195,29 +195,30 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mCacheItem));
         assertNull("Token cache item is expected to be null", item);
     }
-    
+
     public void testGetAll() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
         ITokenCacheStore store = new FileTokenCacheStore(mTargetContex, file);
 
         final Iterator<TokenCacheItem> allItems = store.getAll();
-        
+
         assertTrue(allItems.hasNext());
         final TokenCacheItem tokenCacheItem1 = allItems.next();
         assertNotNull(tokenCacheItem1);
-        
+
         assertTrue(allItems.hasNext());
         final TokenCacheItem tokenCacheItem2 = allItems.next();
         assertNotNull(tokenCacheItem2);
-        
+
         assertFalse(allItems.hasNext());
     }
 
     /**
      * test the usage of cache from different threads. It is expected to work
      * with multiThreads
-     * @throws AuthenticationException 
+     *
+     * @throws AuthenticationException
      */
     public void testSharedCacheGetItem() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
@@ -258,7 +259,8 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
     /**
      * memory cache is shared between context
-     * @throws AuthenticationException 
+     *
+     * @throws AuthenticationException
      */
     public void testMemoryCacheMultipleContext() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
@@ -295,7 +297,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
         @Override
         public void Log(String tag, String message, String additionalMessage, LogLevel level,
-                ADALError errorCode) {
+                        ADALError errorCode) {
             mLogMessage = message;
             mLogErrorCode = errorCode;
         }
