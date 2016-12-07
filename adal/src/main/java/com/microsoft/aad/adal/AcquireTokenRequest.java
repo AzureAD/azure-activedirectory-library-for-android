@@ -153,7 +153,7 @@ class AcquireTokenRequest {
 
         // validate authority
         if (mAuthContext.getValidateAuthority()) {
-            validateAuthority(authorityUrl);
+            validateAuthority(authorityUrl, authenticationRequest.getUpnSuffix());
         }
 
         // Verify broker redirect uri for non-silent request
@@ -178,14 +178,14 @@ class AcquireTokenRequest {
      * Perform authority validation.
      * True if the passed in authority is valid, false otherwise.
      */
-    private void validateAuthority(final URL authorityUrl) throws AuthenticationException {
+    private void validateAuthority(final URL authorityUrl, final String domain) throws AuthenticationException {
         if (mAuthContext.getIsAuthorityValidated()) {
             return;
         }
 
         Logger.v(TAG, "Start validating authority");
         mDiscovery.setCorrelationId(mAuthContext.getRequestCorrelationId());
-        mDiscovery.validateAuthority(authorityUrl);
+        mDiscovery.validateAuthority(authorityUrl, domain);
 
         Logger.v(TAG, "The passe in authority is valid.");
         mAuthContext.setIsAuthorityValidated(true);

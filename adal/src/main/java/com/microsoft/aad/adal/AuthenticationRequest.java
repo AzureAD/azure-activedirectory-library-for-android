@@ -33,6 +33,10 @@ class AuthenticationRequest implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private static final int DELIM_NOT_FOUND = -1;
+
+    private static final String UPN_DOMAIN_SUFFIX_DELIM = "@";
+
     private int mRequestId = 0;
 
     private String mAuthority = null;
@@ -266,5 +270,16 @@ class AuthenticationRequest implements Serializable {
         }
         
         return null;
+    }
+
+    public String getUpnSuffix() {
+        final String hint = getLoginHint();
+        final int dIndex = hint.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
+
+        if (DELIM_NOT_FOUND == dIndex) { // check UPN has domain
+            // TODO throw exception
+        }
+
+        return hint.substring(dIndex + 1);
     }
 }

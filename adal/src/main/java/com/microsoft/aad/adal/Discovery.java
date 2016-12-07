@@ -86,7 +86,7 @@ final class Discovery {
         mWebrequestHandler = new WebRequestHandler();
     }
 
-    public void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
+    public void validateAuthority(final URL authorizationEndpoint, final String domain) throws AuthenticationException {
         // For comparison purposes, convert to lowercase Locale.US
         // getProtocol returns scheme and it is available if it is absolute url
         // Authority is in the form of https://Instance/tenant/somepath
@@ -99,12 +99,11 @@ final class Discovery {
         }
 
         if (UrlExtensions.isADFSAuthority(authorizationEndpoint)) {
-            Logger.e(TAG, "Instance validation returned error", "",
-                    ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
-                    new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
-                    "Cannot vaid ADFS authority",
-                    new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED));
+            if (StringExtensions.isNullOrBlank(domain)) {
+                throw new IllegalArgumentException("Cannot validate AD FS Authority with domain [null]");
+            }
+
+            validateADFS(authorizationEndpoint, domain);
         }
 
         if (!VALID_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
@@ -114,6 +113,19 @@ final class Discovery {
             // Only query from Prod instance for now, not all of the instances in the list
             queryInstance(authorizationEndpoint);
         }
+    }
+
+    private void validateADFS(URL authorizationEndpoint, String domain) {
+        final DrsMetadata metadata = requestDrsDiscovery(domain);
+        validateAuthorityWithWebFinger(authorizationEndpoint, metadata);
+    }
+
+    private void validateAuthorityWithWebFinger(URL authorizationEndpoint, DrsMetadata metadata) {
+
+    }
+
+    private DrsMetadata requestDrsDiscovery(String domain) {
+        return null;
     }
 
     /**
