@@ -86,7 +86,7 @@ final class Discovery {
         mWebrequestHandler = new WebRequestHandler();
     }
 
-    public void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
+    public void validateAuthority(final URL authorizationEndpoint, final String domain) throws AuthenticationException {
         // For comparison purposes, convert to lowercase Locale.US
         // getProtocol returns scheme and it is available if it is absolute url
         // Authority is in the form of https://Instance/tenant/somepath
@@ -99,12 +99,11 @@ final class Discovery {
         }
 
         if (UrlExtensions.isADFSAuthority(authorizationEndpoint)) {
-            Logger.e(TAG, "Instance validation returned error", "",
-                    ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
-                    new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
-                    "Cannot vaid ADFS authority",
-                    new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED));
+            if (StringExtensions.isNullOrBlank(domain)) {
+                throw new IllegalArgumentException("Cannot validate AD FS Authority with domain [null]");
+            }
+
+            validateADFS(authorizationEndpoint, domain);
         }
 
         if (!VALID_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
@@ -116,8 +115,24 @@ final class Discovery {
         }
     }
 
+    private void validateADFS(final URL authorizationEndpoint, final String domain) {
+        final DrsMetadata metadata = requestDrsDiscovery(domain);
+        validateAuthorityWithWebFinger(authorizationEndpoint, metadata);
+    }
+
+    private void validateAuthorityWithWebFinger(final URL authorizationEndpoint, final DrsMetadata metadata) {
+
+    }
+
+    private DrsMetadata requestDrsDiscovery(final String domain) {
+        // request discovery doc
+        // parse into DrsMetadata
+        return null;
+    }
+
     /**
      * Set correlation id for the tenant discovery call.
+     *
      * @param requestCorrelationId The correlation id for the tenant discovery.
      */
     public void setCorrelationId(final UUID requestCorrelationId) {
@@ -188,7 +203,7 @@ final class Discovery {
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
                         "Fail to valid authority with errors: " + errorCodes);
             }
-            
+
             return discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT);
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(
@@ -213,7 +228,7 @@ final class Discovery {
     /**
      * get Json output from web response body. If it is well formed response, it
      * will have tenant discovery endpoint.
-     * 
+     *
      * @param webResponse HttpWebResponse from which Json has to be extracted
      * @return true if tenant discovery endpoint is reported. false otherwise.
      * @throws JSONException
@@ -225,7 +240,7 @@ final class Discovery {
     /**
      * service side does not validate tenant, so it is sending common keyword as
      * tenant.
-     * 
+     *
      * @param authorizationEndpointUrl converts the endpoint URL to authorization endpoint
      * @return https://hostname/common
      */
@@ -237,8 +252,8 @@ final class Discovery {
 
     /**
      * It will build query url to check the authorization endpoint.
-     * 
-     * @param instance authority instance
+     *
+     * @param instance                 authority instance
      * @param authorizationEndpointUrl authorization endpoint
      * @return URL
      * @throws MalformedURLException
