@@ -48,16 +48,14 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     private final String mRedirect;
     private final AuthenticationRequest mRequest;
-    private final String mQueryParam;
     private final Context mCallingContext;
 
 
     public BasicWebViewClient(final Context appContext, final String redirect,
-                              final String queryParam, final AuthenticationRequest request) {
+                              final AuthenticationRequest request) {
         mCallingContext = appContext;
         mRedirect = redirect;
         mRequest = request;
-        mQueryParam = queryParam;
     }
 
     public abstract void showSpinner(boolean status);
@@ -196,12 +194,6 @@ abstract class BasicWebViewClient extends WebViewClient {
                             @Override
                             public void run() {
                                 String loadUrl = challengeResponse.getSubmitUrl();
-                                HashMap<String, String> parameters = StringExtensions
-                                        .getUrlParameters(challengeResponse.getSubmitUrl());
-                                if (!parameters
-                                        .containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
-                                    loadUrl = loadUrl + "?" + mQueryParam;
-                                }
                                 Logger.v(TAG, "Respond to pkeyAuth challenge", "Challenge submit url:" 
                                         + challengeResponse.getSubmitUrl(), null);
                                 view.loadUrl(loadUrl, headers);
