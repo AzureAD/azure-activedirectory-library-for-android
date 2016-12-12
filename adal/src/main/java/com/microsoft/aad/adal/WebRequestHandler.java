@@ -29,6 +29,9 @@ import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.microsoft.aad.adal.HttpConstants.HeaderField.*;
+import static com.microsoft.aad.adal.HttpConstants.MediaType.*;
+
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple
  * reuses for same tasks. Each request returns a handler for cancel action. Call

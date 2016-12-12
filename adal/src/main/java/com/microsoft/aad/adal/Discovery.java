@@ -115,21 +115,14 @@ final class Discovery {
         }
     }
 
-    private void validateADFS(URL authorizationEndpoint, String domain) {
-        final DrsMetadata metadata = requestDrsDiscovery(domain);
-        validateAuthorityWithWebFinger(authorizationEndpoint, metadata);
-    }
-
-    private void validateAuthorityWithWebFinger(URL authorizationEndpoint, DrsMetadata metadata) {
-
-    }
-
-    private DrsMetadata requestDrsDiscovery(String domain) {
-        return null;
+    private void validateADFS(URL authorizationEndpoint, String domain) throws AuthenticationException {
+        final DrsMetadata drsMetadata = new DrsMetadataRequester().requestDrsDiscovery(domain);
+        new AdfsWebFingerValidator().validateAuthority(authorizationEndpoint, drsMetadata);
     }
 
     /**
      * Set correlation id for the tenant discovery call.
+     *
      * @param requestCorrelationId The correlation id for the tenant discovery.
      */
     public void setCorrelationId(final UUID requestCorrelationId) {
@@ -200,7 +193,7 @@ final class Discovery {
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
                         "Fail to valid authority with errors: " + errorCodes);
             }
-            
+
             return discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT);
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(
@@ -225,7 +218,7 @@ final class Discovery {
     /**
      * get Json output from web response body. If it is well formed response, it
      * will have tenant discovery endpoint.
-     * 
+     *
      * @param webResponse HttpWebResponse from which Json has to be extracted
      * @return true if tenant discovery endpoint is reported. false otherwise.
      * @throws JSONException
@@ -237,7 +230,7 @@ final class Discovery {
     /**
      * service side does not validate tenant, so it is sending common keyword as
      * tenant.
-     * 
+     *
      * @param authorizationEndpointUrl converts the endpoint URL to authorization endpoint
      * @return https://hostname/common
      */
@@ -249,8 +242,8 @@ final class Discovery {
 
     /**
      * It will build query url to check the authorization endpoint.
-     * 
-     * @param instance authority instance
+     *
+     * @param instance                 authority instance
      * @param authorizationEndpointUrl authorization endpoint
      * @return URL
      * @throws MalformedURLException
