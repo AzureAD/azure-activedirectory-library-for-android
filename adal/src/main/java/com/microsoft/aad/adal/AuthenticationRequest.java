@@ -280,11 +280,6 @@ class AuthenticationRequest implements Serializable {
     public String getUpnSuffix() {
         final String hint = getLoginHint();
         final int dIndex = hint.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
-
-        if (DELIM_NOT_FOUND == dIndex) { // check UPN has domain
-            // TODO throw exception
-        }
-
-        return hint.substring(dIndex + 1);
+        return DELIM_NOT_FOUND == dIndex ? null : hint.substring(dIndex + 1);
     }
 }
