@@ -216,13 +216,13 @@ class AcquireTokenRequest {
 
     /**
      * 1. For Silent flow, we should always try to look local cache first.
-     * i> If valid AT is returned from cache, use it.
-     * ii> If no valid AT is returned, but RT is returned, use the RT.
-     * iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
+     *    i> If valid AT is returned from cache, use it.
+     *    ii> If no valid AT is returned, but RT is returned, use the RT.
+     *    iii> If RT request fails, and if we can talk to broker, go to broker and check if there is a valid token.
      * 2. For Non-Silent flow.
-     * i> Do silent cache lookup first, same as 1.
-     * a) If we can talk to broker, go to broker for auth.
-     * b) If not, launch webview with embedded flow.
+     *    i> Do silent cache lookup first, same as 1.
+     *       a) If we can talk to broker, go to broker for auth.
+     *       b) If not, launch webview with embedded flow.
      * If silent request succeeds, we'll return the token back via callback.
      * If silent request fails and no prompt is allowed, we'll return the exception back via callback.
      * If silent request fails and prompt is allowed, we'll prompt the user and launch webview.
