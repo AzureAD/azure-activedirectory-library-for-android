@@ -185,10 +185,33 @@ class AcquireTokenRequest {
 
         Logger.v(TAG, "Start validating authority");
         mDiscovery.setCorrelationId(mAuthContext.getRequestCorrelationId());
-        mDiscovery.validateAuthority(authorityUrl, domain);
+
+        verifyAuthorityValidInstance(authorityUrl);
+
+        if (UrlExtensions.isADFSAuthority(authorityUrl)) {
+            if (StringExtensions.isNullOrBlank(domain)) {
+                throw new IllegalArgumentException("Cannot validate AD FS Authority with domain [null]");
+            }
+            mDiscovery.validateAuthorityADFS(authorityUrl, domain);
+        } else {
+            mDiscovery.validateAuthority(authorityUrl);
+        }
 
         Logger.v(TAG, "The passe in authority is valid.");
         mAuthContext.setIsAuthorityValidated(true);
+    }
+
+    private void verifyAuthorityValidInstance(URL authorizationEndpoint) throws AuthenticationException {
+        // For comparison purposes, convert to lowercase Locale.US
+        // getProtocol returns scheme and it is available if it is absolute url
+        // Authority is in the form of https://Instance/tenant/somepath
+        if (authorizationEndpoint == null || StringExtensions.isNullOrBlank(authorizationEndpoint.getHost())
+                || !authorizationEndpoint.getProtocol().equals("https")
+                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getQuery())
+                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getRef())
+                || StringExtensions.isNullOrBlank(authorizationEndpoint.getPath())) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        }
     }
 
     /**
@@ -272,7 +295,7 @@ class AcquireTokenRequest {
 
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
-       return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
+        return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
     }
 
     /**
@@ -429,7 +452,7 @@ class AcquireTokenRequest {
                     = new AcquireTokenInteractiveRequest(mContext, authenticationRequest, mTokenCacheAccessor);
             acquireTokenInteractiveRequest.acquireToken(activity,
                     useDialog ? new AuthenticationDialog(getHandler(), mContext, this, authenticationRequest)
-                    : null);
+                            : null);
         }
     }
 
@@ -505,7 +528,7 @@ class AcquireTokenRequest {
      * Activity class. This method is called at UI thread.
      *
      * @param resultCode Result code set from the activity.
-     * @param data {@link Intent}
+     * @param data       {@link Intent}
      */
     void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         final String methodName = ":onActivityResult";
@@ -564,8 +587,8 @@ class AcquireTokenRequest {
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
                     Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker "
-                        + "installation. Once broker is installed, request will be resumed and result "
-                        + "will be received");
+                            + "installation. Once broker is installed, request will be resumed and result "
+                            + "will be received");
 
                     //Register the broker resume result receiver with intent filter as broker_request_resume and
                     // specific app package name
@@ -765,7 +788,8 @@ class AcquireTokenRequest {
      * Responsible for receiving message from broker indicating the broker has completed the token acquisition.
      */
     protected class BrokerResumeResultReceiver extends BroadcastReceiver {
-        public BrokerResumeResultReceiver() { }
+        public BrokerResumeResultReceiver() {
+        }
 
         private boolean mReceivedResultFromBroker = false;
 
