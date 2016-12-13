@@ -565,7 +565,12 @@ public enum ADALError {
     /**
      * Realm is not trusted (AD FS).
      */
-    WEBFINGER_NOT_TRUSTED("Realm is not trusted (AD FS)");
+    WEBFINGER_NOT_TRUSTED("Realm is not trusted (AD FS)"),
+
+    /**
+     * DRS discovery failed: unknown host.
+     */
+    DRS_DISCOVERY_FAILED_UNKNOWN_HOST("DRS discovery failed: unknown host");
 
     private String mDescription;
 

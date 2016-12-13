@@ -83,8 +83,7 @@ class DrsMetadataRequestor extends AbstractRequestor {
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
         } catch (UnknownHostException e) {
-            // TODO get specific with this Exception
-            throw new AuthenticationException();
+            throw new AuthenticationException(ADALError.DRS_DISCOVERY_FAILED_UNKNOWN_HOST);
         }
     }
 
