@@ -152,7 +152,6 @@ public class AuthenticationContext {
      * @return ITokenCacheStore Current cache used
      */
     public ITokenCacheStore getCache() {
-
         return mTokenCacheStore;
     }
 

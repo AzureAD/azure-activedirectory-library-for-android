@@ -24,13 +24,14 @@
 package com.microsoft.aad.adal;
 
 import android.os.Build;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.microsoft.aad.adal.HttpConstants.HeaderField.*;
-import static com.microsoft.aad.adal.HttpConstants.MediaType.*;
+import static com.microsoft.aad.adal.HttpConstants.HeaderField;
+import static com.microsoft.aad.adal.HttpConstants.MediaType;
 
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple
@@ -44,12 +45,12 @@ public class WebRequestHandler implements IWebRequestHandler {
     /**
      * Header for accept.
      */
-    public static final String HEADER_ACCEPT = "Accept";
+    public static final String HEADER_ACCEPT = HeaderField.ACCEPT;
 
     /**
      * Header for json type.
      */
-    public static final String HEADER_ACCEPT_JSON = "application/json";
+    public static final String HEADER_ACCEPT_JSON = MediaType.APPLICATION_JSON;
 
     private UUID mRequestCorrelationId = null;
 
@@ -63,7 +64,7 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     @Override
     public HttpWebResponse sendPost(URL url, Map<String, String> headers, byte[] content,
-            String contentType) throws IOException {
+                                    String contentType) throws IOException {
         Logger.v(TAG, "WebRequestHandler thread" + android.os.Process.myTid());
 
         final HttpWebRequest request = new HttpWebRequest(
@@ -91,7 +92,7 @@ public class WebRequestHandler implements IWebRequestHandler {
 
     /**
      * Sets correlationId.
-     * 
+     *
      * @param requestCorrelationId {@link UUID}
      */
     public void setRequestCorrelationId(UUID requestCorrelationId) {

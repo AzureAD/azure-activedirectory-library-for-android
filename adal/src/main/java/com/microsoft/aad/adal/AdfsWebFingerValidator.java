@@ -4,20 +4,38 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
-import static com.microsoft.aad.adal.HttpConstants.StatusCode.*;
 
+import static com.microsoft.aad.adal.HttpConstants.StatusCode.SC_OK;
+
+/**
+ * Validates trusts between authorities and ADFS instances using DRS metadata and WebFinger.
+ */
 class AdfsWebFingerValidator extends AbstractRequestor {
 
     private static final String TAG = "AdfsWebFingerValidator";
 
+    /**
+     * Validate the authority.
+     *
+     * @param authorizationEndpoint the authorization endpoint against which the DRS should be validated
+     * @param drsMetadata           the metadata to use for validation
+     * @throws AuthenticationException if the authority is not trusted
+     */
     void validateAuthority(final URL authorizationEndpoint, final DrsMetadata drsMetadata)
             throws AuthenticationException {
+        Logger.v(TAG, "Validating authority for auth endpoint: " + authorizationEndpoint.toString());
         try {
             URL webFingerUrl = forgeWebFingerUrl(authorizationEndpoint, drsMetadata);
 
             final HttpWebResponse webResponse =
-                    mWebrequestHandler.sendGet(webFingerUrl, new HashMap<String, String>());
+                    getWebrequestHandler()
+                            .sendGet(
+                                    webFingerUrl,
+                                    new HashMap<String, String>()
+                            );
+
             if (SC_OK != webResponse.getStatusCode()) {
+                // TODO add msg
                 throw new AuthenticationException();
             }
         } catch (MalformedURLException e) {
@@ -30,12 +48,13 @@ class AdfsWebFingerValidator extends AbstractRequestor {
     }
 
     /**
-     * Deserializes {@link HttpWebResponse} bodies into {@link WebFingerMetadata}
+     * Deserializes {@link HttpWebResponse} bodies into {@link WebFingerMetadata}.
      *
      * @param webResponse the HttpWebResponse to deserialize
      * @return the parsed response
      */
     WebFingerMetadata parseMetadata(HttpWebResponse webResponse) {
+        Logger.v(TAG, "Parsing WebFinger response");
         return parser().fromJson(webResponse.getBody(), WebFingerMetadata.class);
     }
 
@@ -43,8 +62,8 @@ class AdfsWebFingerValidator extends AbstractRequestor {
             throws MalformedURLException {
         final URL passiveAuthEndpoint = new URL(
                 drsMetadata
-                        .mIdentityProviderService
-                        .mPassiveAuthEndpoint
+                        .getIdentityProviderService()
+                        .getPassiveAuthEndpoint()
         );
 
         final String paeDomain = passiveAuthEndpoint.getHost();
@@ -55,6 +74,7 @@ class AdfsWebFingerValidator extends AbstractRequestor {
                         "/.well-known/webfinger?resource=%s",
                         authorizationEndpoint.toString()
                 );
+        Logger.v(TAG, "Validator will use WebFinger URL: " + url);
         return new URL(url);
     }
 

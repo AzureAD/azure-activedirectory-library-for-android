@@ -4,14 +4,20 @@ import com.google.gson.Gson;
 
 import java.util.UUID;
 
+/**
+ * Creates correlatable Requests to HTTP accessible resources.
+ */
 abstract class AbstractRequestor implements Correlatable {
 
-    protected final IWebRequestHandler mWebrequestHandler;
+    private final IWebRequestHandler mWebrequestHandler;
 
-    protected UUID mCorrelationId;
+    private UUID mCorrelationId;
 
     private Gson mGson;
 
+    /**
+     * Constructs a new AbstractorRequestor.
+     */
     AbstractRequestor() {
         mWebrequestHandler = new WebRequestHandler();
     }
@@ -27,7 +33,7 @@ abstract class AbstractRequestor implements Correlatable {
     }
 
     /**
-     * Thread-safe lazy-initialized Singleton parser for JSON
+     * Gets the thread-safe lazy-initialized parser for JSON.
      *
      * @return the gson instance
      */
@@ -37,5 +43,14 @@ abstract class AbstractRequestor implements Correlatable {
         }
 
         return mGson;
+    }
+
+    /**
+     * Gets the IWebRequestHandler used to make requests.
+     *
+     * @return the IWebRequestHandler
+     */
+    protected IWebRequestHandler getWebrequestHandler() {
+        return mWebrequestHandler;
     }
 }

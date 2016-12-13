@@ -553,7 +553,7 @@ public enum ADALError {
     JSON_PARSE_ERROR("Fail to parse JSON"),
 
     /**
-     * Malformed DRS metadata URL
+     * Malformed DRS metadata URL.
      */
     DRS_METADATA_URL_INVALID("Malformed DRS metadata URL");
 

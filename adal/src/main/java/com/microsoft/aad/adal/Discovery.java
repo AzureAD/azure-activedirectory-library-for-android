@@ -116,7 +116,7 @@ final class Discovery {
     }
 
     private void validateADFS(URL authorizationEndpoint, String domain) throws AuthenticationException {
-        final DrsMetadata drsMetadata = new DrsMetadataRequester().requestDrsDiscovery(domain);
+        final DrsMetadata drsMetadata = new DrsMetadataRequestor().requestDrsDiscovery(domain);
         new AdfsWebFingerValidator().validateAuthority(authorizationEndpoint, drsMetadata);
     }
 
