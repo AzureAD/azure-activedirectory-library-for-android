@@ -112,18 +112,21 @@ class DrsMetadataRequestor extends AbstractRequestor {
         // make the request
         try {
             webResponse = getWebrequestHandler().sendGet(requestURL, headers);
-            if (SC_OK == webResponse.getStatusCode()) {
+            final int statusCode = webResponse.getStatusCode();
+            if (SC_OK == statusCode) {
                 String responseBody = webResponse.getBody();
                 metadata = parser().fromJson(responseBody, DrsMetadata.class);
             } else {
-                // TODO something went wrong, find out what and throw an appropriate Exception for it
-                throw new AuthenticationException();
+                // unexpected status code
+                throw new AuthenticationException(
+                        ADALError.DRS_FAILED_SERVER_ERROR,
+                        "Unexpected error code: [" + statusCode + "]"
+                );
             }
         } catch (UnknownHostException e) {
             throw e;
         } catch (IOException e) {
-            // TODO what went wrong? Find out and throw a sane Exception
-            throw new AuthenticationException();
+            throw new AuthenticationException(ADALError.IO_EXCEPTION);
         } catch (JsonSyntaxException e) {
             throw new AuthenticationException(ADALError.JSON_PARSE_ERROR);
         }

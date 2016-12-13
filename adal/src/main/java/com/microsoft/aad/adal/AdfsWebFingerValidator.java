@@ -38,24 +38,24 @@ class AdfsWebFingerValidator extends AbstractRequestor {
                                     new HashMap<String, String>()
                             );
 
-            if (SC_OK != webResponse.getStatusCode()) {
-                // TODO add msg
-                throw new AuthenticationException();
+            final int statusCode = webResponse.getStatusCode();
+
+            if (SC_OK != statusCode) { // Check 200 OK
+                throw new AuthenticationException(
+                        ADALError.DRS_FAILED_SERVER_ERROR,
+                        "Unexpected error code: [" + statusCode + "]"
+                );
             }
 
+            // Parse the response
             WebFingerMetadata metadata = parseMetadata(webResponse);
 
             if (!realmIsTrusted(authorizationEndpoint, metadata)) {
-                // TODO add msg
-                throw new AuthenticationException();
+                throw new AuthenticationException(ADALError.WEBFINGER_NOT_TRUSTED);
             }
 
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            // TODO throw AuthenticationException?
-            throw new AuthenticationException();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new AuthenticationException(ADALError.IO_EXCEPTION, "Unexpected error", e);
         } catch (JsonSyntaxException e) {
             throw new AuthenticationException(ADALError.JSON_PARSE_ERROR);
         }

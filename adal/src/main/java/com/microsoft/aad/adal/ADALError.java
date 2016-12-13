@@ -555,7 +555,17 @@ public enum ADALError {
     /**
      * Malformed DRS metadata URL.
      */
-    DRS_METADATA_URL_INVALID("Malformed DRS metadata URL");
+    DRS_METADATA_URL_INVALID("Malformed DRS metadata URL"),
+
+    /**
+     * Enrollment server returned an unrecognized response.
+     */
+    DRS_FAILED_SERVER_ERROR("Enrollment server returned an unrecognized response"),
+
+    /**
+     * Realm is not trusted (AD FS).
+     */
+    WEBFINGER_NOT_TRUSTED("Realm is not trusted (AD FS)");
 
     private String mDescription;
 
