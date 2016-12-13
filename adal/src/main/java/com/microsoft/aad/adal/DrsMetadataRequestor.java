@@ -1,5 +1,7 @@
 package com.microsoft.aad.adal;
 
+import com.google.gson.JsonSyntaxException;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -122,6 +124,8 @@ class DrsMetadataRequestor extends AbstractRequestor {
         } catch (IOException e) {
             // TODO what went wrong? Find out and throw a sane Exception
             throw new AuthenticationException();
+        } catch (JsonSyntaxException e) {
+            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR);
         }
 
         return metadata;

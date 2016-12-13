@@ -1,5 +1,7 @@
 package com.microsoft.aad.adal;
 
+import com.google.gson.JsonSyntaxException;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -54,6 +56,8 @@ class AdfsWebFingerValidator extends AbstractRequestor {
             throw new AuthenticationException();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (JsonSyntaxException e) {
+            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR);
         }
     }
 
