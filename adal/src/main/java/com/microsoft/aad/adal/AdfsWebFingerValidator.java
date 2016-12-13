@@ -14,6 +14,8 @@ class AdfsWebFingerValidator extends AbstractRequestor {
 
     private static final String TAG = "AdfsWebFingerValidator";
 
+    private static final String TRUSTED_REALM_REL = "http://schemas.microsoft.com/rel/trusted-realm";
+
     /**
      * Validate the authority.
      *
@@ -38,6 +40,14 @@ class AdfsWebFingerValidator extends AbstractRequestor {
                 // TODO add msg
                 throw new AuthenticationException();
             }
+
+            WebFingerMetadata metadata = parseMetadata(webResponse);
+
+            if (!realmIsTrusted(authorizationEndpoint, metadata)) {
+                // TODO add msg
+                throw new AuthenticationException();
+            }
+
         } catch (MalformedURLException e) {
             e.printStackTrace();
             // TODO throw AuthenticationException?
@@ -45,6 +55,20 @@ class AdfsWebFingerValidator extends AbstractRequestor {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean realmIsTrusted(URL authorizationEndpoint, WebFingerMetadata metadata) {
+        String href, rel;
+        for (Link link : metadata.getLinks()) {
+            href = link.getHref();
+            rel = link.getRel();
+            String host =
+                    authorizationEndpoint.getProtocol() + "://" + authorizationEndpoint.getHost();
+            if (href.equalsIgnoreCase(host) && rel.equalsIgnoreCase(TRUSTED_REALM_REL)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
