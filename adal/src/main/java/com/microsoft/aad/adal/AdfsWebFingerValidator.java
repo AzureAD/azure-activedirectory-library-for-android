@@ -14,8 +14,14 @@ import static com.microsoft.aad.adal.HttpConstants.StatusCode.SC_OK;
  */
 class AdfsWebFingerValidator extends AbstractRequestor {
 
+    /**
+     * Used for logging
+     */
     private static final String TAG = "AdfsWebFingerValidator";
 
+    /**
+     * Constant identifying trust between two realms
+     */
     private static final String TRUSTED_REALM_REL = "http://schemas.microsoft.com/rel/trusted-realm";
 
     /**
@@ -29,8 +35,10 @@ class AdfsWebFingerValidator extends AbstractRequestor {
             throws AuthenticationException {
         Logger.v(TAG, "Validating authority for auth endpoint: " + authorizationEndpoint.toString());
         try {
+            // create the URL
             URL webFingerUrl = forgeWebFingerUrl(authorizationEndpoint, drsMetadata);
 
+            // make the request
             final HttpWebResponse webResponse =
                     getWebrequestHandler()
                             .sendGet(
@@ -38,18 +46,20 @@ class AdfsWebFingerValidator extends AbstractRequestor {
                                     new HashMap<String, String>()
                             );
 
+            // get the status code
             final int statusCode = webResponse.getStatusCode();
 
-            if (SC_OK != statusCode) { // Check 200 OK
+            if (SC_OK != statusCode) { // check 200 OK
                 throw new AuthenticationException(
                         ADALError.DRS_FAILED_SERVER_ERROR,
                         "Unexpected error code: [" + statusCode + "]"
                 );
             }
 
-            // Parse the response
+            // parse the response
             WebFingerMetadata metadata = parseMetadata(webResponse);
 
+            // verify the trust
             if (!realmIsTrusted(authorizationEndpoint, metadata)) {
                 throw new AuthenticationException(ADALError.WEBFINGER_NOT_TRUSTED);
             }
@@ -61,6 +71,13 @@ class AdfsWebFingerValidator extends AbstractRequestor {
         }
     }
 
+    /**
+     * Verify that trust is established between IDP and the SP.
+     *
+     * @param authorizationEndpoint the authorization endpoint used
+     * @param metadata              the {@link WebFingerMetadata} to consult
+     * @return True, if trust exists: otherwise false.
+     */
     private boolean realmIsTrusted(URL authorizationEndpoint, WebFingerMetadata metadata) {
         String href, rel;
         for (Link link : metadata.getLinks()) {
@@ -86,7 +103,15 @@ class AdfsWebFingerValidator extends AbstractRequestor {
         return parser().fromJson(webResponse.getBody(), WebFingerMetadata.class);
     }
 
-    private URL forgeWebFingerUrl(URL authorizationEndpoint, DrsMetadata drsMetadata)
+    /**
+     * Create the URL used to retrieve the WebFinger metadata.
+     *
+     * @param resource    the resource to verify
+     * @param drsMetadata the {@link DrsMetadata} to consult
+     * @return the URL of the WebFinger document
+     * @throws MalformedURLException if the URL could not be constructed
+     */
+    private URL forgeWebFingerUrl(URL resource, DrsMetadata drsMetadata)
             throws MalformedURLException {
         final URL passiveAuthEndpoint = new URL(
                 drsMetadata
@@ -100,7 +125,7 @@ class AdfsWebFingerValidator extends AbstractRequestor {
                         + paeDomain
                         + String.format(
                         "/.well-known/webfinger?resource=%s",
-                        authorizationEndpoint.toString()
+                        resource.toString()
                 );
         Logger.v(TAG, "Validator will use WebFinger URL: " + url);
         return new URL(url);
