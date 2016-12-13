@@ -68,6 +68,15 @@
         android:layout_centerHorizontal="true"
         android:text="@string/invalidate_AT" />
 
+    <!-- invalidateFamilyRefreshToken Button -->
+    <Button
+        android:id="@+id/invalidateFamilyRefreshToken"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/invalidateRefreshToken"
+        android:layout_centerHorizontal="true"
+        android:text="Invalidate FRT" />
+
     <!-- Button for invalidate the refresh token -->
     <Button
         android:id="@+id/invalidateRefreshToken"
@@ -82,7 +91,7 @@
         android:id="@+id/readCache"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/invalidateRefreshToken"
+        android:layout_below="@+id/invalidateFamilyRefreshToken"
         android:layout_centerHorizontal="true"
         android:text="@string/read_cache" />
 

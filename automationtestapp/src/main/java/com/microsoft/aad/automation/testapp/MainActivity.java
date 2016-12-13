@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int ACQUIRE_TOKEN_SILENT = 1002;
     public static final int INVALIDATE_ACCESS_TOKEN = 1003;
     public static final int INVALIDATE_REFRESH_TOKEN = 1004;
+    public static final int INVALIDATE_FAMILY_REFRESH_TOKEN = 1006;
     public static final int READ_CACHE = 1005;
     
     private StringBuffer mADALLogs;
@@ -113,6 +114,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 launchAuthenticationInfoActivity(INVALIDATE_REFRESH_TOKEN);
+            }
+        });
+        
+        final Button invalidateFamilyRefreshToken = (Button) findViewById(R.id.invalidateFamilyRefreshToken);
+        invalidateFamilyRefreshToken.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchAuthenticationInfoActivity(INVALIDATE_FAMILY_REFRESH_TOKEN);
             }
         });
 

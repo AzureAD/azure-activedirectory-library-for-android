@@ -147,6 +147,9 @@ public class SignInActivity extends AppCompatActivity {
             case MainActivity.INVALIDATE_REFRESH_TOKEN:
                 processInvalidateRefreshTokenRequest();
                 break;
+            case MainActivity.INVALIDATE_FAMILY_REFRESH_TOKEN:
+                processInvalidateFamilyRefreshTokenRequest();
+                break;
             default:
                 sendErrorToResultActivity("unknown_request", "Unknown request is received");
                 break;
@@ -176,6 +179,13 @@ public class SignInActivity extends AppCompatActivity {
         int count = invalidateRefreshToken();
         final Intent intent = new Intent();
         intent.putExtra(Constants.INVALIDATED_REFRESH_TOKEN_COUNT, String.valueOf(count));
+        launchResultActivity(intent);
+    }
+    
+    private void processInvalidateFamilyRefreshTokenRequest() {
+        int count = invalidateFamilyRefreshToken();
+        final Intent intent = new Intent();
+        intent.putExtra(Constants.INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT, String.valueOf(count));
         launchResultActivity(intent);
     }
 
@@ -341,6 +351,13 @@ public class SignInActivity extends AppCompatActivity {
         count += invalidateRefreshToken(CacheKey.createCacheKeyForMRRT(mAuthority, mClientId, mLoginHint));
         count += invalidateRefreshToken(CacheKey.createCacheKeyForMRRT(mAuthority, mClientId, ""));
 
+        return count;
+    }
+    
+    private int invalidateFamilyRefreshToken() {
+        invalidateRefreshToken();
+
+        int count  = 0;
         // invalidate FRT
         count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, AuthenticationConstants.MS_FAMILY_ID, mUserId));
         count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, AuthenticationConstants.MS_FAMILY_ID, mLoginHint));

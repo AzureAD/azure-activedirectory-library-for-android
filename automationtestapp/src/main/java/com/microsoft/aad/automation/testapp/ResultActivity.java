@@ -95,12 +95,21 @@ public class ResultActivity extends AppCompatActivity {
             jsonObject.put(Constants.EXPIRED_ACCESS_TOKEN_COUNT, intent.getStringExtra(Constants.EXPIRED_ACCESS_TOKEN_COUNT));
         } else if (!TextUtils.isEmpty(intent.getStringExtra(Constants.INVALIDATED_REFRESH_TOKEN_COUNT))) {
             jsonObject.put(Constants.INVALIDATED_REFRESH_TOKEN_COUNT, intent.getStringExtra(Constants.INVALIDATED_REFRESH_TOKEN_COUNT));
+        } else if (!TextUtils.isEmpty(intent.getStringExtra(Constants.INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT))) {
+            jsonObject.put(Constants.INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT, intent.getStringExtra(Constants.INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT));
         } else if (!TextUtils.isEmpty(intent.getStringExtra(Constants.CLEARED_TOKEN_COUNT))) {
             jsonObject.put(Constants.CLEARED_TOKEN_COUNT, intent.getStringExtra(Constants.CLEARED_TOKEN_COUNT));
         } else if (intent.getStringArrayListExtra(Constants.READ_CACHE) != null) {
             final ArrayList<String> items = intent.getStringArrayListExtra(Constants.READ_CACHE);
             jsonObject.put(Constants.ITEM_COUNT, items.size());
 
+            final ArrayList<String> itemsWithCount = new ArrayList<>();
+            itemsWithCount.addAll(items);
+            final JSONArray arrayItems = new JSONArray(itemsWithCount);
+            jsonObject.put("items", arrayItems);
+        } else if (intent.getStringArrayListExtra(Constants.READ_LOGS) != null) {
+            final ArrayList<String> items = intent.getStringArrayListExtra(Constants.READ_LOGS);
+            jsonObject.put(Constants.ITEM_COUNT, items.size());
             final ArrayList<String> itemsWithCount = new ArrayList<>();
             itemsWithCount.addAll(items);
             final JSONArray arrayItems = new JSONArray(itemsWithCount);
