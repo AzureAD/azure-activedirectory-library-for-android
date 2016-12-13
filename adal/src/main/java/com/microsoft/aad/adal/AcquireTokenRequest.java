@@ -788,8 +788,7 @@ class AcquireTokenRequest {
      * Responsible for receiving message from broker indicating the broker has completed the token acquisition.
      */
     protected class BrokerResumeResultReceiver extends BroadcastReceiver {
-        public BrokerResumeResultReceiver() {
-        }
+        public BrokerResumeResultReceiver() { }
 
         private boolean mReceivedResultFromBroker = false;
 
