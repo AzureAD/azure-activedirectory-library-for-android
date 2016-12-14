@@ -9,10 +9,16 @@ import java.util.UUID;
  */
 abstract class AbstractRequestor implements Correlatable {
 
+    /**
+     * Used to handle network requests.
+     */
     private final IWebRequestHandler mWebrequestHandler;
 
     private UUID mCorrelationId;
 
+    /**
+     * Response parser.
+     */
     private Gson mGson;
 
     /**

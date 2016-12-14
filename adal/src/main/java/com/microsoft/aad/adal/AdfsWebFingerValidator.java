@@ -36,7 +36,7 @@ class AdfsWebFingerValidator extends AbstractRequestor {
         Logger.v(TAG, "Validating authority for auth endpoint: " + authorizationEndpoint.toString());
         try {
             // create the URL
-            URL webFingerUrl = forgeWebFingerUrl(authorizationEndpoint, drsMetadata);
+            URL webFingerUrl = buildWebFingerUrl(authorizationEndpoint, drsMetadata);
 
             // make the request
             final HttpWebResponse webResponse =
@@ -79,12 +79,11 @@ class AdfsWebFingerValidator extends AbstractRequestor {
      * @return True, if trust exists: otherwise false.
      */
     private boolean realmIsTrusted(URL authorizationEndpoint, WebFingerMetadata metadata) {
-        String href, rel;
+        String href, rel, host;
         for (Link link : metadata.getLinks()) {
             href = link.getHref();
             rel = link.getRel();
-            String host =
-                    authorizationEndpoint.getProtocol() + "://" + authorizationEndpoint.getHost();
+            host = authorizationEndpoint.getProtocol() + "://" + authorizationEndpoint.getHost();
             if (href.equalsIgnoreCase(host) && rel.equalsIgnoreCase(TRUSTED_REALM_REL)) {
                 return true;
             }
@@ -111,7 +110,7 @@ class AdfsWebFingerValidator extends AbstractRequestor {
      * @return the URL of the WebFinger document
      * @throws MalformedURLException if the URL could not be constructed
      */
-    private URL forgeWebFingerUrl(URL resource, DrsMetadata drsMetadata)
+    private URL buildWebFingerUrl(URL resource, DrsMetadata drsMetadata)
             throws MalformedURLException {
         final URL passiveAuthEndpoint = new URL(
                 drsMetadata

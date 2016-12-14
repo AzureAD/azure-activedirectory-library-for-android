@@ -93,7 +93,7 @@ class DrsMetadataRequestor extends AbstractRequestor {
 
         try {
             // create the request URL
-            requestURL = new URL(forgeRequestUrlByType(type, domain));
+            requestURL = new URL(buildRequestUrlByType(type, domain));
         } catch (MalformedURLException e) {
             throw new AuthenticationException(ADALError.DRS_METADATA_URL_INVALID);
         }
@@ -140,7 +140,7 @@ class DrsMetadataRequestor extends AbstractRequestor {
      * @param domain the domain to use in the request
      * @return the DRS metadata URL to query
      */
-    private String forgeRequestUrlByType(final Type type, final String domain) {
+    private String buildRequestUrlByType(final Type type, final String domain) {
         // All DRS urls begin the same
         String drsRequestUrl = DRS_URL_PREFIX;
 
