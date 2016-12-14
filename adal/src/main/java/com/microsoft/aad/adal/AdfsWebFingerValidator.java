@@ -15,12 +15,12 @@ import static com.microsoft.aad.adal.HttpConstants.StatusCode.SC_OK;
 class AdfsWebFingerValidator extends AbstractRequestor {
 
     /**
-     * Used for logging
+     * Used for logging.
      */
     private static final String TAG = "AdfsWebFingerValidator";
 
     /**
-     * Constant identifying trust between two realms
+     * Constant identifying trust between two realms.
      */
     private static final String TRUSTED_REALM_REL = "http://schemas.microsoft.com/rel/trusted-realm";
 
