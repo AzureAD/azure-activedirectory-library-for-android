@@ -186,7 +186,7 @@ class AcquireTokenRequest {
         Logger.v(TAG, "Start validating authority");
         mDiscovery.setCorrelationId(mAuthContext.getRequestCorrelationId());
 
-        verifyAuthorityValidInstance(authorityUrl);
+        Discovery.verifyAuthorityValidInstance(authorityUrl);
 
         if (UrlExtensions.isADFSAuthority(authorityUrl)) {
             if (StringExtensions.isNullOrBlank(domain)) {
@@ -201,18 +201,7 @@ class AcquireTokenRequest {
         mAuthContext.setIsAuthorityValidated(true);
     }
 
-    private void verifyAuthorityValidInstance(URL authorizationEndpoint) throws AuthenticationException {
-        // For comparison purposes, convert to lowercase Locale.US
-        // getProtocol returns scheme and it is available if it is absolute url
-        // Authority is in the form of https://Instance/tenant/somepath
-        if (authorizationEndpoint == null || StringExtensions.isNullOrBlank(authorizationEndpoint.getHost())
-                || !authorizationEndpoint.getProtocol().equals("https")
-                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getQuery())
-                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getRef())
-                || StringExtensions.isNullOrBlank(authorizationEndpoint.getPath())) {
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
-        }
-    }
+
 
     /**
      * 1. For Silent flow, we should always try to look local cache first.
