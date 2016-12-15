@@ -93,6 +93,8 @@ final class Discovery {
     }
 
     public void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
+        verifyAuthorityValidInstance(authorizationEndpoint);
+
         if (!VALID_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
             // host can be the instance or inside the validated list.
             // Valid hosts will help to skip validation if validated before
@@ -102,7 +104,7 @@ final class Discovery {
         }
     }
 
-    private void validateADFS(URL authorizationEndpoint, String domain)
+    private static void validateADFS(URL authorizationEndpoint, String domain)
             throws AuthenticationException {
         final DrsMetadata drsMetadata = new DrsMetadataRequestor().requestDrsDiscovery(domain);
         new AdfsWebFingerValidator().validateAuthority(authorizationEndpoint, drsMetadata);
@@ -186,6 +188,19 @@ final class Discovery {
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(
                     ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);
+        }
+    }
+
+    static void verifyAuthorityValidInstance(URL authorizationEndpoint) throws AuthenticationException {
+        // For comparison purposes, convert to lowercase Locale.US
+        // getProtocol returns scheme and it is available if it is absolute url
+        // Authority is in the form of https://Instance/tenant/somepath
+        if (authorizationEndpoint == null || StringExtensions.isNullOrBlank(authorizationEndpoint.getHost())
+                || !authorizationEndpoint.getProtocol().equals("https")
+                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getQuery())
+                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getRef())
+                || StringExtensions.isNullOrBlank(authorizationEndpoint.getPath())) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
         }
     }
 
