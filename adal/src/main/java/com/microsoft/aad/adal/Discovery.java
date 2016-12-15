@@ -70,6 +70,13 @@ final class Discovery {
             .synchronizedSet(new HashSet<String>());
 
     /**
+     * Sync map of validated AD FS authorities and domains. Skips query to server
+     * if already verified
+     */
+    private static final Map<String, Set<String>> ADFS_VALIDATED_AUTHORITIES =
+            Collections.synchronizedMap(new HashMap<String, Set<String>>());
+
+    /**
      * Discovery query will go to the prod only for now.
      */
     private static final String TRUSTED_QUERY_INSTANCE = "login.windows.net";
@@ -106,6 +113,17 @@ final class Discovery {
 
     private static void validateADFS(URL authorizationEndpoint, String domain)
             throws AuthenticationException {
+        // Maps & Sets of URLs perform domain name resolution for equals() & hashCode()
+        // To prevent this from happening, store/consult the cache using the String value
+        final String authorityString = authorizationEndpoint.toString();
+
+        // First, consult the cache
+        if (null != ADFS_VALIDATED_AUTHORITIES.get(authorityString)
+                && ADFS_VALIDATED_AUTHORITIES.get(authorityString).contains(domain)) {
+            // Trust has already been established, do not requery
+            return;
+        }
+
         // Get the DRS metadata
         final DrsMetadata drsMetadata = new DrsMetadataRequestor().requestMetadata(domain);
 
@@ -123,6 +141,16 @@ final class Discovery {
         if (!AdfsWebFingerValidator.realmIsTrusted(authorizationEndpoint, webFingerMetadata)) {
             throw new AuthenticationException(ADALError.WEBFINGER_NOT_TRUSTED);
         }
+
+        // Trust established, add it to the cache
+
+        // If this authorization endpoint doesn't already have a Set, create it
+        if (null == ADFS_VALIDATED_AUTHORITIES.get(authorityString)) {
+            ADFS_VALIDATED_AUTHORITIES.put(authorityString, new HashSet<String>());
+        }
+
+        // Add the entry
+        ADFS_VALIDATED_AUTHORITIES.get(authorityString).add(domain);
     }
 
     /**
