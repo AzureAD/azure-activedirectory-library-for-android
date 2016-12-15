@@ -1,18 +1,11 @@
 package com.microsoft.aad.adal;
 
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Validates trusts between authorities and ADFS instances using DRS metadata and WebFinger.
  */
 final class AdfsWebFingerValidator {
-
-
 
     private AdfsWebFingerValidator() {
         // utility class
