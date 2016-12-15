@@ -5,7 +5,11 @@ import java.net.URL;
 /**
  * Validates trusts between authorities and ADFS instances using DRS metadata and WebFinger.
  */
-class AdfsWebFingerValidator {
+final class AdfsWebFingerValidator {
+
+    private AdfsWebFingerValidator() {
+        // utility class
+    }
 
     /**
      * Used for logging.
@@ -25,6 +29,7 @@ class AdfsWebFingerValidator {
      * @return True, if trust exists: otherwise false.
      */
     static boolean realmIsTrusted(URL authorizationEndpoint, WebFingerMetadata metadata) {
+        Logger.v(TAG, "Verifying trust: " + authorizationEndpoint.toString() + metadata.toString());
         String href, rel, host;
         for (Link link : metadata.getLinks()) {
             href = link.getHref();

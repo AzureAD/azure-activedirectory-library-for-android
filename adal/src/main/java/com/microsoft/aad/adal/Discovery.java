@@ -112,8 +112,8 @@ final class Discovery {
         // Get the WebFinger metadata
         final WebFingerMetadata webFingerMetadata =
                 new WebFingerMetadataRequestor() // create the requestor
-                        .requestMetadata( // request the data
-                                new WebFingerMetadataRequestParameters( // using these params
+                        .requestMetadata(// request the data
+                                new WebFingerMetadataRequestParameters(// using these params
                                         authorizationEndpoint,
                                         drsMetadata
                                 )
