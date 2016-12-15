@@ -107,9 +107,6 @@ public class AuthenticationActivity extends Activity {
     private final IWebRequestHandler mWebRequestHandler = new WebRequestHandler();
 
     private final IJWSBuilder mJWSBuilder = new JWSBuilder();
-
-    private String mQueryParameters;
-
     private boolean mPkeyAuthRedirect = false;
     private StorageHelper mStorageHelper;
 
@@ -216,7 +213,6 @@ public class AuthenticationActivity extends Activity {
         try {
             Oauth2 oauth = new Oauth2(mAuthRequest);
             mStartUrl = oauth.getCodeRequestUrl();
-            mQueryParameters = oauth.getAuthorizationEndpointQueryParameters();
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, e.getMessage());
             Intent resultIntent = new Intent();
@@ -607,7 +603,7 @@ public class AuthenticationActivity extends Activity {
     class CustomWebViewClient extends BasicWebViewClient {
 
         public CustomWebViewClient() {
-            super(AuthenticationActivity.this, mRedirectUrl, mQueryParameters, mAuthRequest, mUIEvent);
+            super(AuthenticationActivity.this, mRedirectUrl, mAuthRequest, mUIEvent);
         }
 
         public void processRedirectUrl(final WebView view, String url) {
