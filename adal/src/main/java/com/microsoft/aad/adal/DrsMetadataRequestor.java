@@ -20,7 +20,7 @@ import static com.microsoft.aad.adal.HttpConstants.StatusCode.SC_OK;
  *
  * @see DrsMetadata
  */
-class DrsMetadataRequestor extends AbstractRequestor {
+class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String> {
 
     /**
      * Tag used for logging.
@@ -48,7 +48,8 @@ class DrsMetadataRequestor extends AbstractRequestor {
      * @return the metadata
      * @throws AuthenticationException
      */
-    DrsMetadata requestDrsDiscovery(String domain) throws AuthenticationException {
+    @Override
+    DrsMetadata requestMetadata(String domain) throws AuthenticationException {
         try {
             return requestOnPrem(domain);
         } catch (UnknownHostException e) {

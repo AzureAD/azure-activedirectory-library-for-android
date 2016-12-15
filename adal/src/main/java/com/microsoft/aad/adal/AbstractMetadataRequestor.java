@@ -7,7 +7,8 @@ import java.util.UUID;
 /**
  * Creates correlatable Requests to HTTP accessible resources.
  */
-abstract class AbstractRequestor implements Correlatable {
+abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions>
+        implements Correlatable {
 
     /**
      * Used to handle network requests.
@@ -24,7 +25,7 @@ abstract class AbstractRequestor implements Correlatable {
     /**
      * Constructs a new AbstractorRequestor.
      */
-    AbstractRequestor() {
+    AbstractMetadataRequestor() {
         mWebrequestHandler = new WebRequestHandler();
     }
 
@@ -59,4 +60,6 @@ abstract class AbstractRequestor implements Correlatable {
     protected IWebRequestHandler getWebrequestHandler() {
         return mWebrequestHandler;
     }
+
+    abstract MetadataType requestMetadata(MetadataRequestOptions options) throws Exception;
 }

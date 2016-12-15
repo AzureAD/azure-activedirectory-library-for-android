@@ -106,8 +106,23 @@ final class Discovery {
 
     private static void validateADFS(URL authorizationEndpoint, String domain)
             throws AuthenticationException {
-        final DrsMetadata drsMetadata = new DrsMetadataRequestor().requestDrsDiscovery(domain);
-        new AdfsWebFingerValidator().validateAuthority(authorizationEndpoint, drsMetadata);
+        // Get the DRS metadata
+        final DrsMetadata drsMetadata = new DrsMetadataRequestor().requestMetadata(domain);
+
+        // Get the WebFinger metadata
+        final WebFingerMetadata webFingerMetadata =
+                new WebFingerMetadataRequestor() // create the requestor
+                        .requestMetadata( // request the data
+                                new WebFingerMetadataRequestParameters( // using these params
+                                        authorizationEndpoint,
+                                        drsMetadata
+                                )
+                        );
+
+        // Verify trust
+        if (!AdfsWebFingerValidator.realmIsTrusted(authorizationEndpoint, webFingerMetadata)) {
+            throw new AuthenticationException(ADALError.WEBFINGER_NOT_TRUSTED);
+        }
     }
 
     /**
