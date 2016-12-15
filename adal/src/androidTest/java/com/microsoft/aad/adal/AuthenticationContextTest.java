@@ -408,7 +408,6 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         assertEquals("client is same", "clientId345", authenticationRequest.getClientId());
         assertEquals("authority is same", "https://login.windows.net/common", authenticationRequest.getAuthority());
         assertEquals("resource is same", "resource56", authenticationRequest.getResource());
-
     }
 
     @SmallTest
@@ -1977,6 +1976,9 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
          assertTrue(telemetry.checkOauthError());
          assertTrue(telemetry.checkNoPIIPresent(EventStrings.LOGIN_HINT, TEST_IDTOKEN_UPN));
+         assertTrue(telemetry.checkAPIId("100"));
+         assertTrue(telemetry.checkCacheEventCount("3"));
+         assertFalse(telemetry.checkAPISucceeded());
      }
 
     /**

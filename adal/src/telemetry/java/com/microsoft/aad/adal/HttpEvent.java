@@ -35,23 +35,23 @@ class HttpEvent extends DefaultEvent {
     }
 
     void setUserAgent(final String userAgent) {
-        setEvent(EventStrings.HTTP_USER_AGENT, userAgent);
+        setProperty(EventStrings.HTTP_USER_AGENT, userAgent);
     }
 
     void setMethod(final String method) {
-        setEvent(EventStrings.HTTP_METHOD, method);
+        setProperty(EventStrings.HTTP_METHOD, method);
     }
 
     void setQueryParameters(final String queryParameters) {
-        setEvent(EventStrings.HTTP_QUERY_PARAMETERS, queryParameters);
+        setProperty(EventStrings.HTTP_QUERY_PARAMETERS, queryParameters);
     }
 
     void setResponseCode(final Integer responseCode) {
-        setEvent(EventStrings.HTTP_RESPONSE_CODE, responseCode.toString());
+        setProperty(EventStrings.HTTP_RESPONSE_CODE, responseCode.toString());
     }
 
     void setApiVersion(final String apiVersion) {
-        setEvent(EventStrings.HTTP_API_VERSION, apiVersion);
+        setProperty(EventStrings.HTTP_API_VERSION, apiVersion);
     }
 
     void setHttpPath(final URL httpPath) {
@@ -76,17 +76,22 @@ class HttpEvent extends DefaultEvent {
             logPath.append(splitArray[i]);
             logPath.append("/");
         }
-        setEvent(EventStrings.HTTP_PATH, logPath.toString());
+        setProperty(EventStrings.HTTP_PATH, logPath.toString());
     }
 
     void setOauthErrorCode(final String errorCode) {
-        setEvent(EventStrings.OAUTH_ERROR_CODE, errorCode);
+        setProperty(EventStrings.OAUTH_ERROR_CODE, errorCode);
     }
 
     void setRequestIdHeader(final String requestIdHeader) {
-        setEvent(EventStrings.REQUEST_ID_HEADER, requestIdHeader);
+        setProperty(EventStrings.REQUEST_ID_HEADER, requestIdHeader);
     }
 
+    /**
+     * Each event chooses which of its members get picked on aggregation.
+     * Http event adds an event count field
+     * @param dispatchMap the Map that is filled with the aggregated event properties
+     */
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
         final Object countObject = dispatchMap.get(EventStrings.HTTP_EVENT_COUNT);
@@ -98,15 +103,30 @@ class HttpEvent extends DefaultEvent {
                     Integer.toString(Integer.parseInt((String) countObject) + 1));
         }
 
-        final List eventList = getEventList();
-        final int size = eventList.size();
-        for (int i = 0; i < size; i++) {
-            final Pair eventPair = (Pair<String, String>) eventList.get(i);
-            final String name = (String) eventPair.first;
+        // If there was a previous entry clear out its fields.
+        if (dispatchMap.containsKey(EventStrings.HTTP_RESPONSE_CODE)) {
+            dispatchMap.put(EventStrings.HTTP_RESPONSE_CODE, "");
+        }
+
+        if (dispatchMap.containsKey(EventStrings.OAUTH_ERROR_CODE)) {
+            dispatchMap.put(EventStrings.OAUTH_ERROR_CODE, "");
+        }
+
+        if (dispatchMap.containsKey(EventStrings.HTTP_PATH)) {
+            dispatchMap.put(EventStrings.HTTP_PATH, "");
+        }
+
+        if (dispatchMap.containsKey(EventStrings.REQUEST_ID_HEADER)) {
+            dispatchMap.put(EventStrings.REQUEST_ID_HEADER, "");
+        }
+
+        final List<Pair<String, String>> eventList = getEventList();
+        for (Pair<String, String> eventPair : eventList) {
+            final String name = eventPair.first;
 
             if (name.equals(EventStrings.HTTP_RESPONSE_CODE) || name.equals(EventStrings.REQUEST_ID_HEADER)
                     || name.equals(EventStrings.OAUTH_ERROR_CODE) || name.equals(EventStrings.HTTP_PATH)) {
-                dispatchMap.put(name, (String) eventPair.second);
+                dispatchMap.put(name, eventPair.second);
             }
         }
     }

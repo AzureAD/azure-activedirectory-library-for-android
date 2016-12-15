@@ -46,8 +46,6 @@ class DefaultEvent implements IEvents {
 
     private static String sClientId = "NA";
 
-    private static String sClientIp = "NA";
-
     private static String sDeviceId = "NA";
 
     private String mRequestId;
@@ -59,11 +57,10 @@ class DefaultEvent implements IEvents {
 
         // Keying off Application name not being null to decide if the defaults have been set
         if (sApplicationName != null) {
-            setEvent(EventStrings.APPLICATION_NAME, sApplicationName);
-            setEvent(EventStrings.APPLICATION_VERSION, sApplicationVersion);
-            setEvent(EventStrings.CLIENT_ID, sClientId);
-            setEvent(EventStrings.CLIENT_IP, sClientIp);
-            setEvent(EventStrings.DEVICE_ID, sDeviceId);
+            setProperty(EventStrings.APPLICATION_NAME, sApplicationName);
+            setProperty(EventStrings.APPLICATION_VERSION, sApplicationVersion);
+            setProperty(EventStrings.CLIENT_ID, sClientId);
+            setProperty(EventStrings.DEVICE_ID, sDeviceId);
             mDefaultEventCount = mEventList.size();
         }
     }
@@ -74,9 +71,9 @@ class DefaultEvent implements IEvents {
     }
 
     @Override
-    public void setEvent(final String name, final String value) {
+    public void setProperty(final String name, final String value) {
         if (TextUtils.isEmpty(name)) {
-            throw new IllegalArgumentException("Telemetry setEvent on null name");
+            throw new IllegalArgumentException("Telemetry setProperty on null name");
         }
 
         if (value == null) {
@@ -91,6 +88,10 @@ class DefaultEvent implements IEvents {
         return Collections.unmodifiableList(mEventList);
     }
 
+    /**
+     * Each event chooses which of its members get picked on aggregation.
+     * @param dispatchMap the Map that is filled with the aggregated event properties
+     */
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
 
@@ -104,10 +105,6 @@ class DefaultEvent implements IEvents {
 
         if (sClientId != null) {
             dispatchMap.put(EventStrings.CLIENT_ID, sClientId);
-        }
-
-        if (sClientIp != null) {
-            dispatchMap.put(EventStrings.CLIENT_IP, sClientIp);
         }
 
         if (sDeviceId != null) {
@@ -125,9 +122,6 @@ class DefaultEvent implements IEvents {
             sApplicationVersion = "NA";
         }
 
-        //TODO: Getting IP will require network permissions do we want to do it?
-        sClientIp = "NA";
-
         try {
             sDeviceId = StringExtensions.createHash(Secure.getString(context.getContentResolver(), Secure.ANDROID_ID));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
@@ -135,11 +129,10 @@ class DefaultEvent implements IEvents {
         }
 
         if (mDefaultEventCount == 0) {
-            setEvent(EventStrings.APPLICATION_NAME, sApplicationName);
-            setEvent(EventStrings.APPLICATION_VERSION, sApplicationVersion);
-            setEvent(EventStrings.CLIENT_ID, sClientId);
-            setEvent(EventStrings.CLIENT_IP, sClientIp);
-            setEvent(EventStrings.DEVICE_ID, sDeviceId);
+            setProperty(EventStrings.APPLICATION_NAME, sApplicationName);
+            setProperty(EventStrings.APPLICATION_VERSION, sApplicationVersion);
+            setProperty(EventStrings.CLIENT_ID, sClientId);
+            setProperty(EventStrings.DEVICE_ID, sDeviceId);
             mDefaultEventCount = mEventList.size();
         }
     }

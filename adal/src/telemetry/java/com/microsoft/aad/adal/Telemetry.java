@@ -52,7 +52,7 @@ public class Telemetry {
      * @param dispatcher the IDispatcher interface to be registered
      * @param aggregationRequired true if client wants a single event per call to AcquireToken, false otherwise
      */
-    public void registerDispatcher(final IDispatcher dispatcher, final boolean aggregationRequired) {
+    public synchronized void registerDispatcher(final IDispatcher dispatcher, final boolean aggregationRequired) {
         if (aggregationRequired) {
             mDispatcher = new AggregatedDispatcher(dispatcher);
         } else {
@@ -86,9 +86,9 @@ public class Telemetry {
 
         final String stopTime = Long.toString(stopTimeLong);
 
-        events.setEvent(EventStrings.START_TIME, startTime);
-        events.setEvent(EventStrings.STOP_TIME, stopTime);
-        events.setEvent(EventStrings.RESPONSE_TIME, Long.toString(diffTime));
+        events.setProperty(EventStrings.START_TIME, startTime);
+        events.setProperty(EventStrings.STOP_TIME, stopTime);
+        events.setProperty(EventStrings.RESPONSE_TIME, Long.toString(diffTime));
 
         mDispatcher.receive(requestId, events);
 

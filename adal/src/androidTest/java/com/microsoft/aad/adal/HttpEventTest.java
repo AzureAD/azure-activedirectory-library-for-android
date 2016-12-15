@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -38,9 +39,9 @@ public final class HttpEventTest extends AndroidTestCase {
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
         event.setHttpPath(new URL("https://login.microsoftonline.com/contoso/oauth2/token"));
         event.setOauthErrorCode("interaction_required");
-        event.setResponseCode(400);
+        event.setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST);
 
-        final Map<String, String> dispatchMap = new HashMap();
+        final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
 
         assertFalse(dispatchMap.isEmpty());
@@ -56,11 +57,25 @@ public final class HttpEventTest extends AndroidTestCase {
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
         event.setHttpPath(new URL("https://contoso.com/adfs/ls"));
 
-        final Map<String, String> dispatchMap = new HashMap();
+        final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
 
         // The path should not be there, so the map should have only the count element
-        assertTrue(dispatchMap.get(EventStrings.HTTP_PATH) == null);
+        assertNull(dispatchMap.get(EventStrings.HTTP_PATH));
+        assertTrue(dispatchMap.get(EventStrings.HTTP_EVENT_COUNT).equals("1"));
+    }
+
+    @SmallTest
+    public void testAADAuthorityPath() throws MalformedURLException {
+        final HttpEvent event = new HttpEvent((EventStrings.HTTP_EVENT));
+        event.setHttpPath(new URL("https://login.microsoftonline.com/myTenant.com/oauth2/"));
+
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+
+        // The path should be here
+        assertNotNull(dispatchMap.get(EventStrings.HTTP_PATH));
+        assertTrue(dispatchMap.get(EventStrings.HTTP_PATH).equals("https://login.microsoftonline.com/oauth2/"));
         assertTrue(dispatchMap.get(EventStrings.HTTP_EVENT_COUNT).equals("1"));
     }
 }

@@ -551,7 +551,7 @@ public enum ADALError {
      * Fail to parse JSON because of the problem with the JSON API.
      */
     JSON_PARSE_ERROR("Fail to parse JSON");
-    
+
     private String mDescription;
 
     ADALError(String message) {

@@ -52,6 +52,11 @@ public final class APIEventTest extends AndroidTestCase {
         assertTrue(dispatchMap.containsKey(EventStrings.EXTENDED_EXPIRES_ON_SETTING));
         assertFalse(dispatchMap.containsKey(EventStrings.API_ERROR_CODE));
         assertFalse(dispatchMap.containsKey(EventStrings.API_ERROR_CODE));
+        assertTrue(dispatchMap.containsKey(EventStrings.TENANT_ID));
+        assertTrue(dispatchMap.containsKey(EventStrings.DEVICE_ID));
+        assertTrue(dispatchMap.containsKey(EventStrings.CLIENT_ID));
+        assertTrue(dispatchMap.containsKey(EventStrings.APPLICATION_VERSION));
+        assertTrue(dispatchMap.containsKey(EventStrings.USER_ID));
 
         final String email = dispatchMap.get(EventStrings.LOGIN_HINT);
         assertTrue(email.equals(StringExtensions.createHash("pii@pii.com")));

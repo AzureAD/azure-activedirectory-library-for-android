@@ -620,7 +620,7 @@ class Oauth2 {
             if (webResponse.getResponseHeaders().containsKey(AuthenticationConstants.AAD.REQUEST_ID_HEADER)) {
                 // headers are returning as a list
                 List<String> listOfHeaders = webResponse.getResponseHeaders().get(
-                        AuthenticationConstants.AAD.CLIENT_REQUEST_ID);
+                        AuthenticationConstants.AAD.REQUEST_ID_HEADER);
                 if (listOfHeaders != null && listOfHeaders.size() > 0) {
                     Logger.v(TAG, "x-ms-request-id: " + listOfHeaders.get(0));
                     httpEvent.setRequestIdHeader(listOfHeaders.get(0));
@@ -634,7 +634,11 @@ class Oauth2 {
             case HttpURLConnection.HTTP_BAD_REQUEST:
             case HttpURLConnection.HTTP_UNAUTHORIZED:
                 try {
-                    result = parseJsonResponse(webResponse.getBody(), httpEvent);
+                    result = parseJsonResponse(webResponse.getBody());
+                    if (result != null) {
+                        httpEvent.setOauthErrorCode(result.getErrorCode());
+                    }
+
                 } catch (final JSONException jsonException) {
                     throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
                 }
@@ -666,17 +670,12 @@ class Oauth2 {
         return result;
     }
 
-    private AuthenticationResult parseJsonResponse(final String responseBody, final HttpEvent httpEvent)
+    private AuthenticationResult parseJsonResponse(final String responseBody)
             throws JSONException,
             AuthenticationException {
         final Map<String, String> responseItems = new HashMap<>();
         extractJsonObjects(responseItems, responseBody);
-        AuthenticationResult result = processUIResponseParams(responseItems);
-        if (result != null) {
-            httpEvent.setOauthErrorCode(result.getErrorCode());
-        }
-
-        return result;
+        return processUIResponseParams(responseItems);
     }
 
     private HttpEvent startHttpEvent() {

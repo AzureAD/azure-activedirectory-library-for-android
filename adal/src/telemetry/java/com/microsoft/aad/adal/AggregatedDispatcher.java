@@ -23,11 +23,8 @@
 
 package com.microsoft.aad.adal;
 
-import android.util.Pair;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +44,6 @@ class AggregatedDispatcher extends DefaultDispatcher {
      */
     @SuppressWarnings("unchecked")
     synchronized void flush(final String requestId) {
-        final List<Pair<String, String>> dispatchList = new ArrayList<>();
         final Map<String, String> dispatchMap = new HashMap<>();
         if (getDispatcher() == null) {
             return;
@@ -65,14 +61,7 @@ class AggregatedDispatcher extends DefaultDispatcher {
             event.processEvent(dispatchMap);
         }
 
-        Iterator iterator = dispatchMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry pair = (Map.Entry) iterator.next();
-            dispatchList.add(new Pair<>((String) pair.getKey(), (String) pair.getValue()));
-            iterator.remove();
-        }
-
-        getDispatcher().dispatchEvent(dispatchList);
+        getDispatcher().dispatchEvent(dispatchMap);
     }
 
     @SuppressWarnings("unchecked")

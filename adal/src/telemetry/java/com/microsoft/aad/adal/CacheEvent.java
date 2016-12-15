@@ -34,7 +34,7 @@ class CacheEvent extends DefaultEvent {
 
     CacheEvent(final String eventName) {
         mEventName = eventName;
-        setEvent(EventStrings.EVENT_NAME, eventName);
+        setProperty(EventStrings.EVENT_NAME, eventName);
     }
 
     void setTokenType(final String tokenType) {
@@ -42,17 +42,22 @@ class CacheEvent extends DefaultEvent {
     }
 
     void setTokenTypeRT(final Boolean tokenTypeRT) {
-        setEvent(EventStrings.TOKEN_TYPE_IS_RT, tokenTypeRT.toString());
+        setProperty(EventStrings.TOKEN_TYPE_IS_RT, tokenTypeRT.toString());
     }
 
     void setTokenTypeMRRT(final Boolean tokenTypeMRRT) {
-        setEvent(EventStrings.TOKEN_TYPE_IS_MRRT, tokenTypeMRRT.toString());
+        setProperty(EventStrings.TOKEN_TYPE_IS_MRRT, tokenTypeMRRT.toString());
     }
 
     void setTokenTypeFRT(final Boolean tokenTypeFRT) {
-        setEvent(EventStrings.TOKEN_TYPE_IS_FRT, tokenTypeFRT.toString());
+        setProperty(EventStrings.TOKEN_TYPE_IS_FRT, tokenTypeFRT.toString());
     }
 
+    /**
+     * Each event chooses which of its members get picked on aggregation.
+     * Cache event adds an event count field
+     * @param dispatchMap the Map that is filled with the aggregated event properties
+     */
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
 
@@ -60,28 +65,28 @@ class CacheEvent extends DefaultEvent {
             return;
         }
 
-        final List eventList = getEventList();
-        final int size = eventList.size();
+        final List<Pair<String, String>> eventList = getEventList();
 
-        final Object countObject = dispatchMap.get(EventStrings.CACHE_EVENT_COUNT);
-        if (countObject == null) {
+        // We are keeping track of the number of Cache Events here, first time we insert the CACHE_EVENT_COUNT in the
+        // map, next time onwards, we read the value of it and increment by one.
+        final String count = dispatchMap.get(EventStrings.CACHE_EVENT_COUNT);
+        if (count == null) {
             dispatchMap.put(EventStrings.CACHE_EVENT_COUNT, "1");
         } else {
             dispatchMap.put(EventStrings.CACHE_EVENT_COUNT,
-                    Integer.toString(Integer.parseInt((String) countObject) + 1));
+                    Integer.toString(Integer.parseInt(count) + 1));
         }
 
         dispatchMap.put(EventStrings.TOKEN_TYPE_IS_FRT, "");
         dispatchMap.put(EventStrings.TOKEN_TYPE_IS_MRRT, "");
         dispatchMap.put(EventStrings.TOKEN_TYPE_IS_RT, "");
 
-        for (int i = 0; i < size; i++) {
-            final Pair eventPair = (Pair<String, String>) eventList.get(i);
-            final String name = (String) eventPair.first;
+        for (Pair<String, String> eventPair : eventList) {
+            final String name = eventPair.first;
 
             if (name.equals(EventStrings.TOKEN_TYPE_IS_FRT) || name.equals(EventStrings.TOKEN_TYPE_IS_RT)
                     || name.equals(EventStrings.TOKEN_TYPE_IS_MRRT)) {
-                dispatchMap.put(name, (String) eventPair.second);
+                dispatchMap.put(name, eventPair.second);
             }
         }
     }

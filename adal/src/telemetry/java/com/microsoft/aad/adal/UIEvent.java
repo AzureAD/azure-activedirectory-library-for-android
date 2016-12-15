@@ -34,36 +34,48 @@ class UIEvent extends DefaultEvent {
     }
 
     void setRedirectCount(final Integer redirectCount) {
-        setEvent(EventStrings.REDIRECT_COUNT, redirectCount.toString());
+        setProperty(EventStrings.REDIRECT_COUNT, redirectCount.toString());
     }
 
     void setNTLM(Boolean ntlm) {
-        setEvent(EventStrings.NTLM, ntlm.toString());
+        setProperty(EventStrings.NTLM, ntlm.toString());
     }
 
     void setUserCancel() {
-        setEvent(EventStrings.USER_CANCEL, "true");
+        setProperty(EventStrings.USER_CANCEL, "true");
     }
 
+    /**
+     * Each event chooses which of its members get picked on aggregation.
+     * UI event adds an event count field
+     * @param dispatchMap the Map that is filled with the aggregated event properties
+     */
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
-        final List eventList = getEventList();
-        final int size = eventList.size();
+        final List<Pair<String, String>> eventList = getEventList();
 
-        final Object countObject = dispatchMap.get(EventStrings.UI_EVENT_COUNT);
-        if (countObject == null) {
+        // We are keeping track of the number of UI Events here, first time we insert the UI_EVENT_COUNT into the map
+        // next time onwards, we read the value of it and increment by one.
+        final String count = dispatchMap.get(EventStrings.UI_EVENT_COUNT);
+        if (count == null) {
             dispatchMap.put(EventStrings.UI_EVENT_COUNT, "1");
         } else {
-            dispatchMap.put(EventStrings.UI_EVENT_COUNT,
-                    Integer.toString(Integer.parseInt((String) countObject) + 1));
+            dispatchMap.put(EventStrings.UI_EVENT_COUNT, Integer.toString(Integer.parseInt(count) + 1));
         }
 
-        for (int i = 0; i < size; i++) {
-            final Pair eventPair = (Pair<String, String>) eventList.get(i);
-            final String name = (String) eventPair.first;
+        if (dispatchMap.containsKey(EventStrings.USER_CANCEL)) {
+            dispatchMap.put(EventStrings.USER_CANCEL, "");
+        }
+
+        if (dispatchMap.containsKey(EventStrings.NTLM)) {
+            dispatchMap.put(EventStrings.NTLM, "");
+        }
+
+        for (Pair<String, String> eventPair : eventList) {
+            final String name = eventPair.first;
 
             if (name.equals(EventStrings.USER_CANCEL) || name.equals(EventStrings.NTLM)) {
-                dispatchMap.put(name, (String) eventPair.second);
+                dispatchMap.put(name, eventPair.second);
             }
         }
     }

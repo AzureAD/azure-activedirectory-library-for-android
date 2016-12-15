@@ -30,11 +30,15 @@ import java.util.Map;
 
 interface IEvents {
     
-    void setEvent(final String name, final String value);
+    void setProperty(final String name, final String value);
 
     List<Pair<String, String>> getEvents();
 
     int getDefaultEventCount();
 
+    /**
+     * Each event chooses which of its members get picked on aggregation.
+     * @param dispatchMap the Map that is filled with the aggregated event properties
+     */
     void processEvent(final Map<String, String> dispatchMap);
 }

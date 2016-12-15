@@ -271,7 +271,6 @@ public class AuthenticationContext {
             request.setTelemetryRequestId(requestId);
             createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
         }
-
     }
 
     /**
@@ -312,7 +311,6 @@ public class AuthenticationContext {
             request.setTelemetryRequestId(requestId);
             createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
         }
-
     }
 
     /**
@@ -341,7 +339,7 @@ public class AuthenticationContext {
 
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_3);
-            apiEvent.setSilentRequestPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt.toString());
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -378,7 +376,7 @@ public class AuthenticationContext {
 
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_4);
-            apiEvent.setSilentRequestPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt.toString());
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, null, prompt, extraQueryParameters,
@@ -418,7 +416,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_5);
-            apiEvent.setSilentRequestPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt.toString());
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -457,7 +455,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_6);
-            apiEvent.setSilentRequestPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt.toString());
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -497,7 +495,7 @@ public class AuthenticationContext {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_7);
-            apiEvent.setSilentRequestPromptBehavior(prompt.toString());
+            apiEvent.setPromptBehavior(prompt.toString());
             apiEvent.setLoginHint(loginHint);
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -542,7 +540,7 @@ public class AuthenticationContext {
 
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
-        apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
+        apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -638,7 +636,6 @@ public class AuthenticationContext {
 
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT);
-        apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
         apiEvent.setIsDeprecated(true);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
@@ -716,7 +713,7 @@ public class AuthenticationContext {
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
                 EventStrings.ACQUIRE_TOKEN_SILENT_ASYNC);
-        apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
+        apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                 clientId, userId, getRequestCorrelationId(), getExtendedLifetimeEnabled());
@@ -759,7 +756,7 @@ public class AuthenticationContext {
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
                 EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN);
-        apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
+        apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
         apiEvent.setIsDeprecated(true);
 
         final AuthenticationRequest request = new AuthenticationRequest(mAuthority,
@@ -806,7 +803,7 @@ public class AuthenticationContext {
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId,
                 EventStrings.ACQUIRE_TOKEN_WITH_REFRESH_TOKEN_2);
-        apiEvent.setSilentRequestPromptBehavior(PromptBehavior.Auto.toString());
+        apiEvent.setPromptBehavior(PromptBehavior.Auto.toString());
         apiEvent.setIsDeprecated(true);
 
         // Authenticator is not supported if user is managing the cache

@@ -23,10 +23,16 @@
 
 package com.microsoft.aad.adal;
 
+import android.util.Pair;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This is the default dispatcher, this class if used will send events as they happen to the registered callback.
+ * The expectation is that the data will be correlated at the query.
+ */
 class DefaultDispatcher {
     private final Map mObjectsToBeDispatched = new HashMap<String, List<IEvents>>();
     private final IDispatcher mDispatcher;
@@ -39,13 +45,26 @@ class DefaultDispatcher {
         mDispatcher = dispatcher;
     }
 
+    /**
+     * Flush is intentionally blank here, events are dispatched as they are received.
+     * @param requestId
+     */
     synchronized void flush(final String requestId) {
     }
 
     void receive(final String requestId, final IEvents events) {
-        if (mDispatcher != null) {
-            mDispatcher.dispatchEvent(events.getEvents());
+
+        if (mDispatcher == null) {
+            return;
         }
+        final Map<String, String> dispatchMap = new HashMap<>();
+        final List<Pair<String, String>> eventList = events.getEvents();
+
+        for (final Pair<String, String> event : eventList) {
+            dispatchMap.put(event.first, event.second);
+        }
+
+        mDispatcher.dispatchEvent(dispatchMap);
     }
 
     IDispatcher getDispatcher() {

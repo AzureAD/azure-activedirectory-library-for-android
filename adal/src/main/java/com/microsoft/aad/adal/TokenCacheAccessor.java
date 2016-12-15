@@ -233,7 +233,6 @@ class TokenCacheAccessor {
         case MRRT_TOKEN_ENTRY :
             // We delete both MRRT and RT in this case.
             cacheEvent.setTokenTypeMRRT(true);
-            cacheEvent.setTokenTypeRT(true);
             Logger.v(TAG, "MRRT was used to get access token, remove entries for both "
                     + "MRRT entries and regular RT entries.");
             keys = getKeyListToRemoveForMRRT(tokenCacheItem);

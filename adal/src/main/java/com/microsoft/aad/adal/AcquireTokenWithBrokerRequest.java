@@ -86,6 +86,7 @@ final class AcquireTokenWithBrokerRequest {
         if (activity == null) {
             throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
         }
+
         if (brokerIntent == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED);
         }

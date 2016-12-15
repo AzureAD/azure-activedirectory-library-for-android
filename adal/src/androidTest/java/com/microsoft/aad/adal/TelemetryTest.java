@@ -32,14 +32,15 @@ import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 import android.util.Log;
-import android.util.Pair;
 
 import org.mockito.Mockito;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Mockito.when;
 
@@ -68,7 +69,7 @@ public class TelemetryTest extends AndroidTestCase {
 
         final DefaultEvent default1 = new DefaultEvent();
         default1.setDefaults(mockContext, "client-id");
-        default1.setEvent("a", "a");
+        default1.setProperty("a", "a");
 
         final DefaultEvent default2 = new DefaultEvent();
 
@@ -89,7 +90,7 @@ public class TelemetryTest extends AndroidTestCase {
 
         final DefaultEvent default1 = new DefaultEvent();
         default1.setDefaults(mockContext, "client-id");
-        default1.setEvent("a", "a");
+        default1.setProperty("a", "a");
 
         final DefaultEvent default2 = new DefaultEvent();
 
@@ -134,7 +135,7 @@ public class TelemetryTest extends AndroidTestCase {
     class TestDispatcher implements IDispatcher {
         private int mEventCount = 0;
 
-        public void dispatchEvent(List events) {
+        public void dispatchEvent(Map events) {
             mEventCount = events.size();
         }
 
@@ -146,52 +147,46 @@ public class TelemetryTest extends AndroidTestCase {
 
 class AggregatedTelemetryTestClass implements IDispatcher {
 
-    private List<Pair<String, String>> eventData;
+    private Map<String, String> mEventData;
 
     AggregatedTelemetryTestClass() {
-        eventData = new ArrayList<Pair<String, String>>();
+        mEventData = new HashMap<>();
     }
 
     @Override
-    public void dispatchEvent(List<Pair<String, String>> events) {
-        eventData.addAll(events);
+    public void dispatchEvent(Map<String, String> events) {
+        mEventData.putAll(events);
     }
 
     boolean checkOauthError() {
-        for (Pair<String, String> eventProperty : eventData) {
-            if (eventProperty.first.equals(EventStrings.OAUTH_ERROR_CODE)) {
-                return true;
-            }
+        if (mEventData.containsKey(EventStrings.OAUTH_ERROR_CODE)) {
+            return true;
         }
         return false;
     }
 
     boolean checkNoPIIPresent(final String piiKey, final String piiValue) {
-
-        // No event property should contain PII
-        for (Pair<String, String> eventProperty : eventData) {
-            if (eventProperty.second.equalsIgnoreCase(piiValue)) {
-                return false;
-            }
+        try {
+            return mEventData.get(piiKey).equals(StringExtensions.createHash(piiValue));
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            return false;
         }
-
-        // Now check if we got the correct hash
-        for (Pair<String, String> eventProperty : eventData) {
-            if (eventProperty.first.equals(piiKey)) {
-                try {
-                    if (eventProperty.second.equals(StringExtensions.createHash(piiValue))) {
-                        return true;
-                    }
-                } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
-                    return false;
-                }
-            }
-        }
-        return false;
     }
 
     boolean eventsReceived() {
-        return (eventData.size() > 0);
+        return (mEventData.size() > 0);
+    }
+
+    boolean checkAPIId(String id) {
+        return mEventData.get(EventStrings.API_ID).equals(id);
+    }
+
+    boolean checkCacheEventCount(String count) {
+        return mEventData.get(EventStrings.CACHE_EVENT_COUNT).equals(count);
+    }
+
+    boolean checkAPISucceeded() {
+        return mEventData.get(EventStrings.WAS_SUCCESSFUL).equals("true");
     }
 }
 
@@ -200,19 +195,19 @@ class DefaultTelemetryTestClass implements IDispatcher {
     private List<EventBlocks> mEventData;
 
     DefaultTelemetryTestClass() {
-        mEventData = new ArrayList<EventBlocks>();
+        mEventData = new ArrayList<>();
     }
 
     @Override
-    public void dispatchEvent(List<Pair<String, String>> events) {
+    public void dispatchEvent(Map<String, String> events) {
         mEventData.add(new EventBlocks(events));
     }
 
     class EventBlocks {
 
-        private List<Pair<String, String>> mEventData;
+        private Map<String, String> mEventData;
 
-        EventBlocks(List<Pair<String, String>> eventProperties) {
+        EventBlocks(Map<String, String> eventProperties) {
             mEventData = eventProperties;
         }
     }
