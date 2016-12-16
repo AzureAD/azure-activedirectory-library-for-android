@@ -30,11 +30,11 @@ final class AdfsWebFingerValidator {
      */
     static boolean realmIsTrusted(URL authority, WebFingerMetadata metadata) {
         Logger.v(TAG, "Verifying trust: " + authority.toString() + metadata.toString());
-        String href, rel, host;
         for (Link link : metadata.getLinks()) {
-            href = link.getHref();
-            rel = link.getRel();
-            host = authority.getProtocol() + "://" + authority.getHost();
+            String href = link.getHref();
+            String rel = link.getRel();
+            // TODO treat this java.net.URI so that ports and stuff are preserved
+            String host = authority.getProtocol() + "://" + authority.getHost();
             if (href.equalsIgnoreCase(host) && rel.equalsIgnoreCase(TRUSTED_REALM_REL)) {
                 return true;
             }
