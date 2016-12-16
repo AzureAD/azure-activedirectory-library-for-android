@@ -638,7 +638,6 @@ class Oauth2 {
                     if (result != null) {
                         httpEvent.setOauthErrorCode(result.getErrorCode());
                     }
-
                 } catch (final JSONException jsonException) {
                     throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
                 }

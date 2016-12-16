@@ -28,7 +28,7 @@ import android.util.Pair;
 import java.util.List;
 import java.util.Map;
 
-class BrokerEvent extends DefaultEvent {
+final class BrokerEvent extends DefaultEvent {
     BrokerEvent(final String eventName) {
         setProperty(EventStrings.EVENT_NAME, eventName);
     }

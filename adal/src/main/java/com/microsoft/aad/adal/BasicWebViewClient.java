@@ -77,9 +77,8 @@ abstract class BasicWebViewClient extends WebViewClient {
 
         // Create a dialog to ask for creds and post it to the handler.
         Logger.i(TAG, "onReceivedHttpAuthRequest for host:" + host, "");
-        if (mUIEvent != null) {
-            mUIEvent.setNTLM(true);
-        }
+        mUIEvent.setNTLM(true);
+
         HttpAuthDialog authDialog = new HttpAuthDialog(mCallingContext, host, realm);
 
         authDialog.setOkListener(new HttpAuthDialog.OkListener() {

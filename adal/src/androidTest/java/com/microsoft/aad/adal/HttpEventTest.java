@@ -78,4 +78,21 @@ public final class HttpEventTest extends AndroidTestCase {
         assertTrue(dispatchMap.get(EventStrings.HTTP_PATH).equals("https://login.microsoftonline.com/oauth2/"));
         assertTrue(dispatchMap.get(EventStrings.HTTP_EVENT_COUNT).equals("1"));
     }
+
+    @SmallTest
+    public void testOverlappingHttpEvent() {
+        final HttpEvent event = new HttpEvent((EventStrings.HTTP_EVENT));
+        event.setOauthErrorCode("some error");
+        event.setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST);
+
+        final HttpEvent event2 = new HttpEvent(EventStrings.HTTP_EVENT);
+        event2.setResponseCode(HttpURLConnection.HTTP_OK);
+
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        event2.processEvent(dispatchMap);
+
+        assertTrue(dispatchMap.get(EventStrings.OAUTH_ERROR_CODE).isEmpty());
+        assertTrue(dispatchMap.get(EventStrings.HTTP_RESPONSE_CODE).equals(String.valueOf(HttpURLConnection.HTTP_OK)));
+    }
 }

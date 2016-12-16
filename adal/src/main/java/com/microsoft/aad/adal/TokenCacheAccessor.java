@@ -39,7 +39,7 @@ class TokenCacheAccessor {
     private final String mAuthority;
     private final String mTelemetryRequestId;
     
-    TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority, final String requestId) {
+    TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority, final String telemetryRequestId) {
         if (tokenCacheStore == null) {
             throw new IllegalArgumentException("tokenCacheStore");
         }
@@ -48,13 +48,13 @@ class TokenCacheAccessor {
             throw new IllegalArgumentException("authority");
         }
 
-        if (StringExtensions.isNullOrBlank(requestId)) {
+        if (StringExtensions.isNullOrBlank(telemetryRequestId)) {
             throw new IllegalArgumentException("requestId");
         }
 
         mTokenCacheStore = tokenCacheStore;
         mAuthority = authority;
-        mTelemetryRequestId = requestId;
+        mTelemetryRequestId = telemetryRequestId;
     }
     
     /**

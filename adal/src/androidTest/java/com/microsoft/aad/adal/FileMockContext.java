@@ -133,7 +133,7 @@ class FileMockContext extends MockContext {
     @Override
     public ContentResolver getContentResolver() {
 
-        MockContentProvider mcp = new MockContentProvider(mContext) {
+        MockContentProvider mockContentProvider = new MockContentProvider(mContext) {
             @Override
             public Bundle call(String method, String request, Bundle args) {
                 return new Bundle();
@@ -141,7 +141,7 @@ class FileMockContext extends MockContext {
         };
 
         MockContentResolver mockContentResolver = new MockContentResolver();
-        mockContentResolver.addProvider(Settings.AUTHORITY, mcp);
+        mockContentResolver.addProvider(Settings.AUTHORITY, mockContentProvider);
 
         return mockContentResolver;
     }

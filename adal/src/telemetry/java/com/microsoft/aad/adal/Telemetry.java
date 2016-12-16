@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Telemetry {
+public final class Telemetry {
     private DefaultDispatcher mDispatcher = null;
     private final Map<Pair<String, String>, String> mEventTracking = new ConcurrentHashMap<Pair<String, String>, String>();
     private static final Telemetry INSTANCE = new Telemetry();
@@ -91,7 +91,6 @@ public class Telemetry {
         events.setProperty(EventStrings.RESPONSE_TIME, Long.toString(diffTime));
 
         mDispatcher.receive(requestId, events);
-
     }
 
     void flush(final String requestId) {

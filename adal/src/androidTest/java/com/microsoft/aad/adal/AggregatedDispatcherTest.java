@@ -59,7 +59,6 @@ public final class AggregatedDispatcherTest extends AndroidTestCase {
         dispatcher.flush(CONSTANT_REQUEST_ID_1);
         dispatcher.flush(CONSTANT_REQUEST_ID_2);
         dispatcher.flush(CONSTANT_REQUEST_ID);
-
     }
 
     @SmallTest

@@ -28,7 +28,7 @@ import android.util.Pair;
 import java.util.List;
 import java.util.Map;
 
-class UIEvent extends DefaultEvent {
+final class UIEvent extends DefaultEvent {
     UIEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
     }
@@ -37,8 +37,8 @@ class UIEvent extends DefaultEvent {
         setProperty(EventStrings.REDIRECT_COUNT, redirectCount.toString());
     }
 
-    void setNTLM(Boolean ntlm) {
-        setProperty(EventStrings.NTLM, ntlm.toString());
+    void setNTLM(final boolean ntlm) {
+        setProperty(EventStrings.NTLM, String.valueOf(ntlm));
     }
 
     void setUserCancel() {

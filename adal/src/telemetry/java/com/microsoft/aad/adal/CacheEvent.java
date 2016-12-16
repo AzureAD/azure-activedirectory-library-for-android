@@ -28,8 +28,7 @@ import android.util.Pair;
 import java.util.List;
 import java.util.Map;
 
-class CacheEvent extends DefaultEvent {
-
+final class CacheEvent extends DefaultEvent {
     private final String mEventName;
 
     CacheEvent(final String eventName) {
@@ -41,16 +40,16 @@ class CacheEvent extends DefaultEvent {
         getEventList().add(Pair.create(EventStrings.TOKEN_TYPE, tokenType));
     }
 
-    void setTokenTypeRT(final Boolean tokenTypeRT) {
-        setProperty(EventStrings.TOKEN_TYPE_IS_RT, tokenTypeRT.toString());
+    void setTokenTypeRT(final boolean tokenTypeRT) {
+        setProperty(EventStrings.TOKEN_TYPE_IS_RT, String.valueOf(tokenTypeRT));
     }
 
-    void setTokenTypeMRRT(final Boolean tokenTypeMRRT) {
-        setProperty(EventStrings.TOKEN_TYPE_IS_MRRT, tokenTypeMRRT.toString());
+    void setTokenTypeMRRT(final boolean tokenTypeMRRT) {
+        setProperty(EventStrings.TOKEN_TYPE_IS_MRRT, String.valueOf(tokenTypeMRRT));
     }
 
-    void setTokenTypeFRT(final Boolean tokenTypeFRT) {
-        setProperty(EventStrings.TOKEN_TYPE_IS_FRT, tokenTypeFRT.toString());
+    void setTokenTypeFRT(final boolean tokenTypeFRT) {
+        setProperty(EventStrings.TOKEN_TYPE_IS_FRT, String.valueOf(tokenTypeFRT));
     }
 
     /**

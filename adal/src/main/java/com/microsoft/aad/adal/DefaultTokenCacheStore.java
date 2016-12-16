@@ -65,7 +65,10 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     private Gson mGson = new GsonBuilder()
     .registerTypeAdapter(Date.class, new DateTimeAdapter())
     .create();
+
+    @SuppressLint("StaticFieldLeak")
     private static StorageHelper sHelper;
+
     private static final Object LOCK = new Object();
     /**
      * @param context {@link Context}

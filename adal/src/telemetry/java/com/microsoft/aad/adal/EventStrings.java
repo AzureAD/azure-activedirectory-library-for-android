@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 final class EventStrings {
-
     static final String EVENT_NAME = "event_name";
 
     // Event names

@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.provider.Settings.Secure;
@@ -94,7 +95,6 @@ class DefaultEvent implements IEvents {
      */
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
-
         if (sApplicationName != null) {
             dispatchMap.put(EventStrings.APPLICATION_NAME, sApplicationName);
         }
@@ -112,8 +112,8 @@ class DefaultEvent implements IEvents {
         }
     }
 
+    @SuppressLint("HardwareIds")
     void setDefaults(final Context context, final String clientId) {
-
         sClientId = clientId;
         sApplicationName = context.getPackageName();
         try {
@@ -153,7 +153,7 @@ class DefaultEvent implements IEvents {
         return mEventList;
     }
 
-    String getRequestId() {
+    String getTelemetryRequestId() {
         return mRequestId;
     }
 }

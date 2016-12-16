@@ -28,8 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class AggregatedDispatcher extends DefaultDispatcher {
-
+final class AggregatedDispatcher extends DefaultDispatcher {
 
     AggregatedDispatcher(final IDispatcher dispatcher) {
         super(dispatcher);
@@ -74,5 +73,4 @@ class AggregatedDispatcher extends DefaultDispatcher {
         eventsList.add(events);
         getObjectsToBeDispatched().put(requestId, eventsList);
     }
-
 }

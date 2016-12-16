@@ -36,7 +36,7 @@ import java.util.Map;
  * This class tracks flows for certain API calls. Most notably in those all acquireToken* calls.
  * All other Events will be called within the timeline of APIEvent.
  */
-class APIEvent extends DefaultEvent {
+final class APIEvent extends DefaultEvent {
 
     private static final String TAG = DefaultEvent.class.getSimpleName();
     private final String mEventName;
@@ -73,16 +73,16 @@ class APIEvent extends DefaultEvent {
         setProperty(EventStrings.AUTHORITY_TYPE, authorityType);
     }
 
-    void setIsDeprecated(final Boolean isDeprecated) {
-        setProperty(EventStrings.API_DEPRECATED, isDeprecated.toString());
+    void setIsDeprecated(final boolean isDeprecated) {
+        setProperty(EventStrings.API_DEPRECATED, String.valueOf(isDeprecated));
     }
 
     void setValidationStatus(final String validationStatus) {
         setProperty(EventStrings.AUTHORITY_VALIDATION, validationStatus);
     }
 
-    void setExtendedExpiresOnSetting(final Boolean extendedExpiresOnSetting) {
-        setProperty(EventStrings.EXTENDED_EXPIRES_ON_SETTING, extendedExpiresOnSetting.toString());
+    void setExtendedExpiresOnSetting(final boolean extendedExpiresOnSetting) {
+        setProperty(EventStrings.EXTENDED_EXPIRES_ON_SETTING, String.valueOf(extendedExpiresOnSetting));
     }
 
     void setPromptBehavior(final String promptBehavior) {
@@ -97,8 +97,8 @@ class APIEvent extends DefaultEvent {
         return mEventName;
     }
 
-    void setWasApiCallSuccessful(final Boolean isSuccess, final Exception exception) {
-        setProperty(EventStrings.WAS_SUCCESSFUL, isSuccess.toString());
+    void setWasApiCallSuccessful(final boolean isSuccess, final Exception exception) {
+        setProperty(EventStrings.WAS_SUCCESSFUL, String.valueOf(isSuccess));
 
         if (exception != null) {
             if (exception instanceof AuthenticationException) {
@@ -109,8 +109,8 @@ class APIEvent extends DefaultEvent {
     }
 
     void stopTelemetryAndFlush() {
-        Telemetry.getInstance().stopEvent(getRequestId(), this, getEventName());
-        Telemetry.getInstance().flush(getRequestId());
+        Telemetry.getInstance().stopEvent(getTelemetryRequestId(), this, getEventName());
+        Telemetry.getInstance().flush(getTelemetryRequestId());
     }
 
     void setIdToken(final String rawIdToken) {
@@ -169,6 +169,5 @@ class APIEvent extends DefaultEvent {
                 dispatchMap.put(name, eventPair.second);
             }
         }
-
     }
 }

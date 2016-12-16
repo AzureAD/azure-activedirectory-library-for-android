@@ -123,7 +123,6 @@ public class TelemetryTest extends AndroidTestCase {
 
     private FileMockContext createMockContext()
             throws PackageManager.NameNotFoundException {
-
         final FileMockContext mockContext = new FileMockContext(getContext());
 
         final PackageManager mockedPackageManager = getMockedPackageManager();

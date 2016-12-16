@@ -34,7 +34,7 @@ import java.util.Map;
  * The expectation is that the data will be correlated at the query.
  */
 class DefaultDispatcher {
-    private final Map mObjectsToBeDispatched = new HashMap<String, List<IEvents>>();
+    private final Map<String, List<IEvents>> mObjectsToBeDispatched = new HashMap<>();
     private final IDispatcher mDispatcher;
 
     private DefaultDispatcher() {
@@ -53,10 +53,10 @@ class DefaultDispatcher {
     }
 
     void receive(final String requestId, final IEvents events) {
-
         if (mDispatcher == null) {
             return;
         }
+
         final Map<String, String> dispatchMap = new HashMap<>();
         final List<Pair<String, String>> eventList = events.getEvents();
 

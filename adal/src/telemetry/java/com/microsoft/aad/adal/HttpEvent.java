@@ -29,7 +29,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
-class HttpEvent extends DefaultEvent {
+final class HttpEvent extends DefaultEvent {
     HttpEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
     }
@@ -46,8 +46,8 @@ class HttpEvent extends DefaultEvent {
         setProperty(EventStrings.HTTP_QUERY_PARAMETERS, queryParameters);
     }
 
-    void setResponseCode(final Integer responseCode) {
-        setProperty(EventStrings.HTTP_RESPONSE_CODE, responseCode.toString());
+    void setResponseCode(final int responseCode) {
+        setProperty(EventStrings.HTTP_RESPONSE_CODE, String.valueOf(responseCode));
     }
 
     void setApiVersion(final String apiVersion) {

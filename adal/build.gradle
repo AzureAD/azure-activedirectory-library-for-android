@@ -18,12 +18,12 @@ buildscript {
 }
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 25
     buildToolsVersion "25.0.0"
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.10.0"
         project.archivesBaseName = "adal"
@@ -76,7 +76,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     //Compile Dependencies
-    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.google.code.gson:gson:2.2.4'
 
     //Android Instrumental Test Dependencies
@@ -215,7 +215,7 @@ task checkstyle(type: Checkstyle) {
 }
 
 tasks.whenTaskAdded { task ->
-    if (task.name == 'assembleDebug') {
+    if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
         task.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'
     }
 }

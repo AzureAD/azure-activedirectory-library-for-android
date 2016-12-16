@@ -51,7 +51,6 @@ public final class APIEventTest extends AndroidTestCase {
         assertTrue(dispatchMap.containsKey(EventStrings.AUTHORITY_TYPE));
         assertTrue(dispatchMap.containsKey(EventStrings.EXTENDED_EXPIRES_ON_SETTING));
         assertFalse(dispatchMap.containsKey(EventStrings.API_ERROR_CODE));
-        assertFalse(dispatchMap.containsKey(EventStrings.API_ERROR_CODE));
         assertTrue(dispatchMap.containsKey(EventStrings.TENANT_ID));
         assertTrue(dispatchMap.containsKey(EventStrings.DEVICE_ID));
         assertTrue(dispatchMap.containsKey(EventStrings.CLIENT_ID));
