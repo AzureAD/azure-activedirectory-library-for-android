@@ -232,11 +232,9 @@ public class SignInActivity extends AppCompatActivity {
             throw new IllegalArgumentException("clientId");
         }
 
-        final String userIdentifierType = inputItems.get(USER_IDENTIFIER_TYPE);
         final String userIdentifier = inputItems.get(USER_IDENTIFIER);
-        if (!TextUtils.isEmpty(userIdentifierType) && TextUtils.isEmpty(userIdentifier)
-                || !TextUtils.isEmpty(userIdentifierType) && TextUtils.isEmpty(userIdentifier)) {
-            throw new IllegalArgumentException("userIdentifier and userIdentifierType");
+        if (TextUtils.isEmpty(userIdentifier)) {
+            throw new IllegalArgumentException("userIdentifier");
         }
 
         if (flowCode == MainActivity.ACQUIRE_TOKEN && TextUtils.isEmpty(inputItems.get(REDIRECT_URI))) {
@@ -258,17 +256,14 @@ public class SignInActivity extends AppCompatActivity {
         mExtraQueryParam = inputItems.get(EXTRA_QUERY_PARAM);
         mValidateAuthority = inputItems.get(VALIDATE_AUTHORITY) == null ? true : Boolean.valueOf(
                 inputItems.get(VALIDATE_AUTHORITY));
-
-        final String uniqueIdentifier = inputItems.get(USER_IDENTIFIER);
-        final String uniqueIdentifierType = inputItems.get(USER_IDENTIFIER_TYPE);
-        if(!TextUtils.isEmpty(uniqueIdentifierType)){
-           if (uniqueIdentifierType.equalsIgnoreCase("unique_id")) {
-                mUserId = uniqueIdentifier;
-            } else if (uniqueIdentifierType.equalsIgnoreCase("optional_displayable")
-                    || uniqueIdentifierType.equalsIgnoreCase("required_displayable")) {
-                mLoginHint = uniqueIdentifier;
-            } 
-        }        
+        
+        if (!TextUtils.isEmpty(inputItems.get("unique_id"))) {
+            mUserId = inputItems.get("unique_id");
+        }
+        
+        if (!TextUtils.isEmpty(inputItems.get("displayable_id")) || !TextUtils.isEmpty(inputItems.get("user_identifier"))) {
+            mLoginHint = inputItems.get("displayable_id") == null ? inputItems.get("user_identifier") : inputItems.get("displayable_id");
+        }
 
         final String correlationId = inputItems.get(CORRELATION_ID);
         if (!TextUtils.isEmpty(correlationId)) {

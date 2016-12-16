@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         
-        final Button getLogTokenButton = (Button) findViewById(R.id.getadallog);
+        final Button getLogTokenButton = (Button) findViewById(R.id.getadallogs);
         getLogTokenButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
