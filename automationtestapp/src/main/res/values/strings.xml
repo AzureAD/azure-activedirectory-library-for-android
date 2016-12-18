@@ -34,6 +34,6 @@
     <string name="read_cache">Read Cache</string>
     <string name="signin_info">Enter the sign-in info</string>
     <string name="go">Go</string>
-    <string name="enter_signin_info">{\"authority\": \"https://login.microsoftonline.com/common\",\"resource\": \"https://graph.windows.net\", \"client_id\": \"de49ddaf-c7f8-4a06-8463-3c6ae124fe52\",\"redirect_uri\": \"urn:ietf:wg:oauth:2.0:oob\",  \"prompt_behavior\": \"Always\"}</string>
+    <string name="enter_signin_info">Please enter the sign in info here...</string>
     <string name="done">Done</string>
 </resources>
