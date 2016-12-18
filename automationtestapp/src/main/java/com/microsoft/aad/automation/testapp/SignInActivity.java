@@ -232,16 +232,11 @@ public class SignInActivity extends AppCompatActivity {
             throw new IllegalArgumentException("clientId");
         }
 
-        final String userIdentifier = inputItems.get(USER_IDENTIFIER);
-        if (TextUtils.isEmpty(userIdentifier)) {
-            throw new IllegalArgumentException("userIdentifier");
-        }
-
         if (flowCode == MainActivity.ACQUIRE_TOKEN && TextUtils.isEmpty(inputItems.get(REDIRECT_URI))) {
             throw new IllegalArgumentException("redirect_uri");
         }
 
-        if (flowCode == MainActivity.INVALIDATE_ACCESS_TOKEN && TextUtils.isEmpty(userIdentifier)) {
+        if (flowCode == MainActivity.INVALIDATE_ACCESS_TOKEN && TextUtils.isEmpty(inputItems.get(USER_IDENTIFIER))) {
             throw new IllegalArgumentException("user identifier");
         }
     }
