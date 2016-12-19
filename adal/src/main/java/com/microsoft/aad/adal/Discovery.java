@@ -93,13 +93,16 @@ final class Discovery {
         mWebrequestHandler = new WebRequestHandler();
     }
 
-    public void validateAuthorityADFS(final URL authorizationEndpoint, final String domain)
+    void validateAuthorityADFS(final URL authorizationEndpoint, final String domain)
             throws AuthenticationException {
+        if (StringExtensions.isNullOrBlank(domain)) {
+            throw new IllegalArgumentException("Cannot validate AD FS Authority with domain [null]");
+        }
         validateADFS(authorizationEndpoint, domain);
         validateAuthority(authorizationEndpoint);
     }
 
-    public void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
+    void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
         verifyAuthorityValidInstance(authorizationEndpoint);
 
         if (!VALID_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
@@ -116,16 +119,17 @@ final class Discovery {
         // Maps & Sets of URLs perform domain name resolution for equals() & hashCode()
         // To prevent this from happening, store/consult the cache using the String value
         final String authorityString = authorizationEndpoint.toString();
+        // TODO convert this to a URI
 
         // First, consult the cache
-        if (null != ADFS_VALIDATED_AUTHORITIES.get(authorityString)
+        if (ADFS_VALIDATED_AUTHORITIES.get(authorityString) != null
                 && ADFS_VALIDATED_AUTHORITIES.get(authorityString).contains(domain)) {
             // Trust has already been established, do not requery
             return;
         }
 
         // Get the DRS metadata
-        final DrsMetadata drsMetadata = new DrsMetadataRequestor().requestMetadata(domain);
+        final DRSMetadata drsMetadata = new DRSMetadataRequestor().requestMetadata(domain);
 
         // Get the WebFinger metadata
         final WebFingerMetadata webFingerMetadata =
