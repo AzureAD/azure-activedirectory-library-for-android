@@ -5,7 +5,7 @@ import java.net.URL;
 /**
  * Encapsulates parameters used to request {@link WebFingerMetadata}.
  */
-class WebFingerMetadataRequestParameters {
+final class WebFingerMetadataRequestParameters {
 
     private final URL mDomain;
 
