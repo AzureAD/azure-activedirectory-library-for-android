@@ -189,15 +189,12 @@ class AcquireTokenRequest {
         Discovery.verifyAuthorityValidInstance(authorityUrl);
 
         if (UrlExtensions.isADFSAuthority(authorityUrl)) {
-            if (StringExtensions.isNullOrBlank(domain)) {
-                throw new IllegalArgumentException("Cannot validate AD FS Authority with domain [null]");
-            }
             mDiscovery.validateAuthorityADFS(authorityUrl, domain);
         } else {
             mDiscovery.validateAuthority(authorityUrl);
         }
 
-        Logger.v(TAG, "The passe in authority is valid.");
+        Logger.v(TAG, "The passed in authority is valid.");
         mAuthContext.setIsAuthorityValidated(true);
     }
 
