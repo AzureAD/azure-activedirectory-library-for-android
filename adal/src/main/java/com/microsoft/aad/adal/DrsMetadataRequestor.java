@@ -3,24 +3,25 @@ package com.microsoft.aad.adal;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.microsoft.aad.adal.DrsMetadataRequestor.Type.CLOUD;
-import static com.microsoft.aad.adal.DrsMetadataRequestor.Type.ON_PREM;
+import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.CLOUD;
+import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.ON_PREM;
 import static com.microsoft.aad.adal.HttpConstants.HeaderField.ACCEPT;
 import static com.microsoft.aad.adal.HttpConstants.MediaType.APPLICATION_JSON;
-import static com.microsoft.aad.adal.HttpConstants.StatusCode.SC_OK;
 
+// TODO make Drs DRA **ALWAYS**
 /**
  * Delegate class capable of fetching DRS discovery metadata documents.
  *
  * @see DrsMetadata
  */
-class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String> {
+final class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String> {
 
     /**
      * Tag used for logging.
@@ -31,7 +32,6 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
     private static final String DRS_URL_PREFIX = "https://enterpriseregistration.";
     private static final String API_VERSION = "1.0";
     private static final String CLOUD_RESOLVER_DOMAIN = "windows.net/";
-    private static final String ENROLLMENT_PATH = "/enrollmentserver/contract?api-version=%s";
 
     /**
      * The DRS configuration.
@@ -113,7 +113,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
         try {
             webResponse = getWebrequestHandler().sendGet(requestURL, headers);
             final int statusCode = webResponse.getStatusCode();
-            if (SC_OK == statusCode) {
+            if (HttpURLConnection.HTTP_OK == statusCode) { // TODO use HttpURLConnection constants
                 String responseBody = webResponse.getBody();
                 metadata = parser().fromJson(responseBody, DrsMetadata.class);
             } else {
@@ -142,6 +142,8 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
      * @return the DRS metadata URL to query
      */
     private String buildRequestUrlByType(final Type type, final String domain) {
+        // TODO use a StringBuilder
+        // TODO consider using UriBuilder
         // All DRS urls begin the same
         String drsRequestUrl = DRS_URL_PREFIX;
 
@@ -151,7 +153,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
             drsRequestUrl += domain;
         }
 
-        drsRequestUrl += String.format(ENROLLMENT_PATH, API_VERSION);
+        drsRequestUrl += String.format("/enrollmentserver/contract?api-version=%s", API_VERSION); // TODO remove format specifier
 
         Logger.v(TAG, "Requestor will use DRS url: " + drsRequestUrl);
 

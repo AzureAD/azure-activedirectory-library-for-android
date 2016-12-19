@@ -1,29 +1,10 @@
 package com.microsoft.aad.adal;
 
+// TODO Get this outta here
 /**
  * Constants related to HTTP.
  */
 final class HttpConstants {
-
-    /**
-     * HTTP response status codes.
-     */
-    static final class StatusCode {
-
-        /**
-         * 200 OK.
-         *
-         * @see <a href="https://tools.ietf.org/html/rfc1945#section-9.2">RFC-1945</a>
-         */
-        static final int SC_OK = 200;
-
-        /**
-         * 400 Bad Request.
-         *
-         * @see <a href="https://tools.ietf.org/html/rfc1945#section-9.4">RFC-1945</a>
-         */
-        static final int SC_BAD_REQUEST = 400;
-    }
 
     /**
      * HTTP header fields.

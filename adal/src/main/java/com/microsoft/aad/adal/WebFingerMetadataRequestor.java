@@ -3,11 +3,10 @@ package com.microsoft.aad.adal;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
-
-import static com.microsoft.aad.adal.HttpConstants.StatusCode.SC_OK;
 
 class WebFingerMetadataRequestor
         extends AbstractMetadataRequestor<WebFingerMetadata, WebFingerMetadataRequestParameters> {
@@ -38,7 +37,7 @@ class WebFingerMetadataRequestor
             // get the status code
             final int statusCode = webResponse.getStatusCode();
 
-            if (SC_OK != statusCode) { // check 200 OK
+            if (HttpURLConnection.HTTP_OK != statusCode) { // check 200 OK
                 throw new AuthenticationException(
                         ADALError.DRS_FAILED_SERVER_ERROR,
                         "Unexpected error code: [" + statusCode + "]"
@@ -50,8 +49,6 @@ class WebFingerMetadataRequestor
 
         } catch (IOException e) {
             throw new AuthenticationException(ADALError.IO_EXCEPTION, "Unexpected error", e);
-        } catch (JsonSyntaxException e) {
-            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR);
         }
     }
 
@@ -61,9 +58,13 @@ class WebFingerMetadataRequestor
      * @param webResponse the HttpWebResponse to deserialize
      * @return the parsed response
      */
-    WebFingerMetadata parseMetadata(HttpWebResponse webResponse) {
+    WebFingerMetadata parseMetadata(HttpWebResponse webResponse) throws AuthenticationException {
         Logger.v(TAG, "Parsing WebFinger response");
-        return parser().fromJson(webResponse.getBody(), WebFingerMetadata.class);
+        try {
+            return parser().fromJson(webResponse.getBody(), WebFingerMetadata.class);
+        } catch (JsonSyntaxException e) {
+            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR);
+        }
     }
 
     /**
