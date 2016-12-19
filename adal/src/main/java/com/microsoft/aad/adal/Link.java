@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
  *
  * @see <a href="https://tools.ietf.org/html/rfc7033#section-4.4.4">RFC-7033</a>
  */
-class Link {
+final class Link {
 
     /**
      * @see <a href="https://tools.ietf.org/html/rfc7033#section-4.4.4">RFC-7033</a>
@@ -26,7 +26,7 @@ class Link {
      *
      * @return the rel
      */
-    public String getRel() {
+    String getRel() {
         return mRel;
     }
 
@@ -35,7 +35,7 @@ class Link {
      *
      * @param rel the rel to set
      */
-    public void setRel(String rel) {
+    void setRel(String rel) {
         this.mRel = rel;
     }
 
@@ -44,7 +44,7 @@ class Link {
      *
      * @return the href
      */
-    public String getHref() {
+    String getHref() {
         return mHref;
     }
 
@@ -53,7 +53,7 @@ class Link {
      *
      * @param href the href to set
      */
-    public void setHref(String href) {
+    void setHref(String href) {
         this.mHref = href;
     }
 }
