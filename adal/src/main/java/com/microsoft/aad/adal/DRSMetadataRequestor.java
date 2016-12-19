@@ -15,13 +15,12 @@ import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.ON_PREM;
 import static com.microsoft.aad.adal.HttpConstants.HeaderField.ACCEPT;
 import static com.microsoft.aad.adal.HttpConstants.MediaType.APPLICATION_JSON;
 
-// TODO make Drs DRA **ALWAYS**
 /**
  * Delegate class capable of fetching DRS discovery metadata documents.
  *
- * @see DrsMetadata
+ * @see DRSMetadata
  */
-final class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String> {
+final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String> {
 
     /**
      * Tag used for logging.
@@ -49,7 +48,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, 
      * @throws AuthenticationException
      */
     @Override
-    DrsMetadata requestMetadata(String domain) throws AuthenticationException {
+    DRSMetadata requestMetadata(String domain) throws AuthenticationException {
         try {
             return requestOnPrem(domain);
         } catch (UnknownHostException e) {
@@ -65,7 +64,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, 
      * @throws UnknownHostException    if the on-prem enrollment server cannot be resolved
      * @throws AuthenticationException if there exists an enrollment/domain mismatch (lack of trust)
      */
-    private DrsMetadata requestOnPrem(String domain)
+    private DRSMetadata requestOnPrem(String domain)
             throws UnknownHostException, AuthenticationException {
         Logger.v(TAG, "Requesting DRS discovery (on-prem)");
         return requestDrsDiscoveryInternal(ON_PREM, domain);
@@ -79,7 +78,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, 
      * @throws AuthenticationException if there exists an enrollment/domain mismatch (lack of trust)
      *                                 or the trust cannot be verified
      */
-    private DrsMetadata requestCloud(String domain) throws AuthenticationException {
+    private DRSMetadata requestCloud(String domain) throws AuthenticationException {
         Logger.v(TAG, "Requesting DRS discovery (cloud)");
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
@@ -88,7 +87,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, 
         }
     }
 
-    private DrsMetadata requestDrsDiscoveryInternal(final Type type, final String domain)
+    private DRSMetadata requestDrsDiscoveryInternal(final Type type, final String domain)
             throws AuthenticationException, UnknownHostException {
         final URL requestURL;
 
@@ -106,7 +105,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, 
             headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, getCorrelationId().toString());
         }
 
-        final DrsMetadata metadata;
+        final DRSMetadata metadata;
         final HttpWebResponse webResponse;
 
         // make the request
@@ -115,7 +114,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, 
             final int statusCode = webResponse.getStatusCode();
             if (HttpURLConnection.HTTP_OK == statusCode) { // TODO use HttpURLConnection constants
                 String responseBody = webResponse.getBody();
-                metadata = parser().fromJson(responseBody, DrsMetadata.class);
+                metadata = parser().fromJson(responseBody, DRSMetadata.class);
             } else {
                 // unexpected status code
                 throw new AuthenticationException(
