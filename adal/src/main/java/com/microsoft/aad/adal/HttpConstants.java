@@ -1,6 +1,5 @@
 package com.microsoft.aad.adal;
 
-// TODO Get this outta here
 /**
  * Constants related to HTTP.
  */
