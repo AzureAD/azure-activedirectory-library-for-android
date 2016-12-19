@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Data container for the IdentityProviderService.
  *
- * @see DrsMetadata
+ * @see DRSMetadata
  */
 class IdentityProviderService {
 
