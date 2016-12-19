@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
  *
  * @see DRSMetadata
  */
-class IdentityProviderService {
+final class IdentityProviderService {
 
     @SerializedName("PassiveAuthEndpoint")
     private String mPassiveAuthEndpoint;
@@ -17,7 +17,7 @@ class IdentityProviderService {
      *
      * @return the PassiveAuthEndpoint
      */
-    public String getPassiveAuthEndpoint() {
+    String getPassiveAuthEndpoint() {
         return mPassiveAuthEndpoint;
     }
 
@@ -26,7 +26,7 @@ class IdentityProviderService {
      *
      * @param passiveAuthEndpoint the PassiveAuthEndpoint to set
      */
-    public void setPassiveAuthEndpoint(String passiveAuthEndpoint) {
+    void setPassiveAuthEndpoint(String passiveAuthEndpoint) {
         this.mPassiveAuthEndpoint = passiveAuthEndpoint;
     }
 }
