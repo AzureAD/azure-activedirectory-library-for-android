@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Data container for the DRS discovery document.
  */
-class DRSMetadata {
+final class DRSMetadata {
 
     @SerializedName("IdentityProviderService")
     private IdentityProviderService mIdentityProviderService;
