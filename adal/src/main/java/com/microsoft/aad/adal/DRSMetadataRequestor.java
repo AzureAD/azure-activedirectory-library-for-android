@@ -29,7 +29,6 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
 
     // DRS doc constants
     private static final String DRS_URL_PREFIX = "https://enterpriseregistration.";
-    private static final String API_VERSION = "1.0";
     private static final String CLOUD_RESOLVER_DOMAIN = "windows.net/";
 
     /**
