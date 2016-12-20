@@ -58,7 +58,8 @@ class WebFingerMetadataRequestor
      * @param webResponse the HttpWebResponse to deserialize
      * @return the parsed response
      */
-    WebFingerMetadata parseMetadata(HttpWebResponse webResponse) throws AuthenticationException {
+    @Override
+    WebFingerMetadata parseMetadata(final HttpWebResponse webResponse) throws AuthenticationException {
         Logger.v(TAG, "Parsing WebFinger response");
         try {
             return parser().fromJson(webResponse.getBody(), WebFingerMetadata.class);

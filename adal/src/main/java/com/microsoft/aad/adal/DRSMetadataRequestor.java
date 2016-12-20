@@ -111,9 +111,8 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
         try {
             webResponse = getWebrequestHandler().sendGet(requestURL, headers);
             final int statusCode = webResponse.getStatusCode();
-            if (HttpURLConnection.HTTP_OK == statusCode) { // TODO use HttpURLConnection constants
-                String responseBody = webResponse.getBody();
-                metadata = parser().fromJson(responseBody, DRSMetadata.class);
+            if (HttpURLConnection.HTTP_OK == statusCode) {
+                metadata = parseMetadata(webResponse);
             } else {
                 // unexpected status code
                 throw new AuthenticationException(
@@ -125,11 +124,19 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
             throw e;
         } catch (IOException e) {
             throw new AuthenticationException(ADALError.IO_EXCEPTION);
-        } catch (JsonSyntaxException e) {
-            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR);
         }
 
         return metadata;
+    }
+
+    @Override
+    DRSMetadata parseMetadata(final HttpWebResponse response) throws AuthenticationException {
+        Logger.v(TAG, "Parsing DRS metadata response");
+        try {
+            return parser().fromJson(response.getBody(), DRSMetadata.class);
+        } catch (JsonSyntaxException e) {
+            throw new AuthenticationException(ADALError.JSON_PARSE_ERROR);
+        }
     }
 
     /**
