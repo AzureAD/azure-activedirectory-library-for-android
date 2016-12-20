@@ -83,15 +83,17 @@ class WebFingerMetadataRequestor
                         .getPassiveAuthEndpoint()
         );
 
-        final String paeDomain = passiveAuthEndpoint.getHost();
-        String url =
-                "https://"
-                        + paeDomain
-                        + String.format(
-                        "/.well-known/webfinger?resource=%s",
-                        resource.toString()
-                );
-        Logger.v(TAG, "Validator will use WebFinger URL: " + url);
-        return new URL(url);
+        // build the url
+        final StringBuilder webFingerUrlBuilder =
+                new StringBuilder("https://")
+                        .append(passiveAuthEndpoint.getHost())
+                        .append("/.well-known/webfinger?resource=")
+                        .append(resource.toString());
+
+        final String webFingerUrl = webFingerUrlBuilder.toString();
+
+        Logger.v(TAG, "Validator will use WebFinger URL: " + webFingerUrl);
+
+        return new URL(webFingerUrl);
     }
 }
