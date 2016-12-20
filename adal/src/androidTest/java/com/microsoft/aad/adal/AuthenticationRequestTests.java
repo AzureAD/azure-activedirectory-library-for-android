@@ -69,7 +69,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         assertEquals("client is same", "client3", actual);
 
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".AuthenticationRequest", "authority31", "resource32", "client33", "redirect34",
+                        + ".AuthenticationRequest", "authority31", "resource32", "client33", "redirect34",
                 "loginhint35", false);
 
         actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
@@ -85,7 +85,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
 
         UUID correlationId = UUID.randomUUID();
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".AuthenticationRequest", "authority41", "resource42", "client43", "redirect44",
+                        + ".AuthenticationRequest", "authority41", "resource42", "client43", "redirect44",
                 "loginhint45", correlationId, false);
 
         actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
@@ -102,7 +102,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         assertEquals("correlationId is same", correlationId, actualId);
 
         o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".AuthenticationRequest", "authority51", "resource52", "client53", "redirect54",
+                        + ".AuthenticationRequest", "authority51", "resource52", "client53", "redirect54",
                 "loginhint55", PromptBehavior.Always, "extraQueryPAram56", correlationId, false);
 
         actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
@@ -132,5 +132,10 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         ReflectionUtils.setterValue(o, "setRequestId", Integer.valueOf(REQUEST_ID));
         int actual = ReflectionUtils.getterValue(Integer.class, o, "getRequestId");
         assertEquals("Same RequestId", REQUEST_ID, actual);
+    }
+
+    @SmallTest
+    public void testGetUpnSuffix() {
+        // TODO
     }
 }

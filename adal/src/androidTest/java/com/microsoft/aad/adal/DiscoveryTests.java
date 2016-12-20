@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import android.test.suitebuilder.annotation.SmallTest;
+
 import org.json.JSONException;
 import org.mockito.Mockito;
 
@@ -248,5 +250,15 @@ public class DiscoveryTests extends AndroidTestHelper {
         } catch (final AuthenticationException e) {
             fail();
         }
+    }
+
+    @SmallTest
+    public void testValidateAuthorityADFS() {
+        // TODO
+    }
+
+    @SmallTest
+    public void testVerifyAuthorityValidInstance() {
+        // TODO
     }
 }
