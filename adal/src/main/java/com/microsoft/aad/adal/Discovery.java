@@ -75,8 +75,8 @@ final class Discovery {
      * Sync map of validated AD FS authorities and domains. Skips query to server
      * if already verified
      */
-    private static final Map<URI, Set<String>> ADFS_VALIDATED_AUTHORITIES =
-            Collections.synchronizedMap(new HashMap<URI, Set<String>>());
+    private static final Map<String, Set<URI>> ADFS_VALIDATED_AUTHORITIES =
+            Collections.synchronizedMap(new HashMap<String, Set<URI>>());
 
     /**
      * Discovery query will go to the prod only for now.
@@ -131,8 +131,8 @@ final class Discovery {
         }
 
         // First, consult the cache
-        if (ADFS_VALIDATED_AUTHORITIES.get(authorityUri) != null
-                && ADFS_VALIDATED_AUTHORITIES.get(authorityUri).contains(domain)) {
+        if (ADFS_VALIDATED_AUTHORITIES.get(domain) != null
+                && ADFS_VALIDATED_AUTHORITIES.get(domain).contains(authorityUri)) {
             // Trust has already been established, do not requery
             return;
         }
@@ -158,12 +158,12 @@ final class Discovery {
         // Trust established, add it to the cache
 
         // If this authorization endpoint doesn't already have a Set, create it
-        if (ADFS_VALIDATED_AUTHORITIES.get(authorityUri) == null) {
-            ADFS_VALIDATED_AUTHORITIES.put(authorityUri, new HashSet<String>());
+        if (ADFS_VALIDATED_AUTHORITIES.get(domain) == null) {
+            ADFS_VALIDATED_AUTHORITIES.put(domain, new HashSet<URI>());
         }
 
         // Add the entry
-        ADFS_VALIDATED_AUTHORITIES.get(authorityUri).add(domain);
+        ADFS_VALIDATED_AUTHORITIES.get(domain).add(authorityUri);
     }
 
     /**
