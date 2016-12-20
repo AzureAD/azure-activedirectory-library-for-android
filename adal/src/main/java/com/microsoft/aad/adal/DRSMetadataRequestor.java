@@ -141,22 +141,22 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
      * @return the DRS metadata URL to query
      */
     private String buildRequestUrlByType(final Type type, final String domain) {
-        // TODO use a StringBuilder
-        // TODO consider using UriBuilder
         // All DRS urls begin the same
-        String drsRequestUrl = DRS_URL_PREFIX;
+        StringBuilder requestUrl = new StringBuilder(DRS_URL_PREFIX);
 
         if (CLOUD == type) {
-            drsRequestUrl += CLOUD_RESOLVER_DOMAIN + domain;
+            requestUrl.append(CLOUD_RESOLVER_DOMAIN).append(domain);
         } else if (ON_PREM == type) {
-            drsRequestUrl += domain;
+            requestUrl.append(domain);
         }
 
-        drsRequestUrl += String.format("/enrollmentserver/contract?api-version=%s", API_VERSION); // TODO remove format specifier
+        requestUrl.append("/enrollmentserver/contract?api-version=1.0");
 
-        Logger.v(TAG, "Requestor will use DRS url: " + drsRequestUrl);
+        final String requestUrlStr = requestUrl.toString();
 
-        return drsRequestUrl;
+        Logger.v(TAG, "Requestor will use DRS url: " + requestUrlStr);
+
+        return requestUrlStr;
     }
 
 }
