@@ -62,4 +62,6 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions>
     }
 
     abstract MetadataType requestMetadata(MetadataRequestOptions options) throws Exception;
+
+    abstract MetadataType parseMetadata(HttpWebResponse response) throws Exception;
 }
