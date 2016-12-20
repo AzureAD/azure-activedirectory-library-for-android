@@ -3,24 +3,24 @@ package com.microsoft.aad.adal;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.microsoft.aad.adal.DrsMetadataRequestor.Type.CLOUD;
-import static com.microsoft.aad.adal.DrsMetadataRequestor.Type.ON_PREM;
+import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.CLOUD;
+import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.ON_PREM;
 import static com.microsoft.aad.adal.HttpConstants.HeaderField.ACCEPT;
 import static com.microsoft.aad.adal.HttpConstants.MediaType.APPLICATION_JSON;
-import static com.microsoft.aad.adal.HttpConstants.StatusCode.SC_OK;
 
 /**
  * Delegate class capable of fetching DRS discovery metadata documents.
  *
- * @see DrsMetadata
+ * @see DRSMetadata
  */
-class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String> {
+final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, String> {
 
     /**
      * Tag used for logging.
@@ -29,9 +29,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
 
     // DRS doc constants
     private static final String DRS_URL_PREFIX = "https://enterpriseregistration.";
-    private static final String API_VERSION = "1.0";
     private static final String CLOUD_RESOLVER_DOMAIN = "windows.net/";
-    private static final String ENROLLMENT_PATH = "/enrollmentserver/contract?api-version=%s";
 
     /**
      * The DRS configuration.
@@ -49,7 +47,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
      * @throws AuthenticationException
      */
     @Override
-    DrsMetadata requestMetadata(String domain) throws AuthenticationException {
+    DRSMetadata requestMetadata(String domain) throws AuthenticationException {
         try {
             return requestOnPrem(domain);
         } catch (UnknownHostException e) {
@@ -65,7 +63,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
      * @throws UnknownHostException    if the on-prem enrollment server cannot be resolved
      * @throws AuthenticationException if there exists an enrollment/domain mismatch (lack of trust)
      */
-    private DrsMetadata requestOnPrem(String domain)
+    private DRSMetadata requestOnPrem(String domain)
             throws UnknownHostException, AuthenticationException {
         Logger.v(TAG, "Requesting DRS discovery (on-prem)");
         return requestDrsDiscoveryInternal(ON_PREM, domain);
@@ -79,7 +77,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
      * @throws AuthenticationException if there exists an enrollment/domain mismatch (lack of trust)
      *                                 or the trust cannot be verified
      */
-    private DrsMetadata requestCloud(String domain) throws AuthenticationException {
+    private DRSMetadata requestCloud(String domain) throws AuthenticationException {
         Logger.v(TAG, "Requesting DRS discovery (cloud)");
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
@@ -88,7 +86,7 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
         }
     }
 
-    private DrsMetadata requestDrsDiscoveryInternal(final Type type, final String domain)
+    private DRSMetadata requestDrsDiscoveryInternal(final Type type, final String domain)
             throws AuthenticationException, UnknownHostException {
         final URL requestURL;
 
@@ -106,16 +104,16 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
             headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, getCorrelationId().toString());
         }
 
-        final DrsMetadata metadata;
+        final DRSMetadata metadata;
         final HttpWebResponse webResponse;
 
         // make the request
         try {
             webResponse = getWebrequestHandler().sendGet(requestURL, headers);
             final int statusCode = webResponse.getStatusCode();
-            if (SC_OK == statusCode) {
+            if (HttpURLConnection.HTTP_OK == statusCode) { // TODO use HttpURLConnection constants
                 String responseBody = webResponse.getBody();
-                metadata = parser().fromJson(responseBody, DrsMetadata.class);
+                metadata = parser().fromJson(responseBody, DRSMetadata.class);
             } else {
                 // unexpected status code
                 throw new AuthenticationException(
@@ -143,19 +141,21 @@ class DrsMetadataRequestor extends AbstractMetadataRequestor<DrsMetadata, String
      */
     private String buildRequestUrlByType(final Type type, final String domain) {
         // All DRS urls begin the same
-        String drsRequestUrl = DRS_URL_PREFIX;
+        StringBuilder requestUrl = new StringBuilder(DRS_URL_PREFIX);
 
         if (CLOUD == type) {
-            drsRequestUrl += CLOUD_RESOLVER_DOMAIN + domain;
+            requestUrl.append(CLOUD_RESOLVER_DOMAIN).append(domain);
         } else if (ON_PREM == type) {
-            drsRequestUrl += domain;
+            requestUrl.append(domain);
         }
 
-        drsRequestUrl += String.format(ENROLLMENT_PATH, API_VERSION);
+        requestUrl.append("/enrollmentserver/contract?api-version=1.0");
 
-        Logger.v(TAG, "Requestor will use DRS url: " + drsRequestUrl);
+        final String requestUrlStr = requestUrl.toString();
 
-        return drsRequestUrl;
+        Logger.v(TAG, "Requestor will use DRS url: " + requestUrlStr);
+
+        return requestUrlStr;
     }
 
 }

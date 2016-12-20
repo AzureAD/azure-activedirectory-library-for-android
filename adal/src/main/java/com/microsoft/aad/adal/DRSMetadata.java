@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Data container for the DRS discovery document.
  */
-class DrsMetadata {
+final class DRSMetadata {
 
     @SerializedName("IdentityProviderService")
     private IdentityProviderService mIdentityProviderService;
@@ -15,7 +15,7 @@ class DrsMetadata {
      *
      * @return the IdentityProviderService
      */
-    public IdentityProviderService getIdentityProviderService() {
+    IdentityProviderService getIdentityProviderService() {
         return mIdentityProviderService;
     }
 
@@ -24,7 +24,7 @@ class DrsMetadata {
      *
      * @param identityProviderService the IdentityProviderService to set
      */
-    public void setIdentityProviderService(IdentityProviderService identityProviderService) {
+    void setIdentityProviderService(IdentityProviderService identityProviderService) {
         this.mIdentityProviderService = identityProviderService;
     }
 }

@@ -29,6 +29,8 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,8 +75,8 @@ final class Discovery {
      * Sync map of validated AD FS authorities and domains. Skips query to server
      * if already verified
      */
-    private static final Map<String, Set<String>> ADFS_VALIDATED_AUTHORITIES =
-            Collections.synchronizedMap(new HashMap<String, Set<String>>());
+    private static final Map<String, Set<URI>> ADFS_VALIDATED_AUTHORITIES =
+            Collections.synchronizedMap(new HashMap<String, Set<URI>>());
 
     /**
      * Discovery query will go to the prod only for now.
@@ -93,13 +95,16 @@ final class Discovery {
         mWebrequestHandler = new WebRequestHandler();
     }
 
-    public void validateAuthorityADFS(final URL authorizationEndpoint, final String domain)
+    void validateAuthorityADFS(final URL authorizationEndpoint, final String domain)
             throws AuthenticationException {
+        if (StringExtensions.isNullOrBlank(domain)) {
+            throw new IllegalArgumentException("Cannot validate AD FS Authority with domain [null]");
+        }
         validateADFS(authorizationEndpoint, domain);
         validateAuthority(authorizationEndpoint);
     }
 
-    public void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
+    void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
         verifyAuthorityValidInstance(authorizationEndpoint);
 
         if (!VALID_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
@@ -111,21 +116,29 @@ final class Discovery {
         }
     }
 
-    private static void validateADFS(URL authorizationEndpoint, String domain)
+    private static void validateADFS(final URL authorizationEndpoint, final String domain)
             throws AuthenticationException {
         // Maps & Sets of URLs perform domain name resolution for equals() & hashCode()
-        // To prevent this from happening, store/consult the cache using the String value
-        final String authorityString = authorizationEndpoint.toString();
+        // To prevent this from happening, store/consult the cache using the URI value
+        final URI authorityUri;
+        try {
+            authorityUri = authorizationEndpoint.toURI();
+        } catch (URISyntaxException e) {
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
+                    "Authority URL/URI must be RFC 2396 compliant to use AD FS validation"
+            );
+        }
 
         // First, consult the cache
-        if (null != ADFS_VALIDATED_AUTHORITIES.get(authorityString)
-                && ADFS_VALIDATED_AUTHORITIES.get(authorityString).contains(domain)) {
+        if (ADFS_VALIDATED_AUTHORITIES.get(domain) != null
+                && ADFS_VALIDATED_AUTHORITIES.get(domain).contains(authorityUri)) {
             // Trust has already been established, do not requery
             return;
         }
 
         // Get the DRS metadata
-        final DrsMetadata drsMetadata = new DrsMetadataRequestor().requestMetadata(domain);
+        final DRSMetadata drsMetadata = new DRSMetadataRequestor().requestMetadata(domain);
 
         // Get the WebFinger metadata
         final WebFingerMetadata webFingerMetadata =
@@ -138,19 +151,19 @@ final class Discovery {
                         );
 
         // Verify trust
-        if (!AdfsWebFingerValidator.realmIsTrusted(authorizationEndpoint, webFingerMetadata)) {
+        if (!ADFSWebFingerValidator.realmIsTrusted(authorityUri, webFingerMetadata)) {
             throw new AuthenticationException(ADALError.WEBFINGER_NOT_TRUSTED);
         }
 
         // Trust established, add it to the cache
 
         // If this authorization endpoint doesn't already have a Set, create it
-        if (null == ADFS_VALIDATED_AUTHORITIES.get(authorityString)) {
-            ADFS_VALIDATED_AUTHORITIES.put(authorityString, new HashSet<String>());
+        if (ADFS_VALIDATED_AUTHORITIES.get(domain) == null) {
+            ADFS_VALIDATED_AUTHORITIES.put(domain, new HashSet<URI>());
         }
 
         // Add the entry
-        ADFS_VALIDATED_AUTHORITIES.get(authorityString).add(domain);
+        ADFS_VALIDATED_AUTHORITIES.get(domain).add(authorityUri);
     }
 
     /**

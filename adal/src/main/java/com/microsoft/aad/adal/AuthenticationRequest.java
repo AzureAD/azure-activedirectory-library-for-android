@@ -277,7 +277,7 @@ class AuthenticationRequest implements Serializable {
      *
      * @return the domain suffix
      */
-    public String getUpnSuffix() {
+    String getUpnSuffix() {
         final String hint = getLoginHint();
         final int dIndex = hint.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
         return DELIM_NOT_FOUND == dIndex ? null : hint.substring(dIndex + 1);

@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @see <a href="https://tools.ietf.org/html/rfc7033">RFC-7033</a>
  */
-class WebFingerMetadata {
+final class WebFingerMetadata {
 
     /**
      * @see <a href="https://tools.ietf.org/html/rfc7033#section-4.4.1">RFC-7033</a>
@@ -28,7 +28,7 @@ class WebFingerMetadata {
      *
      * @return the subject
      */
-    public String getSubject() {
+    String getSubject() {
         return mSubject;
     }
 
@@ -37,7 +37,7 @@ class WebFingerMetadata {
      *
      * @param subject the subject to set
      */
-    public void setSubject(String subject) {
+    void setSubject(String subject) {
         this.mSubject = subject;
     }
 
@@ -46,7 +46,7 @@ class WebFingerMetadata {
      *
      * @return the links
      */
-    public List<Link> getLinks() {
+    List<Link> getLinks() {
         return mLinks;
     }
 
@@ -55,7 +55,7 @@ class WebFingerMetadata {
      *
      * @param links the links to set
      */
-    public void setLinks(List<Link> links) {
+    void setLinks(List<Link> links) {
         this.mLinks = links;
     }
 }

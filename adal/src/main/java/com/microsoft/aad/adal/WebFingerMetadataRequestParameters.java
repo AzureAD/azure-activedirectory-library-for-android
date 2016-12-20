@@ -5,11 +5,11 @@ import java.net.URL;
 /**
  * Encapsulates parameters used to request {@link WebFingerMetadata}.
  */
-class WebFingerMetadataRequestParameters {
+final class WebFingerMetadataRequestParameters {
 
     private final URL mDomain;
 
-    private final DrsMetadata mMetadata;
+    private final DRSMetadata mMetadata;
 
     /**
      * Constructs a new parameter tuple.
@@ -17,7 +17,7 @@ class WebFingerMetadataRequestParameters {
      * @param domain
      * @param metadata
      */
-    WebFingerMetadataRequestParameters(URL domain, DrsMetadata metadata) {
+    WebFingerMetadataRequestParameters(URL domain, DRSMetadata metadata) {
         this.mDomain = domain;
         this.mMetadata = metadata;
     }
@@ -36,7 +36,7 @@ class WebFingerMetadataRequestParameters {
      *
      * @return the DrsMetadata
      */
-    DrsMetadata getDrsMetadata() {
+    DRSMetadata getDrsMetadata() {
         return mMetadata;
     }
 }
