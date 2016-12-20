@@ -6,9 +6,9 @@ import java.net.URISyntaxException;
 /**
  * Validates trusts between authorities and ADFS instances using DRS metadata and WebFinger.
  */
-final class AdfsWebFingerValidator {
+final class ADFSWebFingerValidator {
 
-    private AdfsWebFingerValidator() {
+    private ADFSWebFingerValidator() {
         // utility class
     }
 

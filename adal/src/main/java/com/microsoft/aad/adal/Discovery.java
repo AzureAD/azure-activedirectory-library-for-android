@@ -151,7 +151,7 @@ final class Discovery {
                         );
 
         // Verify trust
-        if (!AdfsWebFingerValidator.realmIsTrusted(authorityUri, webFingerMetadata)) {
+        if (!ADFSWebFingerValidator.realmIsTrusted(authorityUri, webFingerMetadata)) {
             throw new AuthenticationException(ADALError.WEBFINGER_NOT_TRUSTED);
         }
 
