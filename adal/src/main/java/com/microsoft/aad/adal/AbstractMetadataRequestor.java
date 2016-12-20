@@ -44,7 +44,7 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions>
      *
      * @return the gson instance
      */
-    protected synchronized Gson parser() {
+    synchronized Gson parser() {
         if (null == mGson) {
             mGson = new Gson();
         }
@@ -57,7 +57,7 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions>
      *
      * @return the IWebRequestHandler
      */
-    protected IWebRequestHandler getWebrequestHandler() {
+    IWebRequestHandler getWebrequestHandler() {
         return mWebrequestHandler;
     }
 
