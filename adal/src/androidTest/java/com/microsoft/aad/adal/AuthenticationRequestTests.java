@@ -26,6 +26,8 @@ package com.microsoft.aad.adal;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 
+import junit.framework.Assert;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
@@ -136,6 +138,29 @@ public class AuthenticationRequestTests extends AndroidTestCase {
 
     @SmallTest
     public void testGetUpnSuffix() {
-        // TODO
+        AuthenticationRequest authenticationRequest =
+                new AuthenticationRequest(
+                        "NA", // authority
+                        "NA", // resource
+                        "NA", // client
+                        "NA", // redirect
+                        "user@foo.internet", // loginhint,
+                        false
+                );
+        Assert.assertEquals("foo.internet", authenticationRequest.getUpnSuffix());
+    }
+
+    @SmallTest
+    public void testGetUpnSuffixNull() {
+        AuthenticationRequest authenticationRequest =
+                new AuthenticationRequest(
+                        "NA", // authority
+                        "NA", // resource
+                        "NA", // client
+                        "NA", // redirect
+                        "user", // loginhint,
+                        false
+                );
+        Assert.assertEquals(null, authenticationRequest.getUpnSuffix());
     }
 }
