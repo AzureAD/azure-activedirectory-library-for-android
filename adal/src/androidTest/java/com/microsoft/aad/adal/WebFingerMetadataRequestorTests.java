@@ -17,7 +17,7 @@ public class WebFingerMetadataRequestorTests extends TestCase {
     }
 
     @SmallTest
-    public void testBuilderWebFingerUrl() {
+    public void testBuildWebFingerUrl() {
         // TODO
     }
 }
