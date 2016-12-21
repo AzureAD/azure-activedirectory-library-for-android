@@ -146,7 +146,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
      * @param domain the domain to use in the request
      * @return the DRS metadata URL to query
      */
-    private String buildRequestUrlByType(final Type type, final String domain) {
+    String buildRequestUrlByType(final Type type, final String domain) {
         // All DRS urls begin the same
         StringBuilder requestUrl = new StringBuilder(DRS_URL_PREFIX);
 

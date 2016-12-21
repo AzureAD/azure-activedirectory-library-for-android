@@ -39,19 +39,29 @@ final class ADFSWebFingerValidator {
      * @return True, if trust exists: otherwise false.
      */
     static boolean realmIsTrusted(final URI authority, final WebFingerMetadata metadata) {
+        if (authority == null) {
+            throw new IllegalArgumentException("Authority cannot be null");
+        }
+
+        if (metadata == null) {
+            throw new IllegalArgumentException("WebFingerMetadata cannot be null");
+        }
+
         Logger.v(TAG, "Verifying trust: " + authority.toString() + metadata.toString());
-        for (Link link : metadata.getLinks()) {
-            try {
-                URI href = new URI(link.getHref());
-                URI rel = new URI(link.getRel());
-                if (href.getScheme().equalsIgnoreCase(authority.getScheme())
-                        && href.getAuthority().equalsIgnoreCase(authority.getAuthority())
-                        && rel.equals(TRUSTED_REALM_REL)) {
-                    return true;
+        if (metadata.getLinks() != null) {
+            for (Link link : metadata.getLinks()) {
+                try {
+                    URI href = new URI(link.getHref());
+                    URI rel = new URI(link.getRel());
+                    if (href.getScheme().equalsIgnoreCase(authority.getScheme())
+                            && href.getAuthority().equalsIgnoreCase(authority.getAuthority())
+                            && rel.equals(TRUSTED_REALM_REL)) {
+                        return true;
+                    }
+                } catch (URISyntaxException e) {
+                    // noop
+                    continue;
                 }
-            } catch (URISyntaxException e) {
-                // noop
-                continue;
             }
         }
         return false;

@@ -249,4 +249,5 @@ public class DiscoveryTests extends AndroidTestHelper {
             fail();
         }
     }
+
 }

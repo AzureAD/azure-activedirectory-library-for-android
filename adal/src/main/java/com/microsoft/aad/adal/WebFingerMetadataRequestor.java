@@ -76,7 +76,7 @@ class WebFingerMetadataRequestor
      * @return the URL of the WebFinger document
      * @throws MalformedURLException if the URL could not be constructed
      */
-    private static URL buildWebFingerUrl(URL resource, DRSMetadata drsMetadata)
+    static URL buildWebFingerUrl(URL resource, DRSMetadata drsMetadata)
             throws MalformedURLException {
         final URL passiveAuthEndpoint = new URL(
                 drsMetadata
