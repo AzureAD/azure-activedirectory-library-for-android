@@ -35,7 +35,7 @@ final class Link {
      *
      * @param rel the rel to set
      */
-    void setRel(String rel) {
+    void setRel(final String rel) {
         this.mRel = rel;
     }
 
@@ -53,7 +53,7 @@ final class Link {
      *
      * @param href the href to set
      */
-    void setHref(String href) {
+    void setHref(final String href) {
         this.mHref = href;
     }
 }

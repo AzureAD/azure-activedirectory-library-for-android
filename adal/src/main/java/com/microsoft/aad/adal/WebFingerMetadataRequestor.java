@@ -17,7 +17,7 @@ class WebFingerMetadataRequestor
     private static final String TAG = "WebFingerMetadataRequestor";
 
     @Override
-    WebFingerMetadata requestMetadata(WebFingerMetadataRequestParameters webFingerMetadataRequestParameters)
+    WebFingerMetadata requestMetadata(final WebFingerMetadataRequestParameters webFingerMetadataRequestParameters)
             throws AuthenticationException {
         final URL domain = webFingerMetadataRequestParameters.getDomain();
         final DRSMetadata drsMetadata = webFingerMetadataRequestParameters.getDrsMetadata();
@@ -76,7 +76,7 @@ class WebFingerMetadataRequestor
      * @return the URL of the WebFinger document
      * @throws MalformedURLException if the URL could not be constructed
      */
-    static URL buildWebFingerUrl(URL resource, DRSMetadata drsMetadata)
+    static URL buildWebFingerUrl(final URL resource, final DRSMetadata drsMetadata)
             throws MalformedURLException {
         final URL passiveAuthEndpoint = new URL(
                 drsMetadata

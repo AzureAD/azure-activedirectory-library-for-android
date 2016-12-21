@@ -47,7 +47,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
      * @throws AuthenticationException
      */
     @Override
-    DRSMetadata requestMetadata(String domain) throws AuthenticationException {
+    DRSMetadata requestMetadata(final String domain) throws AuthenticationException {
         try {
             return requestOnPrem(domain);
         } catch (UnknownHostException e) {
@@ -63,7 +63,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
      * @throws UnknownHostException    if the on-prem enrollment server cannot be resolved
      * @throws AuthenticationException if there exists an enrollment/domain mismatch (lack of trust)
      */
-    private DRSMetadata requestOnPrem(String domain)
+    private DRSMetadata requestOnPrem(final String domain)
             throws UnknownHostException, AuthenticationException {
         Logger.v(TAG, "Requesting DRS discovery (on-prem)");
         return requestDrsDiscoveryInternal(ON_PREM, domain);
@@ -77,7 +77,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
      * @throws AuthenticationException if there exists an enrollment/domain mismatch (lack of trust)
      *                                 or the trust cannot be verified
      */
-    private DRSMetadata requestCloud(String domain) throws AuthenticationException {
+    private DRSMetadata requestCloud(final String domain) throws AuthenticationException {
         Logger.v(TAG, "Requesting DRS discovery (cloud)");
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);

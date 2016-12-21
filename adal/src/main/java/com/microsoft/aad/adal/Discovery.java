@@ -247,7 +247,7 @@ final class Discovery {
         }
     }
 
-    static void verifyAuthorityValidInstance(URL authorizationEndpoint) throws AuthenticationException {
+    static void verifyAuthorityValidInstance(final URL authorizationEndpoint) throws AuthenticationException {
         // For comparison purposes, convert to lowercase Locale.US
         // getProtocol returns scheme and it is available if it is absolute url
         // Authority is in the form of https://Instance/tenant/somepath

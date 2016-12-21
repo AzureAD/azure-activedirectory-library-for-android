@@ -26,7 +26,7 @@ final class IdentityProviderService {
      *
      * @param passiveAuthEndpoint the PassiveAuthEndpoint to set
      */
-    void setPassiveAuthEndpoint(String passiveAuthEndpoint) {
+    void setPassiveAuthEndpoint(final String passiveAuthEndpoint) {
         this.mPassiveAuthEndpoint = passiveAuthEndpoint;
     }
 }

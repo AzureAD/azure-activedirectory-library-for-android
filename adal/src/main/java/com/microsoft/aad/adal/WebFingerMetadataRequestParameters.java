@@ -17,7 +17,7 @@ final class WebFingerMetadataRequestParameters {
      * @param domain
      * @param metadata
      */
-    WebFingerMetadataRequestParameters(URL domain, DRSMetadata metadata) {
+    WebFingerMetadataRequestParameters(final URL domain, final DRSMetadata metadata) {
         this.mDomain = domain;
         this.mMetadata = metadata;
     }

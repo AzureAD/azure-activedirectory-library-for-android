@@ -37,7 +37,7 @@ final class WebFingerMetadata {
      *
      * @param subject the subject to set
      */
-    void setSubject(String subject) {
+    void setSubject(final String subject) {
         this.mSubject = subject;
     }
 
@@ -55,7 +55,7 @@ final class WebFingerMetadata {
      *
      * @param links the links to set
      */
-    void setLinks(List<Link> links) {
+    void setLinks(final List<Link> links) {
         this.mLinks = links;
     }
 }
