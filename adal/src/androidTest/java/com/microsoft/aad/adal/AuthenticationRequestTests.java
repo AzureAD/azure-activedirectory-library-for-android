@@ -147,7 +147,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
                         "user@foo.internet", // loginhint,
                         false
                 );
-        Assert.assertEquals("foo.internet", authenticationRequest.getUpnSuffix());
+        assertEquals("foo.internet", authenticationRequest.getUpnSuffix());
     }
 
     @SmallTest
@@ -161,6 +161,6 @@ public class AuthenticationRequestTests extends AndroidTestCase {
                         "user", // loginhint,
                         false
                 );
-        Assert.assertEquals(null, authenticationRequest.getUpnSuffix());
+        assertEquals(null, authenticationRequest.getUpnSuffix());
     }
 }
