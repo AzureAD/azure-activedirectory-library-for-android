@@ -74,15 +74,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         
-        final Button getLogTokenButton = (Button) findViewById(R.id.getadallogs);
-        getLogTokenButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                processShowLogs();
-            }
-        });
-        
-        
         // Button for acquireToken call
         final Button acquireTokenButton = (Button) findViewById(R.id.acquireToken);
         acquireTokenButton.setOnClickListener(new View.OnClickListener() {
@@ -163,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
                     + e.getMessage());
         }
 
+        intent.putExtra(Constants.READ_LOGS, getADALLogs());
         launchResultActivity(intent);
     }
 
@@ -177,14 +169,13 @@ public class MainActivity extends AppCompatActivity {
                     + e.getMessage());
         }
 
+        intent.putExtra(Constants.READ_LOGS, getADALLogs());
         launchResultActivity(intent);
     }
     
     private void processShowLogs() {
         Intent intent = new Intent();
-        final ArrayList<String> allLogs = new ArrayList<>();
-        allLogs.add(getADALLogs());
-        intent.putStringArrayListExtra(Constants.READ_LOGS, allLogs);
+        intent.putExtra(Constants.READ_LOGS, getADALLogs());
         launchResultActivity(intent);
     }
 

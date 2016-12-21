@@ -107,15 +107,9 @@ public class ResultActivity extends AppCompatActivity {
             itemsWithCount.addAll(items);
             final JSONArray arrayItems = new JSONArray(itemsWithCount);
             jsonObject.put("items", arrayItems);
-        } else if (intent.getStringArrayListExtra(Constants.READ_LOGS) != null) {
-            final ArrayList<String> items = intent.getStringArrayListExtra(Constants.READ_LOGS);
-            jsonObject.put(Constants.ITEM_COUNT, items.size());
-            final ArrayList<String> itemsWithCount = new ArrayList<>();
-            itemsWithCount.addAll(items);
-            final JSONArray arrayItems = new JSONArray(itemsWithCount);
-            jsonObject.put("items", arrayItems);
         }
-
+        
+        jsonObject.put(Constants.READ_LOGS, intent.getStringExtra(Constants.READ_LOGS));
         return jsonObject.toString();
     }
 }
