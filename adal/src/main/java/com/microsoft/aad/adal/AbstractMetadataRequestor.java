@@ -61,7 +61,21 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions>
         return mWebrequestHandler;
     }
 
+    /**
+     * Requests the specified {@link MetadataType}
+     *
+     * @param options parameters used for this request
+     * @return the metadata
+     * @throws Exception if the metadata fails to load/deserialize
+     */
     abstract MetadataType requestMetadata(MetadataRequestOptions options) throws Exception;
 
+    /**
+     * Deserializes {@link HttpWebResponse} objects into the specified {@link MetadataType}
+     *
+     * @param response the response to deserialize
+     * @return the metadata
+     * @throws Exception if the metadata fails to deserialize
+     */
     abstract MetadataType parseMetadata(HttpWebResponse response) throws Exception;
 }
