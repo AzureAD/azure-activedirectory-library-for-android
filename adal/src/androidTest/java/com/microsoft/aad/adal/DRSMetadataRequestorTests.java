@@ -61,6 +61,25 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
     }
 
     @SmallTest
+    public void testRequestMetadataThrows() throws IOException, AuthenticationException {
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(RESPONSE));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
+
+        DRSMetadataRequestor requestor = new DRSMetadataRequestor();
+
+        try {
+            DRSMetadata metadata = requestor.requestMetadata(DOMAIN);
+            fail();
+        } catch (AuthenticationException e) {
+            // should throw
+            return;
+        }
+    }
+
+    @SmallTest
     public void testParseMetadata() throws AuthenticationException {
         HttpWebResponse mockWebResponse = Mockito.mock(HttpWebResponse.class);
         Mockito.when(mockWebResponse.getBody()).thenReturn(RESPONSE);
