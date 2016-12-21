@@ -2,8 +2,6 @@ package com.microsoft.aad.adal;
 
 import android.test.suitebuilder.annotation.SmallTest;
 
-import junit.framework.Assert;
-
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -69,7 +67,7 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
 
         DRSMetadata metadata = requestor.requestMetadata(DOMAIN);
 
-        Assert.assertEquals(
+        assertEquals(
                 TEST_ADFS,
                 metadata.getIdentityProviderService().getPassiveAuthEndpoint()
         );
@@ -101,7 +99,7 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
 
         DRSMetadata metadata = new DRSMetadataRequestor().parseMetadata(mockWebResponse);
 
-        Assert.assertEquals(
+        assertEquals(
                 TEST_ADFS,
                 metadata.getIdentityProviderService().getPassiveAuthEndpoint()
         );
@@ -111,7 +109,7 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
     public void testBuildRequestUrlByTypeOnPrem() {
         final String expected = "https://enterpriseregistration.lindft6.com/enrollmentserver/contract?api-version=1.0";
         DRSMetadataRequestor requestor = new DRSMetadataRequestor();
-        Assert.assertEquals(
+        assertEquals(
                 expected,
                 requestor.buildRequestUrlByType(
                         DRSMetadataRequestor.Type.ON_PREM,
@@ -124,7 +122,7 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
     public void testBuildRequestUrlByTypeCloud() {
         final String expected = "https://enterpriseregistration.windows.net/lindft6.com/enrollmentserver/contract?api-version=1.0";
         DRSMetadataRequestor requestor = new DRSMetadataRequestor();
-        Assert.assertEquals(
+        assertEquals(
                 expected,
                 requestor.buildRequestUrlByType(
                         DRSMetadataRequestor.Type.CLOUD,
