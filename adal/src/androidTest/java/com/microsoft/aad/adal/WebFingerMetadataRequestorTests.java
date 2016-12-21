@@ -11,14 +11,22 @@ import java.net.URL;
 
 public class WebFingerMetadataRequestorTests extends AndroidTestHelper {
 
-    private static final String RESPONSE = "{\n" +
-            "  \"subject\": \"https://fs.lindft6.com\",\n" +
-            "  \"links\": [\n" +
-            "    {\n" +
-            "      \"rel\": \"http://schemas.microsoft.com/rel/trusted-realm\",\n" +
-            "      \"href\": \"https://fs.lindft6.com\"\n" +
-            "    }\n" +
-            "  ]\n" +
+    private static final String RESPONSE = "{\n"
+            +
+            "  \"subject\": \"https://fs.lindft6.com\",\n"
+            +
+            "  \"links\": [\n"
+            +
+            "    {\n"
+            +
+            "      \"rel\": \"http://schemas.microsoft.com/rel/trusted-realm\",\n"
+            +
+            "      \"href\": \"https://fs.lindft6.com\"\n"
+            +
+            "    }\n"
+            +
+            "  ]\n"
+            +
             "}";
 
     private static final String DOMAIN = "https://fs.lindft6.com";

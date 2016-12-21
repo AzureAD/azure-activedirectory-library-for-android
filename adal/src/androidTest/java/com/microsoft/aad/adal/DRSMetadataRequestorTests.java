@@ -11,21 +11,36 @@ import java.net.HttpURLConnection;
 
 public class DRSMetadataRequestorTests extends AndroidTestHelper {
 
-    private static final String RESPONSE = "{\n" +
-            "  \"DeviceRegistrationService\": {\n" +
-            "    \"RegistrationEndpoint\": \"https://fs.lindft6.com/EnrollmentServer/DeviceEnrollmentWebService.svc\",\n" +
-            "    \"RegistrationResourceId\": \"urn:ms-drs:UUID\",\n" +
-            "    \"ServiceVersion\": \"1.0\"\n" +
-            "  },\n" +
-            "  \"AuthenticationService\": {\n" +
-            "    \"OAuth2\": {\n" +
-            "      \"AuthCodeEndpoint\": \"https://fs.lindft6.com/adfs/oauth2/authorize\",\n" +
-            "      \"TokenEndpoint\": \"https://fs.lindft6.com/adfs/oauth2/token\"\n" +
-            "    }\n" +
-            "  },\n" +
-            "  \"IdentityProviderService\": {\n" +
-            "    \"PassiveAuthEndpoint\": \"https://fs.lindft6.com/adfs/ls\"\n" +
-            "  }\n" +
+    private static final String RESPONSE = "{\n"
+            +
+            "  \"DeviceRegistrationService\": {\n"
+            +
+            "    \"RegistrationEndpoint\": \"https://fs.lindft6.com/EnrollmentServer/DeviceEnrollmentWebService.svc\",\n"
+            +
+            "    \"RegistrationResourceId\": \"urn:ms-drs:UUID\",\n"
+            +
+            "    \"ServiceVersion\": \"1.0\"\n"
+            +
+            "  },\n"
+            +
+            "  \"AuthenticationService\": {\n"
+            +
+            "    \"OAuth2\": {\n"
+            +
+            "      \"AuthCodeEndpoint\": \"https://fs.lindft6.com/adfs/oauth2/authorize\",\n"
+            +
+            "      \"TokenEndpoint\": \"https://fs.lindft6.com/adfs/oauth2/token\"\n"
+            +
+            "    }\n"
+            +
+            "  },\n"
+            +
+            "  \"IdentityProviderService\": {\n"
+            +
+            "    \"PassiveAuthEndpoint\": \"https://fs.lindft6.com/adfs/ls\"\n"
+            +
+            "  }\n"
+            +
             "}";
 
     private static final String TEST_ADFS = "https://fs.lindft6.com/adfs/ls";
