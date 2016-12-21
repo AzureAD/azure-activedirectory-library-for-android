@@ -45,7 +45,7 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions>
      * @return the gson instance
      */
     synchronized Gson parser() {
-        if (null == mGson) {
+        if (mGson == null) {
             mGson = new Gson();
         }
 
