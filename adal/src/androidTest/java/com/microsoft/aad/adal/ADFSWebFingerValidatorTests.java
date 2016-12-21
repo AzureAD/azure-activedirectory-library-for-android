@@ -2,7 +2,6 @@ package com.microsoft.aad.adal;
 
 import android.test.suitebuilder.annotation.SmallTest;
 
-import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import java.lang.reflect.Field;
@@ -18,7 +17,7 @@ public class ADFSWebFingerValidatorTests extends TestCase {
             throws NoSuchFieldException, IllegalAccessException {
         Field trustedRealmURI = ADFSWebFingerValidator.class.getDeclaredField("TRUSTED_REALM_REL");
         trustedRealmURI.setAccessible(true);
-        Assert.assertEquals(
+        assertEquals(
                 trustedRealmURI.get(null).toString(),
                 "http://schemas.microsoft.com/rel/trusted-realm"
         );
@@ -28,7 +27,7 @@ public class ADFSWebFingerValidatorTests extends TestCase {
     public void testRealmIsTrustedEmptyMetadata() throws URISyntaxException {
         final URI testAuthority = new URI("https://fs.ngctest.nttest.microsoft.com/adfs/ls/");
         WebFingerMetadata metadata = new WebFingerMetadata();
-        Assert.assertEquals(
+        assertEquals(
                 false,
                 ADFSWebFingerValidator.realmIsTrusted(
                         testAuthority,
@@ -46,7 +45,7 @@ public class ADFSWebFingerValidatorTests extends TestCase {
         List<Link> links = new ArrayList<>();
         links.add(link);
         metadata.setLinks(links);
-        Assert.assertEquals(
+        assertEquals(
                 true,
                 ADFSWebFingerValidator.realmIsTrusted(
                         testAuthority,
