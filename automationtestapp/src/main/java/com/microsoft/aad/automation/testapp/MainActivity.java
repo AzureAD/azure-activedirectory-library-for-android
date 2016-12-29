@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = getApplicationContext();
+        
         mADALLogs = new StringBuffer();
         Logger.getInstance().setExternalLogger(new Logger.ILogger() {
 
@@ -137,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         final Intent intent = new Intent();
         intent.setClass(mContext, SignInActivity.class);
         intent.putExtra(FLOW_CODE, flowCode);
-
+        intent.putExtra(Constants.READ_LOGS, mADALLogs.toString());
         this.startActivity(intent);
     }
 
@@ -153,8 +154,7 @@ public class MainActivity extends AppCompatActivity {
             intent = SignInActivity.getErrorIntentForResultActivity(Constants.JSON_ERROR, "Unable to convert to Json "
                     + e.getMessage());
         }
-
-        intent.putExtra(Constants.READ_LOGS, getADALLogs());
+        
         launchResultActivity(intent);
     }
 
@@ -168,14 +168,7 @@ public class MainActivity extends AppCompatActivity {
             intent = SignInActivity.getErrorIntentForResultActivity(Constants.JSON_ERROR, "Unable to convert to Json "
                     + e.getMessage());
         }
-
-        intent.putExtra(Constants.READ_LOGS, getADALLogs());
-        launchResultActivity(intent);
-    }
-    
-    private void processShowLogs() {
-        Intent intent = new Intent();
-        intent.putExtra(Constants.READ_LOGS, getADALLogs());
+        
         launchResultActivity(intent);
     }
 
@@ -221,11 +214,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void launchResultActivity(final Intent intent) {
+        intent.putExtra(Constants.READ_LOGS, mADALLogs.toString());
         intent.setClass(this.getApplicationContext(), ResultActivity.class);
         this.startActivity(intent);
-    }
-    
-    public String getADALLogs() {
-        return mADALLogs.toString();
     }
 }

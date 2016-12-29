@@ -32,6 +32,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationContext;
@@ -40,6 +41,7 @@ import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.ITokenCacheStore;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
@@ -89,6 +91,7 @@ public class SignInActivity extends AppCompatActivity {
     private AuthenticationContext mAuthenticationContext;
     private boolean mValidateAuthority;
     private UUID mCorrelationId;
+    private StringBuffer mADALLogs;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,7 +99,17 @@ public class SignInActivity extends AppCompatActivity {
         setContentView(R.layout.activity_request);
 
         mTextView = (EditText) findViewById(R.id.requestInfo);
+        
+        mADALLogs = new StringBuffer();
+        Logger.getInstance().setExternalLogger(new Logger.ILogger() {
 
+            @Override
+            public void Log(String tag, String message, String additionalMessage, Logger.LogLevel level, ADALError errorCode) {
+                mADALLogs.append("tag:" + tag + ", message:" + message + ", additionalMessage:" 
+                    + additionalMessage + ", level:" + level + ", errorCode:" + errorCode + "\n");
+            }
+        });
+        
         final Button goButton = (Button) findViewById(R.id.requestGo);
         goButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,6 +127,8 @@ public class SignInActivity extends AppCompatActivity {
 
     private void performAuthentication() {
         final Intent receivedIntent = getIntent();
+        mADALLogs.append(receivedIntent.getStringExtra(Constants.READ_LOGS));
+        
         int flowCode = receivedIntent.getIntExtra(MainActivity.FLOW_CODE, 0);
 
         final Map<String, String> inputItems;
@@ -421,6 +436,7 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void launchResultActivity(final Intent intent) {
+        intent.putExtra(Constants.READ_LOGS, mADALLogs.toString());
         intent.setClass(this.getApplicationContext(), ResultActivity.class);
         this.startActivity(intent);
         this.finish();

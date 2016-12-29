@@ -32,6 +32,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.Logger;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,6 +48,8 @@ import java.util.Date;
 public class ResultActivity extends AppCompatActivity {
 
     private TextView mTextView;
+    private TextView mLogView;
+    private StringBuffer mADALLogs = new StringBuffer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +66,10 @@ public class ResultActivity extends AppCompatActivity {
         }
         mTextView.setText(resultText);
 
+        mLogView = (TextView) findViewById(R.id.adalLogs);
+        mLogView.setMovementMethod(new ScrollingMovementMethod());
+        mLogView.setText(getLogsFromIntent());
+        
         final Button doneButton = (Button) findViewById(R.id.resultDone);
         doneButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,6 +77,12 @@ public class ResultActivity extends AppCompatActivity {
                 ResultActivity.this.finish();
             }
         });
+    }
+    
+    private String getLogsFromIntent() {
+        final Intent intent = getIntent();
+        mADALLogs.append(intent.getStringExtra(Constants.READ_LOGS));
+        return mADALLogs.toString();
     }
 
     private String convertIntentDataToJsonString() throws JSONException {
@@ -109,7 +124,6 @@ public class ResultActivity extends AppCompatActivity {
             jsonObject.put("items", arrayItems);
         }
         
-        jsonObject.put(Constants.READ_LOGS, intent.getStringExtra(Constants.READ_LOGS));
         return jsonObject.toString();
     }
 }
