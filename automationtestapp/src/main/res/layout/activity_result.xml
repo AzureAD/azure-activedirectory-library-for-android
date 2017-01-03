@@ -33,7 +33,7 @@
     <TextView
         android:id="@+id/resultInfo"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:layout_gravity="center_horizontal"
         android:background="@drawable/border"
         android:layout_weight="0.5"/>
@@ -50,7 +50,7 @@
     <TextView
         android:id="@+id/adalLogs"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:layout_gravity="center_horizontal"
         android:background="@drawable/border"
         android:layout_weight="0.2"/>
