@@ -91,7 +91,6 @@ public class SignInActivity extends AppCompatActivity {
     private AuthenticationContext mAuthenticationContext;
     private boolean mValidateAuthority;
     private UUID mCorrelationId;
-    private StringBuffer mADALLogs;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -99,16 +98,6 @@ public class SignInActivity extends AppCompatActivity {
         setContentView(R.layout.activity_request);
 
         mTextView = (EditText) findViewById(R.id.requestInfo);
-        
-        mADALLogs = new StringBuffer();
-        Logger.getInstance().setExternalLogger(new Logger.ILogger() {
-
-            @Override
-            public void Log(String tag, String message, String additionalMessage, Logger.LogLevel level, ADALError errorCode) {
-                mADALLogs.append("tag:" + tag + ", message:" + message + ", additionalMessage:" 
-                    + additionalMessage + ", level:" + level + ", errorCode:" + errorCode + "\n");
-            }
-        });
         
         final Button goButton = (Button) findViewById(R.id.requestGo);
         goButton.setOnClickListener(new View.OnClickListener() {
@@ -127,7 +116,6 @@ public class SignInActivity extends AppCompatActivity {
 
     private void performAuthentication() {
         final Intent receivedIntent = getIntent();
-        mADALLogs.append(receivedIntent.getStringExtra(Constants.READ_LOGS));
         
         int flowCode = receivedIntent.getIntExtra(MainActivity.FLOW_CODE, 0);
 
@@ -436,7 +424,7 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void launchResultActivity(final Intent intent) {
-        intent.putExtra(Constants.READ_LOGS, mADALLogs.toString());
+        intent.putExtra(Constants.READ_LOGS, ((AndroidAutomationApp)this.getApplication()).getADALLogs());
         intent.setClass(this.getApplicationContext(), ResultActivity.class);
         this.startActivity(intent);
         this.finish();

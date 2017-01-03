@@ -49,7 +49,6 @@ public class ResultActivity extends AppCompatActivity {
 
     private TextView mTextView;
     private TextView mLogView;
-    private StringBuffer mADALLogs = new StringBuffer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +66,7 @@ public class ResultActivity extends AppCompatActivity {
         mTextView.setText(resultText);
 
         mLogView = (TextView) findViewById(R.id.adalLogs);
-        mLogView.setMovementMethod(new ScrollingMovementMethod());
-        mLogView.setText(getLogsFromIntent());
+        mLogView.setText(((AndroidAutomationApp)this.getApplication()).getADALLogs());
         
         final Button doneButton = (Button) findViewById(R.id.resultDone);
         doneButton.setOnClickListener(new View.OnClickListener() {
@@ -77,12 +75,6 @@ public class ResultActivity extends AppCompatActivity {
                 ResultActivity.this.finish();
             }
         });
-    }
-    
-    private String getLogsFromIntent() {
-        final Intent intent = getIntent();
-        mADALLogs.append(intent.getStringExtra(Constants.READ_LOGS));
-        return mADALLogs.toString();
     }
 
     private String convertIntentDataToJsonString() throws JSONException {

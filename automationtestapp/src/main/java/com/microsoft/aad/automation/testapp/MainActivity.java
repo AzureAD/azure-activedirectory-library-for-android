@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
     public static final int INVALIDATE_FAMILY_REFRESH_TOKEN = 1006;
     public static final int READ_CACHE = 1005;
     
-    private StringBuffer mADALLogs;
     private Context mContext;    
 
     @Override
@@ -64,16 +63,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = getApplicationContext();
-        
-        mADALLogs = new StringBuffer();
-        Logger.getInstance().setExternalLogger(new Logger.ILogger() {
-
-            @Override
-            public void Log(String tag, String message, String additionalMessage, Logger.LogLevel level, ADALError errorCode) {
-                mADALLogs.append("tag:" + tag + ", message:" + message + ", additionalMessage:" 
-                    + additionalMessage + ", level:" + level + ", errorCode:" + errorCode + "\n");
-            }
-        });
         
         // Button for acquireToken call
         final Button acquireTokenButton = (Button) findViewById(R.id.acquireToken);
@@ -138,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
         final Intent intent = new Intent();
         intent.setClass(mContext, SignInActivity.class);
         intent.putExtra(FLOW_CODE, flowCode);
-        intent.putExtra(Constants.READ_LOGS, mADALLogs.toString());
         this.startActivity(intent);
     }
 
@@ -214,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void launchResultActivity(final Intent intent) {
-        intent.putExtra(Constants.READ_LOGS, mADALLogs.toString());
         intent.setClass(this.getApplicationContext(), ResultActivity.class);
         this.startActivity(intent);
     }

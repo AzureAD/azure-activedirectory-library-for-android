@@ -27,7 +27,9 @@ import android.app.Application;
 import android.os.Build;
 import android.webkit.WebView;
 
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.Logger;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -42,10 +44,21 @@ import javax.crypto.spec.SecretKeySpec;
  *
  */
 public class AndroidAutomationApp extends Application {
+    
+    private StringBuffer mADALLogs;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        mADALLogs = new StringBuffer();
+        Logger.getInstance().setExternalLogger(new Logger.ILogger() {
+
+            @Override
+            public void Log(String tag, String message, String additionalMessage, Logger.LogLevel level, ADALError errorCode) {
+                mADALLogs.append("tag:" + tag + ", message:" + message + ", additionalMessage:" 
+                    + additionalMessage + ", level:" + level + ", errorCode:" + errorCode + "\n");
+            }
+        });
         setEncryptionKey();
     }
 
@@ -76,5 +89,13 @@ public class AndroidAutomationApp extends Application {
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | UnsupportedEncodingException ex) {
             throw new IllegalStateException("Fail to generate secret key:" + ex.getMessage(), ex);
         }
+    }
+    
+    public String getADALLogs() {
+        return mADALLogs.toString();
+    }
+    
+    public void setADALLogs(String log) {
+        mADALLogs.append(log);
     }
 }
