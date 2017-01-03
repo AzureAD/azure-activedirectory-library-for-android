@@ -38,7 +38,7 @@ final class ADFSWebFingerValidator {
     /**
      * Used for logging.
      */
-    private static final String TAG = "AdfsWebFingerValidator";
+    private static final String TAG = ADFSWebFingerValidator.class.getSimpleName();
 
     /**
      * Constant identifying trust between two realms.

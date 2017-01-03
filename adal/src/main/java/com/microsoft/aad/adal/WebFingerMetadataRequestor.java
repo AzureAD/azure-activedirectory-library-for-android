@@ -37,7 +37,7 @@ class WebFingerMetadataRequestor
     /**
      * Used for logging.
      */
-    private static final String TAG = "WebFingerMetadataRequestor";
+    private static final String TAG = WebFingerMetadataRequestor.class.getSimpleName();
 
     @Override
     WebFingerMetadata requestMetadata(final WebFingerMetadataRequestParameters webFingerMetadataRequestParameters)

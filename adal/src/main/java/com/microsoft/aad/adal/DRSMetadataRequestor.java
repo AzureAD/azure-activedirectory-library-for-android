@@ -48,7 +48,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
     /**
      * Tag used for logging.
      */
-    private static final String TAG = "DrsRequest";
+    private static final String TAG = DRSMetadataRequestor.class.getSimpleName();
 
     // DRS doc constants
     private static final String DRS_URL_PREFIX = "https://enterpriseregistration.";
