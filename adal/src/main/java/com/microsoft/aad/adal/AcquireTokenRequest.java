@@ -198,8 +198,6 @@ class AcquireTokenRequest {
         mAuthContext.setIsAuthorityValidated(true);
     }
 
-
-
     /**
      * 1. For Silent flow, we should always try to look local cache first.
      *    i> If valid AT is returned from cache, use it.
