@@ -49,13 +49,14 @@ abstract class BasicWebViewClient extends WebViewClient {
     private final String mRedirect;
     private final AuthenticationRequest mRequest;
     private final Context mCallingContext;
-
+    private final UIEvent mUIEvent;
 
     public BasicWebViewClient(final Context appContext, final String redirect,
-                              final AuthenticationRequest request) {
+                              final AuthenticationRequest request, final UIEvent uiEvent) {
         mCallingContext = appContext;
         mRedirect = redirect;
         mRequest = request;
+        mUIEvent = uiEvent;
     }
 
     public abstract void showSpinner(boolean status);
@@ -76,6 +77,8 @@ abstract class BasicWebViewClient extends WebViewClient {
 
         // Create a dialog to ask for creds and post it to the handler.
         Logger.i(TAG, "onReceivedHttpAuthRequest for host:" + host, "");
+        mUIEvent.setNTLM(true);
+
         HttpAuthDialog authDialog = new HttpAuthDialog(mCallingContext, host, realm);
 
         authDialog.setOkListener(new HttpAuthDialog.OkListener() {

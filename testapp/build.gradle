@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.0"
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         applicationId "com.microsoft.aad.adal.testapp"
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
     }
@@ -29,7 +29,7 @@ dependencies {
     //Compile Dependencies
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':adal')
-    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.google.code.gson:gson:2.4'
     //Test Dependencies
     testCompile 'junit:junit:4.12'
