@@ -67,6 +67,8 @@ class AuthenticationRequest implements Serializable {
 
     private boolean mIsExtendedLifetimeEnabled = false;
 
+    private String mTelemetryRequestId;
+
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
@@ -281,5 +283,13 @@ class AuthenticationRequest implements Serializable {
         final String hint = getLoginHint();
         final int dIndex = hint.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
         return DELIM_NOT_FOUND == dIndex ? null : hint.substring(dIndex + 1);
+    }
+
+    void setTelemetryRequestId(final String telemetryRequestId) {
+        mTelemetryRequestId = telemetryRequestId;
+    }
+
+    String getTelemetryRequestId() {
+        return mTelemetryRequestId;
     }
 }
