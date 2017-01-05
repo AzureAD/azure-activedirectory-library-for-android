@@ -61,9 +61,9 @@ class WebFingerMetadataRequestor
             final int statusCode = webResponse.getStatusCode();
 
             if (HttpURLConnection.HTTP_OK != statusCode) { // check 200 OK
+                // non-200 codes mean not valid/trusted
                 throw new AuthenticationException(
-                        ADALError.DRS_FAILED_SERVER_ERROR,
-                        "Unexpected error code: [" + statusCode + "]"
+                        ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE
                 );
             }
 
