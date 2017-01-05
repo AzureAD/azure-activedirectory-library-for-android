@@ -250,8 +250,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         if (Build.VERSION.SDK_INT <= minSDKVersionForTest) {
             Log.v(TAG,
                     "Server is returning 401 status code without challenge. "
-                    + "HttpUrlConnection does not return error stream for that in SDK 15. "
-                    + "Without error stream, this test is useless.");
+                            + "HttpUrlConnection does not return error stream for that in SDK 15. "
+                            + "Without error stream, this test is useless.");
             return;
         }
 
@@ -271,7 +271,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        final String errorResponse =  "{\"error\":\"invalid_request\", \"error_description\":\"Authentication failed. "
+        final String errorResponse = "{\"error\":\"invalid_request\", \"error_description\":\"Authentication failed. "
                 + "correlation_id:" + requestCorrelationId.toString() + "\", \"correlation_id\": \""
                 + requestCorrelationId.toString() + "\"}";
 
@@ -523,7 +523,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     }
 
     public static AuthenticationRequest createAuthenticationRequest(final String authority, final String resource,
-            final String client, final String redirect, final String loginhint, final boolean isExtendedLifetimeEnabled) {
+                                                                    final String client, final String redirect, final String loginhint, final boolean isExtendedLifetimeEnabled) {
 
         return new AuthenticationRequest(authority, resource, client, redirect, loginhint, isExtendedLifetimeEnabled);
     }
@@ -785,17 +785,68 @@ public final class AuthenticationContextTest extends AndroidTestCase {
      * @throws InterruptedException
      */
     @SmallTest
-    public void testAcquireTokenValidateAuthorityReturnsInValid() throws InterruptedException {
+    public void testAcquireTokenValidateAuthorityReturnsInValid() throws InterruptedException, IOException {
+        final String successfulDRSProbe =
+                "{\n"
+                        +
+                        "  \"DeviceRegistrationService\": {\n"
+                        +
+                        "    \"RegistrationEndpoint\": \"https://fs.lindft6.com/EnrollmentServer/DeviceEnrollmentWebService.svc\",\n"
+                        +
+                        "    \"RegistrationResourceId\": \"urn:ms-drs:24E21DCF-106E-4FCE-821E-7204CD49A809\",\n"
+                        +
+                        "    \"ServiceVersion\": \"1.0\"\n"
+                        +
+                        "  },\n"
+                        +
+                        "  \"AuthenticationService\": {\n"
+                        +
+                        "    \"OAuth2\": {\n"
+                        +
+                        "      \"AuthCodeEndpoint\": \"https://fs.lindft6.com/adfs/oauth2/authorize\",\n"
+                        +
+                        "      \"TokenEndpoint\": \"https://fs.lindft6.com/adfs/oauth2/token\"\n"
+                        +
+                        "    }\n"
+                        +
+                        "  },\n"
+                        +
+                        "  \"IdentityProviderService\": {\n"
+                        +
+                        "    \"PassiveAuthEndpoint\": \"https://fs.lindft6.com/adfs/ls\"\n"
+                        +
+                        "  }\n"
+                        +
+                        "}";
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        Mockito.when(
+                mockedConnection.getInputStream()
+        ).thenReturn(
+                Util.createInputStream(successfulDRSProbe)
+        ).thenReturn(
+                Util.createInputStream("")
+        );
+
+        Mockito.when(
+                mockedConnection.getResponseCode()
+        ).thenReturn(
+                HttpURLConnection.HTTP_OK
+        ).thenReturn(
+                HttpURLConnection.HTTP_NOT_FOUND
+        );
 
         final FileMockContext mockContext = new FileMockContext(getContext());
-        final String invalidAuthority = "https://testauthority/adfs";
+        final String invalidAuthority = "https://fs.lindft6.com/adfs";
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 invalidAuthority, true);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid",
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid@foo.com",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -809,7 +860,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
         // Sync test
         try {
-            context.acquireTokenSilentSync("resource", "clientid", "userid");
+            context.acquireTokenSilentSync("resource", "clientid", "userid@foo.com");
             Assert.fail("Validation should throw");
         } catch (AuthenticationException exc) {
             assertEquals("NOT_VALID_URL", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
@@ -904,7 +955,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     }
 
     private void scenarioUserIdLoginHint(final String idTokenUpn, final String responseIntentHint,
-            final String acquireTokenHint) throws InterruptedException, AuthenticationException, IOException {
+                                         final String acquireTokenHint) throws InterruptedException, AuthenticationException, IOException {
 
         final FileMockContext mockContext = new FileMockContext(getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
@@ -1029,7 +1080,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         final MockActivity testActivity = new MockActivity(signal);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
 
-        final String response = "{\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":" 
+        final String response = "{\"access_token\":\"TokenUserIdTest\",\"token_type\":\"Bearer\",\"expires_in\":"
                 + "\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -1057,6 +1108,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * Make sure we cache the family id correctly when we get family id from server.
+     *
      * @throws InterruptedException
      * @throws IOException
      * @throws AuthenticationException
@@ -1169,6 +1221,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
     /**
      * Test acquire token silent sync call.
+     *
      * @throws IOException
      * @throws InterruptedException
      * @throws AuthenticationException
@@ -1352,15 +1405,15 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 callback.getAuthenticationResult().getRefreshToken());
         assertEquals("Same userid in cache", "userId124",
                 callback.getAuthenticationResult().getUserInfo()
-                .getUserId());
+                        .getUserId());
         assertEquals("Same name in cache", "name",
                 callback.getAuthenticationResult().getUserInfo().getGivenName());
         assertEquals("Same familyName in cache", "familyName",
                 callback.getAuthenticationResult().getUserInfo()
-                .getFamilyName());
+                        .getFamilyName());
         assertEquals("Same displayid in cache", "userA",
                 callback.getAuthenticationResult().getUserInfo()
-                .getDisplayableId());
+                        .getDisplayableId());
         assertEquals("Same tenantid in cache", "tenantId",
                 callback.getAuthenticationResult().getTenantId());
         clearCache(context);
@@ -1722,6 +1775,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     /**
      * setup cache with userid for normal token and multiresource refresh token
      * bound to one userid. test calls for different resources and users.
+     *
      * @throws IOException
      * @throws InterruptedException
      */
@@ -1934,20 +1988,20 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         return new AuthenticationContext(mockContext, authority, validate, mockCache);
     }
 
-     @SmallTest
-     public void testAutoFlowRefreshTokenRequestFailedWithOauthError() throws IOException, InterruptedException {
-         final FileMockContext mockContext = new FileMockContext(getContext());
-         final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
-         final AuthenticationContext context = getAuthenticationContext(mockContext,
-                 VALID_AUTHORITY, false, mockCache);
+    @SmallTest
+    public void testAutoFlowRefreshTokenRequestFailedWithOauthError() throws IOException, InterruptedException {
+        final FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        final AuthenticationContext context = getAuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, mockCache);
 
-         final AggregatedTelemetryTestClass telemetry = new AggregatedTelemetryTestClass();
-         Telemetry.getInstance().registerDispatcher(telemetry, true);
+        final AggregatedTelemetryTestClass telemetry = new AggregatedTelemetryTestClass();
+        Telemetry.getInstance().registerDispatcher(telemetry, true);
 
-         final CountDownLatch signal = new CountDownLatch(1);
-         final MockActivity testActivity = new MockActivity(signal);
-         final CountDownLatch signalCallback = new CountDownLatch(1);
-         MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
+        final CountDownLatch signal = new CountDownLatch(1);
+        final MockActivity testActivity = new MockActivity(signal);
+        final CountDownLatch signalCallback = new CountDownLatch(1);
+        MockAuthenticationCallback callback = new MockAuthenticationCallback(signalCallback);
 
         final String responseBody = getErrorResponseBody("interaction_required");
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -1969,17 +2023,17 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 AuthenticationConstants.UIRequest.BROWSER_FLOW,
                 testActivity.mStartActivityRequestCode);
 
-         context.onActivityResult(testActivity.mStartActivityRequestCode,
-                 AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
-                 getResponseIntent(callback, "resource", "clientid", "redirect", TEST_IDTOKEN_UPN));
-         signalCallback.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        context.onActivityResult(testActivity.mStartActivityRequestCode,
+                AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE,
+                getResponseIntent(callback, "resource", "clientid", "redirect", TEST_IDTOKEN_UPN));
+        signalCallback.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
-         assertTrue(telemetry.checkOauthError());
-         assertTrue(telemetry.checkNoPIIPresent(EventStrings.LOGIN_HINT, TEST_IDTOKEN_UPN));
-         assertTrue(telemetry.checkAPIId("100"));
-         assertTrue(telemetry.checkCacheEventCount("3"));
-         assertFalse(telemetry.checkAPISucceeded());
-     }
+        assertTrue(telemetry.checkOauthError());
+        assertTrue(telemetry.checkNoPIIPresent(EventStrings.LOGIN_HINT, TEST_IDTOKEN_UPN));
+        assertTrue(telemetry.checkAPIId("100"));
+        assertTrue(telemetry.checkCacheEventCount("3"));
+        assertFalse(telemetry.checkAPISucceeded());
+    }
 
     /**
      * Add a FoCI token item into the mocked cache store
@@ -2226,7 +2280,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
 
 
     private ITokenCacheStore getMockCache(int minutes, String token, String resource,
-            String client, String user, boolean isMultiResource) {
+                                          String client, String user, boolean isMultiResource) {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         // Code response
         Calendar timeAhead = new GregorianCalendar();
