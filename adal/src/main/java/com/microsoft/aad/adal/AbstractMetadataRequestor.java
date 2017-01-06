@@ -30,8 +30,7 @@ import java.util.UUID;
 /**
  * Creates correlatable Requests to HTTP accessible resources.
  */
-abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions>
-        implements Correlatable {
+abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions> {
 
     /**
      * Used to handle network requests.
@@ -52,12 +51,10 @@ abstract class AbstractMetadataRequestor<MetadataType, MetadataRequestOptions>
         mWebrequestHandler = new WebRequestHandler();
     }
 
-    @Override
     public final void setCorrelationId(final UUID requestCorrelationId) {
         mCorrelationId = requestCorrelationId;
     }
 
-    @Override
     public final UUID getCorrelationId() {
         return mCorrelationId;
     }
