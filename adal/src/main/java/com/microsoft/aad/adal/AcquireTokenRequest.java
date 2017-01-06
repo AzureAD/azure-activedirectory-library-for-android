@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -212,7 +213,7 @@ class AcquireTokenRequest {
      * Perform authority validation.
      * True if the passed in authority is valid, false otherwise.
      */
-    private void validateAuthority(final URL authorityUrl, final String domain, final UUID correlationId) throws AuthenticationException {
+    private void validateAuthority(final URL authorityUrl, @Nullable final String domain, final UUID correlationId) throws AuthenticationException {
         if (mAuthContext.getIsAuthorityValidated()) {
             return;
         }
@@ -222,7 +223,9 @@ class AcquireTokenRequest {
 
         Discovery.verifyAuthorityValidInstance(authorityUrl);
 
-        if (UrlExtensions.isADFSAuthority(authorityUrl)) {
+        // if the domain is null, the AuthenticationRequest being performed is using a GUID
+        // and AD FS validation cannot be performed
+        if (UrlExtensions.isADFSAuthority(authorityUrl) && domain != null) {
             mDiscovery.validateAuthorityADFS(authorityUrl, domain);
         } else {
             mDiscovery.validateAuthority(authorityUrl);

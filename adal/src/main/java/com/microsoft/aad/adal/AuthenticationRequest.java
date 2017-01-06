@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import android.support.annotation.Nullable;
+
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -277,12 +279,17 @@ class AuthenticationRequest implements Serializable {
     /**
      * Gets the domain suffix of User Principal Name.
      *
-     * @return the domain suffix
+     * @return the domain suffix or null if unavailable
      */
+    @Nullable
     String getUpnSuffix() {
         final String hint = getLoginHint();
-        final int dIndex = hint.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
-        return DELIM_NOT_FOUND == dIndex ? null : hint.substring(dIndex + 1);
+        String suffix = null;
+        if (hint != null) {
+            final int dIndex = hint.lastIndexOf(UPN_DOMAIN_SUFFIX_DELIM);
+            suffix = DELIM_NOT_FOUND == dIndex ? null : hint.substring(dIndex + 1);
+        }
+        return suffix;
     }
 
     void setTelemetryRequestId(final String telemetryRequestId) {

@@ -863,7 +863,8 @@ public final class AuthenticationContextTest extends AndroidTestCase {
             context.acquireTokenSilentSync("resource", "clientid", "userid@foo.com");
             Assert.fail("Validation should throw");
         } catch (AuthenticationException exc) {
-            assertEquals("NOT_VALID_URL", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
+            // AD FS cannot be validated in silent sync calls because no UPN is available
+            assertEquals("NOT_VALID_URL", ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
                     exc.getCode());
         }
 
