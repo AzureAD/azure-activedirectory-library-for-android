@@ -30,8 +30,8 @@ import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.microsoft.aad.adal.HttpConstants.HeaderField;
-import static com.microsoft.aad.adal.HttpConstants.MediaType;
+import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField;
+import static com.microsoft.aad.adal.AuthenticationConstants.MediaType;
 
 /**
  * It uses one time async task. WebRequest are wrapped here to prevent multiple

@@ -35,8 +35,8 @@ import java.util.Map;
 
 import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.CLOUD;
 import static com.microsoft.aad.adal.DRSMetadataRequestor.Type.ON_PREM;
-import static com.microsoft.aad.adal.HttpConstants.HeaderField.ACCEPT;
-import static com.microsoft.aad.adal.HttpConstants.MediaType.APPLICATION_JSON;
+import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField.ACCEPT;
+import static com.microsoft.aad.adal.AuthenticationConstants.MediaType.APPLICATION_JSON;
 
 /**
  * Delegate class capable of fetching DRS discovery metadata documents.
