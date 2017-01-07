@@ -23,12 +23,9 @@
 
 package com.microsoft.aad.adal;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -69,22 +66,5 @@ public class HttpDialogTests extends AndroidTestCase {
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         Log.d(TAG, "mTestSignature is set");
-    }
-
-    public void testCreateDialogTest() throws NoSuchMethodException, ClassNotFoundException, IllegalArgumentException,
-            InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchFieldException {
-        String testHost = "http://test.host.com";
-        String testRealm = "testRealm";
-
-        Class<?> c = Class.forName("com.microsoft.aad.adal.HttpAuthDialog");
-        Constructor<?> constructor = c.getDeclaredConstructor(Context.class, String.class, String.class);
-        constructor.setAccessible(true);
-        Object o = constructor.newInstance(getContext(), testHost, testRealm);
-
-        Object dialog = ReflectionUtils.getFieldValue(o, "mDialog");
-        assertNotNull(dialog);
-
-        String host = (String) ReflectionUtils.getFieldValue(o, "mHost");
-        assertEquals(host, testHost);
     }
 }

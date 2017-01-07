@@ -39,6 +39,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -868,13 +869,17 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
 
     private AuthenticationRequest getAuthenticationRequest(final String authority, final String resource,
                                                            final String clientId, final boolean isExtendedLifetimeEnabled) {
-        return new AuthenticationRequest(authority, resource, clientId, isExtendedLifetimeEnabled);
+        AuthenticationRequest request = new AuthenticationRequest(authority, resource, clientId, UUID.randomUUID(),
+                isExtendedLifetimeEnabled);
+
+        request.setTelemetryRequestId(UUID.randomUUID().toString());
+        return request;
     }
 
     private AcquireTokenSilentHandler getAcquireTokenHandler(final Context context, final AuthenticationRequest authRequest,
                                                              final ITokenCacheStore mockCache) {
         return new AcquireTokenSilentHandler(context, authRequest,
-                new TokenCacheAccessor(mockCache, authRequest.getAuthority()));
+                new TokenCacheAccessor(mockCache, authRequest.getAuthority(), authRequest.getTelemetryRequestId()));
     }
 
     class MockedConnectionService implements IConnectionService {

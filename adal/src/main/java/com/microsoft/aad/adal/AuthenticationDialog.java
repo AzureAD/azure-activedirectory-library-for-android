@@ -144,12 +144,8 @@ class AuthenticationDialog {
                 try {
                     Oauth2 oauth = new Oauth2(mRequest);
                     final String startUrl = oauth.getCodeRequestUrl();
-                    final String queryParameters = oauth.getAuthorizationEndpointQueryParameters();
                     final String stopRedirect = mRequest.getRedirectUri();
-                    mWebView.setWebViewClient(new DialogWebViewClient(mContext, stopRedirect,
-                            queryParameters, mRequest
-
-                    ));
+                    mWebView.setWebViewClient(new DialogWebViewClient(mContext, stopRedirect, mRequest));
                     mWebView.post(new Runnable() {
                         @Override
                         public void run() {
@@ -197,9 +193,9 @@ class AuthenticationDialog {
 
     class DialogWebViewClient extends BasicWebViewClient {
 
-        public DialogWebViewClient(Context ctx, String stopRedirect, String queryParam,
+        public DialogWebViewClient(Context ctx, String stopRedirect,
                 AuthenticationRequest request) {
-            super(ctx, stopRedirect, queryParam, request);
+            super(ctx, stopRedirect, request, null);
         }
 
         public void showSpinner(final boolean status) {
