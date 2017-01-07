@@ -176,7 +176,7 @@ class AcquireTokenRequest {
 
         if (mAuthContext.getValidateAuthority()) {
             try {
-                validateAuthority(authorityUrl, authenticationRequest.getUpnSuffix(), authenticationRequest.getCorrelationId());
+                validateAuthority(authorityUrl, authenticationRequest.getUpnSuffix(), authenticationRequest.isSilent(), authenticationRequest.getCorrelationId());
                 apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_SUCCESS);
             } catch (AuthenticationException ex) {
                 apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_FAILURE);
@@ -213,7 +213,10 @@ class AcquireTokenRequest {
      * Perform authority validation.
      * True if the passed in authority is valid, false otherwise.
      */
-    private void validateAuthority(final URL authorityUrl, @Nullable final String domain, final UUID correlationId) throws AuthenticationException {
+    private void validateAuthority(final URL authorityUrl,
+                                   @Nullable final String domain,
+                                   boolean isSilent,
+                                   final UUID correlationId) throws AuthenticationException {
         if (mAuthContext.getIsAuthorityValidated()) {
             return;
         }
@@ -223,11 +226,13 @@ class AcquireTokenRequest {
 
         Discovery.verifyAuthorityValidInstance(authorityUrl);
 
-        // if the domain is null, the AuthenticationRequest being performed is using a GUID
-        // and AD FS validation cannot be performed
-        if (UrlExtensions.isADFSAuthority(authorityUrl) && domain != null) {
+
+        if (!isSilent && UrlExtensions.isADFSAuthority(authorityUrl) && domain != null) {
             mDiscovery.validateAuthorityADFS(authorityUrl, domain);
         } else {
+            if (isSilent && UrlExtensions.isADFSAuthority(authorityUrl)) {
+                Logger.v(TAG, "Silent request. Skipping AD FS authority validation");
+            }
             mDiscovery.validateAuthority(authorityUrl);
         }
 
