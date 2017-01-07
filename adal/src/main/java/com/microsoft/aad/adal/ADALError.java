@@ -550,7 +550,12 @@ public enum ADALError {
     /**
      * Fail to parse JSON because of the problem with the JSON API.
      */
-    JSON_PARSE_ERROR("Fail to parse JSON");
+    JSON_PARSE_ERROR("Fail to parse JSON"),
+
+    /**
+     *  Broker is not installed. The process is kicked off to to install broker but ADAL cannot wait for it to finish.
+     */
+    BROKER_APP_INSTALLATION_STARTED("Broker app installation started");
     
     private String mDescription;
 
