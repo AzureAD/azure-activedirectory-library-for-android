@@ -29,6 +29,8 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -70,6 +72,13 @@ final class Discovery {
             .synchronizedSet(new HashSet<String>());
 
     /**
+     * Sync map of validated AD FS authorities and domains. Skips query to server
+     * if already verified
+     */
+    private static final Map<String, Set<URI>> ADFS_VALIDATED_AUTHORITIES =
+            Collections.synchronizedMap(new HashMap<String, Set<URI>>());
+
+    /**
      * Discovery query will go to the prod only for now.
      */
     private static final String TRUSTED_QUERY_INSTANCE = "login.windows.net";
@@ -86,26 +95,17 @@ final class Discovery {
         mWebrequestHandler = new WebRequestHandler();
     }
 
-    public void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
-        // For comparison purposes, convert to lowercase Locale.US
-        // getProtocol returns scheme and it is available if it is absolute url
-        // Authority is in the form of https://Instance/tenant/somepath
-        if (authorizationEndpoint == null || StringExtensions.isNullOrBlank(authorizationEndpoint.getHost())
-                || !authorizationEndpoint.getProtocol().equals("https")
-                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getQuery())
-                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getRef())
-                || StringExtensions.isNullOrBlank(authorizationEndpoint.getPath())) {
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+    void validateAuthorityADFS(final URL authorizationEndpoint, final String domain)
+            throws AuthenticationException {
+        if (StringExtensions.isNullOrBlank(domain)) {
+            throw new IllegalArgumentException("Cannot validate AD FS Authority with domain [null]");
         }
+        validateADFS(authorizationEndpoint, domain);
+        validateAuthority(authorizationEndpoint);
+    }
 
-        if (UrlExtensions.isADFSAuthority(authorizationEndpoint)) {
-            Logger.e(TAG, "Instance validation returned error", "",
-                    ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
-                    new AuthenticationException(ADALError.DISCOVERY_NOT_SUPPORTED));
-            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
-                    "Cannot vaid ADFS authority",
-                    new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED));
-        }
+    void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
+        verifyAuthorityValidInstance(authorizationEndpoint);
 
         if (!VALID_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
             // host can be the instance or inside the validated list.
@@ -116,8 +116,59 @@ final class Discovery {
         }
     }
 
+    private static void validateADFS(final URL authorizationEndpoint, final String domain)
+            throws AuthenticationException {
+        // Maps & Sets of URLs perform domain name resolution for equals() & hashCode()
+        // To prevent this from happening, store/consult the cache using the URI value
+        final URI authorityUri;
+        try {
+            authorityUri = authorizationEndpoint.toURI();
+        } catch (URISyntaxException e) {
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL,
+                    "Authority URL/URI must be RFC 2396 compliant to use AD FS validation"
+            );
+        }
+
+        // First, consult the cache
+        if (ADFS_VALIDATED_AUTHORITIES.get(domain) != null
+                && ADFS_VALIDATED_AUTHORITIES.get(domain).contains(authorityUri)) {
+            // Trust has already been established, do not requery
+            return;
+        }
+
+        // Get the DRS metadata
+        final DRSMetadata drsMetadata = new DRSMetadataRequestor().requestMetadata(domain);
+
+        // Get the WebFinger metadata
+        final WebFingerMetadata webFingerMetadata =
+                new WebFingerMetadataRequestor() // create the requestor
+                        .requestMetadata(// request the data
+                                new WebFingerMetadataRequestParameters(// using these params
+                                        authorizationEndpoint,
+                                        drsMetadata
+                                )
+                        );
+
+        // Verify trust
+        if (!ADFSWebFingerValidator.realmIsTrusted(authorityUri, webFingerMetadata)) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
+        }
+
+        // Trust established, add it to the cache
+
+        // If this authorization endpoint doesn't already have a Set, create it
+        if (ADFS_VALIDATED_AUTHORITIES.get(domain) == null) {
+            ADFS_VALIDATED_AUTHORITIES.put(domain, new HashSet<URI>());
+        }
+
+        // Add the entry
+        ADFS_VALIDATED_AUTHORITIES.get(domain).add(authorityUri);
+    }
+
     /**
      * Set correlation id for the tenant discovery call.
+     *
      * @param requestCorrelationId The correlation id for the tenant discovery.
      */
     public void setCorrelationId(final UUID requestCorrelationId) {
@@ -188,11 +239,24 @@ final class Discovery {
                         ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE,
                         "Fail to valid authority with errors: " + errorCodes);
             }
-            
+
             return discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT);
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(
                     ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);
+        }
+    }
+
+    static void verifyAuthorityValidInstance(final URL authorizationEndpoint) throws AuthenticationException {
+        // For comparison purposes, convert to lowercase Locale.US
+        // getProtocol returns scheme and it is available if it is absolute url
+        // Authority is in the form of https://Instance/tenant/somepath
+        if (authorizationEndpoint == null || StringExtensions.isNullOrBlank(authorizationEndpoint.getHost())
+                || !authorizationEndpoint.getProtocol().equals("https")
+                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getQuery())
+                || !StringExtensions.isNullOrBlank(authorizationEndpoint.getRef())
+                || StringExtensions.isNullOrBlank(authorizationEndpoint.getPath())) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
         }
     }
 
@@ -213,7 +277,7 @@ final class Discovery {
     /**
      * get Json output from web response body. If it is well formed response, it
      * will have tenant discovery endpoint.
-     * 
+     *
      * @param webResponse HttpWebResponse from which Json has to be extracted
      * @return true if tenant discovery endpoint is reported. false otherwise.
      * @throws JSONException
@@ -225,7 +289,7 @@ final class Discovery {
     /**
      * service side does not validate tenant, so it is sending common keyword as
      * tenant.
-     * 
+     *
      * @param authorizationEndpointUrl converts the endpoint URL to authorization endpoint
      * @return https://hostname/common
      */
@@ -237,8 +301,8 @@ final class Discovery {
 
     /**
      * It will build query url to check the authorization endpoint.
-     * 
-     * @param instance authority instance
+     *
+     * @param instance                 authority instance
      * @param authorizationEndpointUrl authorization endpoint
      * @return URL
      * @throws MalformedURLException

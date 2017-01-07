@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -175,7 +176,7 @@ class AcquireTokenRequest {
 
         if (mAuthContext.getValidateAuthority()) {
             try {
-                validateAuthority(authorityUrl, authenticationRequest.getCorrelationId());
+                validateAuthority(authorityUrl, authenticationRequest.getUpnSuffix(), authenticationRequest.isSilent(), authenticationRequest.getCorrelationId());
                 apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_SUCCESS);
             } catch (AuthenticationException ex) {
                 apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_FAILURE);
@@ -212,16 +213,30 @@ class AcquireTokenRequest {
      * Perform authority validation.
      * True if the passed in authority is valid, false otherwise.
      */
-    private void validateAuthority(final URL authorityUrl, final UUID correlationId) throws AuthenticationException {
+    private void validateAuthority(final URL authorityUrl,
+                                   @Nullable final String domain,
+                                   boolean isSilent,
+                                   final UUID correlationId) throws AuthenticationException {
         if (mAuthContext.getIsAuthorityValidated()) {
             return;
         }
 
         Logger.v(TAG, "Start validating authority");
         mDiscovery.setCorrelationId(correlationId);
-        mDiscovery.validateAuthority(authorityUrl);
 
-        Logger.v(TAG, "The passe in authority is valid.");
+        Discovery.verifyAuthorityValidInstance(authorityUrl);
+
+
+        if (!isSilent && UrlExtensions.isADFSAuthority(authorityUrl) && domain != null) {
+            mDiscovery.validateAuthorityADFS(authorityUrl, domain);
+        } else {
+            if (isSilent && UrlExtensions.isADFSAuthority(authorityUrl)) {
+                Logger.v(TAG, "Silent request. Skipping AD FS authority validation");
+            }
+            mDiscovery.validateAuthority(authorityUrl);
+        }
+
+        Logger.v(TAG, "The passed in authority is valid.");
         mAuthContext.setIsAuthorityValidated(true);
     }
 
@@ -307,7 +322,7 @@ class AcquireTokenRequest {
 
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
-       return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
+        return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
     }
 
     /**
@@ -447,7 +462,7 @@ class AcquireTokenRequest {
                     = new AcquireTokenInteractiveRequest(mContext, authenticationRequest, mTokenCacheAccessor);
             acquireTokenInteractiveRequest.acquireToken(activity,
                     useDialog ? new AuthenticationDialog(getHandler(), mContext, this, authenticationRequest)
-                    : null);
+                            : null);
         }
     }
 
@@ -523,7 +538,7 @@ class AcquireTokenRequest {
      * Activity class. This method is called at UI thread.
      *
      * @param resultCode Result code set from the activity.
-     * @param data {@link Intent}
+     * @param data       {@link Intent}
      */
     void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         final String methodName = ":onActivityResult";
@@ -582,8 +597,8 @@ class AcquireTokenRequest {
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
                     Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker "
-                        + "installation. Once broker is installed, request will be resumed and result "
-                        + "will be received");
+                            + "installation. Once broker is installed, request will be resumed and result "
+                            + "will be received");
 
                     //Register the broker resume result receiver with intent filter as broker_request_resume and
                     // specific app package name
