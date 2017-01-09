@@ -728,6 +728,8 @@ public class AuthenticationActivity extends Activity {
     private void displaySpinner(boolean show) {
         if (!AuthenticationActivity.this.isFinishing()
                 && !AuthenticationActivity.this.isChangingConfigurations() && mSpinner != null) {
+            // Used externally to verify web view processing.
+            Logger.v(TAG, "displaySpinner:" + show + " showing:" + mSpinner.isShowing());
             if (show && !mSpinner.isShowing()) {
                 mSpinner.show();
             }
