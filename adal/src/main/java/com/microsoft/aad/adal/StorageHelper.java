@@ -412,7 +412,8 @@ public class StorageHelper {
         generator.initialize(getKeyPairGeneratorSpec(mContext, start.getTime(), end.getTime()));
         try {
             return generator.generateKeyPair();
-        } catch (final IllegalStateException exception) {
+        } catch (final IllegalStateException | IllegalArgumentException exception) {
+            // IllegalStateException:
             // There is an issue with AndroidKeyStore when attempting to generate keypair
             // if user doesn't have pin/passphrase setup for their lock screen. 
             // Issue 177459 : AndroidKeyStore KeyPairGenerator fails to generate 
@@ -422,6 +423,12 @@ public class StorageHelper {
             // The thrown exception in this case is: 
             // java.lang.IllegalStateException: could not generate key in keystore
             // To avoid app crashing, re-throw as checked exception
+
+            // IlegalArgumentException:
+            // There is an issue with generating key pair on devices with Arabic or Farse local
+            // Throwing an exception with invalid date
+            // https://code.google.com/p/android/issues/detail?id=228196
+
             ClientAnalytics.logEvent(new AndroidKeyStoreFailureEvent(
                     new InstrumentationPropertiesBuilder(exception)));
             throw new KeyStoreException(exception);
