@@ -575,7 +575,7 @@ public enum ADALError {
 
     /**
      * Gets error description.
-     *
+     * 
      * @return Error description
      */
     public String getDescription() {
@@ -584,7 +584,7 @@ public enum ADALError {
 
     /**
      * Gets localized description if provided with context.
-     *
+     * 
      * @param context {@link Context}
      * @return Error description
      */
