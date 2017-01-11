@@ -27,7 +27,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -60,7 +59,6 @@ class AcquireTokenRequest {
 
     private Handler mHandler = null;
     private BrokerResumeResultReceiver mBrokerResumeResultReceiver = null;
-    private static final int TIMEOUT_FOR_BROKER_RESULT = 10 * 60 * 1000;
 
     /**
      * Instance validation related calls are serviced inside Discovery as a
@@ -596,32 +594,11 @@ class AcquireTokenRequest {
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
-                    Logger.v(TAG + methodName, "Device needs to have broker installed, waiting the broker "
-                            + "installation. Once broker is installed, request will be resumed and result "
-                            + "will be received");
+                    Logger.v(TAG + methodName, "Device needs to have broker installed, we expect the apps to call us"
+                            + "back when the broker is installed");
 
-                    //Register the broker resume result receiver with intent filter as broker_request_resume and
-                    // specific app package name
-                    mBrokerResumeResultReceiver = new BrokerResumeResultReceiver();
-                    (new ContextWrapper(mContext)).registerReceiver(mBrokerResumeResultReceiver,
-                            new IntentFilter(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME
-                                    + mContext.getPackageName()), null, getHandler());
-                    // Send cancel result back to caller if doesn't receive result from broker within 10 minutes
-                    getHandler().postDelayed(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            if (!mBrokerResumeResultReceiver.isResultReceivedFromBroker()) {
-                                Logger.v(TAG + "onActivityResult", "BrokerResumeResultReceiver doesn't receive "
-                                        + "result from broker within 10 minutes, unregister the receiver and "
-                                        + "cancelling the request");
-
-                                (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
-                                waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
-                                        "Broker doesn't return back the result within 10 minutes"));
-                            }
-                        }
-                    }, TIMEOUT_FOR_BROKER_RESULT);
+                    waitingRequestOnError(waitingRequest, requestId,
+                            new AuthenticationException(ADALError.BROKER_APP_INSTALLATION_STARTED));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION) {
                     Serializable authException = extras
                             .getSerializable(AuthenticationConstants.Browser.RESPONSE_AUTHENTICATION_EXCEPTION);
