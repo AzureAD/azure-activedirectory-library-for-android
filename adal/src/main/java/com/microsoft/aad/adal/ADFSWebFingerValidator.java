@@ -49,7 +49,6 @@ final class ADFSWebFingerValidator {
         try {
             TRUSTED_REALM_REL = new URI("http://schemas.microsoft.com/rel/trusted-realm");
         } catch (URISyntaxException e) {
-            // will not throw
             throw new IllegalArgumentException(e);
         }
     }
