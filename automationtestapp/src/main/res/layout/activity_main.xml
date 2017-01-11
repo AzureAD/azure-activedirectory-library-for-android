@@ -84,7 +84,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/expireAccessToken"
         android:layout_centerHorizontal="true"
-        android:text="@string/invalidate_token" />
+        android:text="Expire AT and Invalidate RT" />
 
     <!-- Button for read cache-->
     <Button
