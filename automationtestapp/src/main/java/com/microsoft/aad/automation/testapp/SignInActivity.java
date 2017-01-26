@@ -250,13 +250,13 @@ public class SignInActivity extends AppCompatActivity {
                 inputItems.get(VALIDATE_AUTHORITY));
 
         final String uniqueIdentifier = inputItems.get(USER_IDENTIFIER);
-        final String uniqueIdentifierType = inputItems.get(USER_IDENTIFIER_TYPE);
-        if (uniqueIdentifierType.equalsIgnoreCase("unique_id")) {
+        //final String uniqueIdentifierType = inputItems.get(USER_IDENTIFIER_TYPE);
+        //if (uniqueIdentifierType.equalsIgnoreCase("unique_id")) {
             mUserId = uniqueIdentifier;
-        } else if (uniqueIdentifierType.equalsIgnoreCase("optional_displayable")
-                || uniqueIdentifierType.equalsIgnoreCase("required_displayable")) {
-            mLoginHint = uniqueIdentifier;
-        }
+        //} else if (uniqueIdentifierType.equalsIgnoreCase("optional_displayable")
+//                || uniqueIdentifierType.equalsIgnoreCase("required_displayable")) {
+//            mLoginHint = uniqueIdentifier;
+//        }
 
         final String correlationId = inputItems.get(CORRELATION_ID);
         if (!TextUtils.isEmpty(correlationId)) {

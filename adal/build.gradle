@@ -124,7 +124,7 @@ task sourcesJar(type: Jar) {
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
 }
 
-artifacts {    
+artifacts {
     archives sourcesJar
 }
 
