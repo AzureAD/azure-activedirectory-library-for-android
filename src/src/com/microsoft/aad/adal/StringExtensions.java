@@ -120,11 +120,13 @@ final class StringExtensions {
     }
 
     static final HashMap<String, String> getUrlParameters(String finalUrl) {
+        final String FACEBOOK_DUMMY_FRAGMENT = "_=_";
+
         Uri response = Uri.parse(finalUrl);
         String fragment = response.getFragment();
         HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
 
-        if (parameters == null || parameters.isEmpty()) {
+        if (parameters == null || parameters.isEmpty() || FACEBOOK_DUMMY_FRAGMENT.equals(fragment)) {
             String queryParameters = response.getEncodedQuery();
             parameters = HashMapExtensions.URLFormDecode(queryParameters);
         }
