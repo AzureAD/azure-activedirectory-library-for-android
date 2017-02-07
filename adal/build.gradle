@@ -5,6 +5,7 @@ apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 group = 'com.microsoft.aad'
 
@@ -13,7 +14,6 @@ buildscript {
         jcenter()
     }
     dependencies {
-            classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
     }
 }
 
@@ -188,4 +188,10 @@ task checkstyle(type: Checkstyle) {
     classpath = files()
 }
 
-assembleDebug.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'
+signing {
+    required { /*isReleaseVersion &&*/ gradle.taskGraph.hasTask("artifacts") }
+    sign configurations.archives
+    //sign sourcesJar
+}
+
+//assembleDebug.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'
