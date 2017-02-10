@@ -123,7 +123,7 @@ final class StringExtensions {
 
         Uri response = Uri.parse(finalUrl);
         String queryParameters = response.getEncodedQuery();
-        parameters = HashMapExtensions.URLFormDecode(queryParameters);
+        HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(queryParameters);
 
         return parameters;
     }
