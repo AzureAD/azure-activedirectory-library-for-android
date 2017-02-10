@@ -99,7 +99,20 @@ task sourcesJar(type: Jar) {
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
 }
 
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath = configurations.compile
+    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
+}
+
 artifacts {
+    archives javadocJar
     archives sourcesJar
 }
 
