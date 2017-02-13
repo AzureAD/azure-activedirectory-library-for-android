@@ -120,14 +120,11 @@ final class StringExtensions {
     }
 
     static final HashMap<String, String> getUrlParameters(String finalUrl) {
-        Uri response = Uri.parse(finalUrl);
-        String fragment = response.getFragment();
-        HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(fragment);
 
-        if (parameters == null || parameters.isEmpty()) {
-            String queryParameters = response.getEncodedQuery();
-            parameters = HashMapExtensions.URLFormDecode(queryParameters);
-        }
+        Uri response = Uri.parse(finalUrl);
+        String queryParameters = response.getEncodedQuery();
+        HashMap<String, String> parameters = HashMapExtensions.URLFormDecode(queryParameters);
+
         return parameters;
     }
 
