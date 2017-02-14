@@ -206,6 +206,9 @@ uploadArchives {
             } else {
                 // Deploy to debug local server
                 repository(url: "file:///" + System.getenv('HOME') + "/.m2/repository") // TODO: Make this M2_HOME?
+                if (project.hasProperty('stagingDir')) {
+                    repository(url: "file:///" + project.stagingDir)
+                }
             }
 
             logger.info('Deploying to ' + repository.url)
