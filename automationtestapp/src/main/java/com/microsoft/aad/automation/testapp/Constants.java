@@ -47,7 +47,9 @@ public class Constants {
     public static final String ITEM_COUNT = "item_count";
     public static final String EXPIRED_ACCESS_TOKEN_COUNT = "expired_access_token_count";
     public static final String INVALIDATED_REFRESH_TOKEN_COUNT = "invalidated_refresh_token_count";
+    public static final String INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT = "invalidated_family_refresh_token_count";
     public static final String CLEARED_TOKEN_COUNT = "cleared_token_count";
+    public static final String READ_LOGS = "adal_logs";
 
     public static final String JSON_ERROR = "json_error";
 

@@ -32,6 +32,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.Logger;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,6 +48,7 @@ import java.util.Date;
 public class ResultActivity extends AppCompatActivity {
 
     private TextView mTextView;
+    private TextView mLogView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +65,9 @@ public class ResultActivity extends AppCompatActivity {
         }
         mTextView.setText(resultText);
 
+        mLogView = (TextView) findViewById(R.id.adalLogs);
+        mLogView.setText(((AndroidAutomationApp)this.getApplication()).getADALLogs());
+        
         final Button doneButton = (Button) findViewById(R.id.resultDone);
         doneButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,6 +102,8 @@ public class ResultActivity extends AppCompatActivity {
             jsonObject.put(Constants.EXPIRED_ACCESS_TOKEN_COUNT, intent.getStringExtra(Constants.EXPIRED_ACCESS_TOKEN_COUNT));
         } else if (!TextUtils.isEmpty(intent.getStringExtra(Constants.INVALIDATED_REFRESH_TOKEN_COUNT))) {
             jsonObject.put(Constants.INVALIDATED_REFRESH_TOKEN_COUNT, intent.getStringExtra(Constants.INVALIDATED_REFRESH_TOKEN_COUNT));
+        } else if (!TextUtils.isEmpty(intent.getStringExtra(Constants.INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT))) {
+            jsonObject.put(Constants.INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT, intent.getStringExtra(Constants.INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT));
         } else if (!TextUtils.isEmpty(intent.getStringExtra(Constants.CLEARED_TOKEN_COUNT))) {
             jsonObject.put(Constants.CLEARED_TOKEN_COUNT, intent.getStringExtra(Constants.CLEARED_TOKEN_COUNT));
         } else if (intent.getStringArrayListExtra(Constants.READ_CACHE) != null) {
@@ -106,7 +115,7 @@ public class ResultActivity extends AppCompatActivity {
             final JSONArray arrayItems = new JSONArray(itemsWithCount);
             jsonObject.put("items", arrayItems);
         }
-
+        
         return jsonObject.toString();
     }
 }
