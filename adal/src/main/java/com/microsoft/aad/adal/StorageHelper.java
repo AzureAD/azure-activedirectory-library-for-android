@@ -422,8 +422,6 @@ public class StorageHelper {
             // The thrown exception in this case is: 
             // java.lang.IllegalStateException: could not generate key in keystore
             // To avoid app crashing, re-throw as checked exception
-            ClientAnalytics.logEvent(new AndroidKeyStoreFailureEvent(
-                    new InstrumentationPropertiesBuilder(exception)));
             throw new KeyStoreException(exception);
         }
     }
@@ -451,8 +449,6 @@ public class StorageHelper {
             // in this case getEntry throws
             // java.lang.RuntimeException: error:0D07207B:asn1 encoding routines:ASN1_get_object:header too long
             // handle it as regular KeyStoreException
-            ClientAnalytics.logEvent(new AndroidKeyStoreFailureEvent(
-                    new InstrumentationPropertiesBuilder(e)));
             throw new KeyStoreException(e);
         }
         
@@ -479,8 +475,6 @@ public class StorageHelper {
             // java.lang.NullPointerException: Attempt to invoke interface method 
             // 'int android.security.IKeystoreService.exist(java.lang.String, int)' on a null object reference
             // To avoid app from crashing, re-throw as checked exception
-            ClientAnalytics.logEvent(new AndroidKeyStoreFailureEvent(
-                    new InstrumentationPropertiesBuilder(exception)));
             throw new KeyStoreException(exception);
         }
         
@@ -631,8 +625,6 @@ public class StorageHelper {
             // Issue 61989: AndroidKeyStore deleted after changing screen lock type
             // https://code.google.com/p/android/issues/detail?id=61989
             // To avoid app crashing from 2), re-throw it as checked exception
-            ClientAnalytics.logEvent(new AndroidKeyStoreFailureEvent(
-                    new InstrumentationPropertiesBuilder(exception)));
             throw new KeyStoreException(exception);
         }
     }
@@ -672,11 +664,4 @@ public class StorageHelper {
         }
     }
     
-    private static final class AndroidKeyStoreFailureEvent extends ClientAnalytics.Event {
-        private AndroidKeyStoreFailureEvent(final InstrumentationPropertiesBuilder builder) {
-            super(InstrumentationIDs.ANDROIDKEYSTORE_EVENT,
-                    builder.add(InstrumentationIDs.EVENT_RESULT, InstrumentationIDs.EVENT_RESULT_FAIL)
-                            .build());
-        }
-    }
 }

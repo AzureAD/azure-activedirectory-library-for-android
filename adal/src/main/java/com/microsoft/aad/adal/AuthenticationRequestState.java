@@ -31,12 +31,15 @@ class AuthenticationRequestState {
     private boolean mCancelled = false;
 
     private AuthenticationRequest mRequest = null;
-    
+
+    private final APIEvent mAPIEvent;
+
     public AuthenticationRequestState(int requestCallbackId, AuthenticationRequest request,
-            AuthenticationCallback<AuthenticationResult> delegate) {
+            AuthenticationCallback<AuthenticationResult> delegate, final APIEvent apiEvent) {
         mRequestId = requestCallbackId;
         mDelegate = delegate;
         mRequest = request;
+        mAPIEvent = apiEvent;
     }
 
     public int getRequestId() {
@@ -69,5 +72,9 @@ class AuthenticationRequestState {
 
     public void setRequest(AuthenticationRequest request) {
         this.mRequest = request;
+    }
+
+    APIEvent getAPIEvent() {
+        return mAPIEvent;
     }
 }

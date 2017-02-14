@@ -63,6 +63,8 @@ class AuthenticationRequest implements Serializable {
 
     private boolean mIsExtendedLifetimeEnabled = false;
 
+    private String mTelemetryRequestId;
+
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
@@ -264,7 +266,15 @@ class AuthenticationRequest implements Serializable {
         } else if (UserIdentifierType.UniqueId == mIdentifierType) {
             return mUserId;
         }
-        
+
         return null;
+    }
+
+    void setTelemetryRequestId(final String telemetryRequestId) {
+        mTelemetryRequestId = telemetryRequestId;
+    }
+
+    String getTelemetryRequestId() {
+        return mTelemetryRequestId;
     }
 }
