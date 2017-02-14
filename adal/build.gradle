@@ -19,6 +19,7 @@ group = 'com.microsoft.aad'
 // Used to sign the pom
 configurations {
     pom
+    javadocDeps
 }
 
 buildscript {
@@ -83,6 +84,8 @@ dependencies {
     //Compile Dependencies
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.android.support:support-annotations:23.4.0'
+    compile 'com.android.support:support-v4:23.4.0'
 
     //Android Instrumental Test Dependencies
     androidTestCompile 'org.mockito:mockito-core:1.10.19'
@@ -91,6 +94,10 @@ dependencies {
 
     // Test Dependencies
     testCompile 'junit:junit:4.12'
+
+    // Javadoc Dependencies
+    javadocDeps 'com.android.support:support-annotations:23.4.0'
+    javadocDeps 'com.android.support:support-v4:23.4.0'
 }
 
 task sourcesJar(type: Jar) {
@@ -101,7 +108,9 @@ task sourcesJar(type: Jar) {
 
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    classpath = configurations.compile
+    classpath += configurations.compile
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.javadocDeps
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
