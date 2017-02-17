@@ -310,6 +310,10 @@ ADFS is not recognized as production STS, so you need to turn of instance discov
 
 Authority url needs STS instance and tenant name: https://login.windows.net/yourtenant.onmicrosoft.com
 
+### Federated sign-in failure if additional certificate downloads are required
+
+Federated sign-in may fail when attempting to authenticate using the Azure Active Directory Authentication Library (ADAL) for Android. See [Using ADAL to authenticate from Android devices fails if additional certificate downloads are required](https://support.microsoft.com/en-us/help/3203929/using-adal-to-authenticate-from-android-devices-fails-if-additional-certificate-downloads-are-required) for more information. 
+
 ### Querying cache items
 
 ADAL provides Default cache in SharedPrefrecens with some simple cache query fucntions. You can get the current cache from AuthenticationContext with:
