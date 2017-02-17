@@ -1,3 +1,7 @@
+Version 2.0.4-alpha
+--------------
+Handle fragment returned from FB for redirect
+
 Version 2.0.3-alpha
 --------------
 Fix multiple cache item error

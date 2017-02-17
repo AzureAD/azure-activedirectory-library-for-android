@@ -1715,6 +1715,6 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "2.0.3-alpha";
+        return "2.0.4-alpha";
     }
 }
