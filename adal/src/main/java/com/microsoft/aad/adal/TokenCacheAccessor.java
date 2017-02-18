@@ -145,7 +145,8 @@ class TokenCacheAccessor {
     TokenCacheItem getStaleToken(AuthenticationRequest authRequest) {
         final TokenCacheItem accessTokenItem = getRegularRefreshTokenCacheItem(authRequest.getResource(),
                 authRequest.getClientId(), authRequest.getUserFromRequest());
-        if (accessTokenItem.getAccessToken() != null
+        if (accessTokenItem != null
+                && !StringExtensions.isNullOrBlank(accessTokenItem.getAccessToken())
                 && accessTokenItem.getExtendedExpiresOn() != null
                 && !TokenCacheItem.isTokenExpired(accessTokenItem.getExtendedExpiresOn())) {
             Logger.i(TAG, "The stale access token is returned.", "");
