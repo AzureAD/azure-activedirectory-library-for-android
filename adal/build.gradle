@@ -4,16 +4,30 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
-apply plugin: 'maven-publish'
+
+apply plugin: 'maven'
+apply plugin: 'io.codearte.nexus-staging'
+apply plugin: 'signing'
 
 group = 'com.microsoft.aad'
+
+//nexusStaging {
+//    username = ossrhUser
+//    password = ossrhPassword
+//}
+
+// Used to sign the pom
+configurations {
+    pom
+    javadocDeps
+}
 
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
-            classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
     }
 }
 
@@ -25,7 +39,8 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 1
-        versionName "1.10.0"
+        versionName = version
+
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -78,6 +93,8 @@ dependencies {
     //Compile Dependencies
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.android.support:support-annotations:23.4.0'
+    compile 'com.android.support:support-v4:23.4.0'
 
     //Android Instrumental Test Dependencies
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -89,45 +106,10 @@ dependencies {
 
     // Test Dependencies
     testCompile 'junit:junit:4.12'
-}
 
-
-task createPom  {
-    pom {
-        project {
-            groupId 'com.microsoft.aad'
-            artifactId 'adal'
-            version = project.version
-            packaging 'aar'
-            name 'adal'
-
-            description 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-            url 'https://github.com/MSOpenTech/azure-activedirectory-library-for-android'
-
-            developers {
-                developer {
-                    id 'microsoft'
-                    name 'Microsoft'
-                }
-            }
-
-            licenses {
-                license {
-                    name 'Apache License, Version 2.0'
-                }
-            }
-            inceptionYear '2014'
-
-            properties {
-                branch 'master'
-                adalVersion = project.version
-            }
-
-            scm {
-                url "https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/master"
-            }
-        }
-    }.writeTo("${archivesBaseName}-${version}.pom")
+    // Javadoc Dependencies
+    javadocDeps 'com.android.support:support-annotations:23.4.0'
+    javadocDeps 'com.android.support:support-v4:23.4.0'
 }
 
 task sourcesJar(type: Jar) {
@@ -138,7 +120,9 @@ task sourcesJar(type: Jar) {
 
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    classpath = configurations.compile
+    classpath += configurations.compile
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.javadocDeps
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
     failOnError = false
 }
@@ -216,6 +200,72 @@ task checkstyle(type: Checkstyle) {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'
+        task.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint'
     }
 }
+
+signing {
+    required { project.hasProperty('sign') && signatory && gradle.taskGraph.hasTask("artifacts") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            // POM signature
+            if (project.hasProperty('sign')) {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            }
+
+            if (project.hasProperty('release')) {
+                // Deploy to Sonatype staging server
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+//                    authentication(userName: ossrhUser, password: ossrhPassword)
+                }
+            } else {
+                // Deploy to debug local server
+                repository(url: "file:///" + System.getenv('HOME') + "/.m2/repository") // TODO: Make this M2_HOME?
+            }
+
+            logger.info('Deploying to ' + repository.url)
+
+            pom {
+                project {
+                    groupId 'com.microsoft.aad'
+                    artifactId 'adal'
+                    version = project.version
+                    packaging 'aar'
+                    name 'adal'
+
+                    description 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+                    url 'https://github.com/MSOpenTech/azure-activedirectory-library-for-android'
+
+                    developers {
+                        developer {
+                            id 'microsoft'
+                            name 'Microsoft'
+                        }
+                    }
+
+                    licenses {
+                        license {
+                            name 'Apache License, Version 2.0'
+                        }
+                    }
+                    inceptionYear '2014'
+
+                    properties {
+                        branch 'master'
+                        adalVersion = project.version
+                    }
+
+                    scm {
+                        url "https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/master"
+                    }
+                }
+            }
+        }
+    }
+}
+
+//assembleDebug.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'
