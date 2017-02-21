@@ -492,7 +492,7 @@ public class OauthTests extends AndroidTestCase {
     public void testprocessTokenResponse() throws  IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
-                "resource", "client", "redirect", "loginhint", null, null, null, false);
+                "resource", "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
         final Oauth2 oauth2 = createOAuthInstance(request, new WebRequestHandler());
         final String idToken = Util.getIdToken();
         final String jsonResponse = "{\"id_token\":\"" + idToken
@@ -581,7 +581,7 @@ public class OauthTests extends AndroidTestCase {
     public void testprocessTokenResponseNegative() throws IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY, "resource",
-                "client", "redirect", "loginhint", null, null, null, false);
+                "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
         final Oauth2 oauth2 = createOAuthInstance(request, new WebRequestHandler());
         final String jsonResponse = "{invalid";
 
@@ -647,7 +647,7 @@ public class OauthTests extends AndroidTestCase {
     private AuthenticationRequest getValidAuthenticationRequest() {
         return createAuthenticationRequest(TEST_AUTHORITY, "resource%20 ",
                 "client 1234567890-+=;'", "redirect 1234567890-+=;'", "loginhint@ggg.com", null,
-                null, null, false);
+                null, UUID.randomUUID(), false);
     }
 
     private MockAuthenticationCallback refreshToken(final AuthenticationRequest request,
