@@ -556,7 +556,7 @@ public enum ADALError {
      *  Broker is not installed. The process is kicked off to to install broker but ADAL cannot wait for it to finish.
      */
     BROKER_APP_INSTALLATION_STARTED("Broker app installation started");
-    
+
     private String mDescription;
 
     ADALError(String message) {
