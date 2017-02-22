@@ -137,7 +137,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("authority");
         }
         mBrokerProxy = new BrokerProxy(appContext);
-        if (!defaultCache && !mBrokerProxy.canUseLocalCache()) {
+        if (!defaultCache && !mBrokerProxy.canUseLocalCache(authority)) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
         }
         mContext = appContext;
@@ -1018,8 +1018,8 @@ public class AuthenticationContext {
 
     private boolean checkADFSValidationRequirements(@Nullable final String loginHint)
             throws AuthenticationException {
-        final URL authorityURL;
-        if (mAuthority == null || (authorityURL = StringExtensions.getUrl(mAuthority)) == null) {
+        final URL authorityURL = StringExtensions.getUrl(mAuthority);
+        if (mAuthority == null || authorityURL == null) {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
         }
         if (UrlExtensions.isADFSAuthority(authorityURL) // is it ADFS?
@@ -1110,7 +1110,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("uniqueUserId");
         }
 
-        if (mBrokerProxy.canSwitchToBroker() != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
+        if (mBrokerProxy.canSwitchToBroker(mAuthority) != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
                     "Failed to export the family refresh token cache item because broker is enabled.");
         }
@@ -1153,7 +1153,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("serializedBlob");
         }
 
-        if (mBrokerProxy.canSwitchToBroker() != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
+        if (mBrokerProxy.canSwitchToBroker(mAuthority) != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT, "Failed to import the serialized blob "
                     + "because broker is enabled.");
         }

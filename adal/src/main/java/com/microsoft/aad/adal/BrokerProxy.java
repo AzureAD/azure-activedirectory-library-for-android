@@ -22,27 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertPath;
-import java.security.cert.CertPathValidator;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.PKIXParameters;
-import java.security.cert.TrustAnchor;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
@@ -67,6 +46,29 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertPath;
+import java.security.cert.CertPathValidator;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.PKIXParameters;
+import java.security.cert.TrustAnchor;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 /**
  * Handles interactions to authenticator inside the Account Manager.
@@ -107,7 +109,11 @@ class BrokerProxy implements IBrokerProxy {
         mBrokerTag = AuthenticationSettings.INSTANCE.getBrokerSignature();
     }
 
-    enum SwitchToBroker { CAN_SWITCH_TO_BROKER, CANNOT_SWITCH_TO_BROKER, NEED_PERMISSIONS_TO_SWITCH_TO_BROKER }
+    enum SwitchToBroker {
+        CAN_SWITCH_TO_BROKER,
+        CANNOT_SWITCH_TO_BROKER,
+        NEED_PERMISSIONS_TO_SWITCH_TO_BROKER
+    }
 
     /**
      * Verifies the broker related app and AD-Authenticator in Account Manager
@@ -115,7 +121,15 @@ class BrokerProxy implements IBrokerProxy {
      * does not direct call if the caller is from Authenticator itself.
      */
     @Override
-    public SwitchToBroker canSwitchToBroker() {
+    public SwitchToBroker canSwitchToBroker(final String authorityUrlStr) {
+        final URL authorityUrl;
+        try {
+            authorityUrl = new URL(authorityUrlStr);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL.name()
+            );
+        }
         final String packageName = mContext.getPackageName();
 
         // ADAL switches broker for following conditions:
@@ -127,10 +141,11 @@ class BrokerProxy implements IBrokerProxy {
         // 5- permissions are set
         boolean switchToBrokerFlag =
                 AuthenticationSettings.INSTANCE.getUseBroker()
-                && checkAccount(mAcctManager, "", "")
-                && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
-                && !packageName.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
-                && verifyAuthenticator(mAcctManager);
+                        && checkAccount(mAcctManager, "", "")
+                        && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
+                        && !packageName.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
+                        && verifyAuthenticator(mAcctManager)
+                        && !UrlExtensions.isADFSAuthority(authorityUrl);
 
         if (!switchToBrokerFlag) {
             return SwitchToBroker.CANNOT_SWITCH_TO_BROKER;
@@ -153,8 +168,8 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     @Override
-    public boolean canUseLocalCache() {
-        if (canSwitchToBroker() == SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
+    public boolean canUseLocalCache(final String authorityUrlStr) {
+        if (canSwitchToBroker(authorityUrlStr) == SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
             Logger.v(TAG, "It does not use broker");
             return true;
         }
@@ -353,17 +368,17 @@ class BrokerProxy implements IBrokerProxy {
         if (!StringExtensions.isNullOrBlank(msg)) {
             final ADALError adalErrorCode;
             switch (errCode) {
-            case AccountManager.ERROR_CODE_BAD_ARGUMENTS:
-                adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS;
-                break;
-            case ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION:
-                adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_AUTHENTICATION;
-                break;
-            case AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION:
-                adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
-                break;
-            default:
-                adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
+                case AccountManager.ERROR_CODE_BAD_ARGUMENTS:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS;
+                    break;
+                case ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_AUTHENTICATION;
+                    break;
+                case AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
+                    break;
+                default:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
             }
 
             throw new AuthenticationException(adalErrorCode, msg);
@@ -482,7 +497,7 @@ class BrokerProxy implements IBrokerProxy {
             if (intent != null) {
                 intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
                         AuthenticationConstants.Broker.BROKER_REQUEST);
-                
+
                 // Only the new broker with PRT support can read the new PromptBehavior force_prompt. 
                 // If talking to the old broker, and PromptBehavior is set as force_prompt, reset it as 
                 // Always. 
@@ -505,7 +520,7 @@ class BrokerProxy implements IBrokerProxy {
 
         return intent;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -560,17 +575,17 @@ class BrokerProxy implements IBrokerProxy {
         }
         return brokerOptions;
     }
-    
+
     /**
-     * Check if the broker is the new one with PRT support by checking the version returned from intent. 
+     * Check if the broker is the new one with PRT support by checking the version returned from intent.
      * Only new broker will send {@link AuthenticationConstants.Broker.BROKER_VERSION}, and the version number
-     * will be v2. 
+     * will be v2.
      */
     private boolean isBrokerWithPRTSupport(final Intent intent) {
         if (intent == null) {
             throw new IllegalArgumentException("intent");
         }
-        
+
         // Only new broker with PRT support will send down the value and the version will be v2
         final String brokerVersion = intent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
         return AuthenticationConstants.Broker.BROKER_PROTOCOL_VERSION.equalsIgnoreCase(brokerVersion);
@@ -578,7 +593,7 @@ class BrokerProxy implements IBrokerProxy {
 
     /**
      * Gets current broker user(Single User model).
-     * 
+     *
      * @return Current account name at {@link AccountManager}
      */
     public String getCurrentUser() {
@@ -604,9 +619,9 @@ class BrokerProxy implements IBrokerProxy {
                 if (authenticator.packageName
                         .equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
                         || authenticator.packageName
-                                .equalsIgnoreCase(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME)
+                        .equalsIgnoreCase(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME)
                         || authenticator.packageName
-                                .equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
+                        .equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
                     // Existing broker logic only connects to broker for token
                     // requests if account exists. New version can allow to
                     // add accounts through Adal.
@@ -705,7 +720,7 @@ class BrokerProxy implements IBrokerProxy {
                 return;
             }
         }
-        
+
         throw new AuthenticationException(ADALError.BROKER_APP_VERIFICATION_FAILED);
     }
 
@@ -800,7 +815,7 @@ class BrokerProxy implements IBrokerProxy {
     /**
      * Waits on AccountManager results, so it should not be called on main
      * thread.
-     * 
+     *
      * @throws IOException
      * @throws AuthenticatorException
      * @throws OperationCanceledException

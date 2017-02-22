@@ -78,6 +78,9 @@ public class BrokerProxyTests extends AndroidTestCase {
 
     private static final String TAG = "BrokerProxyTests";
 
+    private static final String TEST_AUTHORITY = "https://login.windows.net/common/";
+    public static final String TEST_AUTHORITY_ADFS = "https://fs.ade2eadfs30.com/adfs";
+
     private byte[] mTestSignature;
 
     private String mTestTag;
@@ -120,8 +123,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null, true);
 
         // action
-        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy, TEST_AUTHORITY);
 
         // assert
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
@@ -138,8 +141,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null, true);
 
         // action
-        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy, TEST_AUTHORITY);
 
         // assert
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
@@ -156,8 +159,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, "test", signature, true, null, true);
 
         // action
-        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy, TEST_AUTHORITY);
 
         // assert
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
@@ -178,11 +181,33 @@ public class BrokerProxyTests extends AndroidTestCase {
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, true, accts, true);
 
         // action
-        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy, TEST_AUTHORITY);
 
         // assert
         assertEquals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER, result);
+    }
+
+    public void testCannotSwitchToBrokerWhenADFS()
+            throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
+
+        Object brokerProxy = ReflectionUtils.getInstance("com.microsoft.aad.adal.BrokerProxy");
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
+        String contextPackage = "com.test";
+        Signature signature = new Signature(mTestSignature);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
+        Account[] accts = getAccountList("valid", authenticatorType);
+        prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, true, accts, true);
+
+        // action
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy, TEST_AUTHORITY_ADFS);
+
+        // assert
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
     }
 
     public void testCanSwitchToBrokerValidSkip()
@@ -199,8 +224,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         AuthenticationSettings.INSTANCE.setUseBroker(false);
 
         // action
-        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy, TEST_AUTHORITY);
 
         // assert
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
@@ -277,8 +302,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         prepareProxyForTest(brokerProxy, authenticatorType, brokerPackage, contextPackage, signature, false, null, true);
 
         // action
-        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy, TEST_AUTHORITY);
 
         // assert
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -307,8 +332,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", mTestTag);
 
         // action
-        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy, TEST_AUTHORITY);
 
         // assert
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
