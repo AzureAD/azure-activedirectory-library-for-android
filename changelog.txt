@@ -1,3 +1,7 @@
+Version 1.12.0
+--------------
+Add bound service to remove requirement for contacts permission when talking to broker.
+
 Version 1.11.0
 --------------
 AuthRequest no longer waits for broker to install for broker auth.
