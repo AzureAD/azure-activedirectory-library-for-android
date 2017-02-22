@@ -23,28 +23,8 @@
 
 package com.microsoft.aad.adal.example.userappwithbroker;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Iterator;
-import java.util.Map;
-
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
-
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.AuthenticationCallback;
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.AuthenticationSettings;
-import com.microsoft.aad.adal.IDispatcher;
-import com.microsoft.aad.adal.Logger;
-import com.microsoft.aad.adal.PromptBehavior;
-import com.microsoft.aad.adal.Telemetry;
-
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -62,6 +42,30 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.microsoft.aad.adal.ADALError;
+import com.microsoft.aad.adal.AuthenticationCallback;
+import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.IDispatcher;
+import com.microsoft.aad.adal.Logger;
+import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.Telemetry;
+import com.microsoft.aad.adal.UserInfo;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Sample for acquiring token via broker. 
@@ -160,6 +164,29 @@ public class MainActivity extends Activity {
                     showMessage("Cannot make acquire token silent call for "
                             + "resource 2 since no user unique id is passed.");
                 }
+            }
+        });
+
+        Button buttonForGetBrokerUsers = (Button) findViewById(R.id.GetBrokerUsers);
+        buttonForGetBrokerUsers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            final UserInfo[] users = mAuthContext.getBrokerUsers();
+                            String displayMessage = "Broker users list length: " + users.length + "; ";
+                            for (final UserInfo userInfo : users) {
+                                displayMessage += "account name: " + userInfo.getDisplayableId() + ";";
+                            }
+
+                            showMessage(displayMessage);
+                        } catch (final IOException | OperationCanceledException | AuthenticatorException e) {
+                            Logger.v(TAG, "Error occurred when retrieving broker users.");
+                        }
+                    }
+                }).start();
             }
         });
 

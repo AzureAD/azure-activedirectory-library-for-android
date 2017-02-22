@@ -22,27 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertPath;
-import java.security.cert.CertPathValidator;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.PKIXParameters;
-import java.security.cert.TrustAnchor;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
@@ -67,6 +46,27 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertPath;
+import java.security.cert.CertPathValidator;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.PKIXParameters;
+import java.security.cert.TrustAnchor;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 /**
  * Handles interactions to authenticator inside the Account Manager.
@@ -117,29 +117,34 @@ class BrokerProxy implements IBrokerProxy {
     @Override
     public SwitchToBroker canSwitchToBroker() {
         final String packageName = mContext.getPackageName();
-
-        // ADAL switches broker for following conditions:
-        // 1- app is not skipping the broker
-        // 2- account exists
-        // 3- if package is not broker itself for both company portal and azure
-        // authenticator
-        // 4- signature of the broker is valid
-        // 5- permissions are set
-        boolean switchToBrokerFlag =
-                AuthenticationSettings.INSTANCE.getUseBroker()
-                && checkAccount(mAcctManager, "", "")
+        boolean canSwitchToBroker = AuthenticationSettings.INSTANCE.getUseBroker()
                 && !packageName.equalsIgnoreCase(AuthenticationSettings.INSTANCE.getBrokerPackageName())
                 && !packageName.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
                 && verifyAuthenticator(mAcctManager);
 
-        if (!switchToBrokerFlag) {
+        // We don't need any permissions if the broker has the service supported.
+        // checkAccount will also be skipped. checkAccount is looking for a matching Authenticator, and if it doesn't
+        // AccountChooserActivity supported, we'll need to make sure there is an account existed; otherwise account can
+        // be added directly from the AccountChooser. If the broker supports the new service, it MUST support AccountChooser,
+        // no need to do checkAccount.
+        if (!canSwitchToBroker) {
+            Logger.v(TAG, "Broker auth is turned off or no valid broker is available on the device, cannot switch to broker.");
             return SwitchToBroker.CANNOT_SWITCH_TO_BROKER;
         }
 
-        try {
-            verifyBrokerPermissionsAPI23AndHigher();
-        } catch (final UsageAuthenticationException exception) {
-            return SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER;
+        if (!isBrokerAccountServiceSupported()) {
+            canSwitchToBroker = canSwitchToBroker && checkAccount(mAcctManager, "", "");
+            if (!canSwitchToBroker) {
+                Logger.v(TAG, "No valid account existed in broker, cannot switch to broker for auth.");
+                return SwitchToBroker.CANNOT_SWITCH_TO_BROKER;
+            }
+
+            try {
+                verifyBrokerPermissionsAPI23AndHigher();
+            } catch (final UsageAuthenticationException exception) {
+                Logger.v(TAG, "Missing GET_ACCOUNTS permission, cannot switch to broker.");
+                return SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER;
+            }
         }
 
         return SwitchToBroker.CAN_SWITCH_TO_BROKER;
@@ -149,7 +154,12 @@ class BrokerProxy implements IBrokerProxy {
      * Do this check after other checks.
      */
     public boolean verifyUser(String username, String uniqueid) {
-        return checkAccount(mAcctManager, username, uniqueid);
+        if (!isBrokerAccountServiceSupported()) {
+            return checkAccount(mAcctManager, username, uniqueid);
+        }
+
+        // VerifyUser is to check the user existence in broker if AccountChooser is not supported.
+        return true;
     }
 
     @Override
@@ -221,7 +231,7 @@ class BrokerProxy implements IBrokerProxy {
                     "Broker related permissions are missing for " + permissionMissing.toString());
         }
 
-        Logger.v(TAG, "Misused of the checking function. This is function is only used to checking the broker permissions of API 23 or higher.");
+        Logger.v(TAG, "Device is lower than 23, skip the GET_ACCOUNTS permission check.");
         return true;
     }
 
@@ -282,12 +292,84 @@ class BrokerProxy implements IBrokerProxy {
     public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request)
             throws AuthenticationException {
 
-        AuthenticationResult authResult = null;
         verifyNotOnMainThread();
 
+        final Bundle requestBundle = getBrokerOptions(request);
+
+        // check if broker supports the new service, if it does not we need to switch back to the old way
+        final Bundle bundleResult;
+        if (isBrokerAccountServiceSupported()) {
+            bundleResult = BrokerAccountServiceHandler.getInstance().getAuthToken(mContext, requestBundle);
+        } else {
+            bundleResult = getAuthTokenFromAccountManager(request, requestBundle);
+        }
+        if (bundleResult == null) {
+            Logger.v(TAG, "No bundle result returned from broker for silent request.");
+            return null;
+        }
+
+        return getResultFromBrokerResponse(bundleResult);
+    }
+
+    private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {
         // if there is not any user added to account, it returns empty
+        final Account targetAccount = getTargetAccount(request);
+
+        Bundle bundleResult = null;
+        if (targetAccount != null) {
+
+            // blocking call to get token from cache or refresh request in
+            // background at Authenticator
+            try {
+                // It does not expect activity to be launched.
+                // AuthenticatorService is handling the request at
+                // AccountManager.
+                //
+                final AccountManagerFuture<Bundle> result = mAcctManager.getAuthToken(targetAccount,
+                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                        requestBundle, false,
+                        null, //set to null to avoid callback
+                        mHandler);
+
+                // Making blocking request here
+                Logger.v(TAG, "Received result from broker");
+                bundleResult = result.getResult();
+            } catch (OperationCanceledException e) {
+                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
+            } catch (AuthenticatorException e) {
+                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+            } catch (IOException e) {
+                // Authenticator gets problem from webrequest or file read/write
+                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
+            }
+
+            Logger.v(TAG, "Returning result from broker");
+            return bundleResult;
+        } else {
+            Logger.v(TAG, "Target account is not found");
+        }
+
+        return null;
+    }
+
+    private boolean isBrokerAccountServiceSupported() {
+        final Intent brokerAccountServiceIntent = BrokerAccountServiceHandler.getIntentForBrokerAccountService(mContext);
+        return isServiceSupported(mContext, brokerAccountServiceIntent);
+    }
+
+    private boolean isServiceSupported(final Context context, final Intent intent) {
+        if (intent == null) {
+            return false;
+        }
+
+        final PackageManager packageManager = context.getPackageManager();
+        final List<ResolveInfo> infos = packageManager.queryIntentServices(intent, 0);
+        return infos != null && infos.size() > 0;
+    }
+
+    private Account getTargetAccount(final AuthenticationRequest request) {
         Account targetAccount = null;
-        Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        final Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
         if (!TextUtils.isEmpty(request.getBrokerAccountName())) {
             targetAccount = findAccount(request.getBrokerAccountName(), accountList);
@@ -303,44 +385,7 @@ class BrokerProxy implements IBrokerProxy {
             }
         }
 
-        if (targetAccount != null) {
-            Bundle brokerOptions = getBrokerOptions(request);
-
-            // blocking call to get token from cache or refresh request in
-            // background at Authenticator
-            try {
-                // It does not expect activity to be launched.
-                // AuthenticatorService is handling the request at
-                // AccountManager.
-                //
-                final AccountManagerFuture<Bundle> result = mAcctManager.getAuthToken(targetAccount,
-                        AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                        brokerOptions, false,
-                        null, //set to null to avoid callback
-                        mHandler);
-
-                // Making blocking request here
-                Logger.v(TAG, "Received result from broker");
-                Bundle bundleResult = result.getResult();
-                // Authenticator should throw OperationCanceledException if
-                // token is not available
-                authResult = getResultFromBrokerResponse(bundleResult);
-            } catch (OperationCanceledException e) {
-                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
-            } catch (AuthenticatorException e) {
-                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
-            } catch (IOException e) {
-                // Authenticator gets problem from webrequest or file read/write
-                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
-            }
-
-            Logger.v(TAG, "Returning result from broker");
-            return authResult;
-        } else {
-            Logger.v(TAG, "Target account is not found");
-        }
-
-        return null;
+        return targetAccount;
     }
 
     private AuthenticationResult getResultFromBrokerResponse(Bundle bundleResult) throws AuthenticationException {
@@ -349,7 +394,10 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         int errCode = bundleResult.getInt(AccountManager.KEY_ERROR_CODE);
-        String msg = bundleResult.getString(AccountManager.KEY_ERROR_MESSAGE);
+        final String msg = bundleResult.getString(AccountManager.KEY_ERROR_MESSAGE);
+
+        final String oauth2ErrorCode = bundleResult.getString(AuthenticationConstants.OAuth2.ERROR);
+        final String oauth2ErrorDescription = bundleResult.getString(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION);
         if (!StringExtensions.isNullOrBlank(msg)) {
             final ADALError adalErrorCode;
             switch (errCode) {
@@ -367,6 +415,9 @@ class BrokerProxy implements IBrokerProxy {
             }
 
             throw new AuthenticationException(adalErrorCode, msg);
+        } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode)) {
+            throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
+                    "Received error from broker, errorCode: " + oauth2ErrorCode + "; ErrorDescription: " + oauth2ErrorDescription);
         } else {
             boolean initialRequest = bundleResult.getBoolean(AuthenticationConstants.Broker.ACCOUNT_INITIAL_REQUEST);
             if (initialRequest) {
@@ -427,32 +478,40 @@ class BrokerProxy implements IBrokerProxy {
 
             @Override
             public void run() {
-                // getAuthToken call will execute in async as well
-                Logger.v(TAG, "removeAccounts:");
-                Account[] accountList = mAcctManager
-                        .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-                if (accountList.length != 0) {
-                    for (Account targetAccount : accountList) {
-                        Logger.v(TAG, "remove tokens for:" + targetAccount.name);
-
-                        Bundle brokerOptions = new Bundle();
-                        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
-                                AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
-
-                        // only this API call sets calling UID. We are
-                        // setting
-                        // special value to indicate that tokens for this
-                        // calling UID will be cleaned from this account
-                        mAcctManager.getAuthToken(targetAccount, AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
-                                brokerOptions, false,
-                                null /*
-                                      * set to null to avoid callback
-                                      */, mHandler);
-
-                    }
+                if (isBrokerAccountServiceSupported()) {
+                    BrokerAccountServiceHandler.getInstance().removeAccounts(mContext);
+                } else {
+                    removeAccountFromAccountManager();
                 }
             }
         }).start();
+    }
+
+    private void removeAccountFromAccountManager() {
+        // getAuthToken call will execute in async as well
+        Logger.v(TAG, "removeAccounts:");
+        Account[] accountList = mAcctManager
+                .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+        if (accountList.length != 0) {
+            for (Account targetAccount : accountList) {
+                Logger.v(TAG, "remove tokens for:" + targetAccount.name);
+
+                Bundle brokerOptions = new Bundle();
+                brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
+                        AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS_VALUE);
+
+                // only this API call sets calling UID. We are
+                // setting
+                // special value to indicate that tokens for this
+                // calling UID will be cleaned from this account
+                mAcctManager.getAuthToken(targetAccount, AuthenticationConstants.Broker.AUTHTOKEN_TYPE,
+                        brokerOptions, false,
+                        null /*
+                                      * set to null to avoid callback
+                                      */, mHandler);
+
+            }
+        }
     }
 
     /**
@@ -461,12 +520,37 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request) {
+        final Bundle requestBundle = getBrokerOptions(request);
+        final Intent intent;
+        if (isBrokerAccountServiceSupported()) {
+            intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext);
+            intent.putExtras(requestBundle);
+        } else {
+            intent = getIntentForBrokerActivityFromAccountManager(requestBundle);
+        }
+
+        if (intent != null) {
+            intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
+                    AuthenticationConstants.Broker.BROKER_REQUEST);
+
+            // Only the new broker with PRT support can read the new PromptBehavior force_prompt.
+            // If talking to the old broker, and PromptBehavior is set as force_prompt, reset it as
+            // Always.
+            if (!isBrokerWithPRTSupport(intent) && PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
+                Logger.v(TAG, "FORCE_PROMPT is set for broker auth via old version of broker app, reset to ALWAYS.");
+                intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, PromptBehavior.Always.name());
+            }
+        }
+
+        return intent;
+    }
+
+    private Intent getIntentForBrokerActivityFromAccountManager(final Bundle addAccountOptions) {
         Intent intent = null;
         try {
             // Callback is not passed since it is making a blocking call to get
             // intent. Activity needs to be launched from calling app
             // to get the calling app's metadata if needed at BrokerActivity.
-            Bundle addAccountOptions = getBrokerOptions(request);
             final AccountManagerFuture<Bundle> result = mAcctManager.addAccount(
                     AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                     AuthenticationConstants.Broker.AUTHTOKEN_TYPE, null, addAccountOptions, null, null, mHandler);
@@ -476,21 +560,8 @@ class BrokerProxy implements IBrokerProxy {
             // Authenticator should throw OperationCanceledException if
             // token is not available
             intent = bundleResult.getParcelable(AccountManager.KEY_INTENT);
+            // Add flag to this intent to signal that request is for broker logic
 
-            // Add flag to this intent to signal that request is for broker
-            // logic
-            if (intent != null) {
-                intent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST,
-                        AuthenticationConstants.Broker.BROKER_REQUEST);
-                
-                // Only the new broker with PRT support can read the new PromptBehavior force_prompt. 
-                // If talking to the old broker, and PromptBehavior is set as force_prompt, reset it as 
-                // Always. 
-                if (!isBrokerWithPRTSupport(intent) && PromptBehavior.FORCE_PROMPT == request.getPrompt()) {
-                    Logger.v(TAG, "FORCE_PROMPT is set for broker auth via old version of broker app, reset to ALWAYS.");
-                    intent.putExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT, PromptBehavior.Always.name());
-                }
-            }
         } catch (OperationCanceledException e) {
             Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
         } catch (AuthenticatorException e) {
@@ -540,6 +611,7 @@ class BrokerProxy implements IBrokerProxy {
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REDIRECT, request.getRedirectUri());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLIENTID_KEY, request.getClientId());
         brokerOptions.putString(AuthenticationConstants.Broker.ADAL_VERSION_KEY, request.getVersion());
+        brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID, request.getUserId());
         brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_EXTRA_QUERY_PARAM,
                 request.getExtraQueryParamsAuthentication());
         if (request.getCorrelationId() != null) {
@@ -583,9 +655,23 @@ class BrokerProxy implements IBrokerProxy {
      */
     public String getCurrentUser() {
         // authenticator is not used if there is not any user
-        Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
-        if (accountList.length > 0) {
-            return accountList[0].name;
+        if (isBrokerAccountServiceSupported()) {
+            verifyNotOnMainThread();
+
+            final UserInfo[] users;
+            try {
+                users = BrokerAccountServiceHandler.getInstance().getBrokerUsers(mContext);
+            } catch (final IOException e) {
+                Logger.e(TAG, "No current user could be retrieved.", "", null, e);
+                return null;
+            }
+
+            return users.length == 0 ? null : users[0].getDisplayableId();
+        } else {
+            Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
+            if (accountList.length > 0) {
+                return accountList[0].name;
+            }
         }
 
         return null;
@@ -807,17 +893,24 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException, IOException {
-        final String methodName = ":getBrokerUsers";
         // Calling this on main thread will cause exception since this is
         // waiting on AccountManagerFuture
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalArgumentException("Calling getBrokerUsers on main thread");
         }
 
+        if (isBrokerAccountServiceSupported()) {
+            return BrokerAccountServiceHandler.getInstance().getBrokerUsers(mContext);
+        }
+
+        return getUserInfoFromAccountManager();
+    }
+
+    private UserInfo[] getUserInfoFromAccountManager() throws OperationCanceledException, AuthenticatorException, IOException {
         final Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         final Bundle bundle = new Bundle();
         bundle.putBoolean(DATA_USER_INFO, true);
-        Logger.v(TAG + methodName, "Retrieve all the accounts from account manager with broker account type, "
+        Logger.v(TAG, "Retrieve all the accounts from account manager with broker account type, "
                 + "and the account length is: " + accountList.length);
 
         // accountList will never be null, getAccountsByType will return an empty list if no matching account returned.
