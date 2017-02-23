@@ -64,7 +64,7 @@ final class EventStrings {
 
     static final String WAS_SUCCESSFUL = "Microsoft.ADAL.is_successful";
 
-    static final String API_ERROR_CODE = "Microsoft.ADAL.api_error_code"; // Android only
+    static final String API_ERROR_CODE = "Microsoft.ADAL.api_error_code";
 
     static final String OAUTH_ERROR_CODE = "Microsoft.ADAL.oauth_error_code";
 
@@ -130,9 +130,9 @@ final class EventStrings {
 
     static final String HTTP_METHOD = "Microsoft.ADAL.method";
 
-    static final String HTTP_METHOD_POST = "Microsoft.ADAL.post"; // Android only
+    static final String HTTP_METHOD_POST = "Microsoft.ADAL.post";
 
-    static final String HTTP_QUERY_PARAMETERS = "Microsoft.ADAL.query_parameters"; // Android only
+    static final String HTTP_QUERY_PARAMETERS = "Microsoft.ADAL.query_params";
 
     static final String HTTP_RESPONSE_CODE = "Microsoft.ADAL.response_code";
 
@@ -144,9 +144,9 @@ final class EventStrings {
     static final String AUTHORITY_TYPE_ADFS = "adfs";
     static final String AUTHORITY_TYPE_AAD = "Microsoft.ADAL.aad";
 
-    static final String AUTHORITY_VALIDATION_SUCCESS = "Microsoft.ADAL.authority_validation_status_success"; // Android only
-    static final String AUTHORITY_VALIDATION_FAILURE = "Microsoft.ADAL.authority_validation_status_failure"; // Android only
-    static final String AUTHORITY_VALIDATION_NOT_DONE = "Microsoft.ADAL.authority_validation_status_not_done"; // Android only
+    static final String AUTHORITY_VALIDATION_SUCCESS = "Microsoft.ADAL.authority_validation_status_success";
+    static final String AUTHORITY_VALIDATION_FAILURE = "Microsoft.ADAL.authority_validation_status_failure";
+    static final String AUTHORITY_VALIDATION_NOT_DONE = "Microsoft.ADAL.authority_validation_status_not_done";
 
     // API ID
     static final String API_ID = "Microsoft.ADAL.api_id";
