@@ -308,7 +308,7 @@ class BrokerProxy implements IBrokerProxy {
             return null;
         }
 
-        return getResultFromBrokerResponse(bundleResult);
+        return getResultFromBrokerResponse(bundleResult, request);
     }
 
     private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {
@@ -388,7 +388,8 @@ class BrokerProxy implements IBrokerProxy {
         return targetAccount;
     }
 
-    private AuthenticationResult getResultFromBrokerResponse(Bundle bundleResult) throws AuthenticationException {
+    private AuthenticationResult getResultFromBrokerResponse(final Bundle bundleResult, final AuthenticationRequest request)
+            throws AuthenticationException {
         if (bundleResult == null) {
             throw new IllegalArgumentException("bundleResult");
         }
@@ -415,7 +416,7 @@ class BrokerProxy implements IBrokerProxy {
             }
 
             throw new AuthenticationException(adalErrorCode, msg);
-        } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode)) {
+        } else if (!StringExtensions.isNullOrBlank(oauth2ErrorCode) && request.isSilent()) {
             throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED,
                     "Received error from broker, errorCode: " + oauth2ErrorCode + "; ErrorDescription: " + oauth2ErrorDescription);
         } else {
