@@ -338,6 +338,9 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
             } catch (AuthenticatorException e) {
                 Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.toString())) {
+                    throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE, e.getMessage());
+                }
             } catch (IOException e) {
                 // Authenticator gets problem from webrequest or file read/write
                 Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
