@@ -123,7 +123,7 @@ final class BrokerAccountServiceHandler {
         final AtomicReference<Bundle> bundleResult = new AtomicReference<>(null);
         final AtomicReference<Throwable> exception = new AtomicReference<>(null);
 
-        bindToBrokerAccountService(context, new Callback<BrokerAccountServiceConnection>() {
+        performAsyncCallOnBound(context, new Callback<BrokerAccountServiceConnection>() {
             @Override
             public void onSuccess(BrokerAccountServiceConnection result) {
                 final IBrokerAccountService brokerAccountService = result.getBrokerAccountServiceProvider();
@@ -167,7 +167,7 @@ final class BrokerAccountServiceHandler {
         final AtomicReference<Intent> bundleResult = new AtomicReference<>(null);
         final AtomicReference<Throwable> exception = new AtomicReference<>(null);
 
-        bindToBrokerAccountService(context, new Callback<BrokerAccountServiceConnection>() {
+        performAsyncCallOnBound(context, new Callback<BrokerAccountServiceConnection>() {
             @Override
             public void onSuccess(BrokerAccountServiceConnection result) {
                 final IBrokerAccountService brokerAccountService = result.getBrokerAccountServiceProvider();
@@ -206,7 +206,7 @@ final class BrokerAccountServiceHandler {
      * @param context The application {@link Context}.
      */
     public void removeAccounts(final Context context) {
-        bindToBrokerAccountService(context, new Callback<BrokerAccountServiceConnection>() {
+        performAsyncCallOnBound(context, new Callback<BrokerAccountServiceConnection>() {
             @Override
             public void onSuccess(BrokerAccountServiceConnection result) {
                 try {
