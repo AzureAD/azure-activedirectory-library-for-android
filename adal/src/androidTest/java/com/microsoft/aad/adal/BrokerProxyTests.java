@@ -673,6 +673,30 @@ public class BrokerProxyTests extends AndroidTestCase {
         }
     }
 
+    public void testGetAuthTokenInBackgroundVerifyingErrorNoNetworkConnection() throws NameNotFoundException {
+        final String acctName = "testAcct123";
+        final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
+                "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
+        final FileMockContext context = new FileMockContext(getContext());
+        context.setConnectionAvaliable(false);
+        final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
+                AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
+        context.setMockedAccountManager(mockedAccountManager);
+        context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
+                AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
+
+        //action
+        try {
+            final BrokerProxy brokerProxy = new BrokerProxy(context);
+            brokerProxy.getAuthTokenInBackground(authRequest);
+            Assert.fail("should throw");
+        } catch (final Exception exception) {
+            assertTrue("Exception type check", exception instanceof AuthenticationException);
+            assertEquals("check error code", ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                    ((AuthenticationException) exception).getCode());
+        }
+    }
+
     public void testGetIntentForBrokerActivityEmptyIntent() throws NameNotFoundException, OperationCanceledException,
             IOException, AuthenticatorException {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/test", "resource", "client",
