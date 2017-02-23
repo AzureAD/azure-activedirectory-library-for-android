@@ -293,6 +293,7 @@ class BrokerProxy implements IBrokerProxy {
             throws AuthenticationException {
 
         verifyNotOnMainThread();
+        HttpWebRequest.throwIfNetworkNotAvaliable(mContext);
 
         final Bundle requestBundle = getBrokerOptions(request);
 
