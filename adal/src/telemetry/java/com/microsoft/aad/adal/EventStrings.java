@@ -122,10 +122,6 @@ final class EventStrings {
 
     static final String HTTP_PATH = "Microsoft.ADAL.http_path";
 
-    static final String CRYPTOGRAPHY_STATUS = "Microsoft.ADAL.status"; // Exists in iOS but not used in Android
-
-    static final String CRYPTOGRAPHY_EXCEPTION = "Microsoft.ADAL.exception"; // Exists in iOS but not used in Android
-
     static final String HTTP_USER_AGENT = "Microsoft.ADAL.user_agent";
 
     static final String HTTP_METHOD = "Microsoft.ADAL.method";
