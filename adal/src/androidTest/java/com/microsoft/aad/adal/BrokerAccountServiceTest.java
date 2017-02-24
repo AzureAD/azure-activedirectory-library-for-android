@@ -159,6 +159,29 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         latch.await();
     }
 
+    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        sThreadExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                final Context mockContext = getMockContext();
+                final FileMockContext context = new FileMockContext(mockContext);
+                context.setConnectionAvaliable(false);
+
+                try {
+                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(context, new Bundle());
+                    fail();
+                } catch (final AuthenticationException e) {
+                    Assert.assertTrue(e.getCode() == ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+                } finally {
+                    latch.countDown();
+                }
+            }
+        });
+        latch.await();
+
+    }
+
     @SmallTest
     public void testBrokerProxyGetAuthToken() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
