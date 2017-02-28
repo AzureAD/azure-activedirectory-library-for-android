@@ -338,6 +338,10 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
             } catch (AuthenticatorException e) {
                 Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+                if (e.getMessage().contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
+                    throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                            "Received error from broker, errorCode: " + e.getMessage());
+                }
             } catch (IOException e) {
                 // Authenticator gets problem from webrequest or file read/write
                 Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
@@ -409,6 +413,9 @@ class BrokerProxy implements IBrokerProxy {
                 break;
             case AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION:
                 adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
+                break;
+            case AccountManager.ERROR_CODE_NETWORK_ERROR:
+                adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
                 break;
             default:
                 adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
