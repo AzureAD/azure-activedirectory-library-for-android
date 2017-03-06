@@ -24,31 +24,128 @@
 package com.microsoft.aad.adal;
 
 final class EventStrings {
-    static final String EVENT_NAME = "event_name";
+    static final String EVENT_NAME = "Microsoft.ADAL.event_name";
 
     // Event names
-    static final String API_EVENT = "api_event";
+    static final String API_EVENT = "Microsoft.ADAL.api_event";
 
-    static final String AUTHORITY_VALIDATION_EVENT = "authority_validation";
+    static final String AUTHORITY_VALIDATION_EVENT = "Microsoft.ADAL.authority_validation";
 
-    static final String HTTP_EVENT = "http_event";
+    static final String HTTP_EVENT = "Microsoft.ADAL.http_event";
 
-    static final String BROKER_EVENT = "broker_event";
+    static final String BROKER_EVENT = "Microsoft.ADAL.broker_event";
 
-    static final String UI_EVENT = "ui_event";
+    static final String UI_EVENT = "Microsoft.ADAL.ui_event";
 
-    static final String ENCRYPTION_EVENT = "encryption_event";
+    static final String TOKEN_CACHE_LOOKUP = "Microsoft.ADAL.token_cache_lookup";
 
-    static final String DECRYPTION_EVENT = "decryption_event";
+    static final String TOKEN_CACHE_WRITE = "Microsoft.ADAL.token_cache_write";
 
-    static final String TOKEN_CACHE_LOOKUP = "token_cache_lookup";
+    static final String TOKEN_CACHE_DELETE = "Microsoft.ADAL.token_cache_delete";
 
-    static final String TOKEN_CACHE_WRITE = "token_cache_write";
+    // Event Parameter names
+    static final String APPLICATION_NAME = "Microsoft.ADAL.application_name";
 
-    static final String TOKEN_CACHE_DELETE = "token_cache_delete";
+    static final String APPLICATION_VERSION = "Microsoft.ADAL.application_version";
+
+    static final String CLIENT_ID = "Microsoft.ADAL.client_id";
+
+    static final String AUTHORITY_NAME = "Microsoft.ADAL.authority";
+
+    static final String AUTHORITY_TYPE = "Microsoft.ADAL.authority_type";
+
+    static final String API_DEPRECATED = "Microsoft.ADAL.is_deprecated"; // Android only
+
+    static final String AUTHORITY_VALIDATION = "Microsoft.ADAL.authority_validation_status";
+
+    static final String PROMPT_BEHAVIOR = "Microsoft.ADAL.prompt_behavior";
+
+    static final String EXTENDED_EXPIRES_ON_SETTING = "Microsoft.ADAL.extended_expires_on_setting";
+
+    static final String WAS_SUCCESSFUL = "Microsoft.ADAL.is_successful";
+
+    static final String API_ERROR_CODE = "Microsoft.ADAL.api_error_code";
+
+    static final String OAUTH_ERROR_CODE = "Microsoft.ADAL.oauth_error_code";
+
+    static final String IDP_NAME = "Microsoft.ADAL.idp";
+
+    static final String TENANT_ID = "Microsoft.ADAL.tenant_id";
+
+    static final String LOGIN_HINT = "Microsoft.ADAL.login_hint";
+
+    static final String USER_ID = "Microsoft.ADAL.user_id";
+
+    static final String CORRELATION_ID = "Microsoft.ADAL.correlation_id";
+
+    static final String DEVICE_ID = "Microsoft.ADAL.device_id";
+
+    static final String REQUEST_ID = "Microsoft.ADAL.request_id";
+
+    static final String START_TIME = "Microsoft.ADAL.start_time";
+
+    static final String STOP_TIME = "Microsoft.ADAL.stop_time";
+
+    static final String RESPONSE_TIME = "Microsoft.ADAL.response_time";
+
+    static final String REDIRECT_COUNT = "Microsoft.ADAL.redirect_count"; // Android only
+
+    static final String NTLM = "Microsoft.ADAL.ntlm";
+
+    static final String USER_CANCEL = "Microsoft.ADAL.user_cancel";
+
+    static final String BROKER_APP = "Microsoft.ADAL.broker_app";
+
+    static final String BROKER_VERSION = "Microsoft.ADAL.broker_version";
+
+    static final String BROKER_APP_USED = "Microsoft.ADAL.broker_app_used";
+
+    static final String TOKEN_TYPE = "Microsoft.ADAL.token_type";
+
+    static final String TOKEN_TYPE_IS_RT = "Microsoft.ADAL.is_rt";
+
+    static final String TOKEN_TYPE_IS_MRRT = "Microsoft.ADAL.is_mrrt";
+
+    static final String TOKEN_TYPE_IS_FRT = "Microsoft.ADAL.is_frt";
+
+    static final String TOKEN_TYPE_RT = "Microsoft.ADAL.rt"; // Android only
+
+    static final String TOKEN_TYPE_MRRT = "Microsoft.ADAL.mrrt"; // Android only
+
+    static final String TOKEN_TYPE_FRT = "Microsoft.ADAL.frt"; // Android only
+
+    static final String CACHE_EVENT_COUNT = "Microsoft.ADAL.cache_event_count";
+
+    static final String UI_EVENT_COUNT = "Microsoft.ADAL.ui_event_count";
+
+    static final String HTTP_EVENT_COUNT = "Microsoft.ADAL.http_event_count";
+
+    static final String HTTP_PATH = "Microsoft.ADAL.http_path";
+
+    static final String HTTP_USER_AGENT = "Microsoft.ADAL.user_agent";
+
+    static final String HTTP_METHOD = "Microsoft.ADAL.method";
+
+    static final String HTTP_METHOD_POST = "Microsoft.ADAL.post";
+
+    static final String HTTP_QUERY_PARAMETERS = "Microsoft.ADAL.query_params";
+
+    static final String HTTP_RESPONSE_CODE = "Microsoft.ADAL.response_code";
+
+    static final String HTTP_API_VERSION = "Microsoft.ADAL.api_version";
+
+    static final String REQUEST_ID_HEADER = "Microsoft.ADAL.x_ms_request_id";
+
+    // Parameter values
+    static final String AUTHORITY_TYPE_ADFS = "adfs";
+    static final String AUTHORITY_TYPE_AAD = "Microsoft.ADAL.aad";
+
+    static final String AUTHORITY_VALIDATION_SUCCESS = "Microsoft.ADAL.authority_validation_status_success";
+    static final String AUTHORITY_VALIDATION_FAILURE = "Microsoft.ADAL.authority_validation_status_failure";
+    static final String AUTHORITY_VALIDATION_NOT_DONE = "Microsoft.ADAL.authority_validation_status_not_done";
 
     // API ID
-    static final String API_ID = "api_id";
+    static final String API_ID = "Microsoft.ADAL.api_id";
 
     static final String ACQUIRE_TOKEN_SILENT_SYNC = "1";
 
@@ -73,115 +170,6 @@ final class EventStrings {
     static final String ACQUIRE_TOKEN_6 = "116";
 
     static final String ACQUIRE_TOKEN_7 = "117";
-
-    // Event Parameter strings
-    static final String APPLICATION_NAME = "application_name";
-
-    static final String APPLICATION_VERSION = "application_version";
-
-    static final String CLIENT_ID = "client_id";
-
-    static final String CLIENT_IP = "client_ip";
-
-    static final String AUTHORITY_NAME = "authority";
-
-    static final String AUTHORITY_TYPE = "authority_type";
-
-    static final String AUTHORITY_TYPE_ADFS = "adfs";
-
-    static final String AUTHORITY_TYPE_AAD = "aad";
-
-    static final String API_DEPRECATED = "is_deprecated";
-
-    static final String AUTHORITY_VALIDATION = "authority_validation_status";
-
-    static final String PROMPT_BEHAVIOR = "prompt_behavior";
-
-    static final String EXTENDED_EXPIRES_ON_SETTING = "extended_expires_on_setting";
-
-    static final String WAS_SUCCESSFUL = "is_successful";
-
-    static final String API_ERROR_CODE = "api_error_code";
-
-    static final String OAUTH_ERROR_CODE = "oauth_error_code";
-
-    static final String IDP_NAME = "idp";
-
-    static final String TENANT_ID = "tenant";
-
-    static final String LOGIN_HINT = "login_hint";
-
-    static final String USER_ID = "user_id";
-
-    static final String AUTHORITY_VALIDATION_SUCCESS = "authority_validation_status_success";
-
-    static final String AUTHORITY_VALIDATION_FAILURE = "authority_validation_status_failure";
-
-    static final String AUTHORITY_VALIDATION_NOT_DONE = "authority_validation_status_not_done";
-
-    static final String CORRELATION_ID = "correlation_id";
-
-    static final String DEVICE_ID = "device_id";
-
-    static final String REQUEST_ID = "request_id";
-
-    static final String START_TIME = "start_time";
-
-    static final String STOP_TIME = "stop_time";
-
-    static final String RESPONSE_TIME = "response_time";
-
-    static final String REDIRECT_COUNT = "redirect_count";
-
-    static final String NTLM = "ntlm";
-
-    static final String USER_CANCEL = "user_cancel";
-
-    static final String BROKER_APP = "broker_app";
-
-    static final String BROKER_VERSION = "broker_version";
-
-    static final String BROKER_APP_USED = "broker_app_used";
-
-    static final String TOKEN_TYPE = "token_type";
-
-    static final String TOKEN_TYPE_IS_RT = "is_rt";
-
-    static final String TOKEN_TYPE_IS_MRRT = "is_mrrt";
-
-    static final String TOKEN_TYPE_IS_FRT = "is_frt";
-
-    static final String TOKEN_TYPE_RT = "rt";
-
-    static final String TOKEN_TYPE_MRRT = "mrrt";
-
-    static final String TOKEN_TYPE_FRT = "frt";
-
-    static final String CACHE_EVENT_COUNT = "cache_event_count";
-
-    static final String UI_EVENT_COUNT = "ui_event_count";
-
-    static final String HTTP_EVENT_COUNT = "http_event_count";
-
-    static final String HTTP_PATH = "http_path";
-
-    static final String CRYPTOGRAPHY_STATUS = "status";
-
-    static final String CRYPTOGRAPHY_EXCEPTION = "exception";
-
-    static final String HTTP_USER_AGENT = "user_agent";
-
-    static final String HTTP_METHOD = "method";
-
-    static final String HTTP_METHOD_POST = "post";
-
-    static final String HTTP_QUERY_PARAMETERS = "query_parameters";
-
-    static final String HTTP_RESPONSE_CODE = "response_code";
-
-    static final String HTTP_API_VERSION = "api_version";
-
-    static final String REQUEST_ID_HEADER = "x-ms-request-id";
 
     // Private constructor to prevent initialization
     private EventStrings() {
