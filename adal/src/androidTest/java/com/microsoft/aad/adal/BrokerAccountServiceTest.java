@@ -239,6 +239,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         mockPackageManagerBrokerSignatureAndPermission(mockedPackageManager, signatureData.getSignature());
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
+        AuthenticationSettings.INSTANCE.setBrokerSignature(signatureData.getSignatureHash());
         final BrokerProxy brokerProxy = new BrokerProxy(context);
         Assert.assertFalse(brokerProxy.canSwitchToBroker().equals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER));
     }
