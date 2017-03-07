@@ -109,7 +109,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
             // 1) there is saved request in sharedPreference
             // 2) app has the correct configuration to get token from broker
             // 3) the saved request is not timeout
-            if (!StringExtensions.isNullOrBlank(request) && mBrokerProxy.canSwitchToBroker() == BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER
+            if (!StringExtensions.isNullOrBlank(request) && mBrokerProxy.canSwitchToBroker("") == BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER
                     && isRequestTimestampValidForResume(dateTimeForSavedRequest)) {
                 Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
                 resumeRequestInBroker(context, request);

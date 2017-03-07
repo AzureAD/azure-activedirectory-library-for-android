@@ -37,11 +37,11 @@ interface IBrokerProxy {
      * @return True package is available and authenticator is installed at
      *         Account manager
      */
-    BrokerProxy.SwitchToBroker canSwitchToBroker();
+    BrokerProxy.SwitchToBroker canSwitchToBroker(final String authorityUrlStr);
     
     boolean verifyUser(String username, String uniqueid);
 
-    boolean canUseLocalCache();
+    boolean canUseLocalCache(final String authorityUrlStr);
 
     void removeAccounts();
 

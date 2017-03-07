@@ -190,7 +190,7 @@ class AcquireTokenRequest {
         }
 
         // Verify broker redirect uri for non-silent request
-        final BrokerProxy.SwitchToBroker canSwitchToBrokerFlag = mBrokerProxy.canSwitchToBroker();
+        final BrokerProxy.SwitchToBroker canSwitchToBrokerFlag = mBrokerProxy.canSwitchToBroker(authenticationRequest.getAuthority());
 
         if (canSwitchToBrokerFlag != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
                 && mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(), authenticationRequest.getUserId())
@@ -338,7 +338,7 @@ class AcquireTokenRequest {
         }
 
         // If we cannot switch to broker, return the result from local flow.
-        if (mBrokerProxy.canSwitchToBroker() == BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
+        if (mBrokerProxy.canSwitchToBroker(authenticationRequest.getAuthority()) == BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
                 || !mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(), authenticationRequest.getUserId())) {
             return authResult;
         }
@@ -435,7 +435,7 @@ class AcquireTokenRequest {
         authenticationRequest.setRequestId(requestId);
         mAuthContext.putWaitingRequest(requestId, new AuthenticationRequestState(requestId, authenticationRequest,
                 callbackHandle.getCallback(), mAPIEvent));
-        final BrokerProxy.SwitchToBroker switchToBrokerFlag = mBrokerProxy.canSwitchToBroker();
+        final BrokerProxy.SwitchToBroker switchToBrokerFlag = mBrokerProxy.canSwitchToBroker(authenticationRequest.getAuthority());
 
         if (switchToBrokerFlag != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
                 && mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(), authenticationRequest.getUserId())) {
