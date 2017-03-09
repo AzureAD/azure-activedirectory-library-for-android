@@ -76,7 +76,12 @@ public class MockBrokerAccountService extends Service {
         @Override
         public synchronized Bundle acquireTokenSilently(Map requestParameters) throws RemoteException {
             final Bundle bundle = new Bundle();
-            bundle.putString(AccountManager.KEY_AUTHTOKEN, ACCESS_TOKEN);
+            if(requestParameters.containsKey("isConnectionAvaliable")) {
+                bundle.putInt(AccountManager.KEY_ERROR_CODE, AccountManager.ERROR_CODE_NETWORK_ERROR);
+                bundle.putString(AccountManager.KEY_ERROR_MESSAGE, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription());
+            } else {
+                bundle.putString(AccountManager.KEY_AUTHTOKEN, ACCESS_TOKEN);
+            }
 
             return bundle;
         }
