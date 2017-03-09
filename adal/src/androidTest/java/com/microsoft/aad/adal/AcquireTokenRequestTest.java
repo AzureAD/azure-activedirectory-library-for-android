@@ -420,7 +420,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final ITokenCacheStore cacheStore = new DefaultTokenCacheStore(getContext());
         cacheStore.removeAll();
         final TokenCacheItem regularRTItem = TokenCacheItem.createRegularTokenCacheItem(VALID_AUTHORITY,
-                "resource", "clientid", result);
+                resource, clientId, result);
         cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_USERID),
                 regularRTItem);
         cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_UPN),
@@ -583,7 +583,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             assertNotNull(result.getExtendedExpiresOn());
             assertTrue(!TokenCacheItem.isTokenExpired(result.getExtendedExpiresOn()));
         } catch (final AuthenticationException exception) {
-            fail("Did not expect an exeption");
+            fail("Did not expect an exception");
         } finally {
             cacheStore.removeAll();
         }
@@ -617,7 +617,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
-            fail("Expect an exeption");
+            fail("Expect an exception");
         } catch (final AuthenticationException exception) {
             verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(exception);
@@ -654,7 +654,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
-            fail("Expect an exeption");
+            fail("Expect an exception");
         } catch (final AuthenticationException exception) {
             verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(exception);
@@ -698,7 +698,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             assertTrue(result.getAccessToken().equals("I am a new access token"));
             assertTrue(!result.isExtendedLifeTimeToken());
         } catch (final AuthenticationException exception) {
-            fail("Did not expect an exeption");
+            fail("Did not expect an exception");
         } finally {
             cacheStore.removeAll();
         }
@@ -731,7 +731,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
-            fail("Expect an exeption");
+            fail("Expect an exception");
         } catch (final AuthenticationException exception) {
             verify(mockedConnection, times(2)).getInputStream();
             assertNotNull(exception);
@@ -770,7 +770,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
-            fail("Expect an exeption");
+            fail("Expect an exception");
         } catch (final AuthenticationException exception) {
             verify(mockedConnection, times(1)).getInputStream();
             assertNotNull(exception);
@@ -782,6 +782,43 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         }
     }
 
+    public void testResiliencyTokenReturnExtendedLifetimeOnwithNullAccessTokenCacheItem() throws PackageManager.NameNotFoundException,
+            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
+            InterruptedException {
+        // make sure AT's expires_in is expired and ext_expires_in is expired
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), true, true, getExpireDate(EXTEND_MINUS_MINUTE));
+        cacheStore.removeItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_USERID));
+        cacheStore.removeItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_UPN));
+        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY,"clientId", TEST_USERID)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
+        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY,"clientId", TEST_UPN)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
+        
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(true);
+        
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
+
+        try {
+            authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            fail("Expect an exception");
+        } catch (final AuthenticationException exception) {
+            verify(mockedConnection, times(2)).getInputStream();
+            assertNotNull(exception);
+            assertTrue(exception.getCode() == ADALError.AUTH_FAILED_NO_TOKEN);
+            assertTrue(exception.getCause() instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception.getCause()).getCode() == ADALError.SERVER_ERROR);
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+    
     @SmallTest
     public void testVerifyManifestPermissionMissingGetAccountsPermission() throws InterruptedException, PackageManager.NameNotFoundException {
         final FileMockContext mockContext = createMockContext();

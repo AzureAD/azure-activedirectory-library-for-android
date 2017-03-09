@@ -5,10 +5,10 @@ The ADAL SDK for Android gives you the ability to add support for Work Accounts 
 
 A Work Account is an identity you use to get work done no matter if at your business or on a college campus. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
-## ADAL for Android 1.10 Released!
+## ADAL for Android 1.11 Released!
 
 ## Versions
-Current version - 1.10.0  
+Current version - 1.11.0
 Minimum recommended version - 1.1.16  
 You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
@@ -309,6 +309,10 @@ Broker component will be delivered with Intune's Company portal app. Account wil
 ADFS is not recognized as production STS, so you need to turn of instance discovery and pass false at AuthenticationContext constructor.
 
 Authority url needs STS instance and tenant name: https://login.windows.net/yourtenant.onmicrosoft.com
+
+### Federated sign-in failure if additional certificate downloads are required
+
+Federated sign-in may fail when attempting to authenticate using the Azure Active Directory Authentication Library (ADAL) for Android. See [Using ADAL to authenticate from Android devices fails if additional certificate downloads are required](https://support.microsoft.com/en-us/help/3203929/using-adal-to-authenticate-from-android-devices-fails-if-additional-certificate-downloads-are-required) for more information. 
 
 ### Querying cache items
 
