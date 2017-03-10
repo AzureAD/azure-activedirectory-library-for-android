@@ -10,7 +10,6 @@ android:
     # Travis has a bug that we need to workaround to use sdk 25
     # https://github.com/travis-ci/travis-ci/issues/6059
     - tools
-    - tools
     - platform-tools
     - build-tools-25.0.0
     - android-25
