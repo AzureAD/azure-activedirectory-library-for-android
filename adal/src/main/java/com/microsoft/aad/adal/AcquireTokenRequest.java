@@ -414,7 +414,7 @@ class AcquireTokenRequest {
                     + " Cannot launch webview, acitivity is null.");
         }
 
-        HttpWebRequest.throwIfNetworkNotAvaliable(mContext);
+        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
 
         final int requestId = callbackHandle.getCallback().hashCode();
         authenticationRequest.setRequestId(requestId);

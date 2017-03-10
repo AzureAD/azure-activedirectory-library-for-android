@@ -605,7 +605,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     @SmallTest
     public void testAcquireTokenByRefreshTokenConnectionNotAvailable() throws InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
-        mockContext.setConnectionAvaliable(false);
+        mockContext.setConnectionAvailable(false);
 
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);

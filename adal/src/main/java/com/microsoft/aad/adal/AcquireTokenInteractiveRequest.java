@@ -55,7 +55,7 @@ final class AcquireTokenInteractiveRequest {
     void acquireToken(final IWindowComponent activity, final AuthenticationDialog dialog)
             throws AuthenticationException {
         //Check if there is network connection
-        HttpWebRequest.throwIfNetworkNotAvaliable(mContext);
+        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
 
         // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to
         // force prompt, if this flag is set in the embeded flow, we need to update it to always. For embed

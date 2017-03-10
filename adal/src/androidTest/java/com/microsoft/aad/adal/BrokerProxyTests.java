@@ -679,7 +679,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
         final FileMockContext context = new FileMockContext(getContext());
-        context.setConnectionAvaliable(false);
+        context.setConnectionAvailable(false);
         final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         setMockProxyForErrorCheck(mockedAccountManager, acctName, AccountManager.ERROR_CODE_NETWORK_ERROR, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription());
