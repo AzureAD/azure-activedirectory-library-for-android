@@ -159,20 +159,21 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         latch.await();
     }
 
-    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException {
+    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException, AuthenticatorException,OperationCanceledException, IOException {
         final CountDownLatch latch = new CountDownLatch(1);
         sThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 final Context mockContext = getMockContext();
-                final FileMockContext context = new FileMockContext(mockContext);
-                context.setConnectionAvaliable(false);
+                Bundle requestBundle = new Bundle();
+                requestBundle.putString("isConnectionAvaliable","false");
 
                 try {
-                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(context, new Bundle());
-                    fail();
+                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle);
+                    Assert.assertTrue(bundle.getInt(AccountManager.KEY_ERROR_CODE) == AccountManager.ERROR_CODE_NETWORK_ERROR);
+                    Assert.assertTrue(bundle.getString(AccountManager.KEY_ERROR_MESSAGE).equals(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription()));
                 } catch (final AuthenticationException e) {
-                    Assert.assertTrue(e.getCode() == ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+                    fail();
                 } finally {
                     latch.countDown();
                 }
