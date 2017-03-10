@@ -75,7 +75,11 @@ import junit.framework.Assert;
 
 public class BrokerProxyTests extends AndroidTestCase {
 
+    static final String TEST_AUTHORITY = "https://login.windows.net/common/";
+
     private static final String TAG = "BrokerProxyTests";
+
+    public static final String TEST_AUTHORITY_ADFS = "https://fs.ade2eadfs30.com/adfs";
 
     private byte[] mTestSignature;
 
@@ -127,7 +131,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker());
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
     public void testCanSwitchToBrokerInvalidAuthenticatorType() throws NameNotFoundException {
@@ -143,7 +147,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         final BrokerProxy brokerProxy = new BrokerProxy(context);
 
         // assert
-        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker());
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
     public void testCanSwitchToBrokerInvalidSignature() throws NameNotFoundException {
@@ -158,7 +162,30 @@ public class BrokerProxyTests extends AndroidTestCase {
         context.setMockedAccountManager(getMockedAccountManager(authenticatorType, brokerPackage));
 
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker());
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
+    }
+
+    public void testCannotSwitchToBrokerWhenADFS()
+            throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
+        String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+        String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
+        Signature signature = new Signature(mTestSignature);
+
+        final AccountManager mockedAccountManager = getMockedAccountManager(authenticatorType, brokerPackage);
+        final PackageManager mockedPackageManager = getMockedPackageManagerWithBrokerAccountServiceDisabled(signature, brokerPackage, true);
+        when(mockedPackageManager.queryIntentActivities(any(Intent.class), anyInt())).thenReturn(Collections.<ResolveInfo>emptyList());
+
+        final Account[] accts = getAccountList("valid", authenticatorType);
+        when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
+
+        final FileMockContext context = new FileMockContext(getContext());
+        context.setMockedAccountManager(mockedAccountManager);
+        context.setMockedPackageManager(mockedPackageManager);
+
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
+        final BrokerProxy brokerProxy = new BrokerProxy(context);
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY_ADFS));
     }
 
     public void testCanSwitchToBrokerNoAccountChooserActivity() throws NameNotFoundException {
@@ -179,7 +206,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        assertEquals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker());
+        assertEquals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
     public void testCanSwitchToBrokerWithAccountChooser() throws NameNotFoundException {
@@ -197,7 +224,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        assertEquals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker());
+        assertEquals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
     public void testCanSwitchToBrokerValidSkip()
@@ -221,7 +248,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         final BrokerProxy brokerProxy = new BrokerProxy(context);
         AuthenticationSettings.INSTANCE.setUseBroker(false);
 
-        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker());
+        assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
     public void testGetCurrentUser() throws NameNotFoundException {
@@ -307,7 +334,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // assert
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            assertEquals(BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker());
+            assertEquals(BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
         }
     }
 
@@ -332,8 +359,8 @@ public class BrokerProxyTests extends AndroidTestCase {
         ReflectionUtils.setFieldValue(brokerProxy, "mBrokerTag", mTestTag);
 
         // action
-        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker");
-        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy);
+        Method m = ReflectionUtils.getTestMethod(brokerProxy, "canSwitchToBroker", String.class);
+        BrokerProxy.SwitchToBroker result = (BrokerProxy.SwitchToBroker) m.invoke(brokerProxy, TEST_AUTHORITY);
 
         // assert
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);

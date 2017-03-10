@@ -32,6 +32,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.util.SparseArray;
@@ -39,6 +40,7 @@ import android.util.SparseArray;
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -83,11 +85,11 @@ public class AuthenticationContext {
     /**
      * Constructs context to use with known authority to get the token. It uses
      * default cache that stores encrypted tokens.
-     * 
-     * @param appContext It needs to have handle to the {@link Context} to use
-     *            the SharedPreferences as a Default cache storage. It does not
-     *            need to be activity.
-     * @param authority Authority url to send code and token requests
+     *
+     * @param appContext        It needs to have handle to the {@link Context} to use
+     *                          the SharedPreferences as a Default cache storage. It does not
+     *                          need to be activity.
+     * @param authority         Authority url to send code and token requests
      * @param validateAuthority validate authority before sending token request
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority) {
@@ -101,33 +103,33 @@ public class AuthenticationContext {
     /**
      * Constructs context to use with known authority to get the token. It uses
      * provided cache.
-     * 
-     * @param appContext {@link Context}
-     * @param authority Authority Url
+     *
+     * @param appContext        {@link Context}
+     * @param authority         Authority Url
      * @param validateAuthority true/false for validation
-     * @param tokenCacheStore Set to null if you don't want cache.
+     * @param tokenCacheStore   Set to null if you don't want cache.
      */
     public AuthenticationContext(Context appContext, String authority, boolean validateAuthority,
-            ITokenCacheStore tokenCacheStore) {
+                                 ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, validateAuthority, false);
     }
 
     /**
      * It will verify the authority and use the given cache. If cache is null,
      * it will not use cache.
-     * 
-     * @param appContext {@link Context}
-     * @param authority Authority Url
+     *
+     * @param appContext      {@link Context}
+     * @param authority       Authority Url
      * @param tokenCacheStore Cache {@link ITokenCacheStore} used to store
-     *            tokens. Set to null if you don't want cache.
+     *                        tokens. Set to null if you don't want cache.
      */
     public AuthenticationContext(Context appContext, String authority,
-            ITokenCacheStore tokenCacheStore) {
+                                 ITokenCacheStore tokenCacheStore) {
         initialize(appContext, authority, tokenCacheStore, true, false);
     }
 
     private void initialize(Context appContext, String authority, ITokenCacheStore tokenCacheStore,
-            boolean validateAuthority, boolean defaultCache) {
+                            boolean validateAuthority, boolean defaultCache) {
         if (appContext == null) {
             throw new IllegalArgumentException("appContext");
         }
@@ -135,7 +137,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("authority");
         }
         mBrokerProxy = new BrokerProxy(appContext);
-        if (!defaultCache && !mBrokerProxy.canUseLocalCache()) {
+        if (!defaultCache && !mBrokerProxy.canUseLocalCache(authority)) {
             throw new UnsupportedOperationException("Local cache is not supported for broker usage");
         }
         mContext = appContext;
@@ -148,11 +150,10 @@ public class AuthenticationContext {
     /**
      * Returns referenced cache. You can use default cache, which uses
      * SharedPreferences and handles synchronization by itself.
-     * 
+     *
      * @return ITokenCacheStore Current cache used
      */
     public ITokenCacheStore getCache() {
-
         return mTokenCacheStore;
     }
 
@@ -178,7 +179,7 @@ public class AuthenticationContext {
 
     /**
      * Gets authority that is used for this object of AuthenticationContext.
-     * 
+     *
      * @return Authority
      */
     public String getAuthority() {
@@ -194,7 +195,7 @@ public class AuthenticationContext {
 
     /**
      * Gets username for current broker user.
-     * 
+     *
      * @return Username
      */
     public String getBrokerUser() {
@@ -207,13 +208,12 @@ public class AuthenticationContext {
 
     /**
      * Gets user info from broker. This should not be called on main thread.
-     * 
+     *
      * @return An array of {@link UserInfo} that haven been authenticated via broker(can be null).
-     * 
-     * @throws IOException if the broker returned an error response that indicates that it encountered an IOException
-     * while communicating with the authentication server.
-     * @throws AuthenticatorException if there was an error communicating with the authenticator or if the
-     * authenticator returned an invalid response.
+     * @throws IOException                if the broker returned an error response that indicates that it encountered an IOException
+     *                                    while communicating with the authentication server.
+     * @throws AuthenticatorException     if there was an error communicating with the authenticator or if the
+     *                                    authenticator returned an invalid response.
      * @throws OperationCanceledException if the request was canceled for any reason.
      */
     public UserInfo[] getBrokerUsers() throws OperationCanceledException, AuthenticatorException,
@@ -224,7 +224,7 @@ public class AuthenticationContext {
     /**
      * Get expected redirect Uri for your app to use in broker. You need to
      * register this redirectUri in order to get token from Broker.
-     * 
+     *
      * @return RedirectUri string to use for broker requests.
      */
     public String getRedirectUriForBroker() {
@@ -245,20 +245,21 @@ public class AuthenticationContext {
      * to return existing result if not expired. It tries to use refresh token
      * if available. If it fails to get token with refresh token, it will remove
      * this refresh token from cache and start authentication.
-     * 
-     * @param activity required to launch authentication activity.
-     * @param resource required resource identifier.
-     * @param clientId required client identifier
+     *
+     * @param activity    required to launch authentication activity.
+     * @param resource    required resource identifier.
+     * @param clientId    required client identifier
      * @param redirectUri Optional. It will use package name info if not
-     *            provided.
-     * @param loginHint Optional login hint
-     * @param callback required
+     *                    provided.
+     * @param loginHint   login hint (optional if validateAuthority == false)
+     * @param callback    required
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String loginHint,
-            AuthenticationCallback<AuthenticationResult> callback) {
+                             @Nullable String redirectUri, @Nullable String loginHint,
+                             AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)) {
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(loginHint, callback)) {
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_1);
             apiEvent.setLoginHint(loginHint);
@@ -278,27 +279,28 @@ public class AuthenticationContext {
      * to return existing result if not expired. It tries to use the refresh
      * token if available. If it fails to get token with refresh token, it will
      * remove this refresh token from cache and fall back on the UI.
-     * 
-     * @param activity Calling activity
-     * @param resource required resource identifier.
-     * @param clientId required client identifier
-     * @param redirectUri Optional. It will use packagename and provided suffix
-     *            for this.
-     * @param loginHint Optional. This parameter will be used to pre-populate
-     *            the username field in the authentication form. Please note
-     *            that the end user can still edit the username field and
-     *            authenticate as a different user. This parameter can be null.
+     *
+     * @param activity             Calling activity
+     * @param resource             required resource identifier.
+     * @param clientId             required client identifier
+     * @param redirectUri          Optional. It will use packagename and provided suffix
+     *                             for this.
+     * @param loginHint            Optional if validateAuthority == null. This parameter will
+     *                             be used to pre-populate the username field in the authentication
+     *                             form. Please note that the end user can still edit the username
+     *                             field and authenticate as a different user.
      * @param extraQueryParameters Optional. This parameter will be appended as
-     *            is to the query string in the HTTP authentication request to
-     *            the authority. The parameter can be null.
-     * @param callback required {@link AuthenticationCallback} object for async
-     *            call.
+     *                             is to the query string in the HTTP authentication request to
+     *                             the authority. The parameter can be null.
+     * @param callback             required {@link AuthenticationCallback} object for async
+     *                             call.
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String loginHint, String extraQueryParameters,
-            AuthenticationCallback<AuthenticationResult> callback) {
+                             @Nullable String redirectUri, @Nullable String loginHint, @Nullable String extraQueryParameters,
+                             AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)) {
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(loginHint, callback)) {
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_2);
             apiEvent.setLoginHint(loginHint);
@@ -320,21 +322,22 @@ public class AuthenticationContext {
      * depend on options. If {@link PromptBehavior} is AUTO, it will remove this
      * refresh token from cache and fall back on the UI. Default is AUTO. if
      * {@link PromptBehavior} is Always, it will display prompt screen.
-     * 
-     * @param activity Calling activity
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
+     *
+     * @param activity    Calling activity
+     * @param resource    required resource identifier.
+     * @param clientId    required client identifier.
      * @param redirectUri Optional. It will use packagename and provided suffix
-     *            for this.
-     * @param prompt Optional. {@link PromptBehavior} added as query parameter
-     *            to authorization url
-     * @param callback required {@link AuthenticationCallback} object for async
-     *            call.
+     *                    for this.
+     * @param prompt      Optional. {@link PromptBehavior} added as query parameter
+     *                    to authorization url
+     * @param callback    required {@link AuthenticationCallback} object for async
+     *                    call.
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, PromptBehavior prompt,
-            AuthenticationCallback<AuthenticationResult> callback) {
-        if (checkPreRequirements(resource, clientId, callback)) {
+                             @Nullable String redirectUri, @Nullable PromptBehavior prompt,
+                             AuthenticationCallback<AuthenticationResult> callback) {
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(null, callback)) {
             redirectUri = getRedirectUri(redirectUri);
 
             final String requestId = Telemetry.registerNewRequest();
@@ -357,21 +360,22 @@ public class AuthenticationContext {
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
      * token from cache and fall back on the UI if activitycontext is not null.
      * Default is AUTO.
-     * 
-     * @param activity Calling activity
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param redirectUri Optional. It will use packagename and provided suffix
-     *            for this.
-     * @param prompt Optional. added as query parameter to authorization url
+     *
+     * @param activity             Calling activity
+     * @param resource             required resource identifier.
+     * @param clientId             required client identifier.
+     * @param redirectUri          Optional. It will use packagename and provided suffix
+     *                             for this.
+     * @param prompt               Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
-     * @param callback required {@link AuthenticationCallback} object for async
-     *            call.
+     * @param callback             required {@link AuthenticationCallback} object for async
+     *                             call.
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, PromptBehavior prompt, String extraQueryParameters,
-            AuthenticationCallback<AuthenticationResult> callback) {
-        if (checkPreRequirements(resource, clientId, callback)) {
+                             @Nullable String redirectUri, @Nullable PromptBehavior prompt, @Nullable String extraQueryParameters,
+                             AuthenticationCallback<AuthenticationResult> callback) {
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(null, callback)) {
             redirectUri = getRedirectUri(redirectUri);
 
             final String requestId = Telemetry.registerNewRequest();
@@ -395,24 +399,25 @@ public class AuthenticationContext {
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
      * token from cache and fall back on the UI if activitycontext is not null.
      * Default is AUTO.
-     * 
-     * @param activity Calling activity
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param redirectUri Optional. It will use packagename and provided suffix
-     *            for this.
-     * @param loginHint Optional. It is used for cache and as a loginhint at
-     *            authentication.
-     * @param prompt Optional. added as query parameter to authorization url
+     *
+     * @param activity             Calling activity
+     * @param resource             required resource identifier.
+     * @param clientId             required client identifier.
+     * @param redirectUri          Optional. It will use packagename and provided suffix
+     *                             for this.
+     * @param loginHint            Optional if validateAuthority == null. It is used for cache and as a loginhint at
+     *                             authentication.
+     * @param prompt               Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
-     * @param callback required {@link AuthenticationCallback} object for async
-     *            call.
+     * @param callback             required {@link AuthenticationCallback} object for async
+     *                             call.
      */
     public void acquireToken(Activity activity, String resource, String clientId,
-            String redirectUri, String loginHint, PromptBehavior prompt,
-            String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
+                             @Nullable String redirectUri, @Nullable String loginHint, @Nullable PromptBehavior prompt,
+                             @Nullable String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)) {
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(loginHint, callback)) {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_5);
@@ -434,24 +439,25 @@ public class AuthenticationContext {
      * available. If it fails to get token with refresh token, behavior will
      * depend on options. If promptbehavior is AUTO, it will remove this refresh
      * token from cache and fall back on the UI. Default is AUTO.
-     * 
-     * @param fragment It accepts both type of fragments.
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param redirectUri Optional. It will use packagename and provided suffix
-     *            for this.
-     * @param loginHint Optional. It is used for cache and as a loginhint at
-     *            authentication.
-     * @param prompt Optional. added as query parameter to authorization url
+     *
+     * @param fragment             It accepts both type of fragments.
+     * @param resource             required resource identifier.
+     * @param clientId             required client identifier.
+     * @param redirectUri          Optional. It will use packagename and provided suffix
+     *                             for this.
+     * @param loginHint            Optional if validateAuthority == null. It is used for cache and as a loginhint at
+     *                             authentication.
+     * @param prompt               Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
-     * @param callback required {@link AuthenticationCallback} object for async
-     *            call.
+     * @param callback             required {@link AuthenticationCallback} object for async
+     *                             call.
      */
     public void acquireToken(IWindowComponent fragment, String resource, String clientId,
-            String redirectUri, String loginHint, PromptBehavior prompt,
-            String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
+                             @Nullable String redirectUri, @Nullable String loginHint, @Nullable PromptBehavior prompt,
+                             @Nullable String extraQueryParameters, AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)) {
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(loginHint, callback)) {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_6);
@@ -475,23 +481,24 @@ public class AuthenticationContext {
      * behavior will depend on options. If promptbehavior is AUTO, it will
      * remove this refresh token from cache and fall back on the UI. Default is
      * AUTO.
-     * 
-     * @param resource required resource identifier.
-     * @param clientId required client identifier.
-     * @param redirectUri Optional. It will use packagename and provided suffix
-     *            for this.
-     * @param loginHint Optional. It is used for cache and as a loginhint at
-     *            authentication.
-     * @param prompt Optional. added as query parameter to authorization url
+     *
+     * @param resource             required resource identifier.
+     * @param clientId             required client identifier.
+     * @param redirectUri          Optional. It will use packagename and provided suffix
+     *                             for this.
+     * @param loginHint            Optional if validateAuthority == null. It is used for cache and as a loginhint at
+     *                             authentication.
+     * @param prompt               Optional. added as query parameter to authorization url
      * @param extraQueryParameters Optional. added to authorization url
-     * @param callback required {@link AuthenticationCallback} object for async
-     *            call.
+     * @param callback             required {@link AuthenticationCallback} object for async
+     *                             call.
      */
-    public void acquireToken(String resource, String clientId, String redirectUri,
-            String loginHint, PromptBehavior prompt, String extraQueryParameters,
-            AuthenticationCallback<AuthenticationResult> callback) {
+    public void acquireToken(String resource, String clientId, @Nullable String redirectUri,
+                             @Nullable String loginHint, @Nullable PromptBehavior prompt, @Nullable String extraQueryParameters,
+                             AuthenticationCallback<AuthenticationResult> callback) {
 
-        if (checkPreRequirements(resource, clientId, callback)) {
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(loginHint, callback)) {
             redirectUri = getRedirectUri(redirectUri);
             final String requestId = Telemetry.registerNewRequest();
             final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_7);
@@ -514,20 +521,21 @@ public class AuthenticationContext {
      * token is found in the cache, but refresh token is available, the function
      * will use the refresh token automatically. This method will not show UI
      * for the user. If prompt is needed, the method will return an exception
-     * 
+     *
      * @param resource required resource identifier.
      * @param clientId required client identifier.
-     * @param userId UserID obtained from
-     *            {@link AuthenticationResult #getUserInfo()}
+     * @param userId   UserID obtained from
+     *                 {@link AuthenticationResult #getUserInfo()}
      * @return A {@link Future} object representing the
-     *         {@link AuthenticationResult} of the call. It contains Access
-     *         Token,the Access Token's expiration time, Refresh token, and
-     *         {@link UserInfo}.
+     * {@link AuthenticationResult} of the call. It contains Access
+     * Token,the Access Token's expiration time, Refresh token, and
+     * {@link UserInfo}.
      * @throws AuthenticationException If silent request fails to get the token back.
-     * @throws InterruptedException If the main thread is interrupted before or during the activity.
+     * @throws InterruptedException    If the main thread is interrupted before or during the activity.
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId)
             throws AuthenticationException, InterruptedException {
+        checkADFSValidationRequirements(null);
         final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
         final AtomicReference<Exception> exception = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
@@ -552,7 +560,7 @@ public class AuthenticationContext {
         final Looper currentLooper = Looper.myLooper();
         if (currentLooper != null && currentLooper == mContext.getMainLooper()) {
             Log.e(TAG, "Sync network calls must not be invoked in main thread. "
-                    + "This method will throw android.os.NetworkOnMainThreadException in next major release",
+                            + "This method will throw android.os.NetworkOnMainThreadException in next major release",
                     new NetworkOnMainThreadException());
         }
         createAcquireTokenRequest(apiEvent).acquireToken(null, false, request,
@@ -577,7 +585,7 @@ public class AuthenticationContext {
                         exception.set(exc);
                         latch.countDown();
                     }
-        });
+                });
 
         latch.await();
 
@@ -610,22 +618,32 @@ public class AuthenticationContext {
      * in the cache, but refresh token is available, the function will use the
      * refresh token automatically. This method will not show UI for the user.
      * If prompt is needed, the method will return an exception
-     * 
+     *
      * @param resource required resource identifier.
      * @param clientId required client identifier.
-     * @param userId UserId obtained from {@link UserInfo} inside
-     *            {@link AuthenticationResult}
+     * @param userId   UserId obtained from {@link UserInfo} inside
+     *                 {@link AuthenticationResult}
      * @param callback required {@link AuthenticationCallback} object for async
-     *            call.
+     *                 call.
      * @return A {@link Future} object representing the
-     *         {@link AuthenticationResult} of the call. It contains Access
-     *         Token,the Access Token's expiration time, Refresh token, and
-     *         {@link UserInfo}.
+     * {@link AuthenticationResult} of the call. It contains Access
+     * Token,the Access Token's expiration time, Refresh token, and
+     * {@link UserInfo}.
      * @deprecated Use the {@link #acquireTokenSilentAsync} method.
      */
     @Deprecated
     public Future<AuthenticationResult> acquireTokenSilent(String resource, String clientId,
-            String userId, final AuthenticationCallback<AuthenticationResult> callback) {
+                                                           String userId, final AuthenticationCallback<AuthenticationResult> callback) {
+        final SettableFuture<AuthenticationResult> futureTask = new SettableFuture<>();
+        try {
+            checkADFSValidationRequirements(null);
+        } catch (AuthenticationException e) {
+            callback.onError(e);
+            futureTask.setException(e);
+            // AD FS validation is stipulated, but cannot be fulfilled.
+            // Return execution with an Exception
+            return futureTask;
+        }
         if (StringExtensions.isNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
@@ -646,37 +664,37 @@ public class AuthenticationContext {
 
         request.setTelemetryRequestId(requestId);
 
-        final SettableFuture<AuthenticationResult> futureTask = new SettableFuture<AuthenticationResult>();
+
         createAcquireTokenRequest(apiEvent).acquireToken(null, false, request,
                 new AuthenticationCallback<AuthenticationResult>() {
-            @Override
-            public void onSuccess(AuthenticationResult result) {
-                apiEvent.setWasApiCallSuccessful(true, null);
-                apiEvent.setCorrelationId(request.getCorrelationId().toString());
-                apiEvent.setIdToken(result.getIdToken());
-                apiEvent.stopTelemetryAndFlush();
+                    @Override
+                    public void onSuccess(AuthenticationResult result) {
+                        apiEvent.setWasApiCallSuccessful(true, null);
+                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
+                        apiEvent.setIdToken(result.getIdToken());
+                        apiEvent.stopTelemetryAndFlush();
 
-                if (callback != null) {
-                    callback.onSuccess(result);
-                }
+                        if (callback != null) {
+                            callback.onSuccess(result);
+                        }
 
-                futureTask.set(result);
-            }
+                        futureTask.set(result);
+                    }
 
-            @Override
-            @SuppressWarnings("unchecked")
-            public void onError(Exception exc) {
-                apiEvent.setWasApiCallSuccessful(false, exc);
-                apiEvent.setCorrelationId(request.getCorrelationId().toString());
-                apiEvent.stopTelemetryAndFlush();
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public void onError(Exception exc) {
+                        apiEvent.setWasApiCallSuccessful(false, exc);
+                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
+                        apiEvent.stopTelemetryAndFlush();
 
-                if (callback != null) {
-                    callback.onError(exc);
-                }
+                        if (callback != null) {
+                            callback.onError(exc);
+                        }
 
-                futureTask.setException(exc);
-            }
-        });
+                        futureTask.setException(exc);
+                    }
+                });
         return futureTask;
     }
 
@@ -689,15 +707,19 @@ public class AuthenticationContext {
      *
      * @param resource required resource identifier.
      * @param clientId required client identifier.
-     * @param userId UserId obtained from {@link UserInfo} inside
-     *            {@link AuthenticationResult}
+     * @param userId   UserId obtained from {@link UserInfo} inside
+     *                 {@link AuthenticationResult}
      * @param callback required {@link AuthenticationCallback} object for async
-     *            call.
+     *                 call.
      */
     public void acquireTokenSilentAsync(String resource,
-                                   String clientId,
-                                   String userId,
-                                   AuthenticationCallback<AuthenticationResult> callback) {
+                                        String clientId,
+                                        String userId,
+                                        AuthenticationCallback<AuthenticationResult> callback) {
+        if (!checkADFSValidationRequirements(null, callback)) {
+            // AD FS validation cannot be perfomed, stop executing
+            return;
+        }
         if (StringExtensions.isNullOrBlank(resource)) {
             throw new IllegalArgumentException("resource");
         }
@@ -730,17 +752,21 @@ public class AuthenticationContext {
      * acquire token using refresh token if cache is not used. Otherwise, use
      * acquireToken to let the ADAL handle the cache lookup and refresh token
      * request.
-     * 
+     *
      * @param refreshToken Required.
-     * @param clientId Required.
-     * @param callback Required
+     * @param clientId     Required.
+     * @param callback     Required
      * @deprecated {@link AuthenticationContext#acquireTokenByRefreshToken(String, String, AuthenticationCallback)}
      * will be removed from the next major release. We don't recommend developers taking dependency on refresh token,
      * ADAL will handle the cache lookup, and refresh the RT if necessary.
      */
     @Deprecated
     public void acquireTokenByRefreshToken(String refreshToken, String clientId,
-            AuthenticationCallback<AuthenticationResult> callback) {
+                                           AuthenticationCallback<AuthenticationResult> callback) {
+        if (!checkADFSValidationRequirements(null, callback)) {
+            return;
+        }
+
         if (StringExtensions.isNullOrBlank(refreshToken)) {
             throw new IllegalArgumentException("Refresh token is not provided");
         }
@@ -776,18 +802,22 @@ public class AuthenticationContext {
      * acquire token using refresh token if cache is not used. Otherwise, use
      * acquireToken to let the ADAL handle the cache lookup and refresh token
      * request.
-     * 
+     *
      * @param refreshToken Required.
-     * @param clientId Required.
-     * @param resource Required resource identifier.
-     * @param callback Required
+     * @param clientId     Required.
+     * @param resource     Required resource identifier.
+     * @param callback     Required
      * @deprecated {@link AuthenticationContext#acquireTokenByRefreshToken(String, String, AuthenticationCallback)}
      * will be removed from the next major release. We don't recommend developers taking dependency on refresh token,
      * ADAL will handle the cache lookup, and refresh the RT if necessary.
      */
     @Deprecated
     public void acquireTokenByRefreshToken(String refreshToken, String clientId, String resource,
-            AuthenticationCallback<AuthenticationResult> callback) {
+                                           AuthenticationCallback<AuthenticationResult> callback) {
+        if (!checkADFSValidationRequirements(null, callback)) {
+            return;
+        }
+
         if (StringExtensions.isNullOrBlank(refreshToken)) {
             throw new IllegalArgumentException("Refresh token is not provided");
         }
@@ -821,10 +851,10 @@ public class AuthenticationContext {
     /**
      * This method wraps the implementation for onActivityResult at the related
      * Activity class. This method is called at UI thread.
-     * 
+     *
      * @param requestCode Request code provided at the start of the activity.
-     * @param resultCode Result code set from the activity.
-     * @param data {@link Intent}
+     * @param resultCode  Result code set from the activity.
+     * @param data        {@link Intent}
      */
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
@@ -862,14 +892,14 @@ public class AuthenticationContext {
      * of your AuthenticationCallback.
      *
      * @param requestId Hash code value of your callback to cancel activity
-     *            launch
+     *                  launch
      * @return true: if there is a valid waiting request and cancel message send
-     *         successfully. false: Request does not exist or cancel message not
-     *         send
+     * successfully. false: Request does not exist or cancel message not
+     * send
      * @throws AuthenticationException if failed to get the waiting request
      */
     public boolean cancelAuthenticationActivity(final int requestId) throws AuthenticationException {
-        final  AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
+        final AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
 
         if (waitingRequest == null || waitingRequest.getDelegate() == null) {
             // there is not any waiting callback
@@ -955,7 +985,7 @@ public class AuthenticationContext {
     }
 
     private boolean checkPreRequirements(final String resource, final String clientId,
-                                        final AuthenticationCallback<AuthenticationResult> callback) {
+                                         final AuthenticationCallback<AuthenticationResult> callback) {
         //check the permissions required for the broker usage
         if (AuthenticationSettings.INSTANCE.getUseBroker()) {
             try {
@@ -985,7 +1015,38 @@ public class AuthenticationContext {
 
         return true;
     }
-    
+
+    private boolean checkADFSValidationRequirements(@Nullable final String loginHint)
+            throws AuthenticationException {
+        final URL authorityURL = StringExtensions.getUrl(mAuthority);
+        if (mAuthority == null || authorityURL == null) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL);
+        }
+        if (UrlExtensions.isADFSAuthority(authorityURL) // is it ADFS?
+                && mValidateAuthority // should it be validated?
+                && !mIsAuthorityValidated // has it not already been validated?
+                && loginHint == null) { // did you provide insufficient info to perform the validation?
+            throw new AuthenticationException(
+                    ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED,
+                    "AD FS validation requires a loginHint be provided or an "
+                            + getClass().getSimpleName()
+                            + " in which the current authority has previously been validated."
+            );
+        }
+        return true;
+    }
+
+    private boolean checkADFSValidationRequirements(
+            @Nullable final String loginHint,
+            final AuthenticationCallback<AuthenticationResult> callback) {
+        try {
+            return checkADFSValidationRequirements(loginHint);
+        } catch (AuthenticationException e) {
+            callback.onError(e);
+            return false;
+        }
+    }
+
     private String getRedirectUri(String inputRedirectUri) {
         final String redirectUri;
         if (StringExtensions.isNullOrBlank(inputRedirectUri)) {
@@ -1034,12 +1095,12 @@ public class AuthenticationContext {
     /**
      * Internal API of ADAL to serialize the family token cache item for the
      * given user.
-     * 
+     * <p>
      * Verify if the input uniqueUserId is valid and the broker is not used.
      * Then check if this user has family refresh token item in the cache. If
      * true, create an SSOStateContainer object with the family refresh token
      * item of this user and continue the serialization process.
-     * 
+     *
      * @param uniqueUserId Unique user id used to lookup family token.
      * @return The serialized blob.
      * @throws AuthenticationException
@@ -1049,7 +1110,7 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("uniqueUserId");
         }
 
-        if (mBrokerProxy.canSwitchToBroker() != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
+        if (mBrokerProxy.canSwitchToBroker(mAuthority) != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
                     "Failed to export the family refresh token cache item because broker is enabled.");
         }
@@ -1078,7 +1139,7 @@ public class AuthenticationContext {
 
     /**
      * Internal API of ADAL to provide the deserialization to the TokenCacheItem
-     * 
+     * <p>
      * The method will take the serializedBlob string as input and deserialize
      * the string into a tokenCacheItem. The deserialized tokenCacheItem will be
      * stored into the cache. Exceptions will be thrown for invalid input or the
@@ -1092,14 +1153,14 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("serializedBlob");
         }
 
-        if (mBrokerProxy.canSwitchToBroker() != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
+        if (mBrokerProxy.canSwitchToBroker(mAuthority) != BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
             throw new UsageAuthenticationException(ADALError.FAIL_TO_IMPORT, "Failed to import the serialized blob "
                     + "because broker is enabled.");
         }
 
         final TokenCacheItem tokenCacheItem = SSOStateSerializer.deserialize(serializedBlob);
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
-        this.getCache().setItem(cacheKey, tokenCacheItem);  
+        this.getCache().setItem(cacheKey, tokenCacheItem);
     }
 
     void setIsAuthorityValidated(final boolean isAuthorityValidated) {
@@ -1132,7 +1193,7 @@ public class AuthenticationContext {
         if (requestState == null) {
             return;
         }
-        
+
         Logger.v(TAG, "Put waiting request: " + requestId
                 + getCorrelationInfoFromWaitingRequest(requestState));
 
@@ -1186,7 +1247,7 @@ public class AuthenticationContext {
                 }
             });
         }
-        
+
         @SuppressWarnings("PMD.UselessOverridingMethod")
         @Override
         public void set(V v) {

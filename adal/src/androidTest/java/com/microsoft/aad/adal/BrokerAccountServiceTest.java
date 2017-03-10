@@ -208,7 +208,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
 
     /**
      * Verify even if GET_ACCOUNTS permission is not granted, if BrokerAccountService exists,
-     * {@link BrokerProxy#canSwitchToBroker()} will return true.
+     * {@link BrokerProxy#canSwitchToBroker(String)} will return true.
      */
     @SmallTest
     public void testBrokerProxySwitchBrokerPermissionNotGranted()
@@ -223,12 +223,12 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         AuthenticationSettings.INSTANCE.setUseBroker(true);
 
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        Assert.assertTrue(brokerProxy.canSwitchToBroker().equals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER));
+        Assert.assertTrue(brokerProxy.canSwitchToBroker(BrokerProxyTests.TEST_AUTHORITY).equals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER));
     }
 
     /**
      * Verify  if GET_ACCOUNTS permission is not granted and BrokerAccountService exists,
-     * {@link BrokerProxy#canSwitchToBroker()} will return false if there is no valid broker app exists.
+     * {@link BrokerProxy#canSwitchToBroker(String)} will return false if there is no valid broker app exists.
      */
     @SmallTest
     public void testBrokerProxySwitchToBrokerInvalidBrokerPackageName()
@@ -242,7 +242,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         AuthenticationSettings.INSTANCE.setUseBroker(true);
         AuthenticationSettings.INSTANCE.setBrokerSignature(signatureData.getSignatureHash());
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        Assert.assertFalse(brokerProxy.canSwitchToBroker().equals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER));
+        Assert.assertFalse(brokerProxy.canSwitchToBroker(BrokerProxyTests.TEST_AUTHORITY).equals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER));
     }
 
     private Context getMockContext() {

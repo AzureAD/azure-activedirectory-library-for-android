@@ -553,6 +553,21 @@ public enum ADALError {
     JSON_PARSE_ERROR("Fail to parse JSON"),
 
     /**
+     * Malformed DRS metadata URL.
+     */
+    DRS_METADATA_URL_INVALID("Malformed DRS metadata URL"),
+
+    /**
+     * Enrollment server returned an unrecognized response.
+     */
+    DRS_FAILED_SERVER_ERROR("Enrollment server returned an unrecognized response"),
+
+    /**
+     * DRS discovery failed: unknown host.
+     */
+    DRS_DISCOVERY_FAILED_UNKNOWN_HOST("DRS discovery failed: unknown host"),
+
+    /**
      *  Broker is not installed. The process is kicked off to to install broker but ADAL cannot wait for it to finish.
      */
     BROKER_APP_INSTALLATION_STARTED("Broker app installation started");
