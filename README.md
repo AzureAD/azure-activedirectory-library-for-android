@@ -1,4 +1,4 @@
-﻿#Microsoft Azure Active Directory Authentication Library (ADAL) for Android
+﻿# Microsoft Azure Active Directory Authentication Library (ADAL) for Android
 ===========
 
 | [Code Samples](https://github.com/azure-samples?utf8=✓&q=active-directory-android) | [Reference Docs](http://javadoc.io/doc/com.microsoft.aad/adal/1.11.0) | [Developer Guide](https://aka.ms/aaddev)
