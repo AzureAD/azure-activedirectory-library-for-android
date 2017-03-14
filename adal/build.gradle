@@ -139,7 +139,8 @@ task sourcesJar(type: Jar) {
 
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    exclude {'*.aidl'}
+    exclude '**/*.aidl'
+    options.addStringOption('Xdoclint:none', '-quiet')
     classpath = configurations.compile
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
     failOnError = false
