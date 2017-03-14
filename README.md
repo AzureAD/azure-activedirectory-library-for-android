@@ -1,7 +1,7 @@
 ﻿#Microsoft Azure Active Directory Authentication Library (ADAL) for Android
 ===========
 
-| [Code Samples](https://github.com/azure-samples?utf8=✓&q=active-directory-android) | [Reference Docs](http://javadoc.io/doc/com.microsoft.aad/adal/) | [Developer Guide](https://aka.ms/aaddev)
+| [Code Samples](https://github.com/azure-samples?utf8=✓&q=active-directory-android) | [Reference Docs](http://javadoc.io/doc/com.microsoft.aad/adal/1.11.0) | [Developer Guide](https://aka.ms/aaddev)
 | --- | --- | --- |
 
 The ADAL SDK for Android gives you the ability to add support for Work Accounts to your application with just a few lines of additional code. This SDK gives your application the full functionality of Microsoft Azure AD, including industry standard protocol support for OAuth2, Web API integration with user level consent, and two factor authentication support. Best of all, it’s FOSS (Free and Open Source Software) so that you can participate in the development process as we build these libraries. 
@@ -25,7 +25,7 @@ You can find the changes for each version in the [change log](https://github.com
 
 ## Samples and Documentation
 
-We provide a full suite of [sample applications](https://github.com/AzureADSamples) and [ADAL Android reference documentation](http://javadoc.io/doc/com.microsoft.aad/adal/) to help you get started with learning the Azure Identity system. This includes tutorials for native clients such as Windows, Windows Phone, iOS, OSX, Android, and Linux. We also provide full walkthroughs for authentication flows such as OAuth2, OpenID Connect, Graph API, and other awesome features. 
+We provide a full suite of [sample applications](https://github.com/AzureADSamples) and [ADAL Android reference documentation](http://javadoc.io/doc/com.microsoft.aad/adal/1.11.0) to help you get started with learning the Azure Identity system. This includes tutorials for native clients such as Windows, Windows Phone, iOS, OSX, Android, and Linux. We also provide full walkthroughs for authentication flows such as OAuth2, OpenID Connect, Graph API, and other awesome features. 
 
 Visit your Azure Identity samples for Android is here: [https://github.com/AzureADSamples/NativeClient-Android](https://github.com/AzureADSamples/NativeClient-Android)
 
