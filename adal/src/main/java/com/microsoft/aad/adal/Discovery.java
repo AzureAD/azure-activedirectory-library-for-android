@@ -186,6 +186,7 @@ final class Discovery {
             VALID_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
             VALID_HOSTS.add("login.microsoftonline.de"); // Microsoft Azure Germany
             VALID_HOSTS.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
+            VALID_HOSTS.add("login.microsoftonline.us"); // Microsoft Azure US
         }
     }
 
