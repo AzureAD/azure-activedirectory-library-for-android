@@ -117,7 +117,7 @@ class AcquireTokenSilentHandler {
                 mAuthRequest.getLogInfo(), null);
         
         // Check if network is available, if not throw exception. 
-        HttpWebRequest.throwIfNetworkNotAvaliable(mContext);
+        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
         
         final AuthenticationResult result;
         try {

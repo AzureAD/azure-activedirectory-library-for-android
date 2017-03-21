@@ -168,7 +168,7 @@ class HttpWebRequest {
         return response;
     }
     
-    static void throwIfNetworkNotAvaliable(final Context context) throws AuthenticationException {
+    static void throwIfNetworkNotAvailable(final Context context) throws AuthenticationException {
         final DefaultConnectionService connectionService = new DefaultConnectionService(context);
         if (!connectionService.isConnectionAvailable()) {
             AuthenticationException authenticationException = new AuthenticationException(
