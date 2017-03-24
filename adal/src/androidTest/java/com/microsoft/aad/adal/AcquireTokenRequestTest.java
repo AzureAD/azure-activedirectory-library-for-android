@@ -789,8 +789,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), true, true, getExpireDate(EXTEND_MINUS_MINUTE));
         cacheStore.removeItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_USERID));
         cacheStore.removeItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_UPN));
-        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY,"clientId", TEST_USERID)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
-        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY,"clientId", TEST_UPN)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
+        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_USERID)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
+        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_UPN)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
         
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -870,6 +870,52 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             assertTrue(usageAuthenticationException.getMessage().contains("MANAGE_ACCOUNTS"));
             assertTrue(usageAuthenticationException.getMessage().contains("USE_CREDENTIALS"));
             assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, usageAuthenticationException.getCode());
+        }
+    }
+
+    public void testSilentRequestMissingPermissionHandlingForAndroid22andBelow() throws InterruptedException, PackageManager.NameNotFoundException {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            final FileMockContext mockContext = createMockContext();
+            when(mockContext.getPackageManager().checkPermission(Mockito.refEq("android.permission.GET_ACCOUNTS"),
+                    Mockito.anyString())).thenReturn(PackageManager.PERMISSION_GRANTED);
+            when(mockContext.getPackageManager().checkPermission(Mockito.refEq("android.permission.MANAGE_ACCOUNTS"),
+                    Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
+            when(mockContext.getPackageManager().checkPermission(Mockito.refEq("android.permission.USE_CREDENTIALS"),
+                    Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
+
+            AuthenticationSettings.INSTANCE.setUseBroker(true);
+            final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                    VALID_AUTHORITY, false);
+            final TestAuthCallback callback = new TestAuthCallback();
+            authContext.acquireTokenSilentAsync("resource", "clientid", "userid", callback);
+            final CountDownLatch signal = new CountDownLatch(1);
+            signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
+
+            assertNotNull(callback.getCallbackException());
+            assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
+            final UsageAuthenticationException usageAuthenticationException
+                    = (UsageAuthenticationException) callback.getCallbackException();
+            assertTrue(usageAuthenticationException.getMessage().contains("MANAGE_ACCOUNTS"));
+            assertTrue(usageAuthenticationException.getMessage().contains("USE_CREDENTIALS"));
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, usageAuthenticationException.getCode());
+        }
+    }
+
+    public void testSilentRequestMissingContactsPermissionHandling() throws InterruptedException, PackageManager.NameNotFoundException {
+        final FileMockContext mockContext = createMockContext();
+        when(mockContext.getPackageManager().checkPermission(Mockito.refEq("android.permission.GET_ACCOUNTS"),
+                Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false);
+        try {
+            authContext.acquireTokenSilentSync("resource", "clientid", "userid");
+            fail("Expect an exception");
+        } catch (final AuthenticationException exception) {
+            assertTrue(exception.getMessage().contains("GET_ACCOUNTS"));
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, exception.getCode());
+        } catch (final Exception exception) {
+            fail("Expect an AuthenticationException exception");
         }
     }
 

@@ -535,16 +535,12 @@ public class AuthenticationContext {
      */
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId)
             throws AuthenticationException, InterruptedException {
+
+        checkPreRequirements(resource, clientId);
         checkADFSValidationRequirements(null);
         final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
         final AtomicReference<Exception> exception = new AtomicReference<>();
         final CountDownLatch latch = new CountDownLatch(1);
-        if (StringExtensions.isNullOrBlank(resource)) {
-            throw new IllegalArgumentException("The required resource is null or blank.");
-        }
-        if (StringExtensions.isNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("The required clientId is null or blank.");
-        }
 
         final String requestId = Telemetry.registerNewRequest();
         final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_SILENT_SYNC);
@@ -636,20 +632,14 @@ public class AuthenticationContext {
                                                            String userId, final AuthenticationCallback<AuthenticationResult> callback) {
         final SettableFuture<AuthenticationResult> futureTask = new SettableFuture<>();
         try {
+            checkPreRequirements(resource, clientId);
             checkADFSValidationRequirements(null);
-        } catch (AuthenticationException e) {
+        } catch (final AuthenticationException e) {
             callback.onError(e);
             futureTask.setException(e);
             // AD FS validation is stipulated, but cannot be fulfilled.
             // Return execution with an Exception
             return futureTask;
-        }
-        if (StringExtensions.isNullOrBlank(resource)) {
-            throw new IllegalArgumentException("resource");
-        }
-
-        if (StringExtensions.isNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("clientId");
         }
 
         final String requestId = Telemetry.registerNewRequest();
@@ -716,20 +706,9 @@ public class AuthenticationContext {
                                         String clientId,
                                         String userId,
                                         AuthenticationCallback<AuthenticationResult> callback) {
-        if (!checkADFSValidationRequirements(null, callback)) {
+        if (!checkPreRequirements(resource, clientId, callback) || !checkADFSValidationRequirements(null, callback)) {
             // AD FS validation cannot be perfomed, stop executing
             return;
-        }
-        if (StringExtensions.isNullOrBlank(resource)) {
-            throw new IllegalArgumentException("resource");
-        }
-
-        if (StringExtensions.isNullOrBlank(clientId)) {
-            throw new IllegalArgumentException("clientId");
-        }
-
-        if (callback == null) {
-            throw new IllegalArgumentException("callback");
         }
 
         final String requestId = Telemetry.registerNewRequest();
@@ -984,21 +963,14 @@ public class AuthenticationContext {
         };
     }
 
-    private boolean checkPreRequirements(final String resource, final String clientId,
-                                         final AuthenticationCallback<AuthenticationResult> callback) {
-        //check the permissions required for the broker usage
-        if (AuthenticationSettings.INSTANCE.getUseBroker()) {
-            try {
-                mBrokerProxy.verifyBrokerPermissionsAPI22AndLess();
-            } catch (final UsageAuthenticationException exception) {
-                callback.onError(exception);
-                return false;
-            }
-        }
-
+    private boolean checkPreRequirements(final String resource, final String clientId) throws AuthenticationException {
         if (mContext == null) {
             throw new IllegalArgumentException("context", new AuthenticationException(
                     ADALError.DEVELOPER_CONTEXT_IS_NOT_PROVIDED));
+        }
+
+        if (AuthenticationSettings.INSTANCE.getUseBroker()) {
+            mBrokerProxy.verifyBrokerPermissionsAPI22AndLess();
         }
 
         if (StringExtensions.isNullOrBlank(resource)) {
@@ -1009,11 +981,20 @@ public class AuthenticationContext {
             throw new IllegalArgumentException("clientId");
         }
 
+        return true;
+    }
+
+    private boolean checkPreRequirements(final String resource, final String clientId, final AuthenticationCallback<AuthenticationResult> callback) {
         if (callback == null) {
             throw new IllegalArgumentException("callback");
         }
 
-        return true;
+        try {
+            return checkPreRequirements(resource, clientId);
+        } catch (final AuthenticationException exception) {
+            callback.onError(exception);
+            return false;
+        }
     }
 
     private boolean checkADFSValidationRequirements(@Nullable final String loginHint)
