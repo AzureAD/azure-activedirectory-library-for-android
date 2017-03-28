@@ -64,6 +64,8 @@ class Oauth2 {
 
     private static final int DELAY_TIME_PERIOD = 1000;
 
+    private static final int MAX_RESILIENCY_ERROR_CODE = 600;
+
     private static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
 
     private static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
@@ -629,25 +631,22 @@ class Oauth2 {
         }
 
         final int statusCode = webResponse.getStatusCode();
-        switch (statusCode) {
-            case HttpURLConnection.HTTP_OK:
-            case HttpURLConnection.HTTP_BAD_REQUEST:
-            case HttpURLConnection.HTTP_UNAUTHORIZED:
-                try {
-                    result = parseJsonResponse(webResponse.getBody());
-                    if (result != null) {
-                        httpEvent.setOauthErrorCode(result.getErrorCode());
-                    }
-                } catch (final JSONException jsonException) {
-                    throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
+
+        if (statusCode == HttpURLConnection.HTTP_OK
+                || statusCode == HttpURLConnection.HTTP_BAD_REQUEST
+                || statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            try {
+                result = parseJsonResponse(webResponse.getBody());
+                if (result != null) {
+                    httpEvent.setOauthErrorCode(result.getErrorCode());
                 }
-                break;
-            case HttpURLConnection.HTTP_INTERNAL_ERROR:
-            case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
-            case HttpURLConnection.HTTP_UNAVAILABLE:
-                throw new ServerRespondingWithRetryableException("Unexpected server response " + webResponse.getBody());
-            default:
-                throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + webResponse.getBody());
+            } catch (final JSONException jsonException) {
+                throw new AuthenticationException(ADALError.SERVER_INVALID_JSON_RESPONSE, "Can't parse server response " + webResponse.getBody(), jsonException);
+            }
+        } else if (statusCode >= HttpURLConnection.HTTP_INTERNAL_ERROR && statusCode <= MAX_RESILIENCY_ERROR_CODE) {
+            throw new ServerRespondingWithRetryableException("Server Error " + statusCode + " " + webResponse.getBody());
+        } else {
+            throw new AuthenticationException(ADALError.SERVER_ERROR, "Unexpected server response " + statusCode + " " + webResponse.getBody());
         }
 
         // Set correlationId in the result
