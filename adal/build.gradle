@@ -264,6 +264,6 @@ uploadArchives {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'
+        task.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint'
     }
 }
