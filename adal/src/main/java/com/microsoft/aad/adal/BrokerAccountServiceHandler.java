@@ -355,7 +355,7 @@ final class BrokerAccountServiceHandler {
                     if (mBound) {
                         try {
                             context.unbindService(BrokerAccountServiceConnection.this);
-                        } catch (IllegalArgumentException exception) {
+                        } catch (final IllegalArgumentException exception) {
                             // Catching a runtime exception here but if unbindService throws "Service not registered"
                             // we can just clear the mBound flag.
                             Logger.e(TAG, "Unbind threw IllegalArgumentException", "", null, exception);
