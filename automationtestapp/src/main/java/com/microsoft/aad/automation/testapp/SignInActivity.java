@@ -32,6 +32,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationContext;
@@ -40,6 +41,7 @@ import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.ITokenCacheStore;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;
@@ -96,7 +98,7 @@ public class SignInActivity extends AppCompatActivity {
         setContentView(R.layout.activity_request);
 
         mTextView = (EditText) findViewById(R.id.requestInfo);
-
+        
         final Button goButton = (Button) findViewById(R.id.requestGo);
         goButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,6 +116,7 @@ public class SignInActivity extends AppCompatActivity {
 
     private void performAuthentication() {
         final Intent receivedIntent = getIntent();
+        
         int flowCode = receivedIntent.getIntExtra(MainActivity.FLOW_CODE, 0);
 
         final Map<String, String> inputItems;
@@ -147,6 +150,9 @@ public class SignInActivity extends AppCompatActivity {
             case MainActivity.INVALIDATE_REFRESH_TOKEN:
                 processInvalidateRefreshTokenRequest();
                 break;
+            case MainActivity.INVALIDATE_FAMILY_REFRESH_TOKEN:
+                processInvalidateFamilyRefreshTokenRequest();
+                break;
             default:
                 sendErrorToResultActivity("unknown_request", "Unknown request is received");
                 break;
@@ -176,6 +182,13 @@ public class SignInActivity extends AppCompatActivity {
         int count = invalidateRefreshToken();
         final Intent intent = new Intent();
         intent.putExtra(Constants.INVALIDATED_REFRESH_TOKEN_COUNT, String.valueOf(count));
+        launchResultActivity(intent);
+    }
+    
+    private void processInvalidateFamilyRefreshTokenRequest() {
+        int count = invalidateFamilyRefreshToken();
+        final Intent intent = new Intent();
+        intent.putExtra(Constants.INVALIDATED_FAMILY_REFRESH_TOKEN_COUNT, String.valueOf(count));
         launchResultActivity(intent);
     }
 
@@ -222,18 +235,11 @@ public class SignInActivity extends AppCompatActivity {
             throw new IllegalArgumentException("clientId");
         }
 
-        final String userIdentifierType = inputItems.get(USER_IDENTIFIER_TYPE);
-        final String userIdentifier = inputItems.get(USER_IDENTIFIER);
-        if (!TextUtils.isEmpty(userIdentifierType) && TextUtils.isEmpty(userIdentifier)
-                || !TextUtils.isEmpty(userIdentifierType) && TextUtils.isEmpty(userIdentifier)) {
-            throw new IllegalArgumentException("userIdentifier and userIdentifierType");
-        }
-
         if (flowCode == MainActivity.ACQUIRE_TOKEN && TextUtils.isEmpty(inputItems.get(REDIRECT_URI))) {
             throw new IllegalArgumentException("redirect_uri");
         }
 
-        if (flowCode == MainActivity.INVALIDATE_ACCESS_TOKEN && TextUtils.isEmpty(userIdentifier)) {
+        if (flowCode == MainActivity.INVALIDATE_ACCESS_TOKEN && TextUtils.isEmpty(inputItems.get(USER_IDENTIFIER))) {
             throw new IllegalArgumentException("user identifier");
         }
     }
@@ -248,15 +254,14 @@ public class SignInActivity extends AppCompatActivity {
         mExtraQueryParam = inputItems.get(EXTRA_QUERY_PARAM);
         mValidateAuthority = inputItems.get(VALIDATE_AUTHORITY) == null ? true : Boolean.valueOf(
                 inputItems.get(VALIDATE_AUTHORITY));
-
-        final String uniqueIdentifier = inputItems.get(USER_IDENTIFIER);
-        //final String uniqueIdentifierType = inputItems.get(USER_IDENTIFIER_TYPE);
-        //if (uniqueIdentifierType.equalsIgnoreCase("unique_id")) {
-            mUserId = uniqueIdentifier;
-        //} else if (uniqueIdentifierType.equalsIgnoreCase("optional_displayable")
-//                || uniqueIdentifierType.equalsIgnoreCase("required_displayable")) {
-//            mLoginHint = uniqueIdentifier;
-//        }
+        
+        if (!TextUtils.isEmpty(inputItems.get("unique_id"))) {
+            mUserId = inputItems.get("unique_id");
+        }
+        
+        if (!TextUtils.isEmpty(inputItems.get("displayable_id")) || !TextUtils.isEmpty(inputItems.get("user_identifier"))) {
+            mLoginHint = inputItems.get("displayable_id") == null ? inputItems.get("user_identifier") : inputItems.get("displayable_id");
+        }
 
         final String correlationId = inputItems.get(CORRELATION_ID);
         if (!TextUtils.isEmpty(correlationId)) {
@@ -339,6 +344,13 @@ public class SignInActivity extends AppCompatActivity {
         count += invalidateRefreshToken(CacheKey.createCacheKeyForMRRT(mAuthority, mClientId, mLoginHint));
         count += invalidateRefreshToken(CacheKey.createCacheKeyForMRRT(mAuthority, mClientId, ""));
 
+        return count;
+    }
+    
+    private int invalidateFamilyRefreshToken() {
+        invalidateRefreshToken();
+
+        int count  = 0;
         // invalidate FRT
         count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, AuthenticationConstants.MS_FAMILY_ID, mUserId));
         count += invalidateRefreshToken(CacheKey.createCacheKeyForFRT(mAuthority, AuthenticationConstants.MS_FAMILY_ID, mLoginHint));
@@ -412,6 +424,7 @@ public class SignInActivity extends AppCompatActivity {
     }
 
     private void launchResultActivity(final Intent intent) {
+        intent.putExtra(Constants.READ_LOGS, ((AndroidAutomationApp)this.getApplication()).getADALLogs());
         intent.setClass(this.getApplicationContext(), ResultActivity.class);
         this.startActivity(intent);
         this.finish();

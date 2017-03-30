@@ -27,6 +27,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -38,8 +40,10 @@ import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
+import com.microsoft.aad.adal.IDispatcher;
 import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
+import com.microsoft.aad.adal.Telemetry;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -217,6 +221,8 @@ public class MainActivity extends Activity {
 
         // If you're directly talking to ADFS server, you should set validateAuthority=false. 
         mAuthContext = new AuthenticationContext(getApplicationContext(), AUTHORITY_URL, true);
+        SampleTelemetry telemetryDispatcher = new SampleTelemetry();
+        Telemetry.getInstance().registerDispatcher(telemetryDispatcher, true);
     }
     
     /**
@@ -331,5 +337,16 @@ public class MainActivity extends Activity {
                 Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
             }
         });
+    }
+}
+class SampleTelemetry implements IDispatcher {
+    private static final String TAG = "SampleTelemetry";
+    @Override
+    public void dispatchEvent(final Map<String, String> events) {
+        final Iterator iterator = events.entrySet().iterator();
+        while (iterator.hasNext()) {
+            final Map.Entry pair = (Map.Entry) iterator.next();
+            Log.e(TAG, pair.getKey() + ":" + pair.getValue());
+        }
     }
 }

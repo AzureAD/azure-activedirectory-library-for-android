@@ -110,6 +110,8 @@ public class AuthenticationActivity extends Activity {
     private boolean mPkeyAuthRedirect = false;
     private StorageHelper mStorageHelper;
 
+    private UIEvent mUIEvent = null;
+
     // Broadcast receiver is needed to cancel outstanding AuthenticationActivity
     // for this AuthenticationContext since each instance of context can have
     // one active activity
@@ -191,7 +193,12 @@ public class AuthenticationActivity extends Activity {
             return;
         }
         mRedirectUrl = mAuthRequest.getRedirectUri();
-        
+
+        Telemetry.getInstance().startEvent(mAuthRequest.getTelemetryRequestId(), EventStrings.UI_EVENT);
+        mUIEvent = new UIEvent(EventStrings.UI_EVENT);
+        mUIEvent.setRequestId(mAuthRequest.getTelemetryRequestId());
+        mUIEvent.setCorrelationId(mAuthRequest.getCorrelationId().toString());
+
         // Create the Web View to show the page
         mWebView = (WebView) findViewById(this.getResources().getIdentifier("webView1", "id",
                 this.getPackageName()));
@@ -560,6 +567,11 @@ public class AuthenticationActivity extends Activity {
     private void cancelRequest() {
         Logger.v(TAG, "Sending intent to cancel authentication activity");
         Intent resultIntent = new Intent();
+
+        if (mUIEvent != null) {
+            mUIEvent.setUserCancel();
+        }
+
         returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
     }
     
@@ -579,10 +591,19 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (mUIEvent != null) {
+            Telemetry.getInstance().stopEvent(mAuthRequest.getTelemetryRequestId(), mUIEvent, EventStrings.UI_EVENT);
+        }
+    }
+
     class CustomWebViewClient extends BasicWebViewClient {
 
         public CustomWebViewClient() {
-            super(AuthenticationActivity.this, mRedirectUrl, mAuthRequest);
+            super(AuthenticationActivity.this, mRedirectUrl, mAuthRequest, mUIEvent);
         }
 
         public void processRedirectUrl(final WebView view, String url) {

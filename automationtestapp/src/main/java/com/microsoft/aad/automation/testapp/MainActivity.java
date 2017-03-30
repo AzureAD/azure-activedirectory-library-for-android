@@ -27,13 +27,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.DateTimeAdapter;
+import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.TokenCacheItem;
 
 import org.json.JSONException;
@@ -50,17 +53,17 @@ public class MainActivity extends AppCompatActivity {
     public static final int ACQUIRE_TOKEN_SILENT = 1002;
     public static final int INVALIDATE_ACCESS_TOKEN = 1003;
     public static final int INVALIDATE_REFRESH_TOKEN = 1004;
+    public static final int INVALIDATE_FAMILY_REFRESH_TOKEN = 1006;
     public static final int READ_CACHE = 1005;
-
-    private Context mContext;
+    
+    private Context mContext;    
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         mContext = getApplicationContext();
-
+        
         // Button for acquireToken call
         final Button acquireTokenButton = (Button) findViewById(R.id.acquireToken);
         acquireTokenButton.setOnClickListener(new View.OnClickListener() {
@@ -94,6 +97,14 @@ public class MainActivity extends AppCompatActivity {
                 launchAuthenticationInfoActivity(INVALIDATE_REFRESH_TOKEN);
             }
         });
+        
+        final Button invalidateFamilyRefreshToken = (Button) findViewById(R.id.invalidateFamilyRefreshToken);
+        invalidateFamilyRefreshToken.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchAuthenticationInfoActivity(INVALIDATE_FAMILY_REFRESH_TOKEN);
+            }
+        });
 
         final Button readCacheButton = (Button) findViewById(R.id.readCache);
         readCacheButton.setOnClickListener(new View.OnClickListener() {
@@ -116,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
         final Intent intent = new Intent();
         intent.setClass(mContext, SignInActivity.class);
         intent.putExtra(FLOW_CODE, flowCode);
-
         this.startActivity(intent);
     }
 
@@ -132,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
             intent = SignInActivity.getErrorIntentForResultActivity(Constants.JSON_ERROR, "Unable to convert to Json "
                     + e.getMessage());
         }
-
+        
         launchResultActivity(intent);
     }
 
@@ -146,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
             intent = SignInActivity.getErrorIntentForResultActivity(Constants.JSON_ERROR, "Unable to convert to Json "
                     + e.getMessage());
         }
-
+        
         launchResultActivity(intent);
     }
 
