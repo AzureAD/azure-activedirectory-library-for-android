@@ -356,8 +356,8 @@ final class BrokerAccountServiceHandler {
                         try {
                             context.unbindService(BrokerAccountServiceConnection.this);
                         } catch (final IllegalArgumentException exception) {
-                            // Catching a runtime exception here but if unbindService throws "Service not registered"
-                            // we can just clear the mBound flag.
+                            // unbindService throws "Service not registered" IllegalArgumentException. We are still investigating
+                            // why this is happening. Meanwhile to unblock the release we are adding this workaround.
                             Logger.e(TAG, "Unbind threw IllegalArgumentException", "", null, exception);
                         } finally {
                             mBound = false;
