@@ -358,6 +358,7 @@ final class BrokerAccountServiceHandler {
                         } catch (final IllegalArgumentException exception) {
                             // unbindService throws "Service not registered" IllegalArgumentException. We are still investigating
                             // why this is happening. Meanwhile to unblock the release we are adding this workaround.
+                            // Issue #808 tracks the future investigation.
                             Logger.e(TAG, "Unbind threw IllegalArgumentException", "", null, exception);
                         } finally {
                             mBound = false;
