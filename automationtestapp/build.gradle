@@ -49,5 +49,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.microsoft.aad:adal:1.10.0'
+    compile project(':adal')
 }
