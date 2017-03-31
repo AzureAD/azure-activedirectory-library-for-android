@@ -7,6 +7,9 @@ Add bound service to remove requirement for contacts permission when talking to 
 Fix for returning correct error code when using broker and no network connected.
 Fix for ADAL missing callbacks if the activity is killed
 Adding support for authority validation for ADFS
+Fixing Missing permissions handling for silent request
+Fixing a crash in the new service when unbind service fails
+Fixing loadSecretKeyForDecryption using the cached key without checking the blob
 
 Version 1.11.0
 --------------
