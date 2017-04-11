@@ -64,7 +64,7 @@ class Oauth2 {
 
     private static final int DELAY_TIME_PERIOD = 1000;
 
-    private static final int MAX_RESILIENCY_ERROR_CODE = 600;
+    private static final int MAX_RESILIENCY_ERROR_CODE = 599;
 
     private static final String DEFAULT_AUTHORIZE_ENDPOINT = "/oauth2/authorize";
 
