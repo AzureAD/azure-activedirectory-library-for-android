@@ -801,7 +801,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_CONFLICT")));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_NOT_FOUND);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(MAX_RESILIENCY_ERROR_CODE + 1); //status code 600
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
