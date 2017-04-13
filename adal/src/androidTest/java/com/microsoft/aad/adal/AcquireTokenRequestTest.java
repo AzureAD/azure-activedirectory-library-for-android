@@ -88,6 +88,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     private static final String TEST_UPN = "testupn";
     private static final String TEST_USERID = "testuserid";
     private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
+    private static final int MAX_RESILIENCY_ERROR_CODE = 599;
 
     @Override
     protected void setUp() throws Exception {
@@ -555,7 +556,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test for returning a valid stale AT when ExtendedLifetime is on and the server is down.
      */
     @SmallTest
-    public void testResiliencyTokenReturnExtendedLifetimeOnPositive() throws PackageManager.NameNotFoundException,
+    public void testResiliencyTokenReturnExtendedLifetimeOnMinServerError() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
@@ -572,7 +573,41 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
                 Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_INTERNAL_ERROR, HttpURLConnection.HTTP_INTERNAL_ERROR);
+
+        try {
+            final AuthenticationResult result = authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            verify(mockedConnection, times(2)).getInputStream();
+            assertNotNull(result);
+            assertTrue(result.getAccessToken().equals("I am an AT"));
+            assertTrue(result.isExtendedLifeTimeToken());
+            assertNotNull(result.getExtendedExpiresOn());
+            assertTrue(!TokenCacheItem.isTokenExpired(result.getExtendedExpiresOn()));
+        } catch (final AuthenticationException exception) {
+            fail("Did not expect an exception");
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+
+    public void testResiliencyTokenReturnExtendedLifetimeOnMaxServerError() throws PackageManager.NameNotFoundException,
+            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
+            InterruptedException {
+        // make sure AT's expires_in is expired and ext_expires_in is not expired
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(true);
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(MAX_RESILIENCY_ERROR_CODE, MAX_RESILIENCY_ERROR_CODE);
 
         try {
             final AuthenticationResult result = authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
@@ -766,7 +801,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_CONFLICT")));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_NOT_FOUND);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(MAX_RESILIENCY_ERROR_CODE + 1); //status code 600
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
