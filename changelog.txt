@@ -1,3 +1,17 @@
+Version 1.12.0
+--------------
+Adding telemetry interfaces and event to ADAL
+Adding 2 modes of telemetry events
+Adding 2 new APIs for telemetry to the public interface of ADAL
+Add bound service to remove requirement for contacts permission when talking to broker.
+Fix for returning correct error code when using broker and no network connected.
+Fix for ADAL missing callbacks if the activity is killed
+Adding support for authority validation for ADFS
+Fixing Missing permissions handling for silent request
+Fixing a crash in the new service when unbind service fails
+Fixing loadSecretKeyForDecryption using the cached key without checking the blob
+Fixing a crash in application receiver due to empty string being passed to canSwitchToBroker
+
 Version 1.11.0
 --------------
 AuthRequest no longer waits for broker to install for broker auth.

@@ -29,7 +29,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 1
-        versionName "1.11.0"
+        versionName "1.12.0"
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -152,8 +152,14 @@ task javadoc(type: Javadoc) {
     classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     classpath += configurations.javadocDeps
-    exclude {'*.aidl'}
-    classpath = configurations.compile
+    exclude '**/*.aidl'
+    if (JavaVersion.current().isJava8Compatible()) {
+        allprojects {
+            tasks.withType(Javadoc) {
+                options.addStringOption('Xdoclint:none', '-quiet')
+            }
+        }
+    }
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 

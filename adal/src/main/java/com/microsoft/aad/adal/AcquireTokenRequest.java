@@ -338,9 +338,15 @@ class AcquireTokenRequest {
         }
 
         // If we cannot switch to broker, return the result from local flow.
-        if (mBrokerProxy.canSwitchToBroker(authenticationRequest.getAuthority()) == BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
+        final BrokerProxy.SwitchToBroker switchToBrokerFlag = mBrokerProxy.canSwitchToBroker(authenticationRequest.getAuthority());
+        if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER
                 || !mBrokerProxy.verifyUser(authenticationRequest.getLoginHint(), authenticationRequest.getUserId())) {
             return authResult;
+        } else if (switchToBrokerFlag == BrokerProxy.SwitchToBroker.NEED_PERMISSIONS_TO_SWITCH_TO_BROKER) {
+            //For android M and above
+            throw new UsageAuthenticationException(
+                        ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING,
+                        "Broker related permissions are missing for GET_ACCOUNTS");
         }
 
         // If we can try with broker for silent flow, it indicates ADAL can switch to broker for auth. Even broker does

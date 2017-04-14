@@ -257,7 +257,7 @@ public class StorageHelper {
                 AuthenticationConstants.ENCODING_UTF8);
         Logger.v(TAG, "Encrypt version:" + keyVersion);
 
-        final SecretKey secretKey = loadSecretKeyForDecryption(keyVersion);
+        final SecretKey secretKey = getKey(keyVersion);
         final SecretKey hmacKey = getHMacKey(secretKey);
 
         // byte input array: encryptedData-iv-macDigest
@@ -321,21 +321,6 @@ public class StorageHelper {
     }
 
     /**
-     * load key based on version for migration.
-     * 
-     * @throws GeneralSecurityException
-     * @throws IOException
-     */
-    synchronized SecretKey loadSecretKeyForDecryption(String keyVersion)
-            throws GeneralSecurityException, IOException {
-        if (mSecretKeyFromAndroidKeyStore != null) {
-            return mSecretKeyFromAndroidKeyStore;
-        }
-
-        return getKey(keyVersion);
-    }
-
-    /**
      * For API <18 or user provide the key, will return the user supplied key.
      * Supported API >= 18 PrivateKey is stored in AndroidKeyStore. Loads key
      * from the file if it exists. If not exist, it will generate one.
@@ -382,6 +367,10 @@ public class StorageHelper {
         case VERSION_USER_DEFINED : 
             return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
         case VERSION_ANDROID_KEY_STORE :
+
+            if (mSecretKeyFromAndroidKeyStore != null) {
+                return mSecretKeyFromAndroidKeyStore;
+            }
             // androidKeyStore can store app specific self signed cert.
             // Asymmetric cryptography is used to protect the session key
             // used for Encryption and HMac
