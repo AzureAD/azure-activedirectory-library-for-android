@@ -302,7 +302,7 @@ Library project resources can be overwritten by your application resources. This
 
 ### Broker
 
-Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challange for one of the apps. 
+Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challenge for one of the apps. 
 
 ### Authority Url and ADFS
 
@@ -429,9 +429,9 @@ Following example is using the password based encryption key(which takes the spe
     AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
 ```
 
-### Oauth2 Bearer challange
+### Oauth2 Bearer challenge
 
-AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challange.
+AuthenticationParameters class provides functionality to get the authorization_uri from Oauth2 bearer challenge.
 
 ### Session cookies in Webview
 
