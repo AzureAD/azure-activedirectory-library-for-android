@@ -34,6 +34,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Base64;
@@ -55,12 +56,24 @@ import com.microsoft.aad.adal.Telemetry;
 import com.microsoft.aad.adal.UserInfo;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -81,26 +94,26 @@ public class MainActivity extends Activity {
     private static final String AUTHORITY_URL = "https://login.microsoftonline.com/yourtenantinfo";
 
     /**
-     * Client id is given from AAD page when you register your native app. 
+     * Client id is given from AAD page when you register your native app.
      */
     private static final String CLIENT_ID = "your-clientid";
 
     /**
-     * To use broker, Developer needs to register special redirectUri in Azure Portal for broker usage. RedirectUri is 
+     * To use broker, Developer needs to register special redirectUri in Azure Portal for broker usage. RedirectUri is
      * in the format of msauth://packagename/Base64UrlencodedSignature.
      */
     private static final String REDIRECT_URL = "msauth://packagename/Base64EncodedSignature";
 
     /**
-     * URI for the resource. You need to setup this resource at AAD. 
+     * URI for the resource. You need to setup this resource at AAD.
      * @note: With the new broker with PRT support, even resource or user don't have policy on to enforce
      * conditional access, when you have broker app installed, you'll still be able to talk to broker. And
-     * broker will support multiple users, one WPJ account and multiple aad users. 
+     * broker will support multiple users, one WPJ account and multiple aad users.
      */
     private static final String RESOURCE_ID = "your-resource-with-CA-policy";
-    
+
     private static final String RESOURCE_ID2 = "your-resource";
-    
+
     private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID = "user.app.withbroker.uniqueidstorage";
 
     private AuthenticationContext mAuthContext;
@@ -164,6 +177,55 @@ public class MainActivity extends Activity {
                     showMessage("Cannot make acquire token silent call for "
                             + "resource 2 since no user unique id is passed.");
                 }
+            }
+        });
+
+        Button buttonNonEmptyCacheStressTest = (Button)findViewById(R.id.NonEmptyCacheStressTest);
+        buttonNonEmptyCacheStressTest.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                final String userId = getUserIdBasedOnUPN(getUserLoginHint());
+                if (userId != null) {
+                    try {
+                        callNonEmptyCacheStressTest(userId);
+                    } catch (final InterruptedException exception) {
+                        //TODO
+                    }
+                } else {
+                    showMessage("Cannot make acquire token silent call for "
+                            + "resource 2 since no user unique id is passed.");
+                }
+            }
+        });
+
+        Button buttonEmptyCacheStressTest = (Button)findViewById(R.id.EmptyCacheStressTest);
+        buttonEmptyCacheStressTest.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                try {
+                    callEmptyCacheStressTest(getUserLoginHint());
+                } catch (final InterruptedException exception) {
+                    //TODO
+                    showMessage("Exception caught here: " + exception.getMessage());
+                }
+
+            }
+        });
+        //callAcquireTokenSilentPolling
+        Button buttonAcquireTokenSilentPolling = (Button)findViewById(R.id.AcquireTokenSilentPolling);
+        buttonAcquireTokenSilentPolling.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                try {
+                    callAcquireTokenSilentPolling();
+                } catch (final InterruptedException exception) {
+                    //TODO
+                    showMessage("Exception caught here: " + exception.getMessage());
+                }
+
             }
         });
 
@@ -322,6 +384,112 @@ public class MainActivity extends Activity {
     private String getUserLoginHint() {
         return mEditText.getText().toString();
     }
+
+
+    /**
+     * Empty cache stress tests.
+     * 10 threads calling acquireTokenSilient at the same time for 8 hours, while the cache is empty.
+     * */
+    private void callEmptyCacheStressTest(final String User_UPN) throws InterruptedException {
+        final int MAX_AVAILABLE = 10;
+        final int TIME_LIMIT = 8 * 60 * 60 * 1000;
+        final long startTime = System.currentTimeMillis();
+
+
+        mAuthContext.getCache().removeAll();
+        BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<Runnable>(10);
+        RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
+        ExecutorService executor = new ThreadPoolExecutor(1, MAX_AVAILABLE, 0L, TimeUnit.MILLISECONDS, blockingQueue, rejectedExecutionHandler);
+
+        while(System.currentTimeMillis() - startTime < TIME_LIMIT) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    mAuthContext.acquireTokenSilentAsync(RESOURCE_ID, CLIENT_ID, User_UPN, new AuthenticationCallback<AuthenticationResult>() {
+                        @Override
+                        public void onSuccess(AuthenticationResult authenticationResult) {
+                            System.err.println( "WTF success");
+                        }
+                        @Override
+                        public void onError(Exception exc) {
+                            System.err.println( "WTF error");
+                        }
+                    });
+                }
+            });
+            Thread.sleep(50);
+        }
+        executor.shutdownNow();
+        System.err.println( "All done." );
+}
+
+    /**
+     * Non-empty cache stress tests.
+     * With RT in cache, 10 threads calling acquireTokenSilient at the same time for 8 hours.
+     * Each acquireTokenSilent call will delete the AT when the call is finished. 
+     **/
+    private void callNonEmptyCacheStressTest(final String User_UPN) throws InterruptedException {
+        final int MAX_AVAILABLE = 10;
+        final int TIME_LIMIT = 8 * 60 * 60 * 1000;
+        final long startTime = System.currentTimeMillis();
+
+        BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<Runnable>(10);
+        RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
+        ExecutorService executor = new ThreadPoolExecutor(1, MAX_AVAILABLE, 0L, TimeUnit.MILLISECONDS, blockingQueue, rejectedExecutionHandler);
+
+        while(System.currentTimeMillis() - startTime < TIME_LIMIT) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    mAuthContext.acquireTokenSilentAsync(RESOURCE_ID, CLIENT_ID, User_UPN, new AuthenticationCallback<AuthenticationResult>() {
+                        @Override
+                        public void onSuccess(AuthenticationResult authenticationResult) {
+                            System.err.println( "WTF success");
+                        }
+                        @Override
+                        public void onError(Exception exc) {
+                            System.err.println( "WTF error");
+                        }
+                    });
+                }
+            });
+            Thread.sleep(50);
+        }
+        executor.shutdownNow();
+        System.err.println( "All done." );
+}
+
+    /**
+     * Interactive acquireToken while acquireTokenSilent polling in background
+     * @throws InterruptedException
+     */
+    private void callAcquireTokenSilentPolling() throws InterruptedException{
+        callAcquireTokenWithResource(RESOURCE_ID, PromptBehavior.Auto, getUserLoginHint());
+        final Semaphore available = new Semaphore(1, true);
+        available.acquire();
+        while (!available.tryAcquire()){
+            AsyncTask.execute(new Runnable() {
+                                  @Override
+                                  public void run() {
+                                      mAuthContext.acquireTokenSilentAsync(RESOURCE_ID, CLIENT_ID, "user@msdevex.onmicrosoft.com", new AuthenticationCallback<AuthenticationResult>() {
+
+                                          @Override
+                                          public void onSuccess(AuthenticationResult authenticationResult) {
+                                              available.release();
+                                          }
+
+                                          @Override
+                                          public void onError(Exception exc) {
+                                          }
+                                      });
+                                  }
+                              });
+            Thread.sleep(500);
+        }
+    }
+
+
+
 
     /**
      * Sample code for getting signature for current package name. 

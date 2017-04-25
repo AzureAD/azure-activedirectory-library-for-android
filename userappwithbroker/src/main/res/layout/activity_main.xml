@@ -55,12 +55,37 @@
         android:layout_centerHorizontal="true"
         android:text="@string/GetBrokerUsers" />
 
+    <Button
+        android:id="@+id/NonEmptyCacheStressTest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/GetBrokerUsers"
+        android:layout_centerHorizontal="true"
+        android:text="Stress Test with Non-empty Cache" />
+
+    <Button
+        android:id="@+id/EmptyCacheStressTest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/NonEmptyCacheStressTest"
+        android:layout_centerHorizontal="true"
+        android:text="Stress Test with Empty Cache" />
+
+
+    <Button
+        android:id="@+id/AcquireTokenSilentPolling"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/EmptyCacheStressTest"
+        android:layout_centerHorizontal="true"
+        android:text="Acquire Token Silent Polling" />
+
     <EditText
         android:id="@+id/editTextUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/GetBrokerUsers"
+        android:layout_below="@+id/AcquireTokenSilentPolling"
         android:ems="10"
         android:hint="@string/login_hint" >
 
