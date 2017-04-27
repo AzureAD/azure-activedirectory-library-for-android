@@ -38,7 +38,8 @@
         android:layout_gravity="center_horizontal"
         android:textCursorDrawable="@drawable/color_cursor"
         android:backgroundTint="@color/colorPrimaryDark"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        android:inputType="textNoSuggestions" />
 
     <Button
         android:layout_width="wrap_content"
