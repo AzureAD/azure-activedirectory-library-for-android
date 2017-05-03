@@ -260,10 +260,6 @@ public class StorageHelperTests extends AndroidTestHelper {
         SecretKey kp = storageHelper.loadSecretKeyForEncryption();
 
         assertNotNull("Keypair is not null", kp);
-
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-        assertTrue("Keystore has the alias", keyStore.containsAlias("AdalKey"));
     }
 
     @TargetApi(MIN_SDK_VERSION)
