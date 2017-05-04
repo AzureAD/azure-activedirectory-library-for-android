@@ -7,6 +7,14 @@ A Work Account is an identity you use to get work done no matter if at your busi
 
 ## ADAL for Android 1.12.0 Released!
 
+## Build status
+| Branch  | Status |
+| ------------- | ------------- |
+| dev (Travis)  | [![Build Status](https://travis-ci.org/AzureAD/azure-activedirectory-library-for-android.svg?branch=master)](https://travis-ci.org/AzureAD/azure-activedirectory-library-for-android) |
+| dev (VSTS)  | [![Build status](https://identitydivision.visualstudio.com/_apis/public/build/definitions/a7934fdd-dcde-4492-a406-7fad6ac00e17/94/badge)](https://identitydivision.visualstudio.com/IDDP/_build/index?definitionId=94&_a=completed) |
+
+Note: A corpnet account is required to view the VSTS build.
+
 ## Versions
 Current version - 1.12.0
 Minimum recommended version - 1.1.16  
