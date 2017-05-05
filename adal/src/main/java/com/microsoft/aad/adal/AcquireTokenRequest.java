@@ -737,7 +737,7 @@ class AcquireTokenRequest {
                 }
             }
         } finally {
-            if (exc != null && exc.getCode() != ADALError.AUTH_FAILED_CANCELLED) {
+            if (exc != null) {
                 mAuthContext.removeWaitingRequest(requestId);
             }
         }
