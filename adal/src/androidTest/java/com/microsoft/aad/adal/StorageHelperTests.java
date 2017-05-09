@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.support.test.filters.Suppress;
 import android.util.Base64;
 import android.util.Log;
 
@@ -249,6 +250,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         }
     }
 
+    @Suppress //github issue #580. Suppress this unit test as we cannot make it work consistently.
     @TargetApi(MIN_SDK_VERSION)
     public void testKeyPair() throws
             GeneralSecurityException, IOException {
