@@ -245,24 +245,6 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
     @TargetApi(MIN_SDK_VERSION)
-    public void testKeyPair() throws
-            GeneralSecurityException, IOException {
-        if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
-            return;
-        }
-        final Context context = getInstrumentation().getTargetContext();
-        final StorageHelper storageHelper = new StorageHelper(context);
-        SecretKey kp = storageHelper.loadSecretKeyForEncryption();
-
-        assertNotNull("Keypair is not null", kp);
-
-        //check if KeyPair exist
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-        assertTrue("Keystore has the alias", keyStore.containsAlias("AdalKey"));
-    }
-
-    @TargetApi(MIN_SDK_VERSION)
     public void testMigration() throws
             GeneralSecurityException, IOException, AuthenticationException {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
