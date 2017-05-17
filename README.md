@@ -43,6 +43,12 @@ We leverage [Stack Overflow](http://stackoverflow.com/) to work with the communi
 
 We recommend you use the "adal" tag so we can see it! Here is the latest Q&A on Stack Overflow for ADAL: [http://stackoverflow.com/questions/tagged/adal](http://stackoverflow.com/questions/tagged/adal)
 
+## SSO and Conditional Access Support
+
+This library allows your application to support our [Enterprise Mobility Suite](https://www.microsoft.com/en-us/cloud-platform/enterprise-mobility-security), including [Conditional Access](https://www.microsoft.com/en-us/cloud-platform/conditional-access), so businesses can use your application in their secure environment. 
+
+To configure your application to support these scenarios, please read this document: [How to enable cross-app SSO on Android using ADAL](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-sso-android)
+
 ## Security Reporting
 
 If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/en-us/security/dd252948) and subscribing to Security Advisory Alerts.
