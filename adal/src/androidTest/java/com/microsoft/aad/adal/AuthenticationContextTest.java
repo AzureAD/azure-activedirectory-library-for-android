@@ -43,7 +43,6 @@ import com.google.gson.Gson;
 
 import junit.framework.Assert;
 
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -72,8 +71,6 @@ import javax.crypto.spec.SecretKeySpec;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 public final class AuthenticationContextTest extends AndroidTestCase {
 
@@ -1660,7 +1657,6 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         authContext.onActivityResult(requestCode, resultCode, data);
 
         // assert
-        verify(Mockito.mock(AuthenticationContext.class), times(1)).removeWaitingRequest(Matchers.anyInt());
         assertTrue("Returns cancel error",
                 callback.getCallbackException() instanceof AuthenticationException);
         assertTrue("Cancel error has message",
