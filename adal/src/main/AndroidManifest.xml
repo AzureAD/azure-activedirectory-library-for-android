@@ -12,14 +12,6 @@
         <activity android:name="com.microsoft.aad.adal.AuthenticationActivity" >
         </activity>
         
-        <receiver
-            android:name = "com.microsoft.aad.adal.ApplicationReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED"/>
-                <action android:name="android.intent.action.PACKAGE_INSTALL"/>
-                <data android:scheme="package"/>
-            </intent-filter>
-        </receiver> 
     </application>
     
     

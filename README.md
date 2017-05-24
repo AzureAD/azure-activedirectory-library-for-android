@@ -8,10 +8,18 @@ The ADAL SDK for Android gives you the ability to add support for Work Accounts 
 
 A Work Account is an identity you use to get work done no matter if at your business or on a college campus. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
-## ADAL for Android 1.11 Released!
+## ADAL for Android 1.12.0 Released!
+
+## Build status
+| Branch  | Status |
+| ------------- | ------------- |
+| dev (Travis)  | [![Build Status](https://travis-ci.org/AzureAD/azure-activedirectory-library-for-android.svg?branch=master)](https://travis-ci.org/AzureAD/azure-activedirectory-library-for-android) |
+| dev (VSTS)  | [![Build status](https://identitydivision.visualstudio.com/_apis/public/build/definitions/a7934fdd-dcde-4492-a406-7fad6ac00e17/94/badge)](https://identitydivision.visualstudio.com/IDDP/_build/index?definitionId=94&_a=completed) |
+
+Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
-Current version - 1.11.0
+Current version - 1.12.0
 Minimum recommended version - 1.1.16  
 You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
@@ -37,6 +45,12 @@ Xamarin related info is here:
 We leverage [Stack Overflow](http://stackoverflow.com/) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browser existing issues to see if someone has had your question before. 
 
 We recommend you use the "adal" tag so we can see it! Here is the latest Q&A on Stack Overflow for ADAL: [http://stackoverflow.com/questions/tagged/adal](http://stackoverflow.com/questions/tagged/adal)
+
+## SSO and Conditional Access Support
+
+This library allows your application to support our [Enterprise Mobility Suite](https://www.microsoft.com/en-us/cloud-platform/enterprise-mobility-security), including [Conditional Access](https://www.microsoft.com/en-us/cloud-platform/conditional-access), so businesses can use your application in their secure environment. 
+
+To configure your application to support these scenarios, please read this document: [How to enable cross-app SSO on Android using ADAL](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-sso-android)
 
 ## Security Reporting
 
@@ -76,25 +90,25 @@ To build with Maven, you can use the pom.xml at top level
 
 Jar packages will be also submitted beside the aar package.
 
-##Download
+## Download
 
 We've made it easy for you to have multiple options to use this library in your Android project:
 
 * You can use the source code to import this library into Android Studio and link to your application. 
 * If using Android Studio, you can use *aar* package format and reference the binaries.
 
-###Option 1: Source Zip
+### Option 1: Source Zip
 
 To download a copy of the source code, click "Download ZIP" on the right side of the page or click [here](https://github.com/AzureAD/azure-activedirectory-library-for-android/archive/v1.1.5.tar.gz).
 
-###Option 2: Source via Git
+### Option 2: Source via Git
 
 To get the source code of the SDK via git just type:
 
     git clone git@github.com:AzureAD/azure-activedirectory-library-for-android.git
     cd ./azure-activedirectory-library-for-android/src
 
-###Option 3: Binaries via Gradle
+### Option 3: Binaries via Gradle
 
 You can get the binaries from Maven central repo. AAR package can be included as follows in your project in AndroidStudio:
 
@@ -117,7 +131,7 @@ dependencies {
 }
 ```
 
-###Option 4: aar via Maven
+### Option 4: aar via Maven
 
 If you are using the m2e plugin in Eclipse, you can specify the dependency in your pom.xml file:
 
@@ -130,7 +144,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 </dependency>
 ```
 
-###Option 5: jar package inside libs folder
+### Option 5: jar package inside libs folder
 You can get the jar file from maven the repo and drop into the *libs* folder in your project. You need to copy the required resources to your project as well since the jar packages don't include them.
 
 ## Prerequisites

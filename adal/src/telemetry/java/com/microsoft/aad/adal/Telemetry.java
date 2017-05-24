@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class Telemetry {
+    private static final String TAG = Telemetry.class.getSimpleName();
     private DefaultDispatcher mDispatcher = null;
     private final Map<Pair<String, String>, String> mEventTracking = new ConcurrentHashMap<Pair<String, String>, String>();
     private static final Telemetry INSTANCE = new Telemetry();
@@ -80,6 +81,14 @@ public final class Telemetry {
         }
 
         final String startTime = mEventTracking.get(new Pair<>(requestId, eventName));
+
+        // If we did not get anything back from the dictionary, most likely its a bug that stopEvent was called without
+        // a corresponding startEvent
+        if (StringExtensions.isNullOrBlank(startTime)) {
+            Logger.w(TAG, "Stop Event called without a corresponding start_event", "", null);
+            return;
+        }
+
         long startTimeLong = Long.parseLong(startTime);
         long stopTimeLong  = System.currentTimeMillis();
         long diffTime = stopTimeLong - startTimeLong;

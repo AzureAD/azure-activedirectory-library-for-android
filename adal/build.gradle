@@ -8,6 +8,10 @@ apply plugin: 'maven-publish'
 
 group = 'com.microsoft.aad'
 
+configurations {
+    javadocDeps
+}
+
 buildscript {
     repositories {
         jcenter()
@@ -25,7 +29,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 1
-        versionName "1.11.0"
+        versionName "1.12.0"
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -79,6 +83,8 @@ dependencies {
     //Compile Dependencies
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.android.support:support-annotations:25.0.0'
+    compile 'com.android.support:support-v4:25.0.0'
 
     //Android Instrumental Test Dependencies
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -90,6 +96,10 @@ dependencies {
 
     // Test Dependencies
     testCompile 'junit:junit:4.12'
+
+    // Javadoc Dependencies
+    javadocDeps 'com.android.support:support-annotations:25.0.0'
+    javadocDeps 'com.android.support:support-v4:25.0.0'
 }
 
 
@@ -139,10 +149,18 @@ task sourcesJar(type: Jar) {
 
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    exclude {'*.aidl'}
-    classpath = configurations.compile
+    classpath += configurations.compile
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.javadocDeps
+    exclude '**/*.aidl'
+    if (JavaVersion.current().isJava8Compatible()) {
+        allprojects {
+            tasks.withType(Javadoc) {
+                options.addStringOption('Xdoclint:none', '-quiet')
+            }
+        }
+    }
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
-    failOnError = false
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

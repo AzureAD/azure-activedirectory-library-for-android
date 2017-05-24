@@ -88,6 +88,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     private static final String TEST_UPN = "testupn";
     private static final String TEST_USERID = "testuserid";
     private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
+    private static final int MAX_RESILIENCY_ERROR_CODE = 599;
 
     @Override
     protected void setUp() throws Exception {
@@ -555,7 +556,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test for returning a valid stale AT when ExtendedLifetime is on and the server is down.
      */
     @SmallTest
-    public void testResiliencyTokenReturnExtendedLifetimeOnPositive() throws PackageManager.NameNotFoundException,
+    public void testResiliencyTokenReturnExtendedLifetimeOnMinServerError() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
@@ -572,7 +573,41 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
                 Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_GATEWAY_TIMEOUT);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_INTERNAL_ERROR, HttpURLConnection.HTTP_INTERNAL_ERROR);
+
+        try {
+            final AuthenticationResult result = authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
+            verify(mockedConnection, times(2)).getInputStream();
+            assertNotNull(result);
+            assertTrue(result.getAccessToken().equals("I am an AT"));
+            assertTrue(result.isExtendedLifeTimeToken());
+            assertNotNull(result.getExtendedExpiresOn());
+            assertTrue(!TokenCacheItem.isTokenExpired(result.getExtendedExpiresOn()));
+        } catch (final AuthenticationException exception) {
+            fail("Did not expect an exception");
+        } finally {
+            cacheStore.removeAll();
+        }
+    }
+
+    public void testResiliencyTokenReturnExtendedLifetimeOnMaxServerError() throws PackageManager.NameNotFoundException,
+            NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
+            InterruptedException {
+        // make sure AT's expires_in is expired and ext_expires_in is not expired
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+        authContext.setExtendedLifetimeEnabled(true);
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
+                Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(MAX_RESILIENCY_ERROR_CODE, MAX_RESILIENCY_ERROR_CODE);
 
         try {
             final AuthenticationResult result = authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
@@ -613,7 +648,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_GATEWAY_TIMEOUT")),
                 Util.createInputStream(Util.getErrorResponseBody("HTTP_BAD_GATEWAY")));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_BAD_GATEWAY);
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_NOT_FOUND);
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
@@ -765,8 +800,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_BAD_GATEWAY")));
-        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_GATEWAY);
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(Util.getErrorResponseBody("HTTP_CONFLICT")));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(MAX_RESILIENCY_ERROR_CODE + 1); //status code 600
 
         try {
             authContext.acquireTokenSilentSync("resource", "clientid", TEST_USERID);
@@ -789,8 +824,8 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), true, true, getExpireDate(EXTEND_MINUS_MINUTE));
         cacheStore.removeItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_USERID));
         cacheStore.removeItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_UPN));
-        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY,"clientId", TEST_USERID)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
-        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY,"clientId", TEST_UPN)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
+        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_USERID)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
+        cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_UPN)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);
         
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -870,6 +905,52 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             assertTrue(usageAuthenticationException.getMessage().contains("MANAGE_ACCOUNTS"));
             assertTrue(usageAuthenticationException.getMessage().contains("USE_CREDENTIALS"));
             assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, usageAuthenticationException.getCode());
+        }
+    }
+
+    public void testSilentRequestMissingPermissionHandlingForAndroid22andBelow() throws InterruptedException, PackageManager.NameNotFoundException {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            final FileMockContext mockContext = createMockContext();
+            when(mockContext.getPackageManager().checkPermission(Mockito.refEq("android.permission.GET_ACCOUNTS"),
+                    Mockito.anyString())).thenReturn(PackageManager.PERMISSION_GRANTED);
+            when(mockContext.getPackageManager().checkPermission(Mockito.refEq("android.permission.MANAGE_ACCOUNTS"),
+                    Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
+            when(mockContext.getPackageManager().checkPermission(Mockito.refEq("android.permission.USE_CREDENTIALS"),
+                    Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
+
+            AuthenticationSettings.INSTANCE.setUseBroker(true);
+            final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                    VALID_AUTHORITY, false);
+            final TestAuthCallback callback = new TestAuthCallback();
+            authContext.acquireTokenSilentAsync("resource", "clientid", "userid", callback);
+            final CountDownLatch signal = new CountDownLatch(1);
+            signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
+
+            assertNotNull(callback.getCallbackException());
+            assertTrue(callback.getCallbackException() instanceof UsageAuthenticationException);
+            final UsageAuthenticationException usageAuthenticationException
+                    = (UsageAuthenticationException) callback.getCallbackException();
+            assertTrue(usageAuthenticationException.getMessage().contains("MANAGE_ACCOUNTS"));
+            assertTrue(usageAuthenticationException.getMessage().contains("USE_CREDENTIALS"));
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, usageAuthenticationException.getCode());
+        }
+    }
+
+    public void testSilentRequestMissingContactsPermissionHandling() throws InterruptedException, PackageManager.NameNotFoundException {
+        final FileMockContext mockContext = createMockContext();
+        when(mockContext.getPackageManager().checkPermission(Mockito.refEq("android.permission.GET_ACCOUNTS"),
+                Mockito.anyString())).thenReturn(PackageManager.PERMISSION_DENIED);
+        AuthenticationSettings.INSTANCE.setUseBroker(true);
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false);
+        try {
+            authContext.acquireTokenSilentSync("resource", "clientid", "userid");
+            fail("Expect an exception");
+        } catch (final AuthenticationException exception) {
+            assertTrue(exception.getMessage().contains("GET_ACCOUNTS"));
+            assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, exception.getCode());
+        } catch (final Exception exception) {
+            fail("Expect an AuthenticationException exception");
         }
     }
 

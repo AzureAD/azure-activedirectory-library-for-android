@@ -166,7 +166,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
             public void run() {
                 final Context mockContext = getMockContext();
                 Bundle requestBundle = new Bundle();
-                requestBundle.putString("isConnectionAvaliable","false");
+                requestBundle.putString("isConnectionAvailable","false");
 
                 try {
                     final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle);

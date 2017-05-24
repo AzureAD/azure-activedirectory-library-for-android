@@ -64,7 +64,7 @@ class FileMockContext extends MockContext {
 
     private Map<String, Integer> mPermissionMap = new HashMap<String, Integer>();
     
-    private boolean mIsConnectionAvaliable = true;
+    private boolean mIsConnectionAvailable = true;
     
     private AccountManager mMockedAccountManager = null;
 
@@ -109,7 +109,7 @@ class FileMockContext extends MockContext {
         } else if (name.equalsIgnoreCase("connectivity")) {
             final ConnectivityManager mockedConnectivityManager = mock(ConnectivityManager.class);
             final NetworkInfo mockedNetworkInfo = mock(NetworkInfo.class);
-            Mockito.when(mockedNetworkInfo.isConnectedOrConnecting()).thenReturn(mIsConnectionAvaliable);
+            Mockito.when(mockedNetworkInfo.isConnectedOrConnecting()).thenReturn(mIsConnectionAvailable);
             Mockito.when(mockedConnectivityManager.getActiveNetworkInfo()).thenReturn(mockedNetworkInfo);
             return mockedConnectivityManager;
         }
@@ -170,8 +170,8 @@ class FileMockContext extends MockContext {
         return PackageManager.PERMISSION_DENIED;
     }
 
-    public void setConnectionAvaliable(boolean connectionAvaliable) {
-        mIsConnectionAvaliable = connectionAvaliable;
+    public void setConnectionAvailable(boolean connectionAvailable) {
+        mIsConnectionAvailable = connectionAvailable;
     }
 
     public void setResolveIntent(boolean resolveIntent) {
