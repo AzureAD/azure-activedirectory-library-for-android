@@ -251,7 +251,7 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
 
-    //Github issue #580. Suppress this unit test as we cannot make it work consistently.
+    //Github issue #580. Suppress this unit test as we cannot make it work consistently. 
     @Suppress
     @TargetApi(MIN_SDK_VERSION)
     public void testKeyPair() throws
