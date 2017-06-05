@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -56,8 +57,9 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
-        PackageInfo info = getInstrumentation().getContext().getPackageManager()
-                .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
+        final Context context = getInstrumentation().getContext();
+        PackageInfo info = context.getPackageManager()
+                .getPackageInfo(context.getPackageName(), PackageManager.GET_SIGNATURES);
         for (Signature signature : info.signatures) {
             mTestSignature = signature.toByteArray();
             MessageDigest md = MessageDigest.getInstance("SHA");

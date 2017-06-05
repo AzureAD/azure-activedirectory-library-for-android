@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.security.MessageDigest;
-
 import android.annotation.SuppressLint;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -32,6 +30,8 @@ import android.content.pm.Signature;
 import android.test.AndroidTestCase;
 import android.util.Base64;
 import android.util.Log;
+
+import java.security.MessageDigest;
 
 public class HttpDialogTests extends AndroidTestCase {
 
@@ -49,7 +49,7 @@ public class HttpDialogTests extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
-        PackageInfo info = mContext.getPackageManager().getPackageInfo("com.microsoft.aad.adal.testapp",
+        PackageInfo info = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(),
                 PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
