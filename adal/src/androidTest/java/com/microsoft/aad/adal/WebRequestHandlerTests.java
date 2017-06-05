@@ -27,6 +27,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 
 import org.mockito.Mockito;
@@ -55,7 +56,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
     /**
      * send invalid request to production service
      *
-     * @throws IOException 
+     * @throws IOException
      */
     @SmallTest
     public void testCorrelationIdInRequest() throws IOException {
@@ -231,11 +232,18 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
     }
 
     class TestMessage {
-        @com.google.gson.annotations.SerializedName("AccessToken")
+        @SerializedName("AccessToken")
         private String mAccessToken;
 
-        @com.google.gson.annotations.SerializedName("UserName")
+        @SerializedName("UserName")
         private String mUserName;
+
+        /**
+         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+         */
+        @SuppressWarnings("unused")
+        private TestMessage() {
+        }
 
         public TestMessage(String token, String name) {
             mAccessToken = token;
