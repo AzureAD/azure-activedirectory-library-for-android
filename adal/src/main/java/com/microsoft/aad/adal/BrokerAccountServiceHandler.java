@@ -245,7 +245,7 @@ final class BrokerAccountServiceHandler {
 
         final Map<String, String> requestData = new HashMap<>();
         for (final String key : requestBundleKeys) {
-            if (key == AuthenticationConstants.Browser.REQUEST_ID) {
+            if (key.equals(AuthenticationConstants.Browser.REQUEST_ID)) {
                 requestData.put(key, String.valueOf(requestBundle.getInt(key)));
                 continue;
             }
