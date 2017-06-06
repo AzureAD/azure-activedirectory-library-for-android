@@ -415,7 +415,34 @@ Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
   adb logcat > "C:\logmsg\logfile.txt"
  ```
  More examples about adb cmds: https://developer.android.com/tools/debugging/debugging-log.html#startingLogcat
- 
+
+#### Telemetry
+
+ADAL provides a built-in callback mechanism to supply consuming applications with event data generated during requests. The event data is sanitized of Personally Identifiable Information (PII) and Organizationally Indentifiable Information (OII) and is designed to give consumers of the library insight into the performance, reliability, and usage of ADAL.
+
+To capture telemetry data, add the following to your application subclass:
+```java
+// Get a reference to the Telemetry singleton
+private static final Telemetry sTelemetry = Telemetry.getInstance();
+
+// Flag to turn event aggregation on/off
+private static final boolean sTelemetryAggregationIsRequired = false;
+static {
+    sTelemetry.registerDispatcher(new IDispatcher() {
+        @Override
+        public void dispatchEvent(Map<String, String> events) {
+            // Events from ADAL will be sent to this callback
+
+            // If sTelemetryAggregationIsRequired == true, all events generated per-request
+            // will be aggregated into a single event and published once.
+
+            // If false, events will be published one-at-a-time throughout the various phases
+            // of a an authentication request.
+        }
+    }, sTelemetryAggregationIsRequired);
+}
+```
+
 #### Network Traces
 
 You can use various tools to capture the HTTP traffic that ADAL generates.  This is most useful if you are familiar with the OAuth protocol or if you need to provide diagnostic information to Microsoft or other support channels.
