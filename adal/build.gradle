@@ -46,6 +46,8 @@ android {
             manifest.srcFile 'src/main/AndroidManifest.xml'
             java.srcDirs = ['src/main/java', 'src/main/aidl']
         }
+
+        androidTest.setRoot('src/androidTest')
     }
 
     sourceSets {
@@ -82,7 +84,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     //Compile Dependencies
     compile 'com.android.support:appcompat-v7:25.0.0'
-    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.google.code.gson:gson:2.8.0'
     compile 'com.android.support:support-annotations:25.0.0'
     compile 'com.android.support:support-v4:25.0.0'
 

@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -59,28 +60,42 @@ class JWSBuilder implements IJWSBuilder {
      * Payload for JWS.
      */
     class Claims {
-        @com.google.gson.annotations.SerializedName("aud")
+        @SerializedName("aud")
         private String mAudience;
 
-        @com.google.gson.annotations.SerializedName("iat")
+        @SerializedName("iat")
         private long mIssueAt;
 
-        @com.google.gson.annotations.SerializedName("nonce")
+        @SerializedName("nonce")
         private String mNonce;
+
+        /**
+         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+         */
+        @SuppressWarnings("unused")
+        private Claims() {
+        }
     }
 
     /**
      * Header that includes algorithm, type, thumbprint, keys, and keyid.
      */
     class JwsHeader {
-        @com.google.gson.annotations.SerializedName("alg")
+        @SerializedName("alg")
         private String mAlgorithm;
 
-        @com.google.gson.annotations.SerializedName("typ")
+        @SerializedName("typ")
         private String mType;
 
-        @com.google.gson.annotations.SerializedName("x5c")
+        @SerializedName("x5c")
         private String[] mCert;
+
+        /**
+         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+         */
+        @SuppressWarnings("unused")
+        private JwsHeader() {
+        }
     }
 
     /**
@@ -160,7 +175,7 @@ class JWSBuilder implements IJWSBuilder {
 
     /**
      * Signs the input with the private key.
-     * 
+     *
      * @param privateKey the key to sign input with
      * @param input the data that needs to be signed
      * @return String signed string
