@@ -418,7 +418,7 @@ Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
 
 #### Telemetry
 
-ADAL provides a built-in callback mechanism to supply consuming applications with event data generated during requests. The event data is sanitized of Personally Identifiable Information (PII) and Organizationally Indentifiable Information (OII) and is designed to give consumers of the library insight into the performance, reliability, and usage of ADAL.
+ADAL provides a built-in callback mechanism to supply consuming applications with event data generated during requests. The event data is sanitized of Personally Identifiable Information (PII) and Organizationally Identifiable Information (OII) and is designed to give consumers of the library insight into the performance, reliability, and usage of ADAL.
 
 To capture telemetry data, add the following to your application subclass:
 ```java
