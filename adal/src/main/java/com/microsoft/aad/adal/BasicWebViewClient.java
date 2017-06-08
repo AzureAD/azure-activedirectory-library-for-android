@@ -245,11 +245,17 @@ abstract class BasicWebViewClient extends WebViewClient {
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
             Logger.v(TAG, "Navigation starts with the redirect uri.");
-            if (hasCancelError(url)) {
-                // Catch WEB-UI cancel request
-                Logger.i(TAG, "Sending intent to cancel authentication activity", "");
+
+            Map<String, String> parameters = StringExtensions.getUrlParameters(url);
+            final String error = parameters.get("error");
+
+            //Throw AuthenticationException when receiving error from server failing url and cancel the WebView request.
+            if (!StringExtensions.isNullOrBlank(error)) {
+                final String errorDescription = parameters.get("error_description");
+                Logger.w(TAG, "Receiving error from server:" + error, errorDescription, null);
+
                 view.stopLoading();
-                cancelWebViewRequest();
+                onReceivedServerError(error, errorDescription);
                 return true;
             }
             
@@ -300,17 +306,16 @@ abstract class BasicWebViewClient extends WebViewClient {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
         mCallingContext.startActivity(intent);
     }
-    
-    private boolean hasCancelError(String redirectUrl) {
-        Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
-        String error = parameters.get("error");
-        String errorDescription = parameters.get("error_description");
 
-        if (!StringExtensions.isNullOrBlank(error)) {
-            Logger.w(TAG, "Cancel error:" + error, errorDescription, null);
-            return true;
-        }
-
-        return false;
+    protected void onReceivedServerError(String errorCode, String description) {
+        showSpinner(false);
+        Logger.e(TAG, "WebView received a server error. Error code:" + errorCode + " " + description, "",
+                ADALError.ERROR_WEBVIEW);
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Error Code:"
+                + errorCode);
+        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE, description);
+        resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO, mRequest);
+        sendResponse(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR, resultIntent);
     }
 }
