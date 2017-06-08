@@ -53,11 +53,6 @@ public class StorageHelperTests extends AndroidTestHelper {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-
-        if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null && Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
-            Log.d(TAG, "setup key at settings");
-            setSecretKeyData();
-        }
     }
 
     public void testEncryptDecrypt() throws GeneralSecurityException, IOException, AuthenticationException {
@@ -253,23 +248,6 @@ public class StorageHelperTests extends AndroidTestHelper {
 
     //Github issue #580. Suppress this unit test as we cannot make it work consistently.
     @Suppress
-    @TargetApi(MIN_SDK_VERSION)
-    public void testKeyPair() throws
-            GeneralSecurityException, IOException {
-        if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
-            return;
-        }
-        final Context context = getInstrumentation().getTargetContext();
-        final StorageHelper storageHelper = new StorageHelper(context);
-        SecretKey kp = storageHelper.loadSecretKeyForEncryption();
-
-        assertNotNull("Keypair is not null", kp);
-
-        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-        assertTrue("Keystore has the alias", keyStore.containsAlias("AdalKey"));
-    }
-
     @TargetApi(MIN_SDK_VERSION)
     public void testMigration() throws
             GeneralSecurityException, IOException, AuthenticationException {
