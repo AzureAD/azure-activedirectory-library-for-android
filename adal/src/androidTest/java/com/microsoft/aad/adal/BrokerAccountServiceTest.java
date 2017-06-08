@@ -159,14 +159,14 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         latch.await();
     }
 
-    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException, AuthenticatorException,OperationCanceledException, IOException {
+    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException, AuthenticatorException, OperationCanceledException, IOException {
         final CountDownLatch latch = new CountDownLatch(1);
         sThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 final Context mockContext = getMockContext();
                 Bundle requestBundle = new Bundle();
-                requestBundle.putString("isConnectionAvailable","false");
+                requestBundle.putString("isConnectionAvailable", "false");
 
                 try {
                     final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle);

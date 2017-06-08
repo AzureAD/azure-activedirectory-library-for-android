@@ -67,6 +67,7 @@ android {
         disable 'GradleDependency'
         disable 'GradleOverrides'
         disable 'OldTargetApi'
+        disable 'PackageManagerGetSignatures'
     }
 
     libraryVariants.all { variant ->
