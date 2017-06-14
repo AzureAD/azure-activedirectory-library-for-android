@@ -420,32 +420,7 @@ Logger.getInstance().setLogLevel(Logger.LogLevel.Verbose);
 
 ADAL provides a built-in callback mechanism to supply consuming applications with event data (telemetry) generated during requests. The event data is sanitized of Personally Identifiable Information (PII) and Organizationally Identifiable Information (OII) and is designed to give consumers of the library insight into the performance, reliability, and usage of ADAL.
 
-The `Telemetry#registerDispatcher(IDispatcher, boolean)` method accepts two arguments:
-- `IDispatcher dispatcher` : the dispatcher instance supplied by a client application to receive telemetry events
-- `boolean aggregationRequired` : flag used to turn aggregation of events on/off
-
-To capture telemetry data, add the following to your application subclass:
-```java
-// Get a reference to the Telemetry singleton
-private static final Telemetry sTelemetry = Telemetry.getInstance();
-
-// Flag to turn event aggregation on/off
-private static final boolean sTelemetryAggregationIsRequired = true;
-static {
-    sTelemetry.registerDispatcher(new IDispatcher() {
-        @Override
-        public void dispatchEvent(Map<String, String> events) {
-            // Events from ADAL will be sent to this callback
-        }
-    }, sTelemetryAggregationIsRequired);
-}
-```
-
-##### Event Aggregation
-
-Using the `aggregationRequired` flag, users of ADAL can toggle between two modes of event dispatch: aggregated and non-aggregated. If `aggregationRequired` is set to `true`, all events generated per-request are collapsed into a single event prior to dispatch. If false, events are not collapsed prior to dispatch, and users of the library are instead served distinct events representing the various phases of an authentication request.
-
->Please note: Telemetry data is verbose, and applications with large and active user bases generate proportionally large quantities of telemetry data. For this reason, it is advised that users of this library set `aggregationRequired == true`
+For detailed guidance on the usage, configuration, and schema of ADAL telemetry, see [Wiki:Telemetry](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Telemetry)
 
 #### Network Traces
 
