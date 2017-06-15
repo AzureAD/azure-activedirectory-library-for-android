@@ -44,6 +44,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 
 /**
+ * This BroadcastReceiver is no longer used to catch system broadcasts.
+ *
  * Receives system broadcast message for application install events. You need to
  * register this receiver in your manifest for PACKAGE_INSTALL and
  * PACKAGE_ADDED.
@@ -73,11 +75,6 @@ public class ApplicationReceiver extends BroadcastReceiver {
      * Application link to open in the browser.
      */
     public static final String INSTALL_URL_KEY = "app_link";
-    
-    // Allow 5 mins for broker app to be installed
-    private static final int BROKER_APP_INSTALLATION_TIME_OUT = 5;
-    
-    private BrokerProxy mBrokerProxy;
 
     /**
      * This method receives message for any application status based on filters
@@ -88,36 +85,7 @@ public class ApplicationReceiver extends BroadcastReceiver {
      */
     @Override
     public void onReceive(Context context, Intent intent) {
-        // Check if the application is install and belongs to the broker package
-        final String methodName = "onReceive";
-        if (!intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED) || intent.getData() == null) {
-            return;
-        }
-        Logger.v(TAG + methodName, "Application install message is received");
-        Logger.v(TAG + methodName, "ApplicationReceiver detectes the installation of " + intent.getData().toString());
-        final String receivedInstalledPackageName = intent.getData().toString();
-        if (receivedInstalledPackageName.equalsIgnoreCase("package:"
-                + AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
-                || receivedInstalledPackageName.equalsIgnoreCase("package:"
-                + AuthenticationSettings.INSTANCE.getBrokerPackageName())) {
-
-            String request = getInstallRequestInthisApp(context);
-            mBrokerProxy = new BrokerProxy(context);
-            final Date dateTimeForSavedRequest = new Date(getInstallRequestTimeStamp(context));
-
-            // Broker request will be resumed if
-            // 1) there is saved request in sharedPreference
-            // 2) app has the correct configuration to get token from broker
-            // 3) the saved request is not timeout
-            if (!StringExtensions.isNullOrBlank(request) && mBrokerProxy.canSwitchToBroker("") == BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER
-                    && isRequestTimestampValidForResume(dateTimeForSavedRequest)) {
-                Logger.v(TAG + methodName, receivedInstalledPackageName + " is installed, start sending request to broker.");
-                resumeRequestInBroker(context, request);
-            } else {
-                Logger.v(TAG + methodName, "No request saved in sharedpreferences or request already timeout"
-                        + ", cannot resume broker request.");
-            }
-        }
+        // Method intentionally left blank
     }
 
     /**
@@ -213,79 +181,5 @@ public class ApplicationReceiver extends BroadcastReceiver {
             prefsEditor.putString(INSTALL_REQUEST_KEY, "");
             prefsEditor.apply();
         }
-    }
-    
-    private boolean isRequestTimestampValidForResume(final Date savedRequestTimestamp) {
-        final String methodName = "isRequestTimestampValidForResume";
-        
-        // Get current UTC time
-        final Calendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-        calendar.add(Calendar.MINUTE, BROKER_APP_INSTALLATION_TIME_OUT * (-1));
-        if (savedRequestTimestamp.compareTo(calendar.getTime()) >= 0) {
-            Logger.v(TAG + methodName, "Saved request is valid, not timeout yet.");
-            return true;
-        }
-        
-        Logger.v(TAG + methodName, "Saved request is already timeout");
-        return false;
-    }
-
-    private void resumeRequestInBroker(final Context context, final String request) {
-        final String methodName = "resumeRequestInBroker";
-        Logger.v(TAG + methodName, "Start resuming request in broker");
-        Gson gson = new Gson();
-        final AuthenticationRequest pendingRequest = gson.fromJson(request, AuthenticationRequest.class);
-        ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
-        
-        sThreadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                Logger.v(TAG + methodName, "Running task in thread:" + android.os.Process.myTid() + ", trying to get intent for "
-                        + "broker activity.");
-                final Intent resumeIntent = mBrokerProxy.getIntentForBrokerActivity(pendingRequest);
-                resumeIntent.setAction(Intent.ACTION_PICK);
-                
-                Logger.v(TAG + methodName, "Setting flag for broker resume request for calling package " + context.getPackageName());
-                resumeIntent.putExtra(AuthenticationConstants.Broker.BROKER_REQUEST_RESUME,
-                AuthenticationConstants.Broker.BROKER_REQUEST_RESUME);
-                resumeIntent.putExtra(AuthenticationConstants.Broker.CALLER_INFO_PACKAGE, context.getPackageName());
-
-                final String brokerProtocolVersion = resumeIntent.getStringExtra(AuthenticationConstants.Broker.BROKER_VERSION);
-                if (StringExtensions.isNullOrBlank(brokerProtocolVersion)) {
-                    Logger.v(TAG + methodName, "Broker request resume is not supported in the older version of broker.");
-                    return;
-                }
-                
-                PackageManager packageManager = context.getPackageManager();
-                // Get activities that can handle the intent
-                List<ResolveInfo> activities = packageManager.queryIntentActivities(resumeIntent, 0);
-
-                // Check if 1 or more were returned
-                boolean isIntentSafe = activities.size() > 0;
-
-                if (isIntentSafe) {
-                    Logger.v(TAG + methodName, "It's safe to start .ui.AccountChooserActivity.");
-                    resumeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-                    context.startActivity(resumeIntent);
-                } else {
-                    Logger.v(TAG + methodName, "Unable to resolve .ui.AccountChooserActivity.");
-                }
-            }
-        });
-    }
-    
-    private long getInstallRequestTimeStamp(final Context context) {
-        final String methodName = "getInstallRequestTimeStamp";
-        
-        Logger.v(TAG + methodName, "Retrieve timestamp for saved request from shared preference.");
-        SharedPreferences prefs = context.getSharedPreferences(INSTALL_REQUEST_TRACK_FILE,
-                Activity.MODE_PRIVATE);
-        if (prefs != null && prefs.contains(INSTALL_REQUEST_TIMESTAMP_KEY)) {
-            final long savedRequestTimeStamp = prefs.getLong(INSTALL_REQUEST_TIMESTAMP_KEY, 0);
-            Logger.v(TAG + methodName, "Timestamp for saved request is: " + savedRequestTimeStamp);
-            return savedRequestTimeStamp;
-        }
-        
-        return 0;
     }
 }
