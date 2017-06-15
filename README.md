@@ -410,7 +410,13 @@ You set the log level like this:
  `adb logcat > "C:\logmsg\logfile.txt"`
  
  More examples about adb cmds: https://developer.android.com/tools/debugging/debugging-log.html#startingLogcat
- 
+
+#### Telemetry
+
+ADAL provides a built-in callback mechanism to supply consuming applications with event data (telemetry) generated during requests. The event data is sanitized of Personally Identifiable Information (PII) and Organizationally Identifiable Information (OII) and is designed to give consumers of the library insight into the performance, reliability, and usage of ADAL.
+
+For detailed guidance on the usage, configuration, and schema of ADAL telemetry, see [Wiki:Telemetry](https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Telemetry)
+
 #### Network Traces
 
 You can use various tools to capture the HTTP traffic that ADAL generates.  This is most useful if you are familiar with the OAuth protocol or if you need to provide diagnostic information to Microsoft or other support channels.
