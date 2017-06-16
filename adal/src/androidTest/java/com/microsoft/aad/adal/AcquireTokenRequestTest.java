@@ -30,6 +30,7 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorDescription;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -46,6 +47,8 @@ import android.util.Log;
 
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -67,6 +70,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -238,32 +242,40 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cacheStore);
         final TestAuthCallback callback = new TestAuthCallback();
-        authContext.acquireTokenSilentAsync("resource", "clientid", TEST_USERID, callback);
 
         final CountDownLatch signal = new CountDownLatch(1);
-        signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
+        authContext.acquireTokenSilentAsync("resource", "clientid", TEST_USERID, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                // verify getAuthToken called once
+                verify(mockedAccountManager, times(1)).getAuthToken(Mockito.any(Account.class), Matchers.anyString(),
+                        Matchers.any(Bundle.class), Matchers.eq(false), (AccountManagerCallback<Bundle>) Matchers.eq(null),
+                        Matchers.any(Handler.class));
 
-        // verify getAuthToken called once
-        verify(mockedAccountManager, times(1)).getAuthToken(Mockito.any(Account.class), Matchers.anyString(),
-                Matchers.any(Bundle.class), Matchers.eq(false), (AccountManagerCallback<Bundle>) Matchers.eq(null),
-                Matchers.any(Handler.class));
+                assertNotNull(result);
+                assertTrue(result.getAccessToken().equals("I am an access token from broker"));
 
-        // verify returned AT is as expected
-        assertNull(callback.getCallbackException());
-        assertNotNull(callback.getCallbackResult());
-        assertTrue(callback.getCallbackResult().getAccessToken().equals("I am an access token from broker"));
+                //verify local cache is cleared
+                assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
+                        TEST_USERID)));
+                assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
+                        TEST_UPN)));
 
-        //verify local cache is cleared
-        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
-                TEST_USERID)));
-        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientid",
-                TEST_UPN)));
+                assertNull(cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_UPN)));
+                assertNull(cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_USERID)));
 
-        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_UPN)));
-        assertNull(cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientid", TEST_USERID)));
+                assertFalse(authContext.getCache().getAll().hasNext());
+                cacheStore.removeAll();
+                signal.countDown();
+            }
 
-        assertFalse(authContext.getCache().getAll().hasNext());
-        cacheStore.removeAll();
+            @Override
+            public void onError(Exception exc) {
+                fail();
+            }
+        });
+
+        signal.await();
     }
 
     /**
@@ -334,11 +346,19 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 VALID_AUTHORITY, false, cacheStore);
         final TestAuthCallback callback = new TestAuthCallback();
 
-        authContext.acquireToken(Mockito.mock(Activity.class), "resource", "clientid",
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Activity mockedActivity = Mockito.mock(Activity.class);
+        doAnswer(new Answer() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                latch.countDown();
+                return null;
+            }
+        }).when(mockedActivity).startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
+        authContext.acquireToken(mockedActivity, "resource", "clientid",
                 authContext.getRedirectUriForBroker(), TEST_UPN, callback);
 
-        final CountDownLatch signal = new CountDownLatch(1);
-        signal.await(ACTIVITY_TIME_OUT, TimeUnit.MILLISECONDS);
+        latch.await();
 
         // verify getAuthToken called once
         verify(mockedAccountManager, times(1)).getAuthToken(Mockito.any(Account.class), Matchers.anyString(),

@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
@@ -56,8 +57,17 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         assertTrue("resource should be null", param.getResource() == null);
     }
 
-    public void testCreateFromResourceUrlInvalidFormat() {
+    public void testCreateFromResourceUrlInvalidFormat() throws IOException {
         Log.d(TAG, "test:" + getName() + "thread:" + android.os.Process.myTid());
+
+        //mock http response
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(
+                Util.createInputStream(Util.getSuccessTokenResponse(false, false)));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
 
         final TestResponse testResponse = new TestResponse();
         setupAsyncParamRequest("http://www.cnn.com", testResponse);

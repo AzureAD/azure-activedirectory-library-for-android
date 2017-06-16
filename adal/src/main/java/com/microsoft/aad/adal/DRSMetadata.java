@@ -34,6 +34,13 @@ final class DRSMetadata {
     private IdentityProviderService mIdentityProviderService;
 
     /**
+     * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+     */
+    @SuppressWarnings("unused")
+    DRSMetadata() {
+    }
+
+    /**
      * Gets the IdentityProviderService.
      *
      * @return the IdentityProviderService
