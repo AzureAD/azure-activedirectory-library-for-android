@@ -42,6 +42,10 @@ import java.util.Map;
 
 abstract class BasicWebViewClient extends WebViewClient {
 
+    /**
+     * Application link to open in the browser.
+     */
+    private static final String INSTALL_URL_KEY = "app_link";
     private static final String TAG = "BasicWebViewClient";
 
     public static final String BLANK_PAGE = "about:blank";
@@ -263,7 +267,6 @@ abstract class BasicWebViewClient extends WebViewClient {
             return true;
         } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX)) {
             Logger.v(TAG, "It is an install request");
-            ApplicationReceiver.saveRequest(mCallingContext, mRequest, url);
             HashMap<String, String> parameters = StringExtensions
                     .getUrlParameters(url);
             prepareForBrokerResumeRequest();
@@ -278,7 +281,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             } catch (InterruptedException e) {
                 Logger.v(TAG + ":shouldOverrideUrlLoading", "Error occured when having thread sleeping for 1 second");
             }
-            openLinkInBrowser(parameters.get(ApplicationReceiver.INSTALL_URL_KEY));
+            openLinkInBrowser(parameters.get(INSTALL_URL_KEY));
             view.stopLoading();
             return true;
         }
