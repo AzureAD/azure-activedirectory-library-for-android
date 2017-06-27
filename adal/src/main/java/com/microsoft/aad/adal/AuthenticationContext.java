@@ -872,9 +872,8 @@ public class AuthenticationContext {
      *
      * @param requestId Hash code value of your callback to cancel activity
      *                  launch
-     * @return true: if there is a valid waiting request and cancel message send
-     * successfully. false: Request does not exist or cancel message not
-     * send
+     * @return true: if there is a valid waiting request and cancel message sent
+     * successfully or if no waiting request exists. false: If the request could not be cancelled
      * @throws AuthenticationException if failed to get the waiting request
      */
     public boolean cancelAuthenticationActivity(final int requestId) throws AuthenticationException {
