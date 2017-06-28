@@ -158,6 +158,12 @@ class Oauth2 {
             queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.HAS_CHROME, "1");
         }
 
+        // Claims challenge are opaque to the sdk, we're not going to do any merging if both extra qp and claims parameter
+        // contain it. Also, if developer sends it in both places, server will fail it.
+        if (!StringExtensions.isNullOrBlank(mRequest.getClaimsChallenge())) {
+            queryParameter.appendQueryParameter(AuthenticationConstants.OAuth2.CLAIMS, mRequest.getClaimsChallenge());
+        }
+
         String requestUrl = queryParameter.build().getQuery();
         if (!StringExtensions.isNullOrBlank(extraQP)) {
             String parsedQP = extraQP;
