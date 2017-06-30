@@ -458,6 +458,8 @@ public class AuthenticationContext {
     public void acquireToken(final Activity activity, final String resource, final String clientId, @Nullable String redirectUri,
                              @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
                              @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+        throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
+
         if (checkPreRequirements(resource, clientId, callback)
                 && checkADFSValidationRequirements(loginHint, callback)) {
             redirectUri = getRedirectUri(redirectUri);
@@ -539,6 +541,8 @@ public class AuthenticationContext {
     public void acquireToken(final IWindowComponent fragment, final String resource, final String clientId, @Nullable String redirectUri,
                              @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
                              @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+        throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
+
         if (checkPreRequirements(resource, clientId, callback)
                 && checkADFSValidationRequirements(loginHint, callback)) {
             redirectUri = getRedirectUri(redirectUri);
@@ -623,6 +627,8 @@ public class AuthenticationContext {
     public void acquireToken(final String resource, final String clientId, @Nullable String redirectUri,
                              @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
                              @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+        throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
+
         if (checkPreRequirements(resource, clientId, callback)
                 && checkADFSValidationRequirements(loginHint, callback)) {
             redirectUri = getRedirectUri(redirectUri);
@@ -1374,5 +1380,11 @@ public class AuthenticationContext {
         apiEvent.setAuthority(getAuthority());
         Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
         return apiEvent;
+    }
+
+    private void throwIfClaimsInBothExtraQpAndClaimsParameter(final String claims, final String extraQP) {
+        if (!StringExtensions.isNullOrBlank(claims) && !StringExtensions.isNullOrBlank(extraQP) && extraQP.contains(AuthenticationConstants.OAuth2.CLAIMS)) {
+            throw new IllegalArgumentException("claims cannot be sent in claims parameter and extra qp.");
+        }
     }
 }

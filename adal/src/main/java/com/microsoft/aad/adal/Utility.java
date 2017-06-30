@@ -44,8 +44,6 @@ final class Utility {
 
     static boolean isClaimsChallengePresent(final AuthenticationRequest request) {
         // if developer pass claims down through extra qp, we should also skip cache.
-        return !StringExtensions.isNullOrBlank(request.getClaimsChallenge())
-                || request.getExtraQueryParamsAuthentication() != null && request.getExtraQueryParamsAuthentication().contains(
-                AuthenticationConstants.OAuth2.CLAIMS);
+        return !StringExtensions.isNullOrBlank(request.getClaimsChallenge());
     }
 }

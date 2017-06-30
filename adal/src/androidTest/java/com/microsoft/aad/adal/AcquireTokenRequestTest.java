@@ -45,6 +45,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 import android.util.Log;
 
+import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -60,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.IllegalFormatCodePointException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -446,32 +448,76 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         Mockito.verifyZeroInteractions(mockedConnection);
     }
 
-    public void testEmbeddedAuthCacheSkippedClaimsSentInExtraQp() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
+    public void testEmbeddedAuthCacheNotSkippedClaimsSentInExtraQp() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
         // Make sure AT is not expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), false, false, null);
         final FileMockContext mockContext = createMockContext();
         final PackageManager packageManager = mockContext.getPackageManager();
         when(packageManager.resolveActivity(Mockito.any(Intent.class), Mockito.anyInt())).thenReturn(Mockito.mock(ResolveInfo.class));
-        final HttpURLConnection mockedConnection = prepareFailedHttpUrlConnection("invalid_request");
 
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cacheStore);
 
-        final TestAuthCallback callback = new TestAuthCallback();
         final CountDownLatch latch = new CountDownLatch(1);
-        final Activity mockedActivity = Mockito.mock(Activity.class);
-        doAnswer(new Answer() {
+        authContext.acquireToken(Mockito.mock(Activity.class), "resource", "clientid", authContext.getRedirectUriForBroker(), TEST_UPN,
+                PromptBehavior.Auto, "claims=testclaims123", null, new AuthenticationCallback<AuthenticationResult>() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public void onSuccess(AuthenticationResult result) {
+                assertNotNull(result.getAccessToken());
                 latch.countDown();
-                return null;
             }
-        }).when(mockedActivity).startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
 
-        authContext.acquireToken(mockedActivity, "resource", "clientid", authContext.getRedirectUriForBroker(), TEST_UPN, PromptBehavior.Auto, "claims=testclaims123", null, callback);
+            @Override
+            public void onError(Exception exc) {
+                fail();
+            }
+        });
         latch.await();
+    }
 
-        Mockito.verifyZeroInteractions(mockedConnection);
+    public void testClaimsSentInBothClaimParameterAndExtraQP() throws PackageManager.NameNotFoundException, IOException,
+            OperationCanceledException, AuthenticatorException, InterruptedException {
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, null);
+
+        final AccountManager mockedAccountManager = getMockedAccountManager();
+        mockAccountManagerGetAccountBehavior(mockedAccountManager);
+        mockGetAuthTokenCall(mockedAccountManager, false);
+        mockAddAccountCall(mockedAccountManager);
+
+        final FileMockContext mockContext = createMockContext();
+        mockContext.setMockedAccountManager(mockedAccountManager);
+
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+
+        try {
+            authContext.acquireToken(Mockito.mock(Activity.class), "resource", "clientid", authContext.getRedirectUriForBroker(),
+                    TEST_UPN, PromptBehavior.Auto, "claims=testClaims234", "testClaims123", new TestAuthCallback());
+            fail("Expect exception to be thrown.");
+        } catch (final Exception e) {
+            assertTrue(e instanceof IllegalArgumentException);
+        }
+
+        final IWindowComponent fragment = new IWindowComponent() {
+            @Override
+            public void startActivityForResult(Intent intent, int requestCode) { }
+        };
+
+        try {
+            authContext.acquireToken(fragment, "resource", "clientid", authContext.getRedirectUriForBroker(),
+                    TEST_UPN, PromptBehavior.Auto, "claims=testClaims234", "testClaims123", new TestAuthCallback());
+            fail("Expect exception to be thrown.");
+        } catch (final Exception e) {
+            assertTrue(e instanceof IllegalArgumentException);
+        }
+
+        try {
+            authContext.acquireToken("resource", "clientid", authContext.getRedirectUriForBroker(),
+                    TEST_UPN, PromptBehavior.Auto, "claims=testClaims234", "testClaims123", new TestAuthCallback());
+            fail("Expect exception to be thrown.");
+        } catch (final Exception e) {
+            assertTrue(e instanceof IllegalArgumentException);
+        }
     }
 
     public void testBrokerAuthCacheSkippedWhenClaimsSent() throws PackageManager.NameNotFoundException, IOException,
@@ -502,7 +548,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
             }
         }).when(mockedActivity).startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
 
-        authContext.acquireToken(mockedActivity, "resource", "clientid", authContext.getRedirectUriForBroker(), TEST_UPN, PromptBehavior.Auto, "claims=testclaims123", null, callback);
+        authContext.acquireToken(mockedActivity, "resource", "clientid", authContext.getRedirectUriForBroker(), TEST_UPN, PromptBehavior.Auto, "", "testClaims123", callback);
         latch.await();
 
         // make sure no getAuthToken call made and no request to token endpoint(If there is one, there will be interaction with mocked httpUrlConnection).
