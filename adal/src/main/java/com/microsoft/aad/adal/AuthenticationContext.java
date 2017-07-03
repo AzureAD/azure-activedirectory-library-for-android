@@ -563,21 +563,12 @@ public class AuthenticationContext {
                 new AuthenticationCallback<AuthenticationResult>() {
                     @Override
                     public void onSuccess(AuthenticationResult result) {
-                        apiEvent.setWasApiCallSuccessful(true, null);
-                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
-                        apiEvent.setIdToken(result.getIdToken());
-                        apiEvent.stopTelemetryAndFlush();
-
                         authenticationResult.set(result);
                         latch.countDown();
                     }
 
                     @Override
                     public void onError(Exception exc) {
-                        apiEvent.setWasApiCallSuccessful(false, exc);
-                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
-                        apiEvent.stopTelemetryAndFlush();
-
                         exception.set(exc);
                         latch.countDown();
                     }
