@@ -26,12 +26,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.http.SslError;
 import android.support.annotation.UiThread;
-import android.test.AndroidTestCase;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.test.UiThreadTest;
-import android.test.suitebuilder.annotation.SmallTest;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -47,8 +50,12 @@ import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
 import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class BasicWebViewClientTests extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class BasicWebViewClientTests {
 
     private static final String NONCE = "123123-123213-123";
     private static final String CONTEXT = "ABcdeded";
@@ -69,8 +76,8 @@ public class BasicWebViewClientTests extends AndroidTestCase {
     private WebView mMockWebView;
 
     @UiThread
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         mMockWebView = Mockito.mock(WebView.class);
         // Since BasicWebViewClient is abstract,
         // we'll subclass the entire class under test
@@ -126,7 +133,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
     }
 
     @UiThreadTest
-    @SmallTest
+    @Test
     public void testUrlOverrideHandlesPKeyAuthRedirect() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
@@ -146,7 +153,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
     }
 
     @UiThreadTest
-    @SmallTest
+    @Test
     public void testUrlOverrideHandlesCancellation() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
@@ -166,7 +173,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         Mockito.verify(mMockWebView, Mockito.times(1)).stopLoading();
     }
 
-    @SmallTest
+    @Test
     public void testUrlOverrideHandlesExternalSiteRequests() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
@@ -241,7 +248,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         Mockito.verify(mMockWebView).stopLoading();
     }
 
-    @SmallTest
+    @Test
     public void testUrlOverrideHandlesInstallRequests() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
@@ -314,7 +321,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         }
     }
 
-    @SmallTest
+    @Test
     public void testOnReceivedErrorSendsIntentWithErrorData() throws InterruptedException {
         final int errCode = 400;
         final String errMsg = "Bad Request";
@@ -394,7 +401,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         }
     }
 
-    @SmallTest
+    @Test
     public void testSslErrorsSendsIntentWithErrorData() throws InterruptedException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore keystore = JwsBuilderTests.loadTestCertificate(getContext());
         Certificate cert = keystore.getCertificate(JwsBuilderTests.TEST_CERT_ALIAS);
@@ -472,5 +479,9 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         if (!latch.await(1, TimeUnit.SECONDS)) {
             fail();
         }
+    }
+
+    private Context getContext() {
+        return InstrumentationRegistry.getContext();
     }
 }

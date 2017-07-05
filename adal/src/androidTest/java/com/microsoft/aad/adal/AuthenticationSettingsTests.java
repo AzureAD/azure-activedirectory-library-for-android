@@ -23,19 +23,27 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * settings to use in ADAL
  */
-public class AuthenticationSettingsTests extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class AuthenticationSettingsTests {
 
     private static final int READ_TIMEOUT_1 = 1000;
 
     private static final int READ_TIMEOUT_2 = 30000;
 
+    @Test
     public void testActivityPackageName() {
 
         // verify setter/getter
@@ -46,6 +54,7 @@ public class AuthenticationSettingsTests extends AndroidTestCase {
                 AuthenticationSettings.INSTANCE.getActivityPackageName());
     }
 
+    @Test
     public void testTimeOut() {
         // verify setter/getter for timeout
         assertEquals("default timeout", READ_TIMEOUT_2, AuthenticationSettings.INSTANCE.getReadTimeOut());
@@ -65,6 +74,7 @@ public class AuthenticationSettingsTests extends AndroidTestCase {
         AuthenticationSettings.INSTANCE.setReadTimeOut(READ_TIMEOUT_2);
     }
 
+    @Test
     public void testHardwareAcceleration() {
         // verify setter/getter for WebView hardwareAcceleration
         //By default it should be enable

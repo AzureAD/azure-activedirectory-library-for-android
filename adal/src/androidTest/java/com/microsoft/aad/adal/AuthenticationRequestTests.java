@@ -23,26 +23,21 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.UUID;
 
-public class AuthenticationRequestTests extends AndroidTestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+@RunWith(AndroidJUnit4.class)
+public class AuthenticationRequestTests {
     static final int REQUEST_ID = 1234;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        // TODO Auto-generated method stub
-        super.tearDown();
-    }
-
-    @SmallTest
+    @Test
     public void testAuthenticationRequestParams() {
         AuthenticationRequest request = new AuthenticationRequest();
         assertNull("authority is null", request.getAuthority());
@@ -84,7 +79,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         assertEquals("claimsChallenge is same", "testClaims", request.getClaimsChallenge());
     }
 
-    @SmallTest
+    @Test
     public void testRequestId() {
         final AuthenticationRequest request = new AuthenticationRequest("authority1", "resource2", "client3", false);
         request.setRequestId(REQUEST_ID);
@@ -92,7 +87,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         assertEquals("Same RequestId", REQUEST_ID, request.getRequestId());
     }
 
-    @SmallTest
+    @Test
     public void testGetUpnSuffix() {
         AuthenticationRequest authenticationRequest =
                 new AuthenticationRequest(
@@ -106,7 +101,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         assertEquals("foo.internet", authenticationRequest.getUpnSuffix());
     }
 
-    @SmallTest
+    @Test
     public void testGetUpnSuffixNull() {
         AuthenticationRequest authenticationRequest =
                 new AuthenticationRequest(

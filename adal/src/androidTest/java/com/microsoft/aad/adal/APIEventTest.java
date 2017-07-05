@@ -23,17 +23,17 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
-
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class APIEventTest extends AndroidTestCase {
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-    @SmallTest
+public final class APIEventTest {
+
+    @Test
     public void testProcessEvent() throws UnsupportedEncodingException, NoSuchAlgorithmException {
         final APIEvent event = new APIEvent(EventStrings.API_EVENT);
 

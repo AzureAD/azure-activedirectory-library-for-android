@@ -23,14 +23,21 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
 import android.text.TextUtils;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public final class CacheEventTest extends AndroidTestCase {
+import static org.junit.Assert.assertTrue;
 
+@RunWith(AndroidJUnit4.class)
+public final class CacheEventTest {
+
+    @Test
     public void testProcessEvent() {
         CacheEvent event1 = new CacheEvent(EventStrings.TOKEN_CACHE_LOOKUP);
         event1.setTokenType(EventStrings.TOKEN_TYPE_FRT);
@@ -59,6 +66,7 @@ public final class CacheEventTest extends AndroidTestCase {
         assertTrue(dispatchMap.get(EventStrings.TOKEN_TYPE_IS_RT).equals("true"));
     }
 
+    @Test
     public void testDroppedEvents() {
         CacheEvent event1 = new CacheEvent(EventStrings.TOKEN_CACHE_DELETE);
         event1.setTokenType(EventStrings.TOKEN_TYPE_FRT);

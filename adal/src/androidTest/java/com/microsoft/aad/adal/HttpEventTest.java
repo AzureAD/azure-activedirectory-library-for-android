@@ -23,8 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.runner.AndroidJUnit4;
 
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -32,9 +31,17 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class HttpEventTest extends AndroidTestCase {
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-    @SmallTest
+@RunWith(AndroidJUnit4.class)
+public final class HttpEventTest {
+
+    @Test
     public void testProcessEvent() throws MalformedURLException {
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
         event.setHttpPath(new URL("https://login.microsoftonline.com/contoso/oauth2/token"));
@@ -52,7 +59,7 @@ public final class HttpEventTest extends AndroidTestCase {
         assertTrue(httpPath.equals("https://login.microsoftonline.com/oauth2/token/"));
     }
 
-    @SmallTest
+    @Test
     public void testADFSAuthorityPath() throws MalformedURLException {
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
         event.setHttpPath(new URL("https://contoso.com/adfs/ls"));
@@ -65,7 +72,7 @@ public final class HttpEventTest extends AndroidTestCase {
         assertTrue(dispatchMap.get(EventStrings.HTTP_EVENT_COUNT).equals("1"));
     }
 
-    @SmallTest
+    @Test
     public void testAADAuthorityPath() throws MalformedURLException {
         final HttpEvent event = new HttpEvent((EventStrings.HTTP_EVENT));
         event.setHttpPath(new URL("https://login.microsoftonline.com/myTenant.com/oauth2/"));
@@ -79,7 +86,7 @@ public final class HttpEventTest extends AndroidTestCase {
         assertTrue(dispatchMap.get(EventStrings.HTTP_EVENT_COUNT).equals("1"));
     }
 
-    @SmallTest
+    @Test
     public void testOverlappingHttpEvent() {
         final HttpEvent event = new HttpEvent((EventStrings.HTTP_EVENT));
         event.setOauthErrorCode("some error");

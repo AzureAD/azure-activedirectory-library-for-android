@@ -44,13 +44,17 @@ import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 import android.util.Log;
 
 import junit.framework.Assert;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
@@ -67,6 +71,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -74,7 +82,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class BrokerProxyTests extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class BrokerProxyTests {
 
     static final String TEST_AUTHORITY = "https://login.windows.net/common/";
 
@@ -86,15 +95,15 @@ public class BrokerProxyTests extends AndroidTestCase {
 
     private String mTestTag;
 
-    @Override
+    private Context mContext;
+
+    @Before
     @SuppressLint("PackageManagerGetSignatures")
-    protected void setUp() throws Exception {
-        super.setUp();
-        getContext().getCacheDir();
+    public void setUp() throws Exception {
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
-        PackageInfo info = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(),
+        PackageInfo info = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(),
                 PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
@@ -115,13 +124,12 @@ public class BrokerProxyTests extends AndroidTestCase {
         Log.d(TAG, "mTestSignature is set");
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-
+    @After
+    public void tearDown() throws Exception {
         AuthenticationSettings.INSTANCE.setUseBroker(false);
     }
 
+    @Test
     public void testCanSwitchToBrokerInvalidPackage() throws NameNotFoundException {
         final String brokerPackage = "wrong";
         final Signature signature = new Signature(mTestSignature);
@@ -135,6 +143,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
+    @Test
     public void testCanSwitchToBrokerInvalidAuthenticatorType() throws NameNotFoundException {
         final String authenticatorType = "invalid";
         final String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
@@ -151,6 +160,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
+    @Test
     public void testCanSwitchToBrokerInvalidSignature() throws NameNotFoundException {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
@@ -166,6 +176,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
+    @Test
     public void testCannotSwitchToBrokerWhenADFS()
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
@@ -189,6 +200,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY_ADFS));
     }
 
+    @Test
     public void testCanSwitchToBrokerNoAccountChooserActivity() throws NameNotFoundException {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
@@ -210,6 +222,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
+    @Test
     public void testCanSwitchToBrokerWithAccountChooser() throws NameNotFoundException {
         String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
@@ -228,6 +241,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals(BrokerProxy.SwitchToBroker.CAN_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
+    @Test
     public void testCanSwitchToBrokerValidSkip()
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
@@ -252,6 +266,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, brokerProxy.canSwitchToBroker(TEST_AUTHORITY));
     }
 
+    @Test
     public void testGetCurrentUser() throws NameNotFoundException {
         final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
         final String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
@@ -274,6 +289,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals("Username is not equal", "currentUserName", result);
     }
 
+    @Test
     public void testGetBrokerUsers() throws NameNotFoundException, OperationCanceledException, AuthenticatorException,
             IOException {
         final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
@@ -314,6 +330,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals("displayableid_upn", result[0].getDisplayableId());
     }
 
+    @Test
     public void testCanSwitchToBrokerMissingBrokerPermission()
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
@@ -339,6 +356,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testCanSwitchToBrokerValidBrokerAuthenticatorInternalCall()
             throws ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchFieldException, NameNotFoundException {
@@ -367,6 +385,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER, result);
     }
 
+    @Test
     public void testGetAuthTokenInBackgroundEmptyAccts() throws NameNotFoundException {
         final AuthenticationRequest request = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
@@ -391,6 +410,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     @SuppressWarnings("unchecked")
+    @Test
     public void testGetAuthTokenInBackgroundValidAccountEmptyBundle() throws NameNotFoundException, OperationCanceledException,
             AuthenticatorException, IOException, AuthenticationException {
 
@@ -427,6 +447,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     @SuppressWarnings("unchecked")
+    @Test
     public void testGetAuthTokenInBackgroundPositive() throws NameNotFoundException, OperationCanceledException,
             AuthenticatorException, IOException, AuthenticationException {
         final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
@@ -459,6 +480,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     @SuppressWarnings("unchecked")
+    @Test
     public void testGetAuthTokenInBackgroundVerifyUserInfo() throws NameNotFoundException,
             OperationCanceledException, IOException, AuthenticationException, AuthenticatorException {
 
@@ -503,6 +525,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals("displayable in userinfo is expected", acctName, result.getUserInfo().getDisplayableId());
     }
 
+    @Test
     public void testGetAuthTokenInBackgroundVerifyAuthenticationResult()
             throws NameNotFoundException, OperationCanceledException,
             IOException, NoSuchFieldException, AuthenticatorException, AuthenticationException {
@@ -554,6 +577,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertEquals("displayable in userinfo is expected", acctName, result.getUserInfo().getDisplayableId());
     }
 
+    @Test
     public void testGetAuthTokenInBackgroundVerifyAuthenticationResultNotReturnExpires() throws NameNotFoundException,
             AuthenticationException, OperationCanceledException, IOException, NoSuchFieldException, AuthenticatorException {
         final String authenticatorType = AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
@@ -622,6 +646,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         updateContextToSaveAccount("", acctName);
     }
 
+    @Test
     public void testGetAuthTokenInBackgroundVerifyErrorMessageBadArgs() throws NameNotFoundException, OperationCanceledException,
             IOException, AuthenticatorException {
         final String acctName = "testAcct123";
@@ -649,6 +674,7 @@ public class BrokerProxyTests extends AndroidTestCase {
     }
 
     @SuppressLint("InlinedApi")
+    @Test
     public void testGetAuthTokenInBackgroundVerifyErrorMessageBadAuth() throws OperationCanceledException,
             IOException, NameNotFoundException, AuthenticatorException {
         final String acctName = "testAcct123";
@@ -675,6 +701,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testGetAuthTokenInBackgroundVerifyErrorMessageNotSupported() throws NameNotFoundException,
             OperationCanceledException, IOException, AuthenticatorException {
         final String acctName = "testAcct123";
@@ -701,6 +728,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testGetAuthTokenInBackgroundVerifyErrorNoNetworkConnection() throws NameNotFoundException,
     OperationCanceledException, IOException, AuthenticatorException {
         final String acctName = "testAcct123";
@@ -727,6 +755,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testGetIntentForBrokerActivityEmptyIntent() throws NameNotFoundException, OperationCanceledException,
             IOException, AuthenticatorException {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/test", "resource", "client",
@@ -749,6 +778,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         assertNull("Intent is null", intent);
     }
 
+    @Test
     public void testGetIntentForBrokerActivityHasIntent() throws NameNotFoundException, OperationCanceledException,
             IOException, AuthenticatorException {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
@@ -782,7 +812,7 @@ public class BrokerProxyTests extends AndroidTestCase {
      * Test verifying if always is set when speaking to new broker, intent for doing auth via broker will have prompt behavior
      * reset as always. 
      */
-    @SmallTest
+    @Test
     public void testForcePromptFlagOldBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException {
         final Intent intent = new Intent();
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
@@ -805,7 +835,7 @@ public class BrokerProxyTests extends AndroidTestCase {
      * Test verifying if force_prmopt is set when speaking to new broker, intent for doing auth via broker will have prompt behavior
      * as Force_Prompt. 
      */
-    @SmallTest
+    @Test
     public void testForcePromptNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException {
         final Intent intent = new Intent();
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.FORCE_PROMPT);
@@ -831,7 +861,7 @@ public class BrokerProxyTests extends AndroidTestCase {
      * Test verifying if always is set when speaking to new broker, intent for doing auth via broker will have prompt behavior
      * as always. 
      */
-    @SmallTest
+    @Test
     public void testPromptAlwaysNewBroker() throws OperationCanceledException, IOException, AuthenticatorException, NameNotFoundException {
         final Intent intent = new Intent();
         final AuthenticationRequest authenticationRequest = getAuthRequest(PromptBehavior.Always);
@@ -993,5 +1023,9 @@ public class BrokerProxyTests extends AndroidTestCase {
         activities.add(Mockito.mock(ResolveInfo.class));
         when(mockedPackageManager.queryIntentActivities(Mockito.any(Intent.class), Mockito.anyInt()))
                 .thenReturn(activities);
+    }
+
+    private Context getContext() {
+        return InstrumentationRegistry.getContext();
     }
 }

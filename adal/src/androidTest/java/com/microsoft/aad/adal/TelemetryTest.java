@@ -28,11 +28,14 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 import android.util.Log;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import java.io.UnsupportedEncodingException;
@@ -42,26 +45,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.when;
 
-public class TelemetryTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class TelemetryTest {
 
     private static final String TAG = TelemetryTest.class.getSimpleName();
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         Log.d(TAG, "setup key at settings");
-        getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    @SmallTest
+    @Test
     public void testAggregatedDispatcher() throws PackageManager.NameNotFoundException {
         final TestDispatcher dispatch = new TestDispatcher();
         final AggregatedDispatcher dispatcher = new AggregatedDispatcher(dispatch);
@@ -82,7 +82,7 @@ public class TelemetryTest extends AndroidTestCase {
         assertTrue(default1.getDefaultEventCount() >= dispatch.getEventCount());
     }
 
-    @SmallTest
+    @Test
     public void testDefaultDispatcher() throws PackageManager.NameNotFoundException {
         final TestDispatcher dispatch = new TestDispatcher();
         final DefaultDispatcher dispatcher = new DefaultDispatcher(dispatch);
@@ -110,12 +110,12 @@ public class TelemetryTest extends AndroidTestCase {
         mockedPackageInfo.signatures = new Signature[] {mockedSignature};
 
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
-        when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
+        when(mockedPackageManager.getPackageInfo(Mockito.anyString(), anyInt())).thenReturn(mockedPackageInfo);
 
         // Mock intent query
         final List<ResolveInfo> activities = new ArrayList<>(1);
         activities.add(Mockito.mock(ResolveInfo.class));
-        when(mockedPackageManager.queryIntentActivities(Mockito.any(Intent.class), Mockito.anyInt()))
+        when(mockedPackageManager.queryIntentActivities(Mockito.any(Intent.class), anyInt()))
                 .thenReturn(activities);
 
         return mockedPackageManager;
@@ -123,7 +123,7 @@ public class TelemetryTest extends AndroidTestCase {
 
     private FileMockContext createMockContext()
             throws PackageManager.NameNotFoundException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
 
         final PackageManager mockedPackageManager = getMockedPackageManager();
         mockContext.setMockedPackageManager(mockedPackageManager);
