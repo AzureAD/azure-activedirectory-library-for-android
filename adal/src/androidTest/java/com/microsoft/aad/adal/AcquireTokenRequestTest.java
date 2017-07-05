@@ -30,7 +30,6 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorDescription;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -40,12 +39,16 @@ import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.runner.AndroidJUnit4;
+import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
 import android.util.Log;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import static org.junit.Assert.*;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -80,7 +83,8 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link AcquireTokenRequest}.
  */
-public final class AcquireTokenRequestTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public final class AcquireTokenRequestTest {
 
     private static final String TAG = AcquireTokenRequestTest.class.getSimpleName();
     /**
@@ -95,16 +99,15 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     private static final int ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION = 9;
     private static final int MAX_RESILIENCY_ERROR_CODE = 599;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
 
         Log.d(TAG, "setup key at settings");
-        getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+        InstrumentationRegistry.getContext().getCacheDir();
+        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
         Log.d(TAG, "setup key at settings");
-        getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+        InstrumentationRegistry.getContext().getCacheDir();
+        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
@@ -118,18 +121,17 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         }
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         Logger.getInstance().setExternalLogger(null);
         AuthenticationSettings.INSTANCE.setUseBroker(false);
-        super.tearDown();
     }
 
     /**
      * Test if there is a valid AT in local cache, will use it even we can switch to broker for auth.
      */
-    @SmallTest
+    @Test
     public void testFavorLocalCacheValidATInLocalCache()
             throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
             AuthenticatorException, InterruptedException {
@@ -163,7 +165,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test if there is a RT in cache, we'll use the RT first. If it fails and if we can switch to broker for auth,
      * will switch to broker.
      */
-    @SmallTest
+    @Test
     public void testFavorLocalCacheUseLocalRTFailsSwitchToBroker()
             throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
             AuthenticatorException, InterruptedException {
@@ -222,7 +224,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test if there is a RT in cache, we'll use the RT first. If it fails with invalid_grant, local cache will be
      * cleared. If we can switch to broker, will switch to broker for auth.
      */
-    @SmallTest
+    @Test
     public void testFavorLocalCacheUseLocalRTFailsWithInvalidGrantSwitchToBroker()
             throws PackageManager.NameNotFoundException, OperationCanceledException,
             IOException, AuthenticatorException, InterruptedException {
@@ -283,7 +285,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test if there is a RT in cache, we'll use the RT first. If it fails and if we can switch to broker for auth,
      * will switch to broker.
      */
-    @SmallTest
+    @Test
     public void testFavorLocalCacheUseLocalRTSucceeds()
             throws PackageManager.NameNotFoundException, OperationCanceledException,
             IOException, AuthenticatorException, InterruptedException {
@@ -324,7 +326,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         cacheStore.removeAll();
     }
 
-    @SmallTest
+    @Test
     public void testBothLocalAndBrokerSilentAuthFailedSwitchedToBrokerForInteractive()
             throws OperationCanceledException, IOException, AuthenticatorException,
             PackageManager.NameNotFoundException, InterruptedException {
@@ -376,7 +378,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         cacheStore.removeAll();
     }
 
-    @SmallTest
+    @Test
     public void testLocalSilentFailedBrokerSilentReturnErrorCannotTryWithInteractive()
             throws OperationCanceledException, IOException, AuthenticatorException,
             PackageManager.NameNotFoundException, InterruptedException {
@@ -518,7 +520,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                     userInfo, "", idToken, extendedExpiresOn);
         }
         
-        final ITokenCacheStore cacheStore = new DefaultTokenCacheStore(getContext());
+        final ITokenCacheStore cacheStore = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         cacheStore.removeAll();
         final TokenCacheItem regularRTItem = TokenCacheItem.createRegularTokenCacheItem(VALID_AUTHORITY,
                 resource, clientId, result);
@@ -547,13 +549,13 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         return cacheStore;
     }
 
-    @SmallTest
+    @Test
     public void testVerifyBrokerRedirectUriValid() throws PackageManager.NameNotFoundException,
             InterruptedException, OperationCanceledException, IOException, AuthenticatorException {
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAddAccountCall(mockedAccountManager);
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         mockContext.setMockedAccountManager(mockedAccountManager);
         mockContext.setMockedPackageManager(getMockedPackageManager());
 
@@ -582,7 +584,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertNull(callback.getCallbackException());
     }
 
-    @SmallTest
+    @Test
     public void testVerifyBrokerRedirectUriInvalidPrefix() throws PackageManager.NameNotFoundException,
             InterruptedException {
         final FileMockContext mockContext = createMockContext();
@@ -605,7 +607,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertTrue(usageAuthenticationException.getMessage().contains("prefix"));
     }
 
-    @SmallTest
+    @Test
     public void testVerifyBrokerRedirectUriInvalidPackageName() throws NoSuchAlgorithmException,
             PackageManager.NameNotFoundException, InterruptedException {
         final FileMockContext mockContext = createMockContext();
@@ -628,7 +630,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertTrue(usageAuthenticationException.getMessage().contains("package name"));
     }
 
-    @SmallTest
+    @Test
     public void testVerifyBrokerRedirectUriInvalidSignature()
             throws PackageManager.NameNotFoundException, InterruptedException {
 
@@ -657,7 +659,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     /**
      * Test for returning a valid stale AT when ExtendedLifetime is on and the server is down.
      */
-    @SmallTest
+    @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnMinServerError() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
@@ -730,7 +732,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test for throwing exception when the request is rejected by server through there is a valid 
      * stale AT in the cache and the ExtendedLifetime is on.
      */
-    @SmallTest
+    @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithRetryFail() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
@@ -770,7 +772,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test for throwing exception when the server is down and ExtendedLifetime is on
      * but AT is expired either in terms of expires_on or ext_expires_on
      */
-    @SmallTest
+    @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithExpiredStaleAT() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
@@ -807,7 +809,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test for returning new AT from the server when the
      * ExtendedLifetime is on and the retry succeeds
      */
-    @SmallTest
+    @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithValidRetry() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
@@ -845,7 +847,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test for throwing an exception when ExtendedLifetime is off, the server is down
      * and AT is expired in the term of expires_in but still valid in ext_expires_in
      */
-    @SmallTest
+    @Test
     public void testResiliencyTokenReturnExtendedLifetimeOff() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
@@ -884,7 +886,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
      * Test for throwing exception when the request is rejected by server through there is a valid 
      * stale AT in the cache and the ExtendedLifetime is on.
      */
-    @SmallTest
+    @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithoutRetry() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
@@ -956,7 +958,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         }
     }
     
-    @SmallTest
+    @Test
     public void testVerifyManifestPermissionMissingGetAccountsPermission() throws InterruptedException, PackageManager.NameNotFoundException {
         final FileMockContext mockContext = createMockContext();
         when(mockContext.getPackageManager().checkPermission(Mockito.refEq("android.permission.GET_ACCOUNTS"),
@@ -980,7 +982,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         assertEquals(ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING, usageAuthenticationException.getCode());
     }
 
-    @SmallTest
+    @Test
     public void testVerifyManifestPermissionMissingMultiPermissions() throws InterruptedException, PackageManager.NameNotFoundException {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             final FileMockContext mockContext = createMockContext();
@@ -1059,7 +1061,7 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
     private FileMockContext createMockContext()
             throws PackageManager.NameNotFoundException {
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
 
         mockContext.addPermission("android.permission.GET_ACCOUNTS");
 
