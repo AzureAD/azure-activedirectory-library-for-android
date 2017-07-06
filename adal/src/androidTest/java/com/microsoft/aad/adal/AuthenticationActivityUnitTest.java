@@ -169,40 +169,6 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
 
-    @SmallTest
-    @UiThreadTest
-    public void testWebviewInstallLink() throws IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            InterruptedException, ExecutionException {
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
-        String url = AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX
-                + "?username=abc@outlook.com&app_link=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.azure.authenticator";
-        WebViewClient client = getCustomWebViewClient();
-        WebView mockview = new WebView(getActivity().getApplicationContext());
-        ReflectionUtils.setFieldValue(mActivity, "mSpinner", null);
-
-        // Act
-        client.shouldOverrideUrlLoading(mockview, url);
-
-        // Verify result code that includes requestid. Activity will set the
-        // result back to caller.
-        TestLogResponse response = new TestLogResponse();
-        final CountDownLatch signal = new CountDownLatch(1);
-        response.listenForLogMessage("It is an install request", signal);
-        int counter = 0;
-        final int maxWaitCycles = 20;
-        while (!isFinishCalled() && counter < maxWaitCycles) {
-            Thread.sleep(DEVICE_RESPONSE_WAIT);
-            counter++;
-        }
-
-        String savedData = ApplicationReceiver.getInstallRequestInthisApp(getInstrumentation().getTargetContext());
-        assertNotNull(savedData);
-        assertTrue(savedData.contains("abc@outlook.com"));
-    }
-
     /**
      * Return authentication exception at setResult so that mActivity receives at
      * onActivityResult

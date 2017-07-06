@@ -23,16 +23,14 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.Locale;
-
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.test.InstrumentationTestCase;
 import android.util.Log;
+
+import java.util.Locale;
 
 public class ADALErrorTest extends InstrumentationTestCase {
 
@@ -44,10 +42,6 @@ public class ADALErrorTest extends InstrumentationTestCase {
         super.setUp();
         getInstrumentation().getTargetContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
-
-        // ADAL is set to this signature for now
-        PackageInfo info = getInstrumentation().getContext().getPackageManager()
-                .getPackageInfo("com.microsoft.aad.adal.testapp", PackageManager.GET_SIGNATURES);
 
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
