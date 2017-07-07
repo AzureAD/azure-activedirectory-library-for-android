@@ -420,6 +420,85 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
         cacheStore.removeAll();
     }
 
+    @Test
+    public void testMultipleATExistForSameClientAppAndResource() throws PackageManager.NameNotFoundException, InterruptedException {
+        // insert multiple ATs for the same client app and resource
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), false, false, null);
+        final String resource = "resource";
+        final String clientId = "clientid";
+        insertTokenForDifferentUser(clientId, resource, getExpireDate(MINUS_MINUITE), cacheStore);
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        authContext.acquireTokenSilentAsync(resource, clientId, null, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                fail("unexpected success");
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                assertTrue(exc instanceof AuthenticationException);
+                final AuthenticationException authenticationException = (AuthenticationException) exc;
+                assertTrue(authenticationException.getCode().equals(ADALError.AUTH_FAILED_USER_MISMATCH));
+                latch.countDown();
+            }
+        });
+        latch.await();
+    }
+
+    @Test
+    public void testMutipleMRRTExistForTheSameApp() throws PackageManager.NameNotFoundException, InterruptedException {
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), true, false, null);
+        final String resource = "resource";
+        final String clientId = "clientid";
+        insertTokenForDifferentUser(clientId, resource, getExpireDate(MINUS_MINUITE), cacheStore);
+
+        final FileMockContext mockContext = createMockContext();
+        final AuthenticationContext authContext = new AuthenticationContext(mockContext,
+                VALID_AUTHORITY, false, cacheStore);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        authContext.acquireTokenSilentAsync("different resource", clientId, null, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                fail("unexpected success");
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                assertTrue(exc instanceof AuthenticationException);
+                final AuthenticationException authenticationException = (AuthenticationException) exc;
+                assertTrue(authenticationException.getCode().equals(ADALError.AUTH_FAILED_USER_MISMATCH));
+                latch.countDown();
+            }
+        });
+        latch.await();
+    }
+
+    private void insertTokenForDifferentUser(final String clientId, final String resource, final Date expiresOn, final ITokenCacheStore cacheStore) {
+        final String anotherUpn = "another_upn";
+        final String anotherUserId = "another_userid";
+        final UserInfo userInfo = new UserInfo();
+        userInfo.setDisplayableId(anotherUpn);
+        userInfo.setUserId(anotherUserId);
+        final String idToken = "I am a different id token";
+
+        final AuthenticationResult result = new AuthenticationResult("different at", "different rt", expiresOn, false, userInfo, "", idToken, null);
+        final TokenCacheItem differentTokenItem = TokenCacheItem.createRegularTokenCacheItem(VALID_AUTHORITY, resource, clientId, result);
+        cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, anotherUserId), differentTokenItem);
+        cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, anotherUpn), differentTokenItem);
+        cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, null), differentTokenItem);
+
+        final TokenCacheItem mrrtItem = TokenCacheItem.createMRRTTokenCacheItem(VALID_AUTHORITY, clientId, result);
+        cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, anotherUpn), mrrtItem);
+        cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, anotherUserId), mrrtItem);
+        cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, null), mrrtItem);
+    }
+
     public void testEmbeddedAuthCacheSkippedWhenClaimsSent() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
         // Make sure AT is not expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), false, false, null);
@@ -586,11 +665,13 @@ public final class AcquireTokenRequestTest extends AndroidTestCase {
                 regularRTItem);
         cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_UPN),
                 regularRTItem);
+        cacheStore.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, null), regularRTItem);
 
         if (storeMRRT) {
             final TokenCacheItem mrrtItem = TokenCacheItem.createMRRTTokenCacheItem(VALID_AUTHORITY, clientId, result);
             cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_UPN), mrrtItem);
             cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, TEST_USERID), mrrtItem);
+            cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, null), mrrtItem);
         }
 
         if (storeFRT) {
