@@ -26,8 +26,6 @@ package com.microsoft.aad.adal;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 
 public class AuthenticationRequestTests extends AndroidTestCase {
@@ -45,93 +43,53 @@ public class AuthenticationRequestTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testAuthenticationRequestParams() throws NoSuchMethodException,
-            ClassNotFoundException, IllegalArgumentException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
+    public void testAuthenticationRequestParams() {
+        AuthenticationRequest request = new AuthenticationRequest();
+        assertNull("authority is null", request.getAuthority());
 
-        Constructor<?> constructor = Class.forName(
-                ReflectionUtils.TEST_PACKAGE_NAME + ".AuthenticationRequest")
-                .getDeclaredConstructor();
-        constructor.setAccessible(true);
-        Object o = constructor.newInstance();
-
-        String actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
-        assertNull("authority is null", actual);
 
         // call with params
-        o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".AuthenticationRequest", "authority1", "resource2", "client3", false);
-        actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
-        assertEquals("authority is same", "authority1", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getResource");
-        assertEquals("resource is same", "resource2", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getClientId");
-        assertEquals("client is same", "client3", actual);
+        request = new AuthenticationRequest("authority1", "resource2", "client3", false);
+        assertEquals("authority is same", "authority1", request.getAuthority());
+        assertEquals("resource is same", "resource2", request.getResource());
+        assertEquals("client is same", "client3", request.getClientId());
 
-        o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                        + ".AuthenticationRequest", "authority31", "resource32", "client33", "redirect34",
-                "loginhint35", false);
-
-        actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
-        assertEquals("authority is same", "authority31", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getResource");
-        assertEquals("resource is same", "resource32", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getClientId");
-        assertEquals("client is same", "client33", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getRedirectUri");
-        assertEquals("redirect is same", "redirect34", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getLoginHint");
-        assertEquals("loginhint is same", "loginhint35", actual);
+        request = new AuthenticationRequest("authority31", "resource32", "client33", "redirect34", "loginhint35", false);
+        assertEquals("authority is same", "authority31", request.getAuthority());
+        assertEquals("resource is same", "resource32", request.getResource());
+        assertEquals("client is same", "client33", request.getClientId());
+        assertEquals("redirect is same", "redirect34", request.getRedirectUri());
+        assertEquals("loginhint is same", "loginhint35", request.getLoginHint());
 
         UUID correlationId = UUID.randomUUID();
-        o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                        + ".AuthenticationRequest", "authority41", "resource42", "client43", "redirect44",
-                "loginhint45", correlationId, false);
+        request = new AuthenticationRequest("authority41", "resource42", "client43", "redirect44", "loginhint45", correlationId, false);
+        assertEquals("authority is same", "authority41", request.getAuthority());
+        assertEquals("resource is same", "resource42", request.getResource());
+        assertEquals("client is same", "client43", request.getClientId());
+        assertEquals("redirect is same", "redirect44", request.getRedirectUri());
+        assertEquals("loginhint is same", "loginhint45", request.getLoginHint());
+        assertEquals("correlationId is same", correlationId, request.getCorrelationId());
 
-        actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
-        assertEquals("authority is same", "authority41", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getResource");
-        assertEquals("resource is same", "resource42", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getClientId");
-        assertEquals("client is same", "client43", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getRedirectUri");
-        assertEquals("redirect is same", "redirect44", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getLoginHint");
-        assertEquals("loginhint is same", "loginhint45", actual);
-        UUID actualId = ReflectionUtils.getterValue(UUID.class, o, "getCorrelationId");
-        assertEquals("correlationId is same", correlationId, actualId);
 
-        o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                        + ".AuthenticationRequest", "authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Always, "extraQueryPAram56", correlationId, false);
-
-        actual = ReflectionUtils.getterValue(String.class, o, "getAuthority");
-        assertEquals("authority is same", "authority51", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getResource");
-        assertEquals("resource is same", "resource52", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getClientId");
-        assertEquals("client is same", "client53", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getRedirectUri");
-        assertEquals("redirect is same", "redirect54", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getLoginHint");
-        assertEquals("loginhint is same", "loginhint55", actual);
-        actual = ReflectionUtils.getterValue(String.class, o, "getExtraQueryParamsAuthentication");
-        assertEquals("ExtraQueryParams is same", "extraQueryPAram56", actual);
-        PromptBehavior actualPrompt = ReflectionUtils.getterValue(PromptBehavior.class, o, "getPrompt");
-        assertEquals("PromptBehavior is same", PromptBehavior.Always, actualPrompt);
-        actualId = ReflectionUtils.getterValue(UUID.class, o, "getCorrelationId");
-        assertEquals("correlationId is same", correlationId, actualId);
+        request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
+                "loginhint55", PromptBehavior.Always, "extraQueryPAram56", correlationId, false, "testClaims");
+        assertEquals("authority is same", "authority51", request.getAuthority());
+        assertEquals("resource is same", "resource52", request.getResource());
+        assertEquals("client is same", "client53", request.getClientId());
+        assertEquals("redirect is same", "redirect54", request.getRedirectUri());
+        assertEquals("loginhint is same", "loginhint55", request.getLoginHint());
+        assertEquals("ExtraQueryParams is same", "extraQueryPAram56", request.getExtraQueryParamsAuthentication());
+        assertEquals("PromptBehavior is same", PromptBehavior.Always, request.getPrompt());
+        assertEquals("correlationId is same", correlationId, request.getCorrelationId());
+        assertEquals("claimsChallenge is same", "testClaims", request.getClaimsChallenge());
     }
 
     @SmallTest
-    public void testRequestId() throws IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException {
-        Object o = ReflectionUtils.getInstance(ReflectionUtils.TEST_PACKAGE_NAME
-                + ".AuthenticationRequest", "authority1", "resource2", "client3", false);
-        ReflectionUtils.setterValue(o, "setRequestId", Integer.valueOf(REQUEST_ID));
-        int actual = ReflectionUtils.getterValue(Integer.class, o, "getRequestId");
-        assertEquals("Same RequestId", REQUEST_ID, actual);
+    public void testRequestId() {
+        final AuthenticationRequest request = new AuthenticationRequest("authority1", "resource2", "client3", false);
+        request.setRequestId(REQUEST_ID);
+
+        assertEquals("Same RequestId", REQUEST_ID, request.getRequestId());
     }
 
     @SmallTest

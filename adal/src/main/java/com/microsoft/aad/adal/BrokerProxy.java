@@ -653,6 +653,12 @@ class BrokerProxy implements IBrokerProxy {
         if (request.getPrompt() != null) {
             brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_PROMPT, request.getPrompt().name());
         }
+
+        if (Utility.isClaimsChallengePresent(request)) {
+            brokerOptions.putString(AuthenticationConstants.Broker.BROKER_SKIP_CACHE, Boolean.toString(true));
+            brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_CLAIMS, request.getClaimsChallenge());
+        }
+
         return brokerOptions;
     }
 
