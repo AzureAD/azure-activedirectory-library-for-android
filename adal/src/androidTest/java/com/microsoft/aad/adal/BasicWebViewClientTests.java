@@ -8,6 +8,8 @@ import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.webkit.WebView;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Browser.*;
+
 import org.mockito.Mockito;
 
 import java.util.concurrent.CountDownLatch;
@@ -275,6 +277,86 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         );
 
         if (!countDownLatch.await(1, TimeUnit.SECONDS)) {
+            fail();
+        }
+    }
+
+    @SmallTest
+    public void testOnReceivedErrorSendsIntentWithErrorData() throws InterruptedException {
+        final int errCode = 400;
+        final String errMsg = "Bad Request";
+        final CountDownLatch latch = new CountDownLatch(1);
+        final BasicWebViewClient dummyClient = new BasicWebViewClient(
+                getContext(),
+                sTestInstallRequestUrl,
+                new AuthenticationRequest(
+                        "NA",
+                        "NA",
+                        "NA",
+                        "NA",
+                        "user",
+                        false
+                ),
+                new UIEvent("")) {
+            @Override
+            public void showSpinner(boolean status) {
+                // Not under test
+            }
+
+            @Override
+            public void sendResponse(int returnCode, Intent responseIntent) {
+                assertEquals(returnCode, AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR);
+                final String errString = responseIntent.getStringExtra(RESPONSE_ERROR_CODE);
+                final String intentErrMsg = responseIntent.getStringExtra(RESPONSE_ERROR_MESSAGE);
+                assertTrue(errString.contains(String.valueOf(errCode)));
+                assertEquals(errMsg, intentErrMsg);
+                latch.countDown();
+            }
+
+            @Override
+            public void cancelWebViewRequest() {
+                // Not under test
+            }
+
+            @Override
+            public void prepareForBrokerResumeRequest() {
+                // Not under test
+            }
+
+            @Override
+            public void setPKeyAuthStatus(boolean status) {
+                // Not under test
+            }
+
+            @Override
+            public void postRunnable(Runnable item) {
+                // Not under test
+            }
+
+            @Override
+            public void processRedirectUrl(WebView view, String url) {
+                // Not under test
+            }
+
+            @Override
+            public boolean processInvalidUrl(WebView view, String url) {
+                return false;
+            }
+
+            @Override
+            protected void openLinkInBrowser(String url) {
+                // Not under test
+            }
+        };
+
+        dummyClient.onReceivedError(
+                mMockWebView,
+                errCode,
+                errMsg,
+                sTestExternalSiteUrl
+        );
+
+        if (!latch.await(1, TimeUnit.SECONDS)) {
             fail();
         }
     }
