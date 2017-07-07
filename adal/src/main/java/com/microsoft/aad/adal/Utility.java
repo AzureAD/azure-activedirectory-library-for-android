@@ -41,5 +41,9 @@ final class Utility {
 
         return date;
     }
-    
+
+    static boolean isClaimsChallengePresent(final AuthenticationRequest request) {
+        // if developer pass claims down through extra qp, we should also skip cache.
+        return !StringExtensions.isNullOrBlank(request.getClaimsChallenge());
+    }
 }
