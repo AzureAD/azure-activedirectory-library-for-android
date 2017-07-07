@@ -2,18 +2,29 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.http.SslError;
 import android.support.annotation.UiThread;
 import android.test.AndroidTestCase;
 import android.test.UiThreadTest;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
-
-import static com.microsoft.aad.adal.AuthenticationConstants.Browser.*;
 
 import org.mockito.Mockito;
 
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_CODE;
+import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE;
 
 public class BasicWebViewClientTests extends AndroidTestCase {
 
@@ -354,6 +365,86 @@ public class BasicWebViewClientTests extends AndroidTestCase {
                 errCode,
                 errMsg,
                 sTestExternalSiteUrl
+        );
+
+        if (!latch.await(1, TimeUnit.SECONDS)) {
+            fail();
+        }
+    }
+
+    @SmallTest
+    public void testSslErrorsSendsIntentWithErrorData() throws InterruptedException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore keystore = JwsBuilderTests.loadTestCertificate(getContext());
+        Certificate cert = keystore.getCertificate(JwsBuilderTests.TEST_CERT_ALIAS);
+        final SslError sslError = new SslError(SslError.SSL_DATE_INVALID, (X509Certificate) cert);
+        final CountDownLatch latch = new CountDownLatch(1);
+        final BasicWebViewClient dummyClient = new BasicWebViewClient(
+                getContext(),
+                sTestInstallRequestUrl,
+                new AuthenticationRequest(
+                        "NA",
+                        "NA",
+                        "NA",
+                        "NA",
+                        "user",
+                        false
+                ),
+                new UIEvent("")) {
+            @Override
+            public void showSpinner(boolean status) {
+                // Not under test
+            }
+
+            @Override
+            public void sendResponse(int returnCode, Intent responseIntent) {
+                assertEquals(returnCode, AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR);
+                final String errString = responseIntent.getStringExtra(RESPONSE_ERROR_CODE);
+                final String intentErrMsg = responseIntent.getStringExtra(RESPONSE_ERROR_MESSAGE);
+                assertTrue(errString.contains(String.valueOf(ERROR_FAILED_SSL_HANDSHAKE)));
+                assertEquals(sslError.toString(), intentErrMsg);
+                latch.countDown();
+            }
+
+            @Override
+            public void cancelWebViewRequest() {
+                // Not under test
+            }
+
+            @Override
+            public void prepareForBrokerResumeRequest() {
+                // Not under test
+            }
+
+            @Override
+            public void setPKeyAuthStatus(boolean status) {
+                // Not under test
+            }
+
+            @Override
+            public void postRunnable(Runnable item) {
+                // Not under test
+            }
+
+            @Override
+            public void processRedirectUrl(WebView view, String url) {
+                // Not under test
+            }
+
+            @Override
+            public boolean processInvalidUrl(WebView view, String url) {
+                return false;
+            }
+
+            @Override
+            protected void openLinkInBrowser(String url) {
+                // Not under test
+            }
+        };
+
+        dummyClient.onReceivedSslError(
+                mMockWebView,
+                Mockito.mock(SslErrorHandler.class),
+                sslError
         );
 
         if (!latch.await(1, TimeUnit.SECONDS)) {
