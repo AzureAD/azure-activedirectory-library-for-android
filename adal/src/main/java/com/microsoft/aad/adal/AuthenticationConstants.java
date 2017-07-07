@@ -215,6 +215,8 @@ public final class AuthenticationConstants {
         static final String HAS_CHROME = "haschrome";
 
         static final String EXT_EXPIRES_IN = "ext_expires_in";
+
+        static final String CLAIMS = "claims";
     }
 
     /**
@@ -315,6 +317,8 @@ public final class AuthenticationConstants {
         /** String of broker protocl version with PRT support. */
         public static final String BROKER_PROTOCOL_VERSION = "v2";
 
+        public static final String BROKER_SKIP_CACHE = "skip.cache";
+
         /** String of broker result returned. */
         public static final String BROKER_RESULT_RETURNED = "broker.result.returned";
 
@@ -338,6 +342,9 @@ public final class AuthenticationConstants {
 
         /** String of account extra query param. */
         public static final String ACCOUNT_EXTRA_QUERY_PARAM = "account.extra.query.param";
+
+        /** String of account claims. */
+        public static final String ACCOUNT_CLAIMS = "account.claims";
 
         /** String of account login hint. */
         public static final String ACCOUNT_LOGIN_HINT = "account.login.hint";

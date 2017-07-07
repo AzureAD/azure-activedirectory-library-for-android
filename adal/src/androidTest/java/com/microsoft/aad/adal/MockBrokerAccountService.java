@@ -30,8 +30,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import org.mockito.Mockito;
-
 import java.util.Map;
 
 /**
@@ -88,7 +86,7 @@ public class MockBrokerAccountService extends Service {
 
         @Override
         public Intent getIntentForInteractiveRequest() throws RemoteException {
-            return Mockito.mock(Intent.class);
+            return new Intent();
         }
 
         @Override
