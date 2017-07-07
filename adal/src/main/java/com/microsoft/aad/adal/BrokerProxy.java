@@ -356,6 +356,9 @@ class BrokerProxy implements IBrokerProxy {
                 if (e.getMessage() != null && e.getMessage().contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
                     throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                             "Received error from broker, errorCode: " + e.getMessage());
+                } else if (e.getMessage() != null && e.getMessage().contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
+                    throw new AuthenticationException(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION,
+                            "Received error from broker, errorCode: " + e.getMessage());
                 }
             } catch (IOException e) {
                 // Authenticator gets problem from webrequest or file read/write
@@ -431,8 +434,13 @@ class BrokerProxy implements IBrokerProxy {
                 adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
                 break;
             case AccountManager.ERROR_CODE_NETWORK_ERROR:
-                adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
-                break;
+                if (msg.contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
+                    adalErrorCode = ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION;
+                    break;
+                } else {
+                    adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
+                    break;
+                }
             default:
                 adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
             }

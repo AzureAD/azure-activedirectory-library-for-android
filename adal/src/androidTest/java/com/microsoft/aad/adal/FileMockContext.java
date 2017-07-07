@@ -33,6 +33,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
@@ -41,13 +42,13 @@ import android.test.mock.MockContentResolver;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 
-
 import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 
 class FileMockContext extends MockContext {
@@ -72,6 +73,17 @@ class FileMockContext extends MockContext {
 
     public FileMockContext(Context context) {
         mContext = context;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            UsageStatsManagerWrapper mockUsageStatsManagerWrapper = mock(UsageStatsManagerWrapper.class);
+            Mockito.when(mockUsageStatsManagerWrapper.isAppInactive(any(Context.class))).thenReturn(false);
+            UsageStatsManagerWrapper.sInstance = mockUsageStatsManagerWrapper;
+            PowerManagerWrapper mockPowerManagerWrapper = mock(PowerManagerWrapper.class);
+            Mockito.when(mockPowerManagerWrapper.isDeviceIdleMode(any(Context.class))).thenReturn(false);
+            Mockito.when(mockPowerManagerWrapper.isIgnoringBatteryOptimizations(any(Context.class))).thenReturn(false);
+            PowerManagerWrapper.sInstance = mockPowerManagerWrapper;
+        }
+
         // default
         mPermissionMap.put("android.permission.INTERNET", PackageManager.PERMISSION_GRANTED);
     }
@@ -113,6 +125,7 @@ class FileMockContext extends MockContext {
             Mockito.when(mockedConnectivityManager.getActiveNetworkInfo()).thenReturn(mockedNetworkInfo);
             return mockedConnectivityManager;
         }
+
         return new Object();
     }
 
@@ -172,6 +185,23 @@ class FileMockContext extends MockContext {
 
     public void setConnectionAvailable(boolean connectionAvailable) {
         mIsConnectionAvailable = connectionAvailable;
+    }
+
+    public void setAppInactive() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            UsageStatsManagerWrapper mockUsageStatsManagerWrapper = mock(UsageStatsManagerWrapper.class);
+            Mockito.when(mockUsageStatsManagerWrapper.isAppInactive(any(Context.class))).thenReturn(true);
+            UsageStatsManagerWrapper.sInstance = mockUsageStatsManagerWrapper;
+        }
+    }
+
+    public void setDeviceInIdleMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManagerWrapper mockPowerManagerWrapper = mock(PowerManagerWrapper.class);
+            Mockito.when(mockPowerManagerWrapper.isDeviceIdleMode(any(Context.class))).thenReturn(true);
+            Mockito.when(mockPowerManagerWrapper.isIgnoringBatteryOptimizations(any(Context.class))).thenReturn(false);
+            PowerManagerWrapper.sInstance = mockPowerManagerWrapper;
+        }
     }
 
     public void setResolveIntent(boolean resolveIntent) {

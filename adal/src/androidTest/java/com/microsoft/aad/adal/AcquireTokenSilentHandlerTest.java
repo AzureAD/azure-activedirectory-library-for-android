@@ -23,6 +23,8 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+import android.os.Build;
+import android.support.test.filters.SdkSuppress;
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 
@@ -45,6 +47,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import static android.R.attr.minSdkVersion;
 
 /**
  * Tests for verifying acquire token silent flow.
@@ -78,6 +82,60 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
                     "abcdedfdfd".getBytes("UTF-8"), iterations, keySize));
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
+        }
+    }
+
+    /**
+     * Acquire token users refresh token, but the client app is inactive.
+     */
+    @SmallTest
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
+    public void testRefreshTokenFailedNoNetworkAppIsInactive() {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setAppInactive();
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockCache);
+
+        try {
+            acquireTokenSilentHandler.acquireTokenWithRefreshToken("refreshToken");
+            fail("Expect exception");
+        } catch (final Exception exception) {
+            assertTrue(exception instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception).getCode() == ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+        }
+    }
+
+    /**
+     * Acquire token users refresh token, but the device is in doze mode.
+     */
+    @SmallTest
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
+    public void testRefreshTokenFailedNoNetworkDeviceIsIdle() {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setDeviceInIdleMode();
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockCache);
+
+        try {
+            acquireTokenSilentHandler.acquireTokenWithRefreshToken("refreshToken");
+            fail("Expect exception");
+        } catch (final Exception exception) {
+            assertTrue(exception instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception).getCode() == ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
         }
     }
 
@@ -880,13 +938,5 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
                                                              final ITokenCacheStore mockCache) {
         return new AcquireTokenSilentHandler(context, authRequest,
                 new TokenCacheAccessor(mockCache, authRequest.getAuthority(), authRequest.getTelemetryRequestId()));
-    }
-
-    class MockedConnectionService implements IConnectionService {
-        @Override
-        public boolean isConnectionAvailable() {
-            return true;
-        }
-
     }
 }
