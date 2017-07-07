@@ -10,6 +10,9 @@ import android.webkit.WebView;
 
 import org.mockito.Mockito;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 public class BasicWebViewClientTests extends AndroidTestCase {
 
     private static final String sNonce = "123123-123213-123";
@@ -21,9 +24,12 @@ public class BasicWebViewClientTests extends AndroidTestCase {
             + "&Version=1.0"
             + "&SubmitUrl=http://fs.contoso.com/adfs/services/trust&Context="
             + sContext;
-    private static final String sTestCancellationUrl = "https://cancel.com?error=cancel&error_description=bye";
-    private static final String sTestExternalSiteUrl = "";
-    private static final String sTestInstallRequestUrl = "";
+    private static final String sTestCancellationUrl =
+            "https://cancel.com?error=cancel&error_description=bye";
+    private static final String sTestExternalSiteUrl =
+            AuthenticationConstants.Broker.BROWSER_EXT_PREFIX + "https://graph.microsoft.io";
+    private static final String sTestInstallRequestUrl =
+            AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX + "foo";
 
     private WebView mMockWebView;
 
@@ -126,12 +132,150 @@ public class BasicWebViewClientTests extends AndroidTestCase {
     }
 
     @SmallTest
-    public void testUrlOverrideHandlesExternalSiteRequests() {
+    public void testUrlOverrideHandlesExternalSiteRequests() throws InterruptedException {
+        final CountDownLatch countDownLatch = new CountDownLatch(2);
+        final BasicWebViewClient dummyClient = new BasicWebViewClient(
+                getContext(),
+                "www.redirect.com",
+                new AuthenticationRequest(
+                        "NA",
+                        "NA",
+                        "NA",
+                        "NA",
+                        "user",
+                        false
+                ),
+                new UIEvent("")) {
+            @Override
+            public void showSpinner(boolean status) {
+                // Not under test
+            }
 
+            @Override
+            public void sendResponse(int returnCode, Intent responseIntent) {
+                // Not under test
+            }
+
+            @Override
+            public void cancelWebViewRequest() {
+                countDownLatch.countDown();
+            }
+
+            @Override
+            public void prepareForBrokerResumeRequest() {
+                // Not under test
+            }
+
+            @Override
+            public void setPKeyAuthStatus(boolean status) {
+                // Not under test
+            }
+
+            @Override
+            public void postRunnable(Runnable item) {
+                // Not under test
+            }
+
+            @Override
+            public void processRedirectUrl(WebView view, String url) {
+                // Not under test
+            }
+
+            @Override
+            public boolean processInvalidUrl(WebView view, String url) {
+                return false;
+            }
+
+            @Override
+            protected void openLinkInBrowser(String url) {
+                assertEquals(url, sTestExternalSiteUrl);
+                countDownLatch.countDown();
+            }
+        };
+
+        // Load the external url
+        dummyClient.shouldOverrideUrlLoading(mMockWebView, sTestExternalSiteUrl);
+
+        // Since we can neither spy() nor mock() this class (pkg private)
+        // we're going to use a CountDownLatch that gets decremented in the
+        // overridden methods we would normally verify()
+        if (!countDownLatch.await(1, TimeUnit.SECONDS)) {
+            fail();
+        }
+
+        Mockito.verify(mMockWebView).stopLoading();
     }
 
     @SmallTest
-    public void testUrlOverrideHandlesInstallRequests() {
+    public void testUrlOverrideHandlesInstallRequests() throws InterruptedException {
+        final CountDownLatch countDownLatch = new CountDownLatch(2);
+        final BasicWebViewClient dummyClient = new BasicWebViewClient(
+                getContext(),
+                sTestInstallRequestUrl,
+                new AuthenticationRequest(
+                        "NA",
+                        "NA",
+                        "NA",
+                        "NA",
+                        "user",
+                        false
+                ),
+                new UIEvent("")) {
+            @Override
+            public void showSpinner(boolean status) {
+                // Not under test
+            }
 
+            @Override
+            public void sendResponse(int returnCode, Intent responseIntent) {
+                // Not under test
+            }
+
+            @Override
+            public void cancelWebViewRequest() {
+                // Not under test
+            }
+
+            @Override
+            public void prepareForBrokerResumeRequest() {
+                countDownLatch.countDown();
+            }
+
+            @Override
+            public void setPKeyAuthStatus(boolean status) {
+                // Not under test
+            }
+
+            @Override
+            public void postRunnable(Runnable item) {
+                // Not under test
+            }
+
+            @Override
+            public void processRedirectUrl(WebView view, String url) {
+                // Not under test
+            }
+
+            @Override
+            public boolean processInvalidUrl(WebView view, String url) {
+                return false;
+            }
+
+            @Override
+            protected void openLinkInBrowser(String url) {
+                assertEquals(url, "myapplink.com");
+                countDownLatch.countDown();
+            }
+        };
+
+        dummyClient.shouldOverrideUrlLoading(
+                mMockWebView,
+                AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX
+                        + "https://testdomain.com?app_link=myapplink.com"
+        );
+
+        if (!countDownLatch.await(1, TimeUnit.SECONDS)) {
+            fail();
+        }
     }
 }
