@@ -23,16 +23,16 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+
+import com.microsoft.aad.adal.Logger.ILogger;
+import com.microsoft.aad.adal.Logger.LogLevel;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
-
-import com.microsoft.aad.adal.Logger.ILogger;
-import com.microsoft.aad.adal.Logger.LogLevel;
-
-import android.content.Context;
 
 public class FileTokenCacheStoreTests extends AndroidTestHelper {
 

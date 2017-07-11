@@ -24,6 +24,7 @@
 package com.microsoft.aad.adal;
 
 import android.test.AndroidTestCase;
+
 import junit.framework.Assert;
 
 public class CacheKeyTests extends AndroidTestCase {

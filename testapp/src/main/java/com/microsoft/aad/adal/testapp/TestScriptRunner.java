@@ -18,13 +18,10 @@
 
 package com.microsoft.aad.adal.testapp;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import android.app.Activity;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.microsoft.aad.adal.AuthenticationCallback;
@@ -34,10 +31,13 @@ import com.microsoft.aad.adal.HttpWebResponse;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.WebRequestHandler;
 
-import android.app.Activity;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.util.Log;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class TestScriptRunner {
     static final String TAG = "TestScriptRunner";

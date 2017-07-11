@@ -23,10 +23,10 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.concurrent.CountDownLatch;
-
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
+
+import java.util.concurrent.CountDownLatch;
 
 public class TestLogResponse {
     private String mTag;
