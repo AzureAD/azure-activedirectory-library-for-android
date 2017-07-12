@@ -171,6 +171,12 @@ final class EventStrings {
 
     static final String ACQUIRE_TOKEN_7 = "117";
 
+    static final String ACQUIRE_TOKEN_8 = "118";
+
+    static final String ACQUIRE_TOKEN_9 = "119";
+
+    static final String ACQUIRE_TOKEN_10 = "120";
+
     // Private constructor to prevent initialization
     private EventStrings() {
         // Intentionally left blank

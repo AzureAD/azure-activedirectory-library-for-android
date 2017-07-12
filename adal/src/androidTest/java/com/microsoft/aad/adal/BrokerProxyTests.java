@@ -975,7 +975,7 @@ public class BrokerProxyTests extends AndroidTestCase {
                                                                      final String extraQueryParams, final UUID correlationId,
                                                                      boolean isExtendedLifetimeEnabled) {
         return new AuthenticationRequest(authority, resource, client, redirect, loginHint, prompt, extraQueryParams,
-                correlationId, isExtendedLifetimeEnabled);
+                correlationId, isExtendedLifetimeEnabled, null);
     }
 
     private PackageManager getMockedPackageManagerWithBrokerAccountServiceDisabled(final Signature signature,

@@ -319,7 +319,9 @@ class AcquireTokenRequest {
 
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
-        return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
+        return !Utility.isClaimsChallengePresent(authenticationRequest)
+                && authenticationRequest.getPrompt() == PromptBehavior.Auto
+                || authenticationRequest.isSilent();
     }
 
     /**
