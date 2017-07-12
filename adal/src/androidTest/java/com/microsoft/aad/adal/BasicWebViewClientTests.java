@@ -28,20 +28,20 @@ import static com.microsoft.aad.adal.AuthenticationConstants.Browser.RESPONSE_ER
 
 public class BasicWebViewClientTests extends AndroidTestCase {
 
-    private static final String sNonce = "123123-123213-123";
-    private static final String sContext = "ABcdeded";
-    private static final String sTestPkeyAuthUrl = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
+    private static final String NONCE = "123123-123213-123";
+    private static final String CONTEXT = "ABcdeded";
+    private static final String TEST_PKEY_AUTH_URL = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
             + "?Nonce="
-            + sNonce
+            + NONCE
             + "&CertAuthorities=ABC"
             + "&Version=1.0"
             + "&SubmitUrl=http://fs.contoso.com/adfs/services/trust&Context="
-            + sContext;
-    private static final String sTestCancellationUrl =
+            + CONTEXT;
+    private static final String TEST_CANCELLATION_URL =
             "https://cancel.com?error=cancel&error_description=bye";
-    private static final String sTestExternalSiteUrl =
+    private static final String TEST_EXTERNAL_SITE_URL =
             AuthenticationConstants.Broker.BROWSER_EXT_PREFIX + "https://graph.microsoft.io";
-    private static final String sTestInstallRequestUrl =
+    private static final String TEST_INSTALL_REQUEST_URL =
             AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX + "foo";
 
     private WebView mMockWebView;
@@ -120,7 +120,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
                         ),
                         new UIEvent("")
                 );
-        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, sTestPkeyAuthUrl));
+        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_PKEY_AUTH_URL));
     }
 
     @UiThreadTest
@@ -129,18 +129,18 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
                         getContext(),
-                        sTestCancellationUrl,
+                        TEST_CANCELLATION_URL,
                         new AuthenticationRequest(
                                 "NA", // authority
                                 "NA", // resource
                                 "NA", // client
-                                sTestCancellationUrl, // redirect
+                                TEST_CANCELLATION_URL, // redirect
                                 "user", // loginhint,
                                 false
                         ),
                         new UIEvent("")
                 );
-        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, sTestCancellationUrl));
+        assertTrue(basicWebViewClient.shouldOverrideUrlLoading(mMockWebView, TEST_CANCELLATION_URL));
         Mockito.verify(mMockWebView, Mockito.times(1)).stopLoading();
     }
 
@@ -201,13 +201,13 @@ public class BasicWebViewClientTests extends AndroidTestCase {
 
             @Override
             protected void openLinkInBrowser(String url) {
-                assertEquals(url, sTestExternalSiteUrl);
+                assertEquals(url, TEST_EXTERNAL_SITE_URL);
                 countDownLatch.countDown();
             }
         };
 
         // Load the external url
-        dummyClient.shouldOverrideUrlLoading(mMockWebView, sTestExternalSiteUrl);
+        dummyClient.shouldOverrideUrlLoading(mMockWebView, TEST_EXTERNAL_SITE_URL);
 
         // Since we can neither spy() nor mock() this class (pkg private)
         // we're going to use a CountDownLatch that gets decremented in the
@@ -224,7 +224,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
                 getContext(),
-                sTestInstallRequestUrl,
+                TEST_INSTALL_REQUEST_URL,
                 new AuthenticationRequest(
                         "NA",
                         "NA",
@@ -299,7 +299,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         final CountDownLatch latch = new CountDownLatch(1);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
                 getContext(),
-                sTestInstallRequestUrl,
+                TEST_INSTALL_REQUEST_URL,
                 new AuthenticationRequest(
                         "NA",
                         "NA",
@@ -364,7 +364,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
                 mMockWebView,
                 errCode,
                 errMsg,
-                sTestExternalSiteUrl
+                TEST_EXTERNAL_SITE_URL
         );
 
         if (!latch.await(1, TimeUnit.SECONDS)) {
@@ -380,7 +380,7 @@ public class BasicWebViewClientTests extends AndroidTestCase {
         final CountDownLatch latch = new CountDownLatch(1);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
                 getContext(),
-                sTestInstallRequestUrl,
+                TEST_INSTALL_REQUEST_URL,
                 new AuthenticationRequest(
                         "NA",
                         "NA",

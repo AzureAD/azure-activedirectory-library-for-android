@@ -23,6 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+import android.util.Base64;
+import android.util.Log;
+
+import junit.framework.Assert;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -49,13 +55,6 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Enumeration;
 
 import javax.security.auth.x500.X500Principal;
-
-import android.app.Instrumentation;
-import android.content.Context;
-import android.util.Base64;
-import android.util.Log;
-
-import junit.framework.Assert;
 
 public class JwsBuilderTests extends AndroidTestHelper {
 
