@@ -151,6 +151,9 @@ final class BrokerAccountServiceHandler {
 
         final Throwable throwable = exception.getAndSet(null);
         if (throwable != null) {
+            //if (throwable instanceof AuthenticationException) {
+              //  throw (AuthenticationException)throwable;
+            //}
             throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, throwable.getMessage(), throwable);
         }
 
@@ -284,7 +287,8 @@ final class BrokerAccountServiceHandler {
     }
 
     private void performAsyncCallOnBound(final Context context, final Callback<BrokerAccountServiceConnection> callback) {
-        bindToBrokerAccountService(context, new Callback<BrokerAccountServiceConnection>() {
+        final boolean bindServiceResult =
+                bindToBrokerAccountService(context, new Callback<BrokerAccountServiceConnection>() {
             @Override
             public void onSuccess(final BrokerAccountServiceConnection result) {
                 if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -306,16 +310,28 @@ final class BrokerAccountServiceHandler {
                 callback.onError(throwable);
             }
         });
+
+        if (!bindServiceResult) {
+            Logger.e(TAG, "BindService returned false", null, ADALError.BROKER_ACCOUNT_SERVICE_FAILED_TO_BIND);
+            callback.onError(new AuthenticationException(ADALError.BROKER_ACCOUNT_SERVICE_FAILED_TO_BIND));
+        }
     }
 
-    private void bindToBrokerAccountService(final Context context, final Callback<BrokerAccountServiceConnection> callback) {
+    private boolean bindToBrokerAccountService(final Context context, final Callback<BrokerAccountServiceConnection> callback) {
         Logger.v(TAG, "Binding to BrokerAccountService for caller uid: " + android.os.Process.myUid());
         final Intent brokerAccountServiceToBind = getIntentForBrokerAccountService(context);
 
         final BrokerAccountServiceConnection connection = new BrokerAccountServiceConnection();
         final CallbackExecutor<BrokerAccountServiceConnection> callbackExecutor = new CallbackExecutor<>(callback);
         mPendingConnections.put(connection, callbackExecutor);
-        context.bindService(brokerAccountServiceToBind, connection, Context.BIND_AUTO_CREATE);
+        final boolean connectionSuccessful = context.bindService(brokerAccountServiceToBind, connection, Context.BIND_AUTO_CREATE);
+        if (!connectionSuccessful) {
+            Logger.e(TAG, "BindService returned false, trying to unbind service", null, ADALError.BROKER_ACCOUNT_SERVICE_FAILED_TO_BIND);
+            connection.unBindService(context);
+        } else {
+            Logger.v(TAG, "BindService returned true.");
+        }
+        return connectionSuccessful;
     }
 
     private class BrokerAccountServiceConnection implements android.content.ServiceConnection {
@@ -348,6 +364,7 @@ final class BrokerAccountServiceHandler {
         public void unBindService(final Context context) {
             // Service disconnect is async operation, in case of race condition, having the service binding check queued up
             // in main message looper and unbind it.
+            Logger.v(TAG, "Broker Account service unbind request.");
             final Handler handler = new Handler(Looper.getMainLooper());
             handler.post(new Runnable() {
                 @Override

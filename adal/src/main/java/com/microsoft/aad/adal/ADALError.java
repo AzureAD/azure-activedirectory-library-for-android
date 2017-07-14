@@ -570,7 +570,12 @@ public enum ADALError {
     /**
      *  Broker is not installed. The process is kicked off to to install broker but ADAL cannot wait for it to finish.
      */
-    BROKER_APP_INSTALLATION_STARTED("Broker app installation started");
+    BROKER_APP_INSTALLATION_STARTED("Broker app installation started"),
+
+    /*
+     * The bound service for broker request did not respond to bindService call
+     */
+    BROKER_ACCOUNT_SERVICE_FAILED_TO_BIND("Broker app service failed to bind, try again");
 
     private String mDescription;
 
