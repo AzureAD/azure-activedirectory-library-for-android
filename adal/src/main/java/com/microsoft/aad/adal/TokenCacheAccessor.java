@@ -268,7 +268,7 @@ class TokenCacheAccessor {
         final List<TokenCacheItem> regularRTsMatchingRequest = new ArrayList<>();
         while (allItems.hasNext()) {
             final TokenCacheItem tokenCacheItem = allItems.next();
-            if (tokenCacheItem.getAuthority().equalsIgnoreCase(mAuthority) && tokenCacheItem.getClientId().equalsIgnoreCase(clientId)
+            if (tokenCacheItem.getAuthority().equalsIgnoreCase(mAuthority) && clientId.equalsIgnoreCase(tokenCacheItem.getClientId())
                     && resource.equalsIgnoreCase(tokenCacheItem.getResource()) && !tokenCacheItem.getIsMultiResourceRefreshToken()) {
                 regularRTsMatchingRequest.add(tokenCacheItem);
             }
