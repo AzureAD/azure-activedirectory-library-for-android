@@ -408,11 +408,11 @@ public class MainActivity extends Activity {
                     mAuthContext.acquireTokenSilentAsync(RESOURCE_ID, CLIENT_ID, User_UPN, new AuthenticationCallback<AuthenticationResult>() {
                         @Override
                         public void onSuccess(AuthenticationResult authenticationResult) {
-                            System.err.println( "WTF success");
+                            System.err.println( "ST success");
                         }
                         @Override
                         public void onError(Exception exc) {
-                            System.err.println( "WTF error");
+                            System.err.println( "ST error");
                         }
                     });
                 }
@@ -444,11 +444,11 @@ public class MainActivity extends Activity {
                     mAuthContext.acquireTokenSilentAsync(RESOURCE_ID, CLIENT_ID, User_UPN, new AuthenticationCallback<AuthenticationResult>() {
                         @Override
                         public void onSuccess(AuthenticationResult authenticationResult) {
-                            System.err.println( "WTF success");
+                            System.err.println( "ST success");
                         }
                         @Override
                         public void onError(Exception exc) {
-                            System.err.println( "WTF error");
+                            System.err.println( "ST error");
                         }
                     });
                 }
