@@ -36,6 +36,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
+
 import java.io.UnsupportedEncodingException;
 
 @SuppressLint({

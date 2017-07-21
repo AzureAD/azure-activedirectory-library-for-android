@@ -23,9 +23,7 @@
 
 package com.microsoft.aad.adal;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
