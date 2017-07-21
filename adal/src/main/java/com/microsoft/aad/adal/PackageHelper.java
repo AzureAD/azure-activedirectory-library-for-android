@@ -23,11 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -38,6 +33,11 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
 import android.util.Base64;
 import android.util.Log;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Gets information about calling activity.

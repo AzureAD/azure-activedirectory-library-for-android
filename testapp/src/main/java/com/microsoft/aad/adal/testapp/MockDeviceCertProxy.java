@@ -18,12 +18,12 @@
 
 package com.microsoft.aad.adal.testapp;
 
+import com.microsoft.aad.adal.IDeviceCertificate;
+
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
-
-import com.microsoft.aad.adal.IDeviceCertificate;
 
 /**
  * This class will be used from ADAL after getting the classname from

@@ -32,9 +32,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.microsoft.aad.adal.ADALError;
-import com.microsoft.aad.adal.Logger;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

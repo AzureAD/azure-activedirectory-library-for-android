@@ -18,6 +18,8 @@
 
 package com.microsoft.aad.adal.hello;
 
+import com.microsoft.aad.adal.AuthenticationSettings;
+
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -26,8 +28,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import com.microsoft.aad.adal.AuthenticationSettings;
 
 public class Utils {
 
