@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+import android.os.Handler;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -34,9 +37,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import android.content.Context;
-import android.os.Handler;
 
 /**
  * Matching to ADAL.NET It provides helper methods to get the

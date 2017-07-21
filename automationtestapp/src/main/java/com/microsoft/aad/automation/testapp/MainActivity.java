@@ -27,16 +27,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.DateTimeAdapter;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.TokenCacheItem;
 
 import org.json.JSONException;

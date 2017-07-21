@@ -23,14 +23,14 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
+import android.content.Intent;
+import android.text.TextUtils;
 
 import com.microsoft.aad.adal.ChallengeResponseBuilder.ChallengeResponse;
 
-import android.content.Intent;
-import android.text.TextUtils;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 
 /**
  * Wrapper class to handle internals for request intent and response for custom

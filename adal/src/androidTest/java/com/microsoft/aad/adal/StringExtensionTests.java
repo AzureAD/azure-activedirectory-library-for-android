@@ -23,12 +23,12 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
-
 import android.util.Log;
 
 import junit.framework.Assert;
+
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * StringExtensions class has helper methods and it is not public

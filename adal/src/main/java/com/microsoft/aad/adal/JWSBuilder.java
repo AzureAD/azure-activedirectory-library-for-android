@@ -23,7 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import android.util.Base64;
+
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -33,10 +37,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-
-import com.google.gson.Gson;
-
-import android.util.Base64;
 
 /**
  * JWS response builder for certificate challenge response.
