@@ -89,6 +89,8 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExtendedExpiresOn;
 
+    private String mCloudInstanceName;
+
     AuthenticationResult() {
         mCode = null;
     }
@@ -371,5 +373,13 @@ public class AuthenticationResult implements Serializable {
     
     final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
+    }
+
+    final void setCloudInstanceName(final String cloudInstanceName) {
+        mCloudInstanceName = cloudInstanceName;
+    }
+
+    final String getCloudInstanceName() {
+        return mCloudInstanceName;
     }
 }

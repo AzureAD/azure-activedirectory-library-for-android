@@ -57,7 +57,7 @@ class TokenCacheAccessor {
         mAuthority = authority;
         mTelemetryRequestId = telemetryRequestId;
     }
-    
+
     /**
      * @return Access token from cache. Could be null if AT does not exist or expired. 
      * This will be a strict match with the user passed in, could be unique userid, 
@@ -305,22 +305,27 @@ class TokenCacheAccessor {
         cacheEvent.setRequestId(mTelemetryRequestId);
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_WRITE);
 
-        mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, userId), 
-                TokenCacheItem.createRegularTokenCacheItem(mAuthority, resource, clientId, result));
+        String authority = mAuthority;
+        if (!StringExtensions.isNullOrBlank(result.getCloudInstanceName())) {
+            authority = result.getCloudInstanceName();
+        }
+
+        mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, userId),
+                TokenCacheItem.createRegularTokenCacheItem(authority, resource, clientId, result));
         cacheEvent.setTokenTypeRT(true);
         // Store separate entries for MRRT.  
         if (result.getIsMultiResourceRefreshToken()) {
             Logger.v(TAG, "Save Multi Resource Refresh token to cache");
-            mTokenCacheStore.setItem(CacheKey.createCacheKeyForMRRT(mAuthority, clientId, userId),
-                    TokenCacheItem.createMRRTTokenCacheItem(mAuthority, clientId, result));
+            mTokenCacheStore.setItem(CacheKey.createCacheKeyForMRRT(authority, clientId, userId),
+                    TokenCacheItem.createMRRTTokenCacheItem(authority, clientId, result));
             cacheEvent.setTokenTypeMRRT(true);
         }
         
         // Store separate entries for FRT.
         if (!StringExtensions.isNullOrBlank(result.getFamilyClientId()) && !StringExtensions.isNullOrBlank(userId)) {
             Logger.v(TAG, "Save Family Refresh token into cache");
-            final TokenCacheItem familyTokenCacheItem = TokenCacheItem.createFRRTTokenCacheItem(mAuthority, result);
-            mTokenCacheStore.setItem(CacheKey.createCacheKeyForFRT(mAuthority, result.getFamilyClientId(), userId), familyTokenCacheItem);
+            final TokenCacheItem familyTokenCacheItem = TokenCacheItem.createFRRTTokenCacheItem(authority, result);
+            mTokenCacheStore.setItem(CacheKey.createCacheKeyForFRT(authority, result.getFamilyClientId(), userId), familyTokenCacheItem);
             cacheEvent.setTokenTypeFRT(true);
         }
         Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent,
