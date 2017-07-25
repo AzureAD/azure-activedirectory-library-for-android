@@ -41,7 +41,7 @@ public class Constants {
     static final String REDIRECT_URL = "http://your.redirect.url.here";
 
     // URI for the resource. You need to setup this resource at AAD
-    static final String RESOURCE_ID = "your_resource_ID";
+    static final String RESOURCE_ID = "this-it-a-forked-pr";
 
     // Endpoint we are targeting for the deployed WebAPI service
     static final String SERVICE_URL = "https://your.serive.url.here";
