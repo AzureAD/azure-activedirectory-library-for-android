@@ -140,7 +140,6 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         } catch (GeneralSecurityException | IOException e) {
             Logger.e(TAG, "Decryption failure", "", ADALError.DECRYPTION_FAILED, e);
             removeItem(key);
-            Logger.v(TAG, String.format("Decryption error, item removed for key: '%s'", key));
         }
 
         return null;
