@@ -1,6 +1,7 @@
 # ./travis.yml for adal android
 
 language: android
+dist: precise
 
 jdk: 
   - oraclejdk8
