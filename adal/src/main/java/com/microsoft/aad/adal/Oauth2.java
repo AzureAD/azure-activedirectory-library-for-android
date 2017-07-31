@@ -58,6 +58,8 @@ class Oauth2 {
 
     private IJWSBuilder mJWSBuilder = new JWSBuilder();
 
+    private String mTokenEndpoint;
+
     private static final String TAG = "Oauth";
 
     private boolean mRetryOnce = true;
@@ -74,12 +76,14 @@ class Oauth2 {
         mRequest = request;
         mWebRequestHandler = null;
         mJWSBuilder = null;
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = null;
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
@@ -87,6 +91,7 @@ class Oauth2 {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public String getAuthorizationEndpoint() {
@@ -94,7 +99,7 @@ class Oauth2 {
     }
 
     public String getTokenEndpoint() {
-        return mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT;
+        return mTokenEndpoint;
     }
 
     public String getAuthorizationEndpointQueryParameters() throws UnsupportedEncodingException {
@@ -251,6 +256,14 @@ class Oauth2 {
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
+            final String cloudInstanceName = response.get(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_NAME);
+            if (!StringExtensions.isNullOrBlank(cloudInstanceName)) {
+                final StringBuilder cloudInstanceUrl = new StringBuilder("https://login.")
+                        .append(cloudInstanceName)
+                        .append("/common");
+
+                result.setCloudInstanceName(cloudInstanceUrl.toString());
+            }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
             boolean isMultiResourceToken = false;
@@ -391,9 +404,17 @@ class Oauth2 {
 
                 // Check if we have code
                 if (result != null && result.getCode() != null && !result.getCode().isEmpty()) {
+                    if (!StringExtensions.isNullOrBlank(result.getCloudInstanceName())) {
+                        setTokenEndpoint(result.getCloudInstanceName() + DEFAULT_TOKEN_ENDPOINT);
+                    }
 
+                    final AuthenticationResult tokenResult;
                     // Get token and use external callback to set result
-                    return getTokenForCode(result.getCode());
+                    tokenResult = getTokenForCode(result.getCode());
+                    if (!StringExtensions.isNullOrBlank(result.getCloudInstanceName())) {
+                        tokenResult.setCloudInstanceName(result.getCloudInstanceName());
+                    }
+                    return tokenResult;
                 }
 
                 return result;
@@ -693,5 +714,9 @@ class Oauth2 {
     private void stopHttpEvent(final HttpEvent httpEvent) {
         Telemetry.getInstance().stopEvent(mRequest.getTelemetryRequestId(), httpEvent,
                 EventStrings.HTTP_EVENT);
+    }
+
+    private void setTokenEndpoint(final String tokenEndpoint) {
+        mTokenEndpoint = tokenEndpoint;
     }
 }

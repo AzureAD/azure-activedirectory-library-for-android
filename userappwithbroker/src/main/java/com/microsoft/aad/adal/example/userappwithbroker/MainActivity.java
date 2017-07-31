@@ -109,11 +109,14 @@ public class MainActivity extends Activity {
     
     private SharedPreferences mSharedPreference;
 
+    private Context mApplicationContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mApplicationContext = getApplicationContext();
 
         // see the java doc for the detailed requirements for 
         // talking to broker. 
@@ -134,6 +137,10 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 final String userId = getUserIdBasedOnUPN(getUserLoginHint());
+                final String authority = getAuthorityBasedOnUPN(getUserLoginHint());
+                if (authority != null) {
+                    mAuthContext = new AuthenticationContext(mApplicationContext, authority, false);
+                }
                 if (userId != null) {
                     callAcquireTokenSilent(RESOURCE_ID, userId);
                 } else {
@@ -157,6 +164,11 @@ public class MainActivity extends Activity {
             
             @Override
             public void onClick(View v) {
+                final String authority = getAuthorityBasedOnUPN(getUserLoginHint());
+                if (authority != null) {
+                    mAuthContext = new AuthenticationContext(mApplicationContext, authority, false);
+                }
+
                 final String userId = getUserIdBasedOnUPN(getUserLoginHint());
                 if (userId != null) {
                     callAcquireTokenSilent(RESOURCE_ID2, userId);
@@ -247,7 +259,7 @@ public class MainActivity extends Activity {
         Log.v(TAG, "App info:" + appInfo.uid + " package:" + appInfo.packageName);
 
         // If you're directly talking to ADFS server, you should set validateAuthority=false. 
-        mAuthContext = new AuthenticationContext(getApplicationContext(), AUTHORITY_URL, true);
+        mAuthContext = new AuthenticationContext(mApplicationContext, AUTHORITY_URL, false);
         SampleTelemetry telemetryDispatcher = new SampleTelemetry();
         Telemetry.getInstance().registerDispatcher(telemetryDispatcher, true);
     }
@@ -257,7 +269,7 @@ public class MainActivity extends Activity {
      */
     private void callAcquireTokenWithResource(final String resource, PromptBehavior prompt, final String loginHint) {
         mAuthContext.acquireToken(MainActivity.this, resource, CLIENT_ID, REDIRECT_URL, loginHint,
-                prompt, null, new AuthenticationCallback<AuthenticationResult>() {
+                prompt, "instance_aware=true", new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
@@ -287,6 +299,9 @@ public class MainActivity extends Activity {
         final Editor prefEditor = mSharedPreference.edit();
         prefEditor.putString(authResult.getUserInfo().getDisplayableId(), authResult.getUserInfo().getUserId());
         
+        if (authResult.getAuthority() != null) {
+            prefEditor.putString(authResult.getUserInfo().getDisplayableId() + "authority", authResult.getCloudInstanceName());
+        }
         prefEditor.apply();
     }
     
@@ -300,6 +315,12 @@ public class MainActivity extends Activity {
         return mSharedPreference.getString(upn, null);
     }
     
+    private String getAuthorityBasedOnUPN(final String upn) {
+        mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+
+        return mSharedPreference.getString(upn+"authority", null);
+    }
+
     /**
      * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed, 
      * silent call to broker will be skipped. 

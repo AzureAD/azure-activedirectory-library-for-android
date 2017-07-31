@@ -305,6 +305,10 @@ public class AuthenticationResult implements Serializable {
         return TokenCacheItem.isTokenExpired(getExpiresOn());
     }
 
+    public final String getAuthority() {
+        return mCloudInstanceName;
+    }
+
     String[] getErrorCodes() {
         return (mErrorCodes != null) ? mErrorCodes.replaceAll("[\\[\\]]", "").split("([^,]),") : null;
     }
@@ -371,5 +375,9 @@ public class AuthenticationResult implements Serializable {
     
     final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
+    }
+
+    final void setCloudInstanceName(final String cloudInstanceName) {
+        mCloudInstanceName = cloudInstanceName;
     }
 }
