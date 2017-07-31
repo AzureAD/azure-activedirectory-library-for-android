@@ -306,8 +306,8 @@ class TokenCacheAccessor {
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_WRITE);
 
         String authority = mAuthority;
-        if (!StringExtensions.isNullOrBlank(result.getCloudInstanceName())) {
-            authority = result.getCloudInstanceName();
+        if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
+            authority = result.getAuthority();
         }
 
         mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, userId),

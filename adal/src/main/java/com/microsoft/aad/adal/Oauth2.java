@@ -404,15 +404,15 @@ class Oauth2 {
 
                 // Check if we have code
                 if (result != null && result.getCode() != null && !result.getCode().isEmpty()) {
-                    if (!StringExtensions.isNullOrBlank(result.getCloudInstanceName())) {
-                        setTokenEndpoint(result.getCloudInstanceName() + DEFAULT_TOKEN_ENDPOINT);
+                    if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
+                        setTokenEndpoint(result.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
                     }
 
                     final AuthenticationResult tokenResult;
                     // Get token and use external callback to set result
                     tokenResult = getTokenForCode(result.getCode());
-                    if (!StringExtensions.isNullOrBlank(result.getCloudInstanceName())) {
-                        tokenResult.setCloudInstanceName(result.getCloudInstanceName());
+                    if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
+                        tokenResult.setCloudInstanceName(result.getAuthority());
                     }
                     return tokenResult;
                 }

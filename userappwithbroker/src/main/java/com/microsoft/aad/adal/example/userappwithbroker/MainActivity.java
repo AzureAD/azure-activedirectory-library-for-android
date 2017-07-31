@@ -26,6 +26,7 @@ package com.microsoft.aad.adal.example.userappwithbroker;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -300,7 +301,7 @@ public class MainActivity extends Activity {
         prefEditor.putString(authResult.getUserInfo().getDisplayableId(), authResult.getUserInfo().getUserId());
         
         if (authResult.getAuthority() != null) {
-            prefEditor.putString(authResult.getUserInfo().getDisplayableId() + "authority", authResult.getCloudInstanceName());
+            prefEditor.putString(authResult.getUserInfo().getDisplayableId() + "authority", authResult.getAuthority());
         }
         prefEditor.apply();
     }

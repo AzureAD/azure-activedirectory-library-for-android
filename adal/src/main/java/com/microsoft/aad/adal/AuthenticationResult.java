@@ -89,6 +89,8 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExtendedExpiresOn;
 
+    private String mCloudInstanceName;
+
     AuthenticationResult() {
         mCode = null;
     }
