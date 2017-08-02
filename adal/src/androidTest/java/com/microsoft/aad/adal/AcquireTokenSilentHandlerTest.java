@@ -77,7 +77,7 @@ public final class AcquireTokenSilentHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
@@ -97,7 +97,7 @@ public final class AcquireTokenSilentHandlerTest {
     @Test
     public void testRefreshTokenWebRequestHasError() throws IOException {
 
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final String resource = "resource";
@@ -131,8 +131,8 @@ public final class AcquireTokenSilentHandlerTest {
     // Verify if regular RT exists, if the RT is not MRRT, we only redeem token with the regular RT. 
     @Test
     public void testRegularRT() throws IOException {
-        FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -193,8 +193,8 @@ public final class AcquireTokenSilentHandlerTest {
     // Test the current cache that does not mark RT as MRRT even it's MRRT.
     @Test
     public void testRegularRTExistsMRRTForSameClientIdExist() throws IOException {
-        FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -257,8 +257,8 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testMRRTSuccessNoFoCI() throws IOException {
-        FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -314,7 +314,7 @@ public final class AcquireTokenSilentHandlerTest {
     @Test
     public void testFRTSuccess() throws IOException {
 
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
 
         // note: if only FRT exists, cache key will be hard-coded to 1
@@ -368,7 +368,7 @@ public final class AcquireTokenSilentHandlerTest {
     @Test
     public void testFRTFailedWithInvalidGrant() throws IOException {
 
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
 
@@ -414,8 +414,8 @@ public final class AcquireTokenSilentHandlerTest {
     @Test
     public void testFRTRequestFailedFallBackMRRTRequest() throws IOException {
 
-        FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         final String clientId = "clientId";
         final String familyClientId = "familyClientId";
 
@@ -481,8 +481,8 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testFRTRequestFailFallBackToMRTMRTRequestFail() throws IOException {
-        FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         mockCache.removeAll();
         final String clientId = "clientId";
         final String familyClientId = "familyClientId";
@@ -562,8 +562,8 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testMRRTRequestFailsTryFRT() throws UnsupportedEncodingException, IOException {
-        FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         mockCache.removeAll();
         final String clientId = "clientId";
         final String resource = "resource";
@@ -647,7 +647,7 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testRefreshTokenRequestNotReturnErrorCode() throws IOException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", false);
@@ -689,7 +689,7 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testRefreshTokenWithInteractionRequiredCacheNotCleared() throws IOException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", false);
@@ -723,8 +723,8 @@ public final class AcquireTokenSilentHandlerTest {
 
     @Test
     public void testMRRTItemNotContainRT() {
-        FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -760,8 +760,8 @@ public final class AcquireTokenSilentHandlerTest {
 
     @Test
     public void testAllTokenItemNotContainRT() {
-        FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -842,7 +842,7 @@ public final class AcquireTokenSilentHandlerTest {
 
     // No Family client id set in the cache. Only regular RT token cache entry
     private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) {
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         cache.removeAll();
         Calendar expiredTime = new GregorianCalendar();
         Logger.d("Test", "Time now:" + expiredTime.toString());
@@ -899,9 +899,5 @@ public final class AcquireTokenSilentHandlerTest {
             return true;
         }
 
-    }
-
-    private Context getContext() {
-        return InstrumentationRegistry.getContext();
     }
 }

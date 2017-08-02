@@ -114,7 +114,7 @@ public final class AuthenticationContextTest {
     @SuppressLint("PackageManagerGetSignatures")
     public void setUp() throws Exception {
         Log.d(TAG, "setup key at settings");
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
@@ -130,8 +130,8 @@ public final class AuthenticationContextTest {
         }
         AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
-        PackageInfo info = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(),
-                PackageManager.GET_SIGNATURES);
+        PackageInfo info = InstrumentationRegistry.getContext().getPackageManager()
+                .getPackageInfo(InstrumentationRegistry.getContext().getPackageName(), PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
         // all of them
@@ -159,7 +159,7 @@ public final class AuthenticationContextTest {
         testAuthorityTrim("authorityFail");
         testAuthorityTrim("https://msft.com////");
         testAuthorityTrim("https:////");
-        AuthenticationContext context2 = new AuthenticationContext(getContext(),
+        AuthenticationContext context2 = new AuthenticationContext(InstrumentationRegistry.getContext(),
                 "https://github.com/MSOpenTech/some/some", false);
         assertEquals("https://github.com/MSOpenTech", context2.getAuthority());
     }
@@ -167,7 +167,7 @@ public final class AuthenticationContextTest {
     private void testAuthorityTrim(String authority) throws NoSuchAlgorithmException,
             NoSuchPaddingException {
         try {
-            new AuthenticationContext(getContext(), authority, false);
+            new AuthenticationContext(InstrumentationRegistry.getContext(), authority, false);
             Assert.fail("expected to fail");
         } catch (IllegalArgumentException e) {
             assertTrue("authority in the msg", e.getMessage().contains("authority"));
@@ -177,7 +177,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testConstructorNoCache() throws UsageAuthenticationException {
         final String authority = "https://github.com/MSOpenTech";
-        final AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
+        final AuthenticationContext context = new AuthenticationContext(InstrumentationRegistry.getContext(), authority, false,
                 null);
         assertNull(context.getCache());
     }
@@ -186,12 +186,12 @@ public final class AuthenticationContextTest {
     public void testConstructorWithCache() throws NoSuchAlgorithmException, NoSuchPaddingException,
             UsageAuthenticationException {
         String authority = "https://github.com/MSOpenTech";
-        DefaultTokenCacheStore expected = new DefaultTokenCacheStore(getContext());
-        AuthenticationContext context = new AuthenticationContext(getContext(), authority, false,
+        DefaultTokenCacheStore expected = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        AuthenticationContext context = new AuthenticationContext(InstrumentationRegistry.getContext(), authority, false,
                 expected);
         assertEquals("Cache object is expected to be same", expected, context.getCache());
 
-        AuthenticationContext contextDefaultCache = new AuthenticationContext(getContext(),
+        AuthenticationContext contextDefaultCache = new AuthenticationContext(InstrumentationRegistry.getContext(),
                 authority, false);
         assertNotNull(contextDefaultCache.getCache());
     }
@@ -200,7 +200,7 @@ public final class AuthenticationContextTest {
     public void testConstructorInternetPermission() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
         String authority = "https://github.com/MSOpenTech";
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         mockContext.addPermission("android.permission.INTERNET");
 
         // no exception
@@ -223,11 +223,11 @@ public final class AuthenticationContextTest {
             NoSuchPaddingException {
 
         String authority = "https://github.com/MSOpenTech";
-        AuthenticationContext context = getAuthenticationContext(getContext(), authority, true,
+        AuthenticationContext context = getAuthenticationContext(InstrumentationRegistry.getContext(), authority, true,
                 null);
         assertTrue("Validate flag is expected to be same", context.getValidateAuthority());
 
-        context = new AuthenticationContext(getContext(), authority, false);
+        context = new AuthenticationContext(InstrumentationRegistry.getContext(), authority, false);
         assertFalse("Validate flag is expected to be same", context.getValidateAuthority());
     }
 
@@ -235,7 +235,7 @@ public final class AuthenticationContextTest {
     public void testCorrelationIdSetAndGet() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
         UUID requestCorrelationId = UUID.randomUUID();
-        AuthenticationContext context = new AuthenticationContext(getContext(), TEST_AUTHORITY,
+        AuthenticationContext context = new AuthenticationContext(InstrumentationRegistry.getContext(), TEST_AUTHORITY,
                 true);
         context.setRequestCorrelationId(requestCorrelationId);
         assertEquals("Verifier getter and setter", requestCorrelationId,
@@ -262,7 +262,7 @@ public final class AuthenticationContextTest {
             return;
         }
 
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         String expectedAccessToken = "TokenFortestAcquireToken" + UUID.randomUUID().toString();
         String expectedClientId = "client" + UUID.randomUUID().toString();
         String expectedResource = "resource" + UUID.randomUUID().toString();
@@ -311,7 +311,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testResolveIntent() throws InterruptedException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         mockContext.setResolveIntent(false);
 
         final AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
@@ -340,7 +340,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testAcquireTokenNegativeArguments() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
         final MockActivity testActivity = new MockActivity();
@@ -389,7 +389,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testAcquireTokenUserId() throws InterruptedException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 "https://login.windows.net/common", false, null);
 
@@ -419,7 +419,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testEmptyRedirect() throws InterruptedException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 "https://login.windows.net/common", false, null);
 
@@ -443,7 +443,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testPrompt() throws InterruptedException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 "https://login.windows.net/common", false, null);
 
@@ -487,7 +487,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testExtraParams() throws InterruptedException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 "https://login.windows.net/common", false, null);
 
@@ -541,7 +541,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testAcquireTokenByRefreshTokenNegativeArguments() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
 
         // AuthenticationContext will throw at constructor if authority is null.
 
@@ -611,7 +611,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testAcquireTokenByRefreshTokenConnectionNotAvailable() throws InterruptedException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         mockContext.setConnectionAvailable(false);
 
         final AuthenticationContext context = new AuthenticationContext(mockContext,
@@ -635,7 +635,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testAcquireTokenByRefreshTokenPositive() throws IOException, InterruptedException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final AuthenticationContext context = getAuthenticationContext(mockContext,
@@ -683,7 +683,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testAcquireTokenByRefreshTokenNotReturningRefreshToken() throws IOException, InterruptedException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
@@ -717,7 +717,7 @@ public final class AuthenticationContextTest {
     public void testAcquireTokenAuthorityMalformed() throws InterruptedException,
             NoSuchAlgorithmException, NoSuchPaddingException {
         // Malformed url error will come back in callback
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 "abcd://vv../v", false);
         final MockActivity testActivity = new MockActivity();
@@ -743,7 +743,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testAcquireTokenValidateAuthorityReturnsValid() throws InterruptedException {
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext, VALID_AUTHORITY,
                 true);
 
@@ -766,7 +766,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testCorrelationIdInDiscovery() throws InterruptedException {
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext authContext = getAuthenticationContext(mockContext, VALID_AUTHORITY, true, null);
         final CountDownLatch signal = new CountDownLatch(1);
         final UUID correlationId = UUID.randomUUID();
@@ -846,7 +846,7 @@ public final class AuthenticationContextTest {
                 HttpURLConnection.HTTP_NOT_FOUND
         );
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final String invalidAuthority = "https://fs.lindft6.com/adfs";
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 invalidAuthority, true);
@@ -887,7 +887,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testAcquireTokenWithoutValidation() throws InterruptedException {
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, null);
 
@@ -915,7 +915,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testRefreshTokenPositive() throws IOException, InterruptedException, AuthenticationException {
 
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
@@ -966,7 +966,7 @@ public final class AuthenticationContextTest {
     private void scenarioUserIdLoginHint(final String idTokenUpn, final String responseIntentHint,
                                          final String acquireTokenHint) throws InterruptedException, AuthenticationException, IOException {
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
         context.getCache().removeAll();
@@ -1026,7 +1026,7 @@ public final class AuthenticationContextTest {
     public void testScenarioLoginHintIdTokenDifferent() throws IOException, AuthenticationException,
             InterruptedException {
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
         context.getCache().removeAll();
@@ -1079,7 +1079,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testScenarioEmptyIdToken() throws InterruptedException, AuthenticationException, IOException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
         context.getCache().removeAll();
@@ -1126,7 +1126,7 @@ public final class AuthenticationContextTest {
     public void testFamilyClientIdCorrectlyStoredInCache() throws IOException, InterruptedException,
             AuthenticationException {
 
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
@@ -1239,7 +1239,7 @@ public final class AuthenticationContextTest {
     public void testAcquireTokenSilentSyncPositive() throws IOException, AuthenticationException,
             InterruptedException {
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
@@ -1270,7 +1270,7 @@ public final class AuthenticationContextTest {
     public void testAcquireTokenSilentSyncNegative() throws InterruptedException, AuthenticationException,
             IOException {
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
@@ -1323,8 +1323,8 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testSilentRequestTokenItemNotContainRT() throws InterruptedException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -1375,7 +1375,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testAcquireTokenCacheLookup() throws InterruptedException {
 
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final String tokenToTest = "accessToken=" + UUID.randomUUID();
         final String resource = "Resource" + UUID.randomUUID();
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
@@ -1434,7 +1434,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testAcquireTokenCacheLookupReturnWrongUserId() throws InterruptedException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final String resource = "Resource" + UUID.randomUUID();
         final String clientId = "clientid" + UUID.randomUUID();
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
@@ -1481,7 +1481,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testAcquireTokenNoUserPassedIn() throws InterruptedException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
 
         // set up cache
@@ -1497,7 +1497,7 @@ public final class AuthenticationContextTest {
         // Store the key without userid into cache
         mockCache.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, null), tokenCacheItem);
 
-        final AuthenticationContext context = getAuthenticationContext(getContext(), VALID_AUTHORITY, false, mockCache);
+        final AuthenticationContext context = getAuthenticationContext(InstrumentationRegistry.getContext(), VALID_AUTHORITY, false, mockCache);
         final MockActivity testActivity = new MockActivity();
         final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
@@ -1514,7 +1514,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testAcquireTokenCacheLookupMultipleUserLoginHint() throws InterruptedException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final String resource = "Resource" + UUID.randomUUID();
         final String clientId = "clientid" + UUID.randomUUID();
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
@@ -1607,7 +1607,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testOnActivityResultMissingIntentData() throws NoSuchAlgorithmException,
             NoSuchPaddingException {
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext authContext = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, null);
         int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
@@ -1626,7 +1626,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testOnActivityResultMissingCallbackRequestId() {
         ITokenCacheStore cache = mock(ITokenCacheStore.class);
-        FileMockContext mockContext = new FileMockContext(getContext());
+        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext authContext = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
         int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
@@ -1647,7 +1647,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testOnActivityResultResultCodeCancel() throws InterruptedException {
         final ITokenCacheStore cache = mock(ITokenCacheStore.class);
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
         final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
@@ -1675,7 +1675,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testOnActivityResultResultCodeError() throws InterruptedException {
         final ITokenCacheStore cache = mock(ITokenCacheStore.class);
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
         final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
@@ -1699,7 +1699,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testOnActivityResultResultCodeException() throws InterruptedException {
         final ITokenCacheStore cache = mock(ITokenCacheStore.class);
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
         final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
@@ -1730,7 +1730,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testOnActivityResultResultCodeExceptionMissing() throws InterruptedException {
         final ITokenCacheStore cache = mock(ITokenCacheStore.class);
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
         final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
@@ -1759,7 +1759,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testOnActivityResultBrokerResponse() throws InterruptedException {
         final ITokenCacheStore cache = mock(ITokenCacheStore.class);
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, cache);
         final int requestCode = AuthenticationConstants.UIRequest.BROWSER_FLOW;
@@ -1791,7 +1791,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testAcquireTokenMultiResourceTokenUserId() throws IOException, InterruptedException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final String tokenToTest = "accessToken=" + UUID.randomUUID();
         final String expectedAT = "accesstoken";
         String resource = "Resource" + UUID.randomUUID();
@@ -1913,7 +1913,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testAcquireTokenMultiResourceADFSIssue() throws InterruptedException {
         // adfs does not return userid and multiresource token
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final String tokenToTest = "accessToken=" + UUID.randomUUID();
         final String resource = "Resource" + UUID.randomUUID();
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
@@ -1981,7 +1981,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testBrokerRedirectUri() throws UnsupportedEncodingException {
         final ITokenCacheStore cache = mock(ITokenCacheStore.class);
-        final AuthenticationContext authContext = new AuthenticationContext(getContext(),
+        final AuthenticationContext authContext = new AuthenticationContext(InstrumentationRegistry.getContext(),
                 VALID_AUTHORITY, false, cache);
 
         // act
@@ -2000,7 +2000,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testAutoFlowRefreshTokenRequestFailedWithOauthError() throws IOException, InterruptedException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 VALID_AUTHORITY, false, mockCache);
@@ -2071,7 +2071,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testSerializeNullCacheItem() throws AuthenticationException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
         this.clearCache(context);
@@ -2089,7 +2089,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testSerializeInvalidUserId() {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         addFRTCacheItem(mockCache);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
@@ -2116,7 +2116,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testSerializeValid() throws AuthenticationException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         addFRTCacheItem(mockCache);
         final AuthenticationContext context = getAuthenticationContext(mockContext, TEST_AUTHORITY, false, mockCache);
@@ -2132,7 +2132,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testDeserializeValid() throws AuthenticationException {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         addFRTCacheItem(mockCache);
         final AuthenticationContext context = getAuthenticationContext(mockContext, TEST_AUTHORITY, false, mockCache);
@@ -2148,7 +2148,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testDeserializeIncompatibleInput() {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         addFRTCacheItem(mockCache);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
@@ -2170,7 +2170,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testDeserializeNullSerializedBlob() {
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         addFRTCacheItem(mockCache);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
@@ -2188,7 +2188,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testDeserializeRandomString() {
         final String ramdomString = "abc";
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
         try {
@@ -2207,7 +2207,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testDeserializeMissingAttribute() {
         final String missingAttributeString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\",\"foci\":\"1\"}],\"version\":1}";
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
         try {
@@ -2227,7 +2227,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testDeserializeAdditionalAttribute() throws AuthenticationException {
         final String additionalAttributeString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\",\"id_token\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.\",\"foci\":\"1\"}],\"version\":1,\"comment\":\"no comment\"}";
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
         context.deserialize(additionalAttributeString);
@@ -2242,7 +2242,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testDeserializeDifferentVersion() {
         final String differentVersionString = "{\"tokenCacheItems\":[{\"authority\":\"https://login.windows.net/ComMon/\",\"refresh_token\":\"FRT\",\"id_token\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2VwZWhyaSIsImdpdmVuX25hbWUiOiJBZnNoaW4ifQ.\",\"foci\":\"1\"}],\"version\":2}";
-        final FileMockContext mockContext = new FileMockContext(getContext());
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final DefaultTokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockCache);
         try {
@@ -2264,7 +2264,7 @@ public final class AuthenticationContextTest {
 
     // No Family client id set in the cache. Only regular RT token cache entry
     private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) {
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         cache.removeAll();
         Calendar expiredTime = new GregorianCalendar();
         Log.d("Test", "Time now:" + expiredTime.toString());
@@ -2291,7 +2291,7 @@ public final class AuthenticationContextTest {
 
     private ITokenCacheStore getMockCache(int minutes, String token, String resource,
                                           String client, String user, boolean isMultiResource) {
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         // Code response
         Calendar timeAhead = new GregorianCalendar();
         Log.d("Test", "Time now:" + timeAhead.toString());
@@ -2528,9 +2528,5 @@ public final class AuthenticationContextTest {
                 mSignal.countDown();
             }
         }
-    }
-
-    private Context getContext() {
-        return InstrumentationRegistry.getContext();
     }
 }

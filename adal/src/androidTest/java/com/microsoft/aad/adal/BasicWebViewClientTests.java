@@ -137,7 +137,7 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesPKeyAuthRedirect() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
-                        getContext(),
+                        InstrumentationRegistry.getContext(),
                         "",
                         new AuthenticationRequest(
                                 "NA", // authority
@@ -157,7 +157,7 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesCancellation() {
         final BasicWebViewClient basicWebViewClient =
                 setUpWebViewClient(
-                        getContext(),
+                        InstrumentationRegistry.getContext(),
                         TEST_CANCELLATION_URL,
                         new AuthenticationRequest(
                                 "NA", // authority
@@ -177,7 +177,7 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesExternalSiteRequests() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                getContext(),
+                InstrumentationRegistry.getContext(),
                 "www.redirect.com",
                 new AuthenticationRequest(
                         "NA",
@@ -252,7 +252,7 @@ public class BasicWebViewClientTests {
     public void testUrlOverrideHandlesInstallRequests() throws InterruptedException {
         final CountDownLatch countDownLatch = new CountDownLatch(2);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                getContext(),
+                InstrumentationRegistry.getContext(),
                 TEST_INSTALL_REQUEST_URL,
                 new AuthenticationRequest(
                         "NA",
@@ -327,7 +327,7 @@ public class BasicWebViewClientTests {
         final String errMsg = "Bad Request";
         final CountDownLatch latch = new CountDownLatch(1);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                getContext(),
+                InstrumentationRegistry.getContext(),
                 TEST_INSTALL_REQUEST_URL,
                 new AuthenticationRequest(
                         "NA",
@@ -403,12 +403,12 @@ public class BasicWebViewClientTests {
 
     @Test
     public void testSslErrorsSendsIntentWithErrorData() throws InterruptedException, UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore keystore = JwsBuilderTests.loadTestCertificate(getContext());
+        KeyStore keystore = JwsBuilderTests.loadTestCertificate(InstrumentationRegistry.getContext());
         Certificate cert = keystore.getCertificate(JwsBuilderTests.TEST_CERT_ALIAS);
         final SslError sslError = new SslError(SslError.SSL_DATE_INVALID, (X509Certificate) cert);
         final CountDownLatch latch = new CountDownLatch(1);
         final BasicWebViewClient dummyClient = new BasicWebViewClient(
-                getContext(),
+                InstrumentationRegistry.getContext(),
                 TEST_INSTALL_REQUEST_URL,
                 new AuthenticationRequest(
                         "NA",
@@ -479,9 +479,5 @@ public class BasicWebViewClientTests {
         if (!latch.await(1, TimeUnit.SECONDS)) {
             fail();
         }
-    }
-
-    private Context getContext() {
-        return InstrumentationRegistry.getContext();
     }
 }

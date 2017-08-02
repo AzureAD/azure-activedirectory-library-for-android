@@ -95,15 +95,13 @@ public class BrokerProxyTests {
 
     private String mTestTag;
 
-    private Context mContext;
-
     @Before
     @SuppressLint("PackageManagerGetSignatures")
     public void setUp() throws Exception {
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
-        PackageInfo info = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(),
+        PackageInfo info = InstrumentationRegistry.getContext().getPackageManager().getPackageInfo(InstrumentationRegistry.getContext().getPackageName(),
                 PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
@@ -117,7 +115,6 @@ public class BrokerProxyTests {
             break;
         }
 
-        mContext = new FileMockContext(getContext());
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
@@ -133,7 +130,7 @@ public class BrokerProxyTests {
     public void testCanSwitchToBrokerInvalidPackage() throws NameNotFoundException {
         final String brokerPackage = "wrong";
         final Signature signature = new Signature(mTestSignature);
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(
                 signature, brokerPackage, false));
         context.setMockedAccountManager(getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE, brokerPackage));
@@ -150,7 +147,7 @@ public class BrokerProxyTests {
         final Signature signature = new Signature(mTestSignature);
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(
                 signature, brokerPackage, false));
         context.setMockedAccountManager(getMockedAccountManager(authenticatorType, brokerPackage));
@@ -167,7 +164,7 @@ public class BrokerProxyTests {
         Signature signature = new Signature("74657374696e67");
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(
                 signature, brokerPackage, false));
         context.setMockedAccountManager(getMockedAccountManager(authenticatorType, brokerPackage));
@@ -191,7 +188,7 @@ public class BrokerProxyTests {
         final Account[] accts = getAccountList("valid", authenticatorType);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(mockedPackageManager);
 
@@ -213,7 +210,7 @@ public class BrokerProxyTests {
         final Account[] accts = getAccountList("valid", authenticatorType);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(mockedPackageManager);
 
@@ -232,7 +229,7 @@ public class BrokerProxyTests {
         final PackageManager mockedPackageManager = getMockedPackageManagerWithBrokerAccountServiceDisabled(signature, brokerPackage, true);
         mockIntentActivityQuery(mockedPackageManager);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(mockedPackageManager);
 
@@ -256,7 +253,7 @@ public class BrokerProxyTests {
         final Account[] accts = getAccountList("valid", authenticatorType);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(mockedPackageManager);
 
@@ -276,7 +273,7 @@ public class BrokerProxyTests {
         final AccountManager mockedAccountManager = getMockedAccountManager(authenticatorType, brokerPackage);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(accts);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -316,7 +313,7 @@ public class BrokerProxyTests {
                 any(Bundle.class), (Activity) eq(null), (AccountManagerCallback) eq(null), (Handler) eq(null)))
                         .thenReturn(mockResult);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -339,7 +336,7 @@ public class BrokerProxyTests {
         final String brokerPackage = AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
         final Signature signature = new Signature(mTestSignature);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         final PackageManager mockedPackageManager = getMockedPackageManagerWithBrokerAccountServiceDisabled(
                 signature, brokerPackage, false);
         mockIntentActivityQuery(mockedPackageManager);
@@ -390,7 +387,7 @@ public class BrokerProxyTests {
         final AuthenticationRequest request = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         when(mockedAccountManager.getAccountsByType(anyString())).thenReturn(new Account[0]);
@@ -420,7 +417,7 @@ public class BrokerProxyTests {
         final String acctType = "loginhint";
 
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         final AccountManager mockedAccountManager = getMockedAccountManager(authenticatorType,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
 
@@ -455,7 +452,7 @@ public class BrokerProxyTests {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(), PromptBehavior.Auto, "", UUID.randomUUID(), false);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         final AccountManager mockedAccountManager = getMockedAccountManager(authenticatorType,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
 
@@ -507,7 +504,7 @@ public class BrokerProxyTests {
         when(mockedAccountManager.getAuthToken(any(Account.class), anyString(), any(Bundle.class), eq(false),
                 (AccountManagerCallback<Bundle>) eq(null), any(Handler.class))).thenReturn(mockFuture);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -556,7 +553,7 @@ public class BrokerProxyTests {
         when(mockedAccountManager.getAuthToken(any(Account.class), anyString(), any(Bundle.class), eq(false),
                 (AccountManagerCallback<Bundle>) eq(null), any(Handler.class))).thenReturn(mockFuture);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -605,7 +602,7 @@ public class BrokerProxyTests {
                 (AccountManagerCallback<Bundle>) eq(null), any(Handler.class))).thenReturn(mockFuture);
 
         updateContextToSaveAccount("", acctName);
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -656,7 +653,7 @@ public class BrokerProxyTests {
         final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         setMockProxyForErrorCheck(mockedAccountManager, acctName, AccountManager.ERROR_CODE_BAD_ARGUMENTS, "testErrorMessage");
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -684,7 +681,7 @@ public class BrokerProxyTests {
         final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         setMockProxyForErrorCheck(mockedAccountManager, acctName, AccountManager.ERROR_CODE_BAD_AUTHENTICATION, "testErrorMessage");
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -711,7 +708,7 @@ public class BrokerProxyTests {
         final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         setMockProxyForErrorCheck(mockedAccountManager, acctName, AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION, "testErrorMessage");
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockedAccountManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -734,7 +731,7 @@ public class BrokerProxyTests {
         final String acctName = "testAcct123";
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setConnectionAvailable(false);
         final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
@@ -765,7 +762,7 @@ public class BrokerProxyTests {
         Bundle expected = new Bundle();
         prepareAddAccount(mockAcctManager, expected);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockAcctManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -793,7 +790,7 @@ public class BrokerProxyTests {
         expected.putParcelable(AccountManager.KEY_INTENT, expectedIntent);
         prepareAddAccount(mockAcctManager, expected);
 
-        final FileMockContext context = new FileMockContext(getContext());
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
         context.setMockedAccountManager(mockAcctManager);
         context.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME, true));
@@ -822,7 +819,7 @@ public class BrokerProxyTests {
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         mockAddAccountResponse(mockedAccoutManager, getMockedAccountManagerFuture(intent));
         
-        final FileMockContext mockedContext = new FileMockContext(getContext());
+        final FileMockContext mockedContext = new FileMockContext(InstrumentationRegistry.getContext());
         mockedContext.setMockedAccountManager(mockedAccoutManager);
         mockedContext.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
@@ -847,7 +844,7 @@ public class BrokerProxyTests {
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         mockAddAccountResponse(mockedAccoutManager, getMockedAccountManagerFuture(intent));
 
-        final FileMockContext mockedContext = new FileMockContext(getContext());
+        final FileMockContext mockedContext = new FileMockContext(InstrumentationRegistry.getContext());
         mockedContext.setMockedAccountManager(mockedAccoutManager);
         mockedContext.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
@@ -873,7 +870,7 @@ public class BrokerProxyTests {
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         mockAddAccountResponse(mockedAccoutManager, getMockedAccountManagerFuture(intent));
 
-        final FileMockContext mockedContext = new FileMockContext(getContext());
+        final FileMockContext mockedContext = new FileMockContext(InstrumentationRegistry.getContext());
         mockedContext.setMockedAccountManager(mockedAccoutManager);
         mockedContext.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
@@ -885,7 +882,7 @@ public class BrokerProxyTests {
     }
     
     private FileMockContext getMockedContext(final AccountManager mockedAccountManager) {
-        final FileMockContext mockedContext = new FileMockContext(getContext());
+        final FileMockContext mockedContext = new FileMockContext(InstrumentationRegistry.getContext());
         mockedContext.setMockedAccountManager(mockedAccountManager);
         
         return mockedContext;
@@ -1023,9 +1020,5 @@ public class BrokerProxyTests {
         activities.add(Mockito.mock(ResolveInfo.class));
         when(mockedPackageManager.queryIntentActivities(Mockito.any(Intent.class), Mockito.anyInt()))
                 .thenReturn(activities);
-    }
-
-    private Context getContext() {
-        return InstrumentationRegistry.getContext();
     }
 }
