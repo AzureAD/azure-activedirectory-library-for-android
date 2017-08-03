@@ -491,6 +491,8 @@ public final class AuthenticationConstants {
 
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
+
+        public static final String AUTHORITY = "account.authority";
     }
 
     /**
