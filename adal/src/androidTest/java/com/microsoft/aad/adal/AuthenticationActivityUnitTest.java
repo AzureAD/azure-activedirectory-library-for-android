@@ -31,12 +31,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.test.ActivityUnitTestCase;
+import android.support.test.rule.ActivityTestRule;
+import android.support.test.runner.AndroidJUnit4;
 import android.test.RenamingDelegatingContext;
-import android.test.UiThreadTest;
-import android.test.suitebuilder.annotation.SmallTest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -54,6 +58,11 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -65,7 +74,8 @@ import static org.mockito.Mockito.when;
 /**
  * Unit test to verify buttons, webview and other items.
  */
-public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<AuthenticationActivity> {
+@RunWith(AndroidJUnit4.class)
+public class AuthenticationActivityUnitTest {
 
     private static final int TEST_REQUEST_ID = 123;
 
@@ -79,20 +89,13 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
     private Intent mIntentToStartActivity;
 
-    private AuthenticationActivity mActivity;
+    @Rule
+    public ActivityTestRule<AuthenticationActivity> mActivityRule = new ActivityTestRule(AuthenticationActivity.class, true, false);
 
-    public AuthenticationActivityUnitTest() {
-        super(AuthenticationActivity.class);
-    }
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        getInstrumentation().getTargetContext().getCacheDir();
+    @Before
+    public void setUp() throws Exception {
         System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext()
                 .getCacheDir().getPath());
-        Context mockContext = new ActivityMockContext(getInstrumentation().getTargetContext());
-        setActivityContext(mockContext);
         mIntentToStartActivity = new Intent(getInstrumentation().getTargetContext(),
                 AuthenticationActivity.class);
         Object authorizationRequest = getTestRequest();
@@ -130,38 +133,36 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         return o;
     }
 
-    @SmallTest
-    @UiThreadTest
-    public void testLayout() throws NoSuchFieldException, IllegalArgumentException,
-            IllegalAccessException {
-
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
-
+    @Test
+    public void testLayout() throws Throwable {
+        mActivityRule.launchActivity(mIntentToStartActivity);
         // Webview
-        WebView webview = (WebView) mActivity.findViewById(R.id.webView1);
+        final WebView webview = (WebView) mActivityRule.getActivity().findViewById(R.id.webView1);
         assertNotNull(webview);
 
-        // Javascript enabled
-        assertTrue(webview.getSettings().getJavaScriptEnabled());
+        mActivityRule.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // Javascript enabled
+                assertTrue(webview.getSettings().getJavaScriptEnabled());
+            }
+        });
     }
 
-    @SmallTest
-    @UiThreadTest
+    @Test
     public void testReturnToCaller() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException {
 
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+        mActivityRule.launchActivity(mIntentToStartActivity);
 
-        Method returnToCaller = ReflectionUtils.getTestMethod(mActivity, "returnToCaller",
+        Method returnToCaller = ReflectionUtils.getTestMethod(mActivityRule.getActivity(), "returnToCaller",
                 int.class, Intent.class);
 
         // call null intent
-        returnToCaller.invoke(mActivity, AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
+        returnToCaller.invoke(mActivityRule.getActivity(), AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL,
                 null);
-        assertTrue(isFinishCalled());
+        assertTrue(mActivityRule.getActivity().isFinishing());
 
         // verify result code that includes requestid
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL);
@@ -173,26 +174,32 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
      * Return authentication exception at setResult so that mActivity receives at
      * onActivityResult
      */
-    @SmallTest
-    @UiThreadTest
-    public void testWebviewAuthenticationException() throws IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            InterruptedException, ExecutionException {
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+    @Test
+    public void testWebviewAuthenticationException() throws Throwable {
+        mActivityRule.launchActivity(mIntentToStartActivity);
         AuthenticationSettings.INSTANCE.setDeviceCertificateProxyClass(MockDeviceCertProxy.class);
         MockDeviceCertProxy.reset();
         MockDeviceCertProxy.setIsValidIssuer(true);
         MockDeviceCertProxy.setPrivateKey(null);
-        String url = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
+        final String url = AuthenticationConstants.Broker.PKEYAUTH_REDIRECT
                 + "?Nonce=nonce1234&CertAuthorities=ABC&Version=1.0&SubmitUrl=submiturl&Context=serverContext";
-        WebViewClient client = getCustomWebViewClient();
-        WebView mockview = new WebView(getActivity().getApplicationContext());
-        ReflectionUtils.setFieldValue(mActivity, "mSpinner", null);
+        final WebViewClient client = getCustomWebViewClient();
+        mActivityRule.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                WebView mockview = new WebView(mActivityRule.getActivity().getApplicationContext());
+                try {
+                    ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mSpinner", null);
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                // Act
+                client.shouldOverrideUrlLoading(mockview, url);
+            }
+        });
 
-        // Act
-        client.shouldOverrideUrlLoading(mockview, url);
 
         // Verify result code that includes requestid. Activity will set the
         // result back to caller.
@@ -201,7 +208,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         response.listenForLogMessage("It is failed to create device certificate response", signal);
         int counter = 0;
         final int maxWaitIterations = 20;
-        while (!isFinishCalled() && counter < maxWaitIterations) {
+        while (!mActivityRule.getActivity().isFinishing() && counter < maxWaitIterations) {
             Thread.sleep(DEVICE_RESPONSE_WAIT);
             counter++;
         }
@@ -216,41 +223,54 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
     }
 
 
-    @SmallTest
-    @UiThreadTest
-    public void testWebviewSslprotectedredirectURL() throws IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            InterruptedException, ExecutionException {
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+    @Test
+    public void testWebviewSslprotectedredirectURL() throws Throwable {
+        mActivityRule.launchActivity(mIntentToStartActivity);
         /*
          * case 1: url = "http://login.microsoftonline.com/"
          * case 2: url = "https://login.microsoftonline.com/"
          */
-        String url = "https://login.microsoftonline.com/";
-        WebViewClient client = getCustomWebViewClient();
-        WebView mockview = new WebView(getActivity().getApplicationContext());
-        ReflectionUtils.setFieldValue(mActivity, "mSpinner", null);
-        assertEquals(false, client.shouldOverrideUrlLoading(mockview, url));
+        final String url = "https://login.microsoftonline.com/";
+        final WebViewClient client = getCustomWebViewClient();
+
+        mActivityRule.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                WebView mockview = new WebView(mActivityRule.getActivity().getApplicationContext());
+                try {
+                    ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mSpinner", null);
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                assertEquals(false, client.shouldOverrideUrlLoading(mockview, url));
+            }
+        });
     }
 
-    @SmallTest
-    @UiThreadTest
-    public void testWebviewBlankredirectURL() throws IllegalArgumentException,
-            NoSuchFieldException, IllegalAccessException, InvocationTargetException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            InterruptedException, ExecutionException {
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+    @Test
+    public void testWebviewBlankredirectURL() throws Throwable {
+        mActivityRule.launchActivity(mIntentToStartActivity);
         /*
          * case 1: url = "about:blank"
          */
-        String url = "about:blank";
-        WebViewClient client = getCustomWebViewClient();
-        WebView mockview = new WebView(getActivity().getApplicationContext());
-        ReflectionUtils.setFieldValue(mActivity, "mSpinner", null);
-        assertEquals(true, client.shouldOverrideUrlLoading(mockview, url));
+        final String url = "about:blank";
+        final WebViewClient client = getCustomWebViewClient();
+        mActivityRule.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                WebView mockview = new WebView(mActivityRule.getActivity().getApplicationContext());
+                try {
+                    ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mSpinner", null);
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                assertEquals(true, client.shouldOverrideUrlLoading(mockview, url));
+            }
+        });
     }
 
 
@@ -261,23 +281,21 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 .forName("com.microsoft.aad.adal.AuthenticationActivity$CustomWebViewClient");
         Constructor[] constructors = clazz.getDeclaredConstructors();
         constructors[0].setAccessible(true);
-        return (WebViewClient) constructors[0].newInstance(getActivity());
+        return (WebViewClient) constructors[0].newInstance(mActivityRule.getActivity());
     }
 
     /**
      * mocks webresponse and passes json with idtoken to verify that broker
      * response returns idtoken info
      */
-    @SmallTest
-    @UiThreadTest
+    @Test
     public void testBrokerReturnUserInfo() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InterruptedException, ExecutionException {
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+        mActivityRule.launchActivity(mIntentToStartActivity);
         String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
-        ReflectionUtils.setFieldValue(mActivity, "mWebRequestHandler", webrequest);
+        ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mWebRequestHandler", webrequest);
         String username = "admin@aaltests.onmicrosoft.com";
         final AuthenticationRequest authRequest = new AuthenticationRequest(
                 "https://login.windows.net/test.test.com",
@@ -327,17 +345,15 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 .getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_FAMILY_NAME));
     }
 
-    @SmallTest
-    @UiThreadTest
+    @Test
     public void testBrokerReturnUserInfoSingleUser() throws IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException, InvocationTargetException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             InterruptedException, ExecutionException {
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+        mActivityRule.launchActivity(mIntentToStartActivity);
         String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
-        ReflectionUtils.setFieldValue(mActivity, "mWebRequestHandler", webrequest);
+        ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mWebRequestHandler", webrequest);
         final AuthenticationRequest authRequest = new AuthenticationRequest(
                 "https://login.windows.net/test.test.com",
                 "https://omercantest.onmicrosoft.com/AllHandsTry", "client", "redirect",
@@ -369,13 +385,11 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
 
     }
 
-    @SmallTest
-    @UiThreadTest
+    @Test
     public void testBrokerSaveCacheKey() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, InterruptedException, ExecutionException {
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+        mActivityRule.launchActivity(mIntentToStartActivity);
         String urlRequest = "http://taskapp/?code=AwABAAAAvPM1KaPlrEqdFSBzjqfTGMgw4YlsUtpp6LtqhSXUApDSgwF7HWFTPxA9ZKafC_NUbwToIMQl86JD09cKDlRI-2_oxx3o0U3cyFwBGeBvKkBDiP89zMj7hPhe6inwRgjLKbL0qla6OIV9gm54_rrCow3G1bWsH5zuXM3j5YWNV-e9K14G6r6B9Z8etd0a_CgNO7_GkleEHw3voXbJL7v8eeW74tLHHSA46wO0T8JRrnhrUydHGzCSLDJQaYyL5FlQQhkZcN5L6I0G472VEpXNwaviEAkNNcg3BPfe2PUswjwM_OqUBz5xE6KwqJ40GQS53eghcVeZNEUNZXG0KzKbxwDgsPFNQ6XZcaK0uZGmzRm8z8xz9hqfPEJtAl7kAhJ1tltL0nuC-0VoyBEdMLo2JyAA&state=YT1odHRwczovL2xvZ2luLndpbmRvd3MubmV0L29tZXJjYW50ZXN0Lm9ubWljcm9zb2Z0LmNvbSZyPWh0dHBzOi8vb21lcmNhbnRlc3Qub25taWNyb3NvZnQuY29tL0FsbEhhbmRzVHJ5&session_state=cba8edc9-91b8-4bb9-8510-2ff9db663258";
         MockWebRequestHandler webrequest = setMockWebResponse();
         String username = "admin@aaltests.onmicrosoft.com";
@@ -427,43 +441,50 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         String json = "{\"id_token\":"
                 + idToken
                 + ",\"access_token\":\"TokentestBroker\",\"token_type\":\"Bearer\",\"expires_in\":\"28799\",\"expires_on\":\"1368768616\",\"refresh_token\":\"refresh112\",\"scope\":\"*\"}";
-        ReflectionUtils.setFieldValue(mActivity, "mWebRequestHandler", webrequest);
+        ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mWebRequestHandler", webrequest);
         webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_OK, json, null));
         return webrequest;
     }
 
-    @SmallTest
-    @UiThreadTest
-    public void testOnResumeRestartWebview() throws IllegalArgumentException,
-            ClassNotFoundException, NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException, NoSuchFieldException,
-            InterruptedException {
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+    @Test
+    public void testOnResumeRestartWebview() throws Throwable {
+        mActivityRule.launchActivity(mIntentToStartActivity);
         final TestLogResponse logResponse = new TestLogResponse();
         logResponse.listenForLogMessage(
                 "Webview onResume register broadcast receiver for requestId" + TEST_REQUEST_ID,
                 null);
-        ReflectionUtils.setFieldValue(mActivity, "mRegisterReceiver", true);
-        Method methodOnResume = ReflectionUtils.getTestMethod(mActivity, "onResume");
-        methodOnResume.invoke(mActivity);
+        ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mRegisterReceiver", true);
+        final Method methodOnResume = ReflectionUtils.getTestMethod(mActivityRule.getActivity(), "onResume");
+        mActivityRule.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    methodOnResume.invoke(mActivityRule.getActivity());
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
 
-        // get field value to check
-        assertTrue("verify log message",
-                logResponse.getMessage().contains("Webview onResume register broadcast"));
+                // get field value to check
+                assertTrue("verify log message",
+                        logResponse.getMessage().contains("Webview onResume register broadcast"));
+            }
+        });
     }
 
-    @SmallTest
-    @UiThreadTest
-    public void testOnBackPressed() throws IllegalArgumentException, ClassNotFoundException,
-            NoSuchMethodException, InstantiationException, IllegalAccessException,
-            InvocationTargetException, NoSuchFieldException, InterruptedException {
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+    @Test
+    public void testOnBackPressed() throws Throwable {
+        mActivityRule.launchActivity(mIntentToStartActivity);
 
-        mActivity.onBackPressed();
+        mActivityRule.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mActivityRule.getActivity().onBackPressed();
+            }
+        });
 
-        assertTrue(isFinishCalled());
+        assertTrue(mActivityRule.getActivity().isFinishing());
 
         // verify result code that includes requestid
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL);
@@ -471,35 +492,31 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 data.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0));
     }
 
-    @SmallTest
-    @UiThreadTest
+    @Test
     public void testOnRestart() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, NoSuchFieldException, InterruptedException {
 
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+        mActivityRule.launchActivity(mIntentToStartActivity);
 
-        ReflectionUtils.setFieldValue(mActivity, "mRegisterReceiver", false);
-        Method methodOnResume = ReflectionUtils.getTestMethod(mActivity, "onRestart");
+        ReflectionUtils.setFieldValue(mActivityRule.getActivity(), "mRegisterReceiver", false);
+        Method methodOnResume = ReflectionUtils.getTestMethod(mActivityRule.getActivity(), "onRestart");
 
-        methodOnResume.invoke(mActivity);
+        methodOnResume.invoke(mActivityRule.getActivity());
 
         // get field value to check
-        boolean fieldVal = (Boolean) ReflectionUtils.getFieldValue(mActivity, "mRegisterReceiver");
+        boolean fieldVal = (Boolean) ReflectionUtils.getFieldValue(mActivityRule.getActivity(), "mRegisterReceiver");
         assertTrue("RestartWebview set to true", fieldVal);
     }
 
-    @SmallTest
-    @UiThreadTest
+    @Test
     public void testEmptyIntentData() throws IllegalArgumentException, NoSuchFieldException,
             IllegalAccessException {
 
         mIntentToStartActivity.putExtra(AuthenticationConstants.Browser.REQUEST_MESSAGE, "");
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+        mActivityRule.launchActivity(mIntentToStartActivity);
 
-        assertTrue(isFinishCalled());
+        assertTrue(mActivityRule.getActivity().isFinishing());
 
         // verify result code
         Intent data = assertFinishCalledWithResult(AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR);
@@ -507,14 +524,12 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 data.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE));
     }
 
-    @SmallTest
-    @UiThreadTest
+    @Test
     public void testReceiver() throws NoSuchFieldException, IllegalArgumentException,
             IllegalAccessException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, InvocationTargetException, InterruptedException {
 
-        startActivity(mIntentToStartActivity, null, null);
-        mActivity = getActivity();
+        mActivityRule.launchActivity(mIntentToStartActivity);
         String broadcastCancelMsg1 = "ActivityBroadcastReceiver onReceive action is for cancelling Authentication Activity";
         String broadcastCancelMsg2 = "Waiting requestId is same and cancelling this activity";
 
@@ -522,7 +537,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         TestLogResponse response = new TestLogResponse();
         final CountDownLatch signal = new CountDownLatch(1);
         response.listenForLogMessage(broadcastCancelMsg1, signal);
-        BroadcastReceiver receiver = (BroadcastReceiver) ReflectionUtils.getFieldValue(mActivity,
+        BroadcastReceiver receiver = (BroadcastReceiver) ReflectionUtils.getFieldValue(mActivityRule.getActivity(),
                 "mReceiver");
         final Intent intent = new Intent(AuthenticationConstants.Browser.ACTION_CANCEL);
         final Bundle extras = new Bundle();
@@ -551,8 +566,7 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
                 response2.getMessage().contains(broadcastCancelMsg2));
     }
 
-    @SmallTest
-    @UiThreadTest
+    @Test
     public void testWebviewHardwareAccelerationDisable() throws IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException {
 
@@ -562,12 +576,10 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         // Disable webview hardware acceleration
         AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(false);
 
-        startActivity(mIntentToStartActivity, null, null);
-
-        mActivity = getActivity();
+        mActivityRule.launchActivity(mIntentToStartActivity);
 
         // get field value to check
-        WebView webView = (WebView) ReflectionUtils.getFieldValue(mActivity, "mWebView");
+        WebView webView = (WebView) ReflectionUtils.getFieldValue(mActivityRule.getActivity(), "mWebView");
 
         // Assert WebView is not null
         assertNotNull("WebView:: ", webView);
@@ -579,17 +591,13 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         AuthenticationSettings.INSTANCE.setDisableWebViewHardwareAcceleration(true);
     }
 
-    @SmallTest
-    @UiThreadTest
+    @Test
     public void testWebviewHardwareAccelerationEnable() throws IllegalArgumentException,
             NoSuchFieldException, IllegalAccessException {
 
-        startActivity(mIntentToStartActivity, null, null);
-
-        mActivity = getActivity();
-
+        mActivityRule.launchActivity(mIntentToStartActivity);
         // get field value to check
-        WebView webView = (WebView) ReflectionUtils.getFieldValue(mActivity, "mWebView");
+        WebView webView = (WebView) ReflectionUtils.getFieldValue(mActivityRule.getActivity(), "mWebView");
 
         // Assert WebView is not null
         assertNotNull("WebView:: ", webView);
@@ -599,32 +607,26 @@ public class AuthenticationActivityUnitTest extends ActivityUnitTestCase<Authent
         assertNotSame("LayerType", WebView.LAYER_TYPE_SOFTWARE, webView.getLayerType());
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-
-        super.tearDown();
-    }
-
     protected Intent assertFinishCalledWithResult(int resultCode) throws NoSuchFieldException,
             IllegalArgumentException, IllegalAccessException {
-        assertTrue(isFinishCalled());
+        assertTrue(mActivityRule.getActivity().isFinishing());
         Field f = Activity.class.getDeclaredField("mResultCode");
         f.setAccessible(true);
-        int actualResultCode = (Integer) f.get(getActivity());
+        int actualResultCode = (Integer) f.get(mActivityRule.getActivity());
         assertEquals(actualResultCode, resultCode);
 
         f = Activity.class.getDeclaredField("mResultData");
         f.setAccessible(true);
-        return (Intent) f.get(getActivity());
+        return (Intent) f.get(mActivityRule.getActivity());
     }
 
     private Object getTokenTask() throws ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException {
         Class<?> c = Class.forName("com.microsoft.aad.adal.AuthenticationActivity$TokenTask");
-        Constructor<?> constructorParams = c.getConstructor(getActivity().getClass());
+        Constructor<?> constructorParams = c.getConstructor(mActivityRule.getActivity().getClass());
         constructorParams.setAccessible(true);
-        return constructorParams.newInstance(getActivity());
+        return constructorParams.newInstance(mActivityRule.getActivity());
     }
 
     /**
