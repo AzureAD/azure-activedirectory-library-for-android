@@ -27,20 +27,24 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.res.Configuration;
 import android.os.Build;
-import android.test.InstrumentationTestCase;
 import android.util.Log;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.Locale;
 
-public class ADALErrorTest extends InstrumentationTestCase {
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class ADALErrorTest {
 
     private static final String TAG = "ADALErrorTests";
 
-    @Override
+    @Before
     @SuppressLint("PackageManagerGetSignatures")
-    protected void setUp() throws Exception {
-        super.setUp();
-        getInstrumentation().getTargetContext().getCacheDir();
+    public void setUp() throws Exception {
         System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
 
         AuthenticationSettings.INSTANCE
@@ -48,6 +52,7 @@ public class ADALErrorTest extends InstrumentationTestCase {
         Log.d(TAG, "mTestSignature is set");
     }
 
+    @Test
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public void testResourceOverwrite() {
         ADALError err = ADALError.DEVELOPER_AUTHORITY_CAN_NOT_BE_VALIDED;

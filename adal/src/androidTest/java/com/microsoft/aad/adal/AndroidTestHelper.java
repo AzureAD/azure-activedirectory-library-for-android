@@ -28,7 +28,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.test.InstrumentationTestCase;
+import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
 import android.util.Log;
 
@@ -39,7 +39,11 @@ import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class AndroidTestHelper extends InstrumentationTestCase {
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class AndroidTestHelper {
 
     protected static final int REQUEST_TIME_OUT = 40000; // milliseconds
 
@@ -49,10 +53,8 @@ public class AndroidTestHelper extends InstrumentationTestCase {
 
     private String mTestTag;
 
-    @Override
     @SuppressLint("PackageManagerGetSignatures")
-    protected void setUp() throws Exception {
-        super.setUp();
+    public void setUp() throws Exception {
         getInstrumentation().getTargetContext().getCacheDir();
         System.setProperty("dexmaker.dexcache", getInstrumentation().getTargetContext().getCacheDir().getPath());
 
@@ -73,10 +75,8 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         Log.d(TAG, "mTestSignature is set");
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
-        super.tearDown();
     }
 
     public void assertThrowsException(final Class<? extends Exception> expected, String hasMessage,
@@ -121,19 +121,19 @@ public class AndroidTestHelper extends InstrumentationTestCase {
      */
     public void testAsyncNoExceptionUIOption(final CountDownLatch signal, final Runnable testCode, boolean runOnUI) {
 
-        Log.d(getName(), "thread:" + android.os.Process.myTid());
+        Log.d(getClass().getName(), "thread:" + android.os.Process.myTid());
 
         try {
             if (runOnUI) {
                 // run on UI thread to create async object at UI thread.
                 // Background
                 // work will happen in another thread.
-                runTestOnUiThread(testCode);
+                InstrumentationRegistry.getInstrumentation().runOnMainSync(testCode);
             } else {
                 testCode.run();
             }
         } catch (Throwable ex) {
-            Log.e(getName(), ex.getMessage());
+            Log.e(getClass().getName(), ex.getMessage());
             assertFalse("not expected:" + ex.getMessage(), true);
             signal.countDown();
         }
@@ -141,18 +141,18 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         try {
             signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            assertFalse("Timeout " + getName(), true);
+            assertFalse("Timeout " + getClass().getName(), true);
         }
     }
 
     public void testMultiThread(int activeThreads, final CountDownLatch signal, final Runnable runnable) {
 
-        Log.d(getName(), "thread:" + android.os.Process.myTid());
+        Log.d(getClass().getName(), "thread:" + android.os.Process.myTid());
 
         Thread[] threads = new Thread[activeThreads];
 
         for (int i = 0; i < activeThreads; i++) {
-            Log.d(getName(), "Run shared cache test for thread:" + i);
+            Log.d(getClass().getName(), "Run shared cache test for thread:" + i);
             threads[i] = new Thread(runnable);
             threads[i].start();
         }
@@ -160,7 +160,7 @@ public class AndroidTestHelper extends InstrumentationTestCase {
         try {
             signal.await(REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            assertFalse("Timeout " + getName(), true);
+            assertFalse("Timeout " + getClass().getName(), true);
         }
     }
 
