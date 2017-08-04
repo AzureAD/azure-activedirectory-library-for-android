@@ -292,7 +292,7 @@ mContext.acquireTokenSilent(String resource, String clientId, String userId, fin
 	* If target version is lower than 23, calling app has to have the following permissions declared in manifest(http://developer.android.com/reference/android/accounts/AccountManager.html):
 		* GET_ACCOUNTS
 		* USE_CREDENTIALS
-		* MANAGE_ACOUNTS
+		* MANAGE_ACCOUNTS
 	* If target version is 23, USE_CREDENTIALS and MANAGE_ACCOUNTS are already deprecated. But GET_ACCOUNTS is under protection level "dangerous", calling app is responsible for requesting the run-time permisson. You can      reference [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
 	* There must be an account existed and registered via one of the two broker apps.
 	
