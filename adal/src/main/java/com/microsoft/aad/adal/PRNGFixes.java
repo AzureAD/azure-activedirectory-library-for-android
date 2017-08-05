@@ -32,6 +32,10 @@
 
 package com.microsoft.aad.adal;
 
+import android.os.Build;
+import android.os.Process;
+import android.util.Log;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -47,10 +51,6 @@ import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.SecureRandomSpi;
 import java.security.Security;
-
-import android.os.Build;
-import android.os.Process;
-import android.util.Log;
 
 /**
  * SecureRandm related fixed from Android developer site. The fixes need to be

@@ -23,8 +23,9 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.Locale;
 import android.content.Context;
+
+import java.util.Locale;
 
 public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 

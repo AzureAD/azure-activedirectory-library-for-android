@@ -23,10 +23,19 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
 
-public class AuthenticationExceptionTests extends AndroidTestCase {
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+@RunWith(AndroidJUnit4.class)
+public class AuthenticationExceptionTests {
+
+    @Test
     public void testException() {
         AuthenticationException exception = new AuthenticationException();
         assertNull("Code is null", exception.getCode());

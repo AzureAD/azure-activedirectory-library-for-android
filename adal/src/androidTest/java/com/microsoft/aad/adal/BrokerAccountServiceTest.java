@@ -55,7 +55,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.microsoft.aad.adal.OauthTests.createAuthenticationRequest;
-import static org.mockito.Mockito.mock;
 
 /**
  * Test cases for brokerAccountService and related operations in {@link BrokerProxy}.

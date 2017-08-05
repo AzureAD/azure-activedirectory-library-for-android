@@ -23,13 +23,20 @@
 
 package com.microsoft.aad.adal;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.test.ActivityUnitTestCase;
+import android.test.RenamingDelegatingContext;
+import android.test.UiThreadTest;
+import android.test.suitebuilder.annotation.SmallTest;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -47,20 +54,13 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.test.ActivityUnitTestCase;
-import android.test.RenamingDelegatingContext;
-import android.test.UiThreadTest;
-import android.test.suitebuilder.annotation.SmallTest;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit test to verify buttons, webview and other items.

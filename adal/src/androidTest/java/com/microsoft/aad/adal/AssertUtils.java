@@ -23,11 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import android.util.Log;
+
+import junit.framework.Assert;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import android.util.Log;
-import junit.framework.Assert;
 
 public class AssertUtils extends Assert {
 

@@ -23,6 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+import android.util.Base64;
+import android.util.Log;
+
+import junit.framework.Assert;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -50,17 +56,11 @@ import java.util.Enumeration;
 
 import javax.security.auth.x500.X500Principal;
 
-import android.content.Context;
-import android.util.Base64;
-import android.util.Log;
-
-import junit.framework.Assert;
-
 public class JwsBuilderTests extends AndroidTestHelper {
 
-    private static final String TEST_CERT_ALIAS = "My Key Chain";
+    static final String TEST_CERT_ALIAS = "My Key Chain";
 
-    private static final String PKCS12_PASS = "changeit";
+    static final String PKCS12_PASS = "changeit";
 
     static final String TAG = "JwsBuilderTests";
 
@@ -73,7 +73,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
             InvocationTargetException, NoSuchMethodException, UnrecoverableKeyException,
             KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException,
             InvalidKeyException, SignatureException {
-        KeyStore keystore = loadTestCertificate();
+        KeyStore keystore = loadTestCertificate(getInstrumentation().getContext());
         Key key = keystore.getKey(TEST_CERT_ALIAS, PKCS12_PASS.toCharArray());
         RSAPrivateKey privKey = (RSAPrivateKey) key;
         Certificate cert = keystore.getCertificate(TEST_CERT_ALIAS);
@@ -127,7 +127,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         RSAPrivateKey privateKey = (RSAPrivateKey) keyGen.genKeyPair().getPrivate();
 
         testSignedJWT(false, "invalid key pairs", "https://someurl", privateKey, publicKey,
-                (X509Certificate) loadTestCertificate().getCertificateChain("My Key Chain")[0]);
+                (X509Certificate) loadTestCertificate(getInstrumentation().getContext()).getCertificateChain("My Key Chain")[0]);
     }
 
     private void testSignedJWT(boolean validSignature, String nonce, String url,
@@ -174,9 +174,8 @@ public class JwsBuilderTests extends AndroidTestHelper {
         assertTrue("Body has iat field", bodyText.contains("iat\":"));
     }
 
-    private KeyStore loadTestCertificate() throws IOException, CertificateException,
+    static KeyStore loadTestCertificate(final Context ctx) throws IOException, CertificateException,
             UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
-        Context ctx = getInstrumentation().getContext();
         KeyStore caKs = KeyStore.getInstance("PKCS12");
 
         BufferedInputStream stream = new BufferedInputStream(ctx.getAssets().open(PKCS12_FILENAME));

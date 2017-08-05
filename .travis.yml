@@ -1,6 +1,7 @@
 # ./travis.yml for adal android
 
 language: android
+dist: precise
 
 jdk: 
   - oraclejdk8
@@ -15,7 +16,7 @@ android:
     - tools
     - tools
     - platform-tools
-    - build-tools-25.0.0
+    - build-tools-25.0.3
     - android-25
     - extra
     - extra-android-m2repository

@@ -23,12 +23,11 @@
 
 package com.microsoft.aad.adal;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 
 import java.io.Serializable;
@@ -57,7 +56,7 @@ class AcquireTokenRequest {
     private TokenCacheAccessor mTokenCacheAccessor;
     private final IBrokerProxy mBrokerProxy;
 
-    private Handler mHandler = null;
+    private static Handler mHandler = null;
 
     /**
      * Instance validation related calls are serviced inside Discovery as a
@@ -707,8 +706,9 @@ class AcquireTokenRequest {
 
     private synchronized Handler getHandler() {
         if (mHandler == null) {
-            // Use current main looper
-            mHandler = new Handler(mContext.getMainLooper());
+            HandlerThread acquireTokenHandlerThread = new HandlerThread("AcquireTokenRequestHandlerThread");
+            acquireTokenHandlerThread.start();
+            mHandler = new Handler(acquireTokenHandlerThread.getLooper());
         }
 
         return mHandler;

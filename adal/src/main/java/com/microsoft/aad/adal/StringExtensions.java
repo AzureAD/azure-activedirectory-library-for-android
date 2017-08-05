@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import android.net.Uri;
+import android.util.Base64;
+
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,9 +37,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
-
-import android.net.Uri;
-import android.util.Base64;
 
 final class StringExtensions {
     /** The Constant ENCODING_UTF8. */
