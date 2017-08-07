@@ -43,7 +43,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(AndroidJUnit4.class)
 public class LoggerTest extends AndroidTestHelper {
 
-    private static final String TAG = "DiscoveryTests";
+    private static final String TAG = LoggerTest.class.getSimpleName();
 
     @Test
     public void testSetCallback() {
