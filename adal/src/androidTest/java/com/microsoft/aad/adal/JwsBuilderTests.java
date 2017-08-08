@@ -24,10 +24,14 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 import android.util.Log;
 
 import junit.framework.Assert;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -56,6 +60,12 @@ import java.util.Enumeration;
 
 import javax.security.auth.x500.X500Principal;
 
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class JwsBuilderTests extends AndroidTestHelper {
 
     static final String TEST_CERT_ALIAS = "My Key Chain";
@@ -68,6 +78,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
 
     static final String JWS_ALGORITHM = "SHA256withRSA";
 
+    @Test
     public void testGenerateSignedJWTPositive() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, UnrecoverableKeyException,
@@ -82,6 +93,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         testSignedJWT(true, "nonce", "https://someurl", privKey, publicKey, (X509Certificate) cert);
     }
 
+    @Test
     public void testGenerateSignedJWTNegative() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
@@ -114,6 +126,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
     /**
      * send invalid public and private key
      */
+    @Test
     public void testGenerateSignedJWTKeyPair() throws InvalidKeyException, ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchAlgorithmException,

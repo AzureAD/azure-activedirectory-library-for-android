@@ -579,6 +579,7 @@ public class OauthTests {
         headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, listOfHeaders);
         when(mockedConnection.getHeaderFields()).thenReturn(headers);
 
+        Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
         final TestLogResponse logResponse = new TestLogResponse();
         logResponse.listenForLogMessage("CorrelationId is not matching", null);
 
@@ -587,8 +588,7 @@ public class OauthTests {
             // verify same token
             assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
             assertTrue("Log response has message",
-                    logResponse.getErrorCode()
-                            .equals(ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE));
+                    ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE.equals(logResponse.getErrorCode()));
         } catch (final AuthenticationException e) {
             fail("unexpected exception");
         }

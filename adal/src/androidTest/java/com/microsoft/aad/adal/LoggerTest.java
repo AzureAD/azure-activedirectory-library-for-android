@@ -23,17 +23,29 @@
 
 package com.microsoft.aad.adal;
 
+import android.support.test.runner.AndroidJUnit4;
+
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class LoggerTest extends AndroidTestHelper {
 
-    private static final String TAG = "DiscoveryTests";
+    private static final String TAG = LoggerTest.class.getSimpleName();
 
+    @Test
     public void testSetCallback() {
 
         final TestLogResponse response = new TestLogResponse();
@@ -84,6 +96,7 @@ public class LoggerTest extends AndroidTestHelper {
         assertNull("not logged", response.getMessage());
     }
 
+    @Test
     public void testCallbackNullMessages() {
 
         final TestLogResponse response = new TestLogResponse();
@@ -158,6 +171,7 @@ public class LoggerTest extends AndroidTestHelper {
         response.reset();
     }
 
+    @Test
     public void testCallbackThrowsError() {
 
         final TestLogResponse response = new TestLogResponse();
@@ -181,6 +195,7 @@ public class LoggerTest extends AndroidTestHelper {
         assertTrue("same log message", response.getMessage().contains("testMessage") && response.getMessage().contains(testId.toString()));
     }
 
+    @Test
     public void testLogMessage() throws IllegalArgumentException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException {
