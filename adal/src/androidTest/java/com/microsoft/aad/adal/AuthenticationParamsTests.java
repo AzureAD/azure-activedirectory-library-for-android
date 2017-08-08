@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
@@ -31,6 +33,8 @@ import com.microsoft.aad.adal.Logger.LogLevel;
 
 import junit.framework.Assert;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -46,22 +50,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class AuthenticationParamsTests extends AndroidTestHelper {
 
     protected static final String TAG = "AuthenticationParamsTests";
 
+    @Test
     public void testGetAuthority() {
         AuthenticationParameters param = new AuthenticationParameters();
         assertTrue("authority should be null", param.getAuthority() == null);
     }
 
+    @Test
     public void testGetResource() {
         AuthenticationParameters param = new AuthenticationParameters();
         assertTrue("resource should be null", param.getResource() == null);
     }
 
+    @Test
     public void testCreateFromResourceUrlInvalidFormat() throws IOException {
-        Log.d(TAG, "test:" + getName() + "thread:" + android.os.Process.myTid());
+        Log.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
 
         //mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -82,6 +96,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
                 testResponse.getException().getMessage() == AuthenticationParameters.AUTH_HEADER_WRONG_STATUS);
     }
 
+    @Test
     public void testCreateFromResponseAuthenticateHeader() {
         assertThrowsException(ResourceAuthenticationChallengeException.class,
                 AuthenticationParameters.AUTH_HEADER_MISSING.toLowerCase(), new ThrowableRunnable() {
@@ -107,8 +122,9 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     /**
      * test external service deployed at Azure
      */
+    @Test
     public void testCreateFromResourceUrlPositive() throws IOException {
-        Log.d(TAG, "test:" + getName() + "thread:" + android.os.Process.myTid());
+        Log.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -128,11 +144,12 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         assertNull("Exception is not null", testResponse.getException());
         assertNotNull("Check parameter", testResponse.getParam());
-        Log.d(TAG, "test:" + getName() + "authority:" + testResponse.getParam().getAuthority());
+        Log.d(TAG, "test:" + getClass().getName() + "authority:" + testResponse.getParam().getAuthority());
         assertEquals("https://login.windows.net/test.onmicrosoft.com", testResponse.getParam()
                 .getAuthority().trim());
     }
 
+    @Test
     public void testParseResponsePositive() throws ClassNotFoundException,
             IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
@@ -176,6 +193,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     /**
      * test private method to make sure parsing is right
      */
+    @Test
     public void testParseResponseNegative() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
@@ -301,6 +319,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testcreateFromResourceUrlNoCallback() throws MalformedURLException {
 
         final URL url = new URL("https://www.something.com");
@@ -308,7 +327,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
             @Override
             public void run() {
-                AuthenticationParameters.createFromResourceUrl(getInstrumentation().getTargetContext(), url, null);
+                AuthenticationParameters.createFromResourceUrl(InstrumentationRegistry.getTargetContext(), url, null);
             }
         });
 

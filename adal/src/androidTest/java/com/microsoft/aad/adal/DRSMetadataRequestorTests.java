@@ -23,13 +23,21 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
 public class DRSMetadataRequestorTests extends AndroidTestHelper {
 
     private static final String RESPONSE = "{\n"
@@ -67,18 +75,18 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
     private static final String TEST_ADFS = "https://fs.lindft6.com/adfs/ls";
     private static final String DOMAIN = "lindft6.com";
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         super.setUp();
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         super.tearDown();
     }
 
-    @SmallTest
+    @Test
     public void testRequestMetadata() throws IOException, AuthenticationException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -96,7 +104,7 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
         );
     }
 
-    @SmallTest
+    @Test
     public void testRequestMetadataThrows() throws IOException, AuthenticationException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -115,7 +123,7 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
         }
     }
 
-    @SmallTest
+    @Test
     public void testParseMetadata() throws AuthenticationException {
         HttpWebResponse mockWebResponse = Mockito.mock(HttpWebResponse.class);
         Mockito.when(mockWebResponse.getBody()).thenReturn(RESPONSE);
@@ -128,7 +136,7 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
         );
     }
 
-    @SmallTest
+    @Test
     public void testBuildRequestUrlByTypeOnPrem() {
         final String expected = "https://enterpriseregistration.lindft6.com/enrollmentserver/contract?api-version=1.0";
         DRSMetadataRequestor requestor = new DRSMetadataRequestor();
@@ -141,7 +149,7 @@ public class DRSMetadataRequestorTests extends AndroidTestHelper {
         );
     }
 
-    @SmallTest
+    @Test
     public void testBuildRequestUrlByTypeCloud() {
         final String expected = "https://enterpriseregistration.windows.net/lindft6.com/enrollmentserver/contract?api-version=1.0";
         DRSMetadataRequestor requestor = new DRSMetadataRequestor();

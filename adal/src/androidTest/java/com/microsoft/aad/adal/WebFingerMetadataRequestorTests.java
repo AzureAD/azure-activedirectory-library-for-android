@@ -23,8 +23,10 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -32,6 +34,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+@RunWith(AndroidJUnit4.class)
 public class WebFingerMetadataRequestorTests extends AndroidTestHelper {
 
     private static final String RESPONSE = "{\n"
@@ -62,7 +68,7 @@ public class WebFingerMetadataRequestorTests extends AndroidTestHelper {
         DRS_METADATA.setIdentityProviderService(identityProviderService);
     }
 
-    @SmallTest
+    @Test
     public void testRequestMetadata() throws IOException, AuthenticationException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -92,7 +98,7 @@ public class WebFingerMetadataRequestorTests extends AndroidTestHelper {
         );
     }
 
-    @SmallTest
+    @Test
     public void testRequestMetadataThrows() throws IOException, AuthenticationException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -115,7 +121,7 @@ public class WebFingerMetadataRequestorTests extends AndroidTestHelper {
         }
     }
 
-    @SmallTest
+    @Test
     public void testParseMetadata() throws AuthenticationException {
         HttpWebResponse mockWebResponse = Mockito.mock(HttpWebResponse.class);
         Mockito.when(mockWebResponse.getBody()).thenReturn(RESPONSE);
@@ -135,7 +141,7 @@ public class WebFingerMetadataRequestorTests extends AndroidTestHelper {
         );
     }
 
-    @SmallTest
+    @Test
     public void testBuildWebFingerUrl() throws MalformedURLException {
         final URL expected = new URL("https://fs.lindft6.com/.well-known/webfinger?resource=https://fs.lindft6.com");
         final URL wfURL = WebFingerMetadataRequestor.buildWebFingerUrl(new URL(DOMAIN), DRS_METADATA);
