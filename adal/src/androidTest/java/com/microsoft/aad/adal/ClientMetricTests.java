@@ -23,6 +23,11 @@
 
 package com.microsoft.aad.adal;
 
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -31,8 +36,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class ClientMetricTests extends AndroidTestHelper {
 
+    @Test
     public void testADFSBehavior() throws ClassNotFoundException, IllegalArgumentException,
             IllegalAccessException, InvocationTargetException, NoSuchMethodException,
             InstantiationException, MalformedURLException, NoSuchFieldException {
@@ -50,6 +60,7 @@ public class ClientMetricTests extends AndroidTestHelper {
                 ReflectionUtils.getFieldValue(clientMetrics, "mLastCorrelationId"));
     }
 
+    @Test
     public void testPendingMetrics() throws ClassNotFoundException, IllegalArgumentException,
             NoSuchMethodException, InstantiationException, IllegalAccessException,
             InvocationTargetException, MalformedURLException, NoSuchFieldException {
