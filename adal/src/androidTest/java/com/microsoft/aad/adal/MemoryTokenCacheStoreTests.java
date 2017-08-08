@@ -23,9 +23,12 @@
 
 package com.microsoft.aad.adal;
 
+import android.support.test.runner.AndroidJUnit4;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -41,6 +44,7 @@ import static android.support.test.InstrumentationRegistry.getInstrumentation;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+@RunWith(AndroidJUnit4.class)
 public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
