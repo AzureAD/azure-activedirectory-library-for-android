@@ -23,6 +23,9 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+import android.os.Build;
+import android.support.test.filters.SdkSuppress;
+import android.test.suitebuilder.annotation.SmallTest;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -49,6 +52,8 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static android.R.attr.minSdkVersion;
+import static android.support.test.InstrumentationRegistry.getContext;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -77,7 +82,7 @@ public final class AcquireTokenSilentHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
@@ -92,12 +97,66 @@ public final class AcquireTokenSilentHandlerTest {
     }
 
     /**
+     * Acquire token users refresh token, but the client app is inactive.
+     */
+    @SmallTest
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
+    public void testRefreshTokenFailedNoNetworkAppIsInactive() {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setAppInactive();
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockCache);
+
+        try {
+            acquireTokenSilentHandler.acquireTokenWithRefreshToken("refreshToken");
+            fail("Expect exception");
+        } catch (final Exception exception) {
+            assertTrue(exception instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception).getCode() == ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+        }
+    }
+
+    /**
+     * Acquire token users refresh token, but the device is in doze mode.
+     */
+    @SmallTest
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
+    public void testRefreshTokenFailedNoNetworkDeviceIsIdle() {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setDeviceInIdleMode();
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockCache);
+
+        try {
+            acquireTokenSilentHandler.acquireTokenWithRefreshToken("refreshToken");
+            fail("Expect exception");
+        } catch (final Exception exception) {
+            assertTrue(exception instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception).getCode() == ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+        }
+    }
+
+    /**
      * Acquire token uses refresh token, but web request returns error with an empty body.
      */
     @Test
     public void testRefreshTokenWebRequestHasError() throws IOException {
 
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final String resource = "resource";
@@ -131,8 +190,8 @@ public final class AcquireTokenSilentHandlerTest {
     // Verify if regular RT exists, if the RT is not MRRT, we only redeem token with the regular RT. 
     @Test
     public void testRegularRT() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -193,8 +252,8 @@ public final class AcquireTokenSilentHandlerTest {
     // Test the current cache that does not mark RT as MRRT even it's MRRT.
     @Test
     public void testRegularRTExistsMRRTForSameClientIdExist() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -257,8 +316,8 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testMRRTSuccessNoFoCI() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -314,7 +373,7 @@ public final class AcquireTokenSilentHandlerTest {
     @Test
     public void testFRTSuccess() throws IOException {
 
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
 
         // note: if only FRT exists, cache key will be hard-coded to 1
@@ -368,7 +427,7 @@ public final class AcquireTokenSilentHandlerTest {
     @Test
     public void testFRTFailedWithInvalidGrant() throws IOException {
 
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
 
@@ -414,8 +473,8 @@ public final class AcquireTokenSilentHandlerTest {
     @Test
     public void testFRTRequestFailedFallBackMRRTRequest() throws IOException {
 
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
         final String clientId = "clientId";
         final String familyClientId = "familyClientId";
 
@@ -481,8 +540,8 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testFRTRequestFailFallBackToMRTMRTRequestFail() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
         mockCache.removeAll();
         final String clientId = "clientId";
         final String familyClientId = "familyClientId";
@@ -562,8 +621,8 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testMRRTRequestFailsTryFRT() throws UnsupportedEncodingException, IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
         mockCache.removeAll();
         final String clientId = "clientId";
         final String resource = "resource";
@@ -647,7 +706,7 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testRefreshTokenRequestNotReturnErrorCode() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", false);
@@ -689,7 +748,7 @@ public final class AcquireTokenSilentHandlerTest {
      */
     @Test
     public void testRefreshTokenWithInteractionRequiredCacheNotCleared() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", false);
@@ -723,8 +782,8 @@ public final class AcquireTokenSilentHandlerTest {
 
     @Test
     public void testMRRTItemNotContainRT() {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -760,8 +819,8 @@ public final class AcquireTokenSilentHandlerTest {
 
     @Test
     public void testAllTokenItemNotContainRT() {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -842,7 +901,7 @@ public final class AcquireTokenSilentHandlerTest {
 
     // No Family client id set in the cache. Only regular RT token cache entry
     private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) {
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         cache.removeAll();
         Calendar expiredTime = new GregorianCalendar();
         Logger.d("Test", "Time now:" + expiredTime.toString());
@@ -891,13 +950,5 @@ public final class AcquireTokenSilentHandlerTest {
                                                              final ITokenCacheStore mockCache) {
         return new AcquireTokenSilentHandler(context, authRequest,
                 new TokenCacheAccessor(mockCache, authRequest.getAuthority(), authRequest.getTelemetryRequestId()));
-    }
-
-    class MockedConnectionService implements IConnectionService {
-        @Override
-        public boolean isConnectionAvailable() {
-            return true;
-        }
-
     }
 }

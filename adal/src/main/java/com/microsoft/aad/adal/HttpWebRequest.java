@@ -171,13 +171,26 @@ class HttpWebRequest {
     static void throwIfNetworkNotAvailable(final Context context) throws AuthenticationException {
         final DefaultConnectionService connectionService = new DefaultConnectionService(context);
         if (!connectionService.isConnectionAvailable()) {
-            AuthenticationException authenticationException = new AuthenticationException(
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
-                    "Connection is not available to refresh token");
-            Logger.w(TAG, "Connection is not available to refresh token", "",
-                    ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
-            
-            throw authenticationException;
+            if (connectionService.isNetworkDisabledFromOptimizations()) {
+                final AuthenticationException authenticationException = new AuthenticationException(
+                        ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION,
+                        "Connection is not available to refresh token because power optimization is "
+                                + "enabled. And the device is in doze mode or the app is standby"
+                                + ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription());
+                Logger.w(TAG, "Connection is not available to refresh token because power optimization is "
+                                + "enabled. And the device is in doze mode or the app is standby"
+                                + ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription(), "",
+                        ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+                throw authenticationException;
+            } else {
+                final AuthenticationException authenticationException = new AuthenticationException(
+                        ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                        "Connection is not available to refresh token");
+                Logger.w(TAG, "Connection is not available to refresh token", "",
+                        ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
+
+                throw authenticationException;
+            }
         }
     } 
 
