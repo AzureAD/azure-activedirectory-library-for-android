@@ -1,4 +1,4 @@
-Version 1.12.1
+Version 1.13.0
 -------------
 Add support for sending conditional access claims to acquire token call
 Remove deadcode around defunct ApplicationReceiver
