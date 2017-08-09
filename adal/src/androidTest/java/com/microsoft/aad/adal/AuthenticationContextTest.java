@@ -1930,40 +1930,45 @@ public final class AuthenticationContextTest extends AndroidTestCase {
                 VALID_AUTHORITY, false, mockCache);
         MockActivity testActivity = new MockActivity();
 
-        CountDownLatch signal = new CountDownLatch(1);
+        final CountDownLatch signal = new CountDownLatch(1);
         testActivity.mSignal = signal;
 
-        MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
         // Acquire token call will return from cache
-        context.acquireToken(testActivity.getTestActivity(), resource, "clientid", "redirectUri", "userA", callback);
-        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        context.acquireToken(testActivity.getTestActivity(), resource, "clientid", "redirectUri", "userA", new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                assertEquals("Same token in response as in cache", tokenToTest, result.getAccessToken());
+                signal.countDown();
+            }
 
-        // Check response in callback
-        assertNull("Error is null", callback.getException());
-        assertEquals("Same token in response as in cache", tokenToTest,
-                callback.getAuthenticationResult().getAccessToken());
+            @Override
+            public void onError(Exception exc) {
+                fail("Unexpected error message.");
+            }
+        });
+        signal.await();
 
         // Request with different resource will result in prompt since Cache
         // does not have multi resource token
-        signal = new CountDownLatch(1);
+        final CountDownLatch signal2 = new CountDownLatch(1);
         testActivity = new MockActivity();
-        testActivity.mSignal = signal;
-        callback = new MockAuthenticationCallback(signal);
-        context.acquireToken(testActivity.getTestActivity(), "anotherResource123", "ClienTid", "redirectUri", "",
-                callback);
-        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+        testActivity.mSignal = signal2;
+
+        final AuthenticationCallback callback = new TestAuthCallback();
+        context.acquireToken(testActivity.getTestActivity(), "anotherResource123", "ClienTid", "redirectUri", "", callback);
+        signal.await();
 
         assertTrue("Attemps to launch", testActivity.mStartActivityRequestCode != -1);
 
         // Asking with different userid will not return item from cache and try
         // to launch activity
-        signal = new CountDownLatch(1);
+        final CountDownLatch signal3 = new CountDownLatch(1);
         testActivity = new MockActivity();
-        testActivity.mSignal = signal;
-        callback = new MockAuthenticationCallback(signal);
+        testActivity.mSignal = signal3;
+        final AuthenticationCallback callback2 = new MockAuthenticationCallback(signal);
         context.acquireToken(testActivity.getTestActivity(), resource, "ClienTid", "redirectUri", "someuser",
-                callback);
-        signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
+                callback2);
+        signal3.await();
         assertTrue("Attemps to launch", testActivity.mStartActivityRequestCode != -1);
 
         clearCache(context);

@@ -22,9 +22,11 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 
 /**
  * Default connection service check network connectivity. 
@@ -37,6 +39,8 @@ class DefaultConnectionService implements IConnectionService {
 
     private final Context mConnectionContext;
 
+    private static final String TAG = "DefaultConnectionService";
+
     DefaultConnectionService(Context ctx) {
         mConnectionContext = ctx;
     }
@@ -45,6 +49,31 @@ class DefaultConnectionService implements IConnectionService {
         ConnectivityManager connectivityManager = (ConnectivityManager) mConnectionContext
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting() && !isNetworkDisabledFromOptimizations();
+    }
+
+    /**
+     * Determines if the client app cannot access the network due to power saving optimizations introduced in API 23.
+     *
+     * @return true if the device is API23 and one or both of the following is true: the device is in doze or the company
+     * portal is in standby, false otherwise.
+     */
+    @TargetApi(Build.VERSION_CODES.M)
+    public boolean isNetworkDisabledFromOptimizations() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            final UsageStatsManagerWrapper usageStatsManagerWrapper = UsageStatsManagerWrapper.getInstance();
+            if (usageStatsManagerWrapper.isAppInactive(mConnectionContext)) {
+                Logger.w(TAG, "Client app is inactive. Network is disabled.", "", ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+                return true;
+            }
+
+            final PowerManagerWrapper powerManagerWrapper = PowerManagerWrapper.getInstance();
+            if (powerManagerWrapper.isDeviceIdleMode(mConnectionContext) && !powerManagerWrapper.isIgnoringBatteryOptimizations(mConnectionContext)) {
+                Logger.w(TAG, "Device is dozing. Network is disabled.", "", ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+                return true;
+            }
+        }
+
+        return false;
     }
 }
