@@ -90,7 +90,7 @@ public class AuthenticationActivityUnitTest {
     private Intent mIntentToStartActivity;
 
     @Rule
-    public ActivityTestRule<AuthenticationActivity> mActivityRule = new ActivityTestRule(AuthenticationActivity.class, true, false);
+    public final ActivityTestRule<AuthenticationActivity> mActivityRule = new ActivityTestRule<>(AuthenticationActivity.class, true, false);
 
     @Before
     public void setUp() throws Exception {
