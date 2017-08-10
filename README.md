@@ -16,7 +16,7 @@ A Work Account is an identity you use to get work done no matter if at your busi
 Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
-Current version - 1.12.1
+Current version - 1.13.0
 Minimum recommended version - 1.1.16  
 You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
@@ -113,7 +113,7 @@ repositories {
 }
 dependencies {
     // your dependencies here...
-    compile('com.microsoft.aad:adal:1.12.+') {
+    compile('com.microsoft.aad:adal:1.13.+') {
         // if your app includes android support
         // libraries or Gson in its dependencies
         // exclude that groupId from ADAL's compile
@@ -134,7 +134,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.12.0</version>
+    <version>1.13.0</version>
     <type>aar</type>
 </dependency>
 ```
