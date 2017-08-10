@@ -30,8 +30,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import org.mockito.Mockito;
-
 import java.util.Map;
 
 /**
@@ -76,7 +74,7 @@ public class MockBrokerAccountService extends Service {
         @Override
         public synchronized Bundle acquireTokenSilently(Map requestParameters) throws RemoteException {
             final Bundle bundle = new Bundle();
-            if(requestParameters.containsKey("isConnectionAvaliable")) {
+            if(requestParameters.containsKey("isConnectionAvailable")) {
                 bundle.putInt(AccountManager.KEY_ERROR_CODE, AccountManager.ERROR_CODE_NETWORK_ERROR);
                 bundle.putString(AccountManager.KEY_ERROR_MESSAGE, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription());
             } else {
@@ -88,7 +86,7 @@ public class MockBrokerAccountService extends Service {
 
         @Override
         public Intent getIntentForInteractiveRequest() throws RemoteException {
-            return Mockito.mock(Intent.class);
+            return new Intent();
         }
 
         @Override

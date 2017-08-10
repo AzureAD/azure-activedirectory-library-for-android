@@ -117,7 +117,7 @@ class AcquireTokenSilentHandler {
                 mAuthRequest.getLogInfo(), null);
         
         // Check if network is available, if not throw exception. 
-        HttpWebRequest.throwIfNetworkNotAvaliable(mContext);
+        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
         
         final AuthenticationResult result;
         try {
@@ -189,6 +189,11 @@ class AcquireTokenSilentHandler {
             Logger.v(TAG, statusMessage);
             return tryMRRT();
         }
+
+        if (StringExtensions.isNullOrBlank(mAuthRequest.getUserFromRequest()) && mTokenCacheAccessor.isMultipleRTsMatchingGivenAppAndResource(
+                mAuthRequest.getClientId(), mAuthRequest.getResource())) {
+            throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH, "Multiple refresh tokens exists for the given client id and resource");
+        }
         
         Logger.v(TAG, "Send request to use regular RT for new AT.");
         return acquireTokenWithCachedItem(regularRTItem);
@@ -226,6 +231,10 @@ class AcquireTokenSilentHandler {
 
             // Pass the failed MRRT result to tryFRT, if FRT does not exist, return the MRRT result. 
             mrrtResult = tryFRT(familyClientId, mrrtResult);
+        }
+
+        if (StringExtensions.isNullOrBlank(mAuthRequest.getUserFromRequest()) && mTokenCacheAccessor.isMultipleMRRTsMatchingGivenApp(mAuthRequest.getClientId())) {
+            throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH, "No User provided and multiple MRRTs exist for the given client id");
         }
         
         return mrrtResult;

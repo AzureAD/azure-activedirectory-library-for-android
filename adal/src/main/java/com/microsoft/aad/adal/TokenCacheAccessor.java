@@ -27,6 +27,7 @@ import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -70,6 +71,8 @@ class TokenCacheAccessor {
             Logger.v(TAG, "No access token exists.");
             return null;
         }
+
+        throwIfMultipleATExisted(clientId, resource, user);
         
         if (!StringExtensions.isNullOrBlank(accessTokenItem.getAccessToken())) {
             if (TokenCacheItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
@@ -142,13 +145,14 @@ class TokenCacheAccessor {
         return item;
     }
 
-    TokenCacheItem getStaleToken(AuthenticationRequest authRequest) {
+    TokenCacheItem getStaleToken(AuthenticationRequest authRequest) throws AuthenticationException {
         final TokenCacheItem accessTokenItem = getRegularRefreshTokenCacheItem(authRequest.getResource(),
                 authRequest.getClientId(), authRequest.getUserFromRequest());
         if (accessTokenItem != null
                 && !StringExtensions.isNullOrBlank(accessTokenItem.getAccessToken())
                 && accessTokenItem.getExtendedExpiresOn() != null
                 && !TokenCacheItem.isTokenExpired(accessTokenItem.getExtendedExpiresOn())) {
+            throwIfMultipleATExisted(authRequest.getClientId(), authRequest.getResource(), authRequest.getUserFromRequest());
             Logger.i(TAG, "The stale access token is returned.", "");
             return accessTokenItem;
         } 
@@ -258,6 +262,34 @@ class TokenCacheAccessor {
         Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent,
                 EventStrings.TOKEN_CACHE_DELETE);
     }
+
+    boolean isMultipleRTsMatchingGivenAppAndResource(final String clientId, final String resource) {
+        final Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
+        final List<TokenCacheItem> regularRTsMatchingRequest = new ArrayList<>();
+        while (allItems.hasNext()) {
+            final TokenCacheItem tokenCacheItem = allItems.next();
+            if (tokenCacheItem.getAuthority().equalsIgnoreCase(mAuthority) && clientId.equalsIgnoreCase(tokenCacheItem.getClientId())
+                    && resource.equalsIgnoreCase(tokenCacheItem.getResource()) && !tokenCacheItem.getIsMultiResourceRefreshToken()) {
+                regularRTsMatchingRequest.add(tokenCacheItem);
+            }
+        }
+
+        return regularRTsMatchingRequest.size() > 1;
+    }
+
+    boolean isMultipleMRRTsMatchingGivenApp(final String clientId) {
+        final Iterator<TokenCacheItem> allItems = mTokenCacheStore.getAll();
+        final List<TokenCacheItem> mrrtsMatchingRequest = new ArrayList<>();
+        while (allItems.hasNext()) {
+            final TokenCacheItem tokenCacheItem = allItems.next();
+            if (tokenCacheItem.getAuthority().equalsIgnoreCase(mAuthority) && tokenCacheItem.getClientId().equalsIgnoreCase(clientId)
+                    && (tokenCacheItem.getIsMultiResourceRefreshToken() || StringExtensions.isNullOrBlank(tokenCacheItem.getResource()))) {
+                mrrtsMatchingRequest.add(tokenCacheItem);
+            }
+        }
+
+        return mrrtsMatchingRequest.size() > 1;
+    }
     
     /**
      * Update token cache for a given user. If token is MRRT, store two separate entries for regular RT entry and MRRT entry. 
@@ -347,6 +379,13 @@ class TokenCacheAccessor {
         // If user if provided, it needs to match either displayId or userId. 
         return !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getDisplayableId()) 
                 && !user.equalsIgnoreCase(tokenCacheItem.getUserInfo().getUserId());
+    }
+
+    private void throwIfMultipleATExisted(final String clientId, final String resource, final String user) throws AuthenticationException {
+        if (StringExtensions.isNullOrBlank(user) && isMultipleRTsMatchingGivenAppAndResource(clientId, resource)) {
+            throw new AuthenticationException(ADALError.AUTH_FAILED_USER_MISMATCH, "No user is provided and multiple access tokens "
+                    + "exist for the given app and resource.");
+        }
     }
     
     /**

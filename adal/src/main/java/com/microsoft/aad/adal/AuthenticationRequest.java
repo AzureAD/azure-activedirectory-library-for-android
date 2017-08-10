@@ -71,6 +71,8 @@ class AuthenticationRequest implements Serializable {
 
     private String mTelemetryRequestId;
 
+    private String mClaimsChallenge;
+
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
@@ -84,7 +86,8 @@ class AuthenticationRequest implements Serializable {
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
-                                 String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId, boolean isExtendedLifetimeEnabled) {
+                                 String loginhint, PromptBehavior prompt, String extraQueryParams, UUID correlationId,
+                                 boolean isExtendedLifetimeEnabled, final String claimsChallenge) {
         mAuthority = authority;
         mResource = resource;
         mClientId = client;
@@ -96,6 +99,7 @@ class AuthenticationRequest implements Serializable {
         mCorrelationId = correlationId;
         mIdentifierType = UserIdentifierType.NoUser;
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+        mClaimsChallenge = claimsChallenge;
     }
 
     public AuthenticationRequest(String authority, String resource, String client, String redirect,
@@ -261,6 +265,14 @@ class AuthenticationRequest implements Serializable {
 
     public boolean getIsExtendedLifetimeEnabled() {
         return mIsExtendedLifetimeEnabled;
+    }
+
+    public void setClaimsChallenge(final String claimsChallenge) {
+        mClaimsChallenge = claimsChallenge;
+    }
+
+    public String getClaimsChallenge() {
+        return mClaimsChallenge;
     }
 
     /**

@@ -62,15 +62,18 @@ final class SSOStateSerializer {
             .registerTypeAdapter(TokenCacheItem.class, new TokenCacheItemSerializationAdapater())
             .create();
 
-    private int getVersion() {
-        return version;
+    /**
+     * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+     */
+    @SuppressWarnings("unused")
+    private SSOStateSerializer() {
     }
 
     /**
      * constructor with an input item in type TokenCacheItem. We take
      * TokenCacheItem as input and call the constructor to initialize a
      * SSOStateSerializer object.
-     * 
+     *
      * @param item TokenCacheItem to initialize a SSOStateSerializer
      */
     private SSOStateSerializer(final TokenCacheItem item) {
@@ -80,15 +83,13 @@ final class SSOStateSerializer {
         this.mTokenCacheItems.add(item);
     }
 
-    /**
-     * Default constructor.
-     */
-    private SSOStateSerializer() {
+    private int getVersion() {
+        return version;
     }
 
     /**
      * Return the token cache item in this blob container object.
-     * 
+     *
      * @return tokenCacheItem
      * @throws AuthenticationException
      */
@@ -103,7 +104,7 @@ final class SSOStateSerializer {
 
     /**
      * serialize the tokenCacheItem with Adapter.
-     * 
+     *
      * @return String
      */
     private String internalSerialize() {
@@ -112,9 +113,9 @@ final class SSOStateSerializer {
 
     /**
      * Deserialize the serializedBlob.
-     * 
+     *
      * this function covers the details of the deserialization process
-     * 
+     *
      * @param serializedBlob String blob to convert to TokenCacheItem
      * @return TokenCacheItem
      * @throws AuthenticationException
@@ -140,7 +141,7 @@ final class SSOStateSerializer {
      * SSOStateSerializer on the serialization, we have this static serialize
      * function which takes the TokenCacheItem object as input and return the
      * serialized json string if successful.
-     * 
+     *
      * @param item TokenCacheItem to convert to serialized json
      * @return String
      */
@@ -154,7 +155,7 @@ final class SSOStateSerializer {
      * SSOStateSerializer on the deserialization, we have this static
      * deserialize function take the serialized string as input and return the
      * deserialized TokenCacheItem if successful.
-     * 
+     *
      * @param serializedBlob string blob to deserialize into TokenCacheItem
      * @return TokenCacheItem
      * @throws AuthenticationException

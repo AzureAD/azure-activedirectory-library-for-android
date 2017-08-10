@@ -58,7 +58,6 @@ class AcquireTokenRequest {
     private final IBrokerProxy mBrokerProxy;
 
     private Handler mHandler = null;
-    private BrokerResumeResultReceiver mBrokerResumeResultReceiver = null;
 
     /**
      * Instance validation related calls are serviced inside Discovery as a
@@ -320,7 +319,9 @@ class AcquireTokenRequest {
 
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
-        return authenticationRequest.getPrompt() == PromptBehavior.Auto || authenticationRequest.isSilent();
+        return !Utility.isClaimsChallengePresent(authenticationRequest)
+                && authenticationRequest.getPrompt() == PromptBehavior.Auto
+                || authenticationRequest.isSilent();
     }
 
     /**
@@ -435,7 +436,7 @@ class AcquireTokenRequest {
                     + " Cannot launch webview, acitivity is null.");
         }
 
-        HttpWebRequest.throwIfNetworkNotAvaliable(mContext);
+        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
 
         final int requestId = callbackHandle.getCallback().hashCode();
         authenticationRequest.setRequestId(requestId);
@@ -737,7 +738,7 @@ class AcquireTokenRequest {
                 }
             }
         } finally {
-            if (exc != null && exc.getCode() != ADALError.AUTH_FAILED_CANCELLED) {
+            if (exc != null) {
                 mAuthContext.removeWaitingRequest(requestId);
             }
         }
@@ -787,82 +788,4 @@ class AcquireTokenRequest {
             return mCallback;
         }
     }
-
-    /**
-     * Responsible for receiving message from broker indicating the broker has completed the token acquisition.
-     */
-    protected class BrokerResumeResultReceiver extends BroadcastReceiver {
-        public BrokerResumeResultReceiver() { }
-
-        private boolean mReceivedResultFromBroker = false;
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String methodName = ":BrokerResumeResultReceiver:onReceive";
-            Logger.d(TAG + methodName, "Received result from broker.");
-            final int receivedWaitingRequestId = intent.getIntExtra(AuthenticationConstants.Browser.REQUEST_ID, 0);
-
-            if (receivedWaitingRequestId == 0) {
-                Logger.v(TAG + methodName, "Received waiting request is 0, error will be thrown, cannot find correct "
-                        + "callback to send back the result.");
-                // Cannot throw AuthenticationException which no longer
-                // extending from RuntimeException. Will log the error
-                // and return back to caller.
-                return;
-            }
-
-            // Setting flag to show that receiver already receive result from broker
-            mReceivedResultFromBroker = true;
-            final AuthenticationRequestState waitingRequest;
-            try {
-                waitingRequest = mAuthContext.getWaitingRequest(receivedWaitingRequestId);
-            } catch (final AuthenticationException authenticationException) {
-                Logger.e(TAG, "No waiting request exists", "", ADALError.CALLBACK_IS_NOT_FOUND,
-                        authenticationException);
-                (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
-                return;
-            }
-
-            final String errorCode = intent.getStringExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
-            if (!StringExtensions.isNullOrBlank(errorCode)) {
-                final String errorMessage = intent.getStringExtra(
-                        AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
-                final String returnedErrorMessage = "ErrorCode: " + errorCode + " ErrorMessage" + errorMessage
-                        + mAuthContext.getCorrelationInfoFromWaitingRequest(waitingRequest);
-                Logger.v(TAG + methodName, returnedErrorMessage);
-                waitingRequestOnError(waitingRequest, receivedWaitingRequestId,
-                        new AuthenticationException(ADALError.AUTH_FAILED, returnedErrorMessage));
-            } else {
-                final boolean isBrokerCompleteTokenRequest = intent.getBooleanExtra(
-                        AuthenticationConstants.Broker.BROKER_RESULT_RETURNED, false);
-                if (isBrokerCompleteTokenRequest) {
-                    Logger.v(TAG + methodName, "Broker already completed the token request, calling "
-                            + "acquireTokenSilentSync to retrieve token from broker.");
-                    final AuthenticationRequest authenticationRequest = waitingRequest.getRequest();
-                    String userId = intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_USERINFO_USERID);
-
-                    // For acquireTokenSilentSync, uniqueId should be passed.
-                    if (StringExtensions.isNullOrBlank(userId)) {
-                        userId = authenticationRequest.getUserId();
-                    }
-
-                    authenticationRequest.setSilent(true);
-                    authenticationRequest.setUserId(userId);
-                    authenticationRequest.setUserIdentifierType(AuthenticationRequest.UserIdentifierType.UniqueId);
-                    acquireToken(null, false, authenticationRequest, waitingRequest.getDelegate());
-                } else {
-                    Logger.v(TAG + methodName, "Broker doesn't send back error nor the completion notification.");
-                    waitingRequestOnError(waitingRequest, receivedWaitingRequestId,
-                            new AuthenticationException(ADALError.AUTH_FAILED,
-                                    "Broker doesn't send back error nor the completion notification."));
-                }
-            }
-            (new ContextWrapper(mContext)).unregisterReceiver(mBrokerResumeResultReceiver);
-        }
-
-        public boolean isResultReceivedFromBroker() {
-            return mReceivedResultFromBroker;
-        }
-    }
-
 }

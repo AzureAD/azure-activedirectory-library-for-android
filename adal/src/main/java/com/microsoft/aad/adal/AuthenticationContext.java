@@ -267,7 +267,7 @@ public class AuthenticationContext {
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, loginHint, PromptBehavior.Auto, null,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
             request.setUserIdentifierType(UserIdentifierType.LoginHint);
             request.setTelemetryRequestId(requestId);
             createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
@@ -308,7 +308,7 @@ public class AuthenticationContext {
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, loginHint, PromptBehavior.Auto, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
             request.setUserIdentifierType(UserIdentifierType.LoginHint);
             request.setTelemetryRequestId(requestId);
             createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
@@ -345,7 +345,7 @@ public class AuthenticationContext {
             apiEvent.setPromptBehavior(prompt.toString());
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
-                    clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled());
+                    clientId, redirectUri, null, prompt, null, getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
 
             request.setTelemetryRequestId(requestId);
 
@@ -384,7 +384,7 @@ public class AuthenticationContext {
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, null, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
 
             request.setTelemetryRequestId(requestId);
 
@@ -426,7 +426,51 @@ public class AuthenticationContext {
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
+            request.setUserIdentifierType(UserIdentifierType.LoginHint);
+            request.setTelemetryRequestId(requestId);
+            createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
+        }
+    }
+
+    /**
+     * acquireToken will start interactive flow if needed. It checks the cache
+     * to return existing result if not expired. It tries to use refresh token
+     * if available. If it fails to get token with refresh token, behavior will
+     * depend on options. If promptbehavior is AUTO, it will remove this refresh
+     * token from cache and fall back on the UI if activitycontext is not null.
+     * Default is AUTO.
+     *
+     * @param activity             Calling activity
+     * @param resource             required resource identifier.
+     * @param clientId             required client identifier.
+     * @param redirectUri          Optional. It will use packagename and provided suffix
+     *                             for this.
+     * @param loginHint            Optional if validateAuthority == null. It is used for cache and as a loginhint at
+     *                             authentication.
+     * @param prompt               Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
+     * @param claims               Optional. The claims challenge returned from middle tier service, will be added as query string
+     *                             to authorize endpoint.
+     * @param callback             required {@link AuthenticationCallback} object for async
+     *                             call.
+     */
+    public void acquireToken(final Activity activity, final String resource, final String clientId, @Nullable String redirectUri,
+                             @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
+                             @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+        throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
+
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(loginHint, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
+            final String requestId = Telemetry.registerNewRequest();
+            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_8);
+            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setLoginHint(loginHint);
+
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), claims);
             request.setUserIdentifierType(UserIdentifierType.LoginHint);
             request.setTelemetryRequestId(requestId);
             createAcquireTokenRequest(apiEvent).acquireToken(wrapActivity(activity), false, request, callback);
@@ -466,7 +510,50 @@ public class AuthenticationContext {
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
+            request.setUserIdentifierType(UserIdentifierType.LoginHint);
+            request.setTelemetryRequestId(requestId);
+            createAcquireTokenRequest(apiEvent).acquireToken(fragment, false, request, callback);
+        }
+    }
+
+    /**
+     * It will start interactive flow if needed. It checks the cache to return
+     * existing result if not expired. It tries to use refresh token if
+     * available. If it fails to get token with refresh token, behavior will
+     * depend on options. If promptbehavior is AUTO, it will remove this refresh
+     * token from cache and fall back on the UI. Default is AUTO.
+     *
+     * @param fragment             It accepts both type of fragments.
+     * @param resource             required resource identifier.
+     * @param clientId             required client identifier.
+     * @param redirectUri          Optional. It will use packagename and provided suffix
+     *                             for this.
+     * @param loginHint            Optional if validateAuthority == null. It is used for cache and as a loginhint at
+     *                             authentication.
+     * @param prompt               Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
+     * @param claims               Optional. The claims challenge returned from middle tier service, will be added as query string
+     *                             to authorize endpoint.
+     * @param callback             required {@link AuthenticationCallback} object for async
+     *                             call.
+     */
+    public void acquireToken(final IWindowComponent fragment, final String resource, final String clientId, @Nullable String redirectUri,
+                             @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
+                             @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+        throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
+
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(loginHint, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
+            final String requestId = Telemetry.registerNewRequest();
+            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_9);
+            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setLoginHint(loginHint);
+
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), claims);
             request.setUserIdentifierType(UserIdentifierType.LoginHint);
             request.setTelemetryRequestId(requestId);
             createAcquireTokenRequest(apiEvent).acquireToken(fragment, false, request, callback);
@@ -507,11 +594,55 @@ public class AuthenticationContext {
 
             final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
                     clientId, redirectUri, loginHint, prompt, extraQueryParameters,
-                    getRequestCorrelationId(), getExtendedLifetimeEnabled());
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), null);
             request.setUserIdentifierType(UserIdentifierType.LoginHint);
             request.setTelemetryRequestId(requestId);
 
             createAcquireTokenRequest(apiEvent).acquireToken(null, true, request, callback);
+        }
+    }
+
+    /**
+     * This uses new dialog based prompt. It will create a handler to run the
+     * dialog related code. It will start interactive flow if needed. It checks
+     * the cache to return existing result if not expired. It tries to use
+     * refresh token if available. If it fails to get token with refresh token,
+     * behavior will depend on options. If promptbehavior is AUTO, it will
+     * remove this refresh token from cache and fall back on the UI. Default is
+     * AUTO.
+     *
+     * @param resource             required resource identifier.
+     * @param clientId             required client identifier.
+     * @param redirectUri          Optional. It will use packagename and provided suffix
+     *                             for this.
+     * @param loginHint            Optional if validateAuthority == null. It is used for cache and as a loginhint at
+     *                             authentication.
+     * @param prompt               Optional. added as query parameter to authorization url
+     * @param extraQueryParameters Optional. added to authorization url
+     * @param claims               Optional. The claims challenge returned from middle tier service, will be added as query string
+     *                             to authorize endpoint.
+     * @param callback             required {@link AuthenticationCallback} object for async
+     *                             call.
+     */
+    public void acquireToken(final String resource, final String clientId, @Nullable String redirectUri,
+                             @Nullable final String loginHint, @Nullable final PromptBehavior prompt, @Nullable String extraQueryParameters,
+                             @Nullable final String claims, final AuthenticationCallback<AuthenticationResult> callback) {
+        throwIfClaimsInBothExtraQpAndClaimsParameter(claims, extraQueryParameters);
+
+        if (checkPreRequirements(resource, clientId, callback)
+                && checkADFSValidationRequirements(loginHint, callback)) {
+            redirectUri = getRedirectUri(redirectUri);
+            final String requestId = Telemetry.registerNewRequest();
+            final APIEvent apiEvent = createApiEvent(mContext, clientId, requestId, EventStrings.ACQUIRE_TOKEN_10);
+            apiEvent.setPromptBehavior(prompt.toString());
+            apiEvent.setLoginHint(loginHint);
+
+            final AuthenticationRequest request = new AuthenticationRequest(mAuthority, resource,
+                    clientId, redirectUri, loginHint, prompt, extraQueryParameters,
+                    getRequestCorrelationId(), getExtendedLifetimeEnabled(), claims);
+            request.setUserIdentifierType(UserIdentifierType.LoginHint);
+            request.setTelemetryRequestId(requestId);
+            createAcquireTokenRequest(apiEvent).acquireToken(null, false, request, callback);
         }
     }
 
@@ -563,21 +694,12 @@ public class AuthenticationContext {
                 new AuthenticationCallback<AuthenticationResult>() {
                     @Override
                     public void onSuccess(AuthenticationResult result) {
-                        apiEvent.setWasApiCallSuccessful(true, null);
-                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
-                        apiEvent.setIdToken(result.getIdToken());
-                        apiEvent.stopTelemetryAndFlush();
-
                         authenticationResult.set(result);
                         latch.countDown();
                     }
 
                     @Override
                     public void onError(Exception exc) {
-                        apiEvent.setWasApiCallSuccessful(false, exc);
-                        apiEvent.setCorrelationId(request.getCorrelationId().toString());
-                        apiEvent.stopTelemetryAndFlush();
-
                         exception.set(exc);
                         latch.countDown();
                     }
@@ -872,9 +994,8 @@ public class AuthenticationContext {
      *
      * @param requestId Hash code value of your callback to cancel activity
      *                  launch
-     * @return true: if there is a valid waiting request and cancel message send
-     * successfully. false: Request does not exist or cancel message not
-     * send
+     * @return true: if there is a valid waiting request and cancel message sent
+     * successfully or if no waiting request exists. false: If the request could not be cancelled
      * @throws AuthenticationException if failed to get the waiting request
      */
     public boolean cancelAuthenticationActivity(final int requestId) throws AuthenticationException {
@@ -1213,7 +1334,7 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.12.0";
+        return "1.13.0";
     }
 
     /**
@@ -1249,5 +1370,11 @@ public class AuthenticationContext {
         apiEvent.setAuthority(getAuthority());
         Telemetry.getInstance().startEvent(requestId, apiEvent.getEventName());
         return apiEvent;
+    }
+
+    private void throwIfClaimsInBothExtraQpAndClaimsParameter(final String claims, final String extraQP) {
+        if (!StringExtensions.isNullOrBlank(claims) && !StringExtensions.isNullOrBlank(extraQP) && extraQP.contains(AuthenticationConstants.OAuth2.CLAIMS)) {
+            throw new IllegalArgumentException("claims cannot be sent in claims parameter and extra qp.");
+        }
     }
 }

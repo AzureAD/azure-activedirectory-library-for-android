@@ -122,7 +122,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
         }
         AuthenticationSettings.INSTANCE.setUseBroker(false);
         // ADAL is set to this signature for now
-        PackageInfo info = mContext.getPackageManager().getPackageInfo(TEST_PACKAGE_NAME,
+        PackageInfo info = mContext.getPackageManager().getPackageInfo(getContext().getPackageName(),
                 PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
@@ -605,7 +605,7 @@ public final class AuthenticationContextTest extends AndroidTestCase {
     @SmallTest
     public void testAcquireTokenByRefreshTokenConnectionNotAvailable() throws InterruptedException {
         FileMockContext mockContext = new FileMockContext(getContext());
-        mockContext.setConnectionAvaliable(false);
+        mockContext.setConnectionAvailable(false);
 
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);

@@ -255,6 +255,27 @@ public class OauthTests extends AndroidTestCase {
         assertTrue("Prompt", actualCodeRequestQPHasChrome.contains("&prompt=login&extra=1&haschrome=1"));
     }
 
+    public void testGetCodeRequestUrlWithClaims() throws UnsupportedEncodingException {
+        final UUID correlationId = UUID.randomUUID();
+        final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
+                "loginhint55", PromptBehavior.Always, "p=extraQueryPAram56", correlationId, false, "testClaims");
+
+        final Oauth2 oauth2 = createOAuthInstance(request);
+        final String codeRequestUrl = oauth2.getCodeRequestUrl();
+        assertTrue(codeRequestUrl.contains("claims=testClaims"));
+        assertTrue(codeRequestUrl.contains("p=extraQueryPAram56"));
+    }
+
+    public void testGetCodeRequestUrlWithClaimsInExtraQP() throws UnsupportedEncodingException {
+        final UUID correlationId = UUID.randomUUID();
+        final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
+                "loginhint55", PromptBehavior.Always, "claims=testclaims&a=b", correlationId, false, null);
+
+        final Oauth2 oauth2 = createOAuthInstance(request);
+        final String codeRequestUrl = oauth2.getCodeRequestUrl();
+        assertTrue(codeRequestUrl.contains("claims=testclaims&a=b"));
+    }
+
     @SmallTest
     public void testGetCodeRequestUrlClientTrace() throws UnsupportedEncodingException {
         // with login hint
@@ -695,7 +716,7 @@ public class OauthTests extends AndroidTestCase {
                                                                     final boolean isExtendedLifetimeEnabled) {
 
         return new AuthenticationRequest(authority, resource, client, redirect, loginhint, prompt,
-                extraQueryParams, correlationId, isExtendedLifetimeEnabled);
+                extraQueryParams, correlationId, isExtendedLifetimeEnabled, null);
 
     }
 

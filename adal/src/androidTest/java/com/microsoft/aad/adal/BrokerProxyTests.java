@@ -93,7 +93,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
 
         // ADAL is set to this signature for now
-        PackageInfo info = mContext.getPackageManager().getPackageInfo("com.microsoft.aad.adal.testapp",
+        PackageInfo info = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(),
                 PackageManager.GET_SIGNATURES);
 
         // Broker App can be signed with multiple certificates. It will look
@@ -706,7 +706,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
                 "redirect", acctName.toLowerCase(Locale.US), PromptBehavior.Auto, "", UUID.randomUUID(), false);
         final FileMockContext context = new FileMockContext(getContext());
-        context.setConnectionAvaliable(false);
+        context.setConnectionAvailable(false);
         final AccountManager mockedAccountManager = getMockedAccountManager(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE,
                 AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
         setMockProxyForErrorCheck(mockedAccountManager, acctName, AccountManager.ERROR_CODE_NETWORK_ERROR, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription());
@@ -975,7 +975,7 @@ public class BrokerProxyTests extends AndroidTestCase {
                                                                      final String extraQueryParams, final UUID correlationId,
                                                                      boolean isExtendedLifetimeEnabled) {
         return new AuthenticationRequest(authority, resource, client, redirect, loginHint, prompt, extraQueryParams,
-                correlationId, isExtendedLifetimeEnabled);
+                correlationId, isExtendedLifetimeEnabled, null);
     }
 
     private PackageManager getMockedPackageManagerWithBrokerAccountServiceDisabled(final Signature signature,

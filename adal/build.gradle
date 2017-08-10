@@ -1,4 +1,6 @@
 apply plugin: 'com.android.library'
+// Add JaCoCo for coverage metrics
+apply plugin: 'jacoco'
 // This plugin publishes adal in to the local maven repo
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'findbugs'
@@ -7,6 +9,10 @@ apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
 
 group = 'com.microsoft.aad'
+
+configurations {
+    javadocDeps
+}
 
 buildscript {
     repositories {
@@ -25,12 +31,15 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 1
-        versionName "1.12.0"
+        versionName "1.13.0"
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt')
@@ -42,6 +51,8 @@ android {
             manifest.srcFile 'src/main/AndroidManifest.xml'
             java.srcDirs = ['src/main/java', 'src/main/aidl']
         }
+
+        androidTest.setRoot('src/androidTest')
     }
 
     sourceSets {
@@ -78,7 +89,9 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     //Compile Dependencies
     compile 'com.android.support:appcompat-v7:25.0.0'
-    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.google.code.gson:gson:2.8.0'
+    compile 'com.android.support:support-annotations:25.0.0'
+    compile 'com.android.support:support-v4:25.0.0'
 
     //Android Instrumental Test Dependencies
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -90,8 +103,31 @@ dependencies {
 
     // Test Dependencies
     testCompile 'junit:junit:4.12'
+
+    // Javadoc Dependencies
+    javadocDeps 'com.android.support:support-annotations:25.0.0'
+    javadocDeps 'com.android.support:support-v4:25.0.0'
 }
 
+task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    jacocoClasspath = configurations['androidJacocoAnt']
+
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/debug", excludes: fileFilter)
+    def mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories = files([mainSrc])
+    classDirectories = files([debugTree])
+    executionData = fileTree(dir: "$buildDir", includes: [
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/code-coverage/connected/*coverage.ec"
+    ])
+}
 
 task createPom  {
     pom {
@@ -139,6 +175,9 @@ task sourcesJar(type: Jar) {
 
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
+    classpath += configurations.compile
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.javadocDeps
     exclude '**/*.aidl'
     if (JavaVersion.current().isJava8Compatible()) {
         allprojects {
@@ -147,9 +186,7 @@ task javadoc(type: Javadoc) {
             }
         }
     }
-    classpath = configurations.compile
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
-    failOnError = false
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

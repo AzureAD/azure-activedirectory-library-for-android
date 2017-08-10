@@ -47,6 +47,13 @@ final class WebFingerMetadata {
     private List<Link> mLinks;
 
     /**
+     * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+     */
+    @SuppressWarnings("unused")
+    WebFingerMetadata() {
+    }
+
+    /**
      * Gets the subject.
      *
      * @return the subject

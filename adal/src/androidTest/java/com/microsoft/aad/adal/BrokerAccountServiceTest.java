@@ -49,9 +49,13 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.microsoft.aad.adal.OauthTests.createAuthenticationRequest;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test cases for brokerAccountService and related operations in {@link BrokerProxy}.
@@ -166,7 +170,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
             public void run() {
                 final Context mockContext = getMockContext();
                 Bundle requestBundle = new Bundle();
-                requestBundle.putString("isConnectionAvaliable","false");
+                requestBundle.putString("isConnectionAvailable","false");
 
                 try {
                     final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle);
@@ -201,6 +205,29 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
                 } finally {
                     latch.countDown();
                 }
+            }
+        });
+        latch.await();
+    }
+
+    public void testGetIntentContainsSkipCacheAndClaimsForBrokerActivity() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        sThreadExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                final String claimsChallenge = "testClaims";
+                final AuthenticationRequest authRequest = createAuthenticationRequest("https://login.windows.net/omercantest", "resource", "client",
+                        "redirect", "loginhint", PromptBehavior.Auto, "", UUID.randomUUID(), false);
+                authRequest.setClaimsChallenge(claimsChallenge);
+
+                final Context context = getMockContext();
+                final BrokerProxy brokerProxy = new BrokerProxy(context);
+
+                final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest);
+                assertTrue(Boolean.toString(true).equals(intent.getStringExtra(AuthenticationConstants.Broker.BROKER_SKIP_CACHE)));
+                assertTrue(claimsChallenge.equals(intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLAIMS)));
+                latch.countDown();
             }
         });
         latch.await();
