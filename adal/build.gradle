@@ -14,6 +14,15 @@ configurations {
     javadocDeps
 }
 
+allprojects {
+    repositories {
+        jcenter()
+        maven {
+            url "https://maven.google.com"
+        }
+    }
+}
+
 buildscript {
     repositories {
         jcenter()
@@ -94,6 +103,7 @@ dependencies {
 
     // Android Instrumental Test Dependencies
     androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
+    androidTestCompile "com.android.support.test:rules:$rootProject.ext.rulesVersion"
     androidTestCompile "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     androidTestCompile "com.google.dexmaker:dexmaker-mockito:$rootProject.ext.dexmakerMockitoVersion"
 
