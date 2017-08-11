@@ -94,7 +94,7 @@ final class BrokerAccountServiceHandler {
                 exception.set(throwable);
                 countDownLatch.countDown();
             }
-        });
+        }, null);
 
         try {
             countDownLatch.await();
@@ -118,7 +118,7 @@ final class BrokerAccountServiceHandler {
      * @return The {@link Bundle} result from the BrokerAccountService.
      * @throws {@link AuthenticationException} if failed to get token from the service.
      */
-    public Bundle getAuthToken(final Context context, final Bundle requestBundle) throws AuthenticationException {
+    public Bundle getAuthToken(final Context context, final Bundle requestBundle, final BrokerEvent brokerEvent) throws AuthenticationException {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         final AtomicReference<Bundle> bundleResult = new AtomicReference<>(null);
         final AtomicReference<Throwable> exception = new AtomicReference<>(null);
@@ -141,7 +141,7 @@ final class BrokerAccountServiceHandler {
                 exception.set(throwable);
                 countDownLatch.countDown();
             }
-        });
+        }, brokerEvent);
 
         try {
             countDownLatch.await();
@@ -162,7 +162,7 @@ final class BrokerAccountServiceHandler {
      * @param context The application {@link Context}.
      * @return The {@link Intent} to launch the interactive request.
      */
-    public Intent getIntentForInteractiveRequest(final Context context) {
+    public Intent getIntentForInteractiveRequest(final Context context, final BrokerEvent brokerEvent) {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         final AtomicReference<Intent> bundleResult = new AtomicReference<>(null);
         final AtomicReference<Throwable> exception = new AtomicReference<>(null);
@@ -185,7 +185,7 @@ final class BrokerAccountServiceHandler {
                 exception.set(throwable);
                 countDownLatch.countDown();
             }
-        });
+        }, brokerEvent);
 
         try {
             countDownLatch.await();
@@ -222,7 +222,7 @@ final class BrokerAccountServiceHandler {
                 Logger.e(TAG, "Encounter exception when removing accounts from broker",
                         throwable.getMessage(), null, throwable);
             }
-        });
+        }, null);
     }
 
     public static Intent getIntentForBrokerAccountService(final Context context) {
@@ -283,7 +283,7 @@ final class BrokerAccountServiceHandler {
         return brokerUsers.toArray(new UserInfo[brokerUsers.size()]);
     }
 
-    private void performAsyncCallOnBound(final Context context, final Callback<BrokerAccountServiceConnection> callback) {
+    private void performAsyncCallOnBound(final Context context, final Callback<BrokerAccountServiceConnection> callback, final BrokerEvent event) {
         bindToBrokerAccountService(context, new Callback<BrokerAccountServiceConnection>() {
             @Override
             public void onSuccess(final BrokerAccountServiceConnection result) {
@@ -305,22 +305,32 @@ final class BrokerAccountServiceHandler {
             public void onError(Throwable throwable) {
                 callback.onError(throwable);
             }
-        });
+        }, event);
     }
 
-    private void bindToBrokerAccountService(final Context context, final Callback<BrokerAccountServiceConnection> callback) {
+    private void bindToBrokerAccountService(final Context context, final Callback<BrokerAccountServiceConnection> callback, final BrokerEvent brokerEvent) {
         Logger.v(TAG, "Binding to BrokerAccountService for caller uid: " + android.os.Process.myUid());
         final Intent brokerAccountServiceToBind = getIntentForBrokerAccountService(context);
 
         final BrokerAccountServiceConnection connection = new BrokerAccountServiceConnection();
+        if (brokerEvent != null) {
+            connection.setTelemetryEvent(brokerEvent);
+            brokerEvent.setBrokerAccountServerStartsBinding();
+        }
         final CallbackExecutor<BrokerAccountServiceConnection> callbackExecutor = new CallbackExecutor<>(callback);
         mPendingConnections.put(connection, callbackExecutor);
-        context.bindService(brokerAccountServiceToBind, connection, Context.BIND_AUTO_CREATE);
+        final boolean serviceBound = context.bindService(brokerAccountServiceToBind, connection, Context.BIND_AUTO_CREATE);
+        Logger.v(TAG, "The status for brokerAccountService bindService call is: " + Boolean.valueOf(serviceBound));
+        if (brokerEvent != null) {
+            brokerEvent.setBrokerAccountServiceBindingSucceed(serviceBound);
+        }
     }
 
     private class BrokerAccountServiceConnection implements android.content.ServiceConnection {
         private IBrokerAccountService mBrokerAccountService;
         private boolean mBound;
+        // Keep the type as IEvent in case
+        private BrokerEvent mEvent;
 
         public IBrokerAccountService getBrokerAccountServiceProvider() {
             return mBrokerAccountService;
@@ -331,6 +341,10 @@ final class BrokerAccountServiceHandler {
             Logger.v(TAG, "Broker Account service is connected.");
             mBrokerAccountService = IBrokerAccountService.Stub.asInterface(service);
             mBound = true;
+            if (mEvent != null) {
+                mEvent.setBrokerAccountServiceConnected();
+            }
+
             final CallbackExecutor<BrokerAccountServiceConnection> callbackExecutor = mPendingConnections.remove(this);
             if (callbackExecutor != null) {
                 callbackExecutor.onSuccess(this);
@@ -366,6 +380,10 @@ final class BrokerAccountServiceHandler {
                     }
                 }
             });
+        }
+
+        public void setTelemetryEvent(final BrokerEvent event) {
+            mEvent = event;
         }
     }
 }

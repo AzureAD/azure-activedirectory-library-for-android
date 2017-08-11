@@ -60,7 +60,7 @@ interface IBrokerProxy {
      * @param request AuthenticationRequest object
      * @return AuthenticationResult
      */
-    AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request)
+    AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException;
 
     /**
@@ -69,7 +69,7 @@ interface IBrokerProxy {
      * @param request AuthenticationRequest
      * @return Intent
      */
-    Intent getIntentForBrokerActivity(final AuthenticationRequest request);
+    Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent);
 
     /*
      * Gets user info from broker.
