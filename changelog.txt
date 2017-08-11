@@ -1,3 +1,8 @@
+Version 1.13.1
+-------------
+Add support for handling doze and app standby mode
+Add telemetry and log around brokerAccountServiceBinding
+
 Version 1.13.0
 -------------
 Add support for sending conditional access claims to acquire token call
