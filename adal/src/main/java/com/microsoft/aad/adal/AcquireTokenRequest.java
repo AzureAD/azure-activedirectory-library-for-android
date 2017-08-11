@@ -590,6 +590,12 @@ class AcquireTokenRequest {
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken, null);
                     if (brokerResult.getAccessToken() != null) {
+                        waitingRequest.getAPIEvent().setWasApiCallSuccessful(true, null);
+                        waitingRequest.getAPIEvent().setCorrelationId(
+                                waitingRequest.getRequest().getCorrelationId().toString());
+                        waitingRequest.getAPIEvent().setIdToken(brokerResult.getIdToken());
+                        waitingRequest.getAPIEvent().stopTelemetryAndFlush();
+
                         waitingRequest.getDelegate().onSuccess(brokerResult);
                     }
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL) {

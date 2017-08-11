@@ -304,7 +304,7 @@ class BrokerProxy implements IBrokerProxy {
      * Gets accessToken from Broker component.
      */
     @Override
-    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request)
+    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException {
 
         verifyNotOnMainThread();
@@ -314,7 +314,7 @@ class BrokerProxy implements IBrokerProxy {
         // check if broker supports the new service, if it does not we need to switch back to the old way
         final Bundle bundleResult;
         if (isBrokerAccountServiceSupported()) {
-            bundleResult = BrokerAccountServiceHandler.getInstance().getAuthToken(mContext, requestBundle);
+            bundleResult = BrokerAccountServiceHandler.getInstance().getAuthToken(mContext, requestBundle, brokerEvent);
         } else {
             bundleResult = getAuthTokenFromAccountManager(request, requestBundle);
         }
@@ -550,11 +550,11 @@ class BrokerProxy implements IBrokerProxy {
      * from calling app's activity to control the lifetime of the activity.
      */
     @Override
-    public Intent getIntentForBrokerActivity(final AuthenticationRequest request) {
+    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent) {
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
         if (isBrokerAccountServiceSupported()) {
-            intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext);
+            intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext, brokerEvent);
             intent.putExtras(requestBundle);
         } else {
             intent = getIntentForBrokerActivityFromAccountManager(requestBundle);

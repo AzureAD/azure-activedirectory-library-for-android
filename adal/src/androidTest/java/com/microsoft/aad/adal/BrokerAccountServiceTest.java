@@ -40,6 +40,7 @@ import android.os.IBinder;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ServiceTestRule;
 import android.util.Base64;
+import android.util.Pair;
 
 import junit.framework.Assert;
 
@@ -53,6 +54,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -151,7 +153,7 @@ public final class BrokerAccountServiceTest {
             public void run() {
                 final Context context = getMockContext();
                 try {
-                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(context, new Bundle());
+                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(context, new Bundle(), getBrokerEvent());
                     Assert.assertTrue(bundle.getString(AccountManager.KEY_AUTHTOKEN).equals(MockBrokerAccountService.ACCESS_TOKEN));
                 } catch (final AuthenticationException e) {
                     fail();
@@ -174,7 +176,7 @@ public final class BrokerAccountServiceTest {
                 requestBundle.putString("isConnectionAvailable","false");
 
                 try {
-                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle);
+                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle, getBrokerEvent());
                     Assert.assertTrue(bundle.getInt(AccountManager.KEY_ERROR_CODE) == AccountManager.ERROR_CODE_NETWORK_ERROR);
                     Assert.assertTrue(bundle.getString(AccountManager.KEY_ERROR_MESSAGE).equals(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription()));
                 } catch (final AuthenticationException e) {
@@ -198,9 +200,13 @@ public final class BrokerAccountServiceTest {
                 final Context context = getMockContext();
                 final BrokerProxy brokerProxy = new BrokerProxy(context);
                 try {
+                    final BrokerEvent brokerEvent = new BrokerEvent(EventStrings.BROKER_REQUEST_SILENT);
+                    brokerEvent.setRequestId("1234");
+                    Telemetry.getInstance().startEvent(brokerEvent.getTelemetryRequestId(), EventStrings.BROKER_REQUEST_SILENT);
                     final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(
-                            AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", "redirect", "", false));
+                            AuthenticationContextTest.createAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", "redirect", "", false), brokerEvent);
                     Assert.assertTrue(result.getAccessToken().equals(MockBrokerAccountService.ACCESS_TOKEN));
+                    verifyBrokerEventList(brokerEvent);
                 } catch (final AuthenticationException e) {
                     fail();
                 } finally {
@@ -226,9 +232,16 @@ public final class BrokerAccountServiceTest {
                 final Context context = getMockContext();
                 final BrokerProxy brokerProxy = new BrokerProxy(context);
 
-                final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest);
+                final BrokerEvent brokerEvent = new BrokerEvent(EventStrings.BROKER_REQUEST_SILENT);
+                Telemetry.getInstance().flush("1234");
+                brokerEvent.setRequestId("1234");
+                Telemetry.getInstance().startEvent(brokerEvent.getTelemetryRequestId(), EventStrings.BROKER_REQUEST_INTERACTIVE);
+
+                final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, brokerEvent);
                 assertTrue(Boolean.toString(true).equals(intent.getStringExtra(AuthenticationConstants.Broker.BROKER_SKIP_CACHE)));
                 assertTrue(claimsChallenge.equals(intent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_CLAIMS)));
+
+                verifyBrokerEventList(brokerEvent);
                 latch.countDown();
             }
         });
@@ -272,6 +285,17 @@ public final class BrokerAccountServiceTest {
         AuthenticationSettings.INSTANCE.setBrokerSignature(signatureData.getSignatureHash());
         final BrokerProxy brokerProxy = new BrokerProxy(context);
         Assert.assertFalse(brokerProxy.canSwitchToBroker(BrokerProxyTests.TEST_AUTHORITY).equals(BrokerProxy.SwitchToBroker.CANNOT_SWITCH_TO_BROKER));
+    }
+
+    private void verifyBrokerEventList(final BrokerEvent brokerEvent) {
+        final List<Pair<String, String>> eventLists = brokerEvent.getEvents();
+        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_STARTS_BINDING, Boolean.toString(true))));
+        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED, Boolean.toString(true))));
+        assertTrue(eventLists.contains(new Pair<>(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true))));
+    }
+
+    private BrokerEvent getBrokerEvent() {
+        return new BrokerEvent(EventStrings.BROKER_EVENT);
     }
 
     private Context getMockContext() {

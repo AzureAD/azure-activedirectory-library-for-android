@@ -43,6 +43,10 @@ final class EventStrings {
 
     static final String TOKEN_CACHE_DELETE = "Microsoft.ADAL.token_cache_delete";
 
+    static final String BROKER_REQUEST_SILENT = "Microsoft.ADAL.broker_request_silent";
+
+    static final String BROKER_REQUEST_INTERACTIVE = "Microsoft.ADAL.broker_request_interactive";
+
     // Event Parameter names
     static final String APPLICATION_NAME = "Microsoft.ADAL.application_name";
 
@@ -143,6 +147,13 @@ final class EventStrings {
     static final String AUTHORITY_VALIDATION_SUCCESS = "Microsoft.ADAL.authority_validation_status_success";
     static final String AUTHORITY_VALIDATION_FAILURE = "Microsoft.ADAL.authority_validation_status_failure";
     static final String AUTHORITY_VALIDATION_NOT_DONE = "Microsoft.ADAL.authority_validation_status_not_done";
+
+    // Broker account service related events
+    static final String BROKER_ACCOUNT_SERVICE_STARTS_BINDING = "Microsoft.ADAL.broker_account_service_starts_binding";
+
+    static final String BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED = "Microsoft.ADAL.broker_account_service_binding_succeed";
+
+    static final String BROKER_ACCOUNT_SERVICE_CONNECTED = "Microsoft.ADAL.broker_account_service_connected";
 
     // API ID
     static final String API_ID = "Microsoft.ADAL.api_id";
