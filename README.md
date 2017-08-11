@@ -342,6 +342,9 @@ mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCac
 
 ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI.
 
+### Handle Doze and App Standby
+Starting Android 6.0, Android introduces the new battery optimization, which will cause no network access when it's in doze and app standby mode. This wiki page contains details for doze mode and how to handle it with ADAL (https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Handle-Doze-and-App-Standby).  
+
 ### Silent token request from cache and refresh
 
 This method does not use UI pop up and not require an activity. It will return token from cache if available. If token is expired, it will try to refresh it. If refresh token is expired or failed, it will return AuthenticationException.
