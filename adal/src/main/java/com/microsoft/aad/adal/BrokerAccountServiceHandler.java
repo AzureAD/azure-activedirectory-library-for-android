@@ -151,7 +151,10 @@ final class BrokerAccountServiceHandler {
 
         final Throwable throwable = exception.getAndSet(null);
         if (throwable != null) {
-            throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, throwable.getMessage(), throwable);
+            ADALError error = throwable instanceof RemoteException
+                    ? ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING
+                    : ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED;
+            throw new AuthenticationException(error, throwable.getMessage(), throwable);
         }
 
         return bundleResult.getAndSet(null);
