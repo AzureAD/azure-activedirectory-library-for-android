@@ -587,10 +587,10 @@ class AcquireTokenRequest {
                     final String tenantId = data.getStringExtra(
                             AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                     final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
-                    final String authority = data.getStringExtra(AuthenticationConstants.Broker.AUTHORITY);
+                    final String authority = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken, null);
-                    brokerResult.setCloudInstanceName(authority);
+                    brokerResult.setAuthority(authority);
                     if (brokerResult.getAccessToken() != null) {
                         waitingRequest.getDelegate().onSuccess(brokerResult);
                     }

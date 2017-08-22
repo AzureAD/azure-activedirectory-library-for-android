@@ -379,7 +379,7 @@ public class AuthenticationResult implements Serializable {
         mFamilyClientId = familyClientId;
     }
 
-    final void setCloudInstanceName(final String cloudInstanceName) {
+    final void setAuthority(final String cloudInstanceName) {
         mCloudInstanceName = cloudInstanceName;
     }
 }

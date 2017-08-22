@@ -224,7 +224,7 @@ class Oauth2 {
         return message;
     }
 
-    public static AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
+    public AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
 
         final AuthenticationResult result;
 
@@ -256,13 +256,17 @@ class Oauth2 {
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
-            final String cloudInstanceName = response.get(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_NAME);
-            if (!StringExtensions.isNullOrBlank(cloudInstanceName)) {
-                final StringBuilder cloudInstanceUrl = new StringBuilder("https://login.")
-                        .append(cloudInstanceName)
-                        .append("/common");
+            final String cloudInstanceHostName = response.get(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME);
+            if (!StringExtensions.isNullOrBlank(cloudInstanceHostName)) {
 
-                result.setCloudInstanceName(cloudInstanceUrl.toString());
+                final URL authorityUrl = StringExtensions.getUrl(mRequest.getAuthority());
+                final StringBuilder newAuthorityUrlString = new StringBuilder(authorityUrl.getProtocol())
+                        .append("://")
+                        .append(cloudInstanceHostName)
+                        .append(authorityUrl.getPath());
+
+                setTokenEndpoint(newAuthorityUrlString.toString() + DEFAULT_TOKEN_ENDPOINT);
+                result.setAuthority(newAuthorityUrlString.toString());
             }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
@@ -404,15 +408,13 @@ class Oauth2 {
 
                 // Check if we have code
                 if (result != null && result.getCode() != null && !result.getCode().isEmpty()) {
-                    if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
-                        setTokenEndpoint(result.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
-                    }
 
-                    final AuthenticationResult tokenResult;
                     // Get token and use external callback to set result
-                    tokenResult = getTokenForCode(result.getCode());
+                    final AuthenticationResult tokenResult = getTokenForCode(result.getCode());
                     if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
-                        tokenResult.setCloudInstanceName(result.getAuthority());
+                        tokenResult.setAuthority(result.getAuthority());
+                    } else {
+                        tokenResult.setAuthority(mRequest.getAuthority());
                     }
                     return tokenResult;
                 }

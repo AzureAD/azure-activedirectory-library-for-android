@@ -218,7 +218,7 @@ public final class AuthenticationConstants {
 
         static final String CLAIMS = "claims";
 
-        static final String CLOUD_INSTANCE_NAME = "cloud_instance_name";
+        static final String CLOUD_INSTANCE_HOST_NAME = "cloud_instance_host_name";
     }
 
     /**
@@ -491,8 +491,6 @@ public final class AuthenticationConstants {
 
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
-
-        public static final String AUTHORITY = "account.authority";
     }
 
     /**
