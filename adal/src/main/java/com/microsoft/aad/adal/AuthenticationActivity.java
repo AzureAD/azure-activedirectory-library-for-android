@@ -65,7 +65,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 /**
@@ -369,10 +368,6 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.getSettings().setUseWideViewPort(true);
         mWebView.getSettings().setBuiltInZoomControls(true);
-
-        // WebSettings.LOAD_CACHE_ELSE_NETWORK makes the webview go to the server if the cached resource has
-        // expired. This should prevent err_cach_miss errors when hitting back from an page marked no_cache
-        mWebView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
     }
