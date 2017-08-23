@@ -65,7 +65,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 /**
