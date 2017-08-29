@@ -693,6 +693,7 @@ public class OauthTests extends AndroidTestCase {
         final AuthenticationResult result = oauth2.processUIResponseParams(response);
         assertEquals("Success status", AuthenticationStatus.Succeeded, result.getStatus());
         assertEquals("Authority is same", "https://login.microsoftonline.de/test.com", result.getAuthority());
+        assertEquals("Token endpoint is correct", "https://login.microsoftonline.de/test.com/oauth2/token", oauth2.getTokenEndpoint());
     }
 
     private AuthenticationRequest getValidAuthenticationRequest() {

@@ -89,7 +89,7 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExtendedExpiresOn;
 
-    private String mCloudInstanceName;
+    private String mAuthority;
 
     AuthenticationResult() {
         mCode = null;
@@ -308,7 +308,7 @@ public class AuthenticationResult implements Serializable {
     }
 
     public final String getAuthority() {
-        return mCloudInstanceName;
+        return mAuthority;
     }
 
     String[] getErrorCodes() {
@@ -380,6 +380,6 @@ public class AuthenticationResult implements Serializable {
     }
 
     final void setAuthority(final String cloudInstanceName) {
-        mCloudInstanceName = cloudInstanceName;
+        mAuthority = cloudInstanceName;
     }
 }

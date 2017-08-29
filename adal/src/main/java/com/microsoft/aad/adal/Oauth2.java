@@ -260,13 +260,13 @@ class Oauth2 {
             if (!StringExtensions.isNullOrBlank(cloudInstanceHostName)) {
 
                 final URL authorityUrl = StringExtensions.getUrl(mRequest.getAuthority());
-                final StringBuilder newAuthorityUrlString = new StringBuilder(authorityUrl.getProtocol())
-                        .append("://")
-                        .append(cloudInstanceHostName)
-                        .append(authorityUrl.getPath());
+                final String newAuthorityUrlString = new Uri.Builder().scheme("https")
+                        .authority(cloudInstanceHostName)
+                        .path(authorityUrl.getPath())
+                        .build().toString();
 
-                setTokenEndpoint(newAuthorityUrlString.toString() + DEFAULT_TOKEN_ENDPOINT);
-                result.setAuthority(newAuthorityUrlString.toString());
+                setTokenEndpoint(newAuthorityUrlString + DEFAULT_TOKEN_ENDPOINT);
+                result.setAuthority(newAuthorityUrlString);
             }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
