@@ -24,6 +24,7 @@ android:
     - addon-google_apis-google-21
     #system images
     - sys-img-armeabi-v7a-addon-google_apis-google-21
+    - sys-img-armeabi-v7a-addon-google_apis-google-25
 
 env:
     global:
@@ -45,7 +46,8 @@ cache:
     - $HOME/.android/build-cache
 
 before_script:
-  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+  - android list targets
+  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a --tag google_apis
   - emulator -avd test -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
