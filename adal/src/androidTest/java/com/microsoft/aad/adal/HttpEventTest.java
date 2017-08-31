@@ -25,18 +25,20 @@ package com.microsoft.aad.adal;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public final class HttpEventTest {
@@ -102,4 +104,135 @@ public final class HttpEventTest {
         assertTrue(dispatchMap.get(EventStrings.OAUTH_ERROR_CODE).isEmpty());
         assertTrue(dispatchMap.get(EventStrings.HTTP_RESPONSE_CODE).equals(String.valueOf(HttpURLConnection.HTTP_OK)));
     }
+
+    @Test
+    public void testSpeRingInfoStrangeFormatting() {
+        final String speHeader = "1 , ,, ,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    @Test
+    public void testEmptySpeRingInfo(){
+        final String speHeader = ",,,,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    @Test
+    public void testVersionOnlySpeRingInfo(){
+        final String speHeader = "1,,,,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    @Test
+    public void testSpeRingWithVersionAndAgeOnly(){
+        final String speHeader = "1,,,1234.1234,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals("1234.1234", dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    @Test
+    public void testSpeRingInfoWithBlankFieldsInnerRing(){
+        final String speHeader = "1,0,0,,I";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals("I", dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    @Test
+    public void testSpeRingInfoWithSubErrorCodeAndAgeOnly(){
+        final String speHeader = "1,,1,1234.1234,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals("1", dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals("1234.1234", dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    @Test
+    public void testSpeRingWithUnsupportedVersion(){
+        final String speHeader = "2,1,2,3.3,I";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    @Test
+    public void testSpeRingWithErrorAndSubError() {
+        final String speHeader = "1,2,3,,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals("2", dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals("3", dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    @Test
+    public void testSpeRingWithLeadingWhitespaceAgeInner(){
+        final String speHeader = "1,,, 1234.1234,I";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals("1234.1234", dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals("I", dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    @Test
+    public void testSpeRingWithVersionAndRingOnly() {
+        final String speHeader = "1,,,,I";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setSpeRingInfo(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals("I", dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
 }

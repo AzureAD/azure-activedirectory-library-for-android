@@ -101,6 +101,12 @@ final class HttpEvent extends DefaultEvent {
         // split the header based on the delimiter
         final String[] headerSegments = xMsCliTelem.split(",");
 
+        // make sure the header isn't empty
+        if (0 == headerSegments.length) {
+            Logger.w(TAG, "SPE Ring header missing version field.", null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
+            return;
+        }
+
         // get the version of this header
         final String headerVersion = headerSegments[0];
 
@@ -157,19 +163,19 @@ final class HttpEvent extends DefaultEvent {
     }
 
     void setSpeRingErrorCode(final String errorCode) {
-        setProperty(EventStrings.SERVER_ERROR_CODE, errorCode);
+        setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
     }
 
     void setSpeRingSubErrorCode(final String subErrorCode) {
-        setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode);
+        setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
     }
 
     void setSpeRingTokenAge(final String tokenAge) {
-        setProperty(EventStrings.TOKEN_AGE, tokenAge);
+        setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
     }
 
     void setSpeRing(final String speRing) {
-        setProperty(EventStrings.SPE_INFO, speRing);
+        setProperty(EventStrings.SPE_INFO, speRing.trim());
     }
 
     /**
