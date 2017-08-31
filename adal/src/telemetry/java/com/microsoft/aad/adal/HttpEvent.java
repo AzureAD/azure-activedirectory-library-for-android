@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 
 final class HttpEvent extends DefaultEvent {
+
+    private static final String TAG = HttpEvent.class.getSimpleName();
+
     HttpEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
     }
@@ -87,6 +90,72 @@ final class HttpEvent extends DefaultEvent {
         setProperty(EventStrings.REQUEST_ID_HEADER, requestIdHeader);
     }
 
+    void setSpeRingInfo(final String xMsCliTelem) {
+        // if the header isn't present, do nothing
+        if (StringExtensions.isNullOrBlank(xMsCliTelem)) {
+            return;
+        } else {
+            Logger.d(TAG, "Parsing x-ms-clitelem header: " + xMsCliTelem);
+        }
+
+        // split the header based on the delimiter
+        final String[] headerSegments = xMsCliTelem.split(",");
+
+        // get the version of this header
+        final String headerVersion = headerSegments[0];
+
+        // declare values tracked by this header
+        String errorCode = null;
+        String subErrorCode = null;
+        String tokenAge = null;
+        String speRing = null;
+
+        if (headerVersion.equals("1")) {
+            final int indexErrorCode = 1;
+            final int indexSubErrorCode = 2;
+            final int indexTokenAge = 3;
+            final int indexSpeInfo = 4;
+
+            // get the error_code
+            if (headerSegments.length >= indexErrorCode + 1) {
+                errorCode = headerSegments[indexErrorCode];
+            }
+
+            // get the sub_error_code
+            if (headerSegments.length >= indexSubErrorCode + 1) {
+                subErrorCode = headerSegments[indexSubErrorCode];
+            }
+
+            // get the token_age
+            if (headerSegments.length >= indexTokenAge + 1) {
+                tokenAge = headerSegments[indexTokenAge];
+            }
+
+            // get the spe_ring
+            if (headerSegments.length >= indexSpeInfo + 1) {
+                speRing = headerSegments[indexSpeInfo];
+            }
+        } else { // unrecognized version
+            Logger.w(TAG, "Unexpected header version: " + headerVersion, null, null);
+        }
+        // Set the extracted values on the HttpEvent
+        if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
+            setSpeRingErrorCode(errorCode);
+        }
+
+        if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
+            setSpeRingSubErrorCode(subErrorCode);
+        }
+
+        if (!StringExtensions.isNullOrBlank(tokenAge)) {
+            setSpeRingTokenAge(tokenAge);
+        }
+
+        if (!StringExtensions.isNullOrBlank(speRing)) {
+            setSpeRing(speRing);
+        }
+    }
+
     void setSpeRingErrorCode(final String errorCode) {
         setProperty(EventStrings.SERVER_ERROR_CODE, errorCode);
     }
@@ -99,7 +168,7 @@ final class HttpEvent extends DefaultEvent {
         setProperty(EventStrings.TOKEN_AGE, tokenAge);
     }
 
-    void setSpeRingInfo(final String speRing) {
+    void setSpeRing(final String speRing) {
         setProperty(EventStrings.SPE_INFO, speRing);
     }
 

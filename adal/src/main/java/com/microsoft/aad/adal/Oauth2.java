@@ -457,19 +457,24 @@ class Oauth2 {
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
-            setSpeRingTelemetry(httpEvent, response.getResponseHeaders());
+            final Map<String, List<String>> responseHeaders = response.getResponseHeaders();
+
+            if (null != responseHeaders && null != responseHeaders.get(X_MS_CLITELEM)) {
+                httpEvent.setSpeRingInfo(responseHeaders.get(X_MS_CLITELEM).get(0));
+            }
+
             httpEvent.setResponseCode(response.getStatusCode());
             httpEvent.setCorrelationId(mRequest.getCorrelationId().toString());
             stopHttpEvent(httpEvent);
 
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                if (response.getResponseHeaders() != null
-                        && response.getResponseHeaders().containsKey(
+                if (responseHeaders != null
+                        && responseHeaders.containsKey(
                                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
-                    String challengeHeader = response.getResponseHeaders()
+                    String challengeHeader = responseHeaders
                             .get(AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER).get(0);
                     Logger.v(TAG, "Device certificate challenge request:" + challengeHeader);
                     if (!StringExtensions.isNullOrBlank(challengeHeader)) {
@@ -566,74 +571,6 @@ class Oauth2 {
                     mRequest.getCorrelationId());
         }
         return result;
-    }
-
-    private void setSpeRingTelemetry(final HttpEvent httpEvent, final Map<String, List<String>> responseHeaders) {
-        final String xMsClitelem = responseHeaders.get(X_MS_CLITELEM).get(0);
-
-        // if the header isn't present, do nothing
-        if (StringExtensions.isNullOrBlank(xMsClitelem)) {
-            return;
-        } else {
-            Logger.d(TAG, "Parsing x-ms-clitelem header: " + xMsClitelem);
-        }
-
-        // split the header based on the delimiter
-        final String[] headerSegments = xMsClitelem.split(",");
-
-        // get the version of this header
-        final String headerVersion = headerSegments[0];
-
-        // declare values tracked by this header
-        String errorCode = null;
-        String subErrorCode = null;
-        String tokenAge = null;
-        String speRing = null;
-
-        if (headerVersion.equals("1")) {
-            final int indexErrorCode = 1;
-            final int indexSubErrorCode = 2;
-            final int indexTokenAge = 3;
-            final int indexSpeInfo = 4;
-
-            // get the error_code
-            if (headerSegments.length >= indexErrorCode + 1) {
-                errorCode = headerSegments[indexErrorCode];
-            }
-
-            // get the sub_error_code
-            if (headerSegments.length >= indexSubErrorCode + 1) {
-                subErrorCode = headerSegments[indexSubErrorCode];
-            }
-
-            // get the token_age
-            if (headerSegments.length >= indexTokenAge + 1) {
-                tokenAge = headerSegments[indexTokenAge];
-            }
-
-            // get the spe_ring
-            if (headerSegments.length >= indexSpeInfo + 1) {
-                speRing = headerSegments[indexSpeInfo];
-            }
-        } else { // unrecognized version
-            Logger.w(TAG, "Unexpected header version: " + headerVersion, null, null);
-        }
-        // Set the extracted values on the HttpEvent
-        if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
-            httpEvent.setSpeRingErrorCode(errorCode);
-        }
-
-        if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
-            httpEvent.setSpeRingSubErrorCode(subErrorCode);
-        }
-
-        if (!StringExtensions.isNullOrBlank(tokenAge)) {
-            httpEvent.setSpeRingTokenAge(tokenAge);
-        }
-
-        if (!StringExtensions.isNullOrBlank(speRing)) {
-            httpEvent.setSpeRingInfo(speRing);
-        }
     }
 
     private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
