@@ -315,15 +315,12 @@ class BrokerProxy implements IBrokerProxy {
         final Bundle bundleResult;
         if (isBrokerAccountServiceSupported()) {
             bundleResult = BrokerAccountServiceHandler.getInstance().getAuthToken(mContext, requestBundle, brokerEvent);
-            if (bundleResult == null) {
-                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, request.getLogInfo() + " -- No result returned from getAuthTokenInBackground");
-            }
         } else {
             bundleResult = getAuthTokenFromAccountManager(request, requestBundle);
-            if (bundleResult == null) {
-                Logger.v(TAG, "No bundle result returned from broker for silent request.");
-                return null;
-            }
+        }
+        if (bundleResult == null) {
+            Logger.v(TAG, "No bundle result returned from broker for silent request.");
+            return null;
         }
 
         return getResultFromBrokerResponse(bundleResult, request);
