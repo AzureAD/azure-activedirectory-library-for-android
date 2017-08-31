@@ -87,6 +87,22 @@ final class HttpEvent extends DefaultEvent {
         setProperty(EventStrings.REQUEST_ID_HEADER, requestIdHeader);
     }
 
+    void setSpeRingErrorCode(final String errorCode) {
+        setProperty(EventStrings.SERVER_ERROR_CODE, errorCode);
+    }
+
+    void setSpeRingSubErrorCode(final String subErrorCode) {
+        setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode);
+    }
+
+    void setSpeRingTokenAge(final String tokenAge) {
+        setProperty(EventStrings.TOKEN_AGE, tokenAge);
+    }
+
+    void setSpeRingInfo(final String speRing) {
+        setProperty(EventStrings.SPE_INFO, speRing);
+    }
+
     /**
      * Each event chooses which of its members get picked on aggregation.
      * Http event adds an event count field
@@ -94,13 +110,13 @@ final class HttpEvent extends DefaultEvent {
      */
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
-        final Object countObject = dispatchMap.get(EventStrings.HTTP_EVENT_COUNT);
+        final String countObject = dispatchMap.get(EventStrings.HTTP_EVENT_COUNT);
 
         if (countObject == null) {
             dispatchMap.put(EventStrings.HTTP_EVENT_COUNT, "1");
         } else {
             dispatchMap.put(EventStrings.HTTP_EVENT_COUNT,
-                    Integer.toString(Integer.parseInt((String) countObject) + 1));
+                    Integer.toString(Integer.parseInt(countObject) + 1));
         }
 
         // If there was a previous entry clear out its fields.
@@ -124,8 +140,14 @@ final class HttpEvent extends DefaultEvent {
         for (Pair<String, String> eventPair : eventList) {
             final String name = eventPair.first;
 
-            if (name.equals(EventStrings.HTTP_RESPONSE_CODE) || name.equals(EventStrings.REQUEST_ID_HEADER)
-                    || name.equals(EventStrings.OAUTH_ERROR_CODE) || name.equals(EventStrings.HTTP_PATH)) {
+            if (name.equals(EventStrings.HTTP_RESPONSE_CODE)
+                    || name.equals(EventStrings.REQUEST_ID_HEADER)
+                    || name.equals(EventStrings.OAUTH_ERROR_CODE)
+                    || name.equals(EventStrings.HTTP_PATH)
+                    || name.equals(EventStrings.SERVER_ERROR_CODE)
+                    || name.equals(EventStrings.SERVER_SUBERROR_CODE)
+                    || name.equals(EventStrings.TOKEN_AGE)
+                    || name.equals(EventStrings.SPE_INFO)) {
                 dispatchMap.put(name, eventPair.second);
             }
         }

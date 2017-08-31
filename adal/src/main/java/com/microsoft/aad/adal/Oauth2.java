@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
+
 /**
  * Base Oauth class.
  */
@@ -455,6 +457,7 @@ class Oauth2 {
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
+            setSpeRingTelemetry(httpEvent, response.getResponseHeaders());
             httpEvent.setResponseCode(response.getStatusCode());
             httpEvent.setCorrelationId(mRequest.getCorrelationId().toString());
             stopHttpEvent(httpEvent);
@@ -564,7 +567,71 @@ class Oauth2 {
         }
         return result;
     }
-    
+
+    private void setSpeRingTelemetry(final HttpEvent httpEvent, final Map<String, List<String>> responseHeaders) {
+        final String xMsClitelem = responseHeaders.get(X_MS_CLITELEM).get(0);
+
+        // if the header isn't present, do nothing
+        if (StringExtensions.isNullOrBlank(xMsClitelem)) {
+            return;
+        } else {
+            Logger.d(TAG, "Parsing x-ms-clitelem header: " + xMsClitelem);
+        }
+
+        // split the header based on the delimiter
+        final String[] headerSegments = xMsClitelem.split(",");
+
+        // get the version of this header
+        final String headerVersion = headerSegments[0];
+
+        // declare values tracked by this header
+        String errorCode = null;
+        String subErrorCode = null;
+        String tokenAge = null;
+        String speRing = null;
+
+        if (headerVersion.equals("1")) {
+            final int indexErrorCode = 1;
+            final int indexSubErrorCode = 2;
+            final int indexTokenAge = 3;
+            final int indexSpeInfo = 4;
+
+            if (headerSegments.length >= indexErrorCode + 1) {
+                errorCode = headerSegments[indexErrorCode];
+            }
+
+            if (headerSegments.length >= indexSubErrorCode + 1) {
+                subErrorCode = headerSegments[indexSubErrorCode];
+            }
+
+            if (headerSegments.length >= indexTokenAge + 1) {
+                tokenAge = headerSegments[indexTokenAge];
+            }
+
+            if (headerSegments.length >= indexSpeInfo + 1) {
+                speRing = headerSegments[indexSpeInfo];
+            }
+        } else { // unrecognized version
+            Logger.w(TAG, "Unexpected header version: " + headerVersion, null, null);
+        }
+
+        if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
+            httpEvent.setSpeRingErrorCode(errorCode);
+        }
+
+        if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
+            httpEvent.setSpeRingSubErrorCode(subErrorCode);
+        }
+
+        if (!StringExtensions.isNullOrBlank(tokenAge)) {
+            httpEvent.setSpeRingTokenAge(tokenAge);
+        }
+
+        if (!StringExtensions.isNullOrBlank(speRing)) {
+            httpEvent.setSpeRingInfo(speRing);
+        }
+    }
+
     private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
         //retry once if there is an observation of a network timeout by the client 
         if (mRetryOnce) {

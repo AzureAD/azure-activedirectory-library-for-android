@@ -575,7 +575,12 @@ public enum ADALError {
     /**
      *  Broker is not installed. The process is kicked off to to install broker but ADAL cannot wait for it to finish.
      */
-    BROKER_APP_INSTALLATION_STARTED("Broker app installation started");
+    BROKER_APP_INSTALLATION_STARTED("Broker app installation started"),
+
+    /**
+     * The version field of x-ms-clitelem contained an unknown or unsupported value.
+     */
+    X_MS_CLITELEM_VERSION_UNRECOGNIZED("Unrecognized x-ms-clitelem header version");
 
     private String mDescription;
 
