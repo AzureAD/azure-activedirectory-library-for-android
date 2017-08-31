@@ -596,25 +596,29 @@ class Oauth2 {
             final int indexTokenAge = 3;
             final int indexSpeInfo = 4;
 
+            // get the error_code
             if (headerSegments.length >= indexErrorCode + 1) {
                 errorCode = headerSegments[indexErrorCode];
             }
 
+            // get the sub_error_code
             if (headerSegments.length >= indexSubErrorCode + 1) {
                 subErrorCode = headerSegments[indexSubErrorCode];
             }
 
+            // get the token_age
             if (headerSegments.length >= indexTokenAge + 1) {
                 tokenAge = headerSegments[indexTokenAge];
             }
 
+            // get the spe_ring
             if (headerSegments.length >= indexSpeInfo + 1) {
                 speRing = headerSegments[indexSpeInfo];
             }
         } else { // unrecognized version
             Logger.w(TAG, "Unexpected header version: " + headerVersion, null, null);
         }
-
+        // Set the extracted values on the HttpEvent
         if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
             httpEvent.setSpeRingErrorCode(errorCode);
         }
