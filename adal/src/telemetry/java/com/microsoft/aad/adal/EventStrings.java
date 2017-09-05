@@ -146,7 +146,7 @@ final class EventStrings {
 
     static final String SERVER_SUBERROR_CODE = EVENT_PREFIX + "server_sub_error_code";
 
-    static final String TOKEN_AGE = EVENT_PREFIX + "token_age";
+    static final String TOKEN_AGE = EVENT_PREFIX + "rt_age";
 
     static final String SPE_INFO = EVENT_PREFIX + "spe_info";
 

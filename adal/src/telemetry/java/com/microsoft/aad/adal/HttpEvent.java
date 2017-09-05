@@ -154,15 +154,15 @@ final class HttpEvent extends DefaultEvent {
         }
         // Set the extracted values on the HttpEvent
         if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
-            setSpeRingErrorCode(errorCode);
+            setServerErrorCode(errorCode);
         }
 
         if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
-            setSpeRingSubErrorCode(subErrorCode);
+            setServerSubErrorCode(subErrorCode);
         }
 
         if (!StringExtensions.isNullOrBlank(tokenAge)) {
-            setSpeRingTokenAge(tokenAge);
+            setRefreshTokenAge(tokenAge);
         }
 
         if (!StringExtensions.isNullOrBlank(speRing)) {
@@ -170,15 +170,15 @@ final class HttpEvent extends DefaultEvent {
         }
     }
 
-    void setSpeRingErrorCode(final String errorCode) {
+    void setServerErrorCode(final String errorCode) {
         setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
     }
 
-    void setSpeRingSubErrorCode(final String subErrorCode) {
+    void setServerSubErrorCode(final String subErrorCode) {
         setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
     }
 
-    void setSpeRingTokenAge(final String tokenAge) {
+    void setRefreshTokenAge(final String tokenAge) {
         setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
     }
 
