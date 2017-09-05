@@ -109,7 +109,7 @@ public final class HttpEventTest {
     public void testSpeRingInfoStrangeFormatting() {
         final String speHeader = "1 , ,, ,";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -119,10 +119,10 @@ public final class HttpEventTest {
     }
 
     @Test
-    public void testEmptySpeRingInfo(){
+    public void testEmptySpeRingInfo() {
         final String speHeader = ",,,,";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -132,10 +132,10 @@ public final class HttpEventTest {
     }
 
     @Test
-    public void testVersionOnlySpeRingInfo(){
+    public void testVersionOnlySpeRingInfo() {
         final String speHeader = "1,,,,";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -145,10 +145,10 @@ public final class HttpEventTest {
     }
 
     @Test
-    public void testSpeRingWithVersionAndAgeOnly(){
+    public void testSpeRingWithVersionAndAgeOnly() {
         final String speHeader = "1,,,1234.1234,";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -158,10 +158,10 @@ public final class HttpEventTest {
     }
 
     @Test
-    public void testSpeRingInfoWithBlankFieldsInnerRing(){
+    public void testSpeRingInfoWithBlankFieldsInnerRing() {
         final String speHeader = "1,0,0,,I";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -171,10 +171,10 @@ public final class HttpEventTest {
     }
 
     @Test
-    public void testSpeRingInfoWithSubErrorCodeAndAgeOnly(){
+    public void testSpeRingInfoWithSubErrorCodeAndAgeOnly() {
         final String speHeader = "1,,1,1234.1234,";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -184,10 +184,10 @@ public final class HttpEventTest {
     }
 
     @Test
-    public void testSpeRingWithUnsupportedVersion(){
+    public void testSpeRingWithUnsupportedVersion() {
         final String speHeader = "2,1,2,3.3,I";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -200,7 +200,7 @@ public final class HttpEventTest {
     public void testSpeRingWithErrorAndSubError() {
         final String speHeader = "1,2,3,,";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals("2", dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -210,10 +210,10 @@ public final class HttpEventTest {
     }
 
     @Test
-    public void testSpeRingWithLeadingWhitespaceAgeInner(){
+    public void testSpeRingWithLeadingWhitespaceAgeInner() {
         final String speHeader = "1,,, 1234.1234,I";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -226,13 +226,121 @@ public final class HttpEventTest {
     public void testSpeRingWithVersionAndRingOnly() {
         final String speHeader = "1,,,,I";
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setSpeRingInfo(speHeader);
+        event.setXMsCliTelemData(speHeader);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
         assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
         assertEquals("I", dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    public void testSpedRingEmpty() {
+        final String speHeader = "";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setXMsCliTelemData(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    public void testSpeRingWrongLength1() {
+        final String speHeader = ",";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setXMsCliTelemData(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    public void testSpeRingWrongLength2() {
+        final String speHeader = ",,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setXMsCliTelemData(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    public void testSpeRingWrongLength3() {
+        final String speHeader = ",,,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setXMsCliTelemData(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    public void testSpeRingTooLong() {
+        final String speHeader = ",,,,,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setXMsCliTelemData(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    public void testSpeRingTooShort() {
+        final String speHeader = "1,00";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setXMsCliTelemData(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    public void testSpeRingTooShort2() {
+        final String speHeader = "1,0,0";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setXMsCliTelemData(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    public void testSpeRingTooShort3() {
+        final String speHeader = "1,1,1,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setXMsCliTelemData(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
+    }
+
+    public void testSpeRingTooLong2() {
+        final String speHeader = "1,1,1,,,";
+        final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
+        event.setXMsCliTelemData(speHeader);
+        final Map<String, String> dispatchMap = new HashMap<>();
+        event.processEvent(dispatchMap);
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.SERVER_SUBERROR_CODE));
+        assertEquals(null, dispatchMap.get(EventStrings.TOKEN_AGE));
+        assertEquals(null, dispatchMap.get(EventStrings.SPE_INFO));
     }
 
 }

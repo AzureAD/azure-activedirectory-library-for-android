@@ -580,7 +580,12 @@ public enum ADALError {
     /**
      * The version field of x-ms-clitelem contained an unknown or unsupported value.
      */
-    X_MS_CLITELEM_VERSION_UNRECOGNIZED("Unrecognized x-ms-clitelem header version");
+    X_MS_CLITELEM_VERSION_UNRECOGNIZED("Unrecognized x-ms-clitelem header version"),
+
+    /**
+     * The value of the x-ms-clitelem header contained malformed data.
+     */
+    X_MS_CLITELEM_MALFORMED("Malformed x-ms-clitelem header");
 
     private String mDescription;
 

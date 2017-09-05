@@ -90,7 +90,12 @@ final class HttpEvent extends DefaultEvent {
         setProperty(EventStrings.REQUEST_ID_HEADER, requestIdHeader);
     }
 
-    void setSpeRingInfo(final String xMsCliTelem) {
+    /**
+     * Parses and sets the relevant HttpEvent fields given x-ms-clitelem metadata.
+     *
+     * @param xMsCliTelem the value of the x-ms-clitelem header
+     */
+    void setXMsCliTelemData(final String xMsCliTelem) {
         // if the header isn't present, do nothing
         if (StringExtensions.isNullOrBlank(xMsCliTelem)) {
             return;
@@ -99,7 +104,7 @@ final class HttpEvent extends DefaultEvent {
         }
 
         // split the header based on the delimiter
-        final String[] headerSegments = xMsCliTelem.split(",");
+        String[] headerSegments = xMsCliTelem.split(",");
 
         // make sure the header isn't empty
         if (0 == headerSegments.length) {
@@ -117,32 +122,35 @@ final class HttpEvent extends DefaultEvent {
         String speRing = null;
 
         if (headerVersion.equals("1")) {
+            // The expected delimiter count of the v1 header
+            final int delimCount = 4;
+
+            // Verify the expected format "<version>, <error_code>, <sub_error_code>, <token_age>, <ring>"
+            if (delimCount != xMsCliTelem.length() - xMsCliTelem.replace(",", "").length()) {
+                Logger.w(TAG, "", "", ADALError.X_MS_CLITELEM_MALFORMED);
+                return;
+            }
+
+            headerSegments = xMsCliTelem.split(",", 5);
+
             final int indexErrorCode = 1;
             final int indexSubErrorCode = 2;
             final int indexTokenAge = 3;
             final int indexSpeInfo = 4;
 
             // get the error_code
-            if (headerSegments.length >= indexErrorCode + 1) {
-                errorCode = headerSegments[indexErrorCode];
-            }
+            errorCode = headerSegments[indexErrorCode];
 
             // get the sub_error_code
-            if (headerSegments.length >= indexSubErrorCode + 1) {
-                subErrorCode = headerSegments[indexSubErrorCode];
-            }
+            subErrorCode = headerSegments[indexSubErrorCode];
 
             // get the token_age
-            if (headerSegments.length >= indexTokenAge + 1) {
-                tokenAge = headerSegments[indexTokenAge];
-            }
+            tokenAge = headerSegments[indexTokenAge];
 
             // get the spe_ring
-            if (headerSegments.length >= indexSpeInfo + 1) {
-                speRing = headerSegments[indexSpeInfo];
-            }
+            speRing = headerSegments[indexSpeInfo];
         } else { // unrecognized version
-            Logger.w(TAG, "Unexpected header version: " + headerVersion, null, null);
+            Logger.w(TAG, "Unexpected header version: " + headerVersion, null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
         }
         // Set the extracted values on the HttpEvent
         if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
@@ -181,6 +189,7 @@ final class HttpEvent extends DefaultEvent {
     /**
      * Each event chooses which of its members get picked on aggregation.
      * Http event adds an event count field
+     *
      * @param dispatchMap the Map that is filled with the aggregated event properties
      */
     @Override

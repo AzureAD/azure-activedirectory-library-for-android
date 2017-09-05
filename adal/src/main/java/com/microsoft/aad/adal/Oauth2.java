@@ -459,8 +459,8 @@ class Oauth2 {
                     "application/x-www-form-urlencoded");
             final Map<String, List<String>> responseHeaders = response.getResponseHeaders();
 
-            if (null != responseHeaders && null != responseHeaders.get(X_MS_CLITELEM)) {
-                httpEvent.setSpeRingInfo(responseHeaders.get(X_MS_CLITELEM).get(0));
+            if (null != responseHeaders && null != responseHeaders.get(X_MS_CLITELEM) && !responseHeaders.get(X_MS_CLITELEM).isEmpty()) {
+                httpEvent.setXMsCliTelemData(responseHeaders.get(X_MS_CLITELEM).get(0));
             }
 
             httpEvent.setResponseCode(response.getStatusCode());
