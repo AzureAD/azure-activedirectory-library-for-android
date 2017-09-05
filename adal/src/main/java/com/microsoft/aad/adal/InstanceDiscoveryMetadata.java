@@ -26,7 +26,7 @@ package com.microsoft.aad.adal;
 import java.util.ArrayList;
 import java.util.List;
 
-class InstanceDiscoveryMetadata {
+final class InstanceDiscoveryMetadata {
     private final String mPreferredNetwork;
     private final String mPreferredCache;
     private final List<String> mAliases = new ArrayList();

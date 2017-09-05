@@ -63,7 +63,7 @@ final class Discovery {
 
     private static final String AUTHORIZATION_COMMON_ENDPOINT = "/common/oauth2/authorize";
 
-    private static ReentrantLock sLock = null;
+    private volatile static ReentrantLock sLock;
 
     /**
      * Sync set of valid hosts to skip query to server if host was verified
@@ -330,11 +330,11 @@ final class Discovery {
     /**
      * @return {@link ReentrantLock} for locking the network request queue.
      */
-    private ReentrantLock getLock() {
+    private static ReentrantLock getLock() {
         if (sLock == null) {
-            synchronized (this) {
+            synchronized (Discovery.class) {
                 if (sLock == null) {
-                    return new ReentrantLock();
+                    sLock = new ReentrantLock();
                 }
             }
         }

@@ -47,11 +47,11 @@ final class AuthorityValidationMetadataCache {
 
     static final String META_DATA = "metadata";
 
-    static final String PREFERRED_NETWORK = "preferred_network";
+    private static final String PREFERRED_NETWORK = "preferred_network";
 
-    static final String PREFERRED_CACHE = "preferred_cache";
+    private static final String PREFERRED_CACHE = "preferred_cache";
 
-    static final String ALIASES = "aliases";
+    private static final String ALIASES = "aliases";
 
     private static ConcurrentMap<String, InstanceDiscoveryMetadata> sAadAuthorityHostMetadata = new ConcurrentHashMap<>();
 
