@@ -72,6 +72,8 @@ class Oauth2 {
 
     private static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
 
+    private static final String HTTPS_PROTOCOL_STRING = "https";
+
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
         mWebRequestHandler = null;
@@ -205,7 +207,6 @@ class Oauth2 {
     public String buildRefreshTokenRequestMessage(String refreshToken)
             throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with refresh token.");
-        
         String message = String.format("%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
@@ -255,12 +256,14 @@ class Oauth2 {
                     response.get(AuthenticationConstants.OAuth2.ERROR_CODES));
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
+            // The header cloud_instance_host_name points to the right sovereign cloud to use for the given user
+            // Using this host name we construct the authority that we will make the token request to and save in the=/ token cache. The app should make subsequent calls to acquireToken to
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
             final String cloudInstanceHostName = response.get(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME);
             if (!StringExtensions.isNullOrBlank(cloudInstanceHostName)) {
 
                 final URL authorityUrl = StringExtensions.getUrl(mRequest.getAuthority());
-                final String newAuthorityUrlString = new Uri.Builder().scheme("https")
+                final String newAuthorityUrlString = new Uri.Builder().scheme(HTTPS_PROTOCOL_STRING)
                         .authority(cloudInstanceHostName)
                         .path(authorityUrl.getPath())
                         .build().toString();

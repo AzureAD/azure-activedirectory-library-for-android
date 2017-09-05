@@ -307,6 +307,9 @@ public class AuthenticationResult implements Serializable {
         return TokenCacheItem.isTokenExpired(getExpiresOn());
     }
 
+    // The token returned is cached with this authority as key.
+    // We expect the subsequent requests to AcquireToken will use this authority as the authority parameter else
+    // AcquireTokenSilent will fail
     public final String getAuthority() {
         return mAuthority;
     }
@@ -379,7 +382,7 @@ public class AuthenticationResult implements Serializable {
         mFamilyClientId = familyClientId;
     }
 
-    final void setAuthority(final String cloudInstanceName) {
-        mAuthority = cloudInstanceName;
+    final void setAuthority(final String authority) {
+        mAuthority = authority;
     }
 }
