@@ -89,6 +89,8 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExtendedExpiresOn;
 
+    private String mSpeRing;
+
     AuthenticationResult() {
         mCode = null;
     }
@@ -371,5 +373,13 @@ public class AuthenticationResult implements Serializable {
     
     final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
+    }
+
+    final String getSpeRing() {
+        return mSpeRing;
+    }
+
+    final void setSpeRing(final String speRing) {
+        mSpeRing = speRing;
     }
 }
