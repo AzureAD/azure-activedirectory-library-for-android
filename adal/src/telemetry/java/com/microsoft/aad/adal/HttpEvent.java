@@ -28,6 +28,8 @@ import android.util.Pair;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 final class HttpEvent extends DefaultEvent {
 
@@ -124,12 +126,14 @@ final class HttpEvent extends DefaultEvent {
             final int delimCount = 4;
 
             // Verify the expected format "<version>, <error_code>, <sub_error_code>, <token_age>, <ring>"
-            if (delimCount != xMsCliTelem.length() - xMsCliTelem.replace(",", "").length()) {
+            Pattern headerFmt = Pattern.compile("^[1-9]+\\.?[0-9|\\.]*,[0-9|\\.]*,[0-9|\\.]*,[^,]*[0-9\\.]*,[^,]*$");
+            Matcher matcher = headerFmt.matcher(xMsCliTelem);
+            if (!matcher.matches()) {
                 Logger.w(TAG, "", "", ADALError.X_MS_CLITELEM_MALFORMED);
                 return;
             }
 
-            headerSegments = xMsCliTelem.split(",", 5);
+            headerSegments = xMsCliTelem.split(",", delimCount + 1);
 
             final int indexErrorCode = 1;
             final int indexSubErrorCode = 2;
