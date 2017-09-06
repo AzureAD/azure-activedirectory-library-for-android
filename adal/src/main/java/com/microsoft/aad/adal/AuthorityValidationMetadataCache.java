@@ -117,7 +117,7 @@ final class AuthorityValidationMetadataCache {
 
         final List<String> aliases = new ArrayList<>();
         for (int i = 0; i < aliasArray.length(); i++) {
-            aliases.add((String) aliasArray.get(i));
+            aliases.add(aliasArray.getString(i));
         }
 
         return new InstanceDiscoveryMetadata(preferredNetwork, preferredCache, aliases);

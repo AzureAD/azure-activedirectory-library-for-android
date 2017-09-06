@@ -69,7 +69,7 @@ final class Discovery {
      * Sync set of valid hosts to skip query to server if host was verified
      * before.
      */
-    private static final Set<String> AAD_WHITELIST_HOSTS = Collections
+    private static final Set<String> AAD_WHITELISTED_HOSTS = Collections
             .synchronizedSet(new HashSet<String>());
 
     /**
@@ -113,7 +113,7 @@ final class Discovery {
 
         final String authorityHost = authorizationEndpoint.getHost().toLowerCase(Locale.US);
         final String trustedHost;
-        if (AAD_WHITELIST_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
+        if (AAD_WHITELISTED_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
             trustedHost = authorityHost;
         } else {
             trustedHost = TRUSTED_QUERY_INSTANCE;
@@ -192,13 +192,13 @@ final class Discovery {
      */
     private void initValidList() {
         // mValidHosts is a sync set
-        if (AAD_WHITELIST_HOSTS.isEmpty()) {
-            AAD_WHITELIST_HOSTS.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
-            AAD_WHITELIST_HOSTS.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
-            AAD_WHITELIST_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
-            AAD_WHITELIST_HOSTS.add("login.microsoftonline.de"); // Microsoft Azure Germany
-            AAD_WHITELIST_HOSTS.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
-            AAD_WHITELIST_HOSTS.add("login.microsoftonline.us"); // Microsoft Azure US
+        if (AAD_WHITELISTED_HOSTS.isEmpty()) {
+            AAD_WHITELISTED_HOSTS.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
+            AAD_WHITELISTED_HOSTS.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
+            AAD_WHITELISTED_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
+            AAD_WHITELISTED_HOSTS.add("login.microsoftonline.de"); // Microsoft Azure Germany
+            AAD_WHITELISTED_HOSTS.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
+            AAD_WHITELISTED_HOSTS.add("login.microsoftonline.us"); // Microsoft Azure US
         }
     }
 
@@ -266,7 +266,6 @@ final class Discovery {
                     ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);
         }
     }
-
 
     static void verifyAuthorityValidInstance(final URL authorizationEndpoint) throws AuthenticationException {
         // For comparison purposes, convert to lowercase Locale.US
@@ -343,6 +342,6 @@ final class Discovery {
     }
 
     Set<String> getValidHosts() {
-        return AAD_WHITELIST_HOSTS;
+        return AAD_WHITELISTED_HOSTS;
     }
 }
