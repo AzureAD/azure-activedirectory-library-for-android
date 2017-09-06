@@ -457,24 +457,19 @@ class Oauth2 {
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
-            final Map<String, List<String>> responseHeaders = response.getResponseHeaders();
-
-            if (null != responseHeaders && null != responseHeaders.get(X_MS_CLITELEM) && !responseHeaders.get(X_MS_CLITELEM).isEmpty()) {
-                httpEvent.setXMsCliTelemData(responseHeaders.get(X_MS_CLITELEM).get(0));
-            }
 
             httpEvent.setResponseCode(response.getStatusCode());
             httpEvent.setCorrelationId(mRequest.getCorrelationId().toString());
             stopHttpEvent(httpEvent);
 
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                if (responseHeaders != null
-                        && responseHeaders.containsKey(
+                if (response.getResponseHeaders() != null
+                        && response.getResponseHeaders().containsKey(
                                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER)) {
 
                     // Device certificate challenge will send challenge request
                     // in 401 header.
-                    String challengeHeader = responseHeaders
+                    String challengeHeader = response.getResponseHeaders()
                             .get(AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER).get(0);
                     Logger.v(TAG, "Device certificate challenge request:" + challengeHeader);
                     if (!StringExtensions.isNullOrBlank(challengeHeader)) {
@@ -641,6 +636,10 @@ class Oauth2 {
                     Logger.v(TAG, "x-ms-request-id: " + listOfHeaders.get(0));
                     httpEvent.setRequestIdHeader(listOfHeaders.get(0));
                 }
+            }
+
+            if (null != webResponse.getResponseHeaders().get(X_MS_CLITELEM) && !webResponse.getResponseHeaders().get(X_MS_CLITELEM).isEmpty()) {
+                httpEvent.setXMsCliTelemData(webResponse.getResponseHeaders().get(X_MS_CLITELEM).get(0));
             }
         }
 

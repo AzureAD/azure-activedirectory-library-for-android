@@ -99,8 +99,6 @@ final class HttpEvent extends DefaultEvent {
         // if the header isn't present, do nothing
         if (StringExtensions.isNullOrBlank(xMsCliTelem)) {
             return;
-        } else {
-            Logger.d(TAG, "Parsing x-ms-clitelem header: " + xMsCliTelem);
         }
 
         // split the header based on the delimiter
