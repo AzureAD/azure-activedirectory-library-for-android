@@ -257,7 +257,9 @@ class Oauth2 {
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
             // The header cloud_instance_host_name points to the right sovereign cloud to use for the given user
-            // Using this host name we construct the authority that we will make the token request to and save in the=/ token cache. The app should make subsequent calls to acquireToken to
+            // Using this host name we construct the authority that will get the token request and we use this authority
+            // to save the token in the cache. The app should reinitialize AuthenticationContext with this authority for
+            // all subsequent requests.
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
             final String cloudInstanceHostName = response.get(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME);
             if (!StringExtensions.isNullOrBlank(cloudInstanceHostName)) {
