@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -33,7 +32,6 @@ import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Date;
@@ -222,29 +220,6 @@ class AcquireTokenRequest {
             apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_NOT_DONE);
             Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
                     EventStrings.AUTHORITY_VALIDATION_EVENT);
-        }
-
-        final InstanceDiscoveryMetadata metadata = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl);
-        if (metadata == null || !metadata.isValidated()) {
-            return;
-        }
-
-        updatePreferredNetworkLocation(authorityUrl, authenticationRequest, metadata);
-    }
-
-    private void updatePreferredNetworkLocation(final URL authorityUrl, final AuthenticationRequest request, final InstanceDiscoveryMetadata metadata)
-            throws AuthenticationException {
-        if (metadata == null || !metadata.isValidated()) {
-            return;
-        }
-
-        if (authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
-            try {
-                final URL replacedAuthority = new URL(new Uri.Builder().authority(metadata.getPreferredNetwork()).appendPath(authorityUrl.getPath()).build().toString());
-                request.setAuthority(replacedAuthority.toString());
-            } catch (final MalformedURLException ex) {
-                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
-            }
         }
     }
 
