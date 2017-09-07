@@ -222,6 +222,22 @@ final class HttpEvent extends DefaultEvent {
             dispatchMap.put(EventStrings.REQUEST_ID_HEADER, "");
         }
 
+        if (dispatchMap.containsKey(EventStrings.SERVER_ERROR_CODE)) {
+            dispatchMap.put(EventStrings.SERVER_ERROR_CODE, "");
+        }
+
+        if (dispatchMap.containsKey(EventStrings.SERVER_SUBERROR_CODE)) {
+            dispatchMap.put(EventStrings.SERVER_SUBERROR_CODE, "");
+        }
+
+        if (dispatchMap.containsKey(EventStrings.TOKEN_AGE)) {
+            dispatchMap.put(EventStrings.TOKEN_AGE, "");
+        }
+
+        if (dispatchMap.containsKey(EventStrings.SPE_INFO)) {
+            dispatchMap.put(EventStrings.SPE_INFO, "");
+        }
+
         final List<Pair<String, String>> eventList = getEventList();
         for (Pair<String, String> eventPair : eventList) {
             final String name = eventPair.first;
