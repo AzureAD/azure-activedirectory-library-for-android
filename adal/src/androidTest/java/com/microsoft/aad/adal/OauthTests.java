@@ -689,7 +689,7 @@ public class OauthTests {
         assertTrue("MultiResource token", result.getIsMultiResourceRefreshToken());
     }
 
-    @SmallTest
+    @Test
     public void testprocessUIResponseParamsForSovereignCloud() throws AuthenticationException {
         final Map<String, String> response = new HashMap<>();
 
