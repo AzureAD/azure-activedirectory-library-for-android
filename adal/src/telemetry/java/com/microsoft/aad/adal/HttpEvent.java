@@ -223,19 +223,19 @@ final class HttpEvent extends DefaultEvent {
         }
 
         if (dispatchMap.containsKey(EventStrings.SERVER_ERROR_CODE)) {
-            dispatchMap.put(EventStrings.SERVER_ERROR_CODE, "");
+            dispatchMap.remove(EventStrings.SERVER_ERROR_CODE);
         }
 
         if (dispatchMap.containsKey(EventStrings.SERVER_SUBERROR_CODE)) {
-            dispatchMap.put(EventStrings.SERVER_SUBERROR_CODE, "");
+            dispatchMap.remove(EventStrings.SERVER_SUBERROR_CODE);
         }
 
         if (dispatchMap.containsKey(EventStrings.TOKEN_AGE)) {
-            dispatchMap.put(EventStrings.TOKEN_AGE, "");
+            dispatchMap.remove(EventStrings.TOKEN_AGE);
         }
 
         if (dispatchMap.containsKey(EventStrings.SPE_INFO)) {
-            dispatchMap.put(EventStrings.SPE_INFO, "");
+            dispatchMap.remove(EventStrings.SPE_INFO);
         }
 
         final List<Pair<String, String>> eventList = getEventList();
