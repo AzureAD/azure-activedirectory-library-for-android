@@ -67,6 +67,8 @@ public class TokenCacheItem implements Serializable {
 
     private Date mExtendedExpiresOn;
 
+    private String mSpeRing;
+
     /**
      * Default constructor for cache item.
      */
@@ -87,6 +89,7 @@ public class TokenCacheItem implements Serializable {
         mTenantId = tokenCacheItem.getTenantId();
         mFamilyClientId = tokenCacheItem.getFamilyClientId();
         mExtendedExpiresOn = tokenCacheItem.getExtendedExpiresOn();
+        mSpeRing = tokenCacheItem.getSpeRing();
     }
     
     /**
@@ -112,6 +115,7 @@ public class TokenCacheItem implements Serializable {
         mRefreshtoken = authenticationResult.getRefreshToken();
         mFamilyClientId = authenticationResult.getFamilyClientId();
         mExtendedExpiresOn = authenticationResult.getExtendedExpiresOn();
+        mSpeRing = authenticationResult.getSpeRing();
     }
 
     /**
@@ -145,7 +149,7 @@ public class TokenCacheItem implements Serializable {
     public static TokenCacheItem createMRRTTokenCacheItem(final String authority, final String clientId, final AuthenticationResult authResult) {
         final TokenCacheItem item = new TokenCacheItem(authority, authResult);
         item.setClientId(clientId);
-        
+
         return item;
     }
 
@@ -434,6 +438,14 @@ public class TokenCacheItem implements Serializable {
      */
     boolean isFamilyToken() {
         return !StringExtensions.isNullOrBlank(mFamilyClientId);
+    }
+
+    String getSpeRing() {
+        return mSpeRing;
+    }
+
+    void setSpeRing(final String speRing) {
+        mSpeRing = speRing;
     }
 }
 
