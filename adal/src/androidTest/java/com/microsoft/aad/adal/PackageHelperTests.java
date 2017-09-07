@@ -30,8 +30,14 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
-import android.test.AndroidTestCase;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
@@ -45,10 +51,14 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class PackageHelperTests extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class PackageHelperTests {
 
     private static final int TEST_UID = 13;
 
@@ -56,11 +66,13 @@ public class PackageHelperTests extends AndroidTestCase {
 
     private String mTestTag;
 
+    private Context mContext;
+
     @SuppressLint("PackageManagerGetSignatures")
-    protected void setUp() throws Exception {
-        super.setUp();
-        getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+    @Before
+    public void setUp() throws Exception {
+        mContext = InstrumentationRegistry.getContext();
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             final int iterationCount = 100;
@@ -90,11 +102,12 @@ public class PackageHelperTests extends AndroidTestCase {
         }
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         Logger.getInstance().setExternalLogger(null);
-        super.tearDown();
     }
 
+    @Test
     public void testGetCurrentSignatureForPackage() throws NameNotFoundException,
             IllegalArgumentException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
@@ -116,6 +129,7 @@ public class PackageHelperTests extends AndroidTestCase {
         assertNull("should return null", actual);
     }
 
+    @Test
     public void testGetUIDForPackage() throws NameNotFoundException, IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
@@ -137,6 +151,7 @@ public class PackageHelperTests extends AndroidTestCase {
         assertEquals("should return 0", 0, actual);
     }
 
+    @Test
     public void testRedirectUrl() throws NameNotFoundException, IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException, UnsupportedEncodingException {

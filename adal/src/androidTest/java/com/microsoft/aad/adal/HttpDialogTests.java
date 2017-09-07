@@ -24,16 +24,19 @@
 package com.microsoft.aad.adal;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.test.AndroidTestCase;
+import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
 import android.util.Log;
 
+import org.junit.Before;
+
 import java.security.MessageDigest;
 
-public class HttpDialogTests extends AndroidTestCase {
+public class HttpDialogTests {
 
     private static final String TAG = "HttpDialogTests";
 
@@ -41,12 +44,13 @@ public class HttpDialogTests extends AndroidTestCase {
 
     private String mTestTag;
 
-    @Override
+    private Context mContext;
+
     @SuppressLint("PackageManagerGetSignatures")
+    @Before
     protected void setUp() throws Exception {
-        super.setUp();
-        getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+        mContext = InstrumentationRegistry.getContext();
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
 
         // ADAL is set to this signature for now
         PackageInfo info = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(),
