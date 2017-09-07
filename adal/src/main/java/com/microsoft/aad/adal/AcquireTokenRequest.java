@@ -230,6 +230,15 @@ class AcquireTokenRequest {
         }
 
         updatePreferredNetworkLocation(authorityUrl, authenticationRequest, metadata);
+
+        if (mTokenCacheAccessor != null) {
+            mTokenCacheAccessor.setInstanceDiscoveryMetadata(metadata);
+            try {
+                mTokenCacheAccessor.updatePreferredCacheLocation();
+            } catch (final MalformedURLException ex) {
+                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+            }
+        }
     }
 
     private void updatePreferredNetworkLocation(final URL authorityUrl, final AuthenticationRequest request, final InstanceDiscoveryMetadata metadata)
@@ -444,7 +453,12 @@ class AcquireTokenRequest {
         // family apps. If we want to clear the tokens for the user(signout the user with local cahce), have the
         // user to sign-in through broker, we also need to clear the family token.
         // Check if there is a FRT existed for the user
-        final TokenCacheItem frtItem = mTokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, user);
+        final TokenCacheItem frtItem;
+        try {
+            frtItem = mTokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, user);
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
 
         if (frtItem != null) {
             mTokenCacheAccessor.removeTokenCacheItem(frtItem, request.getResource());
@@ -453,10 +467,17 @@ class AcquireTokenRequest {
         // Check if there is a MRRT existed for the user, if there is an MRRT, TokenCacheAccessor will also
         // delete the regular RT entry
         // When there is no MRRT token cache item exist, try to check if there is regular RT cache item for the user.
-        final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(request.getClientId(), user);
-        final TokenCacheItem regularTokenCacheItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(
-                request.getResource(), request.getClientId(), user);
+        final TokenCacheItem mrrtItem;
+        final TokenCacheItem regularTokenCacheItem;
 
+
+        try {
+            mrrtItem = mTokenCacheAccessor.getMRRTItem(request.getClientId(), user);
+            regularTokenCacheItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(
+                    request.getResource(), request.getClientId(), user);
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
 
         if (mrrtItem != null) {
             mTokenCacheAccessor.removeTokenCacheItem(mrrtItem, request.getResource());
