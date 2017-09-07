@@ -37,7 +37,7 @@ class TokenCacheAccessor {
     private static final String TAG = TokenCacheAccessor.class.getSimpleName();
     
     private final ITokenCacheStore mTokenCacheStore;
-    private final String mAuthority;
+    private String mAuthority;
     private final String mTelemetryRequestId;
     
     TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority, final String telemetryRequestId) {
@@ -305,7 +305,11 @@ class TokenCacheAccessor {
         cacheEvent.setRequestId(mTelemetryRequestId);
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_WRITE);
 
-        mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, userId), 
+        if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
+            mAuthority = result.getAuthority();
+        }
+
+        mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, userId),
                 TokenCacheItem.createRegularTokenCacheItem(mAuthority, resource, clientId, result));
         cacheEvent.setTokenTypeRT(true);
         // Store separate entries for MRRT.  

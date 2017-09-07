@@ -58,6 +58,8 @@ class Oauth2 {
 
     private IJWSBuilder mJWSBuilder = new JWSBuilder();
 
+    private String mTokenEndpoint;
+
     private static final String TAG = "Oauth";
 
     private boolean mRetryOnce = true;
@@ -70,16 +72,20 @@ class Oauth2 {
 
     private static final String DEFAULT_TOKEN_ENDPOINT = "/oauth2/token";
 
+    private static final String HTTPS_PROTOCOL_STRING = "https";
+
     Oauth2(AuthenticationRequest request) {
         mRequest = request;
         mWebRequestHandler = null;
         mJWSBuilder = null;
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler) {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = null;
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public Oauth2(AuthenticationRequest request, IWebRequestHandler webRequestHandler,
@@ -87,6 +93,7 @@ class Oauth2 {
         mRequest = request;
         mWebRequestHandler = webRequestHandler;
         mJWSBuilder = jwsMessageBuilder;
+        setTokenEndpoint(mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT);
     }
 
     public String getAuthorizationEndpoint() {
@@ -94,7 +101,7 @@ class Oauth2 {
     }
 
     public String getTokenEndpoint() {
-        return mRequest.getAuthority() + DEFAULT_TOKEN_ENDPOINT;
+        return mTokenEndpoint;
     }
 
     public String getAuthorizationEndpointQueryParameters() throws UnsupportedEncodingException {
@@ -200,7 +207,6 @@ class Oauth2 {
     public String buildRefreshTokenRequestMessage(String refreshToken)
             throws UnsupportedEncodingException {
         Logger.v(TAG, "Building request message for redeeming token with refresh token.");
-        
         String message = String.format("%s=%s&%s=%s&%s=%s",
                 AuthenticationConstants.OAuth2.GRANT_TYPE,
                 StringExtensions.urlFormEncode(AuthenticationConstants.OAuth2.REFRESH_TOKEN),
@@ -219,7 +225,7 @@ class Oauth2 {
         return message;
     }
 
-    public static AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
+    public AuthenticationResult processUIResponseParams(Map<String, String> response) throws AuthenticationException {
 
         final AuthenticationResult result;
 
@@ -250,7 +256,23 @@ class Oauth2 {
                     response.get(AuthenticationConstants.OAuth2.ERROR_CODES));
 
         } else if (response.containsKey(AuthenticationConstants.OAuth2.CODE)) {
+            // The header cloud_instance_host_name points to the right sovereign cloud to use for the given user
+            // Using this host name we construct the authority that will get the token request and we use this authority
+            // to save the token in the cache. The app should reinitialize AuthenticationContext with this authority for
+            // all subsequent requests.
             result = new AuthenticationResult(response.get(AuthenticationConstants.OAuth2.CODE));
+            final String cloudInstanceHostName = response.get(AuthenticationConstants.OAuth2.CLOUD_INSTANCE_HOST_NAME);
+            if (!StringExtensions.isNullOrBlank(cloudInstanceHostName)) {
+
+                final URL authorityUrl = StringExtensions.getUrl(mRequest.getAuthority());
+                final String newAuthorityUrlString = new Uri.Builder().scheme(HTTPS_PROTOCOL_STRING)
+                        .authority(cloudInstanceHostName)
+                        .path(authorityUrl.getPath())
+                        .build().toString();
+
+                setTokenEndpoint(newAuthorityUrlString + DEFAULT_TOKEN_ENDPOINT);
+                result.setAuthority(newAuthorityUrlString);
+            }
         } else if (response.containsKey(AuthenticationConstants.OAuth2.ACCESS_TOKEN)) {
             // Token response
             boolean isMultiResourceToken = false;
@@ -393,7 +415,13 @@ class Oauth2 {
                 if (result != null && result.getCode() != null && !result.getCode().isEmpty()) {
 
                     // Get token and use external callback to set result
-                    return getTokenForCode(result.getCode());
+                    final AuthenticationResult tokenResult = getTokenForCode(result.getCode());
+                    if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
+                        tokenResult.setAuthority(result.getAuthority());
+                    } else {
+                        tokenResult.setAuthority(mRequest.getAuthority());
+                    }
+                    return tokenResult;
                 }
 
                 return result;
@@ -693,5 +721,9 @@ class Oauth2 {
     private void stopHttpEvent(final HttpEvent httpEvent) {
         Telemetry.getInstance().stopEvent(mRequest.getTelemetryRequestId(), httpEvent,
                 EventStrings.HTTP_EVENT);
+    }
+
+    private void setTokenEndpoint(final String tokenEndpoint) {
+        mTokenEndpoint = tokenEndpoint;
     }
 }
