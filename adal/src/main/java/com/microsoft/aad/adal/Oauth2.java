@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
+
 /**
  * Base Oauth class.
  */
@@ -455,6 +457,7 @@ class Oauth2 {
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
+
             httpEvent.setResponseCode(response.getStatusCode());
             httpEvent.setCorrelationId(mRequest.getCorrelationId().toString());
             stopHttpEvent(httpEvent);
@@ -564,7 +567,7 @@ class Oauth2 {
         }
         return result;
     }
-    
+
     private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
         //retry once if there is an observation of a network timeout by the client 
         if (mRetryOnce) {
@@ -633,6 +636,10 @@ class Oauth2 {
                     Logger.v(TAG, "x-ms-request-id: " + listOfHeaders.get(0));
                     httpEvent.setRequestIdHeader(listOfHeaders.get(0));
                 }
+            }
+
+            if (null != webResponse.getResponseHeaders().get(X_MS_CLITELEM) && !webResponse.getResponseHeaders().get(X_MS_CLITELEM).isEmpty()) {
+                httpEvent.setXMsCliTelemData(webResponse.getResponseHeaders().get(X_MS_CLITELEM).get(0));
             }
         }
 

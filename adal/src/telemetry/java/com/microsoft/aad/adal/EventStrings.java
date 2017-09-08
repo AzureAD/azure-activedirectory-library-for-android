@@ -24,139 +24,149 @@
 package com.microsoft.aad.adal;
 
 final class EventStrings {
-    static final String EVENT_NAME = "Microsoft.ADAL.event_name";
+    private static final String EVENT_PREFIX = "Microsoft.ADAL.";
+
+    static final String EVENT_NAME = EVENT_PREFIX + "event_name";
 
     // Event names
-    static final String API_EVENT = "Microsoft.ADAL.api_event";
+    static final String API_EVENT = EVENT_PREFIX + "api_event";
 
-    static final String AUTHORITY_VALIDATION_EVENT = "Microsoft.ADAL.authority_validation";
+    static final String AUTHORITY_VALIDATION_EVENT = EVENT_PREFIX + "authority_validation";
 
-    static final String HTTP_EVENT = "Microsoft.ADAL.http_event";
+    static final String HTTP_EVENT = EVENT_PREFIX + "http_event";
 
-    static final String BROKER_EVENT = "Microsoft.ADAL.broker_event";
+    static final String BROKER_EVENT = EVENT_PREFIX + "broker_event";
 
-    static final String UI_EVENT = "Microsoft.ADAL.ui_event";
+    static final String UI_EVENT = EVENT_PREFIX + "ui_event";
 
-    static final String TOKEN_CACHE_LOOKUP = "Microsoft.ADAL.token_cache_lookup";
+    static final String TOKEN_CACHE_LOOKUP = EVENT_PREFIX + "token_cache_lookup";
 
-    static final String TOKEN_CACHE_WRITE = "Microsoft.ADAL.token_cache_write";
+    static final String TOKEN_CACHE_WRITE = EVENT_PREFIX + "token_cache_write";
 
-    static final String TOKEN_CACHE_DELETE = "Microsoft.ADAL.token_cache_delete";
+    static final String TOKEN_CACHE_DELETE = EVENT_PREFIX + "token_cache_delete";
 
-    static final String BROKER_REQUEST_SILENT = "Microsoft.ADAL.broker_request_silent";
+    static final String BROKER_REQUEST_SILENT = EVENT_PREFIX + "broker_request_silent";
 
-    static final String BROKER_REQUEST_INTERACTIVE = "Microsoft.ADAL.broker_request_interactive";
+    static final String BROKER_REQUEST_INTERACTIVE = EVENT_PREFIX + "broker_request_interactive";
 
     // Event Parameter names
-    static final String APPLICATION_NAME = "Microsoft.ADAL.application_name";
+    static final String APPLICATION_NAME = EVENT_PREFIX + "application_name";
 
-    static final String APPLICATION_VERSION = "Microsoft.ADAL.application_version";
+    static final String APPLICATION_VERSION = EVENT_PREFIX + "application_version";
 
-    static final String CLIENT_ID = "Microsoft.ADAL.client_id";
+    static final String CLIENT_ID = EVENT_PREFIX + "client_id";
 
-    static final String AUTHORITY_NAME = "Microsoft.ADAL.authority";
+    static final String AUTHORITY_NAME = EVENT_PREFIX + "authority";
 
-    static final String AUTHORITY_TYPE = "Microsoft.ADAL.authority_type";
+    static final String AUTHORITY_TYPE = EVENT_PREFIX + "authority_type";
 
-    static final String API_DEPRECATED = "Microsoft.ADAL.is_deprecated"; // Android only
+    static final String API_DEPRECATED = EVENT_PREFIX + "is_deprecated"; // Android only
 
-    static final String AUTHORITY_VALIDATION = "Microsoft.ADAL.authority_validation_status";
+    static final String AUTHORITY_VALIDATION = EVENT_PREFIX + "authority_validation_status";
 
-    static final String PROMPT_BEHAVIOR = "Microsoft.ADAL.prompt_behavior";
+    static final String PROMPT_BEHAVIOR = EVENT_PREFIX + "prompt_behavior";
 
-    static final String EXTENDED_EXPIRES_ON_SETTING = "Microsoft.ADAL.extended_expires_on_setting";
+    static final String EXTENDED_EXPIRES_ON_SETTING = EVENT_PREFIX + "extended_expires_on_setting";
 
-    static final String WAS_SUCCESSFUL = "Microsoft.ADAL.is_successful";
+    static final String WAS_SUCCESSFUL = EVENT_PREFIX + "is_successful";
 
-    static final String API_ERROR_CODE = "Microsoft.ADAL.api_error_code";
+    static final String API_ERROR_CODE = EVENT_PREFIX + "api_error_code";
 
-    static final String OAUTH_ERROR_CODE = "Microsoft.ADAL.oauth_error_code";
+    static final String OAUTH_ERROR_CODE = EVENT_PREFIX + "oauth_error_code";
 
-    static final String IDP_NAME = "Microsoft.ADAL.idp";
+    static final String IDP_NAME = EVENT_PREFIX + "idp";
 
-    static final String TENANT_ID = "Microsoft.ADAL.tenant_id";
+    static final String TENANT_ID = EVENT_PREFIX + "tenant_id";
 
-    static final String LOGIN_HINT = "Microsoft.ADAL.login_hint";
+    static final String LOGIN_HINT = EVENT_PREFIX + "login_hint";
 
-    static final String USER_ID = "Microsoft.ADAL.user_id";
+    static final String USER_ID = EVENT_PREFIX + "user_id";
 
-    static final String CORRELATION_ID = "Microsoft.ADAL.correlation_id";
+    static final String CORRELATION_ID = EVENT_PREFIX + "correlation_id";
 
-    static final String DEVICE_ID = "Microsoft.ADAL.device_id";
+    static final String DEVICE_ID = EVENT_PREFIX + "device_id";
 
-    static final String REQUEST_ID = "Microsoft.ADAL.request_id";
+    static final String REQUEST_ID = EVENT_PREFIX + "request_id";
 
-    static final String START_TIME = "Microsoft.ADAL.start_time";
+    static final String START_TIME = EVENT_PREFIX + "start_time";
 
-    static final String STOP_TIME = "Microsoft.ADAL.stop_time";
+    static final String STOP_TIME = EVENT_PREFIX + "stop_time";
 
-    static final String RESPONSE_TIME = "Microsoft.ADAL.response_time";
+    static final String RESPONSE_TIME = EVENT_PREFIX + "response_time";
 
-    static final String REDIRECT_COUNT = "Microsoft.ADAL.redirect_count"; // Android only
+    static final String REDIRECT_COUNT = EVENT_PREFIX + "redirect_count"; // Android only
 
-    static final String NTLM = "Microsoft.ADAL.ntlm";
+    static final String NTLM = EVENT_PREFIX + "ntlm";
 
-    static final String USER_CANCEL = "Microsoft.ADAL.user_cancel";
+    static final String USER_CANCEL = EVENT_PREFIX + "user_cancel";
 
-    static final String BROKER_APP = "Microsoft.ADAL.broker_app";
+    static final String BROKER_APP = EVENT_PREFIX + "broker_app";
 
-    static final String BROKER_VERSION = "Microsoft.ADAL.broker_version";
+    static final String BROKER_VERSION = EVENT_PREFIX + "broker_version";
 
-    static final String BROKER_APP_USED = "Microsoft.ADAL.broker_app_used";
+    static final String BROKER_APP_USED = EVENT_PREFIX + "broker_app_used";
 
-    static final String TOKEN_TYPE = "Microsoft.ADAL.token_type";
+    static final String TOKEN_TYPE = EVENT_PREFIX + "token_type";
 
-    static final String TOKEN_TYPE_IS_RT = "Microsoft.ADAL.is_rt";
+    static final String TOKEN_TYPE_IS_RT = EVENT_PREFIX + "is_rt";
 
-    static final String TOKEN_TYPE_IS_MRRT = "Microsoft.ADAL.is_mrrt";
+    static final String TOKEN_TYPE_IS_MRRT = EVENT_PREFIX + "is_mrrt";
 
-    static final String TOKEN_TYPE_IS_FRT = "Microsoft.ADAL.is_frt";
+    static final String TOKEN_TYPE_IS_FRT = EVENT_PREFIX + "is_frt";
 
-    static final String TOKEN_TYPE_RT = "Microsoft.ADAL.rt"; // Android only
+    static final String TOKEN_TYPE_RT = EVENT_PREFIX + "rt"; // Android only
 
-    static final String TOKEN_TYPE_MRRT = "Microsoft.ADAL.mrrt"; // Android only
+    static final String TOKEN_TYPE_MRRT = EVENT_PREFIX + "mrrt"; // Android only
 
-    static final String TOKEN_TYPE_FRT = "Microsoft.ADAL.frt"; // Android only
+    static final String TOKEN_TYPE_FRT = EVENT_PREFIX + "frt"; // Android only
 
-    static final String CACHE_EVENT_COUNT = "Microsoft.ADAL.cache_event_count";
+    static final String CACHE_EVENT_COUNT = EVENT_PREFIX + "cache_event_count";
 
-    static final String UI_EVENT_COUNT = "Microsoft.ADAL.ui_event_count";
+    static final String UI_EVENT_COUNT = EVENT_PREFIX + "ui_event_count";
 
-    static final String HTTP_EVENT_COUNT = "Microsoft.ADAL.http_event_count";
+    static final String HTTP_EVENT_COUNT = EVENT_PREFIX + "http_event_count";
 
-    static final String HTTP_PATH = "Microsoft.ADAL.http_path";
+    static final String HTTP_PATH = EVENT_PREFIX + "http_path";
 
-    static final String HTTP_USER_AGENT = "Microsoft.ADAL.user_agent";
+    static final String HTTP_USER_AGENT = EVENT_PREFIX + "user_agent";
 
-    static final String HTTP_METHOD = "Microsoft.ADAL.method";
+    static final String HTTP_METHOD = EVENT_PREFIX + "method";
 
-    static final String HTTP_METHOD_POST = "Microsoft.ADAL.post";
+    static final String HTTP_METHOD_POST = EVENT_PREFIX + "post";
 
-    static final String HTTP_QUERY_PARAMETERS = "Microsoft.ADAL.query_params";
+    static final String HTTP_QUERY_PARAMETERS = EVENT_PREFIX + "query_params";
 
-    static final String HTTP_RESPONSE_CODE = "Microsoft.ADAL.response_code";
+    static final String HTTP_RESPONSE_CODE = EVENT_PREFIX + "response_code";
 
-    static final String HTTP_API_VERSION = "Microsoft.ADAL.api_version";
+    static final String HTTP_API_VERSION = EVENT_PREFIX + "api_version";
 
-    static final String REQUEST_ID_HEADER = "Microsoft.ADAL.x_ms_request_id";
+    static final String REQUEST_ID_HEADER = EVENT_PREFIX + "x_ms_request_id";
+
+    static final String SERVER_ERROR_CODE = EVENT_PREFIX + "server_error_code";
+
+    static final String SERVER_SUBERROR_CODE = EVENT_PREFIX + "server_sub_error_code";
+
+    static final String TOKEN_AGE = EVENT_PREFIX + "rt_age";
+
+    static final String SPE_INFO = EVENT_PREFIX + "spe_info";
 
     // Parameter values
     static final String AUTHORITY_TYPE_ADFS = "adfs";
-    static final String AUTHORITY_TYPE_AAD = "Microsoft.ADAL.aad";
+    static final String AUTHORITY_TYPE_AAD = EVENT_PREFIX + "aad";
 
-    static final String AUTHORITY_VALIDATION_SUCCESS = "Microsoft.ADAL.authority_validation_status_success";
-    static final String AUTHORITY_VALIDATION_FAILURE = "Microsoft.ADAL.authority_validation_status_failure";
-    static final String AUTHORITY_VALIDATION_NOT_DONE = "Microsoft.ADAL.authority_validation_status_not_done";
+    static final String AUTHORITY_VALIDATION_SUCCESS = EVENT_PREFIX + "authority_validation_status_success";
+    static final String AUTHORITY_VALIDATION_FAILURE = EVENT_PREFIX + "authority_validation_status_failure";
+    static final String AUTHORITY_VALIDATION_NOT_DONE = EVENT_PREFIX + "authority_validation_status_not_done";
 
     // Broker account service related events
-    static final String BROKER_ACCOUNT_SERVICE_STARTS_BINDING = "Microsoft.ADAL.broker_account_service_starts_binding";
+    static final String BROKER_ACCOUNT_SERVICE_STARTS_BINDING = EVENT_PREFIX + "broker_account_service_starts_binding";
 
-    static final String BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED = "Microsoft.ADAL.broker_account_service_binding_succeed";
+    static final String BROKER_ACCOUNT_SERVICE_BINDING_SUCCEED = EVENT_PREFIX + "broker_account_service_binding_succeed";
 
-    static final String BROKER_ACCOUNT_SERVICE_CONNECTED = "Microsoft.ADAL.broker_account_service_connected";
+    static final String BROKER_ACCOUNT_SERVICE_CONNECTED = EVENT_PREFIX + "broker_account_service_connected";
 
     // API ID
-    static final String API_ID = "Microsoft.ADAL.api_id";
+    static final String API_ID = EVENT_PREFIX + "api_id";
 
     static final String ACQUIRE_TOKEN_SILENT_SYNC = "1";
 

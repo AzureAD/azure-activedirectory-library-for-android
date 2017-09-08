@@ -270,6 +270,7 @@ public final class AuthenticationContextTest {
     @UiThreadTest
     public void testCorrelationIdInWebRequest() throws InterruptedException, IOException {
 
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
         final int minSDKVersionForTest = 15;
         if (Build.VERSION.SDK_INT <= minSDKVersionForTest) {
             Log.v(TAG,
@@ -303,7 +304,7 @@ public final class AuthenticationContextTest {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-        Mockito.when(mockedConnection.getInputStream())
+        Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class)
                 .thenReturn(Util.createInputStream(errorResponse));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
 
@@ -1681,6 +1682,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testAcquireTokenSilentSyncNegative() throws InterruptedException, AuthenticationException,
             IOException {
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
 
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -1695,7 +1697,7 @@ public final class AuthenticationContextTest {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(
+        Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class).thenReturn(Util.createInputStream(
                 Util.getErrorResponseBody("invalid_grant")),
                 Util.createInputStream(Util.getSuccessTokenResponse(true, true)));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
