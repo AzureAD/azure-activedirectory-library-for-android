@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -214,7 +213,8 @@ class AcquireTokenRequest {
                 try {
                     mDiscovery.validateAuthority(authorityUrl);
                 } catch (final AuthenticationException authenticationException) {
-                    // Ignore the failure.
+                    // Ignore the failure, save in the map as a failed instance discovery to avoid it being looked up another times in the same process
+                    AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(), new InstanceDiscoveryMetadata(false));
                     Logger.v(TAG, "Fail to get authority validation metadata back. Ignore the failure since authority validation is turned off.");
                 }
             }
@@ -230,15 +230,6 @@ class AcquireTokenRequest {
         }
 
         updatePreferredNetworkLocation(authorityUrl, authenticationRequest, metadata);
-
-        if (mTokenCacheAccessor != null) {
-            mTokenCacheAccessor.setInstanceDiscoveryMetadata(metadata);
-            try {
-                mTokenCacheAccessor.updatePreferredCacheLocation();
-            } catch (final MalformedURLException ex) {
-                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
-            }
-        }
     }
 
     private void updatePreferredNetworkLocation(final URL authorityUrl, final AuthenticationRequest request, final InstanceDiscoveryMetadata metadata)
@@ -247,9 +238,10 @@ class AcquireTokenRequest {
             return;
         }
 
-        if (authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
+        // replace the authority if host is not the same as the original one.
+        if (!authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
             try {
-                final URL replacedAuthority = new URL(new Uri.Builder().authority(metadata.getPreferredNetwork()).appendPath(authorityUrl.getPath()).build().toString());
+                final URL replacedAuthority = Utility.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
                 request.setAuthority(replacedAuthority.toString());
             } catch (final MalformedURLException ex) {
                 throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);

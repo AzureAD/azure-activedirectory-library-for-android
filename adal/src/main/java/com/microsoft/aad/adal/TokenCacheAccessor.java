@@ -22,8 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
-import android.net.Uri;
-
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 import java.io.UnsupportedEncodingException;
@@ -34,6 +32,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.microsoft.aad.adal.TokenEntryType.FRT_TOKEN_ENTRY;
+import static com.microsoft.aad.adal.TokenEntryType.MRRT_TOKEN_ENTRY;
+import static com.microsoft.aad.adal.TokenEntryType.REGULAR_TOKEN_ENTRY;
+
 /**
  * Internal class handling the interaction with {@link AcquireTokenSilentHandler} and {@link ITokenCacheStore}. 
  */
@@ -43,7 +45,6 @@ class TokenCacheAccessor {
     private final ITokenCacheStore mTokenCacheStore;
     private String mAuthority; // Remove final to update the authority when preferred cache location is not the same as passed in authority
     private final String mTelemetryRequestId;
-    private InstanceDiscoveryMetadata mInstanceDiscoveryMetadata;
     
     TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority, final String telemetryRequestId) {
         if (tokenCacheStore == null) {
@@ -107,12 +108,13 @@ class TokenCacheAccessor {
     TokenCacheItem getRegularRefreshTokenCacheItem(final String resource, final String clientId, final String user) throws MalformedURLException {
         final CacheEvent cacheEvent = startCacheTelemetryRequest(EventStrings.TOKEN_TYPE_RT);
 
-        final String cacheKey = CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, user);
+        // try preferred cache location first
+        final String cacheKey = CacheKey.createCacheKeyForRTEntry(getAuthorityUrlWithPreferredCache(), resource, clientId, user);
 
         TokenCacheItem item =  mTokenCacheStore.getItem(cacheKey);
         // try all the alias
         if (item == null ) {
-           item = getTokenCacheItemFromAliasedHost(resource, clientId, null, user, TokenEntryType.REGULAR_TOKEN_ENTRY);
+           item = performAdditionalCacheLookup(resource, clientId, null, user, REGULAR_TOKEN_ENTRY);
         }
 
         if (item != null) {
@@ -128,16 +130,18 @@ class TokenCacheAccessor {
      */
     TokenCacheItem getMRRTItem(final String clientId, final String user) throws MalformedURLException {
         final CacheEvent cacheEvent = startCacheTelemetryRequest(EventStrings.TOKEN_TYPE_MRRT);
-        final String cacheKey = CacheKey.createCacheKeyForMRRT(mAuthority, clientId, user);
+        final String cacheKey = CacheKey.createCacheKeyForMRRT(getAuthorityUrlWithPreferredCache(), clientId, user);
 
         TokenCacheItem item = mTokenCacheStore.getItem(cacheKey);
         if (item == null) {
-            item = getTokenCacheItemFromAliasedHost(null, clientId, null, user, TokenEntryType.MRRT_TOKEN_ENTRY);
+            item = performAdditionalCacheLookup(null, clientId, null, user, MRRT_TOKEN_ENTRY);
         }
+
         if (item != null) {
             cacheEvent.setTokenTypeMRRT(true);
             cacheEvent.setTokenTypeFRT(item.isFamilyToken());
         }
+
         Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent, EventStrings.TOKEN_CACHE_LOOKUP);
 
         return item;
@@ -153,11 +157,11 @@ class TokenCacheAccessor {
             return null;
         }
         
-        final String cacheKey = CacheKey.createCacheKeyForFRT(mAuthority, familyClientId, user);
+        final String cacheKey = CacheKey.createCacheKeyForFRT(getAuthorityUrlWithPreferredCache(), familyClientId, user);
 
         TokenCacheItem item = mTokenCacheStore.getItem(cacheKey);
         if (item == null) {
-            item = getTokenCacheItemFromAliasedHost(null, null, familyClientId, user, TokenEntryType.FRT_TOKEN_ENTRY);
+            item = performAdditionalCacheLookup(null, null, familyClientId, user, FRT_TOKEN_ENTRY);
         }
         if (item != null) {
             cacheEvent.setTokenTypeFRT(true);
@@ -209,8 +213,12 @@ class TokenCacheAccessor {
                 result.setIdToken(cachedItem.getRawIdToken());
                 result.setTenantId(cachedItem.getTenantId());
             }
-            
-            updateTokenCache(resource, clientId, result);
+
+            try {
+                updateTokenCache(resource, clientId, result);
+            } catch (MalformedURLException e) {
+                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            }
         } else if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
             // remove Item if oauth2_error is invalid_grant
             Logger.v(TAG, "Received INVALID_GRANT error code, remove existing cache entry.");
@@ -221,7 +229,7 @@ class TokenCacheAccessor {
     /**
      * Update token cache with returned auth result.
      */
-    void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) {
+    void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) throws MalformedURLException{
         if (result == null || StringExtensions.isNullOrBlank(result.getAccessToken())) {
             return;
         }
@@ -326,7 +334,7 @@ class TokenCacheAccessor {
      * on RT. 
      * If the token is FRT, store three separate entries. 
      */
-    private void setItemToCacheForUser(final String resource, final String clientId, final AuthenticationResult result, final String userId) {
+    private void setItemToCacheForUser(final String resource, final String clientId, final AuthenticationResult result, final String userId) throws MalformedURLException {
         logReturnedToken(result);
         Logger.v(TAG, "Save regular token into cache.");
 
@@ -334,14 +342,15 @@ class TokenCacheAccessor {
         cacheEvent.setRequestId(mTelemetryRequestId);
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_WRITE);
 
-        mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(mAuthority, resource, clientId, userId), 
-                TokenCacheItem.createRegularTokenCacheItem(mAuthority, resource, clientId, result));
+        // new tokens will only be saved into preferred cache location
+        mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(getAuthorityUrlWithPreferredCache(), resource, clientId, userId),
+                TokenCacheItem.createRegularTokenCacheItem(getAuthorityUrlWithPreferredCache(), resource, clientId, result));
         cacheEvent.setTokenTypeRT(true);
         // Store separate entries for MRRT.  
         if (result.getIsMultiResourceRefreshToken()) {
             Logger.v(TAG, "Save Multi Resource Refresh token to cache");
-            mTokenCacheStore.setItem(CacheKey.createCacheKeyForMRRT(mAuthority, clientId, userId),
-                    TokenCacheItem.createMRRTTokenCacheItem(mAuthority, clientId, result));
+            mTokenCacheStore.setItem(CacheKey.createCacheKeyForMRRT(getAuthorityUrlWithPreferredCache(), clientId, userId),
+                    TokenCacheItem.createMRRTTokenCacheItem(getAuthorityUrlWithPreferredCache(), clientId, result));
             cacheEvent.setTokenTypeMRRT(true);
         }
         
@@ -349,7 +358,7 @@ class TokenCacheAccessor {
         if (!StringExtensions.isNullOrBlank(result.getFamilyClientId()) && !StringExtensions.isNullOrBlank(userId)) {
             Logger.v(TAG, "Save Family Refresh token into cache");
             final TokenCacheItem familyTokenCacheItem = TokenCacheItem.createFRRTTokenCacheItem(mAuthority, result);
-            mTokenCacheStore.setItem(CacheKey.createCacheKeyForFRT(mAuthority, result.getFamilyClientId(), userId), familyTokenCacheItem);
+            mTokenCacheStore.setItem(CacheKey.createCacheKeyForFRT(getAuthorityUrlWithPreferredCache(), result.getFamilyClientId(), userId), familyTokenCacheItem);
             cacheEvent.setTokenTypeFRT(true);
         }
         Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent,
@@ -451,34 +460,46 @@ class TokenCacheAccessor {
         return cacheEvent;
     }
 
+    private TokenCacheItem performAdditionalCacheLookup(final String resource, final String clientid, final String familyClientId,
+                                                        final String user, final TokenEntryType type) throws MalformedURLException {
+        TokenCacheItem item = getTokenCacheItemFromPassedInAuthority(resource, clientid, familyClientId, user, type);
+
+        if (item == null) {
+            item = getTokenCacheItemFromAliasedHost(resource, clientid, familyClientId, user, type);
+        }
+
+        return item;
+    }
+
+    private TokenCacheItem getTokenCacheItemFromPassedInAuthority(final String resource, final String clientId, final String familyClientId,
+                                                                  final String user, final TokenEntryType type) throws MalformedURLException {
+        if (getAuthorityUrlWithPreferredCache().equalsIgnoreCase(mAuthority)) {
+            return null;
+        }
+
+        final String cacheKeyWithPassedInAuthority = getCacheKey(mAuthority, resource, clientId, user, familyClientId, type);
+        return mTokenCacheStore.getItem(cacheKeyWithPassedInAuthority);
+    }
+
     private TokenCacheItem getTokenCacheItemFromAliasedHost(final String resource, final String clientId, final String familyClientId,
                                                             final String user, final TokenEntryType type) throws MalformedURLException {
-        if (mInstanceDiscoveryMetadata == null) {
+
+        final InstanceDiscoveryMetadata instanceDiscoveryMetadata = getInstanceDiscoveryMetadata();
+        if (instanceDiscoveryMetadata == null) {
             return null;
         }
 
         TokenCacheItem tokenCacheItemForAliasedHost = null;
-        final List<String> aliasHosts = mInstanceDiscoveryMetadata.getAliases();
+        final List<String> aliasHosts = instanceDiscoveryMetadata.getAliases();
         for (final String aliasHost : aliasHosts) {
             final String authority = constructAuthorityUrl(aliasHost);
-            if (authority.equalsIgnoreCase(mAuthority)) {
+            // Already looked cache with preferred cache location and passed in authority, needs to look through other
+            // aliased host.
+            if (authority.equalsIgnoreCase(mAuthority) || authority.equalsIgnoreCase(getAuthorityUrlWithPreferredCache())) {
                 continue;
             }
 
-            final String cacheKeyForAliasedHost;
-            switch (type) {
-                case REGULAR_TOKEN_ENTRY:
-                    cacheKeyForAliasedHost = CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, user);
-                    break;
-                case MRRT_TOKEN_ENTRY:
-                    cacheKeyForAliasedHost = CacheKey.createCacheKeyForMRRT(authority, clientId, user);
-                    break;
-                case FRT_TOKEN_ENTRY:
-                    cacheKeyForAliasedHost = CacheKey.createCacheKeyForFRT(authority, familyClientId, user);
-                    break;
-                default:
-                    return null;
-            }
+            final String cacheKeyForAliasedHost = getCacheKey(authority, resource, clientId, user, familyClientId, type);
 
             final TokenCacheItem item = mTokenCacheStore.getItem(cacheKeyForAliasedHost);
             if (item != null) {
@@ -490,19 +511,36 @@ class TokenCacheAccessor {
         return tokenCacheItemForAliasedHost;
     }
 
-    void setInstanceDiscoveryMetadata(final InstanceDiscoveryMetadata instanceDiscoveryMetadata) {
-        mInstanceDiscoveryMetadata = instanceDiscoveryMetadata;
-    }
-
-    void updatePreferredCacheLocation() throws MalformedURLException {
-        if (mInstanceDiscoveryMetadata == null || !mInstanceDiscoveryMetadata.isValidated()) {
-            return;
+    private String getCacheKey(final String authority, final String resource, final String clientId, final String user,
+                               final String familyClientId, final TokenEntryType type) {
+        final String cacheKey;
+        switch (type) {
+            case REGULAR_TOKEN_ENTRY:
+                cacheKey = CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, user);
+                break;
+            case MRRT_TOKEN_ENTRY:
+                cacheKey = CacheKey.createCacheKeyForMRRT(authority, clientId, user);
+                break;
+            case FRT_TOKEN_ENTRY:
+                cacheKey = CacheKey.createCacheKeyForFRT(authority, familyClientId, user);
+                break;
+            default:
+                return null;
         }
 
-        final String preferredLocation = mInstanceDiscoveryMetadata.getPreferredCache();
+        return cacheKey;
+    }
+
+    String getAuthorityUrlWithPreferredCache() throws MalformedURLException {
+        final InstanceDiscoveryMetadata instanceDiscoveryMetadata = getInstanceDiscoveryMetadata();
+        if (instanceDiscoveryMetadata == null || !instanceDiscoveryMetadata.isValidated()) {
+            return mAuthority;
+        }
+
+        final String preferredLocation = instanceDiscoveryMetadata.getPreferredCache();
 
         // mAuthority can be updated to preferred location.
-        mAuthority = constructAuthorityUrl(preferredLocation);
+        return constructAuthorityUrl(preferredLocation);
     }
 
     private String constructAuthorityUrl(final String host) throws MalformedURLException {
@@ -511,7 +549,11 @@ class TokenCacheAccessor {
             return mAuthority;
         }
 
-        final Uri authorityUri = new Uri.Builder().authority(host).appendPath(passedInAuthority.getPath()).build();
-        return authorityUri.toString();
+        return Utility.constructAuthorityUrl(passedInAuthority, host).toString();
+    }
+
+    private InstanceDiscoveryMetadata getInstanceDiscoveryMetadata() throws MalformedURLException {
+        final URL passedInAuthority = new URL(mAuthority);
+        return AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(passedInAuthority);
     }
 }

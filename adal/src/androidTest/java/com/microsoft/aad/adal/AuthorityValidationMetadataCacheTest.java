@@ -47,6 +47,7 @@ public class AuthorityValidationMetadataCacheTest extends AndroidTestHelper {
     @Before
     public void setUp() throws Exception {
         super.setUp();
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
     }
 
     @After
