@@ -95,10 +95,10 @@ public class AuthenticationRequestTests {
                         "NA", // resource
                         "NA", // client
                         "NA", // redirect
-                        "user@foo.internet", // loginhint,
+                        "user@tenant.internet", // loginhint,
                         false
                 );
-        assertEquals("foo.internet", authenticationRequest.getUpnSuffix());
+        assertEquals("tenant.internet", authenticationRequest.getUpnSuffix());
     }
 
     @Test

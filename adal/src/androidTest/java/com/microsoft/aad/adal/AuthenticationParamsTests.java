@@ -157,7 +157,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         verifyAuthenticationParam(
                 m,
-                "Bearer scope=\"blah=foo, foo=blah\" , authorization_uri=\"https://login.windows.net/tenant\"",
+                "Bearer scope=\"blah=scope, scope=blah\" , authorization_uri=\"https://login.windows.net/tenant\"",
                 "https://login.windows.net/tenant", null);
 
         verifyAuthenticationParam(
@@ -167,8 +167,8 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         verifyAuthenticationParam(
                 m,
-                "Bearer\tscope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\" ,resource_id=\"blah=foo, foo=blah\"",
-                "https://login.windows.net/tenant", "blah=foo, foo=blah");
+                "Bearer\tscope=\"is=outer, space=ornot\",\t\t  authorization_uri=\"https://login.windows.net/tenant\" ,resource_id=\"blah=resource, resource=blah\"",
+                "https://login.windows.net/tenant", "blah=resource, resource=blah");
 
         LogCallback callback = new LogCallback(ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
         Logger.getInstance().setExternalLogger(callback);

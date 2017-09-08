@@ -854,7 +854,7 @@ public final class AuthenticationContextTest {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid@foo.com",
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid@tenant.com",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -868,7 +868,7 @@ public final class AuthenticationContextTest {
 
         // Sync test
         try {
-            context.acquireTokenSilentSync("resource", "clientid", "userid@foo.com");
+            context.acquireTokenSilentSync("resource", "clientid", "userid@tenant.com");
             Assert.fail("Validation should throw");
         } catch (AuthenticationException exc) {
             // AD FS cannot be validated in silent sync calls because no UPN is available
