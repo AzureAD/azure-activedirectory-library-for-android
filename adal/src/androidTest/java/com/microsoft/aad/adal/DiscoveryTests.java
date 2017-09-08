@@ -26,6 +26,7 @@ package com.microsoft.aad.adal;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,14 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -267,5 +276,45 @@ public class DiscoveryTests extends AndroidTestHelper {
         } catch (final AuthenticationException e) {
             fail();
         }
+    }
+
+    // Test when there are two requests from different threads trying to do authority validation for the same authority, only
+    // one hit network.
+    @Test
+    public void testMultiValidateAuthorityRequestsInDifferentThreads() throws IOException, InterruptedException, ExecutionException {
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(getDiscoveryResponse()));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(2);
+        Callable<Void> task = new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                final Discovery discovery = new Discovery();
+                discovery.validateAuthority(new URL("https://login.windows.net/common"));
+
+                return null;
+            }
+        };
+
+        final List<Callable<Void>> tasks = Collections.nCopies(2, task);
+        final List<Future<Void>> results = executorService.invokeAll(tasks);
+        for (final Future<Void> result : results) {
+            result.get();
+        }
+
+        Mockito.verify(mockedConnection, Mockito.times(1)).getInputStream();
+    }
+
+    static String getDiscoveryResponse() {
+        final Map<String, String> discoveryResponse = AuthorityValidationMetadataCacheTest.getDiscoveryResponse();
+        final JSONObject discoveryResponseJsonObject = new JSONObject(discoveryResponse);
+
+        return discoveryResponseJsonObject.toString();
     }
 }

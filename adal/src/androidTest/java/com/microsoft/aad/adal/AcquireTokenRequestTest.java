@@ -120,6 +120,9 @@ public final class AcquireTokenRequestTest {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
+
+        final InstanceDiscoveryMetadata metadata = new InstanceDiscoveryMetadata("login.microsoftonline.com", "login.windows.net");
+        AuthorityValidationMetadataCache.updateInstanceDiscoveryMap("login.windows.net", metadata);
     }
 
     @After
