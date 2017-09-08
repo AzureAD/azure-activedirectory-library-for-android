@@ -26,12 +26,15 @@ import android.content.Context;
 import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.SdkSuppress;
-import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
 import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -50,10 +53,19 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static android.R.attr.minSdkVersion;
+import static android.support.test.InstrumentationRegistry.getContext;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * Tests for verifying acquire token silent flow.
  */
-public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public final class AcquireTokenSilentHandlerTest {
     /**
      * Check case-insensitive lookup
      */
@@ -142,7 +154,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     /**
      * Acquire token uses refresh token, but web request returns error with an empty body.
      */
-    @SmallTest
+    @Test
     public void testRefreshTokenWebRequestHasError() throws IOException {
 
         FileMockContext mockContext = new FileMockContext(getContext());
@@ -177,7 +189,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     }
 
     // Verify if regular RT exists, if the RT is not MRRT, we only redeem token with the regular RT. 
-    @SmallTest
+    @Test
     public void testRegularRT() throws IOException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
@@ -239,7 +251,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     }
 
     // Test the current cache that does not mark RT as MRRT even it's MRRT.
-    @SmallTest
+    @Test
     public void testRegularRTExistsMRRTForSameClientIdExist() throws IOException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
@@ -303,7 +315,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     /**
      * Test only when MRRT without FoCI in the cache.
      */
-    @SmallTest
+    @Test
     public void testMRRTSuccessNoFoCI() throws IOException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
@@ -359,7 +371,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
      * Make sure if we acquire token for a client id, and if we already have a family token item in cache, we use that
      * refresh token.
      */
-    @SmallTest
+    @Test
     public void testFRTSuccess() throws IOException {
 
         FileMockContext mockContext = new FileMockContext(getContext());
@@ -413,7 +425,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
      * Make sure if we have a family token in the cache and we fail to redeem access token with FRT, we correctly fail.
      * Also make sure only FRT token entry is deleted.
      */
-    @SmallTest
+    @Test
     public void testFRTFailedWithInvalidGrant() throws IOException {
 
         FileMockContext mockContext = new FileMockContext(getContext());
@@ -459,7 +471,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     /**
      * Test if FRT request failed, retry with MRRT if exists.
      */
-    @SmallTest
+    @Test
     public void testFRTRequestFailedFallBackMRRTRequest() throws IOException {
 
         FileMockContext mockContext = new FileMockContext(getContext());
@@ -527,6 +539,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
      * Verify if FRT request fails with invalid_grant, and retry request with MRRT failed with invalid request,
      * only FRT token cache entry is removed.
      */
+    @Test
     public void testFRTRequestFailFallBackToMRTMRTRequestFail() throws IOException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
@@ -607,7 +620,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     /**
      * Test if MRRT is not marked as FRT, if the MRRT request fails, we will try with FRT.
      */
-    @SmallTest
+    @Test
     public void testMRRTRequestFailsTryFRT() throws UnsupportedEncodingException, IOException {
         FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
@@ -692,7 +705,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     /**
      * Test RT request returns errors, but error response doesn't contain error_code.
      */
-    @SmallTest
+    @Test
     public void testRefreshTokenRequestNotReturnErrorCode() throws IOException {
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -734,7 +747,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
     /**
      * Test RT request failed with interaction_required, cache will not be cleared.
      */
-    @SmallTest
+    @Test
     public void testRefreshTokenWithInteractionRequiredCacheNotCleared() throws IOException {
         FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -768,7 +781,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         clearCache(mockCache);
     }
 
-    @SmallTest
+    @Test
     public void testMRRTItemNotContainRT() {
         FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
@@ -805,7 +818,7 @@ public final class AcquireTokenSilentHandlerTest extends AndroidTestCase {
         clearCache(mockedCache);
     }
 
-    @SmallTest
+    @Test
     public void testAllTokenItemNotContainRT() {
         FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());

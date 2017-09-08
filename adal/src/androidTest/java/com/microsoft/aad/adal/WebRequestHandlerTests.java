@@ -23,13 +23,17 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -45,20 +49,36 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * webrequest tests related to get, put, post, delete requests
  */
+@RunWith(AndroidJUnit4.class)
 public final class WebRequestHandlerTests extends AndroidTestHelper {
 
     private static final String TAG = WebRequestHandlerTests.class.getSimpleName();
     private static final String TEST_WEBAPI_URL = "https://test.api.net/api/WebRequestTest";
+
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        super.tearDown();
+    }
 
     /**
      * send invalid request to production service
      *
      * @throws IOException
      */
-    @SmallTest
+    @Test
     public void testCorrelationIdInRequest() throws IOException {
         final String testUrl = "https://login.microsoftonline.com/test.onmicrosoft.com/oauth2/token";
         final UUID testCorrelationId = UUID.randomUUID();
@@ -108,6 +128,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
                 "application/x-www-form-urlencoded");
     }
 
+    @Test
     public void testNullUrl() {
         assertThrowsException(IllegalArgumentException.class, "url", new ThrowableRunnable() {
             public void run() throws IOException {
@@ -117,6 +138,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         });
     }
 
+    @Test
     public void testWrongSchemeUrl() {
 
         assertThrowsException(IllegalArgumentException.class, "url", new ThrowableRunnable() {
@@ -127,6 +149,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         });
     }
 
+    @Test
     public void testGetRequest() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
@@ -150,6 +173,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
     /**
      * WebService returns the request headers in the response
      */
+    @Test
     public void testClientTraceInHeaders() throws IOException {
         Log.d(TAG, "test get" + android.os.Process.myTid());
 
@@ -176,6 +200,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
                         + AuthenticationContext.getVersionName()));
     }
 
+    @Test
     public void testNonExistentUrl() {
         WebRequestHandler request = new WebRequestHandler();
         try {
@@ -189,6 +214,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testGetWithIdRequest() throws IOException {
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -207,6 +233,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
         assertTrue("request body check", responseMsg.contains("test get with id"));
     }
 
+    @Test
     public void testPostRequest() throws IOException {
         final TestMessage message = new TestMessage("messagetest", "12345");
         final String json = new Gson().toJson(message);

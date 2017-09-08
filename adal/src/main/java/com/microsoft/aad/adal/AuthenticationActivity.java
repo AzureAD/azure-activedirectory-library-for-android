@@ -23,22 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.Locale;
-import java.util.UUID;
-
-import com.google.gson.Gson;
-
-import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
@@ -66,6 +50,21 @@ import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
+
+import com.google.gson.Gson;
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Authentication Activity to launch {@link WebView} for authentication.

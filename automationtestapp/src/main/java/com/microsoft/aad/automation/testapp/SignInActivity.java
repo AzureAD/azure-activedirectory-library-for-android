@@ -32,7 +32,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationConstants;
 import com.microsoft.aad.adal.AuthenticationContext;
@@ -41,7 +40,6 @@ import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.CacheKey;
 import com.microsoft.aad.adal.ITokenCacheStore;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.TokenCacheItem;
 import com.microsoft.aad.adal.UserInfo;

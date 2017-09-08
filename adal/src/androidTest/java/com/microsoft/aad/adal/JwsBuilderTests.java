@@ -23,6 +23,16 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
+import android.support.test.runner.AndroidJUnit4;
+import android.util.Base64;
+import android.util.Log;
+
+import junit.framework.Assert;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -50,17 +60,17 @@ import java.util.Enumeration;
 
 import javax.security.auth.x500.X500Principal;
 
-import android.content.Context;
-import android.util.Base64;
-import android.util.Log;
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import junit.framework.Assert;
-
+@RunWith(AndroidJUnit4.class)
 public class JwsBuilderTests extends AndroidTestHelper {
 
-    private static final String TEST_CERT_ALIAS = "My Key Chain";
+    static final String TEST_CERT_ALIAS = "My Key Chain";
 
-    private static final String PKCS12_PASS = "changeit";
+    static final String PKCS12_PASS = "changeit";
 
     static final String TAG = "JwsBuilderTests";
 
@@ -68,12 +78,13 @@ public class JwsBuilderTests extends AndroidTestHelper {
 
     static final String JWS_ALGORITHM = "SHA256withRSA";
 
+    @Test
     public void testGenerateSignedJWTPositive() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, UnrecoverableKeyException,
             KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException,
             InvalidKeyException, SignatureException {
-        KeyStore keystore = loadTestCertificate();
+        KeyStore keystore = loadTestCertificate(getInstrumentation().getContext());
         Key key = keystore.getKey(TEST_CERT_ALIAS, PKCS12_PASS.toCharArray());
         RSAPrivateKey privKey = (RSAPrivateKey) key;
         Certificate cert = keystore.getCertificate(TEST_CERT_ALIAS);
@@ -82,6 +93,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         testSignedJWT(true, "nonce", "https://someurl", privKey, publicKey, (X509Certificate) cert);
     }
 
+    @Test
     public void testGenerateSignedJWTNegative() throws IllegalArgumentException,
             ClassNotFoundException, NoSuchMethodException, InstantiationException,
             IllegalAccessException, InvocationTargetException {
@@ -114,6 +126,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
     /**
      * send invalid public and private key
      */
+    @Test
     public void testGenerateSignedJWTKeyPair() throws InvalidKeyException, ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchAlgorithmException,
@@ -127,7 +140,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         RSAPrivateKey privateKey = (RSAPrivateKey) keyGen.genKeyPair().getPrivate();
 
         testSignedJWT(false, "invalid key pairs", "https://someurl", privateKey, publicKey,
-                (X509Certificate) loadTestCertificate().getCertificateChain("My Key Chain")[0]);
+                (X509Certificate) loadTestCertificate(getInstrumentation().getContext()).getCertificateChain("My Key Chain")[0]);
     }
 
     private void testSignedJWT(boolean validSignature, String nonce, String url,
@@ -174,9 +187,8 @@ public class JwsBuilderTests extends AndroidTestHelper {
         assertTrue("Body has iat field", bodyText.contains("iat\":"));
     }
 
-    private KeyStore loadTestCertificate() throws IOException, CertificateException,
+    static KeyStore loadTestCertificate(final Context ctx) throws IOException, CertificateException,
             UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
-        Context ctx = getInstrumentation().getContext();
         KeyStore caKs = KeyStore.getInstance("PKCS12");
 
         BufferedInputStream stream = new BufferedInputStream(ctx.getAssets().open(PKCS12_FILENAME));

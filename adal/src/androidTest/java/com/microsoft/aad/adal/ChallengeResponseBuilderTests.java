@@ -23,8 +23,12 @@
 
 package com.microsoft.aad.adal;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import android.support.test.runner.AndroidJUnit4;
+
+import junit.framework.Assert;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -37,8 +41,14 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+@RunWith(AndroidJUnit4.class)
 public class ChallengeResponseBuilderTests extends AndroidTestHelper {
 
     static final String TAG = "ClientCertHandlerTests";
@@ -47,6 +57,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
 
     private static final String CERT_AUTH_TYPE = AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE;
 
+    @Test
     public void testGetChallengeResponseFromHeaderPositive() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
@@ -87,6 +98,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
     /**
      * Test for verifying cert authorities could be used to pick up right certificate.
      */
+    @Test
     public void testGetChallengeResponseFromHeaderCertAuthorityPresent() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
@@ -125,6 +137,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
      * returned from
      * pkeyauth challenge.
      */
+    @Test
     public void testGetChallengeFromHeaderNotWorkPlaceJoinedNoCertThumbprintNoCertAuthority() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
@@ -165,6 +178,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
      * authorities
      * if device is already workplace joined.
      */
+    @Test
     public void testGetChallengeResponseFromHeaderBothThumbprintCertAuthorityNotPresent() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
@@ -201,6 +215,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testGetChallengeResponseFromHeaderNegative() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,
@@ -220,6 +235,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testGetChallengeResponseInvalidIssuer() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
@@ -240,6 +256,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         verifyChallengeResponse(response, null, context, submitUrl);
     }
 
+    @Test
     public void testGetChallengeResponseNoDeviceCertProxy() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
@@ -263,6 +280,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
                 AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, "1")));
     }
 
+    @Test
     public void testGetChallengeResponseInvalidRedirect() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
@@ -321,6 +339,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testGetChallengeResponseValidIssuerNullKey() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException {
@@ -344,6 +363,7 @@ public class ChallengeResponseBuilderTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testGetChallengeResponsePositive() throws ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, NoSuchFieldException,

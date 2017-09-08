@@ -23,9 +23,23 @@
 
 package com.microsoft.aad.adal;
 
-import java.util.Locale;
 import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.Locale;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 
     protected static final String TEST_AUTHORITY2 = "https://Developer.AndroiD.com/reference/android";
@@ -60,15 +74,15 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         return mTestItemMultiResourceUser2;
     }
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         super.setUp();
-        mCtx = this.getInstrumentation().getContext();
+        mCtx = InstrumentationRegistry.getContext();
         AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         AuthenticationSettings.INSTANCE.setSharedPrefPackageName(null);
         ITokenCacheStore store = getTokenCacheStore();
         store.removeAll();
@@ -123,6 +137,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
 
     protected abstract ITokenCacheStore getTokenCacheStore();
 
+    @Test
     public void testGetRemoveItem() throws AuthenticationException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
@@ -190,6 +205,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertNull("Token cache item is expected to be null", item);
     }
 
+    @Test
     public void testContains() throws AuthenticationException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();
@@ -202,6 +218,7 @@ public abstract class BaseTokenStoreTests extends AndroidTestHelper {
         assertTrue("Item is expected to be there", actual);
     }
 
+    @Test
     public void testRemoveAll() throws AuthenticationException {
         // each test method will get new tokencachestore instance
         ITokenCacheStore store = setupItems();

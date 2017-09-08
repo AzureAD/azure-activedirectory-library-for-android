@@ -55,7 +55,7 @@ If you find a security issue with our libraries or services please report it to 
 
 ## Contributing
 
-All code is licensed under the Apache 2.0 license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. if you want to setup a maven enviroment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
+All code is licensed under the MIT license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. if you want to setup a maven environment please [check this](https://github.com/MSOpenTech/azure-activedirectory-library-for-android/wiki/Setting-up-maven-environment-for-Android)
 More details [about contribution](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/contributing.md) 
 
 ## Versions
@@ -292,7 +292,7 @@ mContext.acquireTokenSilent(String resource, String clientId, String userId, fin
 	* If target version is lower than 23, calling app has to have the following permissions declared in manifest(http://developer.android.com/reference/android/accounts/AccountManager.html):
 		* GET_ACCOUNTS
 		* USE_CREDENTIALS
-		* MANAGE_ACOUNTS
+		* MANAGE_ACCOUNTS
 	* If target version is 23, USE_CREDENTIALS and MANAGE_ACCOUNTS are already deprecated. But GET_ACCOUNTS is under protection level "dangerous", calling app is responsible for requesting the run-time permisson. You can      reference [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
 	* There must be an account existed and registered via one of the two broker apps.
 	
@@ -486,7 +486,7 @@ Adal version 1.1.0 supports NTLM dialog that is processed through onReceivedHttp
 
 ## License
 
-Copyright (c) Microsoft Open Technologies, Inc.  All rights reserved. Licensed under the Apache License, Version 2.0 (the "License"); 
+Copyright (c) Microsoft Corporation. All rights reserved. This code is licensed under the MIT License.
 
 ## We Value and Adhere to the Microsoft Open Source Code of Conduct
 

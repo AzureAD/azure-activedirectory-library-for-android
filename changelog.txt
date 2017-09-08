@@ -1,3 +1,7 @@
+Version 1.13.2
+-------------
+Add telemetry to capture x-ms-clitelem header (tracks errors, suberrors, rt age, and SPE ring)
+
 Version 1.13.1
 -------------
 Add support for handling doze and app standby mode
