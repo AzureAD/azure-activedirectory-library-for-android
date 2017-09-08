@@ -37,7 +37,9 @@ final class CacheEvent extends DefaultEvent {
     }
 
     void setSpeRing(final String speRing) {
-        setProperty(EventStrings.SPE_INFO, speRing.trim());
+        if (null != speRing) {
+            setProperty(EventStrings.SPE_INFO, speRing.trim());
+        }
     }
 
     void setTokenType(final String tokenType) {

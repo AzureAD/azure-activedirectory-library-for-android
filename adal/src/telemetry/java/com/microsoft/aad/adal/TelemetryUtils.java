@@ -28,6 +28,10 @@ import java.util.regex.Pattern;
 
 final class TelemetryUtils {
 
+    private TelemetryUtils() {
+        // Intentionally left blank.
+    }
+
     private static final String TAG = TelemetryUtils.class.getSimpleName();
 
     static class CliTelemInfo {

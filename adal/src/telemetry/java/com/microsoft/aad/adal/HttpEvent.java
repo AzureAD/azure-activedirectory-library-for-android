@@ -117,19 +117,29 @@ final class HttpEvent extends DefaultEvent {
     }
 
     void setServerErrorCode(final String errorCode) {
-        setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
+        if (null != errorCode) {
+            setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
+        }
     }
 
     void setServerSubErrorCode(final String subErrorCode) {
-        setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
+        if (null != subErrorCode) {
+            setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
+
+        }
     }
 
     void setRefreshTokenAge(final String tokenAge) {
-        setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
+        if (null != tokenAge) {
+            setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
+
+        }
     }
 
     void setSpeRing(final String speRing) {
-        setProperty(EventStrings.SPE_INFO, speRing.trim());
+        if (null != speRing) {
+            setProperty(EventStrings.SPE_INFO, speRing.trim());
+        }
     }
 
     /**
