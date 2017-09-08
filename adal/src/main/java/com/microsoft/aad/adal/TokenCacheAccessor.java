@@ -101,6 +101,7 @@ class TokenCacheAccessor {
 
         if (item != null) {
             cacheEvent.setTokenTypeRT(true);
+            cacheEvent.setSpeRing(item.getSpeRing());
         }
         Telemetry.getInstance().stopEvent(mTelemetryRequestId, cacheEvent, EventStrings.TOKEN_CACHE_LOOKUP);
 
