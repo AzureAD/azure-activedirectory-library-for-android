@@ -1,3 +1,7 @@
+Version 1.13.2
+-------------
+Add telemetry to capture x-ms-clitelem header (tracks errors, suberrors, rt age, and SPE ring)
+
 Version 1.13.0
 -------------
 Add support for sending conditional access claims to acquire token call

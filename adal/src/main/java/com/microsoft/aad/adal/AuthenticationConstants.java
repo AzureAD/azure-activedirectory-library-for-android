@@ -510,6 +510,11 @@ public final class AuthenticationConstants {
          * @see <a href="https://tools.ietf.org/html/rfc1945#appendix-D.2.1">RFC-1945</a>
          */
         static final String ACCEPT = "Accept";
+
+        /**
+         * Header used to track SPE Ring for telemetry
+         */
+        static final String X_MS_CLITELEM = "x-ms-clitelem";
     }
 
     /**
