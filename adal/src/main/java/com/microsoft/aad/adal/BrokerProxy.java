@@ -304,7 +304,7 @@ class BrokerProxy implements IBrokerProxy {
      * Gets accessToken from Broker component.
      */
     @Override
-    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request)
+    public AuthenticationResult getAuthTokenInBackground(final AuthenticationRequest request, final BrokerEvent brokerEvent)
             throws AuthenticationException {
 
         verifyNotOnMainThread();
@@ -314,7 +314,7 @@ class BrokerProxy implements IBrokerProxy {
         // check if broker supports the new service, if it does not we need to switch back to the old way
         final Bundle bundleResult;
         if (isBrokerAccountServiceSupported()) {
-            bundleResult = BrokerAccountServiceHandler.getInstance().getAuthToken(mContext, requestBundle);
+            bundleResult = BrokerAccountServiceHandler.getInstance().getAuthToken(mContext, requestBundle, brokerEvent);
         } else {
             bundleResult = getAuthTokenFromAccountManager(request, requestBundle);
         }
@@ -355,6 +355,9 @@ class BrokerProxy implements IBrokerProxy {
                 Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
                 if (e.getMessage() != null && e.getMessage().contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
                     throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
+                            "Received error from broker, errorCode: " + e.getMessage());
+                } else if (e.getMessage() != null && e.getMessage().contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
+                    throw new AuthenticationException(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION,
                             "Received error from broker, errorCode: " + e.getMessage());
                 }
             } catch (IOException e) {
@@ -431,8 +434,13 @@ class BrokerProxy implements IBrokerProxy {
                 adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
                 break;
             case AccountManager.ERROR_CODE_NETWORK_ERROR:
-                adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
-                break;
+                if (msg.contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
+                    adalErrorCode = ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION;
+                    break;
+                } else {
+                    adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
+                    break;
+                }
             default:
                 adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
             }
@@ -542,11 +550,11 @@ class BrokerProxy implements IBrokerProxy {
      * from calling app's activity to control the lifetime of the activity.
      */
     @Override
-    public Intent getIntentForBrokerActivity(final AuthenticationRequest request) {
+    public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent) {
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
         if (isBrokerAccountServiceSupported()) {
-            intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext);
+            intent = BrokerAccountServiceHandler.getInstance().getIntentForInteractiveRequest(mContext, brokerEvent);
             intent.putExtras(requestBundle);
         } else {
             intent = getIntentForBrokerActivityFromAccountManager(requestBundle);

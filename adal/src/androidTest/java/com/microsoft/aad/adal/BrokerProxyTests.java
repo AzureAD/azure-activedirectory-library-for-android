@@ -381,7 +381,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
         try {
-            brokerProxy.getAuthTokenInBackground(request);
+            brokerProxy.getAuthTokenInBackground(request, null);
         } catch (Exception ex) {
             assertTrue("Exception type check", ex.getCause() instanceof AuthenticationException);
             assertEquals("Check error code", ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS,
@@ -419,7 +419,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         updateContextToSaveAccount("", "test");
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest);
+        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest, null);
 
         // assert
         assertNull("token should return null", result.getAccessToken());
@@ -453,7 +453,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // assert
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest);
+        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest, null);
         assertEquals("token is expected", "token123", result.getAccessToken());
     }
 
@@ -491,7 +491,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         updateContextToSaveAccount("", acctName);
 
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest);
+        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest, null);
 
         // assert
         assertNotNull("userinfo is expected", result.getUserInfo());
@@ -539,7 +539,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest);
+        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest, null);
 
         // Make sure what returned from broker is consistent with what returned
         // from adal
@@ -587,7 +587,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest);
+        final AuthenticationResult result = brokerProxy.getAuthTokenInBackground(authRequest, null);
 
         final Calendar expires = new GregorianCalendar();
         expires.add(Calendar.SECOND, AuthenticationConstants.DEFAULT_EXPIRATION_TIME_SEC);
@@ -638,7 +638,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         // action
         try {
             final BrokerProxy brokerProxy = new BrokerProxy(context);
-            brokerProxy.getAuthTokenInBackground(authRequest);
+            brokerProxy.getAuthTokenInBackground(authRequest, null);
             Assert.fail("should throw");
         } catch (Exception ex) {
             assertTrue("Exception type check", ex instanceof AuthenticationException);
@@ -665,7 +665,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         // action
         try {
             final BrokerProxy brokerProxy = new BrokerProxy(context);
-            brokerProxy.getAuthTokenInBackground(authRequest);
+            brokerProxy.getAuthTokenInBackground(authRequest, null);
             Assert.fail("should throw");
         } catch (Exception ex) {
             assertTrue("Exception type check", ex instanceof AuthenticationException);
@@ -691,7 +691,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         // action
         try {
             final BrokerProxy brokerProxy = new BrokerProxy(context);
-            brokerProxy.getAuthTokenInBackground(authRequest);
+            brokerProxy.getAuthTokenInBackground(authRequest, null);
             Assert.fail("should throw");
         } catch (Exception ex) {
             assertTrue("Exception type check", ex instanceof AuthenticationException);
@@ -717,7 +717,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         //action
         try {
             final BrokerProxy brokerProxy = new BrokerProxy(context);
-            brokerProxy.getAuthTokenInBackground(authRequest);
+            brokerProxy.getAuthTokenInBackground(authRequest, null);
             Assert.fail("should throw");
         } catch (final Exception exception) {
             assertTrue("Exception type check", exception instanceof AuthenticationException);
@@ -742,7 +742,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest);
+        final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
 
         // assert
         assertNull("Intent is null", intent);
@@ -769,7 +769,7 @@ public class BrokerProxyTests extends AndroidTestCase {
 
         // action
         final BrokerProxy brokerProxy = new BrokerProxy(context);
-        final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest);
+        final Intent intent = brokerProxy.getIntentForBrokerActivity(authRequest, null);
 
         // assert
         assertNotNull("intent is not null", intent);
@@ -796,7 +796,7 @@ public class BrokerProxyTests extends AndroidTestCase {
         mockedContext.setMockedPackageManager(getMockedPackageManagerWithBrokerAccountServiceDisabled(mock(Signature.class),
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
-        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest);
+        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
         assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
     }
     
@@ -822,7 +822,7 @@ public class BrokerProxyTests extends AndroidTestCase {
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
 
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
-        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest);
+        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
         assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.FORCE_PROMPT.name()));
     }
     
@@ -848,7 +848,7 @@ public class BrokerProxyTests extends AndroidTestCase {
                 AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, true));
 
         final BrokerProxy brokerProxy = new BrokerProxy(mockedContext);
-        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest);
+        final Intent returnedIntent = brokerProxy.getIntentForBrokerActivity(authenticationRequest, null);
 
         assertTrue(returnedIntent.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_PROMPT).equalsIgnoreCase(PromptBehavior.Always.name()));
     }

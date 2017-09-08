@@ -205,6 +205,11 @@ public enum ADALError {
     DEVICE_INTERNET_IS_NOT_AVAILABLE("Internet permissions are not set for the app"),
 
     /**
+     * Unable to access the network due to power optimizations.
+     */
+    NO_NETWORK_CONNECTION_POWER_OPTIMIZATION("Unable to access the network due to power optimizations"),
+
+    /**
      * onActivityResult is called with null intent data. Activity may be
      * terminated directly.
      */
