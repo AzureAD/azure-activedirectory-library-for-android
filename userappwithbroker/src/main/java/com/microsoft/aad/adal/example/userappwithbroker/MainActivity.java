@@ -23,24 +23,24 @@
 
 package com.microsoft.aad.adal.example.userappwithbroker;
 
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Base64;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
+import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.microsoft.aad.adal.ADALError;
@@ -54,9 +54,7 @@ import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.Telemetry;
 import com.microsoft.aad.adal.UserInfo;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Iterator;
@@ -70,128 +68,139 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * Sample for acquiring token via broker. 
  */
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
+        AcquireTokenFragment.OnFragmentInteractionListener {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "UserAppWithBroker.Main";
 
-    // AAD PARAMETERS
-    /**
-     * https://login.windows.net/tenantInfo
-     */
-    private static final String AUTHORITY_URL = "https://login.microsoftonline.com/yourtenantinfo";
-
-    /**
-     * Client id is given from AAD page when you register your native app. 
-     */
-    private static final String CLIENT_ID = "your-clientid";
-
-    /**
-     * To use broker, Developer needs to register special redirectUri in Azure Portal for broker usage. RedirectUri is 
-     * in the format of msauth://packagename/Base64UrlencodedSignature.
-     */
-    private static final String REDIRECT_URL = "msauth://packagename/Base64EncodedSignature";
-
-    /**
-     * URI for the resource. You need to setup this resource at AAD. 
-     * @note: With the new broker with PRT support, even resource or user don't have policy on to enforce
-     * conditional access, when you have broker app installed, you'll still be able to talk to broker. And
-     * broker will support multiple users, one WPJ account and multiple aad users. 
-     */
-    private static final String RESOURCE_ID = "your-resource-with-CA-policy";
-    
-    private static final String RESOURCE_ID2 = "your-resource";
-    
+    private SharedPreferences mSharedPreference;
     private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID = "user.app.withbroker.uniqueidstorage";
+
+    private String mLoginhint;
+
+    private String mAuthority;
+
+    private AuthenticationResult mAuthResult = null;
 
     private AuthenticationContext mAuthContext;
 
-    private EditText mEditText;
-    
-    private SharedPreferences mSharedPreference;
+    private PromptBehavior mPromptBehavior;
 
+    private RelativeLayout mContentMain;
+
+    private EditText mEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // see the java doc for the detailed requirements for 
-        // talking to broker. 
         setUpADALForCallingBroker();
 
-        Button buttonAcquireTokenInteractiveForR1 = (Button)findViewById(R.id.AcquireTokenInteractiveForR1);
-        buttonAcquireTokenInteractiveForR1.setOnClickListener(new View.OnClickListener() {
+        mContentMain = (RelativeLayout) findViewById(R.id.content_main);
+
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
+
+        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, 0, 0);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        if (savedInstanceState == null) {
+            // auto select the first item
+            onNavigationItemSelected(navigationView.getMenu().getItem(0));
+        }
+
+        mEditText = (EditText)findViewById(R.id.extraQP);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(final MenuItem item) {
+        final Fragment fragment;
+        int menuItemId = item.getItemId();
+        if (menuItemId == R.id.nav_acquire) {
+            fragment = new AcquireTokenFragment();
+        } else if (menuItemId == R.id.nav_result) {
+            fragment = new ResultFragment();
+            final Bundle bundle = new Bundle();
+            if (mAuthResult != null) {
+                bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
+                bundle.putString(ResultFragment.ID_TOKEN, mAuthResult.getIdToken());
+            }
+
+            fragment.setArguments(bundle);
+            mAuthResult = null;
+        } else if (menuItemId == R.id.nav_log) {
+            fragment = new LogFragment();
+            final String logs = ((ADALSampleApp)this.getApplication()).getLogs();
+            final Bundle bundle = new Bundle();
+            bundle.putString(LogFragment.LOG_MSG, logs);
+            fragment.setArguments(bundle);
+        }else {
+            fragment = null;
+        }
+
+        attachFragment(fragment);
+        return true;
+    }
+
+    private void attachFragment(final Fragment fragment) {
+        final FragmentManager fragmentManager = getSupportFragmentManager();
+        final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        final DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout.closeDrawer(GravityCompat.START);
+        fragmentTransaction.replace(mContentMain.getId(), fragment).addToBackStack(null).commit();
+    }
+
+    @Override
+    public void onAcquireTokenClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+        prepareRequestParameters(requestOptions);
+
+        callAcquireTokenWithResource(requestOptions.getDataProfile().getText(), requestOptions.getBehavior(),
+                requestOptions.getLoginHint(), requestOptions.getClientId().getText(), requestOptions.getRedirectUri().getText());
+    }
+
+    @Override
+    public void onAcquireTokenSilentClicked(final AcquireTokenFragment.RequestOptions requestOptions) {
+
+        prepareRequestParameters(requestOptions);
+
+        callAcquireTokenSilent(requestOptions.getDataProfile().getText(),getUserIdBasedOnUPN(requestOptions.getLoginHint()),
+                requestOptions.getClientId().getText());
+    }
+
+    void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
+        mAuthority = requestOptions.getAuthorityType().getText();
+
+        if (mAuthContext == null) {
+            mAuthContext = new AuthenticationContext(getApplicationContext(), mAuthority, true);
+        }
+        mLoginhint = requestOptions.getLoginHint();
+        mPromptBehavior = requestOptions.getBehavior();
+    }
+
+    private Handler getHandler() {
+        return new Handler(MainActivity.this.getMainLooper());
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        mAuthContext.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void showMessage(final String msg) {
+        Log.v(TAG, msg);
+        getHandler().post(new Runnable() {
 
             @Override
-            public void onClick(View v) {
-                callAcquireTokenWithResource(RESOURCE_ID, PromptBehavior.Auto, getUserLoginHint());
+            public void run() {
+                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
             }
         });
-        
-        Button buttonAcquireTokenSilentForR1 = (Button)findViewById(R.id.AcquireTokenSilentForR1);
-        buttonAcquireTokenSilentForR1.setOnClickListener(new View.OnClickListener() {
-            
-            @Override
-            public void onClick(View v) {
-                final String userId = getUserIdBasedOnUPN(getUserLoginHint());
-                if (userId != null) {
-                    callAcquireTokenSilent(RESOURCE_ID, userId);
-                } else {
-                    showMessage("Cannot make acquire token silent call for "
-                            + "resource 1 since no user unique id is passed.");
-                }
-            }
-        });
-
-        Button buttonAcquireTokenInteractiveForR2 = (Button)findViewById(R.id.AcquireTokenInteractiveForR2);
-        buttonAcquireTokenInteractiveForR2.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                callAcquireTokenWithResource(RESOURCE_ID2, PromptBehavior.Auto, getUserLoginHint());
-            }
-        });
-        
-        Button buttonAcquireTokenSilentForR2 = (Button)findViewById(R.id.AcquireTokenSilentForR2);
-        buttonAcquireTokenSilentForR2.setOnClickListener(new View.OnClickListener() {
-            
-            @Override
-            public void onClick(View v) {
-                final String userId = getUserIdBasedOnUPN(getUserLoginHint());
-                if (userId != null) {
-                    callAcquireTokenSilent(RESOURCE_ID2, userId);
-                } else {
-                    showMessage("Cannot make acquire token silent call for "
-                            + "resource 2 since no user unique id is passed.");
-                }
-            }
-        });
-
-        Button buttonForGetBrokerUsers = (Button) findViewById(R.id.GetBrokerUsers);
-        buttonForGetBrokerUsers.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            final UserInfo[] users = mAuthContext.getBrokerUsers();
-                            String displayMessage = "Broker users list length: " + users.length + "; ";
-                            for (final UserInfo userInfo : users) {
-                                displayMessage += "account name: " + userInfo.getDisplayableId() + ";";
-                            }
-
-                            showMessage(displayMessage);
-                        } catch (final IOException | OperationCanceledException | AuthenticatorException e) {
-                            Logger.v(TAG, "Error occurred when retrieving broker users.");
-                        }
-                    }
-                }).start();
-            }
-        });
-
-        mEditText = (EditText)findViewById(R.id.editTextUsername);
-        mEditText.setText("");
     }
 
     /**
@@ -246,22 +255,20 @@ public class MainActivity extends Activity {
         ApplicationInfo appInfo = getApplicationContext().getApplicationInfo();
         Log.v(TAG, "App info:" + appInfo.uid + " package:" + appInfo.packageName);
 
-        // If you're directly talking to ADFS server, you should set validateAuthority=false. 
-        mAuthContext = new AuthenticationContext(getApplicationContext(), AUTHORITY_URL, true);
+        // If you're directly talking to ADFS server, you should set validateAuthority=false.
         SampleTelemetry telemetryDispatcher = new SampleTelemetry();
         Telemetry.getInstance().registerDispatcher(telemetryDispatcher, true);
     }
-    
-    /**
-     * Call {@link AuthenticationContext#acquireToken(Activity, String, String, String, PromptBehavior, AuthenticationCallback)}. 
-     */
-    private void callAcquireTokenWithResource(final String resource, PromptBehavior prompt, final String loginHint) {
-        mAuthContext.acquireToken(MainActivity.this, resource, CLIENT_ID, REDIRECT_URL, loginHint,
-                prompt, null, new AuthenticationCallback<AuthenticationResult>() {
+
+    private void callAcquireTokenWithResource(final String resource, PromptBehavior prompt, final String loginHint,
+                                              final String clientId, final String redirectUri) {
+        mAuthContext.acquireToken(MainActivity.this, resource, clientId, redirectUri, loginHint,
+                prompt, "", new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
-                        showMessage("Respnse from broker: " + authenticationResult.getAccessToken());
+                        mAuthResult = authenticationResult;
+                        showMessage("Response from broker: " + authenticationResult.getAccessToken());
 
                         // Update this user for next call
                         if (authenticationResult.getUserInfo() != null) {
@@ -283,8 +290,8 @@ public class MainActivity extends Activity {
      */
     private void saveUserIdFromAuthenticationResult(final AuthenticationResult authResult) {
         mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
-        
-        final Editor prefEditor = mSharedPreference.edit();
+
+        final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
         prefEditor.putString(authResult.getUserInfo().getDisplayableId(), authResult.getUserInfo().getUserId());
         
         prefEditor.apply();
@@ -304,67 +311,22 @@ public class MainActivity extends Activity {
      * Silent acquire token call. Requires to pass the user unique id. If user unique id is not passed, 
      * silent call to broker will be skipped. 
      */
-    private void callAcquireTokenSilent(final String resource, final String userUniqueId) {
-        mAuthContext.acquireTokenSilentAsync(resource, CLIENT_ID, userUniqueId, new AuthenticationCallback<AuthenticationResult>() {
+    private void callAcquireTokenSilent(final String resource, final String userUniqueId, final String clientId) {
+        mAuthContext.acquireTokenSilentAsync(resource, clientId, userUniqueId, new AuthenticationCallback<AuthenticationResult>() {
 
             @Override
             public void onSuccess(AuthenticationResult authenticationResult) {
+                mAuthResult = authenticationResult;
                 showMessage("Response from broker: " + authenticationResult.getAccessToken());
             }
 
             @Override
             public void onError(Exception exc) {
-                showMessage("Error occured when acquiring token silently: " + exc.getMessage());
+                showMessage("Error occurred when acquiring token silently: " + exc.getMessage());
             }
         });
     }
-    
-    private String getUserLoginHint() {
-        return mEditText.getText().toString();
-    }
 
-    /**
-     * Sample code for getting signature for current package name. 
-     * @param packagename
-     * @return
-     */
-    public String getSignatureForPackage(final String packagename) {
-        try {
-            PackageInfo info = getPackageManager().getPackageInfo(packagename,
-                    PackageManager.GET_SIGNATURES);
-            if (info != null && info.signatures != null && info.signatures.length > 0) {
-                Signature signature = info.signatures[0];
-                MessageDigest md = MessageDigest.getInstance("SHA");
-                md.update(signature.toByteArray());
-                return Base64.encodeToString(md.digest(), Base64.NO_WRAP);
-            }
-        } catch (NameNotFoundException | NoSuchAlgorithmException e) {
-            Logger.e(TAG, "Calling App's package does not exist in PackageManager", "",
-                    ADALError.APP_PACKAGE_NAME_NOT_FOUND, e);
-        } 
-        
-        return null;
-    }
-    
-    private Handler getHandler() {
-        return new Handler(MainActivity.this.getMainLooper());
-    }
-    
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        mAuthContext.onActivityResult(requestCode, resultCode, data);
-    }
-
-    private void showMessage(final String msg) {
-        Log.v(TAG, msg);
-        getHandler().post(new Runnable() {
-
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
-            }
-        });
-    }
 }
 class SampleTelemetry implements IDispatcher {
     private static final String TAG = "SampleTelemetry";
