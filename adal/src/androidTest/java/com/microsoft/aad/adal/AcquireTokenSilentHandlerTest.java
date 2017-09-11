@@ -24,6 +24,7 @@ package com.microsoft.aad.adal;
 
 import android.content.Context;
 import android.os.Build;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.SdkSuppress;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.support.test.InstrumentationRegistry;
@@ -82,7 +83,7 @@ public final class AcquireTokenSilentHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
             SecretKeyFactory keyFactory = SecretKeyFactory
