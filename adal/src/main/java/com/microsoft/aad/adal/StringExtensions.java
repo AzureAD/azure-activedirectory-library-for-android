@@ -130,8 +130,8 @@ final class StringExtensions {
         return parameters;
     }
 
-    static List<String> getStringTokens(final String items, final String delimeter) {
-        final StringTokenizer st = new StringTokenizer(items, delimeter);
+    static List<String> getStringTokens(final String items, final String delimiter) {
+        final StringTokenizer st = new StringTokenizer(items, delimiter);
         final List<String> itemList = new ArrayList<>();
         if (st.hasMoreTokens()) {
             while (st.hasMoreTokens()) {

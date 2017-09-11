@@ -141,7 +141,7 @@ public class DefaultTokenCacheStoreTests extends BaseTokenStoreTests {
     public void testDateTimeFormatterLocaleChange() throws AuthenticationException {
         final DefaultTokenCacheStore store = (DefaultTokenCacheStore) setupItems();
         List<TokenCacheItem> tokens = store.getTokensForResource("resource");
-        // Serializing without miliseconds
+        // Serializing without milliseconds
         final long precision = 1000;
         TokenCacheItem item = tokens.get(0);
         String cacheKey = CacheKey.createCacheKey(item);
