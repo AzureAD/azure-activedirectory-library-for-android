@@ -69,7 +69,7 @@ public class ADALErrorTest {
                 getInstrumentation().getContext().getResources().getDisplayMetrics());
         String localizedMsg = err.getLocalizedDescription(getInstrumentation().getContext());
 
-        assertFalse("Error decription is different in resource", msg.equalsIgnoreCase(localizedMsg));
+        assertFalse("Error description is different in resource", msg.equalsIgnoreCase(localizedMsg));
 
         Locale localefr = new Locale("fr");
         Locale.setDefault(localefr);

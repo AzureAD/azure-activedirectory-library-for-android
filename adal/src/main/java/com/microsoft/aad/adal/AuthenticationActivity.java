@@ -297,7 +297,7 @@ public class AuthenticationActivity extends Activity {
                 @Override
                 public void run() {
                     // load blank first to avoid error for not loading webview
-                    Logger.v(TAG + methodName, "Lauching webview for acquiring auth code.");
+                    Logger.v(TAG + methodName, "Launching webview for acquiring auth code.");
                     mWebView.loadUrl("about:blank");
                     mWebView.loadUrl(postUrl);
                 }
@@ -702,7 +702,7 @@ public class AuthenticationActivity extends Activity {
                 for (Principal issuer : acceptableCertIssuers) {
                     if (issuer.getName().contains("CN=MS-Organization-Access")) {
                         //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
-                        Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
+                        Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authentication.");
                         request.cancel();
                         return;
                     }

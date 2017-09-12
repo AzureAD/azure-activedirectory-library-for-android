@@ -14,7 +14,7 @@ Agreement.  You only need to do that once. We can not look at your code until yo
 Fork the project [on GitHub][] and check out
 your copy.
 
-Example for Adnroid:
+Example for Android:
 
 ```
 $ git clone git@github.com:username/azure-activedirectory-library-for-android.git

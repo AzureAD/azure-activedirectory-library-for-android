@@ -27,8 +27,8 @@ import android.content.Context;
 import java.io.IOException;
 
 /**
- * Internal class handling the detailed acquiretoken silent logic, including cache lookup and also
- * interact with web request(The class represents the state machine for acquiretoken silent flow).
+ * Internal class handling the detailed acquireToken silent logic, including cache lookup and also
+ * interact with web request(The class represents the state machine for acquireToken silent flow).
  */
 class AcquireTokenSilentHandler {
     private static final String TAG = AcquireTokenSilentHandler.class.getSimpleName();
@@ -253,7 +253,7 @@ class AcquireTokenSilentHandler {
         
         if (frtTokenCacheItem  == null) {
             // If we haven't tried with MRRT, use the MRRT. MRRT either exists or not, if it does not exist, we've 
-            // already tried our best, null will be retured. If it eixsts, try with it. 
+            // already tried our best, null will be returned. If it exists, try with it.
             // If we have already tried an MRRT and no FRT found, we return the MRRT result passed in. 
             if (!mAttemptedWithMRRT) {
                 Logger.v(TAG, "FRT cache item does not exist, fall back to try MRRT.");
