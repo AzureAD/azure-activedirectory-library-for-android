@@ -293,7 +293,7 @@ mContext.acquireTokenSilent(String resource, String clientId, String userId, fin
 		* GET_ACCOUNTS
 		* USE_CREDENTIALS
 		* MANAGE_ACCOUNTS
-	* If target version is 23, USE_CREDENTIALS and MANAGE_ACCOUNTS are already deprecated. But GET_ACCOUNTS is under protection level "dangerous", calling app is responsible for requesting the run-time permisson. You can      reference [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
+	* If target version is 23, USE_CREDENTIALS and MANAGE_ACCOUNTS are already deprecated. But GET_ACCOUNTS is under protection level "dangerous", calling app is responsible for requesting the run-time permission. You can      reference [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
 	* There must be an account existed and registered via one of the two broker apps.
 	
 	AuthenticationContext provides API method to get the broker user. 
@@ -312,7 +312,7 @@ Library project resources can be overwritten by your application resources. This
 
 ### Broker
 
-Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challange for one of the apps. 
+Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challenge for one of the apps. 
 
 ### Authority Url and ADFS
 
@@ -340,7 +340,7 @@ mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCac
 
 ### PromptBehavior
 
-ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI.
+ADAL provides option to specify prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI.
 
 ### Handle Doze and App Standby
 Starting Android 6.0, Android introduces the new battery optimization, which will cause no network access when it's in doze and app standby mode. This wiki page contains details for doze mode and how to handle it with ADAL (https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Handle-Doze-and-App-Standby).  
@@ -448,7 +448,7 @@ Following example is using the password based encryption key(which takes the spe
     AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
 ```
 
-### Oauth2 Bearer challange
+### Oauth2 Bearer challenge
 
 `AuthenticationParameters` class provides functionality to get the authorization_uri from Oauth2 bearer challange.
 

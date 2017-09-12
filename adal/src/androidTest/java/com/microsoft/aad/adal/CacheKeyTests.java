@@ -68,8 +68,8 @@ public class CacheKeyTests {
         assertEquals("expected key", "authority123endsslash$Resource123$clientid123$n$user123",
                 testKeySlash);
         
-        final String testKeyWithFamilyCientId = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
-        assertEquals("authority$null$null$y$user123$foci-family123", testKeyWithFamilyCientId);
+        final String testKeyWithFamilyClientId = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
+        assertEquals("authority$null$null$y$user123$foci-family123", testKeyWithFamilyClientId);
     }
 
     /**

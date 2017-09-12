@@ -121,9 +121,9 @@ public final class AuthenticationContextTest {
                     .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
 
             final int iterationCount = 100;
-            final int keyLenght = 256;
+            final int keyLength = 256;
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), iterationCount, keyLenght));
+                    "abcdedfdfd".getBytes("UTF-8"), iterationCount, keyLength));
 
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
@@ -1978,7 +1978,7 @@ public final class AuthenticationContextTest {
         context.acquireToken(testActivity.getTestActivity(), resource, "ClienTid", "redirectUri", "someuser",
                 callback2);
         signal3.await();
-        assertTrue("Attemps to launch", testActivity.mStartActivityRequestCode != -1);
+        assertTrue("Attempts to launch", testActivity.mStartActivityRequestCode != -1);
 
         clearCache(context);
     }

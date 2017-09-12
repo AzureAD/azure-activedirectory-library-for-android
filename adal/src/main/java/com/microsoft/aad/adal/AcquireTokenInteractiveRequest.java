@@ -58,10 +58,10 @@ final class AcquireTokenInteractiveRequest {
         HttpWebRequest.throwIfNetworkNotAvailable(mContext);
 
         // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to
-        // force prompt, if this flag is set in the embeded flow, we need to update it to always. For embed
+        // force prompt, if this flag is set in the embedded flow, we need to update it to always. For embed
         // flow, force_prompt is the same as always.
         if (PromptBehavior.FORCE_PROMPT == mAuthRequest.getPrompt()) {
-            Logger.v(TAG, "FORCE_PRMOPT is set for embedded flow, reset it as Always.");
+            Logger.v(TAG, "FORCE_PROMPT is set for embedded flow, reset it as Always.");
             mAuthRequest.setPrompt(PromptBehavior.Always);
         }
 

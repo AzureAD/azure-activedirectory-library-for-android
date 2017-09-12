@@ -502,7 +502,7 @@ public final class AcquireTokenSilentHandlerTest {
 
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
-        // FRT token request faile with invalid_grant
+        // FRT token request fails with invalid_grant
         final String anotherResource = "anotherResource";
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
                 Mockito.refEq(Util.getPoseMessage(frtToken, clientId, anotherResource)),
@@ -732,8 +732,8 @@ public final class AcquireTokenSilentHandlerTest {
             // If AUTH_FAILE_NO_TOKEN is thrown, cause will be return in AuthenticationException
             assertNotNull(e.getCause());
             assertTrue(e.getCause() instanceof AuthenticationException);
-            final AuthenticationException authExpcepton = (AuthenticationException) e.getCause();
-            assertTrue(authExpcepton.getCode() == ADALError.SERVER_ERROR);
+            final AuthenticationException authException = (AuthenticationException) e.getCause();
+            assertTrue(authException.getCode() == ADALError.SERVER_ERROR);
         }
 
         // verify that the cache is not cleared

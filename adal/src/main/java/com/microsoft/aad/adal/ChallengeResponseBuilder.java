@@ -223,7 +223,7 @@ class ChallengeResponseBuilder {
         // When pkeyauth header is present, ADFS is always trying to device auth. When hitting token endpoint(device
         // challenge will be returned via 401 challenge), ADFS is sending back an empty cert thumbprint when they found
         // the device is not managed. To account for the behavior of how ADFS performs device auth, below code is checking 
-        // if it's already workplace joined before checking the existence of cert thumprint or authority from returned challenge. 
+        // if it's already workplace joined before checking the existence of cert thumbprint or authority from returned challenge.
         if (!isWorkplaceJoined()) {
             Logger.v(TAG + methodName, "Device is not workplace joined. ");
         } else if (!StringExtensions.isNullOrBlank(headerItems.get(RequestField.CertThumbprint.name()))) {

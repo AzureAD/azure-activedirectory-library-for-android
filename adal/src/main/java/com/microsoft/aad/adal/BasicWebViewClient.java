@@ -279,7 +279,7 @@ abstract class BasicWebViewClient extends WebViewClient {
             try {
                 Thread.sleep(threadSleepForCallingActivity);
             } catch (InterruptedException e) {
-                Logger.v(TAG + ":shouldOverrideUrlLoading", "Error occured when having thread sleeping for 1 second");
+                Logger.v(TAG + ":shouldOverrideUrlLoading", "Error occurred when having thread sleeping for 1 second");
             }
             openLinkInBrowser(parameters.get(INSTALL_URL_KEY));
             view.stopLoading();

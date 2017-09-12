@@ -419,7 +419,7 @@ public class TokenCacheItem implements Serializable {
      */
     TokenEntryType getTokenEntryType() {
         if (!StringExtensions.isNullOrBlank(this.getResource())) {
-            // Only regular token cache entry is storing resouce. 
+            // Only regular token cache entry is storing resource.
             return TokenEntryType.REGULAR_TOKEN_ENTRY;
         } else if (StringExtensions.isNullOrBlank(this.getClientId())) {
             // Family token cache item does not store clientId

@@ -261,7 +261,7 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
-                        showMessage("Respnse from broker: " + authenticationResult.getAccessToken());
+                        showMessage("Response from broker: " + authenticationResult.getAccessToken());
 
                         // Update this user for next call
                         if (authenticationResult.getUserInfo() != null) {
