@@ -133,14 +133,13 @@ final class StringExtensions {
     static List<String> getStringTokens(final String items, final String delimiter) {
         final StringTokenizer st = new StringTokenizer(items, delimiter);
         final List<String> itemList = new ArrayList<>();
-        if (st.hasMoreTokens()) {
-            while (st.hasMoreTokens()) {
-                String name = st.nextToken();
-                if (!StringExtensions.isNullOrBlank(name)) {
-                    itemList.add(name);
-                }
+        while (st.hasMoreTokens()) {
+            String name = st.nextToken();
+            if (!StringExtensions.isNullOrBlank(name)) {
+                itemList.add(name);
             }
         }
+
         return itemList;
     }
     
