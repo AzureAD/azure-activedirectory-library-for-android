@@ -28,8 +28,8 @@ import android.util.Pair;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
 
 final class HttpEvent extends DefaultEvent {
 
@@ -92,100 +92,54 @@ final class HttpEvent extends DefaultEvent {
         setProperty(EventStrings.REQUEST_ID_HEADER, requestIdHeader);
     }
 
-    /**
-     * Parses and sets the relevant HttpEvent fields given x-ms-clitelem metadata.
-     *
-     * @param xMsCliTelem the value of the x-ms-clitelem header
-     */
-    void setXMsCliTelemData(final String xMsCliTelem) {
-        // if the header isn't present, do nothing
-        if (StringExtensions.isNullOrBlank(xMsCliTelem)) {
+    void setXMsCliTelemData(final CliTelemInfo cliTelemInfo) {
+        if (null == cliTelemInfo) {
             return;
         }
 
-        // split the header based on the delimiter
-        String[] headerSegments = xMsCliTelem.split(",");
-
-        // make sure the header isn't empty
-        if (0 == headerSegments.length) {
-            Logger.w(TAG, "SPE Ring header missing version field.", null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
-            return;
+        if (!StringExtensions.isNullOrBlank(cliTelemInfo.getServerErrorCode())
+                && !cliTelemInfo.getServerErrorCode().equals("0")) {
+            setServerErrorCode(cliTelemInfo.getServerErrorCode());
         }
 
-        // get the version of this header
-        final String headerVersion = headerSegments[0];
-
-        // declare values tracked by this header
-        String errorCode = null;
-        String subErrorCode = null;
-        String tokenAge = null;
-        String speRing = null;
-
-        if (headerVersion.equals("1")) {
-            // The expected delimiter count of the v1 header
-            final int delimCount = 4;
-
-            // Verify the expected format "<version>, <error_code>, <sub_error_code>, <token_age>, <ring>"
-            Pattern headerFmt = Pattern.compile("^[1-9]+\\.?[0-9|\\.]*,[0-9|\\.]*,[0-9|\\.]*,[^,]*[0-9\\.]*,[^,]*$");
-            Matcher matcher = headerFmt.matcher(xMsCliTelem);
-            if (!matcher.matches()) {
-                Logger.w(TAG, "", "", ADALError.X_MS_CLITELEM_MALFORMED);
-                return;
-            }
-
-            headerSegments = xMsCliTelem.split(",", delimCount + 1);
-
-            final int indexErrorCode = 1;
-            final int indexSubErrorCode = 2;
-            final int indexTokenAge = 3;
-            final int indexSpeInfo = 4;
-
-            // get the error_code
-            errorCode = headerSegments[indexErrorCode];
-
-            // get the sub_error_code
-            subErrorCode = headerSegments[indexSubErrorCode];
-
-            // get the token_age
-            tokenAge = headerSegments[indexTokenAge];
-
-            // get the spe_ring
-            speRing = headerSegments[indexSpeInfo];
-        } else { // unrecognized version
-            Logger.w(TAG, "Unexpected header version: " + headerVersion, null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
-        }
-        // Set the extracted values on the HttpEvent
-        if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
-            setServerErrorCode(errorCode);
+        if (!StringExtensions.isNullOrBlank(cliTelemInfo.getServerSubErrorCode())
+                && !cliTelemInfo.getServerSubErrorCode().equals("0")) {
+            setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
         }
 
-        if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
-            setServerSubErrorCode(subErrorCode);
+        if (!StringExtensions.isNullOrBlank(cliTelemInfo.getRefreshTokenAge())) {
+            setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
         }
 
-        if (!StringExtensions.isNullOrBlank(tokenAge)) {
-            setRefreshTokenAge(tokenAge);
-        }
-
-        if (!StringExtensions.isNullOrBlank(speRing)) {
-            setSpeRing(speRing);
+        if (!StringExtensions.isNullOrBlank(cliTelemInfo.getSpeRing())) {
+            setSpeRing(cliTelemInfo.getSpeRing());
         }
     }
 
     void setServerErrorCode(final String errorCode) {
-        setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
+        if (null != errorCode) {
+            setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
+        }
     }
 
     void setServerSubErrorCode(final String subErrorCode) {
-        setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
+        if (null != subErrorCode) {
+            setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
+
+        }
     }
 
     void setRefreshTokenAge(final String tokenAge) {
-        setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
+        if (null != tokenAge) {
+            setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
+
+        }
     }
 
     void setSpeRing(final String speRing) {
-        setProperty(EventStrings.SPE_INFO, speRing.trim());
+        if (null != speRing) {
+            setProperty(EventStrings.SPE_INFO, speRing.trim());
+        }
     }
 
     /**

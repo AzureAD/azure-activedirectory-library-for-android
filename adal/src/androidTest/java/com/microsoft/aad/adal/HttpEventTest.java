@@ -34,6 +34,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -107,9 +108,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingInfoStrangeFormatting() {
-        final String speHeader = "1 , ,, ,";
+        final String speHeaderStr = "1 , ,, ,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -120,9 +122,10 @@ public final class HttpEventTest {
 
     @Test
     public void testEmptySpeRingInfo() {
-        final String speHeader = ",,,,";
+        final String speHeaderStr = ",,,,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -133,9 +136,10 @@ public final class HttpEventTest {
 
     @Test
     public void testVersionOnlySpeRingInfo() {
-        final String speHeader = "1,,,,";
+        final String speHeaderStr = "1,,,,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -146,9 +150,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingWithVersionAndAgeOnly() {
-        final String speHeader = "1,,,1234.1234,";
+        final String speHeaderStr = "1,,,1234.1234,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -159,9 +164,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingInfoWithBlankFieldsInnerRing() {
-        final String speHeader = "1,0,0,,I";
+        final String speHeaderStr = "1,0,0,,I";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -172,9 +178,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingInfoWithSubErrorCodeAndAgeOnly() {
-        final String speHeader = "1,,1,1234.1234,";
+        final String speHeaderStr = "1,,1,1234.1234,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -185,9 +192,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingWithUnsupportedVersion() {
-        final String speHeader = "2,1,2,3.3,I";
+        final String speHeaderStr = "2,1,2,3.3,I";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -198,9 +206,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingWithErrorAndSubError() {
-        final String speHeader = "1,2,3,,";
+        final String speHeaderStr = "1,2,3,,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals("2", dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -211,9 +220,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingWithLeadingWhitespaceAgeInner() {
-        final String speHeader = "1,,, 1234.1234,I";
+        final String speHeaderStr = "1,,, 1234.1234,I";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -224,9 +234,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingWithVersionAndRingOnly() {
-        final String speHeader = "1,,,,I";
+        final String speHeaderStr = "1,,,,I";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -237,9 +248,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpedRingEmpty() {
-        final String speHeader = "";
+        final String speHeaderStr = "";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -250,9 +262,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingWrongLength1() {
-        final String speHeader = ",";
+        final String speHeaderStr = ",";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -263,9 +276,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingWrongLength2() {
-        final String speHeader = ",,";
+        final String speHeaderStr = ",,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -276,9 +290,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingWrongLength3() {
-        final String speHeader = ",,,";
+        final String speHeaderStr = ",,,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -289,9 +304,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingTooLong() {
-        final String speHeader = ",,,,,";
+        final String speHeaderStr = ",,,,,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -302,9 +318,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingTooShort() {
-        final String speHeader = "1,00";
+        final String speHeaderStr = "1,00";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -315,9 +332,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingTooShort2() {
-        final String speHeader = "1,0,0";
+        final String speHeaderStr = "1,0,0";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -328,9 +346,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingTooShort3() {
-        final String speHeader = "1,1,1,";
+        final String speHeaderStr = "1,1,1,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -341,9 +360,10 @@ public final class HttpEventTest {
 
     @Test
     public void testSpeRingTooLong2() {
-        final String speHeader = "1,1,1,,,";
+        final String speHeaderStr = "1,1,1,,,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -354,9 +374,10 @@ public final class HttpEventTest {
 
     @Test
     public void testVersionWithMajorMinor() {
-        final String speHeader = "1.2,1,2,12.34,";
+        final String speHeaderStr = "1.2,1,2,12.34,";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -367,9 +388,10 @@ public final class HttpEventTest {
 
     @Test
     public void testVersionWithMajorMinorPatch() {
-        final String speHeader = "1.2.3,1,2,12.34,I";
+        final String speHeaderStr = "1.2.3,1,2,12.34,I";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
@@ -380,9 +402,10 @@ public final class HttpEventTest {
 
     @Test
     public void testMultiDigitVersionWithMajorMinorPatch() {
-        final String speHeader = "11.22.33,1,2,12.34,I";
+        final String speHeaderStr = "11.22.33,1,2,12.34,I";
+        final CliTelemInfo cliTelemInfo = TelemetryUtils.parseXMsCliTelemHeader(speHeaderStr);
         final HttpEvent event = new HttpEvent(EventStrings.HTTP_EVENT);
-        event.setXMsCliTelemData(speHeader);
+        event.setXMsCliTelemData(cliTelemInfo);
         final Map<String, String> dispatchMap = new HashMap<>();
         event.processEvent(dispatchMap);
         assertEquals(null, dispatchMap.get(EventStrings.SERVER_ERROR_CODE));
