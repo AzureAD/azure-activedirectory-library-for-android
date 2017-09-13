@@ -42,7 +42,7 @@ final class StringExtensions {
     /** The Constant ENCODING_UTF8. */
     public static final String ENCODING_UTF8 = "UTF_8";
 
-    private static final String TAG = "StringExtensions";
+    private static final String TAG = StringExtensions.class.getSimpleName();
 
     private static final String TOKEN_HASH_ALGORITHM = "SHA256";
 
@@ -61,7 +61,7 @@ final class StringExtensions {
 
     public static String createHash(String msg) throws NoSuchAlgorithmException,
             UnsupportedEncodingException {
-        if (!StringExtensions.isNullOrBlank(msg)) {
+        if (!isNullOrBlank(msg)) {
             MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
             final byte[] msgInBytes = msg.getBytes(AuthenticationConstants.ENCODING_UTF8);
             return new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP),
@@ -135,7 +135,7 @@ final class StringExtensions {
         final List<String> itemList = new ArrayList<>();
         while (st.hasMoreTokens()) {
             String name = st.nextToken();
-            if (!StringExtensions.isNullOrBlank(name)) {
+            if (!isNullOrBlank(name)) {
                 itemList.add(name);
             }
         }
@@ -152,7 +152,7 @@ final class StringExtensions {
         for (int i = 0; i < input.length(); i++) {
             if (input.charAt(i) == delimiter && !insideString) {
                 item = input.substring(startIndex, i);
-                if (!StringExtensions.isNullOrBlank(item.trim())) {
+                if (!isNullOrBlank(item.trim())) {
                     items.add(item);
                 }
 
@@ -163,7 +163,7 @@ final class StringExtensions {
         }
 
         item = input.substring(startIndex);
-        if (!StringExtensions.isNullOrBlank(item.trim())) {
+        if (!isNullOrBlank(item.trim())) {
             items.add(item);
         }
 
@@ -171,7 +171,7 @@ final class StringExtensions {
     }
 
     static String removeQuoteInHeaderValue(String value) {
-        if (!StringExtensions.isNullOrBlank(value)) {
+        if (!isNullOrBlank(value)) {
             return value.replace("\"", "");
         }
         return null;
