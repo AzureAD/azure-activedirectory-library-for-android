@@ -42,7 +42,7 @@ public class UserInfoTests extends TestCase {
         assertEquals("same userid", "userid", user.getUserId());
         assertEquals("same name", "givenName", user.getGivenName());
         assertEquals("same family name", "familyName", user.getFamilyName());
-        assertEquals("same idenity name", "identity", user.getIdentityProvider());
+        assertEquals("same identity name", "identity", user.getIdentityProvider());
         assertEquals("same flag", "userid", user.getDisplayableId());
     }
 
@@ -61,7 +61,7 @@ public class UserInfoTests extends TestCase {
         assertEquals("same userid", "subj", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
-        assertEquals("same idenity name", "provider", info.getIdentityProvider());
+        assertEquals("same identity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
 
         idToken = new IdToken(getIdToken("", "upnid", "email", ""));
@@ -69,7 +69,7 @@ public class UserInfoTests extends TestCase {
         assertNull("null userid", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
-        assertEquals("same idenity name", "provider", info.getIdentityProvider());
+        assertEquals("same identity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
 
         idToken = new IdToken(getIdToken("", "", "email", ""));
@@ -77,7 +77,7 @@ public class UserInfoTests extends TestCase {
         assertNull("null userid", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
-        assertEquals("same idenity name", "provider", info.getIdentityProvider());
+        assertEquals("same identity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "email", info.getDisplayableId());
 
         idToken = new IdToken(getIdToken("", "", "", ""));
@@ -86,7 +86,7 @@ public class UserInfoTests extends TestCase {
         assertNull("check displayable", info.getDisplayableId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
-        assertEquals("same idenity name", "provider", info.getIdentityProvider());
+        assertEquals("same identity name", "provider", info.getIdentityProvider());
     }
 
     @SmallTest
@@ -101,7 +101,7 @@ public class UserInfoTests extends TestCase {
         assertEquals("same userid", "objectid", info.getUserId());
         assertEquals("same name", "givenName", info.getGivenName());
         assertEquals("same family name", "familyName", info.getFamilyName());
-        assertEquals("same idenity name", "provider", info.getIdentityProvider());
+        assertEquals("same identity name", "provider", info.getIdentityProvider());
         assertEquals("check displayable", "upnid", info.getDisplayableId());
         assertEquals("check expireson", expires.getTime().getTime() / MILLISECONDS_TO_SECONDS,
                 info.getPasswordExpiresOn().getTime() / MILLISECONDS_TO_SECONDS);

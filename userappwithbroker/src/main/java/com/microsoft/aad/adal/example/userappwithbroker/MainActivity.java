@@ -212,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      *    i) You have to have GET_ACCOUNTS, USE_CREDENTIAL, MANAGE_ACCOUNTS declared
      *       in manifest. 
      *    If target API version is 23:
-     *    i)  USE_CREDEINTIAL and MANAGE_ACCOUNTS is already deprecated. 
+     *    i)  USE_CREDENTIAL and MANAGE_ACCOUNTS is already deprecated.
      *    ii) GET_ACCOUNTS permission is now at protection level "dangerous" calling app
      *        is responsible for requesting it. 
      * 3) If you're talking to the broker app without PRT support, you have to have an 
@@ -234,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // needs to be 256 bits. You can use the following way to generate the secret key. And 
             // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the key. 
             // For API version 18 and above, we use android keystore to generate keypair, and persist
-            // the keypair in AnroidKeyStore. Current investigation shows 1)Keystore may be locked with
+            // the keypair in AndroidKeyStore. Current investigation shows 1)Keystore may be locked with
             // a lock screen, if calling app has a lot of background activity, keystore cannot be 
             // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore could
             // be reset when gesture to unlock the device is changed.
@@ -298,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
     
     /**
-     * For the sake of simplicily of the sample app, used id stored in the shared preference is keyed
+     * For the sake of simplicity of the sample app, used id stored in the shared preference is keyed
      * by displayable id. 
      */
     private String getUserIdBasedOnUPN(final String upn) {

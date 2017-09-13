@@ -98,7 +98,7 @@ public final class AcquireTokenRequestTest {
      */
     private static final String VALID_AUTHORITY = "https://login.windows.net/test.onmicrosoft.com";
     private static final int ACTIVITY_TIME_OUT = 1000;
-    private static final int MINUS_MINUITE = 10;
+    private static final int MINUS_MINUTE = 10;
     private static final int EXTEND_MINUS_MINUTE = 60;
     private static final String TEST_UPN = "testupn";
     private static final String TEST_USERID = "testuserid";
@@ -120,6 +120,9 @@ public final class AcquireTokenRequestTest {
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
         }
+
+        final InstanceDiscoveryMetadata metadata = new InstanceDiscoveryMetadata("login.microsoftonline.com", "login.windows.net");
+        AuthorityValidationMetadataCache.updateInstanceDiscoveryMap("login.windows.net", metadata);
     }
 
     @After
@@ -138,7 +141,7 @@ public final class AcquireTokenRequestTest {
             AuthenticatorException, InterruptedException {
 
         // Make sure AT is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), false, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -171,7 +174,7 @@ public final class AcquireTokenRequestTest {
             throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
             AuthenticatorException, InterruptedException {
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), true, true, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), true, true, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -231,7 +234,7 @@ public final class AcquireTokenRequestTest {
             IOException, AuthenticatorException, InterruptedException {
 
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), true, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), true, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -290,7 +293,7 @@ public final class AcquireTokenRequestTest {
             throws PackageManager.NameNotFoundException, OperationCanceledException,
             IOException, AuthenticatorException, InterruptedException {
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -332,7 +335,7 @@ public final class AcquireTokenRequestTest {
             PackageManager.NameNotFoundException, InterruptedException {
 
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -383,7 +386,7 @@ public final class AcquireTokenRequestTest {
             throws OperationCanceledException, IOException, AuthenticatorException,
             PackageManager.NameNotFoundException, InterruptedException {
         // Make sure AT is expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -424,10 +427,10 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testMultipleATExistForSameClientAppAndResource() throws PackageManager.NameNotFoundException, InterruptedException {
         // insert multiple ATs for the same client app and resource
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), false, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUTE), false, false, null);
         final String resource = "resource";
         final String clientId = "clientid";
-        insertTokenForDifferentUser(clientId, resource, getExpireDate(MINUS_MINUITE), cacheStore);
+        insertTokenForDifferentUser(clientId, resource, getExpireDate(MINUS_MINUTE), cacheStore);
 
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -453,10 +456,10 @@ public final class AcquireTokenRequestTest {
 
     @Test
     public void testMutipleMRRTExistForTheSameApp() throws PackageManager.NameNotFoundException, InterruptedException {
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), true, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUTE), true, false, null);
         final String resource = "resource";
         final String clientId = "clientid";
-        insertTokenForDifferentUser(clientId, resource, getExpireDate(MINUS_MINUITE), cacheStore);
+        insertTokenForDifferentUser(clientId, resource, getExpireDate(MINUS_MINUTE), cacheStore);
 
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -502,7 +505,7 @@ public final class AcquireTokenRequestTest {
 
     public void testEmbeddedAuthCacheSkippedWhenClaimsSent() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
         // Make sure AT is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), false, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUTE), false, false, null);
         final FileMockContext mockContext = createMockContext();
         final PackageManager packageManager = mockContext.getPackageManager();
         when(packageManager.resolveActivity(Mockito.any(Intent.class), Mockito.anyInt())).thenReturn(Mockito.mock(ResolveInfo.class));
@@ -530,7 +533,7 @@ public final class AcquireTokenRequestTest {
 
     public void testEmbeddedAuthCacheNotSkippedClaimsSentInExtraQp() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
         // Make sure AT is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUITE), false, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUTE), false, false, null);
         final FileMockContext mockContext = createMockContext();
         final PackageManager packageManager = mockContext.getPackageManager();
         when(packageManager.resolveActivity(Mockito.any(Intent.class), Mockito.anyInt())).thenReturn(Mockito.mock(ResolveInfo.class));
@@ -557,7 +560,7 @@ public final class AcquireTokenRequestTest {
 
     public void testClaimsSentInBothClaimParameterAndExtraQP() throws PackageManager.NameNotFoundException, IOException,
             OperationCanceledException, AuthenticatorException, InterruptedException {
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -602,7 +605,7 @@ public final class AcquireTokenRequestTest {
 
     public void testBrokerAuthCacheSkippedWhenClaimsSent() throws PackageManager.NameNotFoundException, IOException,
             OperationCanceledException, AuthenticatorException, InterruptedException {
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, null);
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
@@ -802,7 +805,7 @@ public final class AcquireTokenRequestTest {
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -836,7 +839,7 @@ public final class AcquireTokenRequestTest {
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -875,7 +878,7 @@ public final class AcquireTokenRequestTest {
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -915,7 +918,7 @@ public final class AcquireTokenRequestTest {
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(-1));
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(-1));
 
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -952,7 +955,7 @@ public final class AcquireTokenRequestTest {
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -990,7 +993,7 @@ public final class AcquireTokenRequestTest {
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -1029,7 +1032,7 @@ public final class AcquireTokenRequestTest {
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
         final FileMockContext mockContext = createMockContext();
         final AuthenticationContext authContext = new AuthenticationContext(mockContext,
@@ -1063,7 +1066,7 @@ public final class AcquireTokenRequestTest {
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
             InterruptedException {
         // make sure AT's expires_in is expired and ext_expires_in is expired
-        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUITE), true, true, getExpireDate(EXTEND_MINUS_MINUTE));
+        final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), true, true, getExpireDate(EXTEND_MINUS_MINUTE));
         cacheStore.removeItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_USERID));
         cacheStore.removeItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_UPN));
         cacheStore.getItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, "clientId", TEST_USERID)).setFamilyClientId(AuthenticationConstants.MS_FAMILY_ID);

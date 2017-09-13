@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private AuthenticationContext createAuthenticationContext() {
-        // this is to clear or readthe whole cache, authority does not matter, use the common authority and clean up the whole cache.
+        // this is to clear or read the whole cache, authority does not matter, use the common authority and clean up the whole cache.
         final String authority = "https://login.microsoftonline.com/common";
         return new AuthenticationContext(mContext, authority, false);
     }

@@ -2,6 +2,12 @@ Version 1.13.2
 -------------
 Add telemetry to capture x-ms-clitelem header (tracks errors, suberrors, rt age, and SPE ring)
 
+Version 1.13.1
+-------------
+Add support for handling doze and app standby mode
+Add telemetry and log around brokerAccountServiceBinding
+revert cache miss fix
+
 Version 1.13.0
 -------------
 Add support for sending conditional access claims to acquire token call

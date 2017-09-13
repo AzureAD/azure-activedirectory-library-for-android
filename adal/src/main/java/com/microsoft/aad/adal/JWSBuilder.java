@@ -168,7 +168,7 @@ class JWSBuilder implements IJWSBuilder {
                     "Unsupported encoding", e);
         } catch (CertificateEncodingException e) {
             throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR,
-                    "Certifiante encoding error", e);
+                    "Certificate encoding error", e);
         }
         return signingInput + "." + signature;
     }

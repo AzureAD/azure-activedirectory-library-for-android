@@ -121,9 +121,9 @@ public final class AuthenticationContextTest {
                     .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
 
             final int iterationCount = 100;
-            final int keyLenght = 256;
+            final int keyLength = 256;
             SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                    "abcdedfdfd".getBytes("UTF-8"), iterationCount, keyLenght));
+                    "abcdedfdfd".getBytes("UTF-8"), iterationCount, keyLength));
 
             SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
             AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
@@ -854,7 +854,7 @@ public final class AuthenticationContextTest {
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
-        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid@foo.com",
+        context.acquireToken(testActivity.getTestActivity(), "resource", "clientid", "redirectUri", "userid@tenant.com",
                 callback);
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
@@ -868,7 +868,7 @@ public final class AuthenticationContextTest {
 
         // Sync test
         try {
-            context.acquireTokenSilentSync("resource", "clientid", "userid@foo.com");
+            context.acquireTokenSilentSync("resource", "clientid", "userid@tenant.com");
             Assert.fail("Validation should throw");
         } catch (AuthenticationException exc) {
             // AD FS cannot be validated in silent sync calls because no UPN is available
@@ -1978,7 +1978,7 @@ public final class AuthenticationContextTest {
         context.acquireToken(testActivity.getTestActivity(), resource, "ClienTid", "redirectUri", "someuser",
                 callback2);
         signal3.await();
-        assertTrue("Attemps to launch", testActivity.mStartActivityRequestCode != -1);
+        assertTrue("Attempts to launch", testActivity.mStartActivityRequestCode != -1);
 
         clearCache(context);
     }

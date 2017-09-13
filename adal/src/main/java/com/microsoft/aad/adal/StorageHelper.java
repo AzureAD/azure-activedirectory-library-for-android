@@ -71,7 +71,7 @@ public class StorageHelper {
     private static final String TAG = "StorageHelper";
     
     /**
-     * HMac key hashing alogirighm.
+     * HMac key hashing algorithm.
      */
     private static final String HMAC_KEY_HASH_ALGORITHM = "SHA256";
 

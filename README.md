@@ -5,7 +5,7 @@ The ADAL SDK for Android gives you the ability to add support for Work Accounts 
 
 A Work Account is an identity you use to get work done no matter if at your business or on a college campus. Anywhere you need to get access to your work life you'll use a Work Account. The Work Account can be tied to an Active Directory server running in your datacenter or live completely in the cloud like when you use Office365. A Work Account will be how your users know that they are accessing their important documents and data backed my Microsoft security.
 
-## ADAL for Android 1.13.0 Released!
+## ADAL for Android 1.13.1 Released!
 
 ## Build status
 | Branch  | Status |
@@ -16,7 +16,7 @@ A Work Account is an identity you use to get work done no matter if at your busi
 Note: A corpnet account is required to view the VSTS build.
 
 ## Versions
-Current version - 1.13.0
+Current version - 1.13.1
 Minimum recommended version - 1.1.16  
 You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-android/blob/master/changelog.txt).
 
@@ -134,7 +134,7 @@ If you are using the m2e plugin in Eclipse, you can specify the dependency in yo
 <dependency>
     <groupId>com.microsoft.aad</groupId>
     <artifactId>adal</artifactId>
-    <version>1.13.0</version>
+    <version>1.13.1</version>
     <type>aar</type>
 </dependency>
 ```
@@ -262,13 +262,15 @@ private IWindowComponent wrapFragment(final Fragment fragment){
 }
 ```
 
-   Explanation of the parameters(Example of those parameters could be found at [Android Native Client Sample](https://github.com/AzureADSamples/NativeClient-Android)):    * Resource is required and is the resource you are trying to access.
-   * Clientid is required and comes from the AzureAD Portal.
-   * You can setup redirectUri as your packagename. It is not required to be provided for the acquireToken call.
-   * PromptBehavior helps to ask for credentials to skip cache and cookie. 
-   * Callback will be called after authorization code is exchanged for a token. 
+Explanation of the parameters(Example of those parameters could be found at [Android Native Client Sample](https://github.com/AzureADSamples/NativeClient-Android)):
 
-    The Callback will have an object of AuthenticationResult which has accesstoken, date expired, and idtoken info.
+* Resource is required and is the resource you are trying to access.
+* Clientid is required and comes from the AzureAD Portal.
+* You can setup redirectUri as your packagename. It is not required to be provided for the acquireToken call.
+* PromptBehavior helps to ask for credentials to skip cache and cookie.
+* Callback will be called after authorization code is exchanged for a token.
+
+The Callback will have an object of AuthenticationResult which has accesstoken, date expired, and idtoken info.
 
 **acquireTokenSilentSync**
 
@@ -279,31 +281,35 @@ mContext.acquireTokenSilentSync(String resource, String clientId, String userId)
 ```
 or 
 ```java
-mContext.acquireTokenSilent(String resource, String clientId, String userId, final AuthenticationCallback<AuthenticationResult> callback);
+mContext.acquireTokenSilent(
+    String resource,
+    String clientId,
+    String userId,
+    final AuthenticationCallback<AuthenticationResult> callback);
 ```
-	
+
 11. Broker:
 
-	Microsoft Intune's Company portal App and Azure Authenticator App will provide the broker component. 
-	In order to acquire token via broker, the following requirements have to meet(Please check samples\userappwithbroker for authentication via broker):
-	* Starting version 1.1.14, developer has to explicitly specify set to use broker via:
-		`AuthenticationSettings.INSTANCE.setUseBroker(true);`
-	* Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script `brokerRedirectPrint.ps1` on Windows or `brokerRedirectPrint.sh` on Linux or Mac. You can also use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
-	* If target version is lower than 23, calling app has to have the following permissions declared in manifest(http://developer.android.com/reference/android/accounts/AccountManager.html):
-		* GET_ACCOUNTS
-		* USE_CREDENTIALS
-		* MANAGE_ACCOUNTS
-	* If target version is 23, USE_CREDENTIALS and MANAGE_ACCOUNTS are already deprecated. But GET_ACCOUNTS is under protection level "dangerous", calling app is responsible for requesting the run-time permisson. You can      reference [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
-	* There must be an account existed and registered via one of the two broker apps.
-	
-	AuthenticationContext provides API method to get the broker user. 
-	
-	`String brokerAccount =  mContext.getBrokerUser();`
-	
-	Broker user will be returned if account is valid. 
+Microsoft Intune's Company portal App and Azure Authenticator App will provide the broker component.
+In order to acquire token via broker, the following requirements have to be met (please check samples\userappwithbroker for authentication via broker):
+* Starting version 1.1.14, developer has to explicitly specify set to use broker via:
+    `AuthenticationSettings.INSTANCE.setUseBroker(true);`
+* Developer needs to register special redirectUri for broker usage. RedirectUri is in the format of msauth://packagename/Base64UrlencodedSignature. You can get your redirecturi for your app using the script `brokerRedirectPrint.ps1` on Windows or `brokerRedirectPrint.sh` on Linux or Mac. You can also use API call mContext.getBrokerRedirectUri. Signature is related to your signing certificates.
+* If target version is lower than 23, calling app has to have the following permissions declared in manifest(http://developer.android.com/reference/android/accounts/AccountManager.html):
+  * GET_ACCOUNTS
+  * USE_CREDENTIALS
+  * MANAGE_ACCOUNTS
+* If target version is 23, USE_CREDENTIALS and MANAGE_ACCOUNTS are already deprecated. But GET_ACCOUNTS is under protection level "dangerous", calling app is responsible for requesting the run-time permission. You can      reference [Runtime permission request for API 23](http://developer.android.com/training/permissions/requesting.html).
+* There must be an account existed and registered via one of the two broker apps.
+
+AuthenticationContext provides API method to get the broker user.
+
+`String brokerAccount =  mContext.getBrokerUser();`
+
+Broker user will be returned if account is valid.
 
 Using this walkthrough, you should have what you need to successfully integrate with Azure Active Directory. For more examples of this working, visit the AzureADSamples/ repository on GitHub.
-       
+
 ## Important Information
 
 ### Customization
@@ -312,7 +318,7 @@ Library project resources can be overwritten by your application resources. This
 
 ### Broker
 
-Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challange for one of the apps. 
+Broker component will be delivered with Intune's Company portal app. Account will be created in Account Manager. Account type is "com.microsoft.workaccount". It only allows single SSO account. It will create SSO cookie for this user after completing device challenge for one of the apps.
 
 ### Authority Url and ADFS
 
@@ -340,7 +346,7 @@ mContext = new AuthenticationContext(MainActivity.this, authority, true, yourCac
 
 ### PromptBehavior
 
-ADAL provides option to specifiy prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI.
+ADAL provides option to specify prompt behavior. PromptBehavior.Auto will pop up UI if refresh token is invalid and user credentials are required. PromptBehavior.Always will skip the cache usage and always show UI.
 
 ### Handle Doze and App Standby
 Starting Android 6.0, Android introduces the new battery optimization, which will cause no network access when it's in doze and app standby mode. This wiki page contains details for doze mode and how to handle it with ADAL (https://github.com/AzureAD/azure-activedirectory-library-for-android/wiki/Handle-Doze-and-App-Standby).  
@@ -448,7 +454,7 @@ Following example is using the password based encryption key(which takes the spe
     AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
 ```
 
-### Oauth2 Bearer challange
+### Oauth2 Bearer challenge
 
 `AuthenticationParameters` class provides functionality to get the authorization_uri from Oauth2 bearer challange.
 

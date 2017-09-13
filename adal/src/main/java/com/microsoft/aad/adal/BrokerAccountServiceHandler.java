@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Internal class to handle the interaction with BrokerAccountService declared in the broker itelf.
+ * Internal class to handle the interaction with BrokerAccountService declared in the broker itself.
  */
 final class BrokerAccountServiceHandler {
     private static final String TAG = BrokerAccountServiceHandler.class.getSimpleName();

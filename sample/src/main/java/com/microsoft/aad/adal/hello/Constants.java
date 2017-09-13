@@ -49,7 +49,7 @@ public class Constants {
     static final String RESOURCE_ID = "your_resource_ID";
 
     // Endpoint we are targeting for the deployed WebAPI service
-    static final String SERVICE_URL = "https://your.serive.url.here";
+    static final String SERVICE_URL = "https://your.service.url.here";
 
     // ------------------------------------------------------------------------------------------
 

@@ -105,7 +105,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
             m.invoke(jwsBuilder, null, "https://someurl", null, null, null);
             Assert.fail("No exception");
         } catch (Exception ex) {
-            assertTrue("Argument excetpion", ex.getCause().getMessage().contains("nonce"));
+            assertTrue("Argument exception", ex.getCause().getMessage().contains("nonce"));
         }
 
         try {

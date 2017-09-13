@@ -69,7 +69,7 @@ public class AndroidAutomationApp extends Application {
             // needs to be 256 bits. You can use the following way to generate the secret key. And
             // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the key.
             // For API version 18 and above, we use android keystore to generate keypair, and persist
-            // the keypair in AnroidKeyStore. Current investigation shows 1)Keystore may be locked with
+            // the keypair in AndroidKeyStore. Current investigation shows 1)Keystore may be locked with
             // a lock screen, if calling app has a lot of background activity, keystore cannot be
             // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore could
             // be reset when gesture to unlock the device is changed.

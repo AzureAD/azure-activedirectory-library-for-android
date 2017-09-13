@@ -23,23 +23,48 @@
 
 package com.microsoft.aad.adal;
 
-import android.support.test.runner.AndroidJUnit4;
+import java.util.ArrayList;
+import java.util.List;
 
-import junit.framework.Assert;
+final class InstanceDiscoveryMetadata {
+    private final String mPreferredNetwork;
+    private final String mPreferredCache;
+    private final List<String> mAliases = new ArrayList();
+    private final boolean mIsValidated;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+    InstanceDiscoveryMetadata(boolean isValidated) {
+        mIsValidated = isValidated;
 
-import java.util.UUID;
+        mPreferredNetwork = null;
+        mPreferredCache = null;
+    }
 
-@RunWith(AndroidJUnit4.class)
-public class UtilityTest extends AndroidTestHelper {
+    InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache, final List<String> aliases) {
+        mPreferredNetwork = preferredNetwork;
+        mPreferredCache = preferredCache;
+        mAliases.addAll(aliases);
+        mIsValidated = true;
+    }
 
-    @Test
-    public void testClaimsPassedInWithParameter() {
-        final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Always, "extraQueryParam56", UUID.randomUUID(), false, "testClaims");
+    InstanceDiscoveryMetadata(final String preferredNetwork, final String preferredCache) {
+        mPreferredNetwork = preferredNetwork;
+        mPreferredCache = preferredCache;
+        mIsValidated = true;
+    }
 
-        Assert.assertTrue(Utility.isClaimsChallengePresent(request));
+    String getPreferredNetwork() {
+        return mPreferredNetwork;
+    }
+
+    String getPreferredCache() {
+        return mPreferredCache;
+    }
+
+    List<String> getAliases() {
+        return mAliases;
+    }
+
+    boolean isValidated() {
+        return mIsValidated;
     }
 }

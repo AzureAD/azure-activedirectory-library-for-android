@@ -164,7 +164,7 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
     /**
-     * test different size messges
+     * test different size messages
      */
     @Test
     public void testEncryptDecryptDifferentSizes() throws GeneralSecurityException, IOException, AuthenticationException {
@@ -183,7 +183,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         final StorageHelper storageHelper = new StorageHelper(context);
         String encrypted = storageHelper.encrypt(clearText);
         assertNotNull("encrypted string is not null", encrypted);
-        assertFalse("encrypted string is not same as cleartex", encrypted.equals(clearText));
+        assertFalse("encrypted string is not same as cleartext", encrypted.equals(clearText));
         String decrypted = storageHelper.decrypt(encrypted);
         assertEquals("Same as initial text", clearText, decrypted);
     }
@@ -200,7 +200,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         String encrypted3 = storageHelper.encrypt(clearText);
 
         assertNotNull("encrypted string is not null", encrypted);
-        assertFalse("encrypted string is not same as cleartex", encrypted.equals(clearText));
+        assertFalse("encrypted string is not same as cleartext", encrypted.equals(clearText));
         assertFalse("encrypted string is not same as another encrypted call",
                 encrypted.equals(encrypted2));
         assertFalse("encrypted string is not same as another encrypted call",
@@ -222,7 +222,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         String clearText = "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXH";
         String encrypted =  storageHelper.encrypt(clearText);
         assertNotNull("encrypted string is not null", encrypted);
-        assertFalse("encrypted string is not same as cleartex", encrypted.equals(clearText));
+        assertFalse("encrypted string is not same as cleartext", encrypted.equals(clearText));
 
         String decrypted =  storageHelper.decrypt(encrypted);
         assertTrue("Same without Tampering", decrypted.equals(clearText));

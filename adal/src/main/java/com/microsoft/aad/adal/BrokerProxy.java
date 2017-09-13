@@ -218,7 +218,7 @@ class BrokerProxy implements IBrokerProxy {
                     "Broker related permissions are missing for " + permissionMissing.toString());
         }
 
-        Logger.v(TAG, "Misused of the checking function. This is function is only used to checking the broker permissions of API 22 or less.");
+        Logger.v(TAG, "Device runs on 23 and above, skip the check for 22 and below.");
         return true;
     }
 

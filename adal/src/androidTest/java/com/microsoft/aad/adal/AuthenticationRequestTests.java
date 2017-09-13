@@ -67,13 +67,13 @@ public class AuthenticationRequestTests {
 
 
         request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Always, "extraQueryPAram56", correlationId, false, "testClaims");
+                "loginhint55", PromptBehavior.Always, "extraQueryParam56", correlationId, false, "testClaims");
         assertEquals("authority is same", "authority51", request.getAuthority());
         assertEquals("resource is same", "resource52", request.getResource());
         assertEquals("client is same", "client53", request.getClientId());
         assertEquals("redirect is same", "redirect54", request.getRedirectUri());
         assertEquals("loginhint is same", "loginhint55", request.getLoginHint());
-        assertEquals("ExtraQueryParams is same", "extraQueryPAram56", request.getExtraQueryParamsAuthentication());
+        assertEquals("ExtraQueryParams is same", "extraQueryParam56", request.getExtraQueryParamsAuthentication());
         assertEquals("PromptBehavior is same", PromptBehavior.Always, request.getPrompt());
         assertEquals("correlationId is same", correlationId, request.getCorrelationId());
         assertEquals("claimsChallenge is same", "testClaims", request.getClaimsChallenge());
@@ -95,10 +95,10 @@ public class AuthenticationRequestTests {
                         "NA", // resource
                         "NA", // client
                         "NA", // redirect
-                        "user@foo.internet", // loginhint,
+                        "user@tenant.internet", // loginhint,
                         false
                 );
-        assertEquals("foo.internet", authenticationRequest.getUpnSuffix());
+        assertEquals("tenant.internet", authenticationRequest.getUpnSuffix());
     }
 
     @Test
