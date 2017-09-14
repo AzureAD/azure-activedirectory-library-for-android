@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -97,5 +98,31 @@ public class StringExtensionTests extends AndroidTestHelper {
             Log.e(getClass().getName(), ueex.getMessage());
             Assert.fail("Did not expect exception");
         }
+    }
+
+    @Test
+    public void testGetStringTokens() {
+        assertEquals(0, StringExtensions.getStringTokens("", ";").size());
+        assertEquals(0, StringExtensions.getStringTokens(";;;;", ";").size());
+
+        List<String> tokens = StringExtensions.getStringTokens("one;;two", ";");
+        assertEquals(2, tokens.size());
+        assertEquals("one", tokens.get(0));
+        assertEquals("two", tokens.get(1));
+
+        tokens = StringExtensions.getStringTokens(";;one;;two;;;", ";");
+        assertEquals(2, tokens.size());
+        assertEquals("one", tokens.get(0));
+        assertEquals("two", tokens.get(1));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetStringTokensWithNullItems() {
+        StringExtensions.getStringTokens(null, ";");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetStringTokensWithNullDelimiters() {
+        StringExtensions.getStringTokens("", null);
     }
 }
