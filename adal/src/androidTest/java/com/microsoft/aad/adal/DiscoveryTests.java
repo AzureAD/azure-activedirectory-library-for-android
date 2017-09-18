@@ -63,6 +63,7 @@ public class DiscoveryTests extends AndroidTestHelper {
 
     @Before
     public void setUp() throws Exception {
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
         super.setUp();
     }
 
@@ -282,8 +283,6 @@ public class DiscoveryTests extends AndroidTestHelper {
     // one hit network.
     @Test
     public void testMultiValidateAuthorityRequestsInDifferentThreads() throws IOException, InterruptedException, ExecutionException {
-        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
-
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -319,8 +318,6 @@ public class DiscoveryTests extends AndroidTestHelper {
      */
     @Test
     public void testAuthorityInAliasedList() throws IOException {
-        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
-
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
