@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import android.support.annotation.VisibleForTesting;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -35,6 +37,8 @@ final class HttpUrlConnectionFactory {
 
     private static HttpURLConnection sMockedConnection = null;
 
+    private static URL sMockedConnectionOpenUrl = null;
+
     /**
      * Private constructor to prevent the class from being initiated.
      */
@@ -46,13 +50,22 @@ final class HttpUrlConnectionFactory {
      */
     static void setMockedHttpUrlConnection(final HttpURLConnection mockedHttpUrlConnection) {
         sMockedConnection = mockedHttpUrlConnection;
+        if (mockedHttpUrlConnection == null) {
+            sMockedConnectionOpenUrl = null;
+        }
     }
     
     static HttpURLConnection createHttpUrlConnection(final URL url) throws IOException {
         if (sMockedConnection != null) {
+            sMockedConnectionOpenUrl = url;
             return sMockedConnection;
         }
         
         return (HttpURLConnection) url.openConnection();
+    }
+
+    @VisibleForTesting
+    static URL getMockedConnectionOpenUrl() {
+        return sMockedConnectionOpenUrl;
     }
 }
