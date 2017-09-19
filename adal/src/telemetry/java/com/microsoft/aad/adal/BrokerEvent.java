@@ -57,6 +57,32 @@ final class BrokerEvent extends DefaultEvent {
         setProperty(EventStrings.BROKER_ACCOUNT_SERVICE_CONNECTED, Boolean.toString(true));
     }
 
+    void setServerErrorCode(final String errorCode) {
+        if (null != errorCode && !errorCode.equals("0")) {
+            setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
+        }
+    }
+
+    void setServerSubErrorCode(final String subErrorCode) {
+        if (null != subErrorCode && !subErrorCode.equals("0")) {
+            setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
+
+        }
+    }
+
+    void setRefreshTokenAge(final String tokenAge) {
+        if (!StringExtensions.isNullOrBlank(tokenAge)) {
+            setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
+
+        }
+    }
+
+    void setSpeRing(final String speRing) {
+        if (!StringExtensions.isNullOrBlank(speRing)) {
+            setProperty(EventStrings.SPE_INFO, speRing.trim());
+        }
+    }
+
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
         final List<Pair<String, String>> eventList = getEventList();

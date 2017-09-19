@@ -97,47 +97,34 @@ final class HttpEvent extends DefaultEvent {
             return;
         }
 
-        if (!StringExtensions.isNullOrBlank(cliTelemInfo.getServerErrorCode())
-                && !cliTelemInfo.getServerErrorCode().equals("0")) {
-            setServerErrorCode(cliTelemInfo.getServerErrorCode());
-        }
-
-        if (!StringExtensions.isNullOrBlank(cliTelemInfo.getServerSubErrorCode())
-                && !cliTelemInfo.getServerSubErrorCode().equals("0")) {
-            setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
-        }
-
-        if (!StringExtensions.isNullOrBlank(cliTelemInfo.getRefreshTokenAge())) {
-            setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
-        }
-
-        if (!StringExtensions.isNullOrBlank(cliTelemInfo.getSpeRing())) {
-            setSpeRing(cliTelemInfo.getSpeRing());
-        }
+        setServerErrorCode(cliTelemInfo.getServerErrorCode());
+        setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
+        setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
+        setSpeRing(cliTelemInfo.getSpeRing());
     }
 
     void setServerErrorCode(final String errorCode) {
-        if (null != errorCode) {
+        if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
             setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
         }
     }
 
     void setServerSubErrorCode(final String subErrorCode) {
-        if (null != subErrorCode) {
+        if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
             setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
 
         }
     }
 
     void setRefreshTokenAge(final String tokenAge) {
-        if (null != tokenAge) {
+        if (!StringExtensions.isNullOrBlank(tokenAge)) {
             setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
 
         }
     }
 
     void setSpeRing(final String speRing) {
-        if (null != speRing) {
+        if (!StringExtensions.isNullOrBlank(speRing)) {
             setProperty(EventStrings.SPE_INFO, speRing.trim());
         }
     }

@@ -70,6 +70,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
+
 /**
  * Handles interactions to authenticator inside the Account Manager.
  */
@@ -472,8 +477,16 @@ class BrokerProxy implements IBrokerProxy {
                 expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
 
-            return new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
+            final AuthenticationResult result = new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
                     "", expires, false, userinfo, tenantId, "", null);
+
+            // set the x-ms-clitelem data
+            result.setServerErrorCode(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR));
+            result.setServerSubErrorCode(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR));
+            result.setRefreshTokenAge(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE));
+            result.setSpeRing(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING));
+
+            return result;
         }
     }
 

@@ -89,6 +89,12 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExtendedExpiresOn;
 
+    private String mServerErrorCode;
+
+    private String mServerSubErrorCode;
+
+    private String mRefreshTokenAge;
+
     private String mSpeRing;
 
     AuthenticationResult() {
@@ -373,6 +379,30 @@ public class AuthenticationResult implements Serializable {
     
     final void setFamilyClientId(final String familyClientId) {
         mFamilyClientId = familyClientId;
+    }
+
+    public final String getServerErrorCode() {
+        return mServerErrorCode;
+    }
+
+    final void setServerErrorCode(final String serverErrorCode) {
+        mServerErrorCode = serverErrorCode;
+    }
+
+    public final String getServerSubErrorCode() {
+        return mServerSubErrorCode;
+    }
+
+    final void setServerSubErrorCode(final String serverSubErrorCode) {
+        mServerSubErrorCode = serverSubErrorCode;
+    }
+
+    public final String getRefreshTokenAge() {
+        return mRefreshTokenAge;
+    }
+
+    final void setRefreshTokenAge(final String refreshTokenAge) {
+        mRefreshTokenAge = refreshTokenAge;
     }
 
     final String getSpeRing() {
