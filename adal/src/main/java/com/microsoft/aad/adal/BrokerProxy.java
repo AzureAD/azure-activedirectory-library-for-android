@@ -481,10 +481,10 @@ class BrokerProxy implements IBrokerProxy {
                     "", expires, false, userinfo, tenantId, "", null);
 
             // set the x-ms-clitelem data
-            result.setServerErrorCode(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR));
-            result.setServerSubErrorCode(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR));
-            result.setRefreshTokenAge(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE));
-            result.setSpeRing(bundleResult.getString(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING));
+            result.setServerErrorCode(bundleResult.getString(SERVER_ERROR));
+            result.setServerSubErrorCode(bundleResult.getString(SERVER_SUBERROR));
+            result.setRefreshTokenAge(bundleResult.getString(RT_AGE));
+            result.setSpeRing(bundleResult.getString(SPE_RING));
 
             return result;
         }
