@@ -58,13 +58,13 @@ final class BrokerEvent extends DefaultEvent {
     }
 
     void setServerErrorCode(final String errorCode) {
-        if (null != errorCode && !errorCode.equals("0")) {
+        if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
             setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
         }
     }
 
     void setServerSubErrorCode(final String subErrorCode) {
-        if (null != subErrorCode && !subErrorCode.equals("0")) {
+        if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
             setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
 
         }
