@@ -65,9 +65,6 @@ final class AcquireTokenWithBrokerRequest {
             Logger.v(TAG, "User is specified for background(silent) token request, trying to acquire token silently.");
             authenticationResult = mBrokerProxy.getAuthTokenInBackground(mAuthRequest, brokerEvent);
             if (null != authenticationResult) {
-                brokerEvent.setServerErrorCode(authenticationResult.getServerErrorCode());
-                brokerEvent.setServerSubErrorCode(authenticationResult.getServerSubErrorCode());
-                brokerEvent.setRefreshTokenAge(authenticationResult.getRefreshTokenAge());
                 brokerEvent.setSpeRing(authenticationResult.getSpeRing());
             }
         } else {
