@@ -54,6 +54,8 @@ final class BrokerAccountServiceHandler {
     private ConcurrentMap<BrokerAccountServiceConnection, CallbackExecutor<BrokerAccountServiceConnection>> mPendingConnections = new ConcurrentHashMap<>();
     private static ExecutorService sThreadExecutor = Executors.newCachedThreadPool();
 
+    private static final int BIND_SERVICE_TIMEOUT_THRESHOLD = 30000;
+
     private static final class InstanceHolder {
         static final BrokerAccountServiceHandler INSTANCE = new BrokerAccountServiceHandler();
     }
@@ -327,6 +329,18 @@ final class BrokerAccountServiceHandler {
         if (!serviceBound) {
             context.unbindService(connection);
             callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
+        } else {
+            // make sure it's bound to the service with success in a period not longer than the TIMEOUT
+            final Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(new Runnable(){
+                @Override
+                public void run() {
+                    if (!connection.isBound()) {
+                        context.unbindService(connection);
+                        callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
+                    }
+                }
+            }, BIND_SERVICE_TIMEOUT_THRESHOLD);
         }
     }
 
@@ -388,6 +402,10 @@ final class BrokerAccountServiceHandler {
 
         public void setTelemetryEvent(final BrokerEvent event) {
             mEvent = event;
+        }
+
+        public boolean isBound() {
+            return mBound;
         }
     }
 }
