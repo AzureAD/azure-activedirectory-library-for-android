@@ -327,7 +327,7 @@ final class BrokerAccountServiceHandler {
             brokerEvent.setBrokerAccountServiceBindingSucceed(serviceBound);
         }
         if (!serviceBound) {
-            context.unbindService(connection);
+            connection.unBindService(context);
             callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
         } else {
             // make sure it's bound to the service with success in a period not longer than the TIMEOUT
@@ -336,7 +336,7 @@ final class BrokerAccountServiceHandler {
                 @Override
                 public void run() {
                     if (!connection.isBound()) {
-                        context.unbindService(connection);
+                        connection.unBindService(context);
                         callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
                     }
                 }
