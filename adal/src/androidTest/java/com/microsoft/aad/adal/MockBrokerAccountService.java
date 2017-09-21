@@ -24,12 +24,15 @@
 package com.microsoft.aad.adal;
 
 import android.accounts.AccountManager;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -74,9 +77,20 @@ public class MockBrokerAccountService extends Service {
         @Override
         public synchronized Bundle acquireTokenSilently(Map requestParameters) throws RemoteException {
             final Bundle bundle = new Bundle();
-            if(requestParameters.containsKey("isConnectionAvailable")) {
+            if (requestParameters.containsKey("isConnectionAvailable")) {
                 bundle.putInt(AccountManager.KEY_ERROR_CODE, AccountManager.ERROR_CODE_NETWORK_ERROR);
                 bundle.putString(AccountManager.KEY_ERROR_MESSAGE, ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription());
+            } else if (requestParameters.containsKey(RemoteException.class.toString())) {
+                throw new RemoteException();
+            } else if (requestParameters.containsKey(OperationCanceledException.class.toString())) {
+                bundle.putInt(AccountManager.KEY_ERROR_CODE, AccountManager.ERROR_CODE_CANCELED);
+                bundle.putString(AccountManager.KEY_ERROR_MESSAGE, ADALError.AUTH_FAILED_CANCELLED.getDescription());
+            } else if (requestParameters.containsKey(AuthenticatorException.class.toString())) {
+                bundle.putInt(AccountManager.KEY_ERROR_CODE, AccountManager.ERROR_CODE_BAD_REQUEST);
+                bundle.putString(AccountManager.KEY_ERROR_MESSAGE, ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN.getDescription());
+            } else if (requestParameters.containsKey(IOException.class.toString())) {
+                bundle.getString(AuthenticationConstants.OAuth2.ERROR, ADALError.IO_EXCEPTION.toString());
+                bundle.getString(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, ADALError.IO_EXCEPTION.getDescription());
             } else {
                 bundle.putString(AccountManager.KEY_AUTHTOKEN, ACCESS_TOKEN);
             }

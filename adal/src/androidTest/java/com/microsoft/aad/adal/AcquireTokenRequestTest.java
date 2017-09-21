@@ -339,7 +339,7 @@ public final class AcquireTokenRequestTest {
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
         mockAccountManagerGetAccountBehavior(mockedAccountManager);
-        mockGetAuthTokenCallWithThrow(mockedAccountManager);
+        mockGetAuthTokenCallWithNoAccountFound(mockedAccountManager);
         mockAddAccountCall(mockedAccountManager);
 
         final FileMockContext mockContext = createMockContext();
@@ -1252,10 +1252,10 @@ public final class AcquireTokenRequestTest {
                 .thenReturn(mockedResult);
     }
 
-    private void mockGetAuthTokenCallWithThrow(final AccountManager mockedAccountManager)
+    private void mockGetAuthTokenCallWithNoAccountFound(final AccountManager mockedAccountManager)
             throws OperationCanceledException, IOException, AuthenticatorException {
         final AccountManagerFuture<Bundle> mockedResult = Mockito.mock(AccountManagerFuture.class);
-        when(mockedResult.getResult()).thenThrow(mock(AuthenticatorException.class));
+        when(mockedResult.getResult()).thenReturn(null);
 
         when(mockedAccountManager.getAuthToken(Mockito.any(Account.class), Matchers.anyString(),
                 Matchers.any(Bundle.class), Matchers.eq(false), (AccountManagerCallback<Bundle>) Matchers.eq(null),

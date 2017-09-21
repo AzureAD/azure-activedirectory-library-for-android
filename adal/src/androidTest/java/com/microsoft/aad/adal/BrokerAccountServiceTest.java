@@ -166,14 +166,14 @@ public final class BrokerAccountServiceTest {
     }
 
     @Test
-    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException, AuthenticatorException,OperationCanceledException, IOException {
+    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException, AuthenticatorException, OperationCanceledException, IOException {
         final CountDownLatch latch = new CountDownLatch(1);
         sThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 final Context mockContext = getMockContext();
                 Bundle requestBundle = new Bundle();
-                requestBundle.putString("isConnectionAvailable","false");
+                requestBundle.putString("isConnectionAvailable", "false");
 
                 try {
                     final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle, getBrokerEvent());
@@ -187,7 +187,30 @@ public final class BrokerAccountServiceTest {
             }
         });
         latch.await();
+    }
 
+    @Test
+    public void testGetAuthTokenVerifyThrowOperationCanceledException() throws InterruptedException, AuthenticatorException, OperationCanceledException, IOException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        sThreadExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                final Context mockContext = getMockContext();
+                Bundle requestBundle = new Bundle();
+                requestBundle.putString(OperationCanceledException.class.toString(), "true");
+
+                try {
+                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle, getBrokerEvent());
+                    Assert.assertTrue(bundle.getInt(AccountManager.KEY_ERROR_CODE) == AccountManager.ERROR_CODE_CANCELED);
+                    Assert.assertTrue(bundle.getString(AccountManager.KEY_ERROR_MESSAGE).equals(ADALError.AUTH_FAILED_CANCELLED.getDescription()));
+                } catch (final AuthenticationException e) {
+                    fail();
+                } finally {
+                    latch.countDown();
+                }
+            }
+        });
+        latch.await();
     }
 
     @Test
