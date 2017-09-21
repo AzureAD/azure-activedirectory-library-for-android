@@ -381,7 +381,7 @@ public class AuthenticationResult implements Serializable {
         mFamilyClientId = familyClientId;
     }
 
-    public final String getServerErrorCode() {
+    final String getServerErrorCode() {
         return mServerErrorCode;
     }
 
@@ -389,7 +389,7 @@ public class AuthenticationResult implements Serializable {
         mServerErrorCode = serverErrorCode;
     }
 
-    public final String getServerSubErrorCode() {
+    final String getServerSubErrorCode() {
         return mServerSubErrorCode;
     }
 
@@ -397,7 +397,7 @@ public class AuthenticationResult implements Serializable {
         mServerSubErrorCode = serverSubErrorCode;
     }
 
-    public final String getRefreshTokenAge() {
+    final String getRefreshTokenAge() {
         return mRefreshTokenAge;
     }
 
