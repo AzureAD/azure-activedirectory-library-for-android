@@ -55,6 +55,7 @@ final class BrokerAccountServiceHandler {
     private static ExecutorService sThreadExecutor = Executors.newCachedThreadPool();
 
     private static final int BIND_SERVICE_TIMEOUT_THRESHOLD = 30000;
+    private final Handler mUiHandler = new Handler(Looper.getMainLooper());
 
     private static final class InstanceHolder {
         static final BrokerAccountServiceHandler INSTANCE = new BrokerAccountServiceHandler();
@@ -315,6 +316,9 @@ final class BrokerAccountServiceHandler {
         final Intent brokerAccountServiceToBind = getIntentForBrokerAccountService(context);
 
         final BrokerAccountServiceConnection connection = new BrokerAccountServiceConnection();
+        BindServiceTimeoutRunnable timeoutRunnable = new BindServiceTimeoutRunnable(context, connection, callback);
+        connection.setBindServiceTimeoutCallback(timeoutRunnable);
+
         if (brokerEvent != null) {
             connection.setTelemetryEvent(brokerEvent);
             brokerEvent.setBrokerAccountServerStartsBinding();
@@ -331,16 +335,27 @@ final class BrokerAccountServiceHandler {
             callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
         } else {
             // make sure it's bound to the service with success in a period not longer than the TIMEOUT
-            final Handler handler = new Handler(Looper.getMainLooper());
-            handler.postDelayed(new Runnable(){
-                @Override
-                public void run() {
-                    if (!connection.isBound()) {
-                        connection.unBindService(context);
-                        callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
-                    }
-                }
-            }, BIND_SERVICE_TIMEOUT_THRESHOLD);
+            mUiHandler.postDelayed(timeoutRunnable, BIND_SERVICE_TIMEOUT_THRESHOLD);
+        }
+    }
+
+    private class BindServiceTimeoutRunnable implements Runnable {
+        private Context mContext;
+        private BrokerAccountServiceConnection mServiceConnection;
+        private Callback<BrokerAccountServiceConnection> mCallback;
+
+        public BindServiceTimeoutRunnable(Context context, BrokerAccountServiceConnection connection, final Callback<BrokerAccountServiceConnection> callback) {
+            mContext = context;
+            mServiceConnection = connection;
+            mCallback = callback;
+        }
+
+        @Override
+        public void run() {
+            if (!mServiceConnection.isBound()) {
+                mServiceConnection.unBindService(mContext);
+                mCallback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
+            }
         }
     }
 
@@ -349,6 +364,7 @@ final class BrokerAccountServiceHandler {
         private boolean mBound;
         // Keep the type as IEvent in case
         private BrokerEvent mEvent;
+        private Runnable mBindServiceTimeoutCallback;
 
         public IBrokerAccountService getBrokerAccountServiceProvider() {
             return mBrokerAccountService;
@@ -359,6 +375,10 @@ final class BrokerAccountServiceHandler {
             Logger.v(TAG, "Broker Account service is connected.");
             mBrokerAccountService = IBrokerAccountService.Stub.asInterface(service);
             mBound = true;
+            if (mBindServiceTimeoutCallback != null) {
+                mUiHandler.removeCallbacks(mBindServiceTimeoutCallback);
+            }
+
             if (mEvent != null) {
                 mEvent.setBrokerAccountServiceConnected();
             }
@@ -406,6 +426,10 @@ final class BrokerAccountServiceHandler {
 
         public boolean isBound() {
             return mBound;
+        }
+
+        public void setBindServiceTimeoutCallback(Runnable timeoutCallback) {
+            mBindServiceTimeoutCallback = timeoutCallback;
         }
     }
 }
