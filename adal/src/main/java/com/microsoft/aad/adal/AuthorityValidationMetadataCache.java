@@ -88,7 +88,7 @@ final class AuthorityValidationMetadataCache {
     }
 
     static void updateInstanceDiscoveryMap(final String host, final InstanceDiscoveryMetadata metadata) {
-        sAadAuthorityHostMetadata.put(host, metadata);
+        sAadAuthorityHostMetadata.put(host.toLowerCase(Locale.US), metadata);
     }
 
     static Map<String, InstanceDiscoveryMetadata> getAuthorityValidationMetadataCache() {
