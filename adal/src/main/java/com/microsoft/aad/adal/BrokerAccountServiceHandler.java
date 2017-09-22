@@ -316,7 +316,7 @@ final class BrokerAccountServiceHandler {
         final Intent brokerAccountServiceToBind = getIntentForBrokerAccountService(context);
 
         final BrokerAccountServiceConnection connection = new BrokerAccountServiceConnection();
-        BindServiceTimeoutRunnable timeoutRunnable = new BindServiceTimeoutRunnable(context, connection, callback);
+        final BindServiceTimeoutRunnable timeoutRunnable = new BindServiceTimeoutRunnable(context, connection, callback);
         connection.setBindServiceTimeoutCallback(timeoutRunnable);
 
         if (brokerEvent != null) {
@@ -332,7 +332,7 @@ final class BrokerAccountServiceHandler {
         }
         if (!serviceBound) {
             connection.unBindService(context);
-            callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
+            callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED, "'bindService' returned 'false'"));
         } else {
             // make sure it's bound to the service with success in a period not longer than the TIMEOUT
             mUiHandler.postDelayed(timeoutRunnable, BIND_SERVICE_TIMEOUT_THRESHOLD);
@@ -354,7 +354,7 @@ final class BrokerAccountServiceHandler {
         public void run() {
             if (!mServiceConnection.isBound()) {
                 mServiceConnection.unBindService(mContext);
-                mCallback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
+                mCallback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED, "'bindService' timeout."));
             }
         }
     }
