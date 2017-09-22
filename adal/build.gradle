@@ -229,9 +229,27 @@ publishing {
         }
     }
 
+    // Repositories to which Gradle can publish artifacts
     repositories {
         maven {
-            url "\\\\adalbuildvm\\AndroidRelease\\repository";
+            name "vsts-maven-adal-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            credentials {
+                username "VSTS"
+                password System.getenv("VSTS_ENV_ACCESS_TOKEN") != null ? System.getenv("VSTS_ENV_ACCESS_TOKEN") : vstsMavenAccessToken
+            }
+        }
+    }
+}
+
+// Repositories from which Gradle can fetch dependencies
+repositories {
+    maven {
+        name "vsts-maven-adal-android"
+        url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+        credentials {
+            username "VSTS"
+            password System.getenv("VSTS_ENV_ACCESS_TOKEN") != null ? System.getenv("VSTS_ENV_ACCESS_TOKEN") : vstsMavenAccessToken
         }
     }
 }
