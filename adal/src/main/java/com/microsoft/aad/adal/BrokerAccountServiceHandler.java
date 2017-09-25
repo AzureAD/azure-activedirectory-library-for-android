@@ -324,6 +324,10 @@ final class BrokerAccountServiceHandler {
         if (brokerEvent != null) {
             brokerEvent.setBrokerAccountServiceBindingSucceed(serviceBound);
         }
+        if (!serviceBound) {
+            connection.unBindService(context);
+            callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
+        }
     }
 
     private class BrokerAccountServiceConnection implements android.content.ServiceConnection {
