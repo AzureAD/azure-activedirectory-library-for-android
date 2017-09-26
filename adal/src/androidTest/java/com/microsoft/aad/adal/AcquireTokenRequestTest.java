@@ -44,6 +44,7 @@ import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -172,7 +173,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testFavorLocalCacheUseLocalRTFailsSwitchToBroker()
             throws PackageManager.NameNotFoundException, OperationCanceledException, IOException,
-            AuthenticatorException, InterruptedException {
+            AuthenticatorException, InterruptedException, JSONException {
         // Make sure AT is expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), true, true, null);
 
@@ -231,7 +232,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testFavorLocalCacheUseLocalRTFailsWithInvalidGrantSwitchToBroker()
             throws PackageManager.NameNotFoundException, OperationCanceledException,
-            IOException, AuthenticatorException, InterruptedException {
+            IOException, AuthenticatorException, InterruptedException, JSONException {
 
         // Make sure AT is expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), true, false, null);
@@ -291,7 +292,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testFavorLocalCacheUseLocalRTSucceeds()
             throws PackageManager.NameNotFoundException, OperationCanceledException,
-            IOException, AuthenticatorException, InterruptedException {
+            IOException, AuthenticatorException, InterruptedException, JSONException {
         // Make sure AT is expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
@@ -332,7 +333,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testBothLocalAndBrokerSilentAuthFailedSwitchedToBrokerForInteractive()
             throws OperationCanceledException, IOException, AuthenticatorException,
-            PackageManager.NameNotFoundException, InterruptedException {
+            PackageManager.NameNotFoundException, InterruptedException,JSONException {
 
         // Make sure AT is expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
@@ -384,7 +385,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testLocalSilentFailedBrokerSilentReturnErrorCannotTryWithInteractive()
             throws OperationCanceledException, IOException, AuthenticatorException,
-            PackageManager.NameNotFoundException, InterruptedException {
+            PackageManager.NameNotFoundException, InterruptedException, JSONException {
         // Make sure AT is expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
@@ -503,7 +504,8 @@ public final class AcquireTokenRequestTest {
         cacheStore.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, clientId, null), mrrtItem);
     }
 
-    public void testEmbeddedAuthCacheSkippedWhenClaimsSent() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
+    public void testEmbeddedAuthCacheSkippedWhenClaimsSent() throws PackageManager.NameNotFoundException, IOException,
+            InterruptedException, JSONException {
         // Make sure AT is not expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(MINUS_MINUTE), false, false, null);
         final FileMockContext mockContext = createMockContext();
@@ -604,7 +606,7 @@ public final class AcquireTokenRequestTest {
     }
 
     public void testBrokerAuthCacheSkippedWhenClaimsSent() throws PackageManager.NameNotFoundException, IOException,
-            OperationCanceledException, AuthenticatorException, InterruptedException {
+            OperationCanceledException, AuthenticatorException, InterruptedException, JSONException {
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
 
         final AccountManager mockedAccountManager = getMockedAccountManager();
@@ -803,7 +805,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnMinServerError() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+            InterruptedException, JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
@@ -837,7 +839,7 @@ public final class AcquireTokenRequestTest {
 
     public void testResiliencyTokenReturnExtendedLifetimeOnMaxServerError() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+            InterruptedException, JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
@@ -876,7 +878,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithRetryFail() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+            InterruptedException, JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
@@ -916,7 +918,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithExpiredStaleAT() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+            InterruptedException, JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(-1));
 
@@ -953,7 +955,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithValidRetry() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+            InterruptedException, JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
@@ -991,7 +993,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOff() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+            InterruptedException, JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
@@ -1030,7 +1032,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testResiliencyTokenReturnExtendedLifetimeOnwithoutRetry() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+            InterruptedException, JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is not expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, getExpireDate(EXTEND_MINUS_MINUTE));
 
@@ -1064,7 +1066,7 @@ public final class AcquireTokenRequestTest {
 
     public void testResiliencyTokenReturnExtendedLifetimeOnwithNullAccessTokenCacheItem() throws PackageManager.NameNotFoundException,
             NoSuchAlgorithmException, OperationCanceledException, IOException, AuthenticatorException,
-            InterruptedException {
+            InterruptedException, JSONException {
         // make sure AT's expires_in is expired and ext_expires_in is expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), true, true, getExpireDate(EXTEND_MINUS_MINUTE));
         cacheStore.removeItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, "resource", "clientId", TEST_USERID));
@@ -1327,7 +1329,7 @@ public final class AcquireTokenRequestTest {
         AuthenticationSettings.INSTANCE.setUseBroker(true);
     }
 
-    private void prepareSuccessHttpUrlConnection() throws IOException {
+    private void prepareSuccessHttpUrlConnection() throws IOException, JSONException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
@@ -1337,7 +1339,7 @@ public final class AcquireTokenRequestTest {
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
     }
 
-    private HttpURLConnection prepareFailedHttpUrlConnection(final String errorCode, final String ...errorCodes) throws IOException {
+    private HttpURLConnection prepareFailedHttpUrlConnection(final String errorCode, final String ...errorCodes) throws IOException, JSONException {
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);

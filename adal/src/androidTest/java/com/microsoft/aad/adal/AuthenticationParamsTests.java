@@ -33,6 +33,7 @@ import com.microsoft.aad.adal.Logger.LogLevel;
 
 import junit.framework.Assert;
 
+import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -74,7 +75,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
     }
 
     @Test
-    public void testCreateFromResourceUrlInvalidFormat() throws IOException {
+    public void testCreateFromResourceUrlInvalidFormat() throws IOException, JSONException {
         Log.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
 
         //mock http response
