@@ -358,7 +358,7 @@ class TokenCacheAccessor {
         // Store separate entries for FRT.
         if (!StringExtensions.isNullOrBlank(result.getFamilyClientId()) && !StringExtensions.isNullOrBlank(userId)) {
             Logger.v(TAG, "Save Family Refresh token into cache");
-            final TokenCacheItem familyTokenCacheItem = TokenCacheItem.createFRRTTokenCacheItem(mAuthority, result);
+            final TokenCacheItem familyTokenCacheItem = TokenCacheItem.createFRRTTokenCacheItem(getAuthorityUrlWithPreferredCache(), result);
             mTokenCacheStore.setItem(CacheKey.createCacheKeyForFRT(getAuthorityUrlWithPreferredCache(), result.getFamilyClientId(), userId), familyTokenCacheItem);
             cacheEvent.setTokenTypeFRT(true);
         }
