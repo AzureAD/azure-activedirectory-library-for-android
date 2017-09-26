@@ -35,6 +35,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.test.UiThreadTest;
 import android.util.Base64;
 import android.util.Log;
@@ -43,6 +44,7 @@ import com.google.gson.Gson;
 
 import junit.framework.Assert;
 
+import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -653,7 +655,7 @@ public final class AuthenticationContextTest {
      * @throws IOException
      */
     @Test
-    public void testAcquireTokenByRefreshTokenPositive() throws IOException, InterruptedException {
+    public void testAcquireTokenByRefreshTokenPositive() throws IOException, InterruptedException, JSONException {
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
@@ -701,7 +703,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testAcquireTokenByRefreshTokenNotReturningRefreshToken() throws IOException, InterruptedException {
+    public void testAcquireTokenByRefreshTokenNotReturningRefreshToken() throws IOException, InterruptedException, JSONException {
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
@@ -978,12 +980,13 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testScenarioUserIdLoginHintUse() throws InterruptedException, AuthenticationException, IOException {
+    public void testScenarioUserIdLoginHintUse() throws InterruptedException, AuthenticationException, IOException, JSONException {
         scenarioUserIdLoginHint("test@user.com", "test@user.com", "test@user.com");
     }
 
     private void scenarioUserIdLoginHint(final String idTokenUpn, final String responseIntentHint,
-                                         final String acquireTokenHint) throws InterruptedException, AuthenticationException, IOException {
+                                         final String acquireTokenHint)
+            throws InterruptedException, AuthenticationException, IOException, JSONException {
 
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
@@ -1037,7 +1040,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testScenarioNullUserIdToken() throws InterruptedException, AuthenticationException, IOException {
+    public void testScenarioNullUserIdToken() throws InterruptedException, AuthenticationException, IOException, JSONException {
         scenarioUserIdLoginHint("test@user.com", "", "");
     }
 
@@ -1097,7 +1100,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testScenarioEmptyIdToken() throws InterruptedException, AuthenticationException, IOException {
+    public void testScenarioEmptyIdToken() throws InterruptedException, AuthenticationException, IOException, JSONException {
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
@@ -1143,7 +1146,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testFamilyClientIdCorrectlyStoredInCache() throws IOException, InterruptedException,
-            AuthenticationException {
+            AuthenticationException, JSONException {
 
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -1195,7 +1198,7 @@ public final class AuthenticationContextTest {
      * b. Subsequent requests do not result in further authority validation network requests for the process lifetime.
      */
     @Test
-    public void testAuthorityValidationTurnedOffAndInstanceDiscoveryFailed() throws IOException, InterruptedException {
+    public void testAuthorityValidationTurnedOffAndInstanceDiscoveryFailed() throws IOException, InterruptedException, JSONException {
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockedCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
@@ -1272,7 +1275,7 @@ public final class AuthenticationContextTest {
      * b.Subsequent requests do not result in further authority validation network requests for the process lifetime
      */
     @Test
-    public void testAuthorityValidationTurnedOnButNoMetadataReturned() throws IOException, InterruptedException {
+    public void testAuthorityValidationTurnedOnButNoMetadataReturned() throws IOException, InterruptedException, JSONException {
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockedCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
@@ -1406,7 +1409,7 @@ public final class AuthenticationContextTest {
      * new tokens are written to cache using solely the preferred_cache authority
      */
     @Test
-    public void testNewTokenOnlyWrittenToPreferredCacheLocation() throws InterruptedException, IOException {
+    public void testNewTokenOnlyWrittenToPreferredCacheLocation() throws InterruptedException, IOException, JSONException {
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore tokenCacheStore = new DefaultTokenCacheStore(mockContext);
 
@@ -1417,10 +1420,18 @@ public final class AuthenticationContextTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
         final Activity mockedActivity = Mockito.mock(Activity.class);
-        final AuthenticationCallback callback = new AuthenticationCallback() {
+        final AuthenticationCallback callback = new AuthenticationCallback<AuthenticationResult>() {
             @Override
-            public void onSuccess(Object result) {
-                latch.countDown();
+            public void onSuccess(AuthenticationResult result) {
+                final String uniqueUserId = result.getUserInfo().getUserId();
+                // validate the foci serialize can still find token
+                try {
+                    assertNotNull(context.serialize(uniqueUserId));
+                } catch (AuthenticationException e) {
+                    fail("unexpected exception");
+                } finally {
+                    latch.countDown();
+                }
             }
 
             @Override
@@ -1448,7 +1459,7 @@ public final class AuthenticationContextTest {
         Util.prepareMockedUrlConnection(mockedConnection);
 
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(DiscoveryTests.getDiscoveryResponse()),
-                Util.createInputStream(Util.getSuccessTokenResponse(true, true)));
+                Util.createInputStream(Util.getSuccessTokenResponseWithFamilyClientId()));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
         context.acquireToken(mockedActivity, "resource", "clientid",
@@ -1475,7 +1486,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testCacheContainsPreferredCacheToken() throws InterruptedException, IOException {
+    public void testCacheContainsPreferredCacheToken() throws InterruptedException, IOException, JSONException {
         final String resource = "resource";
         final String clientId = "clientId";
         final ITokenCacheStore tokenCacheStore = getMockCache(-20, "accessToken", resource, clientId, TEST_IDTOKEN_USERID, false);
@@ -1526,7 +1537,7 @@ public final class AuthenticationContextTest {
      * preferred_network host is used for all subsequent network requests.
      */
     @Test
-    public void testCacheContainsPassedInAuthority() throws IOException, InterruptedException {
+    public void testCacheContainsPassedInAuthority() throws IOException, InterruptedException, JSONException {
         final String resource = "resource";
         final String clientId = "clientId";
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
@@ -1681,7 +1692,7 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testAcquireTokenSilentSyncNegative() throws InterruptedException, AuthenticationException,
-            IOException {
+            IOException, JSONException {
         AuthorityValidationMetadataCache.clearAuthorityValidationCache();
 
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());

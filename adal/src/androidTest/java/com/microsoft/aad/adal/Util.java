@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
@@ -91,41 +93,59 @@ final class Util {
         
         return tokenCacheItem;
     }
-    
-    static String getSuccessTokenResponse(final boolean isMrrt, final boolean withFociFlag) {
-        final String tokenResponse = "{\"id_token\":\""
-                + TEST_IDTOKEN
-                + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"I am a new refresh token\",\"scope\":\"*\"";
-        
-        final StringBuilder tokenResponseBuilder = new StringBuilder(tokenResponse);
-        if (isMrrt) {
-            tokenResponseBuilder.append(",\"resource\":\"resource\"");
-        }
-        
-        if (withFociFlag) {
-            tokenResponseBuilder.append(",\"foci\":\"familyClientId\"");
-        } 
-            
-        tokenResponseBuilder.append("}");
 
-        return tokenResponseBuilder.toString();
+    static String getSuccessTokenResponseWithFamilyClientId() throws JSONException {
+        final JSONObject responseJsonObject = getCommonSuccessResponseData();
+
+        responseJsonObject.put("refresh_token", "I am a new refresh token");
+        responseJsonObject.put("resource", "resource");
+        responseJsonObject.put("foci", "1");
+
+        return responseJsonObject.toString();
     }
-    
-    static String getSuccessResponseWithoutRefreshToken() {
-        final String tokenResponse = "{\"id_token\":\""
-                + TEST_IDTOKEN
-                + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"scope\":\"*\"}";
-        return tokenResponse;
-    }
-    
-    static String getErrorResponseBody(final String errorCode) {
-        final String errorDescription = "\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\",\"error_codes\":[70000],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\",\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null";
-        
-        if (errorCode != null) {
-            return "{\"error\":\"" + errorCode + "\"," + errorDescription + "}";
+
+    static String getSuccessTokenResponse(final boolean isMrrt, final boolean withFociFlag) throws JSONException {
+        final JSONObject responseJsonObject = getCommonSuccessResponseData();
+        responseJsonObject.put(AuthenticationConstants.OAuth2.REFRESH_TOKEN, "I am a new refresh token");
+        if (isMrrt) {
+            responseJsonObject.put(AuthenticationConstants.AAD.RESOURCE, "resource");
         }
-        
-        return "{" + errorDescription + "}";
+
+        if (withFociFlag) {
+            responseJsonObject.put(AuthenticationConstants.OAuth2.ADAL_CLIENT_FAMILY_ID, "familyClientId");
+        }
+
+        return responseJsonObject.toString();
+    }
+    
+    static String getSuccessResponseWithoutRefreshToken() throws JSONException {
+        return getCommonSuccessResponseData().toString();
+    }
+
+    private static JSONObject getCommonSuccessResponseData() throws JSONException {
+        final JSONObject responseJsonObject = new JSONObject();
+        responseJsonObject.put(AuthenticationConstants.OAuth2.ID_TOKEN, TEST_IDTOKEN);
+        responseJsonObject.put(AuthenticationConstants.OAuth2.ACCESS_TOKEN, "I am a new access token");
+        responseJsonObject.put(AuthenticationConstants.OAuth2.TOKEN_TYPE, "Bearer");
+        responseJsonObject.put(AuthenticationConstants.OAuth2.EXPIRES_IN, "10");
+        responseJsonObject.put("expires_on", "1368768616");
+        responseJsonObject.put(AuthenticationConstants.OAuth2.SCOPE, "*");
+
+        return responseJsonObject;
+    }
+    
+    static String getErrorResponseBody(final String errorCode) throws JSONException {
+        final JSONObject jsonObject = new JSONObject();
+        jsonObject.put(AuthenticationConstants.OAuth2.ERROR, errorCode);
+        jsonObject.put(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, "AADSTS70000: Authentication failed. Refresh Token is not valid.\n" +
+                "Trace ID: bb27293d-74e4-4390-882b-037a63429026\n" +
+                "Correlation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\n" +
+                "Timestamp: 2014-11-06 18:39:47Z");
+        jsonObject.put(AuthenticationConstants.OAuth2.ERROR_CODES, "[70000]");
+        jsonObject.put("timestamp", "2014-11-06 18:39:47Z");
+        jsonObject.put("trace_id", "bb27293d-74e4-4390-882b-037a63429026");
+        jsonObject.put(AuthenticationConstants.AAD.CORRELATION_ID, "b73106d5-419b-4163-8bc6-d2c18f1b1a13");
+        return jsonObject.toString();
     }
     
     static byte[] getPoseMessage(final String refreshToken, final String clientId, final String resource) 
