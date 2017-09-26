@@ -622,10 +622,12 @@ class AcquireTokenRequest {
                             expire, false, userinfo, tenantId, idtoken, null);
 
                     // set the x-ms-clitelem fields on the result from the Broker
-                    brokerResult.setServerErrorCode(serverErrorCode);
-                    brokerResult.setServerSubErrorCode(serverSubErrorCode);
-                    brokerResult.setRefreshTokenAge(refreshTokenAge);
-                    brokerResult.setSpeRing(speRingInfo);
+                    final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
+                    cliTelemInfo.setServerErrorCode(serverErrorCode);
+                    cliTelemInfo.setServerSubErrorCode(serverSubErrorCode);
+                    cliTelemInfo.setRefreshTokenAge(refreshTokenAge);
+                    cliTelemInfo.setSpeRing(speRingInfo);
+                    brokerResult.setCliTelemInfo(cliTelemInfo);
 
                     if (brokerResult.getAccessToken() != null) {
                         waitingRequest.getAPIEvent().setWasApiCallSuccessful(true, null);
@@ -634,10 +636,10 @@ class AcquireTokenRequest {
                         waitingRequest.getAPIEvent().setIdToken(brokerResult.getIdToken());
 
                         // add the x-ms-clitelem info to the ApiEvent
-                        waitingRequest.getAPIEvent().setServerErrorCode(brokerResult.getServerErrorCode());
-                        waitingRequest.getAPIEvent().setServerSubErrorCode(brokerResult.getServerSubErrorCode());
-                        waitingRequest.getAPIEvent().setRefreshTokenAge(brokerResult.getRefreshTokenAge());
-                        waitingRequest.getAPIEvent().setSpeRing(brokerResult.getSpeRing());
+                        waitingRequest.getAPIEvent().setServerErrorCode(cliTelemInfo.getServerErrorCode());
+                        waitingRequest.getAPIEvent().setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
+                        waitingRequest.getAPIEvent().setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
+                        waitingRequest.getAPIEvent().setSpeRing(cliTelemInfo.getSpeRing());
 
                         // stop the event
                         waitingRequest.getAPIEvent().stopTelemetryAndFlush();
