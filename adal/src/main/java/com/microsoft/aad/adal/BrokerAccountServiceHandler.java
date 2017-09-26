@@ -324,6 +324,11 @@ final class BrokerAccountServiceHandler {
         if (brokerEvent != null) {
             brokerEvent.setBrokerAccountServiceBindingSucceed(serviceBound);
         }
+        if (!serviceBound) {
+            connection.unBindService(context);
+            Logger.e(TAG, "Failed to bind service to broker app", "'bindService' returned false", ADALError.BROKER_BIND_SERVICE_FAILED);
+            callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
+        }
     }
 
     private class BrokerAccountServiceConnection implements android.content.ServiceConnection {
