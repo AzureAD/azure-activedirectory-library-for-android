@@ -86,6 +86,10 @@ final class CacheEvent extends DefaultEvent {
         dispatchMap.put(EventStrings.TOKEN_TYPE_IS_MRRT, "");
         dispatchMap.put(EventStrings.TOKEN_TYPE_IS_RT, "");
 
+        if (dispatchMap.containsKey(EventStrings.SPE_INFO)) {
+            dispatchMap.remove(EventStrings.SPE_INFO);
+        }
+
         for (Pair<String, String> eventPair : eventList) {
             final String name = eventPair.first;
 
