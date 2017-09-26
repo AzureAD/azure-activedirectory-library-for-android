@@ -35,6 +35,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.test.UiThreadTest;
 import android.util.Base64;
 import android.util.Log;
@@ -1417,10 +1418,18 @@ public final class AuthenticationContextTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
         final Activity mockedActivity = Mockito.mock(Activity.class);
-        final AuthenticationCallback callback = new AuthenticationCallback() {
+        final AuthenticationCallback callback = new AuthenticationCallback<AuthenticationResult>() {
             @Override
-            public void onSuccess(Object result) {
-                latch.countDown();
+            public void onSuccess(AuthenticationResult result) {
+                final String uniqueUserId = result.getUserInfo().getUserId();
+                // validate the foci serialize can still find token
+                try {
+                    assertNotNull(context.serialize(uniqueUserId));
+                } catch (AuthenticationException e) {
+                    fail("unexpected exception");
+                } finally {
+                    latch.countDown();
+                }
             }
 
             @Override
@@ -1448,7 +1457,7 @@ public final class AuthenticationContextTest {
         Util.prepareMockedUrlConnection(mockedConnection);
 
         Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(DiscoveryTests.getDiscoveryResponse()),
-                Util.createInputStream(Util.getSuccessTokenResponse(true, true)));
+                Util.createInputStream(Util.getSuccessTokenResponseWithFamilyClientId()));
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
         context.acquireToken(mockedActivity, "resource", "clientid",

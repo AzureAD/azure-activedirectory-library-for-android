@@ -91,7 +91,19 @@ final class Util {
         
         return tokenCacheItem;
     }
-    
+
+    static String getSuccessTokenResponseWithFamilyClientId() {
+        final String tokenResponse = "{\"id_token\":\""
+                + TEST_IDTOKEN
+                + "\",\"access_token\":\"I am a new access token\",\"token_type\":\"Bearer\",\"expires_in\":\"10\",\"expires_on\":\"1368768616\",\"refresh_token\":\"I am a new refresh token\",\"scope\":\"*\"";
+
+        final StringBuilder tokenResponseBuilder = new StringBuilder(tokenResponse);
+        tokenResponseBuilder.append(",\"resource\":\"resource\"");
+        tokenResponseBuilder.append(",\"foci\":\"1\"}");
+
+        return tokenResponseBuilder.toString();
+    }
+
     static String getSuccessTokenResponse(final boolean isMrrt, final boolean withFociFlag) {
         final String tokenResponse = "{\"id_token\":\""
                 + TEST_IDTOKEN
