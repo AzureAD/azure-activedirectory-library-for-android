@@ -230,7 +230,7 @@ publishing {
     }
 
     // Repositories to which Gradle can publish artifacts
-    if (System.getenv("VSTS_ENV_ACCESS_TOKEN") != null || project.hasProperty(vstsMavenAccessToken)) {
+    if (System.getenv("VSTS_ENV_ACCESS_TOKEN") != null || project.hasProperty("vstsMavenAccessToken")) {
         repositories {
             maven {
                 name "vsts-maven-adal-android"
@@ -251,7 +251,7 @@ publishing {
 }
 
 // Repositories from which Gradle can fetch dependencies
-if (System.getenv("VSTS_ENV_ACCESS_TOKEN") != null || project.hasProperty(vstsMavenAccessToken)) {
+if (System.getenv("VSTS_ENV_ACCESS_TOKEN") != null || project.hasProperty("vstsMavenAccessToken")) {
     repositories {
         maven {
             name "vsts-maven-adal-android"
