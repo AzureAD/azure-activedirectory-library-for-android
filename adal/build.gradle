@@ -230,6 +230,28 @@ publishing {
     }
 
     // Repositories to which Gradle can publish artifacts
+    if (System.getenv("VSTS_ENV_ACCESS_TOKEN") != null || vstsMavenAccessToken != null) {
+        repositories {
+            maven {
+                name "vsts-maven-adal-android"
+                url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+                credentials {
+                    username "VSTS"
+                    password System.getenv("VSTS_ENV_ACCESS_TOKEN") != null ? System.getenv("VSTS_ENV_ACCESS_TOKEN") : vstsMavenAccessToken
+                }
+            }
+        }
+    } else {
+        repositories {
+            maven {
+                url "\\\\adalbuildvm\\AndroidRelease\\repository"
+            }
+        }
+    }
+}
+
+// Repositories from which Gradle can fetch dependencies
+if (System.getenv("VSTS_ENV_ACCESS_TOKEN") != null || vstsMavenAccessToken != null) {
     repositories {
         maven {
             name "vsts-maven-adal-android"
@@ -238,18 +260,6 @@ publishing {
                 username "VSTS"
                 password System.getenv("VSTS_ENV_ACCESS_TOKEN") != null ? System.getenv("VSTS_ENV_ACCESS_TOKEN") : vstsMavenAccessToken
             }
-        }
-    }
-}
-
-// Repositories from which Gradle can fetch dependencies
-repositories {
-    maven {
-        name "vsts-maven-adal-android"
-        url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
-        credentials {
-            username "VSTS"
-            password System.getenv("VSTS_ENV_ACCESS_TOKEN") != null ? System.getenv("VSTS_ENV_ACCESS_TOKEN") : vstsMavenAccessToken
         }
     }
 }
