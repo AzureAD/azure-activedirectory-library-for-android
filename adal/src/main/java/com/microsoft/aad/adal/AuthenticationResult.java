@@ -26,6 +26,8 @@ package com.microsoft.aad.adal;
 import java.io.Serializable;
 import java.util.Date;
 
+import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
+
 /**
  * Result class to keep code, token and other info Serializable properties Mark
  * temp properties as Transient if you dont want to keep them in serialization.
@@ -89,7 +91,7 @@ public class AuthenticationResult implements Serializable {
 
     private Date mExtendedExpiresOn;
 
-    private String mSpeRing;
+    private CliTelemInfo mCliTelemInfo;
 
     AuthenticationResult() {
         mCode = null;
@@ -375,11 +377,11 @@ public class AuthenticationResult implements Serializable {
         mFamilyClientId = familyClientId;
     }
 
-    final String getSpeRing() {
-        return mSpeRing;
+    final CliTelemInfo getCliTelemInfo() {
+        return mCliTelemInfo;
     }
 
-    final void setSpeRing(final String speRing) {
-        mSpeRing = speRing;
+    final void setCliTelemInfo(final CliTelemInfo cliTelemInfo) {
+        mCliTelemInfo = cliTelemInfo;
     }
 }

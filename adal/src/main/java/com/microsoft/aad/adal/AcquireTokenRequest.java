@@ -648,13 +648,38 @@ class AcquireTokenRequest {
                     final String tenantId = data.getStringExtra(
                             AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                     final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
+
+                    // grab the fields tracked by x-ms-clitelem
+                    final String serverErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR);
+                    final String serverSubErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR);
+                    final String refreshTokenAge = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE);
+                    final String speRingInfo = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING);
+
+                    // create the broker AuthenticationResult
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken, null);
+
+                    // set the x-ms-clitelem fields on the result from the Broker
+                    final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
+                    cliTelemInfo.setServerErrorCode(serverErrorCode);
+                    cliTelemInfo.setServerSubErrorCode(serverSubErrorCode);
+                    cliTelemInfo.setRefreshTokenAge(refreshTokenAge);
+                    cliTelemInfo.setSpeRing(speRingInfo);
+                    brokerResult.setCliTelemInfo(cliTelemInfo);
+
                     if (brokerResult.getAccessToken() != null) {
                         waitingRequest.getAPIEvent().setWasApiCallSuccessful(true, null);
                         waitingRequest.getAPIEvent().setCorrelationId(
                                 waitingRequest.getRequest().getCorrelationId().toString());
                         waitingRequest.getAPIEvent().setIdToken(brokerResult.getIdToken());
+
+                        // add the x-ms-clitelem info to the ApiEvent
+                        waitingRequest.getAPIEvent().setServerErrorCode(cliTelemInfo.getServerErrorCode());
+                        waitingRequest.getAPIEvent().setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
+                        waitingRequest.getAPIEvent().setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
+                        waitingRequest.getAPIEvent().setSpeRing(cliTelemInfo.getSpeRing());
+
+                        // stop the event
                         waitingRequest.getAPIEvent().stopTelemetryAndFlush();
 
                         waitingRequest.getDelegate().onSuccess(brokerResult);

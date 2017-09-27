@@ -489,6 +489,19 @@ public final class AuthenticationConstants {
 
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
+
+        public static final class CliTelemInfo {
+
+            private static final String sPrefix = "cliteleminfo.";
+
+            public static final String SERVER_ERROR = sPrefix + "server_error";
+
+            public static final String SERVER_SUBERROR = sPrefix + "server_suberror";
+
+            public static final String RT_AGE = sPrefix + "rt_age";
+
+            public static final String SPE_RING = sPrefix + "spe_ring";
+        }
     }
 
     /**
