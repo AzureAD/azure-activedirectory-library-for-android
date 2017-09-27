@@ -63,7 +63,10 @@ final class Discovery {
 
     private static final String AUTHORIZATION_COMMON_ENDPOINT = "/common/oauth2/authorize";
 
-    private volatile static ReentrantLock sLock;
+    /**
+     * {@link ReentrantLock} for making sure there is only one instance discovery request sent out at a time.
+     */
+    private volatile static ReentrantLock sInstanceDiscoveryNetworkRequestLock;
 
     /**
      * Sync set of valid hosts to skip query to server if host was verified
@@ -120,11 +123,11 @@ final class Discovery {
         }
 
         try {
-            sLock = getLock();
-            sLock.lock();
+            sInstanceDiscoveryNetworkRequestLock = getLock();
+            sInstanceDiscoveryNetworkRequestLock.lock();
             performInstanceDiscovery(authorizationEndpoint, trustedHost);
         } finally {
-            sLock.unlock();
+            sInstanceDiscoveryNetworkRequestLock.unlock();
         }
     }
 
@@ -330,15 +333,15 @@ final class Discovery {
      * @return {@link ReentrantLock} for locking the network request queue.
      */
     private static ReentrantLock getLock() {
-        if (sLock == null) {
+        if (sInstanceDiscoveryNetworkRequestLock == null) {
             synchronized (Discovery.class) {
-                if (sLock == null) {
-                    sLock = new ReentrantLock();
+                if (sInstanceDiscoveryNetworkRequestLock == null) {
+                    sInstanceDiscoveryNetworkRequestLock = new ReentrantLock();
                 }
             }
         }
 
-        return sLock;
+        return sInstanceDiscoveryNetworkRequestLock;
     }
 
     Set<String> getValidHosts() {

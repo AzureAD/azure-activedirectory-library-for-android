@@ -29,6 +29,7 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 /**
  * Internal class handling the detailed acquire token interactive logic. Will be responsible for showing the webview,
@@ -118,8 +119,12 @@ final class AcquireTokenInteractiveRequest {
 
         if (!StringExtensions.isNullOrBlank(result.getAccessToken()) && mTokenCacheAccessor != null) {
             // Developer may pass null for the acquireToken flow.
-            mTokenCacheAccessor.updateTokenCache(mAuthRequest.getResource(),
-                    mAuthRequest.getClientId(), result);
+            try {
+                mTokenCacheAccessor.updateTokenCache(mAuthRequest.getResource(),
+                        mAuthRequest.getClientId(), result);
+            } catch (MalformedURLException e) {
+                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            }
         }
 
         return result;

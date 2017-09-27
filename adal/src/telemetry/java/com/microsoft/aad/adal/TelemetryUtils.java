@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +35,7 @@ final class TelemetryUtils {
 
     private static final String TAG = TelemetryUtils.class.getSimpleName();
 
-    static class CliTelemInfo {
+    static class CliTelemInfo implements Serializable {
 
         private String mVersion;
         private String mServerErrorCode;

@@ -27,6 +27,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -34,6 +35,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.test.UiThreadTest;
 import android.util.Base64;
 import android.util.Log;
@@ -42,10 +44,12 @@ import com.google.gson.Gson;
 
 import junit.framework.Assert;
 
+import org.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -59,10 +63,20 @@ import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.NoSuchPaddingException;
@@ -71,6 +85,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static android.R.attr.resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -79,7 +94,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public final class AuthenticationContextTest {
@@ -253,6 +272,7 @@ public final class AuthenticationContextTest {
     @UiThreadTest
     public void testCorrelationIdInWebRequest() throws InterruptedException, IOException {
 
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
         final int minSDKVersionForTest = 15;
         if (Build.VERSION.SDK_INT <= minSDKVersionForTest) {
             Log.v(TAG,
@@ -286,7 +306,7 @@ public final class AuthenticationContextTest {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-        Mockito.when(mockedConnection.getInputStream())
+        Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class)
                 .thenReturn(Util.createInputStream(errorResponse));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
 
@@ -390,6 +410,7 @@ public final class AuthenticationContextTest {
     @Test
     public void testAcquireTokenUserId() throws InterruptedException {
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
         final AuthenticationContext context = getAuthenticationContext(mockContext,
                 "https://login.windows.net/common", false, null);
 
@@ -634,7 +655,7 @@ public final class AuthenticationContextTest {
      * @throws IOException
      */
     @Test
-    public void testAcquireTokenByRefreshTokenPositive() throws IOException, InterruptedException {
+    public void testAcquireTokenByRefreshTokenPositive() throws IOException, InterruptedException, JSONException {
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
@@ -682,7 +703,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testAcquireTokenByRefreshTokenNotReturningRefreshToken() throws IOException, InterruptedException {
+    public void testAcquireTokenByRefreshTokenNotReturningRefreshToken() throws IOException, InterruptedException, JSONException {
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
         final AuthenticationContext context = getAuthenticationContext(mockContext,
@@ -959,12 +980,13 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testScenarioUserIdLoginHintUse() throws InterruptedException, AuthenticationException, IOException {
+    public void testScenarioUserIdLoginHintUse() throws InterruptedException, AuthenticationException, IOException, JSONException {
         scenarioUserIdLoginHint("test@user.com", "test@user.com", "test@user.com");
     }
 
     private void scenarioUserIdLoginHint(final String idTokenUpn, final String responseIntentHint,
-                                         final String acquireTokenHint) throws InterruptedException, AuthenticationException, IOException {
+                                         final String acquireTokenHint)
+            throws InterruptedException, AuthenticationException, IOException, JSONException {
 
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
@@ -1018,7 +1040,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testScenarioNullUserIdToken() throws InterruptedException, AuthenticationException, IOException {
+    public void testScenarioNullUserIdToken() throws InterruptedException, AuthenticationException, IOException, JSONException {
         scenarioUserIdLoginHint("test@user.com", "", "");
     }
 
@@ -1078,7 +1100,7 @@ public final class AuthenticationContextTest {
     }
 
     @Test
-    public void testScenarioEmptyIdToken() throws InterruptedException, AuthenticationException, IOException {
+    public void testScenarioEmptyIdToken() throws InterruptedException, AuthenticationException, IOException, JSONException {
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final AuthenticationContext context = new AuthenticationContext(mockContext,
                 VALID_AUTHORITY, false);
@@ -1124,7 +1146,7 @@ public final class AuthenticationContextTest {
      */
     @Test
     public void testFamilyClientIdCorrectlyStoredInCache() throws IOException, InterruptedException,
-            AuthenticationException {
+            AuthenticationException, JSONException {
 
         FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -1170,6 +1192,409 @@ public final class AuthenticationContextTest {
         clearCache(context);
     }
 
+    /**
+     * When an authority is invalid, but the validation is not required:
+     * a. ADAL still behaves correctly using developer provided authority
+     * b. Subsequent requests do not result in further authority validation network requests for the process lifetime.
+     */
+    @Test
+    public void testAuthorityValidationTurnedOffAndInstanceDiscoveryFailed() throws IOException, InterruptedException, JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockedCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, false, mockedCache);
+        final Activity mockActivity = Mockito.mock(Activity.class);
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        // The first network call would be doing instance discovery, the second one is refresh token request.
+        // mock another silent request will only do token refresh
+        Mockito.when(mockedConnection.getInputStream()).thenThrow(new IOException())
+                .thenReturn(Util.createInputStream(Util.getSuccessTokenResponse(true, true)),
+                Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST, HttpURLConnection.HTTP_OK);
+
+        // clear the authority validation map
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
+        final CountDownLatch latch = new CountDownLatch(1);
+        context.acquireToken(mockActivity, "resource", "clientid", "redirectUri", TEST_IDTOKEN_UPN, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                try {
+                    Assert.assertTrue(result.getAccessToken().equals("I am a new access token"));
+                } finally {
+                    latch.countDown();
+                }
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                Assert.fail();
+            }
+        });
+
+        latch.await();
+
+        final CountDownLatch latch2 = new CountDownLatch(1);
+        Iterator<TokenCacheItem> items = context.getCache().getAll();
+        while (items.hasNext()) {
+            final TokenCacheItem item = items.next();
+            item.setExpiresOn(new Date());
+        }
+
+        context.acquireTokenSilentAsync("resource", "clientId", TEST_IDTOKEN_USERID, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                try {
+                    Assert.assertTrue(result.getAccessToken().equals("I am a new access token"));
+                } finally {
+                    latch2.countDown();
+                }
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                Assert.fail();
+            }
+        });
+
+        latch2.await();
+
+        Mockito.verify(mockedConnection, times(3)).getInputStream();
+
+        // Clean up Authority validation cache
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
+    }
+
+    /**
+     * When an authority is valid, but no metadata is returned:
+     * a.ADAL still behaves correctly using developer provided authority
+     * b.Subsequent requests do not result in further authority validation network requests for the process lifetime
+     */
+    @Test
+    public void testAuthorityValidationTurnedOnButNoMetadataReturned() throws IOException, InterruptedException, JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore mockedCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, true, mockedCache);
+        final Activity mockActivity = Mockito.mock(Activity.class);
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        // The first network call would be doing instance discovery, the second one is refresh token request.
+        // mock another silent request will only do token refresh
+        final String tenantDiscoveryResponse = "{\"tenant_discovery_endpoint\":\"valid endpoint\"}";
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(
+                Util.createInputStream(tenantDiscoveryResponse),
+                Util.createInputStream(Util.getSuccessTokenResponse(true, true)),
+                Util.createInputStream(Util.getSuccessTokenResponse(true, false)));
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        // clear the authority validation map
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
+        final CountDownLatch latch = new CountDownLatch(1);
+        context.acquireToken(mockActivity, "resource", "clientid", "redirectUri", TEST_IDTOKEN_UPN, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                try {
+                    Assert.assertTrue(result.getAccessToken().equals("I am a new access token"));
+                } finally {
+                    latch.countDown();
+                }
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                Assert.fail();
+            }
+        });
+
+        latch.await();
+
+        final CountDownLatch latch2 = new CountDownLatch(1);
+        Iterator<TokenCacheItem> items = context.getCache().getAll();
+        while (items.hasNext()) {
+            final TokenCacheItem item = items.next();
+            item.setExpiresOn(new Date());
+        }
+
+        context.acquireTokenSilentAsync("resource", "clientId", TEST_IDTOKEN_USERID, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                try {
+                    Assert.assertTrue(result.getAccessToken().equals("I am a new access token"));
+                } finally {
+                    latch2.countDown();
+                }
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                Assert.fail();
+            }
+        });
+
+        latch2.await();
+
+        Mockito.verify(mockedConnection, times(3)).getInputStream();
+    }
+
+    /**
+     *  If multiple simultaneous acquireToken calls with the same authority are made without any authority cache,
+     *  only one authority validation network request is ever made.
+     */
+    @Test
+    public void testMultipleATCallsInDifferentThreadsOnlyOneAuthorityValidation() throws IOException, InterruptedException, ExecutionException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final String accessToken = "some access token";
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final ITokenCacheStore tokenCacheStore = getMockCache(30, accessToken, resource, clientId, TEST_IDTOKEN_UPN, true);
+        final AuthenticationContext context = getAuthenticationContext(mockContext, VALID_AUTHORITY, true, tokenCacheStore);
+        final Activity mockActivity = Mockito.mock(Activity.class);
+
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        // there are valid access token in the cache.
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(DiscoveryTests.getDiscoveryResponse()));
+
+        // clear the authority validation map
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
+        final ExecutorService executorService = Executors.newFixedThreadPool(2);
+        final Callable<Void> task = new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                final CountDownLatch latch = new CountDownLatch(1);
+                context.acquireToken(mockActivity, "resource", "clientid", "redirectUri", TEST_IDTOKEN_UPN, new AuthenticationCallback<AuthenticationResult>() {
+                    @Override
+                    public void onSuccess(AuthenticationResult result) {
+                        try {
+                            Assert.assertTrue(result.getAccessToken().equals(accessToken));
+                        } finally {
+                            latch.countDown();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Exception exc) {
+                        Assert.fail();
+                    }
+                });
+
+                latch.await();
+                return null;
+            }
+        };
+
+        final List<Callable<Void>> tasks = Collections.nCopies(2, task);
+        final List<Future<Void>> results = executorService.invokeAll(tasks);
+        for (final Future<Void> result : results) {
+            result.get();
+        }
+
+        Mockito.verify(mockedConnection, times(1)).getInputStream();
+    }
+
+    /**
+     * When an authority is valid and metadata is returned:
+     * but differs from preferred_cache:
+     * new tokens are written to cache using solely the preferred_cache authority
+     */
+    @Test
+    public void testNewTokenOnlyWrittenToPreferredCacheLocation() throws InterruptedException, IOException, JSONException {
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore tokenCacheStore = new DefaultTokenCacheStore(mockContext);
+
+        final String resource = "resource";
+        final String authority = "https://sts.microsoft.com/test.onmicrosoft.com";
+        final AuthenticationContext context = getAuthenticationContext(mockContext, authority, true, tokenCacheStore);
+        context.getCache().removeAll();
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Activity mockedActivity = Mockito.mock(Activity.class);
+        final AuthenticationCallback callback = new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                final String uniqueUserId = result.getUserInfo().getUserId();
+                // validate the foci serialize can still find token
+                try {
+                    assertNotNull(context.serialize(uniqueUserId));
+                } catch (AuthenticationException e) {
+                    fail("unexpected exception");
+                } finally {
+                    latch.countDown();
+                }
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                fail();
+            }
+        };
+
+        doAnswer(new Answer() {
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                final Intent intent = new Intent();
+                String state = String.format("a=%s&r=%s", authority, resource);
+                final String encodedState = Base64.encodeToString(state.getBytes("UTF-8"), Base64.NO_PADDING | Base64.URL_SAFE);
+                intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
+                intent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, "https://login.windows.net/common?code=1234&state=" + encodedState);
+                context.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW, AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE, intent);
+                return null;
+            }
+        }).when(mockedActivity).startActivityForResult(Mockito.any(Intent.class), Mockito.anyInt());
+
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(DiscoveryTests.getDiscoveryResponse()),
+                Util.createInputStream(Util.getSuccessTokenResponseWithFamilyClientId()));
+        Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        context.acquireToken(mockedActivity, "resource", "clientid",
+                "redirect", TEST_IDTOKEN_UPN, callback);
+
+        latch.await();
+
+        final ArgumentCaptor<Intent> intentArgumentCaptor = ArgumentCaptor.forClass(Intent.class);
+        Mockito.verify(mockedActivity).startActivityForResult(intentArgumentCaptor.capture(), Mockito.anyInt());
+        final AuthenticationRequest requestMessage = (AuthenticationRequest) intentArgumentCaptor.getValue().getSerializableExtra(
+                AuthenticationConstants.Browser.REQUEST_MESSAGE);
+        assertTrue(requestMessage.getAuthority().contains("login.microsoftonline.com"));
+
+        final SharedPreferences sharedPreferences =  mockContext.getSharedPreferences("com.microsoft.aad.adal.cache", Activity.MODE_PRIVATE);
+        final Map<String, String> allTokens = (Map<String, String>) sharedPreferences.getAll();
+        Assert.assertTrue(allTokens.size() == 8);
+        // also verify all the key are using preferred_cache
+        final Set<String> keys = allTokens.keySet();
+        for (final String key : keys) {
+            assertTrue(key.contains("login.windows.net"));
+        }
+
+        assertTrue(HttpUrlConnectionFactory.getMockedConnectionOpenUrl().getHost().equals("login.microsoftonline.com"));
+    }
+
+    @Test
+    public void testCacheContainsPreferredCacheToken() throws InterruptedException, IOException, JSONException {
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final ITokenCacheStore tokenCacheStore = getMockCache(-20, "accessToken", resource, clientId, TEST_IDTOKEN_USERID, false);
+
+        final String authority = "https://sts.microsoft.com/test.onmicrosoft.com";
+        final String accessTokenForPassedInAuthority = "access token for passedInAuthority";
+        final TokenCacheItem itemForPassedInAuthority = getTokenCacheItem(authority, resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        itemForPassedInAuthority.setAccessToken(accessTokenForPassedInAuthority);
+        tokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, TEST_IDTOKEN_USERID), itemForPassedInAuthority);
+
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final AuthenticationContext authenticationContext = new AuthenticationContext(mockContext, authority, true, tokenCacheStore);
+
+        final HttpURLConnection connection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(connection);
+        when(connection.getInputStream()).thenReturn(Util.createInputStream(DiscoveryTests.getDiscoveryResponse()),
+                Util.createInputStream(Util.getSuccessTokenResponse(false, false)));
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(connection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        authenticationContext.acquireTokenSilentAsync(resource, clientId, TEST_IDTOKEN_USERID, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                assertNotNull(result.getAccessToken());
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                fail();
+            }
+        });
+
+        latch.await();
+
+        // verify cache
+        assertNotNull(tokenCacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_IDTOKEN_USERID)));
+        final TokenCacheItem item = tokenCacheStore.getItem(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, TEST_IDTOKEN_USERID));
+        assertNotNull(item);
+        assertTrue(item.getAccessToken().equals(accessTokenForPassedInAuthority));
+
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
+    }
+
+    /**
+     * When an authority is valid and metadata is returned, but differs from the preferred_network,
+     * preferred_network host is used for all subsequent network requests.
+     */
+    @Test
+    public void testCacheContainsPassedInAuthority() throws IOException, InterruptedException, JSONException {
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        final ITokenCacheStore tokenCacheStore = new DefaultTokenCacheStore(mockContext);
+        tokenCacheStore.removeAll();
+
+        final String authority = "https://sts.microsoft.com/test.onmicrosoft.com";
+        final String accessTokenForPassedInAuthority = "access token for passedInAuthority";
+        final String refreshTokenForPassedInAuthority = "refresh token for passedInAuthority";
+        final TokenCacheItem itemForPassedInAuthority = getTokenCacheItem(authority, resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        itemForPassedInAuthority.setAccessToken(accessTokenForPassedInAuthority);
+        itemForPassedInAuthority.setRefreshToken(refreshTokenForPassedInAuthority);
+        tokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, TEST_IDTOKEN_USERID), itemForPassedInAuthority);
+
+        final String refreshTokenForPreferredNetwork = "refresh token for preferredNetwork";
+        final TokenCacheItem itemForPreferredNetwork = getTokenCacheItem("https://login.microsoftonline.com/test.onmicrosoft.com",
+                resource, clientId, TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        itemForPreferredNetwork.setRefreshToken(refreshTokenForPreferredNetwork);
+
+        final AuthenticationContext authenticationContext = new AuthenticationContext(mockContext, authority, true, tokenCacheStore);
+
+        final HttpURLConnection connection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(connection);
+        when(connection.getInputStream()).thenReturn(Util.createInputStream(DiscoveryTests.getDiscoveryResponse()),
+                Util.createInputStream(Util.getSuccessTokenResponse(false, false)));
+        when(connection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        final OutputStream outputStream = Mockito.mock(OutputStream.class);
+        when(connection.getOutputStream()).thenReturn(outputStream);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        authenticationContext.acquireTokenSilentAsync(resource, clientId, TEST_IDTOKEN_USERID, new AuthenticationCallback<AuthenticationResult>() {
+            @Override
+            public void onSuccess(AuthenticationResult result) {
+                assertNotNull(result.getAccessToken());
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Exception exc) {
+                fail();
+            }
+        });
+
+        latch.await();
+
+        verify(outputStream).write(Util.getPoseMessage(refreshTokenForPassedInAuthority, clientId, resource));
+        assertTrue(HttpUrlConnectionFactory.getMockedConnectionOpenUrl().getHost().equals("login.microsoftonline.com"));
+
+        // verify cache
+        assertNotNull(tokenCacheStore.getItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, resource, clientId, TEST_IDTOKEN_USERID)));
+        final TokenCacheItem item = tokenCacheStore.getItem(CacheKey.createCacheKeyForRTEntry(authority, resource, clientId, TEST_IDTOKEN_USERID));
+        assertNotNull(item);
+        assertTrue(item.getAccessToken().equals(accessTokenForPassedInAuthority));
+
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
+    }
+
     private void verifyFamilyIdStoredInTokenCacheItem(final ITokenCacheStore cacheStore, final String cacheKey,
                                                       final String expectedFamilyClientId) {
 
@@ -1186,8 +1611,7 @@ public final class AuthenticationContextTest {
         intent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, callback.hashCode());
         final AuthenticationRequest authRequest = new AuthenticationRequest(VALID_AUTHORITY,
                 resource, clientid, redirect, loginHint, false);
-        intent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
-                (Serializable) authRequest);
+        intent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO, authRequest);
         intent.putExtra(AuthenticationConstants.Browser.RESPONSE_FINAL_URL, VALID_AUTHORITY
                 + "/oauth2/authorize?code=123&state=" + getState(VALID_AUTHORITY, resource));
         return intent;
@@ -1268,7 +1692,8 @@ public final class AuthenticationContextTest {
 
     @Test
     public void testAcquireTokenSilentSyncNegative() throws InterruptedException, AuthenticationException,
-            IOException {
+            IOException, JSONException {
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
 
         final FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
         final ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
@@ -1283,7 +1708,7 @@ public final class AuthenticationContextTest {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
         Util.prepareMockedUrlConnection(mockedConnection);
         Mockito.when(mockedConnection.getOutputStream()).thenReturn(Mockito.mock(OutputStream.class));
-        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(
+        Mockito.when(mockedConnection.getInputStream()).thenThrow(IOException.class).thenReturn(Util.createInputStream(
                 Util.getErrorResponseBody("invalid_grant")),
                 Util.createInputStream(Util.getSuccessTokenResponse(true, true)));
         Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_BAD_REQUEST);
@@ -2293,6 +2718,19 @@ public final class AuthenticationContextTest {
         return cache;
     }
 
+    private TokenCacheItem getTokenCacheItem(final String authority, final String resource, final String clientId,
+                                             final String userId, final String displayableId) {
+        final TokenCacheItem item = new TokenCacheItem();
+        item.setAuthority(authority);
+        item.setResource(resource);
+        item.setClientId(clientId);
+        item.setUserInfo(new UserInfo(userId, "givenName", "familyName", "idp", displayableId));
+        item.setAccessToken("accessToken");
+        item.setRefreshToken("refreshTOken");
+        item.setExpiresOn(new Date());
+
+        return item;
+    }
 
     private ITokenCacheStore getMockCache(int minutes, String token, String resource,
                                           String client, String user, boolean isMultiResource) {

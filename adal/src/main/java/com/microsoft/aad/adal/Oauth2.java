@@ -663,7 +663,9 @@ class Oauth2 {
             try {
                 result = parseJsonResponse(webResponse.getBody());
                 if (result != null) {
-                    result.setSpeRing(speRing);
+                    final CliTelemInfo cliTelemInfo = new CliTelemInfo();
+                    cliTelemInfo.setSpeRing(speRing);
+                    result.setCliTelemInfo(cliTelemInfo);
                     httpEvent.setOauthErrorCode(result.getErrorCode());
                 }
             } catch (final JSONException jsonException) {

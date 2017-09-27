@@ -585,7 +585,12 @@ public enum ADALError {
     /**
      * The value of the x-ms-clitelem header contained malformed data.
      */
-    X_MS_CLITELEM_MALFORMED("Malformed x-ms-clitelem header");
+    X_MS_CLITELEM_MALFORMED("Malformed x-ms-clitelem header"),
+
+    /**
+     * Failed to bind the service in broker app.
+     */
+    BROKER_BIND_SERVICE_FAILED("Failed to bind the service in broker app");
 
     private String mDescription;
 

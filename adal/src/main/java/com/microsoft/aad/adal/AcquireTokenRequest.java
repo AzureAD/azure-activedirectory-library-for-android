@@ -32,6 +32,7 @@ import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Date;
@@ -212,7 +213,8 @@ class AcquireTokenRequest {
                 try {
                     mDiscovery.validateAuthority(authorityUrl);
                 } catch (final AuthenticationException authenticationException) {
-                    // Ignore the failure.
+                    // Ignore the failure, save in the map as a failed instance discovery to avoid it being looked up another times in the same process
+                    AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(), new InstanceDiscoveryMetadata(false));
                     Logger.v(TAG, "Fail to get authority validation metadata back. Ignore the failure since authority validation is turned off.");
                 }
             }
@@ -220,6 +222,30 @@ class AcquireTokenRequest {
             apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_NOT_DONE);
             Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
                     EventStrings.AUTHORITY_VALIDATION_EVENT);
+        }
+
+        final InstanceDiscoveryMetadata metadata = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl);
+        if (metadata == null || !metadata.isValidated()) {
+            return;
+        }
+
+        updatePreferredNetworkLocation(authorityUrl, authenticationRequest, metadata);
+    }
+
+    private void updatePreferredNetworkLocation(final URL authorityUrl, final AuthenticationRequest request, final InstanceDiscoveryMetadata metadata)
+            throws AuthenticationException {
+        if (metadata == null || !metadata.isValidated()) {
+            return;
+        }
+
+        // replace the authority if host is not the same as the original one.
+        if (!authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
+            try {
+                final URL replacedAuthority = Utility.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
+                request.setAuthority(replacedAuthority.toString());
+            } catch (final MalformedURLException ex) {
+                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+            }
         }
     }
 
@@ -419,7 +445,12 @@ class AcquireTokenRequest {
         // family apps. If we want to clear the tokens for the user(signout the user with local cahce), have the
         // user to sign-in through broker, we also need to clear the family token.
         // Check if there is a FRT existed for the user
-        final TokenCacheItem frtItem = mTokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, user);
+        final TokenCacheItem frtItem;
+        try {
+            frtItem = mTokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, user);
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
 
         if (frtItem != null) {
             mTokenCacheAccessor.removeTokenCacheItem(frtItem, request.getResource());
@@ -428,10 +459,17 @@ class AcquireTokenRequest {
         // Check if there is a MRRT existed for the user, if there is an MRRT, TokenCacheAccessor will also
         // delete the regular RT entry
         // When there is no MRRT token cache item exist, try to check if there is regular RT cache item for the user.
-        final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(request.getClientId(), user);
-        final TokenCacheItem regularTokenCacheItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(
-                request.getResource(), request.getClientId(), user);
+        final TokenCacheItem mrrtItem;
+        final TokenCacheItem regularTokenCacheItem;
 
+
+        try {
+            mrrtItem = mTokenCacheAccessor.getMRRTItem(request.getClientId(), user);
+            regularTokenCacheItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(
+                    request.getResource(), request.getClientId(), user);
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
 
         if (mrrtItem != null) {
             mTokenCacheAccessor.removeTokenCacheItem(mrrtItem, request.getResource());
@@ -610,13 +648,38 @@ class AcquireTokenRequest {
                     final String tenantId = data.getStringExtra(
                             AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                     final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
+
+                    // grab the fields tracked by x-ms-clitelem
+                    final String serverErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR);
+                    final String serverSubErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR);
+                    final String refreshTokenAge = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE);
+                    final String speRingInfo = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING);
+
+                    // create the broker AuthenticationResult
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken, null);
+
+                    // set the x-ms-clitelem fields on the result from the Broker
+                    final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
+                    cliTelemInfo.setServerErrorCode(serverErrorCode);
+                    cliTelemInfo.setServerSubErrorCode(serverSubErrorCode);
+                    cliTelemInfo.setRefreshTokenAge(refreshTokenAge);
+                    cliTelemInfo.setSpeRing(speRingInfo);
+                    brokerResult.setCliTelemInfo(cliTelemInfo);
+
                     if (brokerResult.getAccessToken() != null) {
                         waitingRequest.getAPIEvent().setWasApiCallSuccessful(true, null);
                         waitingRequest.getAPIEvent().setCorrelationId(
                                 waitingRequest.getRequest().getCorrelationId().toString());
                         waitingRequest.getAPIEvent().setIdToken(brokerResult.getIdToken());
+
+                        // add the x-ms-clitelem info to the ApiEvent
+                        waitingRequest.getAPIEvent().setServerErrorCode(cliTelemInfo.getServerErrorCode());
+                        waitingRequest.getAPIEvent().setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
+                        waitingRequest.getAPIEvent().setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
+                        waitingRequest.getAPIEvent().setSpeRing(cliTelemInfo.getSpeRing());
+
+                        // stop the event
                         waitingRequest.getAPIEvent().stopTelemetryAndFlush();
 
                         waitingRequest.getDelegate().onSuccess(brokerResult);

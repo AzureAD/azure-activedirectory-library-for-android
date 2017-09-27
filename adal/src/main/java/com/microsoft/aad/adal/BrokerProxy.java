@@ -71,6 +71,10 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
 
 /**
  * Handles interactions to authenticator inside the Account Manager.
@@ -496,8 +500,18 @@ class BrokerProxy implements IBrokerProxy {
                 expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
 
-            return new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
+            final AuthenticationResult result = new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
                     "", expires, false, userinfo, tenantId, "", null);
+
+            // set the x-ms-clitelem data
+            final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
+            cliTelemInfo.setServerErrorCode(bundleResult.getString(SERVER_ERROR));
+            cliTelemInfo.setServerSubErrorCode(bundleResult.getString(SERVER_SUBERROR));
+            cliTelemInfo.setRefreshTokenAge(bundleResult.getString(RT_AGE));
+            cliTelemInfo.setSpeRing(bundleResult.getString(SPE_RING));
+            result.setCliTelemInfo(cliTelemInfo);
+
+            return result;
         }
     }
 
