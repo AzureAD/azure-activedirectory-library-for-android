@@ -234,7 +234,7 @@ publishing {
     repositories {
         maven {
             name "vsts-maven-adal-android"
-            url project.findProperty("vstsAndroidADALUrl")
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
             credentials {
                 username project.findProperty("vstsUsername")
                 password project.findProperty("vstsMavenAccessToken")
@@ -247,7 +247,7 @@ publishing {
 repositories {
     maven {
         name "vsts-maven-adal-android"
-        url project.findProperty("vstsAndroidADALUrl")
+        url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
         credentials {
             username project.findProperty("vstsUsername")
             password project.findProperty("vstsMavenAccessToken")
