@@ -150,8 +150,18 @@ final class BrokerAccountServiceHandler {
         }
 
         final Throwable throwable = exception.getAndSet(null);
+        //AuthenticationException with error code BROKER_AUTHENTICATOR_NOT_RESPONDING will be thrown if there is any exception thrown during binding the service.
         if (throwable != null) {
-            throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, throwable.getMessage(), throwable);
+            if (throwable instanceof RemoteException) {
+                Logger.e(TAG, "Get error when trying to get token from broker: " + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
+                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
+            } else if (throwable instanceof InterruptedException) {
+                Logger.e(TAG, "The broker account service binding call is interrupted. "  + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_EXCEPTION, throwable);
+                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
+            } else {
+                Logger.e(TAG, "Get error when trying to bind the broker account service." + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
+                throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
+            }
         }
 
         return bundleResult.getAndSet(null);
