@@ -207,7 +207,8 @@ publishing {
         adal(MavenPublication) {
             groupId 'com.microsoft.aad'
             artifactId 'adal'
-            version = project.version
+            //Edit the 'version' here for VSTS RC build
+            version = project.version + '.' + getTimestamp()
 
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
@@ -229,11 +230,34 @@ publishing {
         }
     }
 
+    // Repositories to which Gradle can publish artifacts
     repositories {
         maven {
-            url "\\\\adalbuildvm\\AndroidRelease\\repository";
+            name "vsts-maven-adal-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            credentials {
+                username project.findProperty("vstsUsername")
+                password project.findProperty("vstsMavenAccessToken")
+            }
         }
     }
+}
+
+// Repositories from which Gradle can fetch dependencies
+repositories {
+    maven {
+        name "vsts-maven-adal-android"
+        url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+        credentials {
+            username project.findProperty("vstsUsername")
+            password project.findProperty("vstsMavenAccessToken")
+        }
+    }
+}
+
+def getTimestamp() {
+    def date = new Date()
+    return date.format('yyyyMMdd.HHmm')
 }
 
 artifacts {
