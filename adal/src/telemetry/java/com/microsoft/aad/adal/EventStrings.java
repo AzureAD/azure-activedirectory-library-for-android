@@ -152,7 +152,7 @@ final class EventStrings {
 
     // Parameter values
     static final String AUTHORITY_TYPE_ADFS = "adfs";
-    static final String AUTHORITY_TYPE_AAD = EVENT_PREFIX + "aad";
+    static final String AUTHORITY_TYPE_AAD = "aad";
 
     static final String AUTHORITY_VALIDATION_SUCCESS = EVENT_PREFIX + "authority_validation_status_success";
     static final String AUTHORITY_VALIDATION_FAILURE = EVENT_PREFIX + "authority_validation_status_failure";
