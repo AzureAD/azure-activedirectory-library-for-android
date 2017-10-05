@@ -156,7 +156,7 @@ final class EventStrings {
 
     static final String AUTHORITY_VALIDATION_SUCCESS = "yes";
     static final String AUTHORITY_VALIDATION_FAILURE = "no";
-    static final String AUTHORITY_VALIDATION_NOT_DONE = "authority_validation_status_not_done";
+    static final String AUTHORITY_VALIDATION_NOT_DONE = "not_done";
 
     // Broker account service related events
     static final String BROKER_ACCOUNT_SERVICE_STARTS_BINDING = EVENT_PREFIX + "broker_account_service_starts_binding";
