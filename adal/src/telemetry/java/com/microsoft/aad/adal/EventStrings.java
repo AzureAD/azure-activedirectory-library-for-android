@@ -154,9 +154,9 @@ final class EventStrings {
     static final String AUTHORITY_TYPE_ADFS = "adfs";
     static final String AUTHORITY_TYPE_AAD = "aad";
 
-    static final String AUTHORITY_VALIDATION_SUCCESS = EVENT_PREFIX + "authority_validation_status_success";
-    static final String AUTHORITY_VALIDATION_FAILURE = EVENT_PREFIX + "authority_validation_status_failure";
-    static final String AUTHORITY_VALIDATION_NOT_DONE = EVENT_PREFIX + "authority_validation_status_not_done";
+    static final String AUTHORITY_VALIDATION_SUCCESS = "authority_validation_status_success";
+    static final String AUTHORITY_VALIDATION_FAILURE = "authority_validation_status_failure";
+    static final String AUTHORITY_VALIDATION_NOT_DONE = "authority_validation_status_not_done";
 
     // Broker account service related events
     static final String BROKER_ACCOUNT_SERVICE_STARTS_BINDING = EVENT_PREFIX + "broker_account_service_starts_binding";
