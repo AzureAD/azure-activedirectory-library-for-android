@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
 import android.net.Uri;
 
 import org.json.JSONException;
@@ -89,13 +90,16 @@ final class Discovery {
 
     private UUID mCorrelationId;
 
+    private Context mContext;
+
     /**
      * interface to use in testing.
      */
     private final IWebRequestHandler mWebrequestHandler;
 
-    public Discovery() {
+    public Discovery(final Context context) {
         initValidList();
+        mContext = context;
         mWebrequestHandler = new WebRequestHandler();
     }
 
@@ -211,6 +215,9 @@ final class Discovery {
         if (AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
             return;
         }
+
+        //Check if the network connection available
+        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
 
         // It will query prod instance to verify the authority
         // construct query string for this instance
@@ -344,7 +351,7 @@ final class Discovery {
         return sInstanceDiscoveryNetworkRequestLock;
     }
 
-    Set<String> getValidHosts() {
+    static Set<String> getValidHosts() {
         return AAD_WHITELISTED_HOSTS;
     }
 }
