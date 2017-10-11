@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import android.os.Build;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.filters.SdkSuppress;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.json.JSONException;
@@ -78,7 +81,8 @@ public class DiscoveryTests extends AndroidTestHelper {
     public void testaddValidHostToList() throws IOException {
         // Use HttpUrlConnection to mock when authority is the given one, discovery returns true.
         // clear mocked connection, check if the authority is valid.
-        final Discovery discovery = new Discovery();
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+        final Discovery discovery = new Discovery(context);
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -105,7 +109,8 @@ public class DiscoveryTests extends AndroidTestHelper {
      */
     @Test
     public void testIsValidAuthorityPositiveInList() throws MalformedURLException {
-        final Discovery discovery = new Discovery();
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+        final Discovery discovery = new Discovery(context);
 
         final URL endpointFull = new URL("https://login.windows.net/common/oauth2/authorize");
         try {
@@ -132,7 +137,8 @@ public class DiscoveryTests extends AndroidTestHelper {
 
     @Test
     public void testIsValidAuthorityNegative() throws IOException {
-        final Discovery discovery = new Discovery();
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+        final Discovery discovery = new Discovery(context);
         final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -155,7 +161,8 @@ public class DiscoveryTests extends AndroidTestHelper {
 
     @Test
     public void testServerInvalidJsonResponse() throws IOException {
-        final Discovery discovery = new Discovery();
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+        final Discovery discovery = new Discovery(context);
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -179,7 +186,8 @@ public class DiscoveryTests extends AndroidTestHelper {
 
     @Test
     public void testIsValidAuthorityNegativeInvalidUrl() throws MalformedURLException {
-        final Discovery discovery = new Discovery();
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+        final Discovery discovery = new Discovery(context);
 
         final URL endpointFull = new URL("http://login.windows.net/common");
         try {
@@ -232,7 +240,8 @@ public class DiscoveryTests extends AndroidTestHelper {
     @SuppressWarnings("unchecked")
     @Test
     public void testIsValidAuthorityPositiveRequeryInList() throws IOException {
-        final Discovery discovery = new Discovery();
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+        final Discovery discovery = new Discovery(context);
         final URL endpointFull = new URL("https://login.windows-ppe.net/common");
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -294,7 +303,8 @@ public class DiscoveryTests extends AndroidTestHelper {
         Callable<Void> task = new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                final Discovery discovery = new Discovery();
+                final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+                final Discovery discovery = new Discovery(context);
                 discovery.validateAuthority(new URL("https://login.windows.net/common"));
 
                 return null;
@@ -327,7 +337,8 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         final String authorityUrl1 = "https://login.windows.net/sometenant.onmicrosoft.com";
         try {
-            final Discovery discovery = new Discovery();
+            final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+            final Discovery discovery = new Discovery(context);
             discovery.validateAuthority(new URL(authorityUrl1));
         } catch (AuthenticationException e) {
             fail();
@@ -336,7 +347,8 @@ public class DiscoveryTests extends AndroidTestHelper {
         // do authority validation for aliased authority
         final String aliasedAuthorityUrl = "https://login.microsoftonline.com/sometenant.onmicrosoft.com";
         try {
-            final Discovery discovery = new Discovery();
+            final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+            final Discovery discovery = new Discovery(context);
             discovery.validateAuthority(new URL(aliasedAuthorityUrl));
         } catch (AuthenticationException e) {
             fail();
@@ -344,13 +356,47 @@ public class DiscoveryTests extends AndroidTestHelper {
 
         final String aliasedAuthorityUrl2 = "https://sts.microsoft.com/sometenant.onmicrosoft.com";
         try {
-            final Discovery discovery = new Discovery();
+            final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+            final Discovery discovery = new Discovery(context);
             discovery.validateAuthority(new URL(aliasedAuthorityUrl2));
         } catch (AuthenticationException e) {
             fail();
         }
 
         Mockito.verify(mockedConnection, Mockito.times(1)).getInputStream();
+    }
+
+    @Test
+    public void testValidateAuthorityFailedWithoutNetwork() throws IOException {
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+        final Discovery discovery = new Discovery(context);
+        context.setConnectionAvailable(false);
+        final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
+
+        try {
+            discovery.validateAuthority(endpointFull);
+            fail();
+        } catch (AuthenticationException e) {
+            assertNotNull(e);
+            assertTrue(e.getCode().equals(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE));
+        }
+    }
+
+    @Test
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
+    public void testValidateAuthorityFailedInDozeMode() throws IOException {
+        final FileMockContext context = new FileMockContext(InstrumentationRegistry.getContext());
+        final Discovery discovery = new Discovery(context);
+        context.setDeviceInIdleMode();
+        final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
+
+        try {
+            discovery.validateAuthority(endpointFull);
+            fail();
+        } catch (AuthenticationException e) {
+            assertNotNull(e);
+            assertTrue(e.getCode().equals(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION));
+        }
     }
 
     static String getDiscoveryResponse() {
