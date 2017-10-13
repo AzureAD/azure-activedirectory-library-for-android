@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
         mAuthority = requestOptions.getAuthorityType().getText();
 
-        if (mAuthContext == null) {
+        if (mAuthContext == null || !mAuthContext.getAuthority().equals(mAuthority)) {
             mAuthContext = new AuthenticationContext(getApplicationContext(), mAuthority, true);
         }
         mLoginhint = requestOptions.getLoginHint();
