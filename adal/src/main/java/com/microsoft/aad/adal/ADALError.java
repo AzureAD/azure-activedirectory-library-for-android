@@ -200,11 +200,6 @@ public enum ADALError {
     AUTH_FAILED_USER_MISMATCH("User returned by service does not match the one in the request"),
 
     /**
-     * Internet permissions are not set for the app.
-     */
-    DEVICE_INTERNET_IS_NOT_AVAILABLE("Internet permissions are not set for the app"),
-
-    /**
      * Unable to access the network due to power optimizations.
      */
     NO_NETWORK_CONNECTION_POWER_OPTIMIZATION("Unable to access the network due to power optimizations"),
