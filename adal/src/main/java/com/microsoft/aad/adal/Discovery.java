@@ -66,7 +66,7 @@ final class Discovery {
     /**
      * {@link ReentrantLock} for making sure there is only one instance discovery request sent out at a time.
      */
-    private volatile static ReentrantLock sInstanceDiscoveryNetworkRequestLock;
+    private static volatile ReentrantLock sInstanceDiscoveryNetworkRequestLock;
 
     /**
      * Sync set of valid hosts to skip query to server if host was verified

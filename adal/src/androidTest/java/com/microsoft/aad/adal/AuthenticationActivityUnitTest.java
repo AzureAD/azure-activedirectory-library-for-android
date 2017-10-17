@@ -89,6 +89,7 @@ public class AuthenticationActivityUnitTest {
 
     private Intent mIntentToStartActivity;
 
+    @SuppressWarnings("checkstyle:visibilitymodifier")
     @Rule
     public final ActivityTestRule<AuthenticationActivity> mActivityRule = new ActivityTestRule<>(AuthenticationActivity.class, true, false);
 

@@ -35,7 +35,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.test.UiThreadTest;
 import android.util.Base64;
 import android.util.Log;
@@ -85,7 +84,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static android.R.attr.resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1263,7 +1261,8 @@ public final class AuthenticationContextTest {
 
         latch2.await();
 
-        Mockito.verify(mockedConnection, times(3)).getInputStream();
+        final int invocationCount = 3;
+        Mockito.verify(mockedConnection, times(invocationCount)).getInputStream();
 
         // Clean up Authority validation cache
         AuthorityValidationMetadataCache.clearAuthorityValidationCache();
@@ -1342,7 +1341,8 @@ public final class AuthenticationContextTest {
 
         latch2.await();
 
-        Mockito.verify(mockedConnection, times(3)).getInputStream();
+        final int invocationCount = 3;
+        Mockito.verify(mockedConnection, times(invocationCount)).getInputStream();
     }
 
     /**
@@ -1475,7 +1475,8 @@ public final class AuthenticationContextTest {
 
         final SharedPreferences sharedPreferences =  mockContext.getSharedPreferences("com.microsoft.aad.adal.cache", Activity.MODE_PRIVATE);
         final Map<String, String> allTokens = (Map<String, String>) sharedPreferences.getAll();
-        Assert.assertTrue(allTokens.size() == 8);
+        final int expectedMapSize = 8;
+        Assert.assertTrue(allTokens.size() == expectedMapSize);
         // also verify all the key are using preferred_cache
         final Set<String> keys = allTokens.keySet();
         for (final String key : keys) {
