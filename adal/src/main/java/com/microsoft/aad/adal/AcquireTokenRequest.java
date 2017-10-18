@@ -57,7 +57,7 @@ class AcquireTokenRequest {
     private TokenCacheAccessor mTokenCacheAccessor;
     private final IBrokerProxy mBrokerProxy;
 
-    private static Handler sHandler = null;
+    private static Handler mHandler = null;
 
     /**
      * Instance validation related calls are serviced inside Discovery as a
@@ -797,13 +797,13 @@ class AcquireTokenRequest {
     }
 
     private synchronized Handler getHandler() {
-        if (sHandler == null) {
+        if (mHandler == null) {
             HandlerThread acquireTokenHandlerThread = new HandlerThread("AcquireTokenRequestHandlerThread");
             acquireTokenHandlerThread.start();
-            sHandler = new Handler(acquireTokenHandlerThread.getLooper());
+            mHandler = new Handler(acquireTokenHandlerThread.getLooper());
         }
 
-        return sHandler;
+        return mHandler;
     }
 
     private void waitingRequestOnError(final AuthenticationRequestState waitingRequest,

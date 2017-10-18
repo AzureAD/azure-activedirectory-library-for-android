@@ -68,14 +68,10 @@ import static org.junit.Assert.fail;
  * Test cases for brokerAccountService and related operations in {@link BrokerProxy}.
  */
 public final class BrokerAccountServiceTest {
-
     private static ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
-
     private static final String VALID_AUTHORITY = "https://login.microsoftonline.com";
 
     private IBinder mIBinder;
-
-    @SuppressWarnings("checkstyle:visibilitymodifier")
     @Rule
     public ServiceTestRule mServiceTestRule = new ServiceTestRule();
 

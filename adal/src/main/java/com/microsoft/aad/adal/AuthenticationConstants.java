@@ -317,7 +317,6 @@ public final class AuthenticationConstants {
         /** String of broker protocol version with PRT support. */
         public static final String BROKER_PROTOCOL_VERSION = "v2";
 
-        /** String of broker skip cache. */
         public static final String BROKER_SKIP_CACHE = "skip.cache";
 
         /** String of broker result returned. */
@@ -491,32 +490,17 @@ public final class AuthenticationConstants {
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
 
-        /**
-         * Bundle identifiers for x-ms-clitelem info.
-         */
         public static final class CliTelemInfo {
 
-            private static final String PREFIX = "cliteleminfo.";
+            private static final String sPrefix = "cliteleminfo.";
 
-            /**
-             * Bundle id for server errors.
-             */
-            public static final String SERVER_ERROR = PREFIX + "server_error";
+            public static final String SERVER_ERROR = sPrefix + "server_error";
 
-            /**
-             * Bundle id for server suberrors.
-             */
-            public static final String SERVER_SUBERROR = PREFIX + "server_suberror";
+            public static final String SERVER_SUBERROR = sPrefix + "server_suberror";
 
-            /**
-             * Bundle id for refresh token age.
-             */
-            public static final String RT_AGE = PREFIX + "rt_age";
+            public static final String RT_AGE = sPrefix + "rt_age";
 
-            /**
-             * Bundle id for spe_ring info.
-             */
-            public static final String SPE_RING = PREFIX + "spe_ring";
+            public static final String SPE_RING = sPrefix + "spe_ring";
         }
     }
 
@@ -541,7 +525,7 @@ public final class AuthenticationConstants {
         static final String ACCEPT = "Accept";
 
         /**
-         * Header used to track SPE Ring for telemetry.
+         * Header used to track SPE Ring for telemetry
          */
         static final String X_MS_CLITELEM = "x-ms-clitelem";
     }
