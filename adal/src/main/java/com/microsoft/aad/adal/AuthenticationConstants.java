@@ -283,6 +283,9 @@ public final class AuthenticationConstants {
 
         /** String for request id returned from Evo. **/
         public static final String REQUEST_ID_HEADER = "x-ms-request-id";
+
+        /** Integer for token expiration buffer. see AuthenticationSettings.mExpirationBuffer */
+        public static final String EXPIRATION_BUFFER = "aad.expiration.buffer";
     }
 
     /**
