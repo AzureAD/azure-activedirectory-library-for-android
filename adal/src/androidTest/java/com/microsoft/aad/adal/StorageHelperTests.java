@@ -292,7 +292,7 @@ public class StorageHelperTests extends AndroidTestHelper {
 
     @TargetApi(MIN_SDK_VERSION)
     @Test
-    public void testKeyPair_AndroidKeyStore() throws
+    public void testKeyPairAndroidKeyStore() throws
             GeneralSecurityException, IOException {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             return;

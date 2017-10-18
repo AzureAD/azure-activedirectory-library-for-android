@@ -113,7 +113,7 @@ class TokenCacheAccessor {
 
         TokenCacheItem item =  mTokenCacheStore.getItem(cacheKey);
         // try all the alias
-        if (item == null ) {
+        if (item == null) {
            item = performAdditionalCacheLookup(resource, clientId, null, user, REGULAR_TOKEN_ENTRY);
         }
 
@@ -230,7 +230,7 @@ class TokenCacheAccessor {
     /**
      * Update token cache with returned auth result.
      */
-    void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) throws MalformedURLException{
+    void updateTokenCache(final String resource, final String clientId, final AuthenticationResult result) throws MalformedURLException {
         if (result == null || StringExtensions.isNullOrBlank(result.getAccessToken())) {
             return;
         }

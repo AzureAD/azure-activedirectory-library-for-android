@@ -363,7 +363,7 @@ class BrokerProxy implements IBrokerProxy {
             } catch (final AuthenticatorException e) {
                 // Error code BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN will be thrown if there was an error
                 // communicating with the authenticator or if the authenticator returned an invalid response.
-                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(INVALID_GRANT)){
+                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(INVALID_GRANT)) {
                     Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST,
                             "Acquire token failed with 'invalid grant' error, cannot proceed with silent request.",
                             ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
@@ -462,7 +462,7 @@ class BrokerProxy implements IBrokerProxy {
                     if (msg.contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
                         adalErrorCode = ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION;
                         break;
-                    } else if (msg.contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())){
+                    } else if (msg.contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
                         adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
                         break;
                     } else {

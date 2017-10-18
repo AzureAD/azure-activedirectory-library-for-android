@@ -62,7 +62,9 @@ public class AuthorityValidationMetadataCacheTest extends AndroidTestHelper {
         AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityURL, getDiscoveryResponse());
 
         Map<String, InstanceDiscoveryMetadata> authorityValidationMap = AuthorityValidationMetadataCache.getAuthorityValidationMetadataCache();
-        Assert.assertTrue(authorityValidationMap.size() == 5);
+
+        final int expectedMapSize = 5;
+        Assert.assertTrue(authorityValidationMap.size() == expectedMapSize);
         Assert.assertTrue(authorityValidationMap.containsKey("login.windows.net"));
         Assert.assertTrue(authorityValidationMap.containsKey("login.microsoftonline.com"));
         Assert.assertTrue(authorityValidationMap.containsKey("sts.microsoft.com"));
@@ -96,25 +98,25 @@ public class AuthorityValidationMetadataCacheTest extends AndroidTestHelper {
     }
 
     static String getMetadata() {
-        final String metadata = "[" +
-                "{" +
-                "\"preferred_network\": \"login.microsoftonline.com\"," +
-                "\"preferred_cache\": \"login.windows.net\"," +
-                "\"aliases\": [" +
-                "\"login.microsoftonline.com\"," +
-                "\"login.windows.net\"," +
-                "\"login.microsoft.com\"," +
-                "\"sts.microsoft.com\"" +
-                "]" +
-                "}," +
-                "{" +
-                "\"preferred_network\": \"login.microsoftonline.de\"," +
-                "\"preferred_cache\": \"login.microsoftonline.de\"," +
-                "\"aliases\": [" +
-                "\"login.microsoftonline.de\"" +
-                "]" +
-                "}" +
-                "]";
+        final String metadata = "["
+                + "{"
+                + "\"preferred_network\": \"login.microsoftonline.com\","
+                + "\"preferred_cache\": \"login.windows.net\","
+                + "\"aliases\": ["
+                + "\"login.microsoftonline.com\","
+                + "\"login.windows.net\","
+                + "\"login.microsoft.com\","
+                + "\"sts.microsoft.com\""
+                + "]"
+                + "},"
+                + "{"
+                + "\"preferred_network\": \"login.microsoftonline.de\","
+                + "\"preferred_cache\": \"login.microsoftonline.de\","
+                + "\"aliases\": ["
+                + "\"login.microsoftonline.de\""
+                + "]"
+                + "}"
+                + "]";
 
         return metadata;
     }

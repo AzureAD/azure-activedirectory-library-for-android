@@ -32,7 +32,12 @@ import android.os.Build;
  */
 
 public class UsageStatsManagerWrapper {
-    static UsageStatsManagerWrapper sInstance;
+
+    private static UsageStatsManagerWrapper sInstance;
+
+    static synchronized void setInstance(final UsageStatsManagerWrapper instance) {
+        sInstance = instance;
+    }
 
     /**
      * Singleton implementation for UsageStatsManagerWrapper.
@@ -47,7 +52,7 @@ public class UsageStatsManagerWrapper {
 
     /**
      * Wrap the final class function UsageStatsManager.isAppInactive(). And make the code testable.
-     * @param connectionContext
+     * @param connectionContext Context used to query app active state
      * @return true if the app is inactive
      */
     @TargetApi(Build.VERSION_CODES.M)
