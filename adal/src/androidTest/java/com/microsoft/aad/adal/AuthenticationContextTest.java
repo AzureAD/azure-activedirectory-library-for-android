@@ -432,7 +432,6 @@ public final class AuthenticationContextTest {
         assertEquals("Redirect uri is same as package", "redirect123", authenticationRequest.getRedirectUri());
         assertEquals("login hint same as userid", "userid123", authenticationRequest.getLoginHint());
         assertEquals("client is same", "clientId345", authenticationRequest.getClientId());
-        assertEquals("authority is same", "https://login.windows.net/common", authenticationRequest.getAuthority());
         assertEquals("resource is same", "resource56", authenticationRequest.getResource());
     }
 
