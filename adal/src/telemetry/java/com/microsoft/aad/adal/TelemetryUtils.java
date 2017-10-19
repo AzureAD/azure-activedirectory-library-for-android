@@ -47,40 +47,40 @@ final class TelemetryUtils {
             return mVersion;
         }
 
-        void setVersion(String version) {
-            this.mVersion = version;
+        void setVersion(String mVersion) {
+            this.mVersion = mVersion;
         }
 
         String getServerErrorCode() {
             return mServerErrorCode;
         }
 
-        void setServerErrorCode(String serverErrorCode) {
-            this.mServerErrorCode = serverErrorCode;
+        void setServerErrorCode(String mServerErrorCode) {
+            this.mServerErrorCode = mServerErrorCode;
         }
 
         String getServerSubErrorCode() {
             return mServerSubErrorCode;
         }
 
-        void setServerSubErrorCode(String serverSubErrorCode) {
-            this.mServerSubErrorCode = serverSubErrorCode;
+        void setServerSubErrorCode(String mServerSubErrorCode) {
+            this.mServerSubErrorCode = mServerSubErrorCode;
         }
 
         String getRefreshTokenAge() {
             return mRefreshTokenAge;
         }
 
-        void setRefreshTokenAge(String refreshTokenAge) {
-            this.mRefreshTokenAge = refreshTokenAge;
+        void setRefreshTokenAge(String mRefreshTokenAge) {
+            this.mRefreshTokenAge = mRefreshTokenAge;
         }
 
         String getSpeRing() {
             return mSpeRing;
         }
 
-        void setSpeRing(String speRing) {
-            this.mSpeRing = speRing;
+        void setSpeRing(String mSpeRing) {
+            this.mSpeRing = mSpeRing;
         }
     }
 

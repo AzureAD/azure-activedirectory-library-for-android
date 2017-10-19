@@ -333,7 +333,7 @@ public final class AcquireTokenRequestTest {
     @Test
     public void testBothLocalAndBrokerSilentAuthFailedSwitchedToBrokerForInteractive()
             throws OperationCanceledException, IOException, AuthenticatorException,
-            PackageManager.NameNotFoundException, InterruptedException, JSONException {
+            PackageManager.NameNotFoundException, InterruptedException,JSONException {
 
         // Make sure AT is expired
         final ITokenCacheStore cacheStore = getTokenCache(getExpireDate(-MINUS_MINUTE), false, false, null);
