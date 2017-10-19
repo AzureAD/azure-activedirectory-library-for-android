@@ -267,12 +267,12 @@ public class OauthTests {
     public void testGetCodeRequestUrlWithClaims() throws UnsupportedEncodingException {
         final UUID correlationId = UUID.randomUUID();
         final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Always, "p=extraQueryPAram56", correlationId, false, "testClaims");
+                "loginhint55", PromptBehavior.Always, "p=extraQueryParam56", correlationId, false, "testClaims");
 
         final Oauth2 oauth2 = createOAuthInstance(request);
         final String codeRequestUrl = oauth2.getCodeRequestUrl();
         assertTrue(codeRequestUrl.contains("claims=testClaims"));
-        assertTrue(codeRequestUrl.contains("p=extraQueryPAram56"));
+        assertTrue(codeRequestUrl.contains("p=extraQueryParam56"));
     }
 
     @Test
@@ -512,11 +512,11 @@ public class OauthTests {
         IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         Map<String, List<String>> headers = getHeader(
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");
-        HttpWebResponse responeChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
+        HttpWebResponse responseChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
                         any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallenge);
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responseChallenge);
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -590,6 +590,7 @@ public class OauthTests {
         headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, listOfHeaders);
         when(mockedConnection.getHeaderFields()).thenReturn(headers);
 
+        Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
         final TestLogResponse logResponse = new TestLogResponse();
         logResponse.listenForLogMessage("CorrelationId is not matching", null);
 
@@ -598,8 +599,7 @@ public class OauthTests {
             // verify same token
             assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
             assertTrue("Log response has message",
-                    logResponse.getErrorCode()
-                            .equals(ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE));
+                    ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE.equals(logResponse.getErrorCode()));
         } catch (final AuthenticationException e) {
             fail("unexpected exception");
         }

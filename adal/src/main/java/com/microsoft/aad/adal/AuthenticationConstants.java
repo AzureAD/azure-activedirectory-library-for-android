@@ -52,7 +52,7 @@ public final class AuthenticationConstants {
      */
     public static final class Browser {
 
-        /** Represents the request object used to construst request sent to authorize endpoint. */
+        /** Represents the request object used to construct request sent to authorize endpoint. */
         public static final String REQUEST_MESSAGE = "com.microsoft.aad.adal:BrowserRequestMessage";
 
         /** Represents the request object returned from webview. */
@@ -208,7 +208,7 @@ public final class AuthenticationConstants {
         /** String of password change url in the id token claim. */
         static final String ID_TOKEN_PASSWORD_CHANGE_URL = "pwd_url";
 
-        /** String of FoCI field returnd in the JSON response from token endpoint. */
+        /** String of FoCI field returned in the JSON response from token endpoint. */
         static final String ADAL_CLIENT_FAMILY_ID = "foci";
 
         /** String of has_chrome sent as extra query param to hide back button in the webview. */
@@ -316,9 +316,10 @@ public final class AuthenticationConstants {
         /** String of broker version. */
         public static final String BROKER_VERSION = "broker.version";
 
-        /** String of broker protocl version with PRT support. */
+        /** String of broker protocol version with PRT support. */
         public static final String BROKER_PROTOCOL_VERSION = "v2";
 
+        /** String of broker skip cache. */
         public static final String BROKER_SKIP_CACHE = "skip.cache";
 
         /** String of broker result returned. */
@@ -491,6 +492,34 @@ public final class AuthenticationConstants {
 
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
+
+        /**
+         * Bundle identifiers for x-ms-clitelem info.
+         */
+        public static final class CliTelemInfo {
+
+            private static final String PREFIX = "cliteleminfo.";
+
+            /**
+             * Bundle id for server errors.
+             */
+            public static final String SERVER_ERROR = PREFIX + "server_error";
+
+            /**
+             * Bundle id for server suberrors.
+             */
+            public static final String SERVER_SUBERROR = PREFIX + "server_suberror";
+
+            /**
+             * Bundle id for refresh token age.
+             */
+            public static final String RT_AGE = PREFIX + "rt_age";
+
+            /**
+             * Bundle id for spe_ring info.
+             */
+            public static final String SPE_RING = PREFIX + "spe_ring";
+        }
     }
 
     /**
@@ -512,6 +541,11 @@ public final class AuthenticationConstants {
          * @see <a href="https://tools.ietf.org/html/rfc1945#appendix-D.2.1">RFC-1945</a>
          */
         static final String ACCEPT = "Accept";
+
+        /**
+         * Header used to track SPE Ring for telemetry.
+         */
+        static final String X_MS_CLITELEM = "x-ms-clitelem";
     }
 
     /**

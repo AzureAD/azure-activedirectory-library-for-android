@@ -59,7 +59,7 @@ class JWSBuilder implements IJWSBuilder {
     /**
      * Payload for JWS.
      */
-    class Claims {
+    final class Claims {
         @SerializedName("aud")
         private String mAudience;
 
@@ -70,7 +70,7 @@ class JWSBuilder implements IJWSBuilder {
         private String mNonce;
 
         /**
-         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe.
          */
         @SuppressWarnings("unused")
         private Claims() {
@@ -80,7 +80,7 @@ class JWSBuilder implements IJWSBuilder {
     /**
      * Header that includes algorithm, type, thumbprint, keys, and keyid.
      */
-    class JwsHeader {
+    final class JwsHeader {
         @SerializedName("alg")
         private String mAlgorithm;
 
@@ -91,7 +91,7 @@ class JWSBuilder implements IJWSBuilder {
         private String[] mCert;
 
         /**
-         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe
+         * No args constructor for use in serialization for Gson to prevent usage of sun.misc.Unsafe.
          */
         @SuppressWarnings("unused")
         private JwsHeader() {
@@ -168,7 +168,7 @@ class JWSBuilder implements IJWSBuilder {
                     "Unsupported encoding", e);
         } catch (CertificateEncodingException e) {
             throw new AuthenticationException(ADALError.CERTIFICATE_ENCODING_ERROR,
-                    "Certifiante encoding error", e);
+                    "Certificate encoding error", e);
         }
         return signingInput + "." + signature;
     }

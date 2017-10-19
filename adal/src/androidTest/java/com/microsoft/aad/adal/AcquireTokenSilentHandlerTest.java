@@ -23,11 +23,16 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.filters.SdkSuppress;
 import android.support.test.runner.AndroidJUnit4;
+import android.test.suitebuilder.annotation.SmallTest;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
+import org.json.JSONException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,12 +41,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
@@ -49,6 +55,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static android.support.test.InstrumentationRegistry.getContext;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -91,13 +98,72 @@ public final class AcquireTokenSilentHandlerTest {
         }
     }
 
+    @After
+    public void tearDown() {
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
+    }
+
+    /**
+     * Acquire token users refresh token, but the client app is inactive.
+     */
+    @SmallTest
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
+    public void testRefreshTokenFailedNoNetworkAppIsInactive() {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setAppInactive();
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockCache);
+
+        try {
+            acquireTokenSilentHandler.acquireTokenWithRefreshToken("refreshToken");
+            fail("Expect exception");
+        } catch (final Exception exception) {
+            assertTrue(exception instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception).getCode() == ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+        }
+    }
+
+    /**
+     * Acquire token users refresh token, but the device is in doze mode.
+     */
+    @SmallTest
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.M)
+    public void testRefreshTokenFailedNoNetworkDeviceIsIdle() {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        mockContext.setDeviceInIdleMode();
+        ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockCache);
+
+        try {
+            acquireTokenSilentHandler.acquireTokenWithRefreshToken("refreshToken");
+            fail("Expect exception");
+        } catch (final Exception exception) {
+            assertTrue(exception instanceof AuthenticationException);
+            assertTrue(((AuthenticationException) exception).getCode() == ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+        }
+    }
+
     /**
      * Acquire token uses refresh token, but web request returns error with an empty body.
      */
     @Test
     public void testRefreshTokenWebRequestHasError() throws IOException {
 
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final String resource = "resource";
@@ -130,9 +196,9 @@ public final class AcquireTokenSilentHandlerTest {
 
     // Verify if regular RT exists, if the RT is not MRRT, we only redeem token with the regular RT. 
     @Test
-    public void testRegularRT() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+    public void testRegularRT() throws IOException, JSONException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -192,9 +258,9 @@ public final class AcquireTokenSilentHandlerTest {
 
     // Test the current cache that does not mark RT as MRRT even it's MRRT.
     @Test
-    public void testRegularRTExistsMRRTForSameClientIdExist() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+    public void testRegularRTExistsMRRTForSameClientIdExist() throws IOException, JSONException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -256,9 +322,9 @@ public final class AcquireTokenSilentHandlerTest {
      * Test only when MRRT without FoCI in the cache.
      */
     @Test
-    public void testMRRTSuccessNoFoCI() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+    public void testMRRTSuccessNoFoCI() throws IOException, JSONException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -312,9 +378,9 @@ public final class AcquireTokenSilentHandlerTest {
      * refresh token.
      */
     @Test
-    public void testFRTSuccess() throws IOException {
+    public void testFRTSuccess() throws IOException, JSONException {
 
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
 
         // note: if only FRT exists, cache key will be hard-coded to 1
@@ -366,9 +432,9 @@ public final class AcquireTokenSilentHandlerTest {
      * Also make sure only FRT token entry is deleted.
      */
     @Test
-    public void testFRTFailedWithInvalidGrant() throws IOException {
+    public void testFRTFailedWithInvalidGrant() throws IOException, JSONException {
 
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
         final ITokenCacheStore mockCache = new DefaultTokenCacheStore(mockContext);
         mockCache.removeAll();
 
@@ -412,10 +478,10 @@ public final class AcquireTokenSilentHandlerTest {
      * Test if FRT request failed, retry with MRRT if exists.
      */
     @Test
-    public void testFRTRequestFailedFallBackMRRTRequest() throws IOException {
+    public void testFRTRequestFailedFallBackMRRTRequest() throws IOException, JSONException {
 
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
         final String clientId = "clientId";
         final String familyClientId = "familyClientId";
 
@@ -443,7 +509,7 @@ public final class AcquireTokenSilentHandlerTest {
 
         // inject mocked web request handler
         final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
-        // FRT token request faile with invalid_grant
+        // FRT token request fails with invalid_grant
         final String anotherResource = "anotherResource";
         Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
                 Mockito.refEq(Util.getPoseMessage(frtToken, clientId, anotherResource)),
@@ -480,9 +546,9 @@ public final class AcquireTokenSilentHandlerTest {
      * only FRT token cache entry is removed.
      */
     @Test
-    public void testFRTRequestFailFallBackToMRTMRTRequestFail() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+    public void testFRTRequestFailFallBackToMRTMRTRequestFail() throws IOException, JSONException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
         mockCache.removeAll();
         final String clientId = "clientId";
         final String familyClientId = "familyClientId";
@@ -561,9 +627,9 @@ public final class AcquireTokenSilentHandlerTest {
      * Test if MRRT is not marked as FRT, if the MRRT request fails, we will try with FRT.
      */
     @Test
-    public void testMRRTRequestFailsTryFRT() throws UnsupportedEncodingException, IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+    public void testMRRTRequestFailsTryFRT() throws JSONException, IOException {
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockCache = new DefaultTokenCacheStore(getContext());
         mockCache.removeAll();
         final String clientId = "clientId";
         final String resource = "resource";
@@ -646,8 +712,8 @@ public final class AcquireTokenSilentHandlerTest {
      * Test RT request returns errors, but error response doesn't contain error_code.
      */
     @Test
-    public void testRefreshTokenRequestNotReturnErrorCode() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+    public void testRefreshTokenRequestNotReturnErrorCode() throws IOException, JSONException {
+        FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", false);
@@ -673,8 +739,8 @@ public final class AcquireTokenSilentHandlerTest {
             // If AUTH_FAILE_NO_TOKEN is thrown, cause will be return in AuthenticationException
             assertNotNull(e.getCause());
             assertTrue(e.getCause() instanceof AuthenticationException);
-            final AuthenticationException authExpcepton = (AuthenticationException) e.getCause();
-            assertTrue(authExpcepton.getCode() == ADALError.SERVER_ERROR);
+            final AuthenticationException authException = (AuthenticationException) e.getCause();
+            assertTrue(authException.getCode() == ADALError.SERVER_ERROR);
         }
 
         // verify that the cache is not cleared
@@ -688,8 +754,8 @@ public final class AcquireTokenSilentHandlerTest {
      * Test RT request failed with interaction_required, cache will not be cleared.
      */
     @Test
-    public void testRefreshTokenWithInteractionRequiredCacheNotCleared() throws IOException {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
+    public void testRefreshTokenWithInteractionRequiredCacheNotCleared() throws IOException, JSONException {
+        FileMockContext mockContext = new FileMockContext(getContext());
         ITokenCacheStore mockCache = getCacheForRefreshToken(TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
 
         final AuthenticationRequest authenticationRequest = getAuthenticationRequest(VALID_AUTHORITY, "resource", "clientid", false);
@@ -723,8 +789,8 @@ public final class AcquireTokenSilentHandlerTest {
 
     @Test
     public void testMRRTItemNotContainRT() {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -760,8 +826,8 @@ public final class AcquireTokenSilentHandlerTest {
 
     @Test
     public void testAllTokenItemNotContainRT() {
-        FileMockContext mockContext = new FileMockContext(InstrumentationRegistry.getContext());
-        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
         final String resource = "resource";
         final String clientId = "clientId";
 
@@ -821,28 +887,364 @@ public final class AcquireTokenSilentHandlerTest {
         clearCache(mockedCache);
     }
 
+    @Test
+    public void testRTExistedInPreferredCache() throws IOException, JSONException {
+        final FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        clearCache(mockedCache);
+
+        updateAuthorityMetadataCache();
+        // insert token with authority as preferred cache
+        final String resource = "resource";
+        final String clientId = "clientId";
+
+        // Add regular RT item without RT in the cache
+        final String preferredCacheAuthority = "https://preferred.cache/test.onmicrosoft.com";
+        final String rtForPreferredCache = "rt with preferred cache";
+        final TokenCacheItem rtTokenCacheItem = Util.getTokenCacheItem(preferredCacheAuthority, resource, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        rtTokenCacheItem.setRefreshToken(rtForPreferredCache);
+        rtTokenCacheItem.setIsMultiResourceRefreshToken(false);
+        saveTokenIntoCache(mockedCache, rtTokenCacheItem);
+
+        // insert token with authority as aliased host
+        final String testHostAuthority = "https://test.host/test.onmicrosoft.com";
+        final TokenCacheItem itemWithTestHost = Util.getTokenCacheItem(testHostAuthority, resource, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        itemWithTestHost.setRefreshToken("rt with test host");
+        saveTokenIntoCache(mockedCache, itemWithTestHost);
+
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(testHostAuthority, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockedCache);
+
+        // inject mocked web request handler
+        final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
+        Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
+                AdditionalMatchers.aryEq(Util.getPoseMessage(rtForPreferredCache, clientId, resource)),
+                Mockito.anyString())).thenReturn(
+                new HttpWebResponse(HttpURLConnection.HTTP_OK,
+                        Util.getSuccessTokenResponse(false, false), null));
+
+        acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
+
+        try {
+            final AuthenticationResult result = acquireTokenSilentHandler.getAccessToken();
+            assertNotNull(result);
+            assertNotNull(result.getAccessToken());
+        } catch (final AuthenticationException e) {
+            fail();
+        }
+
+        Mockito.verify(mockedWebRequestHandler, Mockito.times(1)).sendPost(
+                Mockito.any(URL.class), Mockito.anyMap(),
+                AdditionalMatchers.aryEq(
+                        Util.getPoseMessage(rtForPreferredCache, clientId, resource)), Mockito.anyString());
+
+        // verify token items
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(preferredCacheAuthority, resource, clientId, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(preferredCacheAuthority, resource, clientId, TEST_IDTOKEN_UPN)));
+        clearCache(mockedCache);
+    }
+
+    @Test
+    public void testMRRTExistInPreferredLocation() throws IOException, JSONException {
+        final FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        clearCache(mockedCache);
+
+        updateAuthorityMetadataCache();
+        // insert token with authority as preferred cache
+        final String resource = "resource";
+        final String clientId = "clientId";
+
+        final String preferredCacheAuthority = "https://preferred.cache/test.onmicrosoft.com";
+        final String mrrtForPreferredCache = "rt with preferred cache";
+        final TokenCacheItem mrrtTokenCacheItem = Util.getTokenCacheItem(preferredCacheAuthority, null, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        mrrtTokenCacheItem.setRefreshToken(mrrtForPreferredCache);
+        mrrtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        saveTokenIntoCache(mockedCache, mrrtTokenCacheItem);
+
+        final String testHostAuthority = "https://test.host/test.onmicrosoft.com";
+        final TokenCacheItem mrrtWithTestHost = Util.getTokenCacheItem(testHostAuthority, null, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        mrrtWithTestHost.setRefreshToken("rt with test host");
+        saveTokenIntoCache(mockedCache, mrrtWithTestHost);
+
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(testHostAuthority, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockedCache);
+
+        // inject mocked web request handler
+        final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
+        Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
+                AdditionalMatchers.aryEq(Util.getPoseMessage(mrrtForPreferredCache, clientId, resource)),
+                Mockito.anyString())).thenReturn(
+                new HttpWebResponse(HttpURLConnection.HTTP_OK,
+                        Util.getSuccessTokenResponse(false, false), null));
+
+        acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
+
+        try {
+            final AuthenticationResult result = acquireTokenSilentHandler.getAccessToken();
+            assertNotNull(result);
+            assertNotNull(result.getAccessToken());
+        } catch (final AuthenticationException e) {
+            fail();
+        }
+
+        Mockito.verify(mockedWebRequestHandler, Mockito.times(1)).sendPost(
+                Mockito.any(URL.class), Mockito.anyMap(),
+                AdditionalMatchers.aryEq(
+                        Util.getPoseMessage(mrrtForPreferredCache, clientId, resource)), Mockito.anyString());
+
+        // verify token items
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForMRRT(preferredCacheAuthority, clientId, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForMRRT(preferredCacheAuthority, clientId, TEST_IDTOKEN_UPN)));
+        clearCache(mockedCache);
+    }
+
+    @Test
+    public void testFRTExistedInPreferredLocation() throws IOException, JSONException {
+        final FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        clearCache(mockedCache);
+
+        updateAuthorityMetadataCache();
+        // insert token with authority as preferred cache
+        final String resource = "resource";
+        final String clientId = "clientId";
+        final String familyClientId = "1";
+
+        final String preferredCacheAuthority = "https://preferred.cache/test.onmicrosoft.com";
+        final String frtForPreferredCache = "frt with preferred cache";
+        final TokenCacheItem frtTokenCacheItem = Util.getTokenCacheItem(preferredCacheAuthority, null, null,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        frtTokenCacheItem.setRefreshToken(frtForPreferredCache);
+        frtTokenCacheItem.setIsMultiResourceRefreshToken(true);
+        frtTokenCacheItem.setFamilyClientId(familyClientId);
+        saveTokenIntoCache(mockedCache, frtTokenCacheItem);
+
+        final String testHostAuthority = "https://test.host/test.onmicrosoft.com";
+        final TokenCacheItem frtWithTestHost = Util.getTokenCacheItem(testHostAuthority, null, null,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        frtWithTestHost.setRefreshToken("frt with test host");
+        frtWithTestHost.setFamilyClientId(familyClientId);
+        saveTokenIntoCache(mockedCache, frtWithTestHost);
+
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(testHostAuthority, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockedCache);
+
+        // inject mocked web request handler
+        final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
+        Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
+                AdditionalMatchers.aryEq(Util.getPoseMessage(frtForPreferredCache, clientId, resource)),
+                Mockito.anyString())).thenReturn(
+                new HttpWebResponse(HttpURLConnection.HTTP_OK,
+                        Util.getSuccessTokenResponse(true, true), null));
+
+        acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
+
+        try {
+            final AuthenticationResult result = acquireTokenSilentHandler.getAccessToken();
+            assertNotNull(result);
+            assertNotNull(result.getAccessToken());
+        } catch (final AuthenticationException e) {
+            fail();
+        }
+
+        Mockito.verify(mockedWebRequestHandler, Mockito.times(1)).sendPost(
+                Mockito.any(URL.class), Mockito.anyMap(),
+                AdditionalMatchers.aryEq(
+                        Util.getPoseMessage(frtForPreferredCache, clientId, resource)), Mockito.anyString());
+
+        // verify token items
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForFRT(preferredCacheAuthority, familyClientId, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForFRT(preferredCacheAuthority, familyClientId, TEST_IDTOKEN_UPN)));
+        clearCache(mockedCache);
+    }
+
+    /**
+     * If a token is not present for preferred_cache, but available for the developer specified authority, as well as other alias,
+     * the developer specified authority token is used.
+     */
+    @Test
+    public void testTokenPresentForPassedInAuthorityAndOtherAliasedHost() throws IOException, JSONException {
+        final FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        clearCache(mockedCache);
+
+        updateAuthorityMetadataCache();
+        // insert token with authority as other aliased host
+        final String resource = "resource";
+        final String clientId = "clientId";
+
+        // Add regular RT item without RT in the cache
+        final String aliasedAuthority = "https://test.alias/test.onmicrosoft.com";
+        final String rtForAliashedHost = "rt with aliased authority";
+        final TokenCacheItem rtTokenCacheItem = Util.getTokenCacheItem(aliasedAuthority, resource, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        rtTokenCacheItem.setRefreshToken(rtForAliashedHost);
+        rtTokenCacheItem.setIsMultiResourceRefreshToken(false);
+        saveTokenIntoCache(mockedCache, rtTokenCacheItem);
+
+        // insert token with authority as aliased host
+        final String testHostAuthority = "https://test.host/test.onmicrosoft.com";
+        final String rtForTestHost = "rt for test host";
+        final TokenCacheItem itemWithTestHost = Util.getTokenCacheItem(testHostAuthority, resource, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        itemWithTestHost.setRefreshToken(rtForTestHost);
+        saveTokenIntoCache(mockedCache, itemWithTestHost);
+
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest(testHostAuthority, resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockedCache);
+
+        // inject mocked web request handler
+        final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
+        // MRRT request fails with invalid_grant
+        Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
+                AdditionalMatchers.aryEq(Util.getPoseMessage(rtForTestHost, clientId, resource)),
+                Mockito.anyString())).thenReturn(
+                new HttpWebResponse(HttpURLConnection.HTTP_OK,
+                        Util.getSuccessTokenResponse(false, false), null));
+
+        acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
+
+        try {
+            final AuthenticationResult result = acquireTokenSilentHandler.getAccessToken();
+            assertNotNull(result);
+            assertNotNull(result.getAccessToken());
+        } catch (final AuthenticationException e) {
+            fail();
+        }
+
+        Mockito.verify(mockedWebRequestHandler, Mockito.times(1)).sendPost(
+                Mockito.any(URL.class), Mockito.anyMap(),
+                AdditionalMatchers.aryEq(
+                        Util.getPoseMessage(rtForTestHost, clientId, resource)), Mockito.anyString());
+
+        // verify token items
+        final String preferredCacheLocation = "https://preferred.cache/test.onmicrosoft.com";
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(preferredCacheLocation, resource, clientId, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(preferredCacheLocation, resource, clientId, TEST_IDTOKEN_UPN)));
+        clearCache(mockedCache);
+    }
+
+    @Test
+    public void testTokenForAliasedAuthorityPresent() throws IOException, JSONException {
+        final FileMockContext mockContext = new FileMockContext(getContext());
+        final ITokenCacheStore mockedCache = new DefaultTokenCacheStore(getContext());
+        clearCache(mockedCache);
+
+        updateAuthorityMetadataCache();
+        // insert token with authority as other aliased host
+        final String resource = "resource";
+        final String clientId = "clientId";
+
+        // Add regular RT item without RT in the cache
+        final String aliasedAuthority = "https://test.alias/test.onmicrosoft.com";
+        final String rtForAliashedHost = "rt with aliased authority";
+        final TokenCacheItem rtTokenCacheItem = Util.getTokenCacheItem(aliasedAuthority, resource, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        rtTokenCacheItem.setRefreshToken(rtForAliashedHost);
+        rtTokenCacheItem.setIsMultiResourceRefreshToken(false);
+        saveTokenIntoCache(mockedCache, rtTokenCacheItem);
+
+        // insert token with authority as aliased host
+        final String preferredNetworkAuthority = "https://preferred.network/test.onmicrosoft.com";
+        final String rtForPreferredNetwork = "rt for preferred network";
+        final TokenCacheItem itemWithPreferredNetwork = Util.getTokenCacheItem(preferredNetworkAuthority, resource, clientId,
+                TEST_IDTOKEN_USERID, TEST_IDTOKEN_UPN);
+        itemWithPreferredNetwork.setRefreshToken(rtForPreferredNetwork);
+        saveTokenIntoCache(mockedCache, itemWithPreferredNetwork);
+
+        final AuthenticationRequest authenticationRequest = getAuthenticationRequest("https://test.host/test.onmicrosoft.com", resource, clientId, false);
+        authenticationRequest.setUserIdentifierType(UserIdentifierType.UniqueId);
+        authenticationRequest.setUserId(TEST_IDTOKEN_USERID);
+        final AcquireTokenSilentHandler acquireTokenSilentHandler = getAcquireTokenHandler(mockContext,
+                authenticationRequest, mockedCache);
+
+        // inject mocked web request handler
+        final IWebRequestHandler mockedWebRequestHandler = Mockito.mock(WebRequestHandler.class);
+        // MRRT request fails with invalid_grant
+        Mockito.when(mockedWebRequestHandler.sendPost(Mockito.any(URL.class), Mockito.anyMap(),
+                (byte[]) Mockito.any(), Mockito.anyString())).thenReturn(
+                new HttpWebResponse(HttpURLConnection.HTTP_OK,
+                        Util.getSuccessTokenResponse(false, false), null));
+
+        acquireTokenSilentHandler.setWebRequestHandler(mockedWebRequestHandler);
+
+        try {
+            final AuthenticationResult result = acquireTokenSilentHandler.getAccessToken();
+            assertNotNull(result);
+            assertNotNull(result.getAccessToken());
+        } catch (final AuthenticationException e) {
+            fail();
+        }
+
+        Mockito.verify(mockedWebRequestHandler, Mockito.times(1)).sendPost(
+                Mockito.any(URL.class), Mockito.anyMap(), (byte[]) Mockito.any(), Mockito.anyString());
+
+        // verify token items
+        final String preferredCacheLocation = "https://preferred.cache/test.onmicrosoft.com";
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(preferredCacheLocation, resource, clientId, TEST_IDTOKEN_USERID)));
+        assertNotNull(mockedCache.getItem(CacheKey.createCacheKeyForRTEntry(preferredCacheLocation, resource, clientId, TEST_IDTOKEN_UPN)));
+        clearCache(mockedCache);
+    }
+
+    private void updateAuthorityMetadataCache() {
+        final InstanceDiscoveryMetadata metadata = getInstanceDiscoveryMetadata();
+        for (final String alias : metadata.getAliases()) {
+            AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(alias, metadata);
+        }
+    }
+
+    private InstanceDiscoveryMetadata getInstanceDiscoveryMetadata() {
+        final String preferredNetwork = "preferred.network";
+        final String preferredCacheLocation = "preferred.cache";
+
+        final List<String> aliases = new ArrayList<>();
+        aliases.add("preferred.network");
+        aliases.add("preferred.cache");
+        aliases.add("test.host");
+        aliases.add("test.alias");
+
+        return new InstanceDiscoveryMetadata(preferredNetwork, preferredCacheLocation, aliases);
+    }
+
     private void saveTokenIntoCache(final ITokenCacheStore mockedCache, final TokenCacheItem token) {
         if (!StringExtensions.isNullOrBlank(token.getResource())) {
-            mockedCache.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, token.getResource(), token.getClientId(),
+            mockedCache.setItem(CacheKey.createCacheKeyForRTEntry(token.getAuthority(), token.getResource(), token.getClientId(),
                     token.getUserInfo().getUserId()), token);
-            mockedCache.setItem(CacheKey.createCacheKeyForRTEntry(VALID_AUTHORITY, token.getResource(), token.getClientId(),
+            mockedCache.setItem(CacheKey.createCacheKeyForRTEntry(token.getAuthority(), token.getResource(), token.getClientId(),
                     token.getUserInfo().getDisplayableId()), token);
         } else if (StringExtensions.isNullOrBlank(token.getClientId())) {
-            mockedCache.setItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY, token.getFamilyClientId(),
+            mockedCache.setItem(CacheKey.createCacheKeyForFRT(token.getAuthority(), token.getFamilyClientId(),
                     token.getUserInfo().getUserId()), token);
-            mockedCache.setItem(CacheKey.createCacheKeyForFRT(VALID_AUTHORITY, token.getFamilyClientId(),
+            mockedCache.setItem(CacheKey.createCacheKeyForFRT(token.getAuthority(), token.getFamilyClientId(),
                     token.getUserInfo().getDisplayableId()), token);
         } else {
-            mockedCache.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, token.getClientId(),
+            mockedCache.setItem(CacheKey.createCacheKeyForMRRT(token.getAuthority(), token.getClientId(),
                     token.getUserInfo().getUserId()), token);
-            mockedCache.setItem(CacheKey.createCacheKeyForMRRT(VALID_AUTHORITY, token.getClientId(),
+            mockedCache.setItem(CacheKey.createCacheKeyForMRRT(token.getAuthority(), token.getClientId(),
                     token.getUserInfo().getDisplayableId()), token);
         }
     }
 
     // No Family client id set in the cache. Only regular RT token cache entry
     private ITokenCacheStore getCacheForRefreshToken(String userId, String displayableId) {
-        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
+        DefaultTokenCacheStore cache = new DefaultTokenCacheStore(getContext());
         cache.removeAll();
         Calendar expiredTime = new GregorianCalendar();
         Logger.d("Test", "Time now:" + expiredTime.toString());
@@ -891,13 +1293,5 @@ public final class AcquireTokenSilentHandlerTest {
                                                              final ITokenCacheStore mockCache) {
         return new AcquireTokenSilentHandler(context, authRequest,
                 new TokenCacheAccessor(mockCache, authRequest.getAuthority(), authRequest.getTelemetryRequestId()));
-    }
-
-    class MockedConnectionService implements IConnectionService {
-        @Override
-        public boolean isConnectionAvailable() {
-            return true;
-        }
-
     }
 }

@@ -36,6 +36,12 @@ final class CacheEvent extends DefaultEvent {
         setProperty(EventStrings.EVENT_NAME, eventName);
     }
 
+    void setSpeRing(final String speRing) {
+        if (!StringExtensions.isNullOrBlank(speRing)) {
+            setProperty(EventStrings.SPE_INFO, speRing.trim());
+        }
+    }
+
     void setTokenType(final String tokenType) {
         getEventList().add(Pair.create(EventStrings.TOKEN_TYPE, tokenType));
     }
@@ -80,11 +86,15 @@ final class CacheEvent extends DefaultEvent {
         dispatchMap.put(EventStrings.TOKEN_TYPE_IS_MRRT, "");
         dispatchMap.put(EventStrings.TOKEN_TYPE_IS_RT, "");
 
+        if (dispatchMap.containsKey(EventStrings.SPE_INFO)) {
+            dispatchMap.remove(EventStrings.SPE_INFO);
+        }
+
         for (Pair<String, String> eventPair : eventList) {
             final String name = eventPair.first;
 
             if (name.equals(EventStrings.TOKEN_TYPE_IS_FRT) || name.equals(EventStrings.TOKEN_TYPE_IS_RT)
-                    || name.equals(EventStrings.TOKEN_TYPE_IS_MRRT)) {
+                    || name.equals(EventStrings.TOKEN_TYPE_IS_MRRT) || name.equals(EventStrings.SPE_INFO)) {
                 dispatchMap.put(name, eventPair.second);
             }
         }

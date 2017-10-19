@@ -27,8 +27,13 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.support.test.filters.Suppress;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 import android.util.Log;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,14 +49,21 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class StorageHelperTests extends AndroidTestHelper {
 
     private static final String TAG = "StorageHelperTests";
 
     private static final int MIN_SDK_VERSION = 18;
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         super.setUp();
 
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null && Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
@@ -60,11 +72,13 @@ public class StorageHelperTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testEncryptDecrypt() throws GeneralSecurityException, IOException, AuthenticationException {
         String clearText = "SomeValue1234";
         encryptDecrypt(clearText);
     }
 
+    @Test
     public void testEncryptDecryptNullEmpty() {
 
         final Context context = getInstrumentation().getTargetContext();
@@ -109,6 +123,7 @@ public class StorageHelperTests extends AndroidTestHelper {
                 });
     }
 
+    @Test
     public void testDecryptInvalidInput() throws
             IOException, GeneralSecurityException {
         final Context context = getInstrumentation().getTargetContext();
@@ -149,8 +164,9 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
     /**
-     * test different size messges
+     * test different size messages
      */
+    @Test
     public void testEncryptDecryptDifferentSizes() throws GeneralSecurityException, IOException, AuthenticationException {
         Log.d(TAG, "Starting testEncryptDecrypt_differentSizes");
         // try different block sizes
@@ -167,11 +183,12 @@ public class StorageHelperTests extends AndroidTestHelper {
         final StorageHelper storageHelper = new StorageHelper(context);
         String encrypted = storageHelper.encrypt(clearText);
         assertNotNull("encrypted string is not null", encrypted);
-        assertFalse("encrypted string is not same as cleartex", encrypted.equals(clearText));
+        assertFalse("encrypted string is not same as cleartext", encrypted.equals(clearText));
         String decrypted = storageHelper.decrypt(encrypted);
         assertEquals("Same as initial text", clearText, decrypted);
     }
 
+    @Test
     public void testEncryptSameText() throws GeneralSecurityException, IOException, AuthenticationException {
         // access code
         Context context = getInstrumentation().getTargetContext();
@@ -183,7 +200,7 @@ public class StorageHelperTests extends AndroidTestHelper {
         String encrypted3 = storageHelper.encrypt(clearText);
 
         assertNotNull("encrypted string is not null", encrypted);
-        assertFalse("encrypted string is not same as cleartex", encrypted.equals(clearText));
+        assertFalse("encrypted string is not same as cleartext", encrypted.equals(clearText));
         assertFalse("encrypted string is not same as another encrypted call",
                 encrypted.equals(encrypted2));
         assertFalse("encrypted string is not same as another encrypted call",
@@ -198,13 +215,14 @@ public class StorageHelperTests extends AndroidTestHelper {
         Log.d(TAG, "Finished testEncryptSameText");
     }
 
+    @Test
     public void testTampering() throws GeneralSecurityException, IOException, AuthenticationException {
         final Context context = getInstrumentation().getTargetContext();
         final StorageHelper storageHelper = new StorageHelper(context);
         String clearText = "AAAAAAAA2pILN0mn3wlYIlWk7lqOZ5qjRWXH";
         String encrypted =  storageHelper.encrypt(clearText);
         assertNotNull("encrypted string is not null", encrypted);
-        assertFalse("encrypted string is not same as cleartex", encrypted.equals(clearText));
+        assertFalse("encrypted string is not same as cleartext", encrypted.equals(clearText));
 
         String decrypted =  storageHelper.decrypt(encrypted);
         assertTrue("Same without Tampering", decrypted.equals(clearText));
@@ -226,6 +244,7 @@ public class StorageHelperTests extends AndroidTestHelper {
      * emulator(18 and before 18).
      * 
      */
+    @Test
     public void testVersion() throws GeneralSecurityException, IOException {
 
         final Context context = getInstrumentation().getTargetContext();
@@ -254,6 +273,7 @@ public class StorageHelperTests extends AndroidTestHelper {
     //Github issue #580. Suppress this unit test as we cannot make it work consistently.
     @Suppress
     @TargetApi(MIN_SDK_VERSION)
+    @Test
     public void testKeyPair() throws
             GeneralSecurityException, IOException {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
@@ -271,7 +291,8 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
     @TargetApi(MIN_SDK_VERSION)
-    public void testKeyPair_AndroidKeyStore() throws
+    @Test
+    public void testKeyPairAndroidKeyStore() throws
             GeneralSecurityException, IOException {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
             return;
@@ -288,6 +309,7 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
     @TargetApi(MIN_SDK_VERSION)
+    @Test
     public void testMigration() throws
             GeneralSecurityException, IOException, AuthenticationException {
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {
@@ -303,6 +325,7 @@ public class StorageHelperTests extends AndroidTestHelper {
     }
 
     @TargetApi(MIN_SDK_VERSION)
+    @Test
     public void testGetSecretKeyFromAndroidKeyStore() throws IOException, GeneralSecurityException {
 
         if (Build.VERSION.SDK_INT < MIN_SDK_VERSION) {

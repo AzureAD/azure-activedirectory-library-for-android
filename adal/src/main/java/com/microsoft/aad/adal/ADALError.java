@@ -205,6 +205,11 @@ public enum ADALError {
     DEVICE_INTERNET_IS_NOT_AVAILABLE("Internet permissions are not set for the app"),
 
     /**
+     * Unable to access the network due to power optimizations.
+     */
+    NO_NETWORK_CONNECTION_POWER_OPTIMIZATION("Unable to access the network due to power optimizations"),
+
+    /**
      * onActivityResult is called with null intent data. Activity may be
      * terminated directly.
      */
@@ -570,7 +575,22 @@ public enum ADALError {
     /**
      *  Broker is not installed. The process is kicked off to to install broker but ADAL cannot wait for it to finish.
      */
-    BROKER_APP_INSTALLATION_STARTED("Broker app installation started");
+    BROKER_APP_INSTALLATION_STARTED("Broker app installation started"),
+
+    /**
+     * The version field of x-ms-clitelem contained an unknown or unsupported value.
+     */
+    X_MS_CLITELEM_VERSION_UNRECOGNIZED("Unrecognized x-ms-clitelem header version"),
+
+    /**
+     * The value of the x-ms-clitelem header contained malformed data.
+     */
+    X_MS_CLITELEM_MALFORMED("Malformed x-ms-clitelem header"),
+
+    /**
+     * Failed to bind the service in broker app.
+     */
+    BROKER_BIND_SERVICE_FAILED("Failed to bind the service in broker app");
 
     private String mDescription;
 

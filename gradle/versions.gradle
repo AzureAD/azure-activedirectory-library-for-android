@@ -17,4 +17,5 @@ ext {
     dexmakerMockitoVersion = "1.2"
     runnerVersion = "0.5"
     gsonVersion = "2.8.1"
+    rulesVersion = "1.0.0"
 }

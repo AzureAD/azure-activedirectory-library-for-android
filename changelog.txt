@@ -1,3 +1,28 @@
+Version 1.13.2
+-------------
+Add telemetry to capture x-ms-clitelem header (tracks errors, suberrors, rt age, and SPE ring)
+
+Version 1.13.1
+-------------
+Add support for handling doze and app standby mode
+Add telemetry and log around brokerAccountServiceBinding
+revert cache miss fix
+
+Version 1.13.0
+-------------
+Add support for sending conditional access claims to acquire token call
+Remove deadcode around defunct ApplicationReceiver
+Disable autocomplete in automation app for request EditText
+Update Travis to enable instrumentation test run
+Update Gson to 2.8.0
+Update Gradle/Maven snippets in README
+Fix for returning error back when loginhint is not passed in but multiple tokens exist
+Fix unit tests that are failing on Travis
+Fix for making sure that we have no-arg constructors to prevent usage of unsafe in gson
+Add build status on Travis and VSTS to README
+Fix broken headings in MarkDown files
+Fix for err_cache_miss in webview
+
 Version 1.12.0
 --------------
 Adding telemetry interfaces and event to ADAL

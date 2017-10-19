@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">userappwithbroker</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="info_line">Update UserName</string>
-    <string name="AcquireTokenInteractiveForR1">AcquireToken For Resource1</string>
-    <string name="AcquireTokenSilentForR1">AcquireToken Silent For Resource1</string>
-    <string name="AcquireTokenInteractiveForR2">AcquireToken For Resource2</string>
-    <string name="AcquireTokenSilentForR2">AcquireToken Silent For Resource2</string>
-    <string name="clear_tokens">Clear Tokens</string>
-    <string name="login_hint">someone@contoso.com</string>
-    <string name="GetBrokerUsers">GetBrokerUsers</string>
+    <string name="app_name">Fancy ADAL Test App</string>
+    <string name="select_account">Select Account </string>
+    <string name="force_login">Force Login</string>
+    <string name="consent">Consent</string>
+    <string name="authority_text">Authority</string>
+    <string name="login_hint_text">Login hint</string>
+    <string name="ui_behavior_text">Ui Behavior</string>
+    <string name="resource">Resource</string>
+    <string name="promptBehavior">Prompt Behavior</string>
+    <string name="scope_text">Scope</string>
+    <string name="additional_scope_text">Additional Scopes</string>
+    <string name="scope_text_hint">Type in scopes delimited by space</string>
+    <string name="enable_pii_text">Enable PII logging</string>
+    <string name="force_refresh">Force Refresh</string>
+    <string name="acquire_token_button">AcquireToken</string>
+    <string name="acquire_token_silent_button">AcquireTokenSilent</string>
+    <string name="result_hint_text">Acquire token interactive/silent flow result data goes here...</string>
+    <string name="log_hint_text">Log data goes here...</string>
+    <string name="clear_log_button">clear logs</string>
+    <string name="btn_getUser">Get User</string>
+    <string name="btn_removeUser">Remove User</string>
 </resources>

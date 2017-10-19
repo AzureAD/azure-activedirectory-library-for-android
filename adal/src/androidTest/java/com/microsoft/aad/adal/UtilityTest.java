@@ -23,15 +23,22 @@
 
 package com.microsoft.aad.adal;
 
+import android.support.test.runner.AndroidJUnit4;
+
 import junit.framework.Assert;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.UUID;
 
+@RunWith(AndroidJUnit4.class)
 public class UtilityTest extends AndroidTestHelper {
 
+    @Test
     public void testClaimsPassedInWithParameter() {
         final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Always, "extraQueryPAram56", UUID.randomUUID(), false, "testClaims");
+                "loginhint55", PromptBehavior.Always, "extraQueryParam56", UUID.randomUUID(), false, "testClaims");
 
         Assert.assertTrue(Utility.isClaimsChallengePresent(request));
     }

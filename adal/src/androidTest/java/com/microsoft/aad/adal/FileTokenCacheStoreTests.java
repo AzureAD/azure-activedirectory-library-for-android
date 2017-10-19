@@ -24,9 +24,16 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
 import com.microsoft.aad.adal.Logger.ILogger;
 import com.microsoft.aad.adal.Logger.LogLevel;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,6 +41,15 @@ import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
 public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
@@ -50,17 +66,16 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
 
     private TokenCacheItem mTestItem2;
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         super.setUp();
-        mTargetContex = this.getInstrumentation().getTargetContext();
+        mTargetContex = InstrumentationRegistry.getTargetContext();
         AuthenticationSettings.INSTANCE.setBrokerPackageName("invalid");
         AuthenticationSettings.INSTANCE.setBrokerSignature("signature");
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-
+    @After
+    public void tearDown() throws Exception {
         FileTokenCacheStore store = new FileTokenCacheStore(mTargetContex, FILE_DEFAULT_NAME);
         store.removeAll();
         super.tearDown();
@@ -87,6 +102,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         store.setItem(CacheKey.createCacheKey(mTestItem2), mTestItem2);
     }
 
+    @Test
     public void testFileCacheWriteError() {
         final FileMockContext mockContext = new FileMockContext(mTargetContex);
         assertThrowsException(IllegalStateException.class,
@@ -102,6 +118,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         assertEquals("Check requested mode", Context.MODE_PRIVATE, mockContext.getFileWriteMode());
     }
 
+    @Test
     public void testLoadingFromInvalidCacheFile() {
 
         File directory = mTargetContex.getDir(mTargetContex.getPackageName(), Context.MODE_PRIVATE);
@@ -127,6 +144,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         assertTrue("Verify message ", logger.getLogMessage().contains(msgToCheck));
     }
 
+    @Test
     public void testGetItem() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
@@ -142,6 +160,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         assertEquals("Same tokencacheitem content", mCacheItem.getResource(), item.getResource());
     }
 
+    @Test
     public void testWriteFileException() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "fileWriteFileException";
         setupCache(file);
@@ -163,6 +182,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         mock.setWritable(true);
     }
 
+    @Test
     public void testRemoveItem() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testRemoveItem";
         String file2 = FILE_DEFAULT_NAME + "testRemoveItem2";
@@ -185,6 +205,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         store2.removeAll();
     }
 
+    @Test
     public void testRemoveAll() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
@@ -195,7 +216,8 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         TokenCacheItem item = store.getItem(CacheKey.createCacheKey(mCacheItem));
         assertNull("Token cache item is expected to be null", item);
     }
-    
+
+    @Test
     public void testGetAll() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
@@ -219,6 +241,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
      * with multiThreads
      * @throws AuthenticationException 
      */
+    @Test
     public void testSharedCacheGetItem() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);
@@ -260,6 +283,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
      * memory cache is shared between context
      * @throws AuthenticationException 
      */
+    @Test
     public void testMemoryCacheMultipleContext() throws AuthenticationException {
         String file = FILE_DEFAULT_NAME + "testGetItem";
         setupCache(file);

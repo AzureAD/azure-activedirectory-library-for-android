@@ -23,13 +23,32 @@
 
 package com.microsoft.aad.adal;
 
+import android.support.test.runner.AndroidJUnit4;
+
 import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Discovery class is not public, so it needs reflection to make a call to
@@ -39,18 +58,23 @@ import java.net.URL;
  * =https%3A%2F%2Flogin
  * .windows.net%2Faaltest.onmicrosoft.com%2Foauth2%2Fauthorize
  */
+@RunWith(AndroidJUnit4.class)
 public class DiscoveryTests extends AndroidTestHelper {
 
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
+        AuthorityValidationMetadataCache.clearAuthorityValidationCache();
         super.setUp();
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
         super.tearDown();
     }
 
     // sts.login.windows-int.net
+    @Test
     public void testaddValidHostToList() throws IOException {
         // Use HttpUrlConnection to mock when authority is the given one, discovery returns true.
         // clear mocked connection, check if the authority is valid.
@@ -79,6 +103,7 @@ public class DiscoveryTests extends AndroidTestHelper {
      *
      * @throws MalformedURLException
      */
+    @Test
     public void testIsValidAuthorityPositiveInList() throws MalformedURLException {
         final Discovery discovery = new Discovery();
 
@@ -105,6 +130,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testIsValidAuthorityNegative() throws IOException {
         final Discovery discovery = new Discovery();
         final URL endpointFull = new URL("https://login.invalidlogin.net/common/oauth2/authorize");
@@ -127,6 +153,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testServerInvalidJsonResponse() throws IOException {
         final Discovery discovery = new Discovery();
 
@@ -150,6 +177,7 @@ public class DiscoveryTests extends AndroidTestHelper {
         }
     }
 
+    @Test
     public void testIsValidAuthorityNegativeInvalidUrl() throws MalformedURLException {
         final Discovery discovery = new Discovery();
 
@@ -202,6 +230,7 @@ public class DiscoveryTests extends AndroidTestHelper {
      * call instance that is not in the hard coded list.
      */
     @SuppressWarnings("unchecked")
+    @Test
     public void testIsValidAuthorityPositiveRequeryInList() throws IOException {
         final Discovery discovery = new Discovery();
         final URL endpointFull = new URL("https://login.windows-ppe.net/common");
@@ -248,5 +277,86 @@ public class DiscoveryTests extends AndroidTestHelper {
         } catch (final AuthenticationException e) {
             fail();
         }
+    }
+
+    // Test when there are two requests from different threads trying to do authority validation for the same authority, only
+    // one hit network.
+    @Test
+    public void testMultiValidateAuthorityRequestsInDifferentThreads() throws IOException, InterruptedException, ExecutionException {
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(getDiscoveryResponse()));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(2);
+        Callable<Void> task = new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                final Discovery discovery = new Discovery();
+                discovery.validateAuthority(new URL("https://login.windows.net/common"));
+
+                return null;
+            }
+        };
+
+        final List<Callable<Void>> tasks = Collections.nCopies(2, task);
+        final List<Future<Void>> results = executorService.invokeAll(tasks);
+        for (final Future<Void> result : results) {
+            result.get();
+        }
+
+        Mockito.verify(mockedConnection, Mockito.times(1)).getInputStream();
+    }
+
+    /**
+     * Verified scenario:
+     * When an authority is valid and metadata is returned:
+     * a. Subsequent requests for any aliases provided in the metadata do not result in further validation network requests
+     * being made for the process lifetime
+     */
+    @Test
+    public void testAuthorityInAliasedList() throws IOException {
+        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+        HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
+        Util.prepareMockedUrlConnection(mockedConnection);
+
+        Mockito.when(mockedConnection.getInputStream()).thenReturn(Util.createInputStream(getDiscoveryResponse()));
+        Mockito.when(mockedConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+
+        final String authorityUrl1 = "https://login.windows.net/sometenant.onmicrosoft.com";
+        try {
+            final Discovery discovery = new Discovery();
+            discovery.validateAuthority(new URL(authorityUrl1));
+        } catch (AuthenticationException e) {
+            fail();
+        }
+
+        // do authority validation for aliased authority
+        final String aliasedAuthorityUrl = "https://login.microsoftonline.com/sometenant.onmicrosoft.com";
+        try {
+            final Discovery discovery = new Discovery();
+            discovery.validateAuthority(new URL(aliasedAuthorityUrl));
+        } catch (AuthenticationException e) {
+            fail();
+        }
+
+        final String aliasedAuthorityUrl2 = "https://sts.microsoft.com/sometenant.onmicrosoft.com";
+        try {
+            final Discovery discovery = new Discovery();
+            discovery.validateAuthority(new URL(aliasedAuthorityUrl2));
+        } catch (AuthenticationException e) {
+            fail();
+        }
+
+        Mockito.verify(mockedConnection, Mockito.times(1)).getInputStream();
+    }
+
+    static String getDiscoveryResponse() {
+        final Map<String, String> discoveryResponse = AuthorityValidationMetadataCacheTest.getDiscoveryResponse();
+        final JSONObject discoveryResponseJsonObject = new JSONObject(discoveryResponse);
+
+        return discoveryResponseJsonObject.toString();
     }
 }

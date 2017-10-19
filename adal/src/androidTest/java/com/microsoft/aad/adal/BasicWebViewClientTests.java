@@ -71,7 +71,7 @@ public class BasicWebViewClientTests {
     private static final String TEST_EXTERNAL_SITE_URL =
             AuthenticationConstants.Broker.BROWSER_EXT_PREFIX + "https://graph.microsoft.io";
     private static final String TEST_INSTALL_REQUEST_URL =
-            AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX + "foo";
+            AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX + "url";
 
     private WebView mMockWebView;
 

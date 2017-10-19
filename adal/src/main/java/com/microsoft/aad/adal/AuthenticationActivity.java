@@ -49,7 +49,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import com.google.gson.Gson;
@@ -298,7 +297,7 @@ public class AuthenticationActivity extends Activity {
                 @Override
                 public void run() {
                     // load blank first to avoid error for not loading webview
-                    Logger.v(TAG + methodName, "Lauching webview for acquiring auth code.");
+                    Logger.v(TAG + methodName, "Launching webview for acquiring auth code.");
                     mWebView.loadUrl("about:blank");
                     mWebView.loadUrl(postUrl);
                 }
@@ -368,10 +367,6 @@ public class AuthenticationActivity extends Activity {
         mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.getSettings().setUseWideViewPort(true);
         mWebView.getSettings().setBuiltInZoomControls(true);
-
-        // WebSettings.LOAD_CACHE_ELSE_NETWORK makes the webview go to the server if the cached resource has
-        // expired. This should prevent err_cach_miss errors when hitting back from an page marked no_cache
-        mWebView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         mWebView.setWebViewClient(new CustomWebViewClient());
         mWebView.setVisibility(View.INVISIBLE);
     }
@@ -707,7 +702,7 @@ public class AuthenticationActivity extends Activity {
                 for (Principal issuer : acceptableCertIssuers) {
                     if (issuer.getName().contains("CN=MS-Organization-Access")) {
                         //Checking if received acceptable issuers contain "CN=MS-Organization-Access"
-                        Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authenticaton.");
+                        Logger.v(TAG + methodName, "Cancelling the TLS request, not respond to TLS challenge triggered by device authentication.");
                         request.cancel();
                         return;
                     }

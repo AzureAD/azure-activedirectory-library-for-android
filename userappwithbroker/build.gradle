@@ -20,5 +20,6 @@ android {
 
 dependencies {
     // Compile Dependencies
+    compile "com.android.support:design:$rootProject.ext.supportLibraryVersion"
     compile project(':adal')
 }

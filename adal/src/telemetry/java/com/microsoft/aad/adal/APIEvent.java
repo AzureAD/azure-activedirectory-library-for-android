@@ -144,6 +144,32 @@ final class APIEvent extends DefaultEvent {
         }
     }
 
+    void setServerErrorCode(final String errorCode) {
+        if (null != errorCode && !errorCode.equals("0")) {
+            setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
+        }
+    }
+
+    void setServerSubErrorCode(final String subErrorCode) {
+        if (null != subErrorCode && !subErrorCode.equals("0")) {
+            setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
+
+        }
+    }
+
+    void setRefreshTokenAge(final String tokenAge) {
+        if (!StringExtensions.isNullOrBlank(tokenAge)) {
+            setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
+
+        }
+    }
+
+    void setSpeRing(final String speRing) {
+        if (!StringExtensions.isNullOrBlank(speRing)) {
+            setProperty(EventStrings.SPE_INFO, speRing.trim());
+        }
+    }
+
     /**
      * Each event chooses which of its members get picked on aggregation.
      * @param dispatchMap the Map that is filled with the aggregated event properties
@@ -165,7 +191,9 @@ final class APIEvent extends DefaultEvent {
                     || name.equals(EventStrings.USER_ID) || name.equals(EventStrings.LOGIN_HINT)
                     || name.equals(EventStrings.RESPONSE_TIME) || name.equals(EventStrings.CORRELATION_ID)
                     || name.equals(EventStrings.REQUEST_ID) || name.equals(EventStrings.API_ID)
-                    || name.equals(EventStrings.API_ERROR_CODE)) {
+                    || name.equals(EventStrings.API_ERROR_CODE) || name.equals(EventStrings.SERVER_ERROR_CODE)
+                    || name.equals(EventStrings.SERVER_SUBERROR_CODE) || name.equals(EventStrings.TOKEN_AGE)
+                    || name.equals(EventStrings.SPE_INFO)) {
                 dispatchMap.put(name, eventPair.second);
             }
         }
