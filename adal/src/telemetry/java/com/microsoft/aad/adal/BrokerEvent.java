@@ -89,10 +89,8 @@ final class BrokerEvent extends DefaultEvent {
 
         dispatchMap.put(EventStrings.BROKER_APP_USED, Boolean.toString(true));
         for (Pair<String, String> eventPair : eventList) {
-            final String name = eventPair.first;
-            if (!name.equals(EventStrings.EVENT_NAME)) {
-                dispatchMap.put(eventPair.first, eventPair.second);
-            }
+
+            dispatchMap.put(eventPair.first, eventPair.second);
         }
     }
 }
