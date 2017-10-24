@@ -491,6 +491,9 @@ public final class AuthenticationConstants {
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
 
+        //* Integer for token expiration buffer. see AuthenticationSettings.mExpirationBuffer
+        public static final String EXPIRATION_BUFFER = "expiration.buffer";
+
         /**
          * Bundle identifiers for x-ms-clitelem info.
          */
