@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal.example.userappwithbroker;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -70,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String TAG = "UserAppWithBroker.Main";
 
     private SharedPreferences mSharedPreference;
+    private Context mApplicationContext;
+
     private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID = "user.app.withbroker.uniqueidstorage";
 
     private String mLoginhint;
@@ -88,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mApplicationContext = getApplicationContext();
         setUpADALForCallingBroker();
 
         mContentMain = (RelativeLayout) findViewById(R.id.content_main);
@@ -166,11 +170,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
-        mAuthority = requestOptions.getAuthorityType().getText();
-
-        if (mAuthContext == null) {
-            mAuthContext = new AuthenticationContext(getApplicationContext(), mAuthority, true);
+        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint());
+        if (null != authority && !authority.isEmpty()) {
+            mAuthority = authority;
+            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
+        } else {
+            mAuthority = requestOptions.getAuthorityType().getText();
+            if (mAuthContext == null) {
+                mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
+            }
         }
+
         mLoginhint = requestOptions.getLoginHint();
         mPromptBehavior = requestOptions.getBehavior();
     }
@@ -285,7 +295,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
         prefEditor.putString(authResult.getUserInfo().getDisplayableId(), authResult.getUserInfo().getUserId());
-
+        if (authResult.getAuthority() != null) {
+            prefEditor.putString(authResult.getUserInfo().getDisplayableId() + "authority", authResult.getAuthority());
+        }
         prefEditor.apply();
     }
 
@@ -317,6 +329,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 showMessage("Error occurred when acquiring token silently: " + exc.getMessage());
             }
         });
+    }
+
+    private String getAuthorityBasedOnUPN(final String upn) {
+        mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+        return mSharedPreference.getString(upn+"authority", null);
     }
 
 }
