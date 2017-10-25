@@ -219,10 +219,8 @@ final class Discovery {
         try {
             queryUrl = buildQueryString(trustedHost, getAuthorizationCommonEndpoint(authorityUrl));
             final Map<String, String> discoveryResponse = sendRequest(queryUrl);
-
             AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityUrl, discoveryResponse);
-
-            result = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl).isValidated();
+            result = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
         } catch (final IOException | JSONException e) {
             Logger.e(TAG, "Error when validating authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
