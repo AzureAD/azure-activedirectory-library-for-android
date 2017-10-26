@@ -6,6 +6,8 @@ Fix the error code issue when communication with broker fails
 Fix the callback for AT or ATS if bindservice returns false or the service connection
 Add RC build support on VSTS
 Update log message related to permission check
+Fix the NPE in instance discovery for authority validation
+Add network checking for authority validation
 
 Version 1.13.1
 -------------
