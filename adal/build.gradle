@@ -40,7 +40,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.13.2-RC1"
+        versionName "1.13.2-RC3"
         project.archivesBaseName = "adal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -208,7 +208,7 @@ publishing {
             groupId 'com.microsoft.aad'
             artifactId 'adal'
             //Edit the 'version' here for VSTS RC build
-            version = project.version + '.' + getTimestamp()
+            version = project.version
 
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
