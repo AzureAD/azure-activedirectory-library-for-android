@@ -248,12 +248,13 @@ class AcquireTokenRequest {
         }
 
         // replace the authority if host is not the same as the original one.
-        if (!authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
+        if (metadata.getPreferredNetwork() != null && !authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
             try {
                 final URL replacedAuthority = Utility.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
                 request.setAuthority(replacedAuthority.toString());
             } catch (final MalformedURLException ex) {
-                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+                //Intentionally empty.
+                Logger.i(TAG, "preferred network is invalid", "use exactly the same authority url that is passed");
             }
         }
     }

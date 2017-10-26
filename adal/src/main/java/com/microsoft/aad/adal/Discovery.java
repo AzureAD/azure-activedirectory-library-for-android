@@ -33,6 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -228,7 +229,10 @@ final class Discovery {
             final Map<String, String> discoveryResponse = sendRequest(queryUrl);
             AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityUrl, discoveryResponse);
             if (!AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
-                AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(), new InstanceDiscoveryMetadata(true));
+                ArrayList<String> aliases = new ArrayList<String>();
+                aliases.add(authorityUrl.getHost());
+                AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(),
+                        new InstanceDiscoveryMetadata(authorityUrl.getHost(), authorityUrl.getHost(), aliases));
             }
             result = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
         } catch (final IOException | JSONException e) {
