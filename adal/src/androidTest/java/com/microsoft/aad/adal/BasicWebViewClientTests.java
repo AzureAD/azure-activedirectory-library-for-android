@@ -25,6 +25,7 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.content.Intent;
 import android.net.http.SslError;
+import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
@@ -101,7 +102,7 @@ public class BasicWebViewClientTests {
             }
 
             @Override
-            public void cancelWebViewRequest() {
+            public void cancelWebViewRequest(@Nullable Intent errorIntent) {
                 // Do nothing. Test Object.
             }
 
@@ -199,7 +200,7 @@ public class BasicWebViewClientTests {
             }
 
             @Override
-            public void cancelWebViewRequest() {
+            public void cancelWebViewRequest(@Nullable Intent errorIntent) {
                 countDownLatch.countDown();
             }
 
@@ -274,7 +275,7 @@ public class BasicWebViewClientTests {
             }
 
             @Override
-            public void cancelWebViewRequest() {
+            public void cancelWebViewRequest(@Nullable Intent errorIntent) {
                 // Not under test
             }
 
@@ -354,7 +355,7 @@ public class BasicWebViewClientTests {
             }
 
             @Override
-            public void cancelWebViewRequest() {
+            public void cancelWebViewRequest(@Nullable Intent errorIntent) {
                 // Not under test
             }
 
@@ -435,7 +436,7 @@ public class BasicWebViewClientTests {
             }
 
             @Override
-            public void cancelWebViewRequest() {
+            public void cancelWebViewRequest(@Nullable Intent errorIntent) {
                 // Not under test
             }
 

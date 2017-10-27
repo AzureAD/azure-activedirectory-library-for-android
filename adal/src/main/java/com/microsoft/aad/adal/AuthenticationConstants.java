@@ -102,10 +102,10 @@ public final class AuthenticationConstants {
 
         /** WebView throws Authentication exception. It needs to be send to callback. */
         public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = 2005;
-        
+
         /**
-         * CA flow, device doesn't have company portal or azure authenticator installed. 
-         * Waiting for broker package to be installed, and resume request in broker. 
+         * CA flow, device doesn't have company portal or azure authenticator installed.
+         * Waiting for broker package to be installed, and resume request in broker.
          */
         public static final int BROKER_REQUEST_RESUME = 2006;
     }
@@ -298,7 +298,7 @@ public final class AuthenticationConstants {
 
         /** String for broker request resume. */
         public static final String BROKER_REQUEST_RESUME = "com.microsoft.aadbroker.adal.broker.request.resume";
-        
+
         /** Account type string. */
         public static final String BROKER_ACCOUNT_TYPE = "com.microsoft.workaccount";
 
@@ -454,7 +454,7 @@ public final class AuthenticationConstants {
          * component.
          */
         public static final String COMPANY_PORTAL_APP_SIGNATURE = "1L4Z9FJCgn5c0VLhyAxC5O9LdlE=";
-        
+
         /**
          * Signature info for Azure authenticator app that installs authenticator
          * component.
@@ -491,7 +491,7 @@ public final class AuthenticationConstants {
         /** String for ssl prefix. */
         public static final String REDIRECT_SSL_PREFIX = "https://";
 
-        //* Integer for token expiration buffer. see AuthenticationSettings.mExpirationBuffer
+        /** Integer for token expiration buffer. see AuthenticationSettings.mExpirationBuffer */
         public static final String EXPIRATION_BUFFER = "expiration.buffer";
 
         /**
@@ -527,9 +527,9 @@ public final class AuthenticationConstants {
      * Represents the oauth2 error code.
      */
     protected static final class OAuth2ErrorCode {
-        /**       
+        /**
          * Oauth2 error code invalid_grant.
-         */       
+         */
         static final String INVALID_GRANT = "invalid_grant";
     }
 
