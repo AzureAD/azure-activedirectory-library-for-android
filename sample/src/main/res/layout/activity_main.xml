@@ -92,11 +92,12 @@
 
     <EditText
         android:id="@+id/editTextUsername"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/buttonFragment"
         android:layout_below="@+id/buttonFragment"
         android:ems="10"
+        android:inputType="textEmailAddress"
         android:hint="@string/login_hint" >
 
         <requestFocus />
@@ -109,7 +110,7 @@
         android:layout_alignBottom="@+id/buttonClickToken"
         android:layout_marginLeft="15dp"
         android:layout_toRightOf="@+id/buttonClickToken"
-        android:onClick="onClickDialog"        
+        android:onClick="onClickDialog"
         android:text="Dialog" />
 
 </RelativeLayout>

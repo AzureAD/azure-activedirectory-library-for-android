@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import android.support.annotation.Nullable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,9 +66,11 @@ final class AuthorityValidationMetadataCache {
     }
 
     static boolean isAuthorityValidated(final URL authorityUrl) {
-        return containsAuthorityHost(authorityUrl) && getCachedInstanceDiscoveryMetadata(authorityUrl).isValidated();
+        InstanceDiscoveryMetadata discoveryMetadata = getCachedInstanceDiscoveryMetadata(authorityUrl);
+        return containsAuthorityHost(authorityUrl) && discoveryMetadata != null && discoveryMetadata.isValidated();
     }
 
+    @Nullable
     static InstanceDiscoveryMetadata getCachedInstanceDiscoveryMetadata(final URL authorityUrl) {
         return sAadAuthorityHostMetadata.get(authorityUrl.getHost().toLowerCase(Locale.US));
     }

@@ -197,6 +197,7 @@ final class Discovery {
         // mValidHosts is a sync set
         if (AAD_WHITELISTED_HOSTS.isEmpty()) {
             AAD_WHITELISTED_HOSTS.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
+            AAD_WHITELISTED_HOSTS.add("login.windows-ppe.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
             AAD_WHITELISTED_HOSTS.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
             AAD_WHITELISTED_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
             AAD_WHITELISTED_HOSTS.add("login.microsoftonline.de"); // Microsoft Azure Germany
@@ -222,7 +223,8 @@ final class Discovery {
 
             AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityUrl, discoveryResponse);
 
-            result = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl).isValidated();
+            InstanceDiscoveryMetadata discoveryMetadata = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl);
+            result = discoveryMetadata != null && discoveryMetadata.isValidated();
         } catch (final IOException | JSONException e) {
             Logger.e(TAG, "Error when validating authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
