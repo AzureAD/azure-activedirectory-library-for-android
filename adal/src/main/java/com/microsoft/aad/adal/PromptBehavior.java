@@ -41,7 +41,7 @@ public enum PromptBehavior {
     Always,
 
     /**
-     * Re-authorizes (through displaying webview) the resource usage, making
+     * Re-authorizes (through displaying WebView) the resource usage, making
      * sure that the resulting access token contains the updated claims. If user
      * logon cookies are available, the user will not be asked for credentials
      * again and the logon dialog will dismiss automatically. This is equivalent
@@ -53,8 +53,8 @@ public enum PromptBehavior {
     /**
      * If Azure Authenticator or Company Portal is installed, this flag will have 
      * the broker app force the prompt behavior, otherwise it will be same as Always. 
-     * If using embeded flow, please keep using Always, if FORCE_PROMPT is set for 
-     * embeded flow, the sdk will re-intepret it to Always. 
+     * If using embedded flow, please keep using Always, if FORCE_PROMPT is set for
+     * embedded flow, the sdk will re-interpret it to Always.
      */
     FORCE_PROMPT
 }

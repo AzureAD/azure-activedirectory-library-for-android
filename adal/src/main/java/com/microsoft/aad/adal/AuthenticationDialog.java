@@ -30,12 +30,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
+
 import java.io.UnsupportedEncodingException;
 
 @SuppressLint({
@@ -56,7 +58,7 @@ class AuthenticationDialog {
 
     private WebView mWebView;
 
-    public AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
+    AuthenticationDialog(Handler handler, Context context, final AcquireTokenRequest acquireTokenRequest,
             AuthenticationRequest request) {
         mHandlerInView = handler;
         mContext = context;
@@ -72,7 +74,7 @@ class AuthenticationDialog {
      * Create dialog using the context. Inflate the layout with inflater
      * service. This will run with the handler.
      */
-    public void show() {
+    void show() {
 
         mHandlerInView.post(new Runnable() {
 
@@ -83,14 +85,14 @@ class AuthenticationDialog {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
 
                 // using static layout
-                View webviewInDialog = inflater.inflate(
+                View webViewInDialog = inflater.inflate(
                         getResourceId("dialog_authentication", "layout"), null);
-                mWebView = (WebView) webviewInDialog.findViewById(getResourceId(
+                mWebView = (WebView) webViewInDialog.findViewById(getResourceId(
                         "com_microsoft_aad_adal_webView1", "id"));
                 if (mWebView == null) {
                     Logger.e(
                             TAG,
-                            "Expected resource name for webview is com_microsoft_aad_adal_webView1. It is not in your layout file",
+                            "Expected resource name for WebView is com_microsoft_aad_adal_webView1. It is not in your layout file",
                             "", ADALError.DEVELOPER_DIALOG_LAYOUT_INVALID);
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID,
@@ -149,7 +151,7 @@ class AuthenticationDialog {
                     mWebView.post(new Runnable() {
                         @Override
                         public void run() {
-                            mWebView.loadUrl("about:blank");
+                            mWebView.loadUrl(BasicWebViewClient.BLANK_PAGE);
                             mWebView.loadUrl(startUrl);
                         }
                     });
@@ -158,12 +160,12 @@ class AuthenticationDialog {
                     Logger.e(TAG, "Encoding error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
                 }
 
-                builder.setView(webviewInDialog).setCancelable(true);
+                builder.setView(webViewInDialog).setCancelable(true);
                 builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
 
                     @Override
                     public void onCancel(DialogInterface dialog) {
-                        cancelFlow();
+                        cancelFlow(null);
                     }
                 });
                 mDialog = builder.create();
@@ -173,12 +175,21 @@ class AuthenticationDialog {
         });
     }
 
-    private void cancelFlow() {
+    private void cancelFlow(@Nullable Intent errorIntent) {
         Logger.i(TAG, "Cancelling dialog", "");
-        Intent resultIntent = new Intent();
+        Intent resultIntent = errorIntent;
+        int resultCode;
+        if (resultIntent == null) {
+            resultIntent = new Intent();
+            resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+        } else {
+            resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
+        }
+
         resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
+
         mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,
-                AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+                resultCode, resultIntent);
         if (mHandlerInView != null) {
             mHandlerInView.post(new Runnable() {
                 @Override
@@ -191,10 +202,10 @@ class AuthenticationDialog {
         }
     }
 
-    class DialogWebViewClient extends BasicWebViewClient {
+    private class DialogWebViewClient extends BasicWebViewClient {
 
-        public DialogWebViewClient(Context ctx, String stopRedirect,
-                AuthenticationRequest request) {
+        DialogWebViewClient(Context ctx, String stopRedirect,
+                            AuthenticationRequest request) {
             super(ctx, stopRedirect, request, null);
         }
 
@@ -240,8 +251,8 @@ class AuthenticationDialog {
         }
 
         @Override
-        public void cancelWebViewRequest() {
-            cancelFlow();
+        public void cancelWebViewRequest(@Nullable Intent errorIntent) {
+            cancelFlow(errorIntent);
         }
 
         @Override

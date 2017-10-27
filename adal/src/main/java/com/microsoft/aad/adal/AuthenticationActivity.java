@@ -23,22 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.Locale;
-import java.util.UUID;
-
-import com.google.gson.Gson;
-
-import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
-
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
@@ -56,6 +40,7 @@ import android.os.Bundle;
 import android.security.KeyChain;
 import android.security.KeyChainAliasCallback;
 import android.security.KeyChainException;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -66,6 +51,21 @@ import android.webkit.ClientCertRequest;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.WebView;
+
+import com.google.gson.Gson;
+import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Authentication Activity to launch {@link WebView} for authentication.
@@ -208,7 +208,7 @@ public class AuthenticationActivity extends Activity {
             mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
             Log.d(TAG, "Hardware acceleration is disabled in WebView");
         }
-        
+
         mStartUrl = "about:blank";
         try {
             Oauth2 oauth = new Oauth2(mAuthRequest);
@@ -269,11 +269,11 @@ public class AuthenticationActivity extends Activity {
                 mRedirectUrl = PackageHelper.getBrokerRedirectUrl(mCallingPackage, signatureDigest);
             }
 
-            Logger.v(TAG, "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage 
-                    + " Signature hash for calling package is: " + signatureDigest + " Current context package: " 
+            Logger.v(TAG, "Broker redirectUrl: " + mRedirectUrl + " The calling package is: " + mCallingPackage
+                    + " Signature hash for calling package is: " + signatureDigest + " Current context package: "
                     + getPackageName(), " Start url: " + mStartUrl, null);
         } else {
-            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(), 
+            Logger.v(TAG + methodName, "Non-broker request for package " + getCallingPackage(),
                     " Start url: " + mStartUrl, null);
         }
 
@@ -556,25 +556,31 @@ public class AuthenticationActivity extends Activity {
         // happen.
         if (mPkeyAuthRedirect || !mWebView.canGoBackOrForward(BACK_PRESSED_CANCEL_DIALOG_STEPS)) {
             // counting blank page as well
-            cancelRequest();
+            cancelRequest(null);
         } else {
             // Don't use default back pressed action, since user can go back in
-            // webview
+            // WebView
             mWebView.goBack();
         }
     }
 
-    private void cancelRequest() {
+    private void cancelRequest(@Nullable Intent errorIntent) {
         Logger.v(TAG, "Sending intent to cancel authentication activity");
-        Intent resultIntent = new Intent();
-
-        if (mUIEvent != null) {
-            mUIEvent.setUserCancel();
+        int resultCode;
+        Intent resultIntent = errorIntent;
+        if (resultIntent == null) {
+            resultIntent = new Intent();
+            resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL;
+            if (mUIEvent != null) {
+                mUIEvent.setUserCancel();
+            }
+        } else {
+            resultCode = AuthenticationConstants.UIResponse.BROWSER_CODE_ERROR;
         }
 
-        returnToCaller(AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL, resultIntent);
+        returnToCaller(resultCode, resultIntent);
     }
-    
+
     private void prepareForBrokerResume() {
         final String methodName = ":prepareForBrokerResume";
         Logger.v(TAG + methodName, "Return to caller with BROKER_REQUEST_RESUME, and waiting for result.");
@@ -600,9 +606,9 @@ public class AuthenticationActivity extends Activity {
         }
     }
 
-    class CustomWebViewClient extends BasicWebViewClient {
+    private class CustomWebViewClient extends BasicWebViewClient {
 
-        public CustomWebViewClient() {
+        CustomWebViewClient() {
             super(AuthenticationActivity.this, mRedirectUrl, mAuthRequest, mUIEvent);
         }
 
@@ -671,8 +677,8 @@ public class AuthenticationActivity extends Activity {
         }
 
         @Override
-        public void cancelWebViewRequest() {
-            cancelRequest();
+        public void cancelWebViewRequest(@Nullable Intent errorIntent) {
+            cancelRequest(errorIntent);
         }
 
         @Override
@@ -710,6 +716,7 @@ public class AuthenticationActivity extends Activity {
                 }
             }
 
+            //noinspection WrongConstant
             KeyChain.choosePrivateKeyAlias(AuthenticationActivity.this, new KeyChainAliasCallback() {
 
                 @Override
@@ -815,7 +822,7 @@ public class AuthenticationActivity extends Activity {
      * setUserData/getUserData inside the AccountManager. This is used only for
      * broker related call.
      */
-    class TokenTask extends AsyncTask<String, String, TokenTaskResult> {
+    private class TokenTask extends AsyncTask<String, String, TokenTaskResult> {
 
         private String mPackageName;
 
@@ -831,8 +838,8 @@ public class AuthenticationActivity extends Activity {
             // Intentionally left blank
         }
 
-        public TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
-                         final String packageName, final int callingUID) {
+        TokenTask(IWebRequestHandler webHandler, final AuthenticationRequest request,
+                  final String packageName, final int callingUID) {
             mRequestHandler = webHandler;
             mRequest = request;
             mPackageName = packageName;
@@ -960,7 +967,7 @@ public class AuthenticationActivity extends Activity {
                         userinfo.getDisplayableId());
             }
             result.mAccountName = name;
-            Logger.i(TAG, "Setting account in account manager. Package: " + mPackageName 
+            Logger.i(TAG, "Setting account in account manager. Package: " + mPackageName
                     + " calling app UID:" + mAppCallingUID, " Account name: " + name);
 
 
@@ -1022,7 +1029,7 @@ public class AuthenticationActivity extends Activity {
                 keylist = "";
             }
             if (!keylist.contains(AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key)) {
-                Logger.v(TAG, "Account does not have the cache key. Saving it to account for the callerUID:" 
+                Logger.v(TAG, "Account does not have the cache key. Saving it to account for the callerUID:"
                         + callingUID, "The key to be saved is: " + key, null);
                 keylist += AuthenticationConstants.Broker.CALLER_CACHEKEY_PREFIX + key;
                 mAccountManager.setUserData(cacheAccount,
