@@ -197,7 +197,6 @@ final class Discovery {
         // mValidHosts is a sync set
         if (AAD_WHITELISTED_HOSTS.isEmpty()) {
             AAD_WHITELISTED_HOSTS.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
-            AAD_WHITELISTED_HOSTS.add("login.windows-ppe.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
             AAD_WHITELISTED_HOSTS.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
             AAD_WHITELISTED_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
             AAD_WHITELISTED_HOSTS.add("login.microsoftonline.de"); // Microsoft Azure Germany
