@@ -58,22 +58,22 @@ public final class AuthenticationConstants {
         /** Represents the request object returned from webview. */
         public static final String RESPONSE_REQUEST_INFO = "com.microsoft.aad.adal:BrowserRequestInfo";
 
-        /** Represents the error code returned from webview. */
+        /** Represents the error code returned from WebView. */
         public static final String RESPONSE_ERROR_CODE = "com.microsoft.aad.adal:BrowserErrorCode";
 
-        /** Represents the error message returned from webview. */
+        /** Represents the error message returned from WebView. */
         public static final String RESPONSE_ERROR_MESSAGE = "com.microsoft.aad.adal:BrowserErrorMessage";
 
-        /** Represents the exception returned from webview. */
+        /** Represents the exception returned from WebView. */
         public static final String RESPONSE_AUTHENTICATION_EXCEPTION = "com.microsoft.aad.adal:AuthenticationException";
 
-        /** Represents the final url that webview receives. */
+        /** Represents the final url that WebView receives. */
         public static final String RESPONSE_FINAL_URL = "com.microsoft.aad.adal:BrowserFinalUrl";
 
         /** Represents the response returned from broker. */
         public static final String RESPONSE = "com.microsoft.aad.adal:BrokerResponse";
 
-        /** Represent the error code of invalid request returned from webview. */
+        /** Represent the error code of invalid request returned from WebView. */
         public static final String WEBVIEW_INVALID_REQUEST = "Invalid request";
 
         /** Used by LocalBroadcastReceivers to filter the intent string of request cancellation. */
@@ -100,7 +100,7 @@ public final class AuthenticationConstants {
         /** Represents that broker successfully returns the response. */
         public static final int TOKEN_BROKER_RESPONSE = 2004;
 
-        /** Webview throws Authentication exception. It needs to be send to callback. */
+        /** WebView throws Authentication exception. It needs to be send to callback. */
         public static final int BROWSER_CODE_AUTHENTICATION_EXCEPTION = 2005;
         
         /**
@@ -211,7 +211,7 @@ public final class AuthenticationConstants {
         /** String of FoCI field returned in the JSON response from token endpoint. */
         static final String ADAL_CLIENT_FAMILY_ID = "foci";
 
-        /** String of has_chrome sent as extra query param to hide back button in the webview. */
+        /** String of has_chrome sent as extra query param to hide back button in the WebView. */
         static final String HAS_CHROME = "haschrome";
 
         static final String EXT_EXPIRES_IN = "ext_expires_in";

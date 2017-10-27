@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.View;
 import android.webkit.HttpAuthHandler;
@@ -48,15 +49,15 @@ abstract class BasicWebViewClient extends WebViewClient {
     private static final String INSTALL_URL_KEY = "app_link";
     private static final String TAG = "BasicWebViewClient";
 
-    public static final String BLANK_PAGE = "about:blank";
+    static final String BLANK_PAGE = "about:blank";
 
     private final String mRedirect;
     private final AuthenticationRequest mRequest;
     private final Context mCallingContext;
     private final UIEvent mUIEvent;
 
-    public BasicWebViewClient(final Context appContext, final String redirect,
-                              final AuthenticationRequest request, final UIEvent uiEvent) {
+    BasicWebViewClient(final Context appContext, final String redirect,
+                       final AuthenticationRequest request, final UIEvent uiEvent) {
         mCallingContext = appContext;
         mRedirect = redirect;
         mRequest = request;
@@ -66,14 +67,14 @@ abstract class BasicWebViewClient extends WebViewClient {
     public abstract void showSpinner(boolean status);
 
     public abstract void sendResponse(int returnCode, Intent responseIntent);
-    
-    public abstract void cancelWebViewRequest();
-    
+
+    public abstract void cancelWebViewRequest(@Nullable Intent errorIntent);
+
     public abstract void prepareForBrokerResumeRequest();
-    
+
     public abstract void setPKeyAuthStatus(boolean status);
-    
-    public abstract void postRunnable(Runnable item);    
+
+    public abstract void postRunnable(Runnable item);
 
     @Override
     public void onReceivedHttpAuthRequest(WebView view, final HttpAuthHandler handler,
@@ -96,19 +97,19 @@ abstract class BasicWebViewClient extends WebViewClient {
             public void onCancel() {
                 Logger.i(TAG, "onReceivedHttpAuthRequest: handler cancelled", "");
                 handler.cancel();
-                cancelWebViewRequest();
+                cancelWebViewRequest(null);
             }
         });
 
         Logger.i(TAG, "onReceivedHttpAuthRequest: show dialog", "");
         authDialog.show();
     }
-    
+
     @Override
     public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
         super.onReceivedError(view, errorCode, description, failingUrl);
         showSpinner(false);
-        Logger.e(TAG, "Webview received an error. Errorcode:" + errorCode + " " + description, "",
+        Logger.e(TAG, "WebView received an error. Error code:" + errorCode + " " + description, "",
                 ADALError.ERROR_WEBVIEW);
         Intent resultIntent = new Intent();
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Error Code:"
@@ -201,7 +202,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                             @Override
                             public void run() {
                                 String loadUrl = challengeResponse.getSubmitUrl();
-                                Logger.v(TAG, "Respond to pkeyAuth challenge", "Challenge submit url:" 
+                                Logger.v(TAG, "Respond to pkeyAuth challenge", "Challenge submit url:"
                                         + challengeResponse.getSubmitUrl(), null);
                                 view.loadUrl(loadUrl, headers);
                             }
@@ -249,31 +250,32 @@ abstract class BasicWebViewClient extends WebViewClient {
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
             Logger.v(TAG, "Navigation starts with the redirect uri.");
-            if (hasCancelError(url)) {
+            Intent errorIntent = parseError(url);
+            if (errorIntent != null) {
                 // Catch WEB-UI cancel request
                 Logger.i(TAG, "Sending intent to cancel authentication activity", "");
                 view.stopLoading();
-                cancelWebViewRequest();
+                cancelWebViewRequest(errorIntent);
                 return true;
             }
-            
+
             processRedirectUrl(view, url);
             return true;
         } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
             Logger.v(TAG, "It is an external website request");
             openLinkInBrowser(url);
             view.stopLoading();
-            cancelWebViewRequest();
+            cancelWebViewRequest(null);
             return true;
         } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX)) {
             Logger.v(TAG, "It is an install request");
             HashMap<String, String> parameters = StringExtensions
                     .getUrlParameters(url);
             prepareForBrokerResumeRequest();
-            // Having thread sleep for 1 second for calling activity to receive the result from 
+            // Having thread sleep for 1 second for calling activity to receive the result from
             // prepareForBrokerResumeRequest, thus the receiver for listening broker result return
             // can be registered. openLinkInBrowser will launch activity for going to
-            // playstore and broker app download page which brought the calling activity down 
+            // playstore and broker app download page which brought the calling activity down
             // in the activity stack.
             final int threadSleepForCallingActivity = 1000;
             try {
@@ -288,7 +290,7 @@ abstract class BasicWebViewClient extends WebViewClient {
 
         return processInvalidUrl(view, url);
     }
-    
+
     public abstract void processRedirectUrl(final WebView view, String url);
 
     public abstract boolean processInvalidUrl(final WebView view, String url);
@@ -296,24 +298,29 @@ abstract class BasicWebViewClient extends WebViewClient {
     final Context getCallingContext() {
         return mCallingContext;
     }
-    
+
     protected void openLinkInBrowser(String url) {
         String link = url
                 .replace(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX, "https://");
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
         mCallingContext.startActivity(intent);
     }
-    
-    private boolean hasCancelError(String redirectUrl) {
+
+    private Intent parseError(String redirectUrl) {
         Map<String, String> parameters = StringExtensions.getUrlParameters(redirectUrl);
-        String error = parameters.get("error");
-        String errorDescription = parameters.get("error_description");
+        String error = parameters.get(AuthenticationConstants.OAuth2.ERROR);
+        String errorDescription = parameters.get(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION);
 
         if (!StringExtensions.isNullOrBlank(error)) {
             Logger.w(TAG, "Cancel error:" + error, errorDescription, null);
-            return true;
+            Intent intent = new Intent();
+            intent.putExtra(AuthenticationConstants.OAuth2.ERROR, error);
+            intent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, error);
+            intent.putExtra(AuthenticationConstants.OAuth2.ERROR_DESCRIPTION, errorDescription);
+            intent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE, errorDescription);
+            return intent;
         }
 
-        return false;
+        return null;
     }
 }
