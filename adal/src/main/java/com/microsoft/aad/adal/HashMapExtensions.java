@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -77,7 +76,7 @@ final class HashMapExtensions {
                         key = StringExtensions.urlFormDecode(elements[0].trim());
                         value = StringExtensions.urlFormDecode(elements[1].trim());
                     } catch (UnsupportedEncodingException e) {
-                        Log.d(TAG, e.getMessage());
+                        Logger.d(TAG, e.getMessage());
                     }
 
                     if (!StringExtensions.isNullOrBlank(key)
