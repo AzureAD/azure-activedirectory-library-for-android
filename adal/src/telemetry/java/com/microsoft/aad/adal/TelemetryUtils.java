@@ -29,7 +29,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static com.microsoft.aad.adal.EventStrings.*;
+
+import static com.microsoft.aad.adal.EventStrings.LOGIN_HINT;
+import static com.microsoft.aad.adal.EventStrings.TENANT_ID;
+import static com.microsoft.aad.adal.EventStrings.USER_ID;
 
 final class TelemetryUtils {
 
