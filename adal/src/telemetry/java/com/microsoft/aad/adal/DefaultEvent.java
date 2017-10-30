@@ -77,7 +77,7 @@ class DefaultEvent implements IEvents {
             throw new IllegalArgumentException("Telemetry setProperty on null name");
         }
 
-        if (value == null) {
+        if (value == null || !isPrivacyCompliant(name)) {
             return;
         }
 
@@ -95,19 +95,19 @@ class DefaultEvent implements IEvents {
      */
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
-        if (sApplicationName != null) {
+        if (sApplicationName != null && isPrivacyCompliant(EventStrings.APPLICATION_NAME)) {
             dispatchMap.put(EventStrings.APPLICATION_NAME, sApplicationName);
         }
 
-        if (sApplicationVersion != null) {
+        if (sApplicationVersion != null && isPrivacyCompliant(EventStrings.APPLICATION_VERSION)) {
             dispatchMap.put(EventStrings.APPLICATION_VERSION, sApplicationVersion);
         }
 
-        if (sClientId != null) {
+        if (sClientId != null && isPrivacyCompliant(EventStrings.CLIENT_ID)) {
             dispatchMap.put(EventStrings.CLIENT_ID, sClientId);
         }
 
-        if (sDeviceId != null) {
+        if (sDeviceId != null && isPrivacyCompliant(EventStrings.DEVICE_ID)) {
             dispatchMap.put(EventStrings.DEVICE_ID, sDeviceId);
         }
     }
@@ -155,5 +155,14 @@ class DefaultEvent implements IEvents {
 
     String getTelemetryRequestId() {
         return mRequestId;
+    }
+
+    /**
+     * Tests supplied EventStrings for privacy compliance.
+     * @param fieldName The EventString to evaluate.
+     * @return True, if the field can be reported. False otherwise.
+     */
+    static boolean isPrivacyCompliant(final String fieldName) {
+        return Telemetry.getAllowPii() || !TelemetryUtils.GDPR_FILTERED_FIELDS.contains(fieldName);
     }
 }
