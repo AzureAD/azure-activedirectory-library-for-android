@@ -37,6 +37,7 @@ public final class APIEventTest {
 
     @Test
     public void testProcessEvent() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        Telemetry.setAllowPii(true);
         final APIEvent event = new APIEvent(EventStrings.API_EVENT);
 
         event.setAPIId("123");
@@ -61,5 +62,6 @@ public final class APIEventTest {
 
         final String email = dispatchMap.get(EventStrings.LOGIN_HINT);
         assertTrue(email.equals(StringExtensions.createHash("pii@pii.com")));
+        Telemetry.setAllowPii(false);
     }
 }
