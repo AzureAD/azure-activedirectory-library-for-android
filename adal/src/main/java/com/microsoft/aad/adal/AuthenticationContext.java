@@ -34,7 +34,7 @@ import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+import com.microsoft.aad.adal.Logger;
 import android.util.SparseArray;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
@@ -687,7 +687,7 @@ public class AuthenticationContext {
 
         final Looper currentLooper = Looper.myLooper();
         if (currentLooper != null && currentLooper == mContext.getMainLooper()) {
-            Log.e(TAG, "Sync network calls must not be invoked in main thread. "
+            Logger.e(TAG, "Sync network calls must not be invoked in main thread. "
                             + "This method will throw android.os.NetworkOnMainThreadException in next major release",
                     new NetworkOnMainThreadException());
         }

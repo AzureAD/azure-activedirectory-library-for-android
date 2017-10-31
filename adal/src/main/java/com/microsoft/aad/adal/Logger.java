@@ -84,8 +84,8 @@ public class Logger {
      */
     private ILogger mExternalLogger = null;
 
-    // enabled by default
-    private boolean mAndroidLogEnabled = true;
+    // disabled by default
+    private boolean mAndroidLogEnabled = false;
 
     private static Logger sInstance = new Logger();
 
@@ -370,6 +370,10 @@ public class Logger {
         Logger.getInstance().warn(tag, message, additionalMessage, errorCode);
     }
 
+    public static void w(String tag, String msg) {
+        Logger.getInstance().warn(tag, msg, null, null);
+    }
+
     /**
      * Logs error message.
      * @param tag tag for the log message
@@ -391,6 +395,10 @@ public class Logger {
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
             Throwable err) {
         Logger.getInstance().error(tag, message, additionalMessage, errorCode, err);
+    }
+
+    public static void e(String tag, String msg, Throwable tr) {
+        Logger.getInstance().error(tag, msg, null, null, tr);
     }
 
     /**
