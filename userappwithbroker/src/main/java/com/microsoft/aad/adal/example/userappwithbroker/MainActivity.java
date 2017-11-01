@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal.example.userappwithbroker;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -39,20 +40,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.AuthenticationSettings;
 import com.microsoft.aad.adal.IDispatcher;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.PromptBehavior;
 import com.microsoft.aad.adal.Telemetry;
-import com.microsoft.aad.adal.UserInfo;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -74,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String TAG = "UserAppWithBroker.Main";
 
     private SharedPreferences mSharedPreference;
+    private Context mApplicationContext;
+
     private static final String SHARED_PREFERENCE_STORE_USER_UNIQUEID = "user.app.withbroker.uniqueidstorage";
 
     private String mLoginhint;
@@ -88,12 +87,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private RelativeLayout mContentMain;
 
-    private EditText mEditText;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mApplicationContext = getApplicationContext();
         setUpADALForCallingBroker();
 
         mContentMain = (RelativeLayout) findViewById(R.id.content_main);
@@ -113,8 +111,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // auto select the first item
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
-
-        mEditText = (EditText)findViewById(R.id.extraQP);
     }
 
     @Override
@@ -161,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         prepareRequestParameters(requestOptions);
 
         callAcquireTokenWithResource(requestOptions.getDataProfile().getText(), requestOptions.getBehavior(),
-                requestOptions.getLoginHint(), requestOptions.getClientId().getText(), requestOptions.getRedirectUri().getText());
+                requestOptions.getLoginHint(), requestOptions.getClientId().getText(), requestOptions.getRedirectUri().getText(), requestOptions.getExtraQp());
     }
 
     @Override
@@ -174,11 +170,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     void prepareRequestParameters(final AcquireTokenFragment.RequestOptions requestOptions) {
-        mAuthority = requestOptions.getAuthorityType().getText();
-
-        if (mAuthContext == null) {
-            mAuthContext = new AuthenticationContext(getApplicationContext(), mAuthority, true);
+        final String authority = getAuthorityBasedOnUPN(requestOptions.getLoginHint());
+        if (null != authority && !authority.isEmpty()) {
+            mAuthority = authority;
+            mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, false);
+        } else {
+            mAuthority = requestOptions.getAuthorityType().getText();
+            if (mAuthContext == null) {
+                mAuthContext = new AuthenticationContext(mApplicationContext, mAuthority, true);
+            }
         }
+
         mLoginhint = requestOptions.getLoginHint();
         mPromptBehavior = requestOptions.getBehavior();
     }
@@ -261,9 +263,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void callAcquireTokenWithResource(final String resource, PromptBehavior prompt, final String loginHint,
-                                              final String clientId, final String redirectUri) {
+                                              final String clientId, final String redirectUri, final String extraQp) {
         mAuthContext.acquireToken(MainActivity.this, resource, clientId, redirectUri, loginHint,
-                prompt, "", new AuthenticationCallback<AuthenticationResult>() {
+                prompt, extraQp, new AuthenticationCallback<AuthenticationResult>() {
 
                     @Override
                     public void onSuccess(AuthenticationResult authenticationResult) {
@@ -293,7 +295,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         final SharedPreferences.Editor prefEditor = mSharedPreference.edit();
         prefEditor.putString(authResult.getUserInfo().getDisplayableId(), authResult.getUserInfo().getUserId());
-
+        if (authResult.getAuthority() != null) {
+            prefEditor.putString(authResult.getUserInfo().getDisplayableId() + "authority", authResult.getAuthority());
+        }
         prefEditor.apply();
     }
 
@@ -325,6 +329,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 showMessage("Error occurred when acquiring token silently: " + exc.getMessage());
             }
         });
+    }
+
+    private String getAuthorityBasedOnUPN(final String upn) {
+        mSharedPreference = getSharedPreferences(SHARED_PREFERENCE_STORE_USER_UNIQUEID, MODE_PRIVATE);
+        return mSharedPreference.getString(upn+"authority", null);
     }
 
 }
