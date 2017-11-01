@@ -8,6 +8,7 @@ Add RC build support on VSTS
 Update log message related to permission check
 Fix the NPE in instance discovery for authority validation
 Add network checking for authority validation
+Fix for the ArrayIndexOutOfBoundsException when adding event into the arraylist
 
 Version 1.13.1
 -------------
