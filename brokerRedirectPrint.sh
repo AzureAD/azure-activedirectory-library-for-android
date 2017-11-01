@@ -28,7 +28,7 @@ usage() {
     echo " among other good things./n"
     echo ""
     echo "Usage:";
-    echo " -d | --debug           genrates a replyURL using your debug keystore in Android Studio"
+    echo " -d | --debug           generates a replyURL using your debug keystore in Android Studio"
     echo " -r | --release         generates a replyURL using your production keystore in Android Studio"
     echo " -c | --package         the package name of your application"
     echo " -p | --password        your keystore password (default for debug keychain is android)"

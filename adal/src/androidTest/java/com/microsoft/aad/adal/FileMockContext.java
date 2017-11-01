@@ -42,7 +42,6 @@ import android.test.mock.MockContentResolver;
 import android.test.mock.MockContext;
 import android.test.mock.MockPackageManager;
 
-
 import org.mockito.Mockito;
 
 import java.io.File;

@@ -23,26 +23,21 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.UUID;
 
-public class AuthenticationRequestTests extends AndroidTestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+@RunWith(AndroidJUnit4.class)
+public class AuthenticationRequestTests {
     static final int REQUEST_ID = 1234;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        // TODO Auto-generated method stub
-        super.tearDown();
-    }
-
-    @SmallTest
+    @Test
     public void testAuthenticationRequestParams() {
         AuthenticationRequest request = new AuthenticationRequest();
         assertNull("authority is null", request.getAuthority());
@@ -72,19 +67,19 @@ public class AuthenticationRequestTests extends AndroidTestCase {
 
 
         request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Always, "extraQueryPAram56", correlationId, false, "testClaims");
+                "loginhint55", PromptBehavior.Always, "extraQueryParam56", correlationId, false, "testClaims");
         assertEquals("authority is same", "authority51", request.getAuthority());
         assertEquals("resource is same", "resource52", request.getResource());
         assertEquals("client is same", "client53", request.getClientId());
         assertEquals("redirect is same", "redirect54", request.getRedirectUri());
         assertEquals("loginhint is same", "loginhint55", request.getLoginHint());
-        assertEquals("ExtraQueryParams is same", "extraQueryPAram56", request.getExtraQueryParamsAuthentication());
+        assertEquals("ExtraQueryParams is same", "extraQueryParam56", request.getExtraQueryParamsAuthentication());
         assertEquals("PromptBehavior is same", PromptBehavior.Always, request.getPrompt());
         assertEquals("correlationId is same", correlationId, request.getCorrelationId());
         assertEquals("claimsChallenge is same", "testClaims", request.getClaimsChallenge());
     }
 
-    @SmallTest
+    @Test
     public void testRequestId() {
         final AuthenticationRequest request = new AuthenticationRequest("authority1", "resource2", "client3", false);
         request.setRequestId(REQUEST_ID);
@@ -92,7 +87,7 @@ public class AuthenticationRequestTests extends AndroidTestCase {
         assertEquals("Same RequestId", REQUEST_ID, request.getRequestId());
     }
 
-    @SmallTest
+    @Test
     public void testGetUpnSuffix() {
         AuthenticationRequest authenticationRequest =
                 new AuthenticationRequest(
@@ -100,13 +95,13 @@ public class AuthenticationRequestTests extends AndroidTestCase {
                         "NA", // resource
                         "NA", // client
                         "NA", // redirect
-                        "user@foo.internet", // loginhint,
+                        "user@tenant.internet", // loginhint,
                         false
                 );
-        assertEquals("foo.internet", authenticationRequest.getUpnSuffix());
+        assertEquals("tenant.internet", authenticationRequest.getUpnSuffix());
     }
 
-    @SmallTest
+    @Test
     public void testGetUpnSuffixNull() {
         AuthenticationRequest authenticationRequest =
                 new AuthenticationRequest(

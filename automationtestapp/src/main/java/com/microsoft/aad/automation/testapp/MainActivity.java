@@ -27,16 +27,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.microsoft.aad.adal.ADALError;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.DateTimeAdapter;
-import com.microsoft.aad.adal.Logger;
 import com.microsoft.aad.adal.TokenCacheItem;
 
 import org.json.JSONException;
@@ -196,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private AuthenticationContext createAuthenticationContext() {
-        // this is to clear or readthe whole cache, authority does not matter, use the common authority and clean up the whole cache.
+        // this is to clear or read the whole cache, authority does not matter, use the common authority and clean up the whole cache.
         final String authority = "https://login.microsoftonline.com/common";
         return new AuthenticationContext(mContext, authority, false);
     }

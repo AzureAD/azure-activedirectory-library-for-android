@@ -23,16 +23,16 @@
 
 package com.microsoft.aad.adal;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Date;
@@ -57,13 +57,13 @@ class AcquireTokenRequest {
     private TokenCacheAccessor mTokenCacheAccessor;
     private final IBrokerProxy mBrokerProxy;
 
-    private Handler mHandler = null;
+    private static Handler mHandler = null;
 
     /**
      * Instance validation related calls are serviced inside Discovery as a
      * module.
      */
-    private Discovery mDiscovery = new Discovery();
+    private Discovery mDiscovery;
 
     /**
      * Event Variable for the acquireToken API called. This will track whether the API succeeded or not.
@@ -76,6 +76,7 @@ class AcquireTokenRequest {
     AcquireTokenRequest(final Context appContext, final AuthenticationContext authContext, final APIEvent apiEvent) {
         mContext = appContext;
         mAuthContext = authContext;
+        mDiscovery = new Discovery(mContext);
 
         if (authContext.getCache() != null && apiEvent != null) {
             mTokenCacheAccessor = new TokenCacheAccessor(authContext.getCache(),
@@ -165,28 +166,7 @@ class AcquireTokenRequest {
         }
 
         // validate authority
-        Telemetry.getInstance().startEvent(authenticationRequest.getTelemetryRequestId(),
-                EventStrings.AUTHORITY_VALIDATION_EVENT);
-        APIEvent apiEvent = new APIEvent(EventStrings.AUTHORITY_VALIDATION_EVENT);
-        apiEvent.setCorrelationId(authenticationRequest.getCorrelationId().toString());
-        apiEvent.setRequestId(authenticationRequest.getTelemetryRequestId());
-
-        if (mAuthContext.getValidateAuthority()) {
-            try {
-                validateAuthority(authorityUrl, authenticationRequest.getUpnSuffix(), authenticationRequest.isSilent(), authenticationRequest.getCorrelationId());
-                apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_SUCCESS);
-            } catch (AuthenticationException ex) {
-                apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_FAILURE);
-                throw ex;
-            } finally {
-                Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
-                        EventStrings.AUTHORITY_VALIDATION_EVENT);
-            }
-        } else {
-            apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_NOT_DONE);
-            Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
-                    EventStrings.AUTHORITY_VALIDATION_EVENT);
-        }
+        performAuthorityValidation(authenticationRequest, authorityUrl);
 
         // Verify broker redirect uri for non-silent request
         final BrokerProxy.SwitchToBroker canSwitchToBrokerFlag = mBrokerProxy.canSwitchToBroker(authenticationRequest.getAuthority());
@@ -206,6 +186,79 @@ class AcquireTokenRequest {
         }
     }
 
+    private void performAuthorityValidation(final AuthenticationRequest authenticationRequest, final URL authorityUrl)
+            throws AuthenticationException {
+        // validate authority
+        Telemetry.getInstance().startEvent(authenticationRequest.getTelemetryRequestId(),
+                EventStrings.AUTHORITY_VALIDATION_EVENT);
+        APIEvent apiEvent = new APIEvent(EventStrings.AUTHORITY_VALIDATION_EVENT);
+        apiEvent.setCorrelationId(authenticationRequest.getCorrelationId().toString());
+        apiEvent.setRequestId(authenticationRequest.getTelemetryRequestId());
+
+        if (mAuthContext.getValidateAuthority()) {
+            try {
+                validateAuthority(authorityUrl, authenticationRequest.getUpnSuffix(), authenticationRequest.isSilent(),
+                        authenticationRequest.getCorrelationId());
+                apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_SUCCESS);
+            } catch (final AuthenticationException authenticationException) {
+                if (null != authenticationException.getCode()
+                        && (authenticationException.getCode().equals(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE)
+                        || authenticationException.getCode().equals(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION))) {
+                    // The authority validation is not done because of network error.
+                    apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_NOT_DONE);
+                } else {
+                    apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_FAILURE);
+                }
+
+                throw authenticationException;
+            } finally {
+                Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
+                        EventStrings.AUTHORITY_VALIDATION_EVENT);
+            }
+        } else {
+            // check if it contains authority url as the key, if key exists, it means that the authority url validation has happened
+            // for the authority already.
+            if (!UrlExtensions.isADFSAuthority(authorityUrl) && !AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
+                try {
+                    mDiscovery.validateAuthority(authorityUrl);
+                } catch (final AuthenticationException authenticationException) {
+                    // Ignore the failure, save in the map as a failed instance discovery to avoid it being looked up another times in the same process
+                    AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(), new InstanceDiscoveryMetadata(false));
+                    Logger.v(TAG, "Fail to get authority validation metadata back. Ignore the failure since authority validation is turned off.");
+                }
+            }
+            // Even if it succeeds, we cannot mark the authority as validated authority.
+            apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_NOT_DONE);
+            Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
+                    EventStrings.AUTHORITY_VALIDATION_EVENT);
+        }
+
+        final InstanceDiscoveryMetadata metadata = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl);
+        if (metadata == null || !metadata.isValidated()) {
+            return;
+        }
+
+        updatePreferredNetworkLocation(authorityUrl, authenticationRequest, metadata);
+    }
+
+    private void updatePreferredNetworkLocation(final URL authorityUrl, final AuthenticationRequest request, final InstanceDiscoveryMetadata metadata)
+            throws AuthenticationException {
+        if (metadata == null || !metadata.isValidated()) {
+            return;
+        }
+
+        // replace the authority if host is not the same as the original one.
+        if (metadata.getPreferredNetwork() != null && !authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
+            try {
+                final URL replacedAuthority = Utility.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
+                request.setAuthority(replacedAuthority.toString());
+            } catch (final MalformedURLException ex) {
+                //Intentionally empty.
+                Logger.i(TAG, "preferred network is invalid", "use exactly the same authority url that is passed");
+            }
+        }
+    }
+
     /**
      * Perform authority validation.
      * True if the passed in authority is valid, false otherwise.
@@ -214,7 +267,9 @@ class AcquireTokenRequest {
                                    @Nullable final String domain,
                                    boolean isSilent,
                                    final UUID correlationId) throws AuthenticationException {
-        if (mAuthContext.getIsAuthorityValidated()) {
+        boolean isAdfsAuthority = UrlExtensions.isADFSAuthority(authorityUrl);
+        final boolean isAuthorityValidated = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
+        if (isAuthorityValidated || isAdfsAuthority && mAuthContext.getIsAuthorityValidated()) {
             return;
         }
 
@@ -223,13 +278,13 @@ class AcquireTokenRequest {
 
         Discovery.verifyAuthorityValidInstance(authorityUrl);
 
-
-        if (!isSilent && UrlExtensions.isADFSAuthority(authorityUrl) && domain != null) {
+        if (!isSilent && isAdfsAuthority && domain != null) {
             mDiscovery.validateAuthorityADFS(authorityUrl, domain);
         } else {
             if (isSilent && UrlExtensions.isADFSAuthority(authorityUrl)) {
                 Logger.v(TAG, "Silent request. Skipping AD FS authority validation");
             }
+
             mDiscovery.validateAuthority(authorityUrl);
         }
 
@@ -400,7 +455,13 @@ class AcquireTokenRequest {
         // family apps. If we want to clear the tokens for the user(signout the user with local cahce), have the
         // user to sign-in through broker, we also need to clear the family token.
         // Check if there is a FRT existed for the user
-        final TokenCacheItem frtItem = mTokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, user);
+        final TokenCacheItem frtItem;
+        try {
+            frtItem = mTokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, user);
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
+
         if (frtItem != null) {
             mTokenCacheAccessor.removeTokenCacheItem(frtItem, request.getResource());
         }
@@ -408,9 +469,18 @@ class AcquireTokenRequest {
         // Check if there is a MRRT existed for the user, if there is an MRRT, TokenCacheAccessor will also
         // delete the regular RT entry
         // When there is no MRRT token cache item exist, try to check if there is regular RT cache item for the user.
-        final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(request.getClientId(), user);
-        final TokenCacheItem regularTokenCacheItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(
-                request.getResource(), request.getClientId(), user);
+        final TokenCacheItem mrrtItem;
+        final TokenCacheItem regularTokenCacheItem;
+
+
+        try {
+            mrrtItem = mTokenCacheAccessor.getMRRTItem(request.getClientId(), user);
+            regularTokenCacheItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(
+                    request.getResource(), request.getClientId(), user);
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
+
         if (mrrtItem != null) {
             mTokenCacheAccessor.removeTokenCacheItem(mrrtItem, request.getResource());
         } else if (regularTokenCacheItem != null) {
@@ -588,13 +658,38 @@ class AcquireTokenRequest {
                     final String tenantId = data.getStringExtra(
                             AuthenticationConstants.Broker.ACCOUNT_USERINFO_TENANTID);
                     final UserInfo userinfo = UserInfo.getUserInfoFromBrokerResult(data.getExtras());
+
+                    // grab the fields tracked by x-ms-clitelem
+                    final String serverErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR);
+                    final String serverSubErrorCode = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR);
+                    final String refreshTokenAge = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.RT_AGE);
+                    final String speRingInfo = data.getStringExtra(AuthenticationConstants.Broker.CliTelemInfo.SPE_RING);
+
+                    // create the broker AuthenticationResult
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken, null);
+
+                    // set the x-ms-clitelem fields on the result from the Broker
+                    final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
+                    cliTelemInfo.setServerErrorCode(serverErrorCode);
+                    cliTelemInfo.setServerSubErrorCode(serverSubErrorCode);
+                    cliTelemInfo.setRefreshTokenAge(refreshTokenAge);
+                    cliTelemInfo.setSpeRing(speRingInfo);
+                    brokerResult.setCliTelemInfo(cliTelemInfo);
+
                     if (brokerResult.getAccessToken() != null) {
                         waitingRequest.getAPIEvent().setWasApiCallSuccessful(true, null);
                         waitingRequest.getAPIEvent().setCorrelationId(
                                 waitingRequest.getRequest().getCorrelationId().toString());
                         waitingRequest.getAPIEvent().setIdToken(brokerResult.getIdToken());
+
+                        // add the x-ms-clitelem info to the ApiEvent
+                        waitingRequest.getAPIEvent().setServerErrorCode(cliTelemInfo.getServerErrorCode());
+                        waitingRequest.getAPIEvent().setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
+                        waitingRequest.getAPIEvent().setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
+                        waitingRequest.getAPIEvent().setSpeRing(cliTelemInfo.getSpeRing());
+
+                        // stop the event
                         waitingRequest.getAPIEvent().stopTelemetryAndFlush();
 
                         waitingRequest.getDelegate().onSuccess(brokerResult);
@@ -713,8 +808,9 @@ class AcquireTokenRequest {
 
     private synchronized Handler getHandler() {
         if (mHandler == null) {
-            // Use current main looper
-            mHandler = new Handler(mContext.getMainLooper());
+            HandlerThread acquireTokenHandlerThread = new HandlerThread("AcquireTokenRequestHandlerThread");
+            acquireTokenHandlerThread.start();
+            mHandler = new Handler(acquireTokenHandlerThread.getLooper());
         }
 
         return mHandler;

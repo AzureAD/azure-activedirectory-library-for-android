@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
 import android.net.Uri;
 
 import org.json.JSONException;
@@ -32,6 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,6 +41,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Instance and Tenant discovery. It takes authorization endpoint and sends
@@ -54,7 +57,7 @@ final class Discovery {
 
     private static final String API_VERSION_KEY = "api-version";
 
-    private static final String API_VERSION_VALUE = "1.0";
+    private static final String API_VERSION_VALUE = "1.1";
 
     private static final String AUTHORIZATION_ENDPOINT_KEY = "authorization_endpoint";
 
@@ -62,13 +65,16 @@ final class Discovery {
 
     private static final String AUTHORIZATION_COMMON_ENDPOINT = "/common/oauth2/authorize";
 
-    private static final String TENANT_DISCOVERY_ENDPOINT = "tenant_discovery_endpoint";
+    /**
+     * {@link ReentrantLock} for making sure there is only one instance discovery request sent out at a time.
+     */
+    private volatile static ReentrantLock sInstanceDiscoveryNetworkRequestLock;
 
     /**
      * Sync set of valid hosts to skip query to server if host was verified
      * before.
      */
-    private static final Set<String> VALID_HOSTS = Collections
+    private static final Set<String> AAD_WHITELISTED_HOSTS = Collections
             .synchronizedSet(new HashSet<String>());
 
     /**
@@ -81,17 +87,20 @@ final class Discovery {
     /**
      * Discovery query will go to the prod only for now.
      */
-    private static final String TRUSTED_QUERY_INSTANCE = "login.windows.net";
+    private static final String TRUSTED_QUERY_INSTANCE = "login.microsoftonline.com";
 
     private UUID mCorrelationId;
+
+    private Context mContext;
 
     /**
      * interface to use in testing.
      */
     private final IWebRequestHandler mWebrequestHandler;
 
-    public Discovery() {
+    public Discovery(final Context context) {
         initValidList();
+        mContext = context;
         mWebrequestHandler = new WebRequestHandler();
     }
 
@@ -101,18 +110,29 @@ final class Discovery {
             throw new IllegalArgumentException("Cannot validate AD FS Authority with domain [null]");
         }
         validateADFS(authorizationEndpoint, domain);
-        validateAuthority(authorizationEndpoint);
     }
 
     void validateAuthority(final URL authorizationEndpoint) throws AuthenticationException {
         verifyAuthorityValidInstance(authorizationEndpoint);
 
-        if (!VALID_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
-            // host can be the instance or inside the validated list.
-            // Valid hosts will help to skip validation if validated before
-            // call Callback and skip the look up
-            // Only query from Prod instance for now, not all of the instances in the list
-            queryInstance(authorizationEndpoint);
+        if (AuthorityValidationMetadataCache.containsAuthorityHost(authorizationEndpoint)) {
+            return;
+        }
+
+        final String authorityHost = authorizationEndpoint.getHost().toLowerCase(Locale.US);
+        final String trustedHost;
+        if (AAD_WHITELISTED_HOSTS.contains(authorizationEndpoint.getHost().toLowerCase(Locale.US))) {
+            trustedHost = authorityHost;
+        } else {
+            trustedHost = TRUSTED_QUERY_INSTANCE;
+        }
+
+        try {
+            sInstanceDiscoveryNetworkRequestLock = getLock();
+            sInstanceDiscoveryNetworkRequestLock.lock();
+            performInstanceDiscovery(authorizationEndpoint, trustedHost);
+        } finally {
+            sInstanceDiscoveryNetworkRequestLock.unlock();
         }
     }
 
@@ -180,25 +200,41 @@ final class Discovery {
      */
     private void initValidList() {
         // mValidHosts is a sync set
-        if (VALID_HOSTS.isEmpty()) {
-            VALID_HOSTS.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
-            VALID_HOSTS.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
-            VALID_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
-            VALID_HOSTS.add("login.microsoftonline.de"); // Microsoft Azure Germany
-            VALID_HOSTS.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
-            VALID_HOSTS.add("login.microsoftonline.us"); // Microsoft Azure US
+        if (AAD_WHITELISTED_HOSTS.isEmpty()) {
+            AAD_WHITELISTED_HOSTS.add("login.windows.net"); // Microsoft Azure Worldwide - Used in validation scenarios where host is not this list
+            AAD_WHITELISTED_HOSTS.add("login.microsoftonline.com"); // Microsoft Azure Worldwide
+            AAD_WHITELISTED_HOSTS.add("login.chinacloudapi.cn"); // Microsoft Azure China
+            AAD_WHITELISTED_HOSTS.add("login.microsoftonline.de"); // Microsoft Azure Germany
+            AAD_WHITELISTED_HOSTS.add("login-us.microsoftonline.com"); // Microsoft Azure US Government
+            AAD_WHITELISTED_HOSTS.add("login.microsoftonline.us"); // Microsoft Azure US
         }
     }
 
-    private void queryInstance(final URL authorizationEndpointUrl) throws AuthenticationException {
+    private void performInstanceDiscovery(final URL authorityUrl, final String trustedHost) throws AuthenticationException {
+        // Look up authority cache again. since we only allow one authority validation request goes out at one time, in case the
+        // map has already been filled in.
+        if (AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
+            return;
+        }
+
+        //Check if the network connection available
+        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
 
         // It will query prod instance to verify the authority
         // construct query string for this instance
         URL queryUrl;
         final boolean result;
         try {
-            queryUrl = buildQueryString(TRUSTED_QUERY_INSTANCE, getAuthorizationCommonEndpoint(authorizationEndpointUrl));
-            result = sendRequest(queryUrl);
+            queryUrl = buildQueryString(trustedHost, getAuthorizationCommonEndpoint(authorityUrl));
+            final Map<String, String> discoveryResponse = sendRequest(queryUrl);
+            AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityUrl, discoveryResponse);
+            if (!AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
+                ArrayList<String> aliases = new ArrayList<String>();
+                aliases.add(authorityUrl.getHost());
+                AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(),
+                        new InstanceDiscoveryMetadata(authorityUrl.getHost(), authorityUrl.getHost(), aliases));
+            }
+            result = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
         } catch (final IOException | JSONException e) {
             Logger.e(TAG, "Error when validating authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
@@ -208,11 +244,9 @@ final class Discovery {
             // throw exception in the false case
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
         }
-
-        addValidHostToList(authorizationEndpointUrl);
     }
 
-    private boolean sendRequest(final URL queryUrl) throws IOException, JSONException, AuthenticationException {
+    private Map<String, String> sendRequest(final URL queryUrl) throws IOException, JSONException, AuthenticationException {
 
         Logger.v(TAG, "Sending discovery request to:" + queryUrl);
         final Map<String, String> headers = new HashMap<>();
@@ -241,7 +275,7 @@ final class Discovery {
                         "Fail to valid authority with errors: " + errorCodes);
             }
 
-            return discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT);
+            return discoveryResponse;
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(
                     ClientMetricsEndpointType.INSTANCE_DISCOVERY, mCorrelationId);
@@ -258,20 +292,6 @@ final class Discovery {
                 || !StringExtensions.isNullOrBlank(authorizationEndpoint.getRef())
                 || StringExtensions.isNullOrBlank(authorizationEndpoint.getPath())) {
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE);
-        }
-    }
-
-    /**
-     * add this host as valid to skip another query to server.
-     *
-     * @param validhost
-     */
-    private void addValidHostToList(URL validhost) {
-        String validHost = validhost.getHost();
-        if (!StringExtensions.isNullOrBlank(validHost)) {
-            // for comparisons it uses Locale.US, so it needs to be same
-            // here
-            VALID_HOSTS.add(validHost.toLowerCase(Locale.US));
         }
     }
 
@@ -321,7 +341,22 @@ final class Discovery {
         return new URL(builder.build().toString());
     }
 
-    Set<String> getValidHosts() {
-        return VALID_HOSTS;
+    /**
+     * @return {@link ReentrantLock} for locking the network request queue.
+     */
+    private static ReentrantLock getLock() {
+        if (sInstanceDiscoveryNetworkRequestLock == null) {
+            synchronized (Discovery.class) {
+                if (sInstanceDiscoveryNetworkRequestLock == null) {
+                    sInstanceDiscoveryNetworkRequestLock = new ReentrantLock();
+                }
+            }
+        }
+
+        return sInstanceDiscoveryNetworkRequestLock;
+    }
+
+    static Set<String> getValidHosts() {
+        return AAD_WHITELISTED_HOSTS;
     }
 }

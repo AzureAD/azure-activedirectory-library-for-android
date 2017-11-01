@@ -25,10 +25,11 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 /**
- * Internal class handling the detailed acquiretoken silent logic, including cache lookup and also
- * interact with web request(The class represents the state machine for acquiretoken silent flow).
+ * Internal class handling the detailed acquireToken silent logic, including cache lookup and also
+ * interact with web request(The class represents the state machine for acquireToken silent flow).
  */
 class AcquireTokenSilentHandler {
     private static final String TAG = AcquireTokenSilentHandler.class.getSimpleName();
@@ -169,8 +170,14 @@ class AcquireTokenSilentHandler {
      * Attempt to get new access token with regular RT. 
      */
     private AuthenticationResult tryRT() throws AuthenticationException {
-        final TokenCacheItem regularRTItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(), 
-                mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
+        final TokenCacheItem regularRTItem;
+
+        try {
+            regularRTItem = mTokenCacheAccessor.getRegularRefreshTokenCacheItem(mAuthRequest.getResource(),
+                    mAuthRequest.getClientId(), mAuthRequest.getUserFromRequest());
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
 
         if (regularRTItem == null) {
             Logger.v(TAG, "Regular token cache entry does not exist, try with MRRT.");
@@ -207,8 +214,13 @@ class AcquireTokenSilentHandler {
      */
     private AuthenticationResult tryMRRT() throws AuthenticationException {
         // Try to get it from cache
-        mMrrtTokenCacheItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), 
-                mAuthRequest.getUserFromRequest());
+        try {
+            mMrrtTokenCacheItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(),
+                    mAuthRequest.getUserFromRequest());
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
+
         
         // MRRT does not exist, try with FRT.
         if (mMrrtTokenCacheItem == null) {
@@ -248,12 +260,18 @@ class AcquireTokenSilentHandler {
      */
     private AuthenticationResult tryFRT(final String familyClientId, final AuthenticationResult mrrtResult) 
             throws AuthenticationException {
-        final TokenCacheItem frtTokenCacheItem = mTokenCacheAccessor.getFRTItem(familyClientId, 
-                mAuthRequest.getUserFromRequest());
-        
+        final TokenCacheItem frtTokenCacheItem;
+
+        try {
+            frtTokenCacheItem = mTokenCacheAccessor.getFRTItem(familyClientId,
+                    mAuthRequest.getUserFromRequest());
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
+
         if (frtTokenCacheItem  == null) {
             // If we haven't tried with MRRT, use the MRRT. MRRT either exists or not, if it does not exist, we've 
-            // already tried our best, null will be retured. If it eixsts, try with it. 
+            // already tried our best, null will be returned. If it exists, try with it.
             // If we have already tried an MRRT and no FRT found, we return the MRRT result passed in. 
             if (!mAttemptedWithMRRT) {
                 Logger.v(TAG, "FRT cache item does not exist, fall back to try MRRT.");
@@ -314,9 +332,16 @@ class AcquireTokenSilentHandler {
      * MRRT is when RT is not found or found RT is also MRRT. To support the old behavior, do a separate check on
      * the existence for MRRT token entry. 
      */
-    private boolean isMRRTEntryExisted() {
-        final TokenCacheItem mrrtItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(), 
-                mAuthRequest.getUserFromRequest());
+    private boolean isMRRTEntryExisted() throws AuthenticationException {
+        final TokenCacheItem mrrtItem;
+
+        try {
+            mrrtItem = mTokenCacheAccessor.getMRRTItem(mAuthRequest.getClientId(),
+                    mAuthRequest.getUserFromRequest());
+        } catch (final MalformedURLException ex) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+        }
+
         return mrrtItem != null && !StringExtensions.isNullOrBlank(mrrtItem.getRefreshToken());
     }
     

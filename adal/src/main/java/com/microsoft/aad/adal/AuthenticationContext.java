@@ -40,6 +40,7 @@ import android.util.SparseArray;
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -1222,9 +1223,17 @@ public class AuthenticationContext {
          * apps. So the client ID for the FoCI token cache item is hard coded
          * below.
          */
-        final String cacheKey = CacheKey.createCacheKeyForFRT(this.getAuthority(),
-                AuthenticationConstants.MS_FAMILY_ID, uniqueUserId);
-        final TokenCacheItem tokenItem = this.getCache().getItem(cacheKey);
+        final TokenCacheAccessor tokenCacheAccessor = new TokenCacheAccessor(mTokenCacheStore, this.getAuthority(),
+                Telemetry.registerNewRequest());
+        final TokenCacheItem tokenItem;
+        try {
+            // TokenCacheAccessor has all the logic for token cache fallback lookup. If the metadata cache is not cached yet,
+            // it basically means that there hasn't been any requests done with the authority, otherwise authority validation
+            // cache is already filled up.
+            tokenItem = tokenCacheAccessor.getFRTItem(AuthenticationConstants.MS_FAMILY_ID, uniqueUserId);
+        } catch (final MalformedURLException e) {
+            throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+        }
 
         if (tokenItem == null) {
             Logger.i(TAG, "Cannot find the family token cache item for this userID", "");
@@ -1260,6 +1269,13 @@ public class AuthenticationContext {
                     + "because broker is enabled.");
         }
 
+        // If the serialized blob is from an app which already integrates ADAL having authority migration support, the token cache
+        // item already has the authority updated with preferred cache location (login.windows.net is the preferred cache location);
+        // If the blob is from an old version of ADAL, the token cache item contains the passed in authority (Note: most of microsoft first
+        // party app uses Token Share Library today are using login.windows.net).
+        // If the app receives the blob has the version of adal supporting authority migration, lookup will always go to preferred location
+        // first, we'll fall back to passed in authority host and all the aliased hosts if necessary; If app receives the blob has the old
+        // version of adal, since all the apps using token share library are using login.windows.net, token lookup will keep working.
         final TokenCacheItem tokenCacheItem = SSOStateSerializer.deserialize(serializedBlob);
         final String cacheKey = CacheKey.createCacheKey(tokenCacheItem);
         this.getCache().setItem(cacheKey, tokenCacheItem);
@@ -1334,7 +1350,7 @@ public class AuthenticationContext {
         // Package manager does not report for ADAL
         // AndroidManifest files are not merged, so it is returning hard coded
         // value
-        return "1.13.1";
+        return "1.13.2";
     }
 
     /**

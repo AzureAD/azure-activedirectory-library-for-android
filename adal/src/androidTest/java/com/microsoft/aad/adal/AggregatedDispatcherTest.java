@@ -23,13 +23,19 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public final class AggregatedDispatcherTest extends AndroidTestCase {
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
+public final class AggregatedDispatcherTest {
 
     private static final String CONSTANT_REQUEST_ID = "random";
 
@@ -37,7 +43,7 @@ public final class AggregatedDispatcherTest extends AndroidTestCase {
 
     private static final String CONSTANT_REQUEST_ID_2 = "random2";
 
-    @SmallTest
+    @Test
     public void testEmptyEvents() {
         final AggregatedDispatcher dispatcher = new AggregatedDispatcher(new AggregatedTelemetryTestClass());
         // Empty events should not throw
@@ -49,7 +55,7 @@ public final class AggregatedDispatcherTest extends AndroidTestCase {
         dispatcher.flush(CONSTANT_REQUEST_ID);
     }
 
-    @SmallTest
+    @Test
     public void testNoDispatcherProvided() {
         final AggregatedDispatcher dispatcher = new AggregatedDispatcher(null);
         // No dispatcher provided is ok
@@ -61,7 +67,7 @@ public final class AggregatedDispatcherTest extends AndroidTestCase {
         dispatcher.flush(CONSTANT_REQUEST_ID);
     }
 
-    @SmallTest
+    @Test
     public void testOneEventOneRequestId() throws MalformedURLException {
         final AggregatedTelemetryTestClass aggregated = new AggregatedTelemetryTestClass();
         final AggregatedDispatcher dispatcher = new AggregatedDispatcher(aggregated);
@@ -80,7 +86,7 @@ public final class AggregatedDispatcherTest extends AndroidTestCase {
         assertTrue(dispatcher.getObjectsToBeDispatched().isEmpty());
     }
 
-    @SmallTest
+    @Test
     public void testOneEventMultipleRequestId() throws MalformedURLException {
         final AggregatedTelemetryTestClass aggregated = new AggregatedTelemetryTestClass();
         final AggregatedDispatcher dispatcher = new AggregatedDispatcher(aggregated);

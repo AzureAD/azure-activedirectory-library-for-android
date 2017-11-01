@@ -47,6 +47,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
+
+import static com.microsoft.aad.adal.AuthenticationConstants.HeaderField.X_MS_CLITELEM;
+
 /**
  * Base Oauth class.
  */
@@ -455,6 +459,7 @@ class Oauth2 {
             HttpWebResponse response = mWebRequestHandler.sendPost(authority, headers,
                     requestMessage.getBytes(AuthenticationConstants.ENCODING_UTF8),
                     "application/x-www-form-urlencoded");
+
             httpEvent.setResponseCode(response.getStatusCode());
             httpEvent.setCorrelationId(mRequest.getCorrelationId().toString());
             stopHttpEvent(httpEvent);
@@ -564,7 +569,7 @@ class Oauth2 {
         }
         return result;
     }
-    
+
     private AuthenticationResult retry(String requestMessage, Map<String, String> headers) throws IOException, AuthenticationException {
         //retry once if there is an observation of a network timeout by the client 
         if (mRetryOnce) {
@@ -614,6 +619,7 @@ class Oauth2 {
             throws AuthenticationException {
         AuthenticationResult result;
         String correlationIdInHeader = null;
+        String speRing = null;
         if (webResponse.getResponseHeaders() != null) {
             if (webResponse.getResponseHeaders().containsKey(
                     AuthenticationConstants.AAD.CLIENT_REQUEST_ID)) {
@@ -634,6 +640,19 @@ class Oauth2 {
                     httpEvent.setRequestIdHeader(listOfHeaders.get(0));
                 }
             }
+
+            if (null != webResponse.getResponseHeaders().get(X_MS_CLITELEM) && !webResponse.getResponseHeaders().get(X_MS_CLITELEM).isEmpty()) {
+                final CliTelemInfo cliTelemInfo =
+                        TelemetryUtils.parseXMsCliTelemHeader(
+                                webResponse.getResponseHeaders()
+                                        .get(X_MS_CLITELEM).get(0)
+                        );
+
+                if (null != cliTelemInfo) {
+                    httpEvent.setXMsCliTelemData(cliTelemInfo);
+                    speRing = cliTelemInfo.getSpeRing();
+                }
+            }
         }
 
         final int statusCode = webResponse.getStatusCode();
@@ -644,6 +663,9 @@ class Oauth2 {
             try {
                 result = parseJsonResponse(webResponse.getBody());
                 if (result != null) {
+                    final CliTelemInfo cliTelemInfo = new CliTelemInfo();
+                    cliTelemInfo.setSpeRing(speRing);
+                    result.setCliTelemInfo(cliTelemInfo);
                     httpEvent.setOauthErrorCode(result.getErrorCode());
                 }
             } catch (final JSONException jsonException) {

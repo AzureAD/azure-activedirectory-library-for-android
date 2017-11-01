@@ -73,6 +73,8 @@ class AuthenticationRequest implements Serializable {
 
     private String mClaimsChallenge;
 
+    private transient InstanceDiscoveryMetadata mInstanceDiscoveryMetadata;
+
     /**
      * Developer can use acquireToken(with loginhint) or acquireTokenSilent(with
      * userid), so this sets the type of the request.
@@ -310,5 +312,13 @@ class AuthenticationRequest implements Serializable {
 
     String getTelemetryRequestId() {
         return mTelemetryRequestId;
+    }
+
+    void setInstanceDiscoveryMetadata(final InstanceDiscoveryMetadata metadata) {
+        mInstanceDiscoveryMetadata = metadata;
+    }
+
+    InstanceDiscoveryMetadata getInstanceDiscoveryMetadata() {
+        return mInstanceDiscoveryMetadata;
     }
 }

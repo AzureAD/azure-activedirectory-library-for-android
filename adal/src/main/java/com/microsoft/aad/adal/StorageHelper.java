@@ -71,7 +71,7 @@ public class StorageHelper {
     private static final String TAG = "StorageHelper";
     
     /**
-     * HMac key hashing alogirighm.
+     * HMac key hashing algorithm.
      */
     private static final String HMAC_KEY_HASH_ALGORITHM = "SHA256";
 
@@ -304,22 +304,30 @@ public class StorageHelper {
      */
     synchronized SecretKey loadSecretKeyForEncryption() throws IOException,
             GeneralSecurityException {
+        final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
+        return loadSecretKeyForEncryption(secretKeyData == null ? VERSION_ANDROID_KEY_STORE : VERSION_USER_DEFINED);
+    }
+
+    /**
+     * Get Secret Key based on API level to use in encryption. Decryption key
+     * depends on version# since user can migrate to new Android.OS
+     *
+     * @param defaultBlobVersion the blobVersion to use by default
+     * @return SecretKey Get Secret Key based on API level to use in encryption.
+     * @throws GeneralSecurityException
+     * @throws IOException
+     */
+    synchronized SecretKey loadSecretKeyForEncryption(String defaultBlobVersion) throws IOException,
+            GeneralSecurityException {
         // Loading key only once for performance. If API is upgraded, it will
         // restart the device anyway. It will load the correct key for new API.
         if (mKey != null && mHMACKey != null) {
             return mKey;
         }
 
-        final byte[] secretKeyData = AuthenticationSettings.INSTANCE.getSecretKeyData();
-        if (secretKeyData == null) {
-            mBlobVersion = VERSION_ANDROID_KEY_STORE;
-        } else {
-            mBlobVersion = VERSION_USER_DEFINED;
-        }
-
+        mBlobVersion = defaultBlobVersion;
         return getKeyOrCreate(mBlobVersion);
     }
-
     /**
      * For API <18 or user provide the key, will return the user supplied key.
      * Supported API >= 18 PrivateKey is stored in AndroidKeyStore. Loads key

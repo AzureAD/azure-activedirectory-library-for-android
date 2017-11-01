@@ -80,7 +80,7 @@ public final class Telemetry {
             return;
         }
 
-        final String startTime = mEventTracking.get(new Pair<>(requestId, eventName));
+        final String startTime = mEventTracking.remove(new Pair<>(requestId, eventName));
 
         // If we did not get anything back from the dictionary, most likely its a bug that stopEvent was called without
         // a corresponding startEvent

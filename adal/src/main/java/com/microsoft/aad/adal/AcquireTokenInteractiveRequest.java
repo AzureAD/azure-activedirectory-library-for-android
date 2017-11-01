@@ -29,6 +29,7 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 /**
  * Internal class handling the detailed acquire token interactive logic. Will be responsible for showing the webview,
@@ -58,10 +59,10 @@ final class AcquireTokenInteractiveRequest {
         HttpWebRequest.throwIfNetworkNotAvailable(mContext);
 
         // Update the PromptBehavior. Since we add the new prompt behavior(force_prompt) for broker apps to
-        // force prompt, if this flag is set in the embeded flow, we need to update it to always. For embed
+        // force prompt, if this flag is set in the embedded flow, we need to update it to always. For embed
         // flow, force_prompt is the same as always.
         if (PromptBehavior.FORCE_PROMPT == mAuthRequest.getPrompt()) {
-            Logger.v(TAG, "FORCE_PRMOPT is set for embedded flow, reset it as Always.");
+            Logger.v(TAG, "FORCE_PROMPT is set for embedded flow, reset it as Always.");
             mAuthRequest.setPrompt(PromptBehavior.Always);
         }
 
@@ -118,8 +119,12 @@ final class AcquireTokenInteractiveRequest {
 
         if (!StringExtensions.isNullOrBlank(result.getAccessToken()) && mTokenCacheAccessor != null) {
             // Developer may pass null for the acquireToken flow.
-            mTokenCacheAccessor.updateTokenCache(mAuthRequest.getResource(),
-                    mAuthRequest.getClientId(), result);
+            try {
+                mTokenCacheAccessor.updateTokenCache(mAuthRequest.getResource(),
+                        mAuthRequest.getClientId(), result);
+            } catch (MalformedURLException e) {
+                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e.getMessage(), e);
+            }
         }
 
         return result;

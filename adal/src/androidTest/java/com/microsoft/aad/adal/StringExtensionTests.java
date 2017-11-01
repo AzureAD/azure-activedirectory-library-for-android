@@ -23,31 +23,47 @@
 
 package com.microsoft.aad.adal;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
-
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
 import junit.framework.Assert;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * StringExtensions class has helper methods and it is not public
  */
+@RunWith(AndroidJUnit4.class)
 public class StringExtensionTests extends AndroidTestHelper {
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         super.setUp();
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         super.tearDown();
     }
 
+    @Test
     public void testIsNullOrBlankNotEmpty() throws IllegalArgumentException,
             IllegalAccessException, InvocationTargetException, ClassNotFoundException,
             NoSuchMethodException, InstantiationException {
         assertFalse("not empty", StringExtensions.isNullOrBlank("non-Empty"));
     }
 
+    @Test
     public void testIsNullOrBlankEmpty() throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException, ClassNotFoundException, NoSuchMethodException,
             InstantiationException {
@@ -56,6 +72,7 @@ public class StringExtensionTests extends AndroidTestHelper {
         assertTrue("empty", StringExtensions.isNullOrBlank("          "));
     }
 
+    @Test
     public void testURLFormEncodeDecode() {
 
         try {
@@ -78,8 +95,34 @@ public class StringExtensionTests extends AndroidTestHelper {
             assertEquals(longString, decodeResult);
 
         } catch (UnsupportedEncodingException ueex) {
-            Log.e(getName(), ueex.getMessage());
+            Log.e(getClass().getName(), ueex.getMessage());
             Assert.fail("Did not expect exception");
         }
+    }
+
+    @Test
+    public void testGetStringTokens() {
+        assertEquals(0, StringExtensions.getStringTokens("", ";").size());
+        assertEquals(0, StringExtensions.getStringTokens(";;;;", ";").size());
+
+        List<String> tokens = StringExtensions.getStringTokens("one;;two", ";");
+        assertEquals(2, tokens.size());
+        assertEquals("one", tokens.get(0));
+        assertEquals("two", tokens.get(1));
+
+        tokens = StringExtensions.getStringTokens(";;one;;two;;;", ";");
+        assertEquals(2, tokens.size());
+        assertEquals("one", tokens.get(0));
+        assertEquals("two", tokens.get(1));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetStringTokensWithNullItems() {
+        StringExtensions.getStringTokens(null, ";");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetStringTokensWithNullDelimiters() {
+        StringExtensions.getStringTokens("", null);
     }
 }

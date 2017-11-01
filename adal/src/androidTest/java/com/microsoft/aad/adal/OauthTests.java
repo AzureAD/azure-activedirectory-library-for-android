@@ -23,14 +23,18 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
 
 import com.microsoft.aad.adal.AuthenticationConstants.AAD;
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
 import org.json.JSONException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -51,30 +55,34 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
+import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OauthTests extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class OauthTests {
 
     private static final String TEST_RETURNED_EXCEPTION = "test-returned-exception";
 
     private static final String TEST_AUTHORITY = "https://login.windows.net/common";
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
+    @Before
+    public void setUp() throws Exception {
+        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(null);
-        super.tearDown();
     }
 
-    @SmallTest
+    @Test
     public void testParseIdTokenPositive() throws UnsupportedEncodingException, AuthenticationException {
         IdToken actual = new IdToken(Util.getIdToken());
         assertEquals("0DxnAlLi12IvGL", actual.getSubject());
@@ -89,7 +97,7 @@ public class OauthTests extends AndroidTestCase {
         assertEquals("pwdUrl", actual.getPasswordChangeUrl());
     }
 
-    @SmallTest
+    @Test
     public void testDecoding() throws UnsupportedEncodingException {
         // check that Base64 UrlSafe flags behaves as expected
         String expected = "Ma~0";
@@ -103,7 +111,7 @@ public class OauthTests extends AndroidTestCase {
                 new String(Base64.decode("TWF+MA==", Base64.DEFAULT), "UTF-8"));
     }
 
-    @SmallTest
+    @Test
     public void testEncodeDecodeProtocolState() throws UnsupportedEncodingException {
         final String resource = "resource:" + UUID.randomUUID().toString();
         final String authority = "http://www.something.com";
@@ -119,7 +127,7 @@ public class OauthTests extends AndroidTestCase {
         assertTrue("State contains resource", decoded.contains(resource));
     }
 
-    @SmallTest
+    @Test
     public void testParseIdTokenNegativeIncorrectMessage() {
         String idToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJlNzBiMTE1ZS1hYzBhLTQ4MjMtODVkYS04ZjRiN2I0ZjAwZTYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zMGJhYTY2Ni04ZGY4LTQ4ZTctOTdlNi03N2NmZDA5OTU5NjMvIiwibmJmIjoxMzc2NDI4MzEwLCJleHAiOjEzNzY0NTcxMTAsInZlciI6IjEuMCIsInRpZCI6IjMwYmFhNjY2LThkZjgtNDhlNy05N2U2LTc3Y2ZkMDk5NTk2MyIsIm9pZCI6IjRmODU5OTg5LWEyZmYtNDExZS05MDQ4LWMzMjIyNDdhYzYyYyIsInVwbiI6ImFkbWluQGFhbHRlc3RzLm9ubWljcm9zb2Z0LmNvbSIsInVuaXF1ZV9uYW1lIjoiYWRtaW5AYWFsdGVzdHMub25taWNyb3NvZnQuY29tIiwic3ViIjoiVDU0V2hGR1RnbEJMN1VWYWtlODc5UkdhZEVOaUh5LXNjenNYTmFxRF9jNCIsImZhbWlseV9uYW1lIjoiU2.";
         try {
@@ -129,7 +137,7 @@ public class OauthTests extends AndroidTestCase {
         }
     }
 
-    @SmallTest
+    @Test
     public void testParseIdTokenNegativeInvalidEncodedTokens() {
         String idToken = "..";
         try {
@@ -167,7 +175,7 @@ public class OauthTests extends AndroidTestCase {
         }
     }
 
-    @SmallTest
+    @Test
     public void testGetTokenNullCode() throws IOException {
         // with login hint
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
@@ -192,7 +200,7 @@ public class OauthTests extends AndroidTestCase {
         }
     }
 
-    @SmallTest
+    @Test
     public void testGetCodeRequestUrl() throws UnsupportedEncodingException {
         // with login hint
         final AuthenticationRequest request = createAuthenticationRequest(
@@ -255,17 +263,19 @@ public class OauthTests extends AndroidTestCase {
         assertTrue("Prompt", actualCodeRequestQPHasChrome.contains("&prompt=login&extra=1&haschrome=1"));
     }
 
+    @Test
     public void testGetCodeRequestUrlWithClaims() throws UnsupportedEncodingException {
         final UUID correlationId = UUID.randomUUID();
         final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
-                "loginhint55", PromptBehavior.Always, "p=extraQueryPAram56", correlationId, false, "testClaims");
+                "loginhint55", PromptBehavior.Always, "p=extraQueryParam56", correlationId, false, "testClaims");
 
         final Oauth2 oauth2 = createOAuthInstance(request);
         final String codeRequestUrl = oauth2.getCodeRequestUrl();
         assertTrue(codeRequestUrl.contains("claims=testClaims"));
-        assertTrue(codeRequestUrl.contains("p=extraQueryPAram56"));
+        assertTrue(codeRequestUrl.contains("p=extraQueryParam56"));
     }
 
+    @Test
     public void testGetCodeRequestUrlWithClaimsInExtraQP() throws UnsupportedEncodingException {
         final UUID correlationId = UUID.randomUUID();
         final AuthenticationRequest request = new AuthenticationRequest("authority51", "resource52", "client53", "redirect54",
@@ -276,7 +286,7 @@ public class OauthTests extends AndroidTestCase {
         assertTrue(codeRequestUrl.contains("claims=testclaims&a=b"));
     }
 
-    @SmallTest
+    @Test
     public void testGetCodeRequestUrlClientTrace() throws UnsupportedEncodingException {
         // with login hint
         final AuthenticationRequest request = createAuthenticationRequest("http://www.something.com",
@@ -292,7 +302,7 @@ public class OauthTests extends AndroidTestCase {
                 actualCodeRequestUrl.contains(AAD.ADAL_ID_VERSION + "=" + AuthenticationContext.getVersionName()));
     }
 
-    @SmallTest
+    @Test
     public void testBuildTokenRequestMessage() throws UnsupportedEncodingException {
         // with login hint
         final AuthenticationRequest request = createAuthenticationRequest(
@@ -319,7 +329,7 @@ public class OauthTests extends AndroidTestCase {
     /**
      * check message encoding issues
      */
-    @SmallTest
+    @Test
     public void testRefreshTokenRequestMessage() throws UnsupportedEncodingException {
 
         final AuthenticationRequest request = createAuthenticationRequest(
@@ -347,7 +357,7 @@ public class OauthTests extends AndroidTestCase {
     /**
      * web request handler is empty.
      */
-    @SmallTest
+    @Test
     public void testRefreshTokenEmptyWebRequest() {
         final String refreshToken = "refreshToken234343455=";
 
@@ -361,7 +371,7 @@ public class OauthTests extends AndroidTestCase {
         assertNull("Result is null", testResult.getAuthenticationResult());
     }
 
-    @SmallTest
+    @Test
     public void testRefreshTokenMalformedUrl() {
         final AuthenticationRequest request = createAuthenticationRequest(
                 "malformedurl", "resource%20 ", "client 1234567890-+=;'",
@@ -377,7 +387,7 @@ public class OauthTests extends AndroidTestCase {
         assertNull("Result is null", testResult.getAuthenticationResult());
     }
 
-    @SmallTest
+    @Test
     public void testRefreshTokenWebResponseHasException() {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         webrequest.setReturnException("request should return error");
@@ -392,7 +402,7 @@ public class OauthTests extends AndroidTestCase {
         assertNull("Result is null", testResult.getAuthenticationResult());
     }
 
-    @SmallTest
+    @Test
     public void testRefreshTokenWebResponseInvalidStatus() {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         webrequest.setReturnResponse(new HttpWebResponse(HttpURLConnection.HTTP_UNAVAILABLE,
@@ -411,7 +421,7 @@ public class OauthTests extends AndroidTestCase {
                 testResult.getException().getMessage());
     }
 
-    @SmallTest
+    @Test
     public void testRefreshTokenWebResponsePositive() {
         MockWebRequestHandler webrequest = new MockWebRequestHandler();
         String json = "{\"access_token\":\"sometokenhere\",\"token_type\":\"Bearer\","
@@ -433,7 +443,7 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SuppressWarnings("unchecked")
-    @SmallTest
+    @Test
     public void testRefreshTokenWebResponseDeviceChallengePositive()
             throws IOException, AuthenticationException, NoSuchAlgorithmException {
         final IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
@@ -485,17 +495,17 @@ public class OauthTests extends AndroidTestCase {
     }
 
     @SuppressWarnings("unchecked")
-    @SmallTest
+    @Test
     public void testRefreshTokenWebResponseDeviceChallengeHeaderEmpty()
             throws IOException {
         IWebRequestHandler mockWebRequest = mock(IWebRequestHandler.class);
         Map<String, List<String>> headers = getHeader(
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_HEADER, " ");
-        HttpWebResponse responeChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
+        HttpWebResponse responseChallenge = new HttpWebResponse(HttpURLConnection.HTTP_UNAUTHORIZED, null, headers);
         when(
                 mockWebRequest.sendPost(eq(new URL(TEST_AUTHORITY + "/oauth2/token")),
                         any(headers.getClass()), any(byte[].class),
-                        eq("application/x-www-form-urlencoded"))).thenReturn(responeChallenge);
+                        eq("application/x-www-form-urlencoded"))).thenReturn(responseChallenge);
 
         // send request
         MockAuthenticationCallback testResult = refreshToken(getValidAuthenticationRequest(),
@@ -509,7 +519,7 @@ public class OauthTests extends AndroidTestCase {
                 testResult.getException().getMessage());
     }
 
-    @SmallTest
+    @Test
     public void testprocessTokenResponse() throws  IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY,
@@ -543,7 +553,7 @@ public class OauthTests extends AndroidTestCase {
         }
     }
 
-    @SmallTest
+    @Test
     public void testprocessTokenResponseWrongCorrelationId() throws IOException {
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY, "resource",
                 "client", "redirect", "loginhint", null, null, UUID.randomUUID(), false);
@@ -569,6 +579,7 @@ public class OauthTests extends AndroidTestCase {
         headers.put(AuthenticationConstants.AAD.CLIENT_REQUEST_ID, listOfHeaders);
         when(mockedConnection.getHeaderFields()).thenReturn(headers);
 
+        Logger.getInstance().setLogLevel(Logger.LogLevel.Debug);
         final TestLogResponse logResponse = new TestLogResponse();
         logResponse.listenForLogMessage("CorrelationId is not matching", null);
 
@@ -577,8 +588,7 @@ public class OauthTests extends AndroidTestCase {
             // verify same token
             assertEquals("Same token in parsed result", "sometokenhere2343=", result.getAccessToken());
             assertTrue("Log response has message",
-                    logResponse.getErrorCode()
-                            .equals(ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE));
+                    ADALError.CORRELATION_ID_NOT_MATCHING_REQUEST_RESPONSE.equals(logResponse.getErrorCode()));
         } catch (final AuthenticationException e) {
             fail("unexpected exception");
         }
@@ -598,7 +608,7 @@ public class OauthTests extends AndroidTestCase {
         }
     }
 
-    @SmallTest
+    @Test
     public void testprocessTokenResponseNegative() throws IOException {
 
         final AuthenticationRequest request = createAuthenticationRequest(TEST_AUTHORITY, "resource",
@@ -626,7 +636,7 @@ public class OauthTests extends AndroidTestCase {
         }
     }
 
-    @SmallTest
+    @Test
     public void testprocessUIResponseParams() throws AuthenticationException {
         final Map<String, String> response = new HashMap<>();
 

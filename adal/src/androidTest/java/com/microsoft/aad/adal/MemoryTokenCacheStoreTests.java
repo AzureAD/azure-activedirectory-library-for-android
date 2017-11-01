@@ -23,6 +23,13 @@
 
 package com.microsoft.aad.adal;
 
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -33,19 +40,24 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.crypto.NoSuchPaddingException;
 
+import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+@RunWith(AndroidJUnit4.class)
 public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
 
     private static final String VALID_AUTHORITY = "https://Login.windows.net/Omercantest.Onmicrosoft.com";
 
     private static final int ACTIVE_TEST_THREADS = 10;
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         super.setUp();
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         MemoryTokenCacheStore store = new MemoryTokenCacheStore();
         store.removeAll();
         super.tearDown();
@@ -59,6 +71,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
      * @throws NoSuchAlgorithmException
      * @throws AuthenticationException 
      */
+    @Test
     public void testSharedCacheGetItem() throws NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
         final ITokenCacheStore store = setupItems();
 
@@ -96,6 +109,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
         assertNull("Token cache item is expected to be null", item);
     }
 
+    @Test
     public void testSerialization() throws IOException, ClassNotFoundException,
             NoSuchAlgorithmException, NoSuchPaddingException, AuthenticationException {
 
@@ -135,6 +149,7 @@ public class MemoryTokenCacheStoreTests extends BaseTokenStoreTests {
      * @throws NoSuchAlgorithmException
      * @throws AuthenticationException 
      */
+    @Test
     public void testMemoryCacheMultipleContext() throws NoSuchAlgorithmException,
             NoSuchPaddingException, AuthenticationException {
         ITokenCacheStore tokenCacheA = setupItems();

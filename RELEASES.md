@@ -11,7 +11,7 @@ The semantics are: MAJOR.MINOR.PATCH (example 1.1.5)
 We will update our code distributions to use the latest PATCH semantic version number in order to make sure our customers and partners get the latest bug fixes. Downstream partner needs to pull the latest PATCH version. Most partners should try lock on the latest MINOR version number in their builds and accept any updates in the PATCH number. 
 
 Examples: 
-Using Cocapods, the following in the podfile will take the latest ADALiOS build that is > 1.1 but not 1.2.
+Using Cocoapods, the following in the podfile will take the latest ADALiOS build that is > 1.1 but not 1.2.
 ```
 pod 'ADALiOS', '~> 1.1'
 ```

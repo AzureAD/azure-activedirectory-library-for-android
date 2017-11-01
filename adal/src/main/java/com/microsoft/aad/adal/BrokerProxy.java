@@ -70,6 +70,12 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import static com.microsoft.aad.adal.AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.RT_AGE;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_ERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SERVER_SUBERROR;
+import static com.microsoft.aad.adal.AuthenticationConstants.Broker.CliTelemInfo.SPE_RING;
+
 /**
  * Handles interactions to authenticator inside the Account Manager.
  */
@@ -218,7 +224,7 @@ class BrokerProxy implements IBrokerProxy {
                     "Broker related permissions are missing for " + permissionMissing.toString());
         }
 
-        Logger.v(TAG, "Misused of the checking function. This is function is only used to checking the broker permissions of API 22 or less.");
+        Logger.v(TAG, "Device runs on 23 and above, skip the check for 22 and below.");
         return true;
     }
 
@@ -318,6 +324,7 @@ class BrokerProxy implements IBrokerProxy {
         } else {
             bundleResult = getAuthTokenFromAccountManager(request, requestBundle);
         }
+
         if (bundleResult == null) {
             Logger.v(TAG, "No bundle result returned from broker for silent request.");
             return null;
@@ -349,29 +356,44 @@ class BrokerProxy implements IBrokerProxy {
                 // Making blocking request here
                 Logger.v(TAG, "Received result from broker");
                 bundleResult = result.getResult();
-            } catch (OperationCanceledException e) {
+            } catch (final OperationCanceledException e) {
+                // Error code AUTH_FAILED_CANCELLED will be thrown if the request was canceled for any reason.
                 Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.AUTH_FAILED_CANCELLED, e);
-            } catch (AuthenticatorException e) {
-                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING);
+                throw new AuthenticationException(ADALError.AUTH_FAILED_CANCELLED, e.getMessage(), e);
+            } catch (final AuthenticatorException e) {
+                // Error code BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN will be thrown if there was an error
+                // communicating with the authenticator or if the authenticator returned an invalid response.
+                if (!StringExtensions.isNullOrBlank(e.getMessage()) && e.getMessage().contains(INVALID_GRANT)){
+                    Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST,
+                            "Acquire token failed with 'invalid grant' error, cannot proceed with silent request.",
+                            ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
+                    throw new AuthenticationException(ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, e.getMessage());
+                } else {
+                    Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN);
+                    throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN, e.getMessage());
+                }
+            } catch (final IOException e) {
+                //  Error code BROKER_AUTHENTICATOR_IO_EXCEPTION will be thrown
+                //  when Authenticator gets problem from webrequest or file read/write or network error
+                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
+
                 if (e.getMessage() != null && e.getMessage().contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())) {
                     throw new AuthenticationException(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                             "Received error from broker, errorCode: " + e.getMessage());
                 } else if (e.getMessage() != null && e.getMessage().contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
                     throw new AuthenticationException(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION,
                             "Received error from broker, errorCode: " + e.getMessage());
+                } else {
+                    throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e.getMessage(), e);
                 }
-            } catch (IOException e) {
-                // Authenticator gets problem from webrequest or file read/write
-                Logger.e(TAG, AUTHENTICATOR_CANCELS_REQUEST, "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION);
             }
 
             Logger.v(TAG, "Returning result from broker");
             return bundleResult;
         } else {
             Logger.v(TAG, "Target account is not found");
+            return null;
         }
-
-        return null;
     }
 
     private boolean isBrokerAccountServiceSupported() {
@@ -424,25 +446,31 @@ class BrokerProxy implements IBrokerProxy {
         if (!StringExtensions.isNullOrBlank(msg)) {
             final ADALError adalErrorCode;
             switch (errCode) {
-            case AccountManager.ERROR_CODE_BAD_ARGUMENTS:
-                adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS;
-                break;
-            case ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION:
-                adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_AUTHENTICATION;
-                break;
-            case AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION:
-                adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
-                break;
-            case AccountManager.ERROR_CODE_NETWORK_ERROR:
-                if (msg.contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
-                    adalErrorCode = ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION;
+                case AccountManager.ERROR_CODE_BAD_ARGUMENTS:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_ARGUMENTS;
                     break;
-                } else {
-                    adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
+                case ACCOUNT_MANAGER_ERROR_CODE_BAD_AUTHENTICATION:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_BAD_AUTHENTICATION;
                     break;
-                }
-            default:
-                adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
+                case AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_UNSUPPORTED_OPERATION;
+                    break;
+                case AccountManager.ERROR_CODE_CANCELED:
+                    adalErrorCode = ADALError.AUTH_FAILED_CANCELLED;
+                    break;
+                case AccountManager.ERROR_CODE_NETWORK_ERROR:
+                    if (msg.contains(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription())) {
+                        adalErrorCode = ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION;
+                        break;
+                    } else if (msg.contains(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE.getDescription())){
+                        adalErrorCode = ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE;
+                        break;
+                    } else {
+                        adalErrorCode = ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION;
+                        break;
+                    }
+                default:
+                    adalErrorCode = ADALError.BROKER_AUTHENTICATOR_ERROR_GETAUTHTOKEN;
             }
 
             throw new AuthenticationException(adalErrorCode, msg);
@@ -472,8 +500,18 @@ class BrokerProxy implements IBrokerProxy {
                 expires = new Date(bundleResult.getLong(AuthenticationConstants.Broker.ACCOUNT_EXPIREDATE));
             }
 
-            return new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
+            final AuthenticationResult result = new AuthenticationResult(bundleResult.getString(AccountManager.KEY_AUTHTOKEN),
                     "", expires, false, userinfo, tenantId, "", null);
+
+            // set the x-ms-clitelem data
+            final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();
+            cliTelemInfo.setServerErrorCode(bundleResult.getString(SERVER_ERROR));
+            cliTelemInfo.setServerSubErrorCode(bundleResult.getString(SERVER_SUBERROR));
+            cliTelemInfo.setRefreshTokenAge(bundleResult.getString(RT_AGE));
+            cliTelemInfo.setSpeRing(bundleResult.getString(SPE_RING));
+            result.setCliTelemInfo(cliTelemInfo);
+
+            return result;
         }
     }
 

@@ -23,14 +23,23 @@
 
 package com.microsoft.aad.adal;
 
-import android.test.AndroidTestCase;
-import junit.framework.Assert;
+import android.support.test.runner.AndroidJUnit4;
 
-public class CacheKeyTests extends AndroidTestCase {
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
+public class CacheKeyTests {
 
     /**
      * Verify constructor and getters
      */
+    @Test
     public void testcreateCacheKey() {
         String testKey = CacheKey.createCacheKey("Authority", "Resource", "ClientId", false, null, null);
         assertEquals("expected key", "authority$Resource$clientid$n$null", testKey);
@@ -59,13 +68,14 @@ public class CacheKeyTests extends AndroidTestCase {
         assertEquals("expected key", "authority123endsslash$Resource123$clientid123$n$user123",
                 testKeySlash);
         
-        final String testKeyWithFamilyCientId = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
-        assertEquals("authority$null$null$y$user123$foci-family123", testKeyWithFamilyCientId);
+        final String testKeyWithFamilyClientId = CacheKey.createCacheKey("authority", null, null, true, "user123", "family123");
+        assertEquals("authority$null$null$y$user123$foci-family123", testKeyWithFamilyClientId);
     }
 
     /**
      * empty values does not fail
      */
+    @Test
     public void testcreateCacheKeyEmptyValues() {
         String testKey = CacheKey.createCacheKey("", "", "", false, "", "");
         assertEquals("expected key", "$$$n$null$foci-", testKey);
@@ -77,6 +87,7 @@ public class CacheKeyTests extends AndroidTestCase {
         assertEquals("expected key", "$$$n$userid$foci-", testKeyWithUser);
     }
 
+    @Test
     public void testcreateCacheKeyNullItem() {
 
         try {
@@ -87,6 +98,7 @@ public class CacheKeyTests extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testcreateCacheKeyNullArgument() {
 
         try {
@@ -97,6 +109,7 @@ public class CacheKeyTests extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testcreateCacheKeyNullResource() {
 
         // Test resource is null and the cache key is not for MRRT
@@ -117,7 +130,8 @@ public class CacheKeyTests extends AndroidTestCase {
             fail("Non expected exceptions");
         }
     }
-    
+
+    @Test
     public void testcreateCacheKeyNullClientid() {
 
         // Test both client id and family client id is null

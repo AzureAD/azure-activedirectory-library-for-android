@@ -29,7 +29,12 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import static com.microsoft.aad.adal.TelemetryUtils.CliTelemInfo;
+
 final class HttpEvent extends DefaultEvent {
+
+    private static final String TAG = HttpEvent.class.getSimpleName();
+
     HttpEvent(final String eventName) {
         getEventList().add(Pair.create(EventStrings.EVENT_NAME, eventName));
     }
@@ -56,8 +61,7 @@ final class HttpEvent extends DefaultEvent {
 
     void setHttpPath(final URL httpPath) {
         final String authority = httpPath.getAuthority();
-        final Discovery discovery = new Discovery();
-        if (!discovery.getValidHosts().contains(authority)) {
+        if (!Discovery.getValidHosts().contains(authority)) {
             return;
         }
 
@@ -87,20 +91,58 @@ final class HttpEvent extends DefaultEvent {
         setProperty(EventStrings.REQUEST_ID_HEADER, requestIdHeader);
     }
 
+    void setXMsCliTelemData(final CliTelemInfo cliTelemInfo) {
+        if (null == cliTelemInfo) {
+            return;
+        }
+
+        setServerErrorCode(cliTelemInfo.getServerErrorCode());
+        setServerSubErrorCode(cliTelemInfo.getServerSubErrorCode());
+        setRefreshTokenAge(cliTelemInfo.getRefreshTokenAge());
+        setSpeRing(cliTelemInfo.getSpeRing());
+    }
+
+    void setServerErrorCode(final String errorCode) {
+        if (!StringExtensions.isNullOrBlank(errorCode) && !errorCode.equals("0")) {
+            setProperty(EventStrings.SERVER_ERROR_CODE, errorCode.trim());
+        }
+    }
+
+    void setServerSubErrorCode(final String subErrorCode) {
+        if (!StringExtensions.isNullOrBlank(subErrorCode) && !subErrorCode.equals("0")) {
+            setProperty(EventStrings.SERVER_SUBERROR_CODE, subErrorCode.trim());
+
+        }
+    }
+
+    void setRefreshTokenAge(final String tokenAge) {
+        if (!StringExtensions.isNullOrBlank(tokenAge)) {
+            setProperty(EventStrings.TOKEN_AGE, tokenAge.trim());
+
+        }
+    }
+
+    void setSpeRing(final String speRing) {
+        if (!StringExtensions.isNullOrBlank(speRing)) {
+            setProperty(EventStrings.SPE_INFO, speRing.trim());
+        }
+    }
+
     /**
      * Each event chooses which of its members get picked on aggregation.
      * Http event adds an event count field
+     *
      * @param dispatchMap the Map that is filled with the aggregated event properties
      */
     @Override
     public void processEvent(final Map<String, String> dispatchMap) {
-        final Object countObject = dispatchMap.get(EventStrings.HTTP_EVENT_COUNT);
+        final String countObject = dispatchMap.get(EventStrings.HTTP_EVENT_COUNT);
 
         if (countObject == null) {
             dispatchMap.put(EventStrings.HTTP_EVENT_COUNT, "1");
         } else {
             dispatchMap.put(EventStrings.HTTP_EVENT_COUNT,
-                    Integer.toString(Integer.parseInt((String) countObject) + 1));
+                    Integer.toString(Integer.parseInt(countObject) + 1));
         }
 
         // If there was a previous entry clear out its fields.
@@ -120,12 +162,34 @@ final class HttpEvent extends DefaultEvent {
             dispatchMap.put(EventStrings.REQUEST_ID_HEADER, "");
         }
 
+        if (dispatchMap.containsKey(EventStrings.SERVER_ERROR_CODE)) {
+            dispatchMap.remove(EventStrings.SERVER_ERROR_CODE);
+        }
+
+        if (dispatchMap.containsKey(EventStrings.SERVER_SUBERROR_CODE)) {
+            dispatchMap.remove(EventStrings.SERVER_SUBERROR_CODE);
+        }
+
+        if (dispatchMap.containsKey(EventStrings.TOKEN_AGE)) {
+            dispatchMap.remove(EventStrings.TOKEN_AGE);
+        }
+
+        if (dispatchMap.containsKey(EventStrings.SPE_INFO)) {
+            dispatchMap.remove(EventStrings.SPE_INFO);
+        }
+
         final List<Pair<String, String>> eventList = getEventList();
         for (Pair<String, String> eventPair : eventList) {
             final String name = eventPair.first;
 
-            if (name.equals(EventStrings.HTTP_RESPONSE_CODE) || name.equals(EventStrings.REQUEST_ID_HEADER)
-                    || name.equals(EventStrings.OAUTH_ERROR_CODE) || name.equals(EventStrings.HTTP_PATH)) {
+            if (name.equals(EventStrings.HTTP_RESPONSE_CODE)
+                    || name.equals(EventStrings.REQUEST_ID_HEADER)
+                    || name.equals(EventStrings.OAUTH_ERROR_CODE)
+                    || name.equals(EventStrings.HTTP_PATH)
+                    || name.equals(EventStrings.SERVER_ERROR_CODE)
+                    || name.equals(EventStrings.SERVER_SUBERROR_CODE)
+                    || name.equals(EventStrings.TOKEN_AGE)
+                    || name.equals(EventStrings.SPE_INFO)) {
                 dispatchMap.put(name, eventPair.second);
             }
         }

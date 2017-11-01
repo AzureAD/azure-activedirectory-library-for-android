@@ -23,13 +23,13 @@
 
 package com.microsoft.aad.adal;
 
+import android.annotation.SuppressLint;
+import android.util.Log;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.UUID;
-
-import android.annotation.SuppressLint;
-import android.util.Log;
 
 /**
  * Android log output can. If externalLogger is set, it will use that as well.

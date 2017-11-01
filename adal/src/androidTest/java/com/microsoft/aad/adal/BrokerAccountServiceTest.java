@@ -37,13 +37,17 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.test.ServiceTestCase;
-import android.test.suitebuilder.annotation.SmallTest;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.ServiceTestRule;
 import android.util.Base64;
 import android.util.Pair;
 
 import junit.framework.Assert;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -57,37 +61,33 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.microsoft.aad.adal.OauthTests.createAuthenticationRequest;
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Test cases for brokerAccountService and related operations in {@link BrokerProxy}.
  */
-public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAccountService> {
+public final class BrokerAccountServiceTest {
     private static ExecutorService sThreadExecutor = Executors.newSingleThreadExecutor();
     private static final String VALID_AUTHORITY = "https://login.microsoftonline.com";
 
     private IBinder mIBinder;
-    public BrokerAccountServiceTest() {
-        super(MockBrokerAccountService.class);
-    }
+    @Rule
+    public ServiceTestRule mServiceTestRule = new ServiceTestRule();
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-        getContext().getCacheDir();
-        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
-
-        mIBinder = bindService(new Intent(mContext, MockBrokerAccountService.class));
+        System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
+        mIBinder = mServiceTestRule.bindService(new Intent(InstrumentationRegistry.getTargetContext(), MockBrokerAccountService.class));
     }
 
-    @Override
+    @After
     public void tearDown() throws Exception {
-        super.tearDown();
         AuthenticationSettings.INSTANCE.setBrokerSignature(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_SIGNATURE);
         AuthenticationSettings.INSTANCE.setUseBroker(false);
     }
 
-    @SmallTest
+    @Test
     public void testGetBrokerUsers() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
@@ -115,7 +115,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         latch.await();
     }
 
-    @SmallTest
+    @Test
     public void testBrokerProxyGetUsers() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
         sThreadExecutor.execute(new Runnable() {
@@ -144,7 +144,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         latch.await();
     }
 
-    @SmallTest
+    @Test
     public void testGetAuthToken() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
@@ -165,14 +165,15 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         latch.await();
     }
 
-    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException, AuthenticatorException,OperationCanceledException, IOException {
+    @Test
+    public void testGetAuthTokenVerifyNoNetwork() throws InterruptedException, AuthenticatorException, OperationCanceledException, IOException {
         final CountDownLatch latch = new CountDownLatch(1);
         sThreadExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 final Context mockContext = getMockContext();
                 Bundle requestBundle = new Bundle();
-                requestBundle.putString("isConnectionAvailable","false");
+                requestBundle.putString("isConnectionAvailable", "false");
 
                 try {
                     final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle, getBrokerEvent());
@@ -186,10 +187,33 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
             }
         });
         latch.await();
-
     }
 
-    @SmallTest
+    @Test
+    public void testGetAuthTokenVerifyThrowOperationCanceledException() throws InterruptedException, AuthenticatorException, OperationCanceledException, IOException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        sThreadExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                final Context mockContext = getMockContext();
+                Bundle requestBundle = new Bundle();
+                requestBundle.putString(OperationCanceledException.class.toString(), "true");
+
+                try {
+                    final Bundle bundle = BrokerAccountServiceHandler.getInstance().getAuthToken(mockContext, requestBundle, getBrokerEvent());
+                    Assert.assertTrue(bundle.getInt(AccountManager.KEY_ERROR_CODE) == AccountManager.ERROR_CODE_CANCELED);
+                    Assert.assertTrue(bundle.getString(AccountManager.KEY_ERROR_MESSAGE).equals(ADALError.AUTH_FAILED_CANCELLED.getDescription()));
+                } catch (final AuthenticationException e) {
+                    fail();
+                } finally {
+                    latch.countDown();
+                }
+            }
+        });
+        latch.await();
+    }
+
+    @Test
     public void testBrokerProxyGetAuthToken() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
@@ -216,6 +240,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
         latch.await();
     }
 
+    @Test
     public void testGetIntentContainsSkipCacheAndClaimsForBrokerActivity() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
@@ -250,13 +275,13 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
      * Verify even if GET_ACCOUNTS permission is not granted, if BrokerAccountService exists,
      * {@link BrokerProxy#canSwitchToBroker(String)} will return true.
      */
-    @SmallTest
+    @Test
     public void testBrokerProxySwitchBrokerPermissionNotGranted()
             throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
         final Context context = getMockContext();
         final PackageManager mockedPackageManager = context.getPackageManager();
 
-        final SignatureData signatureData = getSignature(mContext, getContext().getPackageName());
+        final SignatureData signatureData = getSignature(InstrumentationRegistry.getContext(), InstrumentationRegistry.getContext().getPackageName());
         mockPackageManagerBrokerSignatureAndPermission(mockedPackageManager, signatureData.getSignature());
 
         AuthenticationSettings.INSTANCE.setBrokerSignature(signatureData.getSignatureHash());
@@ -270,13 +295,13 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
      * Verify  if GET_ACCOUNTS permission is not granted and BrokerAccountService exists,
      * {@link BrokerProxy#canSwitchToBroker(String)} will return false if there is no valid broker app exists.
      */
-    @SmallTest
+    @Test
     public void testBrokerProxySwitchToBrokerInvalidBrokerPackageName()
             throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
         final Context context = getMockContext();
         final PackageManager mockedPackageManager = context.getPackageManager();
 
-        final SignatureData signatureData = getSignature(mContext, getContext().getPackageName());
+        final SignatureData signatureData = getSignature(InstrumentationRegistry.getContext(), InstrumentationRegistry.getContext().getPackageName());
         mockPackageManagerBrokerSignatureAndPermission(mockedPackageManager, signatureData.getSignature());
 
         AuthenticationSettings.INSTANCE.setUseBroker(true);
@@ -297,7 +322,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
     }
 
     private Context getMockContext() {
-        final BrokerAccountServiceContext mockContext = new BrokerAccountServiceContext(getContext());
+        final BrokerAccountServiceContext mockContext = new BrokerAccountServiceContext(InstrumentationRegistry.getContext());
 
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedPackageManager.queryIntentServices(Mockito.any(Intent.class), Mockito.anyInt())).thenReturn(
@@ -306,7 +331,7 @@ public final class BrokerAccountServiceTest extends ServiceTestCase<MockBrokerAc
 
         final AccountManager mockedAccountManager = Mockito.mock(AccountManager.class);
         final AuthenticatorDescription authenticatorDescription = new AuthenticatorDescription(
-                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE, getContext().getPackageName(), 0, 0, 0, 0);
+                AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE, InstrumentationRegistry.getContext().getPackageName(), 0, 0, 0, 0);
         Mockito.when(mockedAccountManager.getAuthenticatorTypes()).thenReturn(new AuthenticatorDescription[] {authenticatorDescription});
         mockContext.setMockedAccountManager(mockedAccountManager);
         return mockContext;
