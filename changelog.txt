@@ -1,6 +1,14 @@
 Version 1.13.2
 -------------
+Add cache update for authority migration. New token will always be written into the preferred cache location. For read, try preferred_cache first, followed by provided authority and aliased authority.
 Add telemetry to capture x-ms-clitelem header (tracks errors, suberrors, rt age, and SPE ring)
+Fix the error code issue when communication with broker fails
+Fix the callback for AT or ATS if bindservice returns false or the service connection
+Add RC build support on VSTS
+Update log message related to permission check
+Fix the NPE in instance discovery for authority validation
+Add network checking for authority validation
+Fix for the ArrayIndexOutOfBoundsException when adding event into the arraylist
 
 Version 1.13.1
 -------------
