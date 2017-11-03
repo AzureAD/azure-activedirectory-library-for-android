@@ -128,6 +128,7 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public SwitchToBroker canSwitchToBroker(final String authorityUrlStr) {
+        final String methodName = ":canSwitchToBroker";
         final URL authorityUrl;
         try {
             authorityUrl = new URL(authorityUrlStr);
@@ -185,6 +186,7 @@ class BrokerProxy implements IBrokerProxy {
 
     @Override
     public boolean canUseLocalCache(final String authorityUrlStr) {
+        final String methodName = ":canUseLocalCache";
         if (canSwitchToBroker(authorityUrlStr) == SwitchToBroker.CANNOT_SWITCH_TO_BROKER) {
             Logger.v(TAG + methodName, "It does not use broker");
             return true;
@@ -224,7 +226,7 @@ class BrokerProxy implements IBrokerProxy {
                     "Broker related permissions are missing for " + permissionMissing.toString());
         }
 
-        Logger.v(TAG + methodName, "Device runs on 23 and above, skip the check for 22 and below.");
+        Logger.v(TAG, "Device runs on 23 and above, skip the check for 22 and below.");
         return true;
     }
 
@@ -252,7 +254,7 @@ class BrokerProxy implements IBrokerProxy {
                     "Broker related permissions are missing for " + permissionMissing.toString());
         }
 
-        Logger.v(TAG + methodName, "Device is lower than 23, skip the GET_ACCOUNTS permission check.");
+        Logger.v(TAG, "Device is lower than 23, skip the GET_ACCOUNTS permission check.");
         return true;
     }
 
@@ -260,7 +262,7 @@ class BrokerProxy implements IBrokerProxy {
         final PackageManager pm = mContext.getPackageManager();
         if (pm.checkPermission(permissionName, mContext.getPackageName()) != PackageManager.PERMISSION_GRANTED) {
             Logger.w(
-                    TAG + methodName,
+                    TAG,
                     "Broker related permissions are missing for " + permissionName,
                     "", ADALError.DEVELOPER_BROKER_PERMISSIONS_MISSING);
             return permissionName + ' ';
@@ -274,7 +276,7 @@ class BrokerProxy implements IBrokerProxy {
         if (looper != null && looper == mContext.getMainLooper()) {
             final IllegalStateException exception = new IllegalStateException(
                     "calling this from your main thread can lead to deadlock");
-            Logger.e(TAG + methodName, "calling this from your main thread can lead to deadlock and/or ANRs", "",
+            Logger.e(TAG , "calling this from your main thread can lead to deadlock and/or ANRs", "",
                     ADALError.DEVELOPER_CALLING_ON_MAIN_THREAD, exception);
             if (mContext.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.FROYO) {
                 throw exception;
@@ -326,7 +328,7 @@ class BrokerProxy implements IBrokerProxy {
         }
 
         if (bundleResult == null) {
-            Logger.v(TAG + methodName, "No bundle result returned from broker for silent request.");
+            Logger.v(TAG, "No bundle result returned from broker for silent request.");
             return null;
         }
 
@@ -335,6 +337,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private Bundle getAuthTokenFromAccountManager(final AuthenticationRequest request, final Bundle requestBundle) throws AuthenticationException {
         // if there is not any user added to account, it returns empty
+        final String methodName = ":getAuthTokenFromAccountManager";
         final Account targetAccount = getTargetAccount(request);
 
         Bundle bundleResult = null;
@@ -412,6 +415,7 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private Account getTargetAccount(final AuthenticationRequest request) {
+        final String methodName = ":getTargetAccount";
         Account targetAccount = null;
         final Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
 
@@ -425,7 +429,8 @@ class BrokerProxy implements IBrokerProxy {
                     targetAccount = findAccount(matchingUser.getDisplayableId(), accountList);
                 }
             } catch (IOException | AuthenticatorException | OperationCanceledException e) {
-                Logger.e(TAG + methodName, e.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
+                Logger.e(TAG + methodName, "Exception is thrown when trying to get target account.",
+                        e.getMessage(), ADALError.BROKER_AUTHENTICATOR_IO_EXCEPTION, e);
             }
         }
 
@@ -434,6 +439,7 @@ class BrokerProxy implements IBrokerProxy {
 
     private AuthenticationResult getResultFromBrokerResponse(final Bundle bundleResult, final AuthenticationRequest request)
             throws AuthenticationException {
+        final String methodName = ":getResultFromBrokerResponse";
         if (bundleResult == null) {
             throw new IllegalArgumentException("bundleResult");
         }
@@ -557,13 +563,14 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private void removeAccountFromAccountManager() {
+        final String methodName = ":removeAccountFromAccountManager";
         // getAuthToken call will execute in async as well
-        Logger.v(TAG + methodName, "removeAccounts:");
+        Logger.v(TAG + methodName, "Try to remove account from account manager.");
         Account[] accountList = mAcctManager
                 .getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         if (accountList.length != 0) {
             for (Account targetAccount : accountList) {
-                Logger.v(TAG + methodName, "remove tokens for:" + targetAccount.name);
+                Logger.v(TAG + methodName, "Remove tokens for account. ", "Account: " + targetAccount.name, null);
 
                 Bundle brokerOptions = new Bundle();
                 brokerOptions.putString(AuthenticationConstants.Broker.ACCOUNT_REMOVE_TOKENS,
@@ -589,6 +596,7 @@ class BrokerProxy implements IBrokerProxy {
      */
     @Override
     public Intent getIntentForBrokerActivity(final AuthenticationRequest request, final BrokerEvent brokerEvent) {
+        final String methodName = ":getIntentForBrokerActivity";
         final Bundle requestBundle = getBrokerOptions(request);
         final Intent intent;
         if (isBrokerAccountServiceSupported()) {
@@ -615,6 +623,7 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private Intent getIntentForBrokerActivityFromAccountManager(final Bundle addAccountOptions) {
+        final String methodName = ":getIntentForBrokerActivityFromAccountManager";
         Intent intent = null;
         try {
             // Callback is not passed since it is making a blocking call to get
@@ -730,6 +739,7 @@ class BrokerProxy implements IBrokerProxy {
      * @return Current account name at {@link AccountManager}
      */
     public String getCurrentUser() {
+        final String methodName = ":getCurrentUser";
         // authenticator is not used if there is not any user
         if (isBrokerAccountServiceSupported()) {
             verifyNotOnMainThread();
@@ -785,6 +795,7 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private boolean verifyAccount(Account[] accountList, String username, String uniqueId) {
+        final String methodName = ":verifyAccount";
         if (!StringExtensions.isNullOrBlank(username)) {
             return username.equalsIgnoreCase(accountList[0].name);
         }
@@ -798,7 +809,7 @@ class BrokerProxy implements IBrokerProxy {
                 UserInfo matchingUser = findUserInfo(uniqueId, users);
                 return matchingUser != null;
             } catch (IOException | AuthenticatorException | OperationCanceledException e) {
-                Logger.e(TAG + methodName, "VerifyAccount:" + e.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_EXCEPTION, e);
+                Logger.e(TAG + methodName, "Exception thrown when verifying accounts in broker. ", e.getMessage(), ADALError.BROKER_AUTHENTICATOR_EXCEPTION, e);
             }
 
             Logger.v(TAG + methodName, "It could not check the uniqueid from broker. It is not using broker");
@@ -825,6 +836,7 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private boolean verifySignature(final String brokerPackageName) {
+        final String methodName = ":verifySignature";
         try {
             // Read all the certificates associated with the package name. In higher version of
             // android sdk, package manager will only returned the cert that is used to sign the
@@ -983,6 +995,7 @@ class BrokerProxy implements IBrokerProxy {
     }
 
     private UserInfo[] getUserInfoFromAccountManager() throws OperationCanceledException, AuthenticatorException, IOException {
+        final String methodName = ":getUserInfoFromAccountManager";
         final Account[] accountList = mAcctManager.getAccountsByType(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE);
         final Bundle bundle = new Bundle();
         bundle.putBoolean(DATA_USER_INFO, true);

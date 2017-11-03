@@ -138,7 +138,8 @@ class ChallengeResponseBuilder {
                         "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
                         AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, jwt,
                         request.mContext, request.mVersion);
-                Logger.v(TAG + methodName, "Challenge response:" + response.mAuthorizationHeaderValue);
+                Logger.v(TAG , "Receive challenge response. ",
+                        "Challenge response:" + response.mAuthorizationHeaderValue, null);
             }
         }
 
@@ -270,6 +271,7 @@ class ChallengeResponseBuilder {
 
     private ChallengeRequest getChallengeRequest(final String redirectUri)
             throws AuthenticationException {
+        final String methodName = ":getChallengeRequest";
         if (StringExtensions.isNullOrBlank(redirectUri)) {
             throw new AuthenticationServerProtocolException("redirectUri");
         }
@@ -282,7 +284,7 @@ class ChallengeResponseBuilder {
             challenge.mNonce = parameters.get(RequestField.Nonce.name().toLowerCase(Locale.US));
         }
         String authorities = parameters.get(RequestField.CertAuthorities.name());
-        Logger.v(TAG + methodName, "Cert authorities:" + authorities);
+        Logger.v(TAG + methodName, "Get cert authorities. ", "Authorities: " + authorities, null);
         challenge.mCertAuthorities = StringExtensions.getStringTokens(authorities,
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_CERT_AUTH_DELIMETER);
         challenge.mVersion = parameters.get(RequestField.Version.name());

@@ -153,7 +153,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
         Method m = ReflectionUtils.getTestMethod(jwsBuilder, "generateSignedJWT", String.class,
                 String.class, RSAPrivateKey.class, RSAPublicKey.class, X509Certificate.class);
         String jws = (String) m.invoke(jwsBuilder, nonce, url, privKey, publicKey, cert);
-        Logger.v(TAG + methodName, "Generated JWS:" + jws);
+        Logger.i(TAG, "Generated JWS. ", "JWS: " + jws);
         verify(validSignature, jws, publicKey, nonce, url);
     }
 
@@ -198,25 +198,24 @@ public class JwsBuilderTests extends AndroidTestHelper {
         Enumeration<String> e = caKs.aliases();
         while (e.hasMoreElements()) {
             String alias = e.nextElement();
-            Log.v(TAG + methodName, "--- Entry Alias: \"" + alias + "\" ---");
+            Log.v(TAG, "--- Entry Alias: \"" + alias + "\" ---");
             if (caKs.isKeyEntry(alias)) {
-                Log.v(TAG + methodName, "Key Entry:");
+                Log.v(TAG, "Key Entry:");
                 Certificate[] certs = caKs.getCertificateChain(alias);
-                Log.v(TAG + methodName, "Cert Chain: (length " + certs.length + ")");
+                Log.v(TAG, "Cert Chain: (length " + certs.length + ")");
                 for (int i = 0; i < certs.length; i++) {
                     X509Certificate cert = (X509Certificate) certs[i];
                     X500Principal subject = cert.getSubjectX500Principal();
-                    Log.v(TAG + methodName,
-                            "Encoded:"
-                                    + new String(Base64.encode(cert.getEncoded(), Base64.DEFAULT),
-                                    "utf-8"));
-                    Log.v(TAG + methodName, "Subject:" + subject.toString());
+                    Logger.v(TAG, "",
+                            "Encoded:"+ new String(Base64.encode(cert.getEncoded(), Base64.DEFAULT),
+                                    "utf-8"), null);
+                    Logger.v(TAG, "", "Subject:" + subject.toString(), null);
                 }
 
             } else if (caKs.isCertificateEntry(alias)) {
-                Log.v(TAG + methodName, "Trusted Certificate Entry:");
+                Log.v(TAG , "Trusted Certificate Entry:");
                 Certificate cert = caKs.getCertificate(alias);
-                Log.v(TAG + methodName, cert.toString());
+                Log.v(TAG, cert.toString());
             }
         }
 

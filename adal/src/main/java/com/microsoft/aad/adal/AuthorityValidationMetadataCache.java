@@ -72,6 +72,7 @@ final class AuthorityValidationMetadataCache {
     }
 
     static void processInstanceDiscoveryMetadata(final URL authorityUrl, final Map<String, String> discoveryResponse) throws JSONException {
+        final String methodName = ":processInstanceDiscoveryMetadata";
         final boolean isTenantDiscoveryEndpointReturned = discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT);
         final String metadata = discoveryResponse.get(META_DATA);
         final String authorityHost = authorityUrl.getHost().toLowerCase(Locale.US);

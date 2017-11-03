@@ -88,7 +88,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
      */
     private DRSMetadata requestOnPrem(final String domain)
             throws UnknownHostException, AuthenticationException {
-        Logger.v(TAG + methodName, "Requesting DRS discovery (on-prem)");
+        Logger.v(TAG, "Requesting DRS discovery (on-prem)");
         return requestDrsDiscoveryInternal(ON_PREM, domain);
     }
 
@@ -101,7 +101,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
      *                                 or the trust cannot be verified
      */
     private DRSMetadata requestCloud(final String domain) throws AuthenticationException {
-        Logger.v(TAG + methodName, "Requesting DRS discovery (cloud)");
+        Logger.v(TAG, "Requesting DRS discovery (cloud)");
         try {
             return requestDrsDiscoveryInternal(CLOUD, domain);
         } catch (UnknownHostException e) {
@@ -154,7 +154,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
 
     @Override
     DRSMetadata parseMetadata(final HttpWebResponse response) throws AuthenticationException {
-        Logger.v(TAG + methodName, "Parsing DRS metadata response");
+        Logger.v(TAG, "Parsing DRS metadata response");
         try {
             return parser().fromJson(response.getBody(), DRSMetadata.class);
         } catch (JsonSyntaxException e) {
@@ -183,7 +183,7 @@ final class DRSMetadataRequestor extends AbstractMetadataRequestor<DRSMetadata, 
 
         final String requestUrlStr = requestUrl.toString();
 
-        Logger.v(TAG + methodName, "Requestor will use DRS url: " + requestUrlStr);
+        Logger.v(TAG, "Request will use DRS url. ", "URL: " + requestUrlStr, null);
 
         return requestUrlStr;
     }

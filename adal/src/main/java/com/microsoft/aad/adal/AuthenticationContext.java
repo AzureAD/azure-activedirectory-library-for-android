@@ -229,6 +229,7 @@ public class AuthenticationContext {
      * @return RedirectUri string to use for broker requests.
      */
     public String getRedirectUriForBroker() {
+        final String methodName = ":getRedirectUriForBroker";
         final PackageHelper packageHelper = new PackageHelper(mContext);
         final String packageName = mContext.getPackageName();
 
@@ -236,8 +237,8 @@ public class AuthenticationContext {
         // signatures.
         final String signatureDigest = packageHelper.getCurrentSignatureForPackage(packageName);
         final String redirectUri = PackageHelper.getBrokerRedirectUrl(packageName, signatureDigest);
-        Logger.v(TAG + methodName, "Broker redirectUri:" + redirectUri + " packagename:" + packageName
-                + " signatureDigest:" + signatureDigest);
+        Logger.v(TAG + methodName, "Get expected redirect Uri. ", "Broker redirectUri:" + redirectUri + " packagename:" + packageName
+                + " signatureDigest:" + signatureDigest, null);
         return redirectUri;
     }
 
@@ -668,6 +669,7 @@ public class AuthenticationContext {
     public AuthenticationResult acquireTokenSilentSync(String resource, String clientId, String userId)
             throws AuthenticationException, InterruptedException {
 
+        final String methodName = ":acquireTokenSilentSync";
         checkPreRequirements(resource, clientId);
         checkADFSValidationRequirements(null);
         final AtomicReference<AuthenticationResult> authenticationResult = new AtomicReference<>();
@@ -959,6 +961,7 @@ public class AuthenticationContext {
      * @param data        {@link Intent}
      */
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        final String methodName = ":onActivityResult";
         if (requestCode == AuthenticationConstants.UIRequest.BROWSER_FLOW) {
 
             if (data == null) {
@@ -982,8 +985,8 @@ public class AuthenticationContext {
                         new AcquireTokenRequest(mContext, this, waitingRequest.getAPIEvent());
                 acquireTokenRequest.onActivityResult(requestCode, resultCode, data);
             } else {
-                Logger.e(TAG + methodName, "onActivityResult did not find waiting request for RequestId:"
-                        + requestId, "", ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
+                Logger.e(TAG + methodName, "onActivityResult did not find the waiting request. ",
+                        "RequestID: " + requestId, ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
             }
         }
     }
@@ -1000,6 +1003,7 @@ public class AuthenticationContext {
      * @throws AuthenticationException if failed to get the waiting request
      */
     public boolean cancelAuthenticationActivity(final int requestId) throws AuthenticationException {
+        final String methodName = ":cancelAuthenticationActivity";
         final AuthenticationRequestState waitingRequest = getWaitingRequest(requestId);
 
         if (waitingRequest == null || waitingRequest.getDelegate() == null) {
@@ -1209,6 +1213,7 @@ public class AuthenticationContext {
      * @throws AuthenticationException
      */
     String serialize(final String uniqueUserId) throws AuthenticationException {
+        final String methodName = ":serialize";
         if (StringExtensions.isNullOrBlank(uniqueUserId)) {
             throw new IllegalArgumentException("uniqueUserId");
         }
@@ -1290,7 +1295,8 @@ public class AuthenticationContext {
     }
 
     AuthenticationRequestState getWaitingRequest(final int requestId) throws AuthenticationException {
-        Logger.v(TAG + methodName, "Get waiting request: " + requestId);
+        final String methodName = ":getWaitingRequest";
+        Logger.v(TAG + methodName, "Get waiting request. ", "RequestID: " + requestId, null);
         AuthenticationRequestState request;
 
         synchronized (DELEGATE_MAP) {
@@ -1298,8 +1304,8 @@ public class AuthenticationContext {
         }
 
         if (request == null) {
-            Logger.e(TAG + methodName, "Request callback is not available for requestId:" + requestId,
-                    "", ADALError.CALLBACK_IS_NOT_FOUND);
+            Logger.e(TAG + methodName, "Request callback is not available. ",
+                    "RequestID: " + requestId, ADALError.CALLBACK_IS_NOT_FOUND);
             throw new AuthenticationException(ADALError.CALLBACK_IS_NOT_FOUND,
                     "Request callback is not available for requestId:" + requestId);
         }
@@ -1312,8 +1318,8 @@ public class AuthenticationContext {
             return;
         }
 
-        Logger.v(TAG + methodName, "Put waiting request: " + requestId
-                + getCorrelationInfoFromWaitingRequest(requestState));
+        Logger.v(TAG, "Put waiting request. " + getCorrelationInfoFromWaitingRequest(requestState),
+                "RequestID: " + requestId, null);
 
         synchronized (DELEGATE_MAP) {
             DELEGATE_MAP.put(requestId, requestState);
@@ -1321,7 +1327,7 @@ public class AuthenticationContext {
     }
 
     void removeWaitingRequest(int requestId) {
-        Logger.v(TAG + methodName, "Remove waiting request: " + requestId);
+        Logger.v(TAG, "Remove waiting request. ", "RequestID: " + requestId, null);
 
         synchronized (DELEGATE_MAP) {
             DELEGATE_MAP.remove(requestId);

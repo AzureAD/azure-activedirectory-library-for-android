@@ -73,7 +73,7 @@ class AuthenticationDialog {
      * service. This will run with the handler.
      */
     public void show() {
-
+        final String methodName = ":show";
         mHandlerInView.post(new Runnable() {
 
             @Override
@@ -174,7 +174,7 @@ class AuthenticationDialog {
     }
 
     private void cancelFlow() {
-        Logger.i(TAG + methodName, "Cancelling dialog", "");
+        Logger.i(TAG, "Cancelling dialog", "");
         Intent resultIntent = new Intent();
         resultIntent.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mRequest.getRequestId());
         mAcquireTokenRequest.onActivityResult(AuthenticationConstants.UIRequest.BROWSER_FLOW,

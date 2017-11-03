@@ -125,6 +125,7 @@ class IdToken {
     }
 
     private Map<String, String> parseJWT(final String idtoken) throws AuthenticationException {
+        final String methodName = ":parseJWT";
         final String idbody = extractJWTBody(idtoken);
         // URL_SAFE: Encoder/decoder flag bit to use
         // "URL and filename safe" variant of Base64

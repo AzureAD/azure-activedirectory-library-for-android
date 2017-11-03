@@ -159,7 +159,7 @@ public class AuthenticationParameters {
             throw new IllegalArgumentException("callback");
         }
 
-        Logger.v(TAG + methodName, "createFromResourceUrl");
+        Logger.v(TAG, "createFromResourceUrl");
         final Handler handler = new Handler(context.getMainLooper());
 
         sThreadExecutor.submit(new Runnable() {
@@ -201,6 +201,7 @@ public class AuthenticationParameters {
      */
     public static AuthenticationParameters createFromResponseAuthenticateHeader(
             String authenticateHeader) throws ResourceAuthenticationChallengeException {
+        final String methodName = ":createFromResponseAuthenticateHeader";
         final AuthenticationParameters authParams;
 
         if (StringExtensions.isNullOrBlank(authenticateHeader)) {
@@ -218,7 +219,7 @@ public class AuthenticationParameters {
                 // Get matching value pairs inside the header value
                 Pattern valuePattern = Pattern.compile(REGEX_VALUES);
                 String headerSubFields = authenticateHeader.substring(BEARER.length());
-                Logger.v(TAG + methodName, "Values in here:" + headerSubFields);
+                Logger.v(TAG + methodName, "Parse the header response. ", "Values in here:" + headerSubFields, null);
                 Matcher values = valuePattern.matcher(headerSubFields);
                 final Map<String, String> headerItems = new HashMap<>();
                 while (values.find()) {
@@ -233,15 +234,16 @@ public class AuthenticationParameters {
                             key = StringExtensions.urlFormDecode(key);
                             value = StringExtensions.urlFormDecode(value);
                         } catch (UnsupportedEncodingException e) {
-                            Logger.v(TAG + methodName, e.getMessage());
+                            Logger.v(TAG + methodName, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), null);
                         }
 
                         key = key.trim();
                         value = StringExtensions.removeQuoteInHeaderValue(value.trim());
 
                         if (headerItems.containsKey(key)) {
-                            Logger.w(TAG + methodName, String.format(
-                                    "Key/value pair list contains redundant key '%s'.", key), "",
+                            Logger.w(TAG + methodName,
+                                    "Key/value pair list contains redundant key. ",
+                                    "Redundant key: " + key,
                                     ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
                         }
 

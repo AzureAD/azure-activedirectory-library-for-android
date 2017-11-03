@@ -112,6 +112,7 @@ class JWSBuilder implements IJWSBuilder {
         // concatenated in that order, with the three strings being separated by
         // two period ('.') characters.
         // Base64 encoding without padding, wrapping and urlsafe.
+        final String methodName = ":generateSignedJWT";
         if (StringExtensions.isNullOrBlank(nonce)) {
             throw new IllegalArgumentException("nonce");
         }
@@ -154,7 +155,8 @@ class JWSBuilder implements IJWSBuilder {
             // redundant but current ADFS code base is looking for
             String headerJsonString = gson.toJson(header);
             String claimsJsonString = gson.toJson(claims);
-            Logger.v(TAG + methodName, "Client certificate challenge response JWS Header:" + headerJsonString);
+            Logger.v(TAG + methodName, "Generate client certificate challenge response JWS Header. ",
+                    "Header: " + headerJsonString, null);
             signingInput = StringExtensions.encodeBase64URLSafeString(headerJsonString
                     .getBytes(AuthenticationConstants.ENCODING_UTF8))
                     + "."

@@ -63,6 +63,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
      *            write to a file.
      */
     public FileTokenCacheStore(Context context, String fileName) {
+        final String methodName = ":FileTokenCacheStore";
         if (context == null) {
             throw new IllegalArgumentException("context");
         }
@@ -84,7 +85,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
             mFile = new File(directory, fileName);
 
             if (mFile.exists()) {
-                Logger.v(TAG + methodName, "There is previous cache file to load cache.");
+                Logger.v(TAG + methodName, "There is previous cache file to load cache. ");
                 FileInputStream inputStream = new FileInputStream(mFile);
                 ObjectInputStream objectStream = new ObjectInputStream(inputStream);
                 Object cacheObj = objectStream.readObject();
@@ -94,18 +95,18 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                 if (cacheObj instanceof MemoryTokenCacheStore) {
                     mInMemoryCache = (MemoryTokenCacheStore) cacheObj;
                 } else {
-                    Logger.w(TAG + methodName, "Existing cache format is wrong", "",
+                    Logger.w(TAG + methodName, "Existing cache format is wrong. ", "",
                             ADALError.DEVICE_FILE_CACHE_FORMAT_IS_WRONG);
 
                     // Write operation will replace with correct file
                     mInMemoryCache = new MemoryTokenCacheStore();
                 }
             } else {
-                Logger.v(TAG + methodName, "There is not any previous cache file to load cache.");
+                Logger.v(TAG + methodName, "There is not any previous cache file to load cache. ");
                 mInMemoryCache = new MemoryTokenCacheStore();
             }
         } catch (IOException | ClassNotFoundException ex) {
-            Logger.e(TAG + methodName, "Exception during cache load",
+            Logger.e(TAG + methodName, "Exception during cache load. ",
                     ExceptionExtensions.getExceptionMessage(ex),
                     ADALError.DEVICE_FILE_CACHE_IS_NOT_LOADED_FROM_FILE);
             // if it is not possible to load the cache because of permissions or
@@ -159,7 +160,7 @@ public class FileTokenCacheStore implements ITokenCacheStore {
                     outputStream.close();
 
                 } catch (IOException ex) {
-                    Logger.e(TAG + methodName, "Exception during cache flush",
+                    Logger.e(TAG, "Exception during cache flush",
                             ExceptionExtensions.getExceptionMessage(ex),
                             ADALError.DEVICE_FILE_CACHE_IS_NOT_WRITING_TO_FILE);
                 }

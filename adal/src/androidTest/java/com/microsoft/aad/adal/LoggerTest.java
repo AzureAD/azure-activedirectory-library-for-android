@@ -52,10 +52,10 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setExternalLogger(new ILogger() {
 
             @Override
-            public void Log(String TAG + methodName, String message, String additionalMessage, LogLevel level,
+            public void Log(String TAG, String message, String additionalMessage, LogLevel level,
                             ADALError errorCode) {
 
-                response.setTag(tag);
+                response.setTag(TAG);
                 response.setMessage(message);
                 response.setAdditionalMessage(additionalMessage);
                 response.setLevel(level);
@@ -103,9 +103,9 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setExternalLogger(new ILogger() {
 
             @Override
-            public void Log(String TAG + methodName, String message, String additionalMessage, LogLevel level,
+            public void Log(String TAG, String message, String additionalMessage, LogLevel level,
                             ADALError errorCode) {
-                response.setTag(tag);
+                response.setTag(TAG);
                 response.setMessage(message);
                 response.setAdditionalMessage(additionalMessage);
                 response.setLevel(level);
@@ -178,7 +178,7 @@ public class LoggerTest extends AndroidTestHelper {
         Logger.getInstance().setExternalLogger(new ILogger() {
 
             @Override
-            public void Log(String TAG + methodName, String message, String additionalMessage, LogLevel level,
+            public void Log(String TAG, String message, String additionalMessage, LogLevel level,
                             ADALError errorCode) {
                 response.setMessage(message);
                 throw new IllegalArgumentException(message);
