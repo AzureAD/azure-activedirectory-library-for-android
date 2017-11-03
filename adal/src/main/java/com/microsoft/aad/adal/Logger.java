@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Android log output can. If externalLogger is set, it will use that as well.
- * Usage: Logger.v(TAG, message, additionalMessage, errorCode) to log. Set
+ * Usage: Logger.v(TAG + methodName, message, additionalMessage, errorCode) to log. Set
  * custom logger: Logger.setExternalLogger(..);
  */
 public class Logger {
@@ -115,7 +115,7 @@ public class Logger {
          * @param level               The {@link Logger.LogLevel} for the generated message.
          * @param errorCode           The error code.
          */
-        void Log(String tag, String message, String additionalMessage, LogLevel level,
+        void Log(String TAG + methodName, String message, String additionalMessage, LogLevel level,
                 ADALError errorCode);
     }
 
@@ -184,16 +184,16 @@ public class Logger {
      * @param tag TAG for the log message
      * @param message Body of the message
      */
-    public void debug(String tag, String message) {
+    public void debug(String TAG + methodName, String message) {
         if (mLogLevel.compareTo(LogLevel.Debug) < 0 || StringExtensions.isNullOrBlank(message)) {
             return;
         }
 
         if (mLogcatLogEnabled) {
-            Log.d(tag, message);
+            Log.d(TAG + methodName, message);
         }
 
-        logCommon(tag, message, "", LogLevel.Info, null);
+        logCommon(TAG + methodName, message, "", LogLevel.Info, null);
     }
 
     /**
@@ -203,16 +203,16 @@ public class Logger {
      * @param additionalMessage additional parameters
      * @param errorCode ADAL error code being logged
      */
-    public void verbose(String tag, String message, String additionalMessage, ADALError errorCode) {
+    public void verbose(String TAG + methodName, String message, String additionalMessage, ADALError errorCode) {
         if (mLogLevel.compareTo(LogLevel.Verbose) < 0) {
             return;
         }
 
         if (mLogcatLogEnabled) {
-            Log.v(tag, getLogMessage(message, additionalMessage, errorCode));
+            Log.v(TAG + methodName, getLogMessage(message, additionalMessage, errorCode));
         }
 
-        logCommon(tag, message, additionalMessage, LogLevel.Verbose, errorCode);
+        logCommon(TAG + methodName, message, additionalMessage, LogLevel.Verbose, errorCode);
     }
 
     /**
@@ -222,16 +222,16 @@ public class Logger {
      * @param additionalMessage additional parameters
      * @param errorCode ADAL error code being logged
      */
-    public void inform(String tag, String message, String additionalMessage, ADALError errorCode) {
+    public void inform(String TAG + methodName, String message, String additionalMessage, ADALError errorCode) {
         if (mLogLevel.compareTo(LogLevel.Info) < 0) {
             return;
         }
 
         if (mLogcatLogEnabled) {
-            Log.i(tag, getLogMessage(message, additionalMessage, errorCode));
+            Log.i(TAG + methodName, getLogMessage(message, additionalMessage, errorCode));
         }
 
-        logCommon(tag, message, additionalMessage, LogLevel.Info, errorCode);
+        logCommon(TAG + methodName, message, additionalMessage, LogLevel.Info, errorCode);
     }
 
     /**
@@ -241,16 +241,16 @@ public class Logger {
      * @param additionalMessage additional parameters
      * @param errorCode ADAL error code being logged
      */
-    public void warn(String tag, String message, String additionalMessage, ADALError errorCode) {
+    public void warn(String TAG + methodName, String message, String additionalMessage, ADALError errorCode) {
         if (mLogLevel.compareTo(LogLevel.Warn) < 0) {
             return;
         }
 
         if (mLogcatLogEnabled) {
-            Log.w(tag, getLogMessage(message, additionalMessage, errorCode));
+            Log.w(TAG + methodName, getLogMessage(message, additionalMessage, errorCode));
         }
 
-        logCommon(tag, message, additionalMessage, LogLevel.Warn, errorCode);
+        logCommon(TAG + methodName, message, additionalMessage, LogLevel.Warn, errorCode);
     }
 
     /**
@@ -260,12 +260,12 @@ public class Logger {
      * @param additionalMessage additional parameters
      * @param errorCode ADAL error code being logged
      */
-    public void error(String tag, String message, String additionalMessage, ADALError errorCode) {
+    public void error(String TAG + methodName, String message, String additionalMessage, ADALError errorCode) {
         if (mLogcatLogEnabled) {
-            Log.e(tag, getLogMessage(message, additionalMessage, errorCode));
+            Log.e(TAG + methodName, getLogMessage(message, additionalMessage, errorCode));
         }
 
-        logCommon(tag, message, additionalMessage, LogLevel.Error, errorCode);
+        logCommon(TAG + methodName, message, additionalMessage, LogLevel.Error, errorCode);
     }
 
     /**
@@ -276,34 +276,34 @@ public class Logger {
      * @param errorCode ADAL error code being logged
      * @param err Exception being logged
      */
-    public void error(String tag, String message, String additionalMessage, ADALError errorCode,
+    public void error(String TAG + methodName, String message, String additionalMessage, ADALError errorCode,
                       Throwable err) {
         if (mLogcatLogEnabled) {
-            Log.e(tag, getLogMessage(message, additionalMessage, errorCode), err);
+            Log.e(TAG + methodName, getLogMessage(message, additionalMessage, errorCode), err);
         }
 
-        logCommon(tag, message, additionalMessage, LogLevel.Error, errorCode, err);
+        logCommon(TAG + methodName, message, additionalMessage, LogLevel.Error, errorCode, err);
     }
 
-    private void logCommon(String tag, String message, String additionalMessage, LogLevel level,
+    private void logCommon(String TAG + methodName, String message, String additionalMessage, LogLevel level,
                            ADALError errorCode) {
         message = addMoreInfo(message);
 
         if (mExternalLogger.get() != null) {
             try {
                 if (mEnablePII) {
-                    mExternalLogger.get().Log(tag, message, additionalMessage, level, errorCode);
+                    mExternalLogger.get().Log(TAG + methodName, message, additionalMessage, level, errorCode);
                 } else {
-                    mExternalLogger.get().Log(tag, message, "", level, errorCode);
+                    mExternalLogger.get().Log(TAG + methodName, message, "", level, errorCode);
                 }
             } catch (Exception e) {
                 // log message as warning to report callback error issue
-                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
+                Log.w(TAG + methodName, String.format(CUSTOM_LOG_ERROR, message));
             }
         }
     }
 
-    private void logCommon(String tag, String message, String additionalMessage, LogLevel level,
+    private void logCommon(String TAG + methodName, String message, String additionalMessage, LogLevel level,
                            ADALError errorCode, Throwable throwable) {
         StringBuilder msg = new StringBuilder();
         if (additionalMessage != null) {
@@ -312,7 +312,7 @@ public class Logger {
         if (throwable != null) {
             msg.append(' ').append(Log.getStackTraceString(throwable));
         }
-        logCommon(tag, message, msg.toString(), level, errorCode);
+        logCommon(TAG + methodName, message, msg.toString(), level, errorCode);
     }
     /**
      * Send logs to logcat as the default logging if developer doesn't turn off the logcat logging.
@@ -340,8 +340,8 @@ public class Logger {
      * @param tag tag for the log message
      * @param message body of the log message
      */
-    public static void d(String tag, String message) {
-        Logger.getInstance().debug(tag, message);
+    public static void d(String TAG + methodName, String message) {
+        Logger.getInstance().debug(TAG + methodName, message);
     }
 
     /**
@@ -351,8 +351,8 @@ public class Logger {
      * @param message body of the log message
      * @param additionalMessage additional parameters
      */
-    public static void i(String tag, String message, String additionalMessage) {
-        Logger.getInstance().inform(tag, message, additionalMessage, null);
+    public static void i(String TAG + methodName, String message, String additionalMessage) {
+        Logger.getInstance().inform(TAG + methodName, message, additionalMessage, null);
     }
 
     /**
@@ -363,8 +363,8 @@ public class Logger {
      * @param additionalMessage additional parameters
      * @param errorCode ADAL error code being logged
      */
-    public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().inform(tag, message, additionalMessage, errorCode);
+    public static void i(String TAG + methodName, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance().inform(TAG + methodName, message, additionalMessage, errorCode);
     }
 
     /**
@@ -373,8 +373,8 @@ public class Logger {
      * @param tag tag for the log message
      * @param message body of the log message
      */
-    public static void v(String tag, String message) {
-        Logger.getInstance().verbose(tag, message, null, null);
+    public static void v(String TAG + methodName, String message) {
+        Logger.getInstance().verbose(TAG + methodName, message, null, null);
     }
 
     /**
@@ -385,8 +385,8 @@ public class Logger {
      * @param additionalMessage additional parameters
      * @param errorCode ADAL error code being logged
      */
-    public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().verbose(tag, message, additionalMessage, errorCode);
+    public static void v(String TAG + methodName, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance().verbose(TAG + methodName, message, additionalMessage, errorCode);
     }
 
     /**
@@ -397,12 +397,12 @@ public class Logger {
      * @param additionalMessage additional parameters
      * @param errorCode ADAL error code being logged
      */
-    public static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().warn(tag, message, additionalMessage, errorCode);
+    public static void w(String TAG + methodName, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance().warn(TAG + methodName, message, additionalMessage, errorCode);
     }
 
-    public static void w(String tag, String msg) {
-        Logger.getInstance().warn(tag, msg, null, null);
+    public static void w(String TAG + methodName, String msg) {
+        Logger.getInstance().warn(TAG + methodName, msg, null, null);
     }
 
     /**
@@ -412,8 +412,8 @@ public class Logger {
      * @param additionalMessage additional parameters
      * @param errorCode ADAL error code being logged
      */
-    public static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().error(tag, message, additionalMessage, errorCode);
+    public static void e(String TAG + methodName, String message, String additionalMessage, ADALError errorCode) {
+        Logger.getInstance().error(TAG + methodName, message, additionalMessage, errorCode);
     }
 
     /**
@@ -423,13 +423,13 @@ public class Logger {
      * @param errorCode ADAL error code
      * @param err Throwable
      */
-    public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
+    public static void e(String TAG + methodName, String message, String additionalMessage, ADALError errorCode,
                          Throwable err) {
-        Logger.getInstance().error(tag, message, additionalMessage, errorCode, err);
+        Logger.getInstance().error(TAG + methodName, message, additionalMessage, errorCode, err);
     }
 
-    public static void e(String tag, String msg, Throwable tr) {
-        Logger.getInstance().error(tag, msg, null, null, tr);
+    public static void e(String TAG + methodName, String msg, Throwable tr) {
+        Logger.getInstance().error(TAG + methodName, msg, null, null, tr);
     }
 
     /**

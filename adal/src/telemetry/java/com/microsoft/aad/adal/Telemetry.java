@@ -105,7 +105,7 @@ public final class Telemetry {
         // If we did not get anything back from the dictionary, most likely its a bug that stopEvent was called without
         // a corresponding startEvent
         if (StringExtensions.isNullOrBlank(startTime)) {
-            Logger.w(TAG, "Stop Event called without a corresponding start_event", "", null);
+            Logger.w(TAG + methodName, "Stop Event called without a corresponding start_event", "", null);
             return;
         }
 

@@ -26,6 +26,8 @@ package com.microsoft.aad.adal;
 import android.support.annotation.Nullable;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 /**
@@ -195,8 +197,7 @@ class AuthenticationRequest implements Serializable {
     }
 
     public String getLogInfo() {
-        return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, mResource,
-                mClientId);
+        return String.format("Request authority:%s clientid:%s", mAuthority, mClientId);
     }
 
     public PromptBehavior getPrompt() {

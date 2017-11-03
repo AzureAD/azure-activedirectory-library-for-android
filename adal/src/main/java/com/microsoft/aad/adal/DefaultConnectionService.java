@@ -63,13 +63,13 @@ class DefaultConnectionService implements IConnectionService {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             final UsageStatsManagerWrapper usageStatsManagerWrapper = UsageStatsManagerWrapper.getInstance();
             if (usageStatsManagerWrapper.isAppInactive(mConnectionContext)) {
-                Logger.w(TAG, "Client app is inactive. Network is disabled.", "", ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+                Logger.w(TAG + methodName, "Client app is inactive. Network is disabled.", "", ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
                 return true;
             }
 
             final PowerManagerWrapper powerManagerWrapper = PowerManagerWrapper.getInstance();
             if (powerManagerWrapper.isDeviceIdleMode(mConnectionContext) && !powerManagerWrapper.isIgnoringBatteryOptimizations(mConnectionContext)) {
-                Logger.w(TAG, "Device is dozing. Network is disabled.", "", ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
+                Logger.w(TAG + methodName, "Device is dozing. Network is disabled.", "", ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
                 return true;
             }
         }

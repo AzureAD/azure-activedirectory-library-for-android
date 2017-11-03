@@ -108,7 +108,7 @@ public final class AcquireTokenRequestTest {
 
     @Before
     public void setUp() throws Exception {
-        Log.d(TAG, "setup key at settings");
+        Log.d(TAG + methodName, "setup key at settings");
         System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests

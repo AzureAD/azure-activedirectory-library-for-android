@@ -64,7 +64,7 @@ public class WebviewHelper {
     public void validateRequestIntent() {
 
         if (mRequest == null) {
-            Logger.v(TAG, "Request item is null, so it returns to caller");
+            Logger.v(TAG + methodName, "Request item is null, so it returns to caller");
             throw new IllegalArgumentException("Request is null");
         }
 
@@ -165,7 +165,7 @@ public class WebviewHelper {
         HashMap<String, String> parameters = StringExtensions
                 .getUrlParameters(challengeResponse.getSubmitUrl());
 
-        Logger.v(TAG, "SubmitUrl:" + challengeResponse.getSubmitUrl());
+        Logger.v(TAG + methodName, "SubmitUrl:" + challengeResponse.getSubmitUrl());
 
         if (!parameters.containsKey(AuthenticationConstants.OAuth2.CLIENT_ID)) {
             loadUrl = loadUrl + "?" + mOauth.getAuthorizationEndpointQueryParameters();

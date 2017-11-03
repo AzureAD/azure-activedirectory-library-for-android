@@ -83,7 +83,7 @@ final class AuthorityValidationMetadataCache {
 
         // No metadata is returned, fill in the metadata with passed
         if (StringExtensions.isNullOrBlank(metadata)) {
-            Logger.v(TAG, "No metadata returned from instance discovery.");
+            Logger.v(TAG + methodName, "No metadata returned from instance discovery.");
             sAadAuthorityHostMetadata.put(authorityHost, new InstanceDiscoveryMetadata(authorityHost, authorityHost));
             return;
         }

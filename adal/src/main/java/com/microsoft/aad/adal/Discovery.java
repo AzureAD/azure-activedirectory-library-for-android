@@ -224,7 +224,7 @@ final class Discovery {
 
             result = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl).isValidated();
         } catch (final IOException | JSONException e) {
-            Logger.e(TAG, "Error when validating authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
+            Logger.e(TAG + methodName, "Error when validating authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
         }
 
@@ -236,7 +236,7 @@ final class Discovery {
 
     private Map<String, String> sendRequest(final URL queryUrl) throws IOException, JSONException, AuthenticationException {
 
-        Logger.v(TAG, "Sending discovery request to:" + queryUrl);
+        Logger.v(TAG + methodName, "Sending discovery request to:" + queryUrl);
         final Map<String, String> headers = new HashMap<>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 

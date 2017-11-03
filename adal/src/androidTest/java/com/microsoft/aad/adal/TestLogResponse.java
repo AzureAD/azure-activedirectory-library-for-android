@@ -52,7 +52,7 @@ public class TestLogResponse {
         Logger.getInstance().setExternalLogger(new ILogger() {
 
             @Override
-            public void Log(String tag, String message, String additionalMessage, LogLevel level,
+            public void Log(String TAG + methodName, String message, String additionalMessage, LogLevel level,
                     ADALError errorCode) {
 
                 if (message.contains(msg + " ver:" + AuthenticationContext.getVersionName())) {
@@ -79,7 +79,7 @@ public class TestLogResponse {
         Logger.getInstance().setExternalLogger(new ILogger() {
 
             @Override
-            public void Log(String tag, String message, String additionalMessage, LogLevel level,
+            public void Log(String TAG + methodName, String message, String additionalMessage, LogLevel level,
                     ADALError errorCode) {
                 for (String msg : msgs) {
                     if (message.contains(msg) || additionalMessage.contains(msg)) {

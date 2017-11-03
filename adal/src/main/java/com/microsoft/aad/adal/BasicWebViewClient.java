@@ -80,27 +80,27 @@ abstract class BasicWebViewClient extends WebViewClient {
             String host, String realm) {
 
         // Create a dialog to ask for creds and post it to the handler.
-        Logger.i(TAG, "onReceivedHttpAuthRequest for host:" + host, "");
+        Logger.i(TAG + methodName, "onReceivedHttpAuthRequest for host:" + host, "");
         mUIEvent.setNTLM(true);
 
         HttpAuthDialog authDialog = new HttpAuthDialog(mCallingContext, host, realm);
 
         authDialog.setOkListener(new HttpAuthDialog.OkListener() {
             public void onOk(String host, String realm, String username, String password) {
-                Logger.i(TAG, "onReceivedHttpAuthRequest: handler proceed" + host, "");
+                Logger.i(TAG + methodName, "onReceivedHttpAuthRequest: handler proceed" + host, "");
                 handler.proceed(username, password);
             }
         });
 
         authDialog.setCancelListener(new HttpAuthDialog.CancelListener() {
             public void onCancel() {
-                Logger.i(TAG, "onReceivedHttpAuthRequest: handler cancelled", "");
+                Logger.i(TAG + methodName, "onReceivedHttpAuthRequest: handler cancelled", "");
                 handler.cancel();
                 cancelWebViewRequest();
             }
         });
 
-        Logger.i(TAG, "onReceivedHttpAuthRequest: show dialog", "");
+        Logger.i(TAG + methodName, "onReceivedHttpAuthRequest: show dialog", "");
         authDialog.show();
     }
     
@@ -108,7 +108,7 @@ abstract class BasicWebViewClient extends WebViewClient {
     public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
         super.onReceivedError(view, errorCode, description, failingUrl);
         showSpinner(false);
-        Logger.e(TAG, "Webview received an error. Errorcode:" + errorCode + " " + description, "",
+        Logger.e(TAG + methodName, "Webview received an error. Errorcode:" + errorCode + " " + description, "",
                 ADALError.ERROR_WEBVIEW);
         Intent resultIntent = new Intent();
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Error Code:"
@@ -124,7 +124,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         super.onReceivedSslError(view, handler, error);
         showSpinner(false);
         handler.cancel();
-        Logger.e(TAG, "Received ssl error", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
+        Logger.e(TAG + methodName, "Received ssl error", "", ADALError.ERROR_FAILED_SSL_HANDSHAKE);
         Intent resultIntent = new Intent();
         resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE, "Code:"
                 + ERROR_FAILED_SSL_HANDSHAKE);
@@ -156,22 +156,22 @@ abstract class BasicWebViewClient extends WebViewClient {
 
     private void logPageStartLoadingUrl(final String url) {
         if (TextUtils.isEmpty(url)) {
-            Logger.v(TAG, "onPageStarted: Null url for page to load.");
+            Logger.v(TAG + methodName, "onPageStarted: Null url for page to load.");
             return;
         }
 
         final Uri uri = Uri.parse(url);
         if (uri.isOpaque()) {
-            Logger.v(TAG, "onPageStarted: Non-hierarchical loading uri: " + url);
+            Logger.v(TAG + methodName, "onPageStarted: Non-hierarchical loading uri: " + url);
             return;
         }
 
         if (StringExtensions.isNullOrBlank(uri.getQueryParameter(
                 AuthenticationConstants.OAuth2.CODE))) {
-            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath(),
+            Logger.v(TAG + methodName, "Webview starts loading: " + uri.getHost() + uri.getPath(),
                     "Full loading url is: " + url, null);
         } else {
-            Logger.v(TAG, "Webview starts loading: " + uri.getHost() + uri.getPath()
+            Logger.v(TAG + methodName, "Webview starts loading: " + uri.getHost() + uri.getPath()
                     + " Auth code is returned for the loading url.");
         }
     }
@@ -179,9 +179,9 @@ abstract class BasicWebViewClient extends WebViewClient {
     @Override
     //Give the host application a chance to take over the control when a new url is about to be loaded in the current WebView.
     public boolean shouldOverrideUrlLoading(final WebView view, String url) {
-        Logger.v(TAG, "Navigation is detected");
+        Logger.v(TAG + methodName, "Navigation is detected");
         if (url.startsWith(AuthenticationConstants.Broker.PKEYAUTH_REDIRECT)) {
-            Logger.v(TAG, "Webview detected request for pkeyauth challenge.");
+            Logger.v(TAG + methodName, "Webview detected request for pkeyauth challenge.");
             view.stopLoading();
             setPKeyAuthStatus(true);
             final String challengeUrl = url;
@@ -201,13 +201,13 @@ abstract class BasicWebViewClient extends WebViewClient {
                             @Override
                             public void run() {
                                 String loadUrl = challengeResponse.getSubmitUrl();
-                                Logger.v(TAG, "Respond to pkeyAuth challenge", "Challenge submit url:" 
+                                Logger.v(TAG + methodName, "Respond to pkeyAuth challenge", "Challenge submit url:"
                                         + challengeResponse.getSubmitUrl(), null);
                                 view.loadUrl(loadUrl, headers);
                             }
                         });
                     } catch (AuthenticationServerProtocolException e) {
-                        Logger.e(TAG, "Argument exception", e.getMessage(),
+                        Logger.e(TAG + methodName, "Argument exception", e.getMessage(),
                                 ADALError.ARGUMENT_EXCEPTION, e);
                         // It should return error code and finish the
                         // activity, so that onActivityResult implementation
@@ -225,7 +225,7 @@ abstract class BasicWebViewClient extends WebViewClient {
                                 AuthenticationConstants.UIResponse.BROWSER_CODE_AUTHENTICATION_EXCEPTION,
                                 resultIntent);
                     } catch (AuthenticationException e) {
-                        Logger.e(TAG, "It is failed to create device certificate response",
+                        Logger.e(TAG + methodName, "It is failed to create device certificate response",
                                 e.getMessage(), ADALError.DEVICE_CERTIFICATE_RESPONSE_FAILED, e);
                         // It should return error code and finish the
                         // activity, so that onActivityResult implementation
@@ -248,10 +248,10 @@ abstract class BasicWebViewClient extends WebViewClient {
 
             return true;
         } else if (url.toLowerCase(Locale.US).startsWith(mRedirect.toLowerCase(Locale.US))) {
-            Logger.v(TAG, "Navigation starts with the redirect uri.");
+            Logger.v(TAG + methodName, "Navigation starts with the redirect uri.");
             if (hasCancelError(url)) {
                 // Catch WEB-UI cancel request
-                Logger.i(TAG, "Sending intent to cancel authentication activity", "");
+                Logger.i(TAG + methodName, "Sending intent to cancel authentication activity", "");
                 view.stopLoading();
                 cancelWebViewRequest();
                 return true;
@@ -260,13 +260,13 @@ abstract class BasicWebViewClient extends WebViewClient {
             processRedirectUrl(view, url);
             return true;
         } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_PREFIX)) {
-            Logger.v(TAG, "It is an external website request");
+            Logger.v(TAG + methodName, "It is an external website request");
             openLinkInBrowser(url);
             view.stopLoading();
             cancelWebViewRequest();
             return true;
         } else if (url.startsWith(AuthenticationConstants.Broker.BROWSER_EXT_INSTALL_PREFIX)) {
-            Logger.v(TAG, "It is an install request");
+            Logger.v(TAG + methodName, "It is an install request");
             HashMap<String, String> parameters = StringExtensions
                     .getUrlParameters(url);
             prepareForBrokerResumeRequest();
@@ -310,7 +310,7 @@ abstract class BasicWebViewClient extends WebViewClient {
         String errorDescription = parameters.get("error_description");
 
         if (!StringExtensions.isNullOrBlank(error)) {
-            Logger.w(TAG, "Cancel error:" + error, errorDescription, null);
+            Logger.w(TAG + methodName, "Cancel error:" + error, errorDescription, null);
             return true;
         }
 

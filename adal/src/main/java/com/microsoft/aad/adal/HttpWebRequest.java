@@ -83,7 +83,7 @@ class HttpWebRequest {
      * setupConnection before sending the request.
      */
     private HttpURLConnection setupConnection() throws IOException {
-        Logger.v(TAG, "HttpWebRequest setupConnection thread:" + android.os.Process.myTid());
+        Logger.v(TAG + methodName, "HttpWebRequest setupConnection thread:" + android.os.Process.myTid());
         if (mUrl == null) {
             throw new IllegalArgumentException("requestURL");
         }
@@ -102,7 +102,7 @@ class HttpWebRequest {
         // Apply the request headers
         final Set<Map.Entry<String, String>> headerEntries = mRequestHeaders.entrySet();
         for (final Map.Entry<String, String> entry : headerEntries) {
-            Logger.v(TAG, "Setting header: " + entry.getKey());
+            Logger.v(TAG + methodName, "Setting header: " + entry.getKey());
             connection.setRequestProperty(entry.getKey(), entry.getValue());
         }
 
@@ -121,7 +121,7 @@ class HttpWebRequest {
      * send the request.
      */
     public HttpWebResponse send() throws IOException {
-        Logger.v(TAG, "HttpWebRequest send thread:" + Process.myTid());
+        Logger.v(TAG + methodName, "HttpWebRequest send thread:" + Process.myTid());
         final HttpURLConnection connection = setupConnection();
         final HttpWebResponse response;
         InputStream responseStream = null;
@@ -129,7 +129,7 @@ class HttpWebRequest {
             try {
                 responseStream = connection.getInputStream();
             } catch (IOException ex) {
-                Logger.e(TAG, "IOException:" + ex.getMessage(), "", ADALError.SERVER_ERROR);
+                Logger.e(TAG + methodName, "IOException:" + ex.getMessage(), "", ADALError.SERVER_ERROR);
                 // If it does not get the error stream, it will return
                 // exception in the httpresponse
                 responseStream = connection.getErrorStream();
@@ -145,15 +145,15 @@ class HttpWebRequest {
             // It will only run in debugger and set from outside for testing
             if (Debug.isDebuggerConnected() && DEBUG_SIMULATE_DELAY > 0) {
                 // sleep background thread in debugging mode
-                Logger.v(TAG, "Sleeping to simulate slow network response");
+                Logger.v(TAG + methodName, "Sleeping to simulate slow network response");
                 try {
                     Thread.sleep(DEBUG_SIMULATE_DELAY);
                 } catch (InterruptedException e) {
-                    Logger.v(TAG, "Thread.sleep got interrupted exception " + e);
+                    Logger.v(TAG + methodName, "Thread.sleep got interrupted exception " + e);
                 }
             }
 
-            Logger.v(TAG, "Response is received");
+            Logger.v(TAG + methodName, "Response is received");
             response = new HttpWebResponse(statusCode, responseBody, connection.getHeaderFields());
         } finally {
             safeCloseStream(responseStream);
@@ -177,7 +177,7 @@ class HttpWebRequest {
                         "Connection is not available to refresh token because power optimization is "
                                 + "enabled. And the device is in doze mode or the app is standby"
                                 + ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription());
-                Logger.w(TAG, "Connection is not available to refresh token because power optimization is "
+                Logger.w(TAG + methodName, "Connection is not available to refresh token because power optimization is "
                                 + "enabled. And the device is in doze mode or the app is standby"
                                 + ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION.getDescription(), "",
                         ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION);
@@ -186,7 +186,7 @@ class HttpWebRequest {
                 final AuthenticationException authenticationException = new AuthenticationException(
                         ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE,
                         "Connection is not available to refresh token");
-                Logger.w(TAG, "Connection is not available to refresh token", "",
+                Logger.w(TAG + methodName, "Connection is not available to refresh token", "",
                         ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE);
 
                 throw authenticationException;
@@ -255,7 +255,7 @@ class HttpWebRequest {
                 stream.close();
             } catch (IOException e) {
                 // swallow error in this case
-                Logger.e(TAG, "Failed to close the stream: ", "", ADALError.IO_EXCEPTION, e);
+                Logger.e(TAG + methodName, "Failed to close the stream: ", "", ADALError.IO_EXCEPTION, e);
             }
         }
     }

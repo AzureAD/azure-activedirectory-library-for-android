@@ -95,32 +95,32 @@ public final class DateTimeAdapter implements JsonDeserializer<Date>, JsonSerial
         try {
             return mISO8601Format.parse(jsonString);
         } catch (final ParseException ignored) {
-            Logger.v(TAG, "Cannot parse with ISO8601, try again with local format.");
+            Logger.v(TAG + methodName, "Cannot parse with ISO8601, try again with local format.");
         }
         
         // fallback logic for old date format parsing. 
         try {
             return mLocalFormat.parse(jsonString);
         } catch (final ParseException ignored) {
-            Logger.v(TAG, "Cannot parse with local format, try again with local 24 hour format.");
+            Logger.v(TAG + methodName, "Cannot parse with local format, try again with local 24 hour format.");
         }
         
         try {
             return mLocal24HourFormat.parse(jsonString);
         } catch (final ParseException ignored) {
-            Logger.v(TAG, "Cannot parse with local 24 hour format, try again with en us format.");
+            Logger.v(TAG + methodName, "Cannot parse with local 24 hour format, try again with en us format.");
         }
 
         try {
             return mEnUsFormat.parse(jsonString);
         } catch (final ParseException ignored) {
-            Logger.v(TAG, "Cannot parse with en us format, try again with en us 24 hour format.");
+            Logger.v(TAG + methodName, "Cannot parse with en us format, try again with en us 24 hour format.");
         }
 
         try {
             return mEnUs24HourFormat.parse(jsonString);
         } catch (final ParseException e) {
-            Logger.e(TAG, "Could not parse date: " + e.getMessage(), "",
+            Logger.e(TAG + methodName, "Could not parse date: " + e.getMessage(), "",
                     ADALError.DATE_PARSING_FAILURE, e);
         }
 

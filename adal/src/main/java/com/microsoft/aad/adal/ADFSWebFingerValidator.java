@@ -61,6 +61,7 @@ final class ADFSWebFingerValidator {
      * @return True, if trust exists: otherwise false.
      */
     static boolean realmIsTrusted(final URI authority, final WebFingerMetadata metadata) {
+        final String methodName = ":realmIsTrusted";
         if (authority == null) {
             throw new IllegalArgumentException("Authority cannot be null");
         }
@@ -69,7 +70,7 @@ final class ADFSWebFingerValidator {
             throw new IllegalArgumentException("WebFingerMetadata cannot be null");
         }
 
-        Logger.v(TAG, "Verifying trust: " + authority.toString() + metadata.toString());
+        Logger.v(TAG + methodName, "Verifying trust authority. ", authority.toString() + metadata.toString(), null);
         if (metadata.getLinks() != null) {
             for (Link link : metadata.getLinks()) {
                 try {

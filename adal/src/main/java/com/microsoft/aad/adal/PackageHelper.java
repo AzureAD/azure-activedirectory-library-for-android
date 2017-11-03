@@ -79,10 +79,10 @@ class PackageHelper {
                 // send one of them.
             }
         } catch (NameNotFoundException e) {
-            Logger.e(TAG, "Calling App's package does not exist in PackageManager", "",
+            Logger.e(TAG + methodName, "Calling App's package does not exist in PackageManager", "",
                     ADALError.APP_PACKAGE_NAME_NOT_FOUND);
         } catch (NoSuchAlgorithmException e) {
-            Logger.e(TAG, "Digest SHA algorithm does not exists", "",
+            Logger.e(TAG + methodName, "Digest SHA algorithm does not exists", "",
                     ADALError.DEVICE_NO_SUCH_ALGORITHM);
         }
         return null;
@@ -102,7 +102,7 @@ class PackageHelper {
                 callingUID = info.uid;
             }
         } catch (NameNotFoundException e) {
-            Logger.e(TAG, "Package " + packageName + " is not found", "",
+            Logger.e(TAG + methodName, "Package " + packageName + " is not found", "",
                     ADALError.PACKAGE_NAME_NOT_FOUND, e);
         }
         return callingUID;
@@ -125,7 +125,7 @@ class PackageHelper {
                 // This encoding issue will happen at the beginning of API call,
                 // if it is not supported on this device. ADAL uses one encoding
                 // type.
-                Logger.e(TAG, "Encoding", e);
+                Logger.e(TAG + methodName, "Encoding", e);
             }
         }
         return "";

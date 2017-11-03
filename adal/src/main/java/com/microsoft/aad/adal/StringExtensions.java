@@ -112,7 +112,7 @@ final class StringExtensions {
         try {
             authority = new URL(endpoint);
         } catch (MalformedURLException e1) {
-            Logger.e(TAG, e1.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
+            Logger.e(TAG + methodName, e1.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
         }
 
         return authority;

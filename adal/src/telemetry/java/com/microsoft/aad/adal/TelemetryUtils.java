@@ -118,7 +118,7 @@ final class TelemetryUtils {
 
         // make sure the header isn't empty
         if (0 == headerSegments.length) {
-            Logger.w(TAG, "SPE Ring header missing version field.", null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
+            Logger.w(TAG + methodName, "SPE Ring header missing version field.", null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
             return null;
         }
 
@@ -137,7 +137,7 @@ final class TelemetryUtils {
             Pattern headerFmt = Pattern.compile("^[1-9]+\\.?[0-9|\\.]*,[0-9|\\.]*,[0-9|\\.]*,[^,]*[0-9\\.]*,[^,]*$");
             Matcher matcher = headerFmt.matcher(headerValue);
             if (!matcher.matches()) {
-                Logger.w(TAG, "", "", ADALError.X_MS_CLITELEM_MALFORMED);
+                Logger.w(TAG + methodName, "", "", ADALError.X_MS_CLITELEM_MALFORMED);
                 return null;
             }
 
@@ -154,7 +154,7 @@ final class TelemetryUtils {
             cliTelemInfo.setRefreshTokenAge(headerSegments[indexTokenAge]);
             cliTelemInfo.setSpeRing(headerSegments[indexSpeInfo]);
         } else { // unrecognized version
-            Logger.w(TAG, "Unexpected header version: " + headerVersion, null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
+            Logger.w(TAG + methodName, "Unexpected header version: " + headerVersion, null, ADALError.X_MS_CLITELEM_VERSION_UNRECOGNIZED);
             return null;
         }
 

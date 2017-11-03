@@ -159,7 +159,7 @@ public class AuthenticationParameters {
             throw new IllegalArgumentException("callback");
         }
 
-        Logger.v(TAG, "createFromResourceUrl");
+        Logger.v(TAG + methodName, "createFromResourceUrl");
         final Handler handler = new Handler(context.getMainLooper());
 
         sThreadExecutor.submit(new Runnable() {
@@ -218,7 +218,7 @@ public class AuthenticationParameters {
                 // Get matching value pairs inside the header value
                 Pattern valuePattern = Pattern.compile(REGEX_VALUES);
                 String headerSubFields = authenticateHeader.substring(BEARER.length());
-                Logger.v(TAG, "Values in here:" + headerSubFields);
+                Logger.v(TAG + methodName, "Values in here:" + headerSubFields);
                 Matcher values = valuePattern.matcher(headerSubFields);
                 final Map<String, String> headerItems = new HashMap<>();
                 while (values.find()) {
@@ -233,14 +233,14 @@ public class AuthenticationParameters {
                             key = StringExtensions.urlFormDecode(key);
                             value = StringExtensions.urlFormDecode(value);
                         } catch (UnsupportedEncodingException e) {
-                            Logger.v(TAG, e.getMessage());
+                            Logger.v(TAG + methodName, e.getMessage());
                         }
 
                         key = key.trim();
                         value = StringExtensions.removeQuoteInHeaderValue(value.trim());
 
                         if (headerItems.containsKey(key)) {
-                            Logger.w(TAG, String.format(
+                            Logger.w(TAG + methodName, String.format(
                                     "Key/value pair list contains redundant key '%s'.", key), "",
                                     ADALError.DEVELOPER_BEARER_HEADER_MULTIPLE_ITEMS);
                         }

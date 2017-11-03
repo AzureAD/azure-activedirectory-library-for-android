@@ -69,6 +69,6 @@ public class HttpDialogTests {
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        Log.d(TAG, "mTestSignature is set");
+        Log.d(TAG + methodName, "mTestSignature is set");
     }
 }

@@ -236,7 +236,7 @@ public class AuthenticationContext {
         // signatures.
         final String signatureDigest = packageHelper.getCurrentSignatureForPackage(packageName);
         final String redirectUri = PackageHelper.getBrokerRedirectUrl(packageName, signatureDigest);
-        Logger.v(TAG, "Broker redirectUri:" + redirectUri + " packagename:" + packageName
+        Logger.v(TAG + methodName, "Broker redirectUri:" + redirectUri + " packagename:" + packageName
                 + " signatureDigest:" + signatureDigest);
         return redirectUri;
     }
@@ -687,7 +687,7 @@ public class AuthenticationContext {
 
         final Looper currentLooper = Looper.myLooper();
         if (currentLooper != null && currentLooper == mContext.getMainLooper()) {
-            Logger.e(TAG, "Sync network calls must not be invoked in main thread. "
+            Logger.e(TAG + methodName, "Sync network calls must not be invoked in main thread. "
                             + "This method will throw android.os.NetworkOnMainThreadException in next major release",
                     new NetworkOnMainThreadException());
         }
@@ -964,7 +964,7 @@ public class AuthenticationContext {
             if (data == null) {
                 // If data is null, RequestId is unknown. It could not find
                 // callback to respond to this request.
-                Logger.e(TAG, "onActivityResult BROWSER_FLOW data is null.", "",
+                Logger.e(TAG + methodName, "onActivityResult BROWSER_FLOW data is null.", "",
                         ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
                 return;
             }
@@ -982,7 +982,7 @@ public class AuthenticationContext {
                         new AcquireTokenRequest(mContext, this, waitingRequest.getAPIEvent());
                 acquireTokenRequest.onActivityResult(requestCode, resultCode, data);
             } else {
-                Logger.e(TAG, "onActivityResult did not find waiting request for RequestId:"
+                Logger.e(TAG + methodName, "onActivityResult did not find waiting request for RequestId:"
                         + requestId, "", ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
             }
         }
@@ -1004,7 +1004,7 @@ public class AuthenticationContext {
 
         if (waitingRequest == null || waitingRequest.getDelegate() == null) {
             // there is not any waiting callback
-            Logger.v(TAG, "Current callback is empty. There is not any active authentication.");
+            Logger.v(TAG + methodName, "Current callback is empty. There is not any active authentication.");
             return true;
         }
 
@@ -1015,7 +1015,7 @@ public class AuthenticationContext {
         } else {
             currentCorrelationInfo = "No correlation id associated with waiting request";
         }
-        Logger.v(TAG, "Current callback is not empty. There is an active authentication Activity."
+        Logger.v(TAG + methodName, "Current callback is not empty. There is an active authentication Activity."
                 + currentCorrelationInfo);
 
         // intent to cancel. Authentication activity registers for this message
@@ -1030,13 +1030,13 @@ public class AuthenticationContext {
         final boolean cancelResult = LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
         if (cancelResult) {
             // clear callback if broadcast message was successful
-            Logger.v(TAG, "Cancel broadcast message was successful." + currentCorrelationInfo);
+            Logger.v(TAG + methodName, "Cancel broadcast message was successful." + currentCorrelationInfo);
             waitingRequest.setCancelled(true);
             waitingRequest.getDelegate().onError(new AuthenticationCancelError(
                     "Cancel broadcast message was successful."));
         } else {
             // Activity is not launched yet or receiver is not registered
-            Logger.w(TAG, "Cancel broadcast message was not successful." + currentCorrelationInfo,
+            Logger.w(TAG + methodName, "Cancel broadcast message was not successful." + currentCorrelationInfo,
                     "", ADALError.BROADCAST_CANCEL_NOT_SUCCESSFUL);
         }
 
@@ -1236,7 +1236,7 @@ public class AuthenticationContext {
         }
 
         if (tokenItem == null) {
-            Logger.i(TAG, "Cannot find the family token cache item for this userID", "");
+            Logger.i(TAG + methodName, "Cannot find the family token cache item for this userID", "");
             throw new UsageAuthenticationException(ADALError.FAIL_TO_EXPORT,
                     "Failed to export the FID because no family token cache item is found.");
         }
@@ -1290,7 +1290,7 @@ public class AuthenticationContext {
     }
 
     AuthenticationRequestState getWaitingRequest(final int requestId) throws AuthenticationException {
-        Logger.v(TAG, "Get waiting request: " + requestId);
+        Logger.v(TAG + methodName, "Get waiting request: " + requestId);
         AuthenticationRequestState request;
 
         synchronized (DELEGATE_MAP) {
@@ -1298,7 +1298,7 @@ public class AuthenticationContext {
         }
 
         if (request == null) {
-            Logger.e(TAG, "Request callback is not available for requestId:" + requestId,
+            Logger.e(TAG + methodName, "Request callback is not available for requestId:" + requestId,
                     "", ADALError.CALLBACK_IS_NOT_FOUND);
             throw new AuthenticationException(ADALError.CALLBACK_IS_NOT_FOUND,
                     "Request callback is not available for requestId:" + requestId);
@@ -1312,7 +1312,7 @@ public class AuthenticationContext {
             return;
         }
 
-        Logger.v(TAG, "Put waiting request: " + requestId
+        Logger.v(TAG + methodName, "Put waiting request: " + requestId
                 + getCorrelationInfoFromWaitingRequest(requestState));
 
         synchronized (DELEGATE_MAP) {
@@ -1321,7 +1321,7 @@ public class AuthenticationContext {
     }
 
     void removeWaitingRequest(int requestId) {
-        Logger.v(TAG, "Remove waiting request: " + requestId);
+        Logger.v(TAG + methodName, "Remove waiting request: " + requestId);
 
         synchronized (DELEGATE_MAP) {
             DELEGATE_MAP.remove(requestId);

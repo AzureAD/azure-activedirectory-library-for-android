@@ -318,7 +318,7 @@ public class FileTokenCacheStoreTests extends AndroidTestHelper {
         private ADALError mLogErrorCode;
 
         @Override
-        public void Log(String tag, String message, String additionalMessage, LogLevel level,
+        public void Log(String TAG + methodName, String message, String additionalMessage, LogLevel level,
                 ADALError errorCode) {
             mLogMessage = message;
             mLogErrorCode = errorCode;

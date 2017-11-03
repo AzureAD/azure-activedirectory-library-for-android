@@ -138,7 +138,7 @@ class ChallengeResponseBuilder {
                         "%s AuthToken=\"%s\",Context=\"%s\",Version=\"%s\"",
                         AuthenticationConstants.Broker.CHALLENGE_RESPONSE_TYPE, jwt,
                         request.mContext, request.mVersion);
-                Logger.v(TAG, "Challenge response:" + response.mAuthorizationHeaderValue);
+                Logger.v(TAG + methodName, "Challenge response:" + response.mAuthorizationHeaderValue);
             }
         }
 
@@ -282,7 +282,7 @@ class ChallengeResponseBuilder {
             challenge.mNonce = parameters.get(RequestField.Nonce.name().toLowerCase(Locale.US));
         }
         String authorities = parameters.get(RequestField.CertAuthorities.name());
-        Logger.v(TAG, "Cert authorities:" + authorities);
+        Logger.v(TAG + methodName, "Cert authorities:" + authorities);
         challenge.mCertAuthorities = StringExtensions.getStringTokens(authorities,
                 AuthenticationConstants.Broker.CHALLENGE_REQUEST_CERT_AUTH_DELIMETER);
         challenge.mVersion = parameters.get(RequestField.Version.name());

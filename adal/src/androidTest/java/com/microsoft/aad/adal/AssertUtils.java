@@ -54,12 +54,12 @@ public class AssertUtils extends Assert {
     
     public static void assertAsync(final CountDownLatch signal, final Runnable testCode) {
 
-        Log.d(TAG, "Thread:" + android.os.Process.myTid());
+        Log.d(TAG + methodName, "Thread:" + android.os.Process.myTid());
 
         try {             
                 testCode.run();
         } catch (Throwable ex) {
-            Log.e(TAG, ex.getMessage());
+            Log.e(TAG + methodName, ex.getMessage());
             Assert.fail("not expected:" + ex.getMessage());
             signal.countDown();
         }

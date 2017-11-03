@@ -293,7 +293,7 @@ public class AuthenticationResult implements Serializable {
      * @return log info
      */
     public String getErrorLogInfo() {
-        return " ErrorCode:" + getErrorCode() + " ErrorDescription:" + getErrorDescription();
+        return " ErrorCode:" + getErrorCode();
     }
 
     /**

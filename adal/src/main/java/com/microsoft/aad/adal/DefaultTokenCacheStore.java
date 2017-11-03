@@ -112,9 +112,9 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
     protected StorageHelper getStorageHelper() {
         synchronized (LOCK) {
             if (sHelper == null) {
-                Logger.v(TAG, "Started to initialize storage helper");
+                Logger.v(TAG + methodName, "Started to initialize storage helper");
                 sHelper = new StorageHelper(mContext);
-                Logger.v(TAG, "Finished to initialize storage helper");
+                Logger.v(TAG + methodName, "Finished to initialize storage helper");
             }
         }
         return sHelper;
@@ -124,7 +124,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         try {
             return getStorageHelper().encrypt(value);
         } catch (GeneralSecurityException | IOException e) {
-            Logger.e(TAG, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
+            Logger.e(TAG + methodName, "Encryption failure", "", ADALError.ENCRYPTION_FAILED, e);
         }
 
         return null;
@@ -138,7 +138,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
         try {
             return getStorageHelper().decrypt(value);
         } catch (GeneralSecurityException | IOException e) {
-            Logger.e(TAG, "Decryption failure", "", ADALError.DECRYPTION_FAILED, e);
+            Logger.e(TAG + methodName, "Decryption failure", "", ADALError.DECRYPTION_FAILED, e);
             removeItem(key);
         }
 
@@ -195,7 +195,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
             // apply will do Async disk write operation.
             prefsEditor.apply();
         } else {
-            Logger.e(TAG, "Encrypted output is null", "", ADALError.ENCRYPTION_FAILED);
+            Logger.e(TAG + methodName, "Encrypted output is null", "", ADALError.ENCRYPTION_FAILED);
         }
     }
 
@@ -320,7 +320,7 @@ public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuer
                 } catch (final AuthenticationException exception) {
                     // Catch the exception because clearTokensForUser is an API in public 
                     // interface ITokenCacheQuery.
-                    Logger.e(TAG, "Fail to create cachekey", "", exception.getCode(), exception);
+                    Logger.e(TAG + methodName, "Fail to create cachekey", "", exception.getCode(), exception);
                 }
             }
         }

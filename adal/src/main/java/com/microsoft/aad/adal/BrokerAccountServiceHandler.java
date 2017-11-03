@@ -153,13 +153,13 @@ final class BrokerAccountServiceHandler {
         //AuthenticationException with error code BROKER_AUTHENTICATOR_NOT_RESPONDING will be thrown if there is any exception thrown during binding the service.
         if (throwable != null) {
             if (throwable instanceof RemoteException) {
-                Logger.e(TAG, "Get error when trying to get token from broker: " + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
+                Logger.e(TAG + methodName, "Get error when trying to get token from broker: " + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
             } else if (throwable instanceof InterruptedException) {
-                Logger.e(TAG, "The broker account service binding call is interrupted. "  + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_EXCEPTION, throwable);
+                Logger.e(TAG + methodName, "The broker account service binding call is interrupted. "  + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_EXCEPTION, throwable);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
             } else {
-                Logger.e(TAG, "Get error when trying to bind the broker account service." + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
+                Logger.e(TAG + methodName, "Get error when trying to bind the broker account service." + throwable.getMessage(), "", ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable);
                 throw new AuthenticationException(ADALError.BROKER_AUTHENTICATOR_NOT_RESPONDING, throwable.getMessage(), throwable);
             }
         }
@@ -205,7 +205,7 @@ final class BrokerAccountServiceHandler {
 
         final Throwable throwable = exception.getAndSet(null);
         if (throwable != null) {
-            Logger.e(TAG, "Didn't receive the activity to launch from broker: " + throwable.getMessage(), "", null, throwable);
+            Logger.e(TAG + methodName, "Didn't receive the activity to launch from broker: " + throwable.getMessage(), "", null, throwable);
         }
 
         return bundleResult.getAndSet(null);
@@ -222,14 +222,14 @@ final class BrokerAccountServiceHandler {
                 try {
                     result.getBrokerAccountServiceProvider().removeAccounts();
                 } catch (final RemoteException remoteException) {
-                    Logger.e(TAG, "Encounter exception when removing accounts from broker",
+                    Logger.e(TAG + methodName, "Encounter exception when removing accounts from broker",
                             remoteException.getMessage(), null, remoteException);
                 }
             }
 
             @Override
             public void onError(Throwable throwable) {
-                Logger.e(TAG, "Encounter exception when removing accounts from broker",
+                Logger.e(TAG + methodName, "Encounter exception when removing accounts from broker",
                         throwable.getMessage(), null, throwable);
             }
         }, null);
@@ -239,7 +239,7 @@ final class BrokerAccountServiceHandler {
         final BrokerProxy brokerProxy = new BrokerProxy(context);
         final String brokerAppName = brokerProxy.getCurrentActiveBrokerPackageName();
         if (brokerAppName == null) {
-            Logger.v(TAG, "No recognized broker is installed on the device.");
+            Logger.v(TAG + methodName, "No recognized broker is installed on the device.");
             return null;
         }
 
@@ -269,7 +269,7 @@ final class BrokerAccountServiceHandler {
 
     private UserInfo[] convertUserInfoBundleToArray(final Bundle usersBundle) {
         if (usersBundle == null) {
-            Logger.v(TAG, "No user info returned from broker account service.");
+            Logger.v(TAG + methodName, "No user info returned from broker account service.");
             return new UserInfo[] {};
         }
 
@@ -320,7 +320,7 @@ final class BrokerAccountServiceHandler {
     }
 
     private void bindToBrokerAccountService(final Context context, final Callback<BrokerAccountServiceConnection> callback, final BrokerEvent brokerEvent) {
-        Logger.v(TAG, "Binding to BrokerAccountService for caller uid: " + android.os.Process.myUid());
+        Logger.v(TAG + methodName, "Binding to BrokerAccountService for caller uid: " + android.os.Process.myUid());
         final Intent brokerAccountServiceToBind = getIntentForBrokerAccountService(context);
 
         final BrokerAccountServiceConnection connection = new BrokerAccountServiceConnection();
@@ -331,13 +331,13 @@ final class BrokerAccountServiceHandler {
         final CallbackExecutor<BrokerAccountServiceConnection> callbackExecutor = new CallbackExecutor<>(callback);
         mPendingConnections.put(connection, callbackExecutor);
         final boolean serviceBound = context.bindService(brokerAccountServiceToBind, connection, Context.BIND_AUTO_CREATE);
-        Logger.v(TAG, "The status for brokerAccountService bindService call is: " + Boolean.valueOf(serviceBound));
+        Logger.v(TAG + methodName, "The status for brokerAccountService bindService call is: " + Boolean.valueOf(serviceBound));
         if (brokerEvent != null) {
             brokerEvent.setBrokerAccountServiceBindingSucceed(serviceBound);
         }
         if (!serviceBound) {
             connection.unBindService(context);
-            Logger.e(TAG, "Failed to bind service to broker app", "'bindService' returned false", ADALError.BROKER_BIND_SERVICE_FAILED);
+            Logger.e(TAG + methodName, "Failed to bind service to broker app", "'bindService' returned false", ADALError.BROKER_BIND_SERVICE_FAILED);
             callback.onError(new AuthenticationException(ADALError.BROKER_BIND_SERVICE_FAILED));
         }
     }
@@ -354,7 +354,7 @@ final class BrokerAccountServiceHandler {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Logger.v(TAG, "Broker Account service is connected.");
+            Logger.v(TAG + methodName, "Broker Account service is connected.");
             mBrokerAccountService = IBrokerAccountService.Stub.asInterface(service);
             mBound = true;
             if (mEvent != null) {
@@ -365,13 +365,13 @@ final class BrokerAccountServiceHandler {
             if (callbackExecutor != null) {
                 callbackExecutor.onSuccess(this);
             } else {
-                Logger.v(TAG, "No callback is found.");
+                Logger.v(TAG + methodName, "No callback is found.");
             }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            Logger.v(TAG, "Broker Account service is disconnected.");
+            Logger.v(TAG + methodName, "Broker Account service is disconnected.");
             mBound = false;
         }
 
@@ -389,7 +389,7 @@ final class BrokerAccountServiceHandler {
                             // unbindService throws "Service not registered" IllegalArgumentException. We are still investigating
                             // why this is happening. Meanwhile to unblock the release we are adding this workaround.
                             // Issue #808 tracks the future investigation.
-                            Logger.e(TAG, "Unbind threw IllegalArgumentException", "", null, exception);
+                            Logger.e(TAG + methodName, "Unbind threw IllegalArgumentException", "", null, exception);
                         } finally {
                             mBound = false;
                         }

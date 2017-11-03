@@ -93,7 +93,7 @@ final class PRNGFixes {
         if (Build.VERSION.SDK_INT < VERSION_CODE_JELLY_BEAN
                 || Build.VERSION.SDK_INT > VERSION_CODE_JELLY_BEAN_MR2) {
             // No need to apply the fix
-            Logger.v(TAG, "No need to apply the fix");
+            Logger.v(TAG + methodName, "No need to apply the fix");
             return;
         }
         try {
@@ -110,7 +110,7 @@ final class PRNGFixes {
                         + bytesRead);
             }
         } catch (IOException | ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            Logger.e(TAG, "Failed to seed OpenSSL PRNG", "", ADALError.DEVICE_PRNG_FIX_ERROR, e);
+            Logger.e(TAG + methodName, "Failed to seed OpenSSL PRNG", "", ADALError.DEVICE_PRNG_FIX_ERROR, e);
             throw new SecurityException("Failed to seed OpenSSL PRNG", e);
         }
     }
@@ -125,7 +125,7 @@ final class PRNGFixes {
     private static void installLinuxPRNGSecureRandom() throws SecurityException {
         if (Build.VERSION.SDK_INT > VERSION_CODE_JELLY_BEAN_MR2) {
             // No need to apply the fix
-            Logger.v(TAG, "No need to apply the fix");
+            Logger.v(TAG + methodName, "No need to apply the fix");
             return;
         }
         // Install a Linux PRNG-based SecureRandom implementation as the
@@ -134,21 +134,21 @@ final class PRNGFixes {
         if (secureRandomProviders == null
                 || secureRandomProviders.length < 1
                 || !LinuxPRNGSecureRandomProvider.class.equals(secureRandomProviders[0].getClass())) {
-            Logger.v(TAG, "insert provider as LinuxPRNGSecureRandomProvider");
+            Logger.v(TAG + methodName, "insert provider as LinuxPRNGSecureRandomProvider");
             Security.insertProviderAt(new LinuxPRNGSecureRandomProvider(), 1);
         }
         
         // Log info about providers
         // Different libraries could apply same prng fixes with different namespace
         SecureRandom rng1 = new SecureRandom();
-        Logger.v(TAG, "LinuxPRNGSecureRandomProvider for SecureRandom:" + rng1.getProvider().getClass().getName());
+        Logger.v(TAG + methodName, "LinuxPRNGSecureRandomProvider for SecureRandom:" + rng1.getProvider().getClass().getName());
         
         SecureRandom rng2;
         try {
             rng2 = SecureRandom.getInstance("SHA1PRNG");
-            Logger.v(TAG, "LinuxPRNGSecureRandomProvider for SecureRandom with alg SHA1PRNG:" + rng2.getProvider().getClass().getName());
+            Logger.v(TAG + methodName, "LinuxPRNGSecureRandomProvider for SecureRandom with alg SHA1PRNG:" + rng2.getProvider().getClass().getName());
         } catch (NoSuchAlgorithmException e) {
-            Logger.v(TAG, "SHA1PRNG not available");
+            Logger.v(TAG + methodName, "SHA1PRNG not available");
             throw new SecurityException("SHA1PRNG not available", e);
         }
     }
