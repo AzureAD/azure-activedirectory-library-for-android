@@ -82,7 +82,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
     public void testCorrelationIdInRequest() throws IOException {
         final String testUrl = "https://login.microsoftonline.com/test.onmicrosoft.com/oauth2/token";
         final UUID testCorrelationId = UUID.randomUUID();
-        Log.d(TAG + methodName, "Test correlationid:" + testCorrelationId.toString());
+        Logger.d(TAG, "Test correlationid:" + testCorrelationId.toString());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -102,7 +102,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
 
         assertEquals("400 error code", HttpURLConnection.HTTP_BAD_REQUEST, testResponse.getStatusCode());
         final String responseBody = testResponse.getBody();
-        Log.v(TAG + methodName, "Test response:" + responseBody);
+        Logger.i(TAG, "", "Test response:" + responseBody);
         assertNotNull("webresponse is not null", testResponse);
         assertEquals("same correlationid", testCorrelationId.toString(), testResponse.getResponseHeaders()
                 .get(AuthenticationConstants.AAD.CLIENT_REQUEST_ID).get(0));
@@ -116,7 +116,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
 
     private HttpWebResponse sendCorrelationIdRequest(final String message, final UUID testID,
                                                      final boolean withoutHeader) throws IOException {
-        Log.d(TAG + methodName, "test get" + android.os.Process.myTid());
+        Logger.d(TAG, "test get" + android.os.Process.myTid());
 
         WebRequestHandler request = new WebRequestHandler();
         request.setRequestCorrelationId(testID);
@@ -151,7 +151,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
 
     @Test
     public void testGetRequest() throws IOException {
-        Log.d(TAG + methodName, "test get" + android.os.Process.myTid());
+        Logger.d(TAG, "test get" + android.os.Process.myTid());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -175,7 +175,7 @@ public final class WebRequestHandlerTests extends AndroidTestHelper {
      */
     @Test
     public void testClientTraceInHeaders() throws IOException {
-        Log.d(TAG + methodName, "test get" + android.os.Process.myTid());
+        Logger.d(TAG, "test get" + android.os.Process.myTid());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);

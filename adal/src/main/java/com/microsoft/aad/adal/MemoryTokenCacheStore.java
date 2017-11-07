@@ -58,7 +58,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("The input key is null.");
         }
 
-        Logger.v(TAG + methodName, "Get Item from cache. Key:" + key);
+        Logger.i(TAG, "Get Item from cache. ", "Key:" + key);
         synchronized (mCacheLock) {
             return mCache.get(key);
         }
@@ -74,7 +74,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        Logger.v(TAG + methodName, "Set Item to cache. Key:" + key);
+        Logger.i(TAG, "Set Item to cache. ", "Key: " + key);
         synchronized (mCacheLock) {
             mCache.put(key, item);
         }
@@ -86,7 +86,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        Logger.v(TAG + methodName, "Remove Item from cache. Key:" + key.hashCode());
+        Logger.i(TAG, "Remove Item from cache. ", "Key:" + key.hashCode());
         synchronized (mCacheLock) {
             mCache.remove(key);
         }
@@ -94,7 +94,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     @Override
     public void removeAll() {
-        Logger.v(TAG + methodName, "Remove all items from cache. Key:");
+        Logger.v(TAG, "Remove all items from cache.");
         synchronized (mCacheLock) {
             mCache.clear();
         }
@@ -117,7 +117,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
             throw new IllegalArgumentException("key");
         }
 
-        Logger.v(TAG + methodName, "contains Item from cache. Key:" + key);
+        Logger.i(TAG, "contains Item from cache.", "Key: " + key);
         synchronized (mCacheLock) {
             return mCache.get(key) != null;
         }
@@ -125,7 +125,7 @@ public class MemoryTokenCacheStore implements ITokenCacheStore {
 
     @Override
     public Iterator<TokenCacheItem> getAll() {
-        Logger.v(TAG + methodName, "Retrieving all items from cache. ");
+        Logger.v(TAG, "Retrieving all items from cache. ");
         synchronized (mCacheLock) {
             return mCache.values().iterator();
         }

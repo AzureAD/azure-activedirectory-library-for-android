@@ -79,7 +79,7 @@ final class Util {
                                             final String clientId, final String userId,
                                             final String displayableId) {
         Calendar expiredTime = new GregorianCalendar();
-        Log.d("Test", "Time now:" + expiredTime.toString());
+        Logger.d("Test", "Time now:" + expiredTime.toString());
         expiredTime.add(Calendar.MINUTE, -TOKENS_EXPIRES_MINUTE);
         TokenCacheItem tokenCacheItem = new TokenCacheItem();
         tokenCacheItem.setAuthority(authority);

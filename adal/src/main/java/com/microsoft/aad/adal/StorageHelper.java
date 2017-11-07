@@ -168,6 +168,7 @@ public class StorageHelper {
      */
     public String encrypt(final String clearText)
             throws GeneralSecurityException, IOException {
+        final String methodName = ":encrypt";
         Logger.v(TAG + methodName, "Starting encryption");
 
         if (StringExtensions.isNullOrBlank(clearText)) {
@@ -178,7 +179,7 @@ public class StorageHelper {
         mKey = loadSecretKeyForEncryption();
         mHMACKey = getHMacKey(mKey);
         
-        Logger.v(TAG + methodName, "Encrypt version:" + mBlobVersion);
+        Logger.i(TAG + methodName, "", "Encrypt version:" + mBlobVersion);
         final byte[] blobVersion = mBlobVersion.getBytes(AuthenticationConstants.ENCODING_UTF8);
         final byte[] bytes = clearText.getBytes(AuthenticationConstants.ENCODING_UTF8);
 
@@ -230,6 +231,7 @@ public class StorageHelper {
      */
     public String decrypt(final String encryptedBlob)
             throws GeneralSecurityException, IOException {
+        final String methodName = ":decrypt";
         Logger.v(TAG + methodName, "Starting decryption");
 
         if (StringExtensions.isNullOrBlank(encryptedBlob)) {
@@ -255,7 +257,7 @@ public class StorageHelper {
         // API level, data needs to be updated
         final String keyVersion = new String(bytes, 0, KEY_VERSION_BLOB_LENGTH,
                 AuthenticationConstants.ENCODING_UTF8);
-        Logger.v(TAG + methodName, "Encrypt version:" + keyVersion);
+        Logger.i(TAG + methodName, "", "Encrypt version:" + keyVersion);
 
         final SecretKey secretKey = getKey(keyVersion);
         final SecretKey hmacKey = getHMacKey(secretKey);
@@ -340,6 +342,7 @@ public class StorageHelper {
      */
     private synchronized SecretKey getKeyOrCreate(final String keyVersion)
             throws GeneralSecurityException, IOException {
+        final String methodName = ":getKeyOrCreate";
         if (VERSION_USER_DEFINED.equals(keyVersion)) {
             return getSecretKey(AuthenticationSettings.INSTANCE.getSecretKeyData());
         }
@@ -393,6 +396,7 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized KeyPair generateKeyPairFromAndroidKeyStore()
             throws GeneralSecurityException, IOException {
+        final String methodName = ":generateKeyPairFromAndroidKeyStore";
         final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
 
@@ -427,6 +431,7 @@ public class StorageHelper {
      * Read KeyPair from AndroidKeyStore. 
      */
     private synchronized KeyPair readKeyPair() throws GeneralSecurityException, IOException {
+        final String methodName = ":readKeyPair";
         if (!doesKeyPairExist()) {
             throw new KeyStoreException("KeyPair entry does not exist.");
         }
@@ -554,6 +559,7 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private synchronized SecretKey getUnwrappedSecretKey()
             throws GeneralSecurityException, IOException {
+        final String methodName = ":getUnwrappedSecretKey";
         Logger.v(TAG + methodName, "Reading SecretKey");
 
         final SecretKey unwrappedSecretKey;
@@ -578,6 +584,7 @@ public class StorageHelper {
 
     private void deleteKeyFile() {
         // Store secret key in a file after wrapping
+        final String methodName = ":deleteKeyFile";
         final File keyFile = new File(mContext.getDir(mContext.getPackageName(),
                 Context.MODE_PRIVATE), ADALKS);
         if (keyFile.exists()) {
@@ -599,7 +606,7 @@ public class StorageHelper {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     @SuppressLint("GetInstance")
     private byte[] wrap(final SecretKey key) throws GeneralSecurityException {
-        Logger.v(TAG + methodName, "Wrap secret key.");
+        Logger.v(TAG, "Wrap secret key.");
         final Cipher wrapCipher = Cipher.getInstance(WRAP_ALGORITHM);
         wrapCipher.init(Cipher.WRAP_MODE, mKeyPair.getPublic());
         return wrapCipher.wrap(key);
@@ -627,7 +634,7 @@ public class StorageHelper {
     }
 
     private void writeKeyData(final byte[] data) throws IOException {
-        Logger.v(TAG + methodName, "Writing key data to a file");
+        Logger.v(TAG, "Writing key data to a file");
         final File keyFile = new File(mContext.getDir(mContext.getPackageName(), Context.MODE_PRIVATE),
                 ADALKS);
         final OutputStream out = new FileOutputStream(keyFile);
@@ -645,7 +652,7 @@ public class StorageHelper {
             throw new IOException("Key file to read does not exist");
         }
         
-        Logger.v(TAG + methodName, "Reading key data from a file");
+        Logger.v(TAG, "Reading key data from a file");
         final InputStream in = new FileInputStream(keyFile);
         try {
             final ByteArrayOutputStream bytes = new ByteArrayOutputStream();

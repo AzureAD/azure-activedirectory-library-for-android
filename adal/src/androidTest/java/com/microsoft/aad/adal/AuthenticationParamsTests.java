@@ -76,7 +76,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
     @Test
     public void testCreateFromResourceUrlInvalidFormat() throws IOException, JSONException {
-        Log.d(TAG + methodName, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
+        Logger.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
 
         //mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -125,7 +125,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
      */
     @Test
     public void testCreateFromResourceUrlPositive() throws IOException {
-        Log.d(TAG + methodName, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
+        Logger.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -145,7 +145,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         assertNull("Exception is not null", testResponse.getException());
         assertNotNull("Check parameter", testResponse.getParam());
-        Log.d(TAG + methodName, "test:" + getClass().getName() + "authority:" + testResponse.getParam().getAuthority());
+        Logger.i(TAG, "test:" + getClass().getName(), "authority:" + testResponse.getParam().getAuthority());
         assertEquals("https://login.windows.net/test.onmicrosoft.com", testResponse.getParam()
                 .getAuthority().trim());
     }
@@ -281,7 +281,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         }
 
         @Override
-        public void Log(String TAG + methodName, String message, String additionalMessage, LogLevel level, ADALError errorCode) {
+        public void Log(String tag, String message, String additionalMessage, LogLevel level, ADALError errorCode) {
             if (errorCode == mCheckCode) {
                 mCalled = true;
             }
@@ -368,7 +368,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             public void onCompleted(Exception exception, AuthenticationParameters param) {
                 testResponse.setParam(param);
                 testResponse.setException(exception);
-                Log.d(TAG + methodName, "test " + android.os.Process.myTid());
+                Logger.d(TAG, "test " + android.os.Process.myTid());
                 signal.countDown();
             }
         };

@@ -108,11 +108,15 @@ final class StringExtensions {
      * @return URL object for this string
      */
     static URL getUrl(String endpoint) {
+        final String methodName = ":getUrl";
         URL authority = null;
         try {
             authority = new URL(endpoint);
         } catch (MalformedURLException e1) {
-            Logger.e(TAG + methodName, e1.getMessage(), "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
+            Logger.e(TAG + methodName,
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL.getDescription(),
+                    e1.getMessage(),
+                    ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e1);
         }
 
         return authority;

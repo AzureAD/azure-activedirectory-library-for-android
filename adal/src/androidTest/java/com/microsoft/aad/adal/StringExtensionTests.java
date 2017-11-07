@@ -95,7 +95,7 @@ public class StringExtensionTests extends AndroidTestHelper {
             assertEquals(longString, decodeResult);
 
         } catch (UnsupportedEncodingException ueex) {
-            Log.e(getClass().getName(), ueex.getMessage());
+            Logger.e(getClass().getName(), "", ueex.getMessage(), ueex);
             Assert.fail("Did not expect exception");
         }
     }
