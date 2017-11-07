@@ -1,1 +1,1 @@
-include ':adal', ':sample',':userappwithbroker', ":automationtestapp"
+include ':adal',':userappwithbroker', ":automationtestapp"
