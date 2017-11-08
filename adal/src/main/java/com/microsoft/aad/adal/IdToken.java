@@ -140,8 +140,8 @@ class IdToken {
             Logger.e(TAG + methodName, "The encoding is not supported.", "", ADALError.ENCODING_IS_NOT_SUPPORTED, exception);
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage(), exception);
         } catch (JSONException exception) {
-            Logger.e(TAG + methodName, "Failed to parse the decoded body into JsonObject.", "", ADALError.JSON_PARSE_ERROR,
-                    exception);
+            Logger.e(TAG + methodName, "Failed to parse the decoded body into JsonObject.", "",
+                    ADALError.JSON_PARSE_ERROR, exception);
             throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, exception.getMessage(), exception);
         }
     }

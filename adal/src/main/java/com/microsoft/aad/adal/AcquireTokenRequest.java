@@ -29,6 +29,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -791,12 +792,15 @@ class AcquireTokenRequest {
                                     }
 
                                     Logger.e(TAG + methodName,
-                                            authenticationException.getCode() == null? ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN.getDescription() : authenticationException.getCode().getDescription(),
-                                            message.toString() + ExceptionExtensions.getExceptionMessage(authenticationException),
+                                            authenticationException.getCode() == null?
+                                                    ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN.getDescription() : authenticationException.getCode().getDescription(),
+                                            message.toString()
+                                                    + ' ' + ExceptionExtensions.getExceptionMessage(authenticationException)
+                                                    + ' ' + Log.getStackTraceString(authenticationException),
                                             ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
-                                            authenticationException);
+                                            null);
                                     waitingRequestOnError(callbackHandle, waitingRequest, requestId,
-                                            authenticationException);
+                                            null);
                                 }
                             }
                         });

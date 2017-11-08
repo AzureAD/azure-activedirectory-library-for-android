@@ -38,27 +38,72 @@ import java.util.concurrent.atomic.AtomicReference;
  * custom logger: Logger.setExternalLogger(..);
  */
 public class Logger {
+    private static final Logger sInstance = new Logger();
+    static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
     // Turn on the verbose level logging by default.
     private LogLevel mLogLevel  = LogLevel.Verbose;
-
+    private AtomicReference<ILogger> mExternalLogger = new AtomicReference<>(null);
     private static final String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
-
-    static final String DATEFORMAT = "yyyy-MM-dd HH:mm:ss";
-
-    /**
-     * one callback logger.
-     */
-    private AtomicReference<ILogger> mExternalLogger = new AtomicReference<>(null);;
-
-    // enabled by default
     private boolean mLogcatLogEnabled = false;
-
-    private static Logger sInstance = new Logger();
-
     private String mCorrelationId = null;
 
     // Disable to log PII by default.
     private boolean mEnablePII = false;
+
+    /**
+     * @return The single instance of {@link Logger}.
+     */
+    public static Logger getInstance() {
+        return sInstance;
+    }
+
+    /**
+     * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
+     * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
+     */
+    public void setLogLevel(final LogLevel logLevel) {
+        this.mLogLevel = logLevel;
+    }
+
+    /**
+     * Set the custom logger. Configures external logging to configure a callback that
+     * the sdk will use to pass each log message. Overriding the logger callback is not allowed.
+     *
+     * @param externalLogger The reference to the {@link ILogger} that can
+     *                       output the logs to the designated places.
+     * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
+     */
+    public void setExternalLogger(ILogger externalLogger) {
+        if (externalLogger == null) {
+            return;
+        }
+
+        if (mExternalLogger.get() != null) {
+            throw new IllegalStateException("External logger is already set, cannot be set again.");
+        }
+
+        mExternalLogger.set(externalLogger);
+    }
+
+    /**
+     * Enable/Disable the Android logcat logging. By default, the sdk disables it.
+     *
+     * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
+     */
+    public void setEnableLogcatLog(final boolean enableLogcatLog) {
+        mLogcatLogEnabled = enableLogcatLog;
+    }
+
+    /**
+     * Enable/Disable log message with PII (personal identifiable information) info.
+     * By default, ADAL doesn't log any PII.
+     *
+     * @param enablePII True if enabling PII info to be logged, false otherwise.
+     */
+    public void setEnablePII(final boolean enablePII) {
+        mEnablePII = enablePII;
+    }
 
     /**
      * Enum class for LogLevel that the sdk recognizes.
@@ -96,13 +141,6 @@ public class Logger {
     }
 
     /**
-     * @return The single instance of {@link Logger}.
-     */
-    public static Logger getInstance() {
-        return sInstance;
-    }
-
-    /**
      * Interface for apps to configure the external logging.
      */
     public interface ILogger {
@@ -119,61 +157,30 @@ public class Logger {
                 ADALError errorCode);
     }
 
-    public LogLevel getLogLevel() {
-        return mLogLevel;
-    }
-
     /**
-     * Set the log level for diagnostic purpose. By default, the sdk enables the verbose level logging.
-     * @param logLevel The {@link LogLevel} to be enabled for the diagnostic logging.
+     * Send logs to logcat as the default logging if developer doesn't turn off the logcat logging.
      */
-    public void setLogLevel(final LogLevel logLevel) {
-        this.mLogLevel = logLevel;
-    }
-
-    /**
-     * Enable/Disable the Android logcat logging. By default, the sdk enables it.
-     *
-     * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
-     */
-    public void setEnableLogcatLog(final boolean enableLogcatLog) {
-        mLogcatLogEnabled = enableLogcatLog;
-    }
-
-    /**
-     * Enable log message with PII (personal identifiable information) info. By default, ADAL doesn't log any PII.
-     * @param enablePII True if enabling PII info to be logged, false otherwise.
-     */
-    public void setEnablePII(final boolean enablePII) {
-        mEnablePII = enablePII;
-    }
-
-    /**
-     * Gets the state of the PII/OII enable flag.
-     * @return true if the PII?OII is allowed. False otherwise.
-     */
-    public boolean getEnablePII() {
-        return mEnablePII;
-    }
-
-    /**
-     * Set the custom logger. Configures external logging to configure a callback that
-     * the sdk will use to pass each log message. Overriding the logger callback is not allowed.
-     *
-     * @param externalLogger The reference to the {@link ILogger} that can
-     *                       output the logs to the designated places.
-     * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
-     */
-    public void setExternalLogger(ILogger externalLogger) {
-        if (externalLogger == null) {
-            return;
+    private void sendLogcatLogs(final String tag, final LogLevel logLevel, final String message) {
+        // Append additional message to the message part for logcat logging
+        switch (logLevel) {
+            case Error:
+                Log.e(tag, message);
+                break;
+            case Warn:
+                Log.w(tag, message);
+                break;
+            case Info:
+                Log.i(tag, message);
+                break;
+            case Verbose:
+                Log.v(tag, message);
+                break;
+            case Debug:
+                Log.d(tag, message);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown loglevel");
         }
-
-        if (mExternalLogger.get() != null) {
-            throw new IllegalStateException("External logger is already set, cannot be set again.");
-        }
-
-        mExternalLogger.set(externalLogger);
     }
 
     private static String addMoreInfo(String message) {
@@ -187,158 +194,44 @@ public class Logger {
     }
 
     /**
-     *
-     * @param tag TAG for the log message
-     * @param message Body of the message
+     * Format the log message. Depends on the developer setting, the log message could be sent to logcat
+     * or the external logger set by the calling app.
      */
-    public void debug(String tag, String message) {
-        if (mLogLevel.compareTo(LogLevel.Debug) < 0 || StringExtensions.isNullOrBlank(message)) {
+    private void log(String tag, String message, String additionalMessage, LogLevel logLevel,
+                           ADALError errorCode, Throwable throwable) {
+        if (logLevel.compareTo(mLogLevel) > 0) {
             return;
         }
 
-        if (mLogcatLogEnabled) {
-            Log.d(tag, message);
+        // Developer turns off PII logging, if the log message contains any PII, we shouldn't send it.
+
+        final StringBuilder logMessage = new StringBuilder();
+
+        if (errorCode != null) {
+            logMessage.append(getCodeName(errorCode)).append(':');
         }
 
-        logCommon(tag, message, "", LogLevel.Info, null);
-    }
-
-    /**
-     *
-     * @param tag tag for the log message
-     * @param message body of the log message
-     * @param additionalMessage additional parameters
-     * @param errorCode ADAL error code being logged
-     */
-    public void verbose(String tag, String message, String additionalMessage, ADALError errorCode) {
-        if (mLogLevel.compareTo(LogLevel.Verbose) < 0) {
-            return;
+        if (message != null) {
+            logMessage.append(' ').append(addMoreInfo(message));
         }
 
-        if (mLogcatLogEnabled) {
-            Log.v(tag, getLogMessage(message, additionalMessage, errorCode));
+        // Adding stacktrace to message
+        if (throwable != null) {
+            logMessage.append(' ').append(Log.getStackTraceString(throwable));
         }
 
-        logCommon(tag, message, additionalMessage, LogLevel.Verbose, errorCode);
-    }
 
-    /**
-     *
-     * @param tag tag for the log message
-     * @param message body of the log message
-     * @param additionalMessage additional parameters
-     * @param errorCode ADAL error code being logged
-     */
-    public void inform(String tag, String message, String additionalMessage, ADALError errorCode) {
-        if (mLogLevel.compareTo(LogLevel.Info) < 0) {
-            return;
+        if (additionalMessage != null && mEnablePII) {
+            logMessage.append(' ').append(additionalMessage);
         }
 
         if (mLogcatLogEnabled) {
-            Log.i(tag, getLogMessage(message, additionalMessage, errorCode));
+            sendLogcatLogs(tag, logLevel, logMessage.toString());
         }
-
-        logCommon(tag, message, additionalMessage, LogLevel.Info, errorCode);
-    }
-
-    /**
-     *
-     * @param tag tag for the log message
-     * @param message body of the log message
-     * @param additionalMessage additional parameters
-     * @param errorCode ADAL error code being logged
-     */
-    public void warn(String tag, String message, String additionalMessage, ADALError errorCode) {
-        if (mLogLevel.compareTo(LogLevel.Warn) < 0) {
-            return;
-        }
-
-        if (mLogcatLogEnabled) {
-            Log.w(tag, getLogMessage(message, additionalMessage, errorCode));
-        }
-
-        logCommon(tag, message, additionalMessage, LogLevel.Warn, errorCode);
-    }
-
-    /**
-     *
-     * @param tag tag for the log message
-     * @param message body of the log message
-     * @param additionalMessage additional parameters
-     * @param errorCode ADAL error code being logged
-     */
-    public void error(String tag, String message, String additionalMessage, ADALError errorCode) {
-        if (mLogcatLogEnabled) {
-            Log.e(tag, getLogMessage(message, additionalMessage, errorCode));
-        }
-
-        logCommon(tag, message, additionalMessage, LogLevel.Error, errorCode);
-    }
-
-    /**
-     *
-     * @param tag tag for the log message
-     * @param message body of the log message
-     * @param additionalMessage additional parameters
-     * @param errorCode ADAL error code being logged
-     * @param err Exception being logged
-     */
-    public void error(String tag, String message, String additionalMessage, ADALError errorCode,
-                      Throwable err) {
-        if (mLogcatLogEnabled) {
-            Log.e(tag, getLogMessage(message, additionalMessage, errorCode), err);
-        }
-
-        logCommon(tag, message, additionalMessage, LogLevel.Error, errorCode, err);
-    }
-
-    private void logCommon(String tag, String message, String additionalMessage, LogLevel level,
-                           ADALError errorCode) {
-        message = addMoreInfo(message);
 
         if (mExternalLogger.get() != null) {
-            try {
-                if (mEnablePII) {
-                    mExternalLogger.get().Log(tag, message, additionalMessage, level, errorCode);
-                } else {
-                    mExternalLogger.get().Log(tag, message, "", level, errorCode);
-                }
-            } catch (Exception e) {
-                // log message as warning to report callback error issue
-                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
-            }
+            mExternalLogger.get().Log(tag, message, "", logLevel, errorCode);
         }
-    }
-
-    private void logCommon(String tag, String message, String additionalMessage, LogLevel level,
-                           ADALError errorCode, Throwable throwable) {
-        StringBuilder msg = new StringBuilder();
-        if (additionalMessage != null) {
-            msg.append(additionalMessage);
-        }
-        if (throwable != null) {
-            msg.append(' ').append(Log.getStackTraceString(throwable));
-        }
-        logCommon(tag, message, msg.toString(), level, errorCode);
-    }
-    /**
-     * Send logs to logcat as the default logging if developer doesn't turn off the logcat logging.
-     */
-    private String getLogMessage(String message, String additionalMessage,
-                                 ADALError errorCode) {
-        StringBuilder msg = new StringBuilder();
-        if (errorCode != null) {
-            msg.append(getCodeName(errorCode)).append(':');
-        }
-        if (message != null) {
-            message = addMoreInfo(message);
-            msg.append(message);
-        }
-        if (additionalMessage != null) {
-            msg.append(' ').append(additionalMessage);
-        }
-
-        return msg.toString();
     }
 
     /**
@@ -348,7 +241,7 @@ public class Logger {
      * @param message body of the log message
      */
     public static void d(String tag, String message) {
-        Logger.getInstance().debug(tag, message);
+        Logger.getInstance().log(tag, message, null, LogLevel.Debug, null, null);
     }
 
     /**
@@ -359,7 +252,7 @@ public class Logger {
      * @param additionalMessage additional parameters
      */
     public static void i(String tag, String message, String additionalMessage) {
-        Logger.getInstance().inform(tag, message, additionalMessage, null);
+        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Info, null, null);
     }
 
     /**
@@ -371,7 +264,7 @@ public class Logger {
      * @param errorCode ADAL error code being logged
      */
     public static void i(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().inform(tag, message, additionalMessage, errorCode);
+        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Info, errorCode, null);
     }
 
     /**
@@ -381,7 +274,7 @@ public class Logger {
      * @param message body of the log message
      */
     public static void v(String tag, String message) {
-        Logger.getInstance().verbose(tag, message, null, null);
+        Logger.getInstance().log(tag, message, null, LogLevel.Verbose, null, null);
     }
 
     /**
@@ -393,7 +286,7 @@ public class Logger {
      * @param errorCode ADAL error code being logged
      */
     public static void v(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().verbose(tag, message, additionalMessage, errorCode);
+        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Verbose, errorCode, null);
     }
 
     /**
@@ -405,11 +298,11 @@ public class Logger {
      * @param errorCode ADAL error code being logged
      */
     public static void w(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().warn(tag, message, additionalMessage, errorCode);
+        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Warn, errorCode, null);
     }
 
-    public static void w(String tag, String msg) {
-        Logger.getInstance().warn(tag, msg, null, null);
+    public static void w(String tag, String message) {
+        Logger.getInstance().log(tag, message, null, LogLevel.Warn, null, null);
     }
 
     /**
@@ -420,7 +313,7 @@ public class Logger {
      * @param errorCode ADAL error code being logged
      */
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode) {
-        Logger.getInstance().error(tag, message, additionalMessage, errorCode);
+        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode,  null);
     }
 
     /**
@@ -432,11 +325,11 @@ public class Logger {
      */
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
                          Throwable err) {
-        Logger.getInstance().error(tag, message, additionalMessage, errorCode, err);
+        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode, err);
     }
 
-    public static void e(String tag, String msg, String additionalMsg, Throwable tr) {
-        Logger.getInstance().error(tag, msg, additionalMsg, null, tr);
+    public static void e(String tag, String msg, Throwable tr) {
+        Logger.getInstance().log(tag, msg, "", LogLevel.Error, null, tr);
     }
 
     /**
@@ -451,14 +344,6 @@ public class Logger {
         }
     }
 
-    /**
-     *
-     * @return True if log if enabled, False otherwise
-     */
-    public boolean isLogcatLogEnabled() {
-        return mLogcatLogEnabled;
-    }
-
     private static String getCodeName(ADALError code) {
         if (code != null) {
             return code.name();
@@ -469,7 +354,7 @@ public class Logger {
 
     @SuppressLint("SimpleDateFormat")
     private static String getUTCDateTimeAsString() {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATEFORMAT);
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         final String utcTime = dateFormat.format(new Date());
 

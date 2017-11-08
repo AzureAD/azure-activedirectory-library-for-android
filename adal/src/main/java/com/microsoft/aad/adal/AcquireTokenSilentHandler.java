@@ -23,6 +23,7 @@
 package com.microsoft.aad.adal;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -142,9 +143,11 @@ class AcquireTokenSilentHandler {
             
             Logger.e(TAG + methodName,
                     "Error in refresh token for request. ",
-                    "Request: " + mAuthRequest.getLogInfo() + ExceptionExtensions.getExceptionMessage(exc),
+                    "Request: " + mAuthRequest.getLogInfo()
+                            + " " + ExceptionExtensions.getExceptionMessage(exc)
+                            + " " + Log.getStackTraceString(exc),
                     ADALError.AUTH_FAILED_NO_TOKEN,
-                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
+                    null);
 
             throw new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
@@ -153,9 +156,11 @@ class AcquireTokenSilentHandler {
             // Server side error or similar
             Logger.e(TAG + methodName,
                     "Error in refresh token for request.",
-                    "Request: " + mAuthRequest.getLogInfo() + ExceptionExtensions.getExceptionMessage(exc),
+                    "Request: " + mAuthRequest.getLogInfo()
+                            + " " +  ExceptionExtensions.getExceptionMessage(exc)
+                            + " " + Log.getStackTraceString(exc),
                     ADALError.AUTH_FAILED_NO_TOKEN,
-                    new AuthenticationException(ADALError.SERVER_ERROR, exc.getMessage()));
+                    null);
 
             throw new AuthenticationException(
                     ADALError.AUTH_FAILED_NO_TOKEN, ExceptionExtensions.getExceptionMessage(exc),
