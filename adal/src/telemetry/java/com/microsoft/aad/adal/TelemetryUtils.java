@@ -24,16 +24,39 @@
 package com.microsoft.aad.adal;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.microsoft.aad.adal.EventStrings.LOGIN_HINT;
+import static com.microsoft.aad.adal.EventStrings.TENANT_ID;
+import static com.microsoft.aad.adal.EventStrings.USER_ID;
+
 final class TelemetryUtils {
+
+    final static Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
+
+    private static final String TAG = TelemetryUtils.class.getSimpleName();
+
+    static {
+        initializeGdprFilteredFields();
+    }
 
     private TelemetryUtils() {
         // Intentionally left blank.
     }
 
-    private static final String TAG = TelemetryUtils.class.getSimpleName();
+    private static void initializeGdprFilteredFields() {
+        GDPR_FILTERED_FIELDS.addAll(
+                Arrays.asList(
+                        LOGIN_HINT,
+                        USER_ID,
+                        TENANT_ID
+                )
+        );
+    }
 
     static class CliTelemInfo implements Serializable {
 

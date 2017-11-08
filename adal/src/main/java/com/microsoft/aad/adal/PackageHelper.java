@@ -32,7 +32,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
 import android.util.Base64;
-import android.util.Log;
+import com.microsoft.aad.adal.Logger;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -125,7 +125,7 @@ class PackageHelper {
                 // This encoding issue will happen at the beginning of API call,
                 // if it is not supported on this device. ADAL uses one encoding
                 // type.
-                Log.e(TAG, "Encoding", e);
+                Logger.e(TAG, "Encoding", e);
             }
         }
         return "";

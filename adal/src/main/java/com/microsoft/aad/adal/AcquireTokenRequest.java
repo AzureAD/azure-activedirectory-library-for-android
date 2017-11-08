@@ -63,7 +63,7 @@ class AcquireTokenRequest {
      * Instance validation related calls are serviced inside Discovery as a
      * module.
      */
-    private Discovery mDiscovery = new Discovery();
+    private Discovery mDiscovery;
 
     /**
      * Event Variable for the acquireToken API called. This will track whether the API succeeded or not.
@@ -76,6 +76,7 @@ class AcquireTokenRequest {
     AcquireTokenRequest(final Context appContext, final AuthenticationContext authContext, final APIEvent apiEvent) {
         mContext = appContext;
         mAuthContext = authContext;
+        mDiscovery = new Discovery(mContext);
 
         if (authContext.getCache() != null && apiEvent != null) {
             mTokenCacheAccessor = new TokenCacheAccessor(authContext.getCache(),
@@ -199,9 +200,17 @@ class AcquireTokenRequest {
                 validateAuthority(authorityUrl, authenticationRequest.getUpnSuffix(), authenticationRequest.isSilent(),
                         authenticationRequest.getCorrelationId());
                 apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_SUCCESS);
-            } catch (AuthenticationException ex) {
-                apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_FAILURE);
-                throw ex;
+            } catch (final AuthenticationException authenticationException) {
+                if (null != authenticationException.getCode()
+                        && (authenticationException.getCode().equals(ADALError.DEVICE_CONNECTION_IS_NOT_AVAILABLE)
+                        || authenticationException.getCode().equals(ADALError.NO_NETWORK_CONNECTION_POWER_OPTIMIZATION))) {
+                    // The authority validation is not done because of network error.
+                    apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_NOT_DONE);
+                } else {
+                    apiEvent.setValidationStatus(EventStrings.AUTHORITY_VALIDATION_FAILURE);
+                }
+
+                throw authenticationException;
             } finally {
                 Telemetry.getInstance().stopEvent(authenticationRequest.getTelemetryRequestId(), apiEvent,
                         EventStrings.AUTHORITY_VALIDATION_EVENT);
@@ -239,12 +248,13 @@ class AcquireTokenRequest {
         }
 
         // replace the authority if host is not the same as the original one.
-        if (!authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
+        if (metadata.getPreferredNetwork() != null && !authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
             try {
                 final URL replacedAuthority = Utility.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
                 request.setAuthority(replacedAuthority.toString());
             } catch (final MalformedURLException ex) {
-                throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, ex.getMessage(), ex);
+                //Intentionally empty.
+                Logger.i(TAG, "preferred network is invalid", "use exactly the same authority url that is passed");
             }
         }
     }

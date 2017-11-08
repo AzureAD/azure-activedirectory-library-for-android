@@ -34,7 +34,7 @@ package com.microsoft.aad.adal;
 
 import android.os.Build;
 import android.os.Process;
-import android.util.Log;
+import com.microsoft.aad.adal.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -227,7 +227,7 @@ final class PRNGFixes {
             } catch (IOException e) {
                 // On a small fraction of devices /dev/urandom is not writable.
                 // Log and ignore.
-                Log.w(PRNGFixes.class.getSimpleName(), "Failed to mix seed into " + URANDOM_FILE);
+                Logger.w(PRNGFixes.class.getSimpleName(), "Failed to mix seed into " + URANDOM_FILE);
             } finally {
                 mSeeded = true;
             }

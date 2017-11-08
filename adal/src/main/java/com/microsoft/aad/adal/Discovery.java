@@ -23,6 +23,7 @@
 
 package com.microsoft.aad.adal;
 
+import android.content.Context;
 import android.net.Uri;
 
 import org.json.JSONException;
@@ -32,6 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,13 +91,16 @@ final class Discovery {
 
     private UUID mCorrelationId;
 
+    private Context mContext;
+
     /**
      * interface to use in testing.
      */
     private final IWebRequestHandler mWebrequestHandler;
 
-    public Discovery() {
+    public Discovery(final Context context) {
         initValidList();
+        mContext = context;
         mWebrequestHandler = new WebRequestHandler();
     }
 
@@ -212,6 +217,9 @@ final class Discovery {
             return;
         }
 
+        //Check if the network connection available
+        HttpWebRequest.throwIfNetworkNotAvailable(mContext);
+
         // It will query prod instance to verify the authority
         // construct query string for this instance
         URL queryUrl;
@@ -219,11 +227,14 @@ final class Discovery {
         try {
             queryUrl = buildQueryString(trustedHost, getAuthorizationCommonEndpoint(authorityUrl));
             final Map<String, String> discoveryResponse = sendRequest(queryUrl);
-
             AuthorityValidationMetadataCache.processInstanceDiscoveryMetadata(authorityUrl, discoveryResponse);
-
-            InstanceDiscoveryMetadata discoveryMetadata = AuthorityValidationMetadataCache.getCachedInstanceDiscoveryMetadata(authorityUrl);
-            result = discoveryMetadata != null && discoveryMetadata.isValidated();
+            if (!AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
+                ArrayList<String> aliases = new ArrayList<String>();
+                aliases.add(authorityUrl.getHost());
+                AuthorityValidationMetadataCache.updateInstanceDiscoveryMap(authorityUrl.getHost(),
+                        new InstanceDiscoveryMetadata(authorityUrl.getHost(), authorityUrl.getHost(), aliases));
+            }
+            result = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
         } catch (final IOException | JSONException e) {
             Logger.e(TAG, "Error when validating authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
@@ -345,7 +356,7 @@ final class Discovery {
         return sInstanceDiscoveryNetworkRequestLock;
     }
 
-    Set<String> getValidHosts() {
+    static Set<String> getValidHosts() {
         return AAD_WHITELISTED_HOSTS;
     }
 }

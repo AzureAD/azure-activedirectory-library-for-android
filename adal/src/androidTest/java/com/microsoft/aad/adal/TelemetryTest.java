@@ -166,7 +166,8 @@ class AggregatedTelemetryTestClass implements IDispatcher {
 
     boolean checkNoPIIPresent(final String piiKey, final String piiValue) {
         try {
-            return mEventData.get(piiKey).equals(StringExtensions.createHash(piiValue));
+            final String value = mEventData.get(piiKey);
+            return null == value || value.equals(StringExtensions.createHash(piiValue));
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             return false;
         }

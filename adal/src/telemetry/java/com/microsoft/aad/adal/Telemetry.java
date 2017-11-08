@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class Telemetry {
     private static final String TAG = Telemetry.class.getSimpleName();
     private DefaultDispatcher mDispatcher = null;
+    private static boolean mAllowPii = false;
     private final Map<Pair<String, String>, String> mEventTracking = new ConcurrentHashMap<Pair<String, String>, String>();
     private static final Telemetry INSTANCE = new Telemetry();
 
@@ -41,6 +42,25 @@ public final class Telemetry {
      */
     public static synchronized Telemetry getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Sets the PII/OII allow flag. If set to true, PII/OII fields will not be explicitly blocked
+     * in Telemetry data.
+     *
+     * @param allowFlag true, if PII/OII should be allowed in Telemetry data. False otherwise.
+     */
+    public static void setAllowPii(final boolean allowFlag) {
+        mAllowPii = allowFlag;
+    }
+
+    /**
+     * Gets the state of the PII/OII allow flag.
+     *
+     * @return the flag state.
+     */
+    public static boolean getAllowPii() {
+        return mAllowPii;
     }
 
     /**

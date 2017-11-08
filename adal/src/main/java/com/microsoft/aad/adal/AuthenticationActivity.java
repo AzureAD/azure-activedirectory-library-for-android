@@ -42,7 +42,7 @@ import android.security.KeyChainAliasCallback;
 import android.security.KeyChainException;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+import com.microsoft.aad.adal.Logger;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -159,7 +159,7 @@ public class AuthenticationActivity extends Activity {
         // Get the message from the intent
         mAuthRequest = getAuthenticationRequestFromIntent(getIntent());
         if (mAuthRequest == null) {
-            Log.d(TAG, "Intent for Authentication Activity doesn't have the request details, returning to caller");
+            Logger.d(TAG, "Intent for Authentication Activity doesn't have the request details, returning to caller");
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE,
                     AuthenticationConstants.Browser.WEBVIEW_INVALID_REQUEST);
@@ -206,7 +206,7 @@ public class AuthenticationActivity extends Activity {
         // Disable hardware acceleration in WebView if needed
         if (!AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration()) {
             mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
-            Log.d(TAG, "Hardware acceleration is disabled in WebView");
+            Logger.d(TAG, "Hardware acceleration is disabled in WebView");
         }
 
         mStartUrl = "about:blank";
@@ -214,7 +214,7 @@ public class AuthenticationActivity extends Activity {
             Oauth2 oauth = new Oauth2(mAuthRequest);
             mStartUrl = oauth.getCodeRequestUrl();
         } catch (UnsupportedEncodingException e) {
-            Log.d(TAG, e.getMessage());
+            Logger.d(TAG, e.getMessage());
             Intent resultIntent = new Intent();
             resultIntent.putExtra(AuthenticationConstants.Browser.RESPONSE_REQUEST_INFO,
                     mAuthRequest);
@@ -430,7 +430,7 @@ public class AuthenticationActivity extends Activity {
      */
     private void returnError(ADALError errorCode, String argument) {
         // Set result back to account manager call
-        Log.w(TAG, "Argument error:" + argument);
+        Logger.w(TAG, "Argument error:" + argument);
         Intent resultIntent = new Intent();
         // TODO only send adalerror from activity side as int
         resultIntent
@@ -457,7 +457,7 @@ public class AuthenticationActivity extends Activity {
                 // This encoding issue will happen at the beginning of API call,
                 // if it is not supported on this device. ADAL uses one encoding
                 // type.
-                Log.e(TAG, "Encoding", e);
+                Logger.e(TAG, "Encoding", e);
             }
         }
         return loadUrl;
@@ -737,9 +737,9 @@ public class AuthenticationActivity extends Activity {
                         request.proceed(privateKey, certChain);
                         return;
                     } catch (KeyChainException e) {
-                        Log.e(TAG, "KeyChain exception", e);
+                        Logger.e(TAG, "KeyChain exception", e);
                     } catch (InterruptedException e) {
-                        Log.e(TAG, "InterruptedException exception", e);
+                        Logger.e(TAG, "InterruptedException exception", e);
                     }
 
                     request.cancel();
