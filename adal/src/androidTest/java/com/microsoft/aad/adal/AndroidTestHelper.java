@@ -30,7 +30,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
-import android.util.Log;
 
 import junit.framework.Assert;
 
@@ -133,7 +132,7 @@ public class AndroidTestHelper {
                 testCode.run();
             }
         } catch (Throwable ex) {
-            Logger.e(TAG, "", ex.getMessage(), ex);
+            Logger.e(TAG, ex.getMessage(), ex);
             assertFalse("not expected:" + ex.getMessage(), true);
             signal.countDown();
         }

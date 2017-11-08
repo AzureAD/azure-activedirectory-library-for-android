@@ -32,7 +32,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.Signature;
 import android.util.Base64;
-import com.microsoft.aad.adal.Logger;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

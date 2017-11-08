@@ -23,8 +23,6 @@
 
 package com.microsoft.aad.adal;
 
-import android.util.Log;
-
 import junit.framework.Assert;
 
 import java.util.concurrent.CountDownLatch;
@@ -59,7 +57,7 @@ public class AssertUtils extends Assert {
         try {             
                 testCode.run();
         } catch (Throwable ex) {
-            Logger.e(TAG, "", ex.getMessage(), ex);
+            Logger.e(TAG, ex.getMessage(), ex);
             Assert.fail("not expected:" + ex.getMessage());
             signal.countDown();
         }

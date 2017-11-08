@@ -30,7 +30,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
-import android.util.Log;
 
 import org.junit.Before;
 

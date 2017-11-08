@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * custom logger: Logger.setExternalLogger(..);
  */
 public class Logger {
-    private static final Logger sInstance = new Logger();
+    private static final Logger INSTANCE = new Logger();
     static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     // Turn on the verbose level logging by default.
@@ -55,7 +55,7 @@ public class Logger {
      * @return The single instance of {@link Logger}.
      */
     public static Logger getInstance() {
-        return sInstance;
+        return INSTANCE;
     }
 
     /**
@@ -74,7 +74,7 @@ public class Logger {
      *                       output the logs to the designated places.
      * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
-    public void setExternalLogger(ILogger externalLogger) {
+    public void setExternalLogger(ILogger externalLogger) throws IllegalStateException {
         if (externalLogger == null) {
             return;
         }
@@ -230,7 +230,12 @@ public class Logger {
         }
 
         if (mExternalLogger.get() != null) {
-            mExternalLogger.get().Log(tag, message, "", logLevel, errorCode);
+            try {
+                mExternalLogger.get().Log(tag, message, "", logLevel, errorCode);
+            } catch (Exception e) {
+                // log message as warning to report callback error issue
+                Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
+            }
         }
     }
 
@@ -301,12 +306,19 @@ public class Logger {
         Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Warn, errorCode, null);
     }
 
+    /**
+     * Logs warning message.
+     *
+     * @param tag tag for the log message
+     * @param message body of the log message
+     */
     public static void w(String tag, String message) {
         Logger.getInstance().log(tag, message, null, LogLevel.Warn, null, null);
     }
 
     /**
      * Logs error message.
+     *
      * @param tag tag for the log message
      * @param message body of the log message
      * @param additionalMessage additional parameters
@@ -317,19 +329,28 @@ public class Logger {
     }
 
     /**
+     * Logs error message.
+     *
      * @param tag Tag for the log
      * @param message Message to add to the log
      * @param additionalMessage any additional parameters
      * @param errorCode ADAL error code
-     * @param err Throwable
+     * @param throwable Throwable
      */
     public static void e(String tag, String message, String additionalMessage, ADALError errorCode,
-                         Throwable err) {
-        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode, err);
+                         Throwable throwable) {
+        Logger.getInstance().log(tag, message, additionalMessage, LogLevel.Error, errorCode, throwable);
     }
 
-    public static void e(String tag, String msg, Throwable tr) {
-        Logger.getInstance().log(tag, msg, "", LogLevel.Error, null, tr);
+    /**
+     * Logs error message.
+     *
+     * @param tag Tag for the log
+     * @param message Message to add to the log
+     * @param throwable Throwable
+     */
+    public static void e(String tag, String message, Throwable throwable) {
+        Logger.getInstance().log(tag, message, "", LogLevel.Error, null, throwable);
     }
 
     /**

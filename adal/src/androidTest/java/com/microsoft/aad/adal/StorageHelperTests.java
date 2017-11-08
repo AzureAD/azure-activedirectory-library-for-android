@@ -29,7 +29,6 @@ import android.os.Build;
 import android.support.test.filters.Suppress;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
-import android.util.Log;
 
 import org.junit.Before;
 import org.junit.Test;

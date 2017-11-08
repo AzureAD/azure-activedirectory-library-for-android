@@ -26,7 +26,6 @@ package com.microsoft.aad.adal;
 import android.content.Context;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
-import android.util.Log;
 
 import junit.framework.Assert;
 
@@ -207,7 +206,7 @@ public class JwsBuilderTests extends AndroidTestHelper {
                     X509Certificate cert = (X509Certificate) certs[i];
                     X500Principal subject = cert.getSubjectX500Principal();
                     Logger.v(TAG, "",
-                            "Encoded:"+ new String(Base64.encode(cert.getEncoded(), Base64.DEFAULT),
+                            "Encoded:" + new String(Base64.encode(cert.getEncoded(), Base64.DEFAULT),
                                     "utf-8"), null);
                     Logger.v(TAG, "", "Subject:" + subject.toString(), null);
                 }

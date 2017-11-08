@@ -34,7 +34,6 @@ import android.os.Looper;
 import android.os.NetworkOnMainThreadException;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import com.microsoft.aad.adal.Logger;
 import android.util.SparseArray;
 
 import com.microsoft.aad.adal.AuthenticationRequest.UserIdentifierType;
@@ -987,7 +986,7 @@ public class AuthenticationContext {
                 acquireTokenRequest.onActivityResult(requestCode, resultCode, data);
             } else {
                 Logger.e(TAG + methodName, "onActivityResult did not find the waiting request. ",
-                        "RequestID: " + requestId, ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
+                        AuthenticationConstants.Browser.REQUEST_ID + ":" + requestId, ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
             }
         }
     }
@@ -1297,7 +1296,7 @@ public class AuthenticationContext {
 
     AuthenticationRequestState getWaitingRequest(final int requestId) throws AuthenticationException {
         final String methodName = ":getWaitingRequest";
-        Logger.v(TAG + methodName, "Get waiting request. ", "RequestID: " + requestId, null);
+        Logger.v(TAG + methodName, "Get waiting request. ", AuthenticationConstants.Browser.REQUEST_ID + ":" + requestId, null);
         AuthenticationRequestState request;
 
         synchronized (DELEGATE_MAP) {
@@ -1306,7 +1305,7 @@ public class AuthenticationContext {
 
         if (request == null) {
             Logger.e(TAG + methodName, "Request callback is not available. ",
-                    "RequestID: " + requestId, ADALError.CALLBACK_IS_NOT_FOUND);
+                    AuthenticationConstants.Browser.REQUEST_ID + ":" + requestId, ADALError.CALLBACK_IS_NOT_FOUND);
             throw new AuthenticationException(ADALError.CALLBACK_IS_NOT_FOUND,
                     "Request callback is not available for requestId:" + requestId);
         }
@@ -1320,7 +1319,7 @@ public class AuthenticationContext {
         }
 
         Logger.v(TAG, "Put waiting request. " + getCorrelationInfoFromWaitingRequest(requestState),
-                "RequestID: " + requestId, null);
+                AuthenticationConstants.Browser.REQUEST_ID + ":" + requestId, null);
 
         synchronized (DELEGATE_MAP) {
             DELEGATE_MAP.put(requestId, requestState);
@@ -1328,7 +1327,7 @@ public class AuthenticationContext {
     }
 
     void removeWaitingRequest(int requestId) {
-        Logger.v(TAG, "Remove waiting request. ", "RequestID: " + requestId, null);
+        Logger.v(TAG, "Remove waiting request. ", AuthenticationConstants.Browser.REQUEST_ID + ":" + requestId, null);
 
         synchronized (DELEGATE_MAP) {
             DELEGATE_MAP.remove(requestId);

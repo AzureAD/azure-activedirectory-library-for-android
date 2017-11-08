@@ -544,7 +544,7 @@ class Oauth2 {
             if (result == null) {
                 // non-protocol related error
                 String errMessage = isBodyEmpty ? "Status code:" + response.getStatusCode() : response.getBody();
-                Logger.e(TAG + methodName, "Server error. ", "Message: " + errMessage, ADALError.SERVER_ERROR);
+                Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), errMessage, ADALError.SERVER_ERROR);
                 throw new AuthenticationException(ADALError.SERVER_ERROR, errMessage);
             } else {
                 ClientMetrics.INSTANCE.setLastErrorCodes(result.getErrorCodes());
@@ -564,15 +564,15 @@ class Oauth2 {
 
             ClientMetrics.INSTANCE.setLastError(null);
             if (mRequest.getIsExtendedLifetimeEnabled()) {
-                Logger.e(TAG + methodName, "Server error. ", "Message: " + e.getMessage(), ADALError.SERVER_ERROR, e);
+                Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), e.getMessage(), ADALError.SERVER_ERROR, e);
                 throw new ServerRespondingWithRetryableException(e.getMessage(), e);
             } else {
-                Logger.e(TAG + methodName, "Server error. ", "Message: " + e.getMessage(), ADALError.SERVER_ERROR, e);
+                Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), e.getMessage(), ADALError.SERVER_ERROR, e);
                 throw e;
             }
         } catch (final IOException e) {
             ClientMetrics.INSTANCE.setLastError(null);
-            Logger.e(TAG + methodName, "Server error. ", "Message: " + e.getMessage(), ADALError.SERVER_ERROR, e);
+            Logger.e(TAG + methodName, ADALError.SERVER_ERROR.getDescription(), e.getMessage(), ADALError.SERVER_ERROR, e);
             throw e;
         } finally {
             ClientMetrics.INSTANCE.endClientMetricsRecord(ClientMetricsEndpointType.TOKEN,

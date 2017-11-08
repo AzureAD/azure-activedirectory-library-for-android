@@ -41,7 +41,6 @@ import android.security.KeyChain;
 import android.security.KeyChainAliasCallback;
 import android.security.KeyChainException;
 import android.support.v4.content.LocalBroadcastManager;
-import com.microsoft.aad.adal.Logger;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;

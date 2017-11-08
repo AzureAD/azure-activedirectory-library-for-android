@@ -34,7 +34,6 @@ package com.microsoft.aad.adal;
 
 import android.os.Build;
 import android.os.Process;
-import com.microsoft.aad.adal.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;

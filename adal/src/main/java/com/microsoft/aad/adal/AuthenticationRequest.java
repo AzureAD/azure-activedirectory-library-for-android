@@ -26,8 +26,6 @@ package com.microsoft.aad.adal;
 import android.support.annotation.Nullable;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 /**

@@ -792,8 +792,7 @@ class AcquireTokenRequest {
                                     }
 
                                     Logger.e(TAG + methodName,
-                                            authenticationException.getCode() == null?
-                                                    ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN.getDescription() : authenticationException.getCode().getDescription(),
+                                            authenticationException.getCode() == null ? ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN.getDescription() : authenticationException.getCode().getDescription(),
                                             message.toString()
                                                     + ' ' + ExceptionExtensions.getExceptionMessage(authenticationException)
                                                     + ' ' + Log.getStackTraceString(authenticationException),

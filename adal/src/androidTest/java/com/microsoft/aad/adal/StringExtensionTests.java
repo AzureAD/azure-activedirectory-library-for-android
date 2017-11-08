@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import junit.framework.Assert;
 
@@ -94,8 +93,8 @@ public class StringExtensionTests extends AndroidTestHelper {
             String decodeResult = StringExtensions.urlFormDecode(result);
             assertEquals(longString, decodeResult);
 
-        } catch (UnsupportedEncodingException ueex) {
-            Logger.e(getClass().getName(), "", ueex.getMessage(), ueex);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.e(getClass().getName(), ex.getMessage(), ex);
             Assert.fail("Did not expect exception");
         }
     }

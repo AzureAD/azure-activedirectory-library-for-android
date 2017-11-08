@@ -24,7 +24,6 @@
 package com.microsoft.aad.adal;
 
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;

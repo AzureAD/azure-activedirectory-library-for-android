@@ -120,7 +120,7 @@ public class PackageHelperTests {
         String actual = (String) m.invoke(packageHelper, mContext.getPackageName());
 
         // assert
-        assertEquals("should be same info", mTestTAG + methodName, actual);
+        assertEquals("should be same info", mTestTag, actual);
 
         // act
         actual = (String) m.invoke(packageHelper, (String) null);
@@ -166,7 +166,7 @@ public class PackageHelperTests {
         // assert
         assertTrue("should have packagename", actual.contains(mContext.getPackageName()));
         assertTrue("should have signature url encoded",
-                actual.contains(URLEncoder.encode(mTestTAG + methodName, AuthenticationConstants.ENCODING_UTF8)));
+                actual.contains(URLEncoder.encode(mTestTag, AuthenticationConstants.ENCODING_UTF8)));
     }
 
     private static Object getInstance(Context mockContext) throws IllegalArgumentException,
