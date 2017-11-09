@@ -100,6 +100,7 @@ dependencies {
     compile "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     compile "com.android.support:support-annotations:$rootProject.ext.supportLibraryVersion"
     compile "com.android.support:support-v4:$rootProject.ext.supportLibraryVersion"
+    compile project(":common")
 
     // Android Instrumental Test Dependencies
     androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
@@ -133,44 +134,6 @@ task jacocoTestReport(type: JacocoReport, dependsOn: 'testDebugUnitTest') {
             "jacoco/testDebugUnitTest.exec",
             "outputs/code-coverage/connected/*coverage.ec"
     ])
-}
-
-task createPom  {
-    pom {
-        project {
-            groupId 'com.microsoft.aad'
-            artifactId 'adal'
-            version = project.version
-            packaging 'aar'
-            name 'adal'
-
-            description 'Azure active directory library for Android gives you the ability to add Windows Azure Active Directory authentication to your application with just a few lines of additional code. Using our ADAL SDKs you can quickly and easily extend your existing application to all the employees that use Windows Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-            url 'https://github.com/MSOpenTech/azure-activedirectory-library-for-android'
-
-            developers {
-                developer {
-                    id 'microsoft'
-                    name 'Microsoft'
-                }
-            }
-
-            licenses {
-                license {
-                    name 'MIT License'
-                }
-            }
-            inceptionYear '2014'
-
-            properties {
-                branch 'master'
-                adalVersion = project.version
-            }
-
-            scm {
-                url "https://github.com/MSOpenTech/azure-activedirectory-library-for-android/tree/master"
-            }
-        }
-    }.writeTo("${archivesBaseName}-${version}.pom")
 }
 
 task sourcesJar(type: Jar) {
@@ -327,6 +290,6 @@ task checkstyle(type: Checkstyle) {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint', 'createPom'
+        task.dependsOn 'checkstyle', 'pmd', 'findbugs', 'lint'
     }
 }
