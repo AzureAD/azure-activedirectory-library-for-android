@@ -1,1 +1,2 @@
-include ':adal',':userappwithbroker', ":automationtestapp"
+include ':adal', ':userappwithbroker', ":automationtestapp", ':common'
+project(':common').projectDir = new File('microsoft-authentication-library-common-for-android/common')
