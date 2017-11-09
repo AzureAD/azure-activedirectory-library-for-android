@@ -387,7 +387,9 @@ public class AuthenticationResult implements Serializable {
     }
 
     final void setAuthority(final String authority) {
-        mAuthority = authority;
+        if (!StringExtensions.isNullOrBlank(authority)) {
+            mAuthority = authority;
+        }
     }
 
     final CliTelemInfo getCliTelemInfo() {
