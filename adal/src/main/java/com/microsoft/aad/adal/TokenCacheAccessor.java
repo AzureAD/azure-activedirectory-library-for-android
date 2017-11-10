@@ -43,7 +43,9 @@ class TokenCacheAccessor {
     private static final String TAG = TokenCacheAccessor.class.getSimpleName();
     
     private final ITokenCacheStore mTokenCacheStore;
+
     private String mAuthority; // Remove final to update the authority when preferred cache location is not the same as passed in authority
+
     private final String mTelemetryRequestId;
     
     TokenCacheAccessor(final ITokenCacheStore tokenCacheStore, final String authority, final String telemetryRequestId) {
@@ -343,10 +345,15 @@ class TokenCacheAccessor {
         cacheEvent.setRequestId(mTelemetryRequestId);
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_WRITE);
 
+        if (!StringExtensions.isNullOrBlank(result.getAuthority())) {
+            mAuthority = result.getAuthority();
+        }
+
         // new tokens will only be saved into preferred cache location
         mTokenCacheStore.setItem(CacheKey.createCacheKeyForRTEntry(getAuthorityUrlWithPreferredCache(), resource, clientId, userId),
                 TokenCacheItem.createRegularTokenCacheItem(getAuthorityUrlWithPreferredCache(), resource, clientId, result));
         cacheEvent.setTokenTypeRT(true);
+
         // Store separate entries for MRRT.  
         if (result.getIsMultiResourceRefreshToken()) {
             Logger.v(TAG, "Save Multi Resource Refresh token to cache");

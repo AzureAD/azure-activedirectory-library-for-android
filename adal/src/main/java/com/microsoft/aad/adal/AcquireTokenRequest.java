@@ -668,6 +668,8 @@ class AcquireTokenRequest {
                     // create the broker AuthenticationResult
                     final AuthenticationResult brokerResult = new AuthenticationResult(accessToken, null,
                             expire, false, userinfo, tenantId, idtoken, null);
+                    final String authority = data.getStringExtra(AuthenticationConstants.Broker.ACCOUNT_AUTHORITY);
+                    brokerResult.setAuthority(authority);
 
                     // set the x-ms-clitelem fields on the result from the Broker
                     final TelemetryUtils.CliTelemInfo cliTelemInfo = new TelemetryUtils.CliTelemInfo();

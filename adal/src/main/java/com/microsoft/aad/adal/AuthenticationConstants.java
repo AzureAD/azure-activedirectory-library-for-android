@@ -217,6 +217,8 @@ public final class AuthenticationConstants {
         static final String EXT_EXPIRES_IN = "ext_expires_in";
 
         static final String CLAIMS = "claims";
+
+        static final String CLOUD_INSTANCE_HOST_NAME = "cloud_instance_host_name";
     }
 
     /**
