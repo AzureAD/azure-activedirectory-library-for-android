@@ -12,7 +12,11 @@ buildscript {
 }
 
 allprojects {
-    buildDir = "C:/temp/${rootProject.name}/${project.name}"
+    // Windows has a maximum path length of 260 characters - to avoid hitting this ceiling
+    // stage the builds close to the root of C://
+    if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+        buildDir = "C:/temp/${rootProject.name}/${project.name}"
+    }
     repositories {
         jcenter()
     }
