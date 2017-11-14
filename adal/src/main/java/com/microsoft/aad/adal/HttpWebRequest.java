@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+
 import android.content.Context;
 import android.os.Build;
 import android.os.Debug;

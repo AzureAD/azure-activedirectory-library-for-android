@@ -23,6 +23,10 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;

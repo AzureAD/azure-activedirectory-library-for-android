@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;

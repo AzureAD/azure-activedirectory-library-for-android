@@ -239,7 +239,7 @@ task findbugs(type: FindBugs) {
     description 'Run findbugs'
     group 'verification'
 
-    classes = fileTree("build/intermediates/classes/debug/")
+    classes = fileTree("$project.buildDir/intermediates/classes/debug/")
     source = fileTree('src/main/java')
     classpath = files()
     effort = 'max'
