@@ -437,22 +437,8 @@ class TokenCacheAccessor {
      */
     private void logReturnedToken(final AuthenticationResult result) {
         if (result != null && result.getAccessToken() != null) {
-            String accessTokenHash = getTokenHash(result.getAccessToken());
-            String refreshTokenHash = getTokenHash(result.getRefreshToken());
             Logger.i(TAG, "Access tokenID and refresh tokenID returned. ", null);
         }
-    }
-    
-    private String getTokenHash(String token) {
-        try {
-            return StringExtensions.createHash(token);
-        } catch (NoSuchAlgorithmException e) {
-            Logger.e(TAG, "Digest error", "", ADALError.DEVICE_NO_SUCH_ALGORITHM, e);
-        } catch (UnsupportedEncodingException e) {
-            Logger.e(TAG, "Digest error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-        }
-
-        return "";
     }
 
     private CacheEvent startCacheTelemetryRequest(String tokenType) {

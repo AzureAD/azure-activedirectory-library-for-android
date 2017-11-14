@@ -269,6 +269,7 @@ public final class AuthenticationContextTest {
     @UiThreadTest
     public void testCorrelationIdInWebRequest() throws InterruptedException, IOException {
 
+        Logger.getInstance().setEnablePII(true);
         AuthorityValidationMetadataCache.clearAuthorityValidationCache();
         final int minSDKVersionForTest = 15;
         if (Build.VERSION.SDK_INT <= minSDKVersionForTest) {

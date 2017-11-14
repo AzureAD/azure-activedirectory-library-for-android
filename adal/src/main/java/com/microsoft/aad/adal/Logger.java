@@ -43,9 +43,9 @@ public class Logger {
 
     // Turn on the verbose level logging by default.
     private LogLevel mLogLevel  = LogLevel.Verbose;
-    private AtomicReference<ILogger> mExternalLogger = new AtomicReference<>(null);
+    private ILogger mExternalLogger = null;
     private static final String CUSTOM_LOG_ERROR = "Custom log failed to log message:%s";
-    private boolean mLogcatLogEnabled = false;
+    private boolean mAndroidLogEnabled = false;
     private String mCorrelationId = null;
 
     // Disable to log PII by default.
@@ -75,16 +75,16 @@ public class Logger {
      * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
     public synchronized void setExternalLogger(ILogger externalLogger) throws IllegalStateException {
-        mExternalLogger.set(externalLogger);
+        mExternalLogger = externalLogger;
     }
 
     /**
      * Enable/Disable the Android logcat logging. By default, the sdk disables it.
      *
-     * @param enableLogcatLog True if enabling the logcat logging, false otherwise.
+     * @param androidLogEnabled True if enabling the logcat logging, false otherwise.
      */
-    public void setEnableLogcatLog(final boolean enableLogcatLog) {
-        mLogcatLogEnabled = enableLogcatLog;
+    public void setAndroidLogEnabled(final boolean androidLogEnabled) {
+        mAndroidLogEnabled = androidLogEnabled;
     }
 
     /**
@@ -195,35 +195,36 @@ public class Logger {
             return;
         }
 
-        // Developer turns off PII logging, if the log message contains any PII, we shouldn't send it.
-
         final StringBuilder logMessage = new StringBuilder();
 
         if (errorCode != null) {
             logMessage.append(getCodeName(errorCode)).append(':');
         }
 
-        if (message != null) {
-            logMessage.append(' ').append(addMoreInfo(message));
-        }
+        logMessage.append(addMoreInfo(message));
 
-        // Adding stacktrace to message
-        if (throwable != null) {
-            logMessage.append(' ').append(Log.getStackTraceString(throwable));
-        }
-
-
+        // Developer turns off PII logging, if the log message contains any PII, we shouldn't send it.
         if (additionalMessage != null && mEnablePII) {
             logMessage.append(' ').append(additionalMessage);
         }
 
-        if (mLogcatLogEnabled) {
+        // Adding stacktrace to message
+        if (throwable != null) {
+            logMessage.append('\n').append(Log.getStackTraceString(throwable));
+        }
+
+        if (mAndroidLogEnabled) {
             sendLogcatLogs(tag, logLevel, logMessage.toString());
         }
 
-        if (mExternalLogger.get() != null) {
+        if (mExternalLogger != null) {
             try {
-                mExternalLogger.get().Log(tag, message, "", logLevel, errorCode);
+                if (additionalMessage != null && mEnablePII)
+                {
+                    mExternalLogger.Log(tag, addMoreInfo(message), additionalMessage + (throwable == null ? "" : Log.getStackTraceString(throwable)), logLevel, errorCode);
+                } else {
+                    mExternalLogger.Log(tag, addMoreInfo(message), throwable == null ? null : Log.getStackTraceString(throwable), logLevel, errorCode);
+                }
             } catch (Exception e) {
                 // log message as warning to report callback error issue
                 Log.w(tag, String.format(CUSTOM_LOG_ERROR, message));
