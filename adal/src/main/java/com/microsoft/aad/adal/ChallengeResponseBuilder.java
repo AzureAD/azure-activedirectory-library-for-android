@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

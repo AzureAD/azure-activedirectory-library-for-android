@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;

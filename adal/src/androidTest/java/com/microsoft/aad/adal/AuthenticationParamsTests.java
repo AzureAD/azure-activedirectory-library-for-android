@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
@@ -296,7 +298,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
         Method m = null;
         try {
             m = AuthenticationParameters.class.getDeclaredMethod("parseResponse",
-                    Class.forName("com.microsoft.aad.adal.HttpWebResponse"));
+                    Class.forName("com.microsoft.identity.common.adal.internal.net.HttpWebResponse"));
         } catch (NoSuchMethodException e) {
             assertTrue("parseResponse is not found", false);
         }
