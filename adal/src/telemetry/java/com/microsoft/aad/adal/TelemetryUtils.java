@@ -36,7 +36,7 @@ import static com.microsoft.aad.adal.EventStrings.USER_ID;
 
 final class TelemetryUtils {
 
-    final static Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
+    static final Set<String> GDPR_FILTERED_FIELDS = new HashSet<>();
 
     private static final String TAG = TelemetryUtils.class.getSimpleName();
 
