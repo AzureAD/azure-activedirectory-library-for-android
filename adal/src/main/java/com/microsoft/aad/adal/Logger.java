@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * custom logger: Logger.setExternalLogger(..);
  */
 public class Logger {
-    private static final Logger INSTANCE = new Logger();
+    private static Logger INSTANCE = new Logger();
     static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     // Turn on the verbose level logging by default.
@@ -74,15 +74,7 @@ public class Logger {
      *                       output the logs to the designated places.
      * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
-    public void setExternalLogger(ILogger externalLogger) throws IllegalStateException {
-        if (externalLogger == null) {
-            return;
-        }
-
-        if (mExternalLogger.get() != null) {
-            throw new IllegalStateException("External logger is already set, cannot be set again.");
-        }
-
+    public synchronized void setExternalLogger(ILogger externalLogger) throws IllegalStateException {
         mExternalLogger.set(externalLogger);
     }
 
