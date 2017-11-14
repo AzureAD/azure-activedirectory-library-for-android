@@ -439,9 +439,7 @@ class TokenCacheAccessor {
         if (result != null && result.getAccessToken() != null) {
             String accessTokenHash = getTokenHash(result.getAccessToken());
             String refreshTokenHash = getTokenHash(result.getRefreshToken());
-            Logger.i(TAG, "Access tokenID and refresh tokenID returned. ", String.format(
-                    "Access TokenID: %s and Refresh TokenID: %s .",
-                    accessTokenHash, refreshTokenHash));
+            Logger.i(TAG, "Access tokenID and refresh tokenID returned. ", null);
         }
     }
     
