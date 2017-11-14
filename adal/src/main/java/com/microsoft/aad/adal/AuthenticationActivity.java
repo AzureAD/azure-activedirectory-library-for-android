@@ -23,6 +23,9 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;

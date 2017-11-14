@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.net.HttpWebResponse;
+
 import com.google.gson.Gson;
 
 import java.util.UUID;

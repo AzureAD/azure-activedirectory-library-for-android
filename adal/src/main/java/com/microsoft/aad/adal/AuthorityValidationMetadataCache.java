@@ -23,6 +23,8 @@
 
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

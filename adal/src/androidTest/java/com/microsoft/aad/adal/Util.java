@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import android.util.Base64;
 
 import org.json.JSONException;
