@@ -257,7 +257,7 @@ class AcquireTokenRequest {
         // replace the authority if host is not the same as the original one.
         if (metadata.getPreferredNetwork() != null && !authorityUrl.getHost().equalsIgnoreCase(metadata.getPreferredNetwork())) {
             try {
-                final URL replacedAuthority = Utility.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
+                final URL replacedAuthority = Discovery.constructAuthorityUrl(authorityUrl, metadata.getPreferredNetwork());
                 request.setAuthority(replacedAuthority.toString());
             } catch (final MalformedURLException ex) {
                 //Intentionally empty.
@@ -387,7 +387,7 @@ class AcquireTokenRequest {
 
 
     private boolean shouldTrySilentFlow(final AuthenticationRequest authenticationRequest) {
-        return !Utility.isClaimsChallengePresent(authenticationRequest)
+        return !authenticationRequest.isClaimsChallengePresent()
                 && authenticationRequest.getPrompt() == PromptBehavior.Auto
                 || authenticationRequest.isSilent();
     }

@@ -545,7 +545,7 @@ class TokenCacheAccessor {
             return mAuthority;
         }
 
-        return Utility.constructAuthorityUrl(passedInAuthority, host).toString();
+        return Discovery.constructAuthorityUrl(passedInAuthority, host).toString();
     }
 
     private InstanceDiscoveryMetadata getInstanceDiscoveryMetadata() throws MalformedURLException {

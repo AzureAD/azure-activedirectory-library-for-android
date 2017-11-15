@@ -224,7 +224,7 @@ public class AuthenticationResult implements Serializable {
      * @return expiresOn {@link Date}
      */
     public Date getExpiresOn() {
-        return Utility.getImmutableDateObject(mExpiresOn);
+        return DateExtensions.createCopy(mExpiresOn);
     }
 
     /**

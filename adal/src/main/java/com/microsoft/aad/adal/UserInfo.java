@@ -221,6 +221,6 @@ public class UserInfo implements Serializable {
      * @return the time when the password will expire
      */
     public Date getPasswordExpiresOn() {
-        return Utility.getImmutableDateObject(mPasswordExpiresOn);
+        return DateExtensions.createCopy(mPasswordExpiresOn);
     }
 }
