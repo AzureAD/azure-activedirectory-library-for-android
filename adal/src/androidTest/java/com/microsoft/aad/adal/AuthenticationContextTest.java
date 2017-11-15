@@ -2059,7 +2059,7 @@ public final class AuthenticationContextTest {
         Intent data = new Intent();
         data.putExtra("Test", "value");
         TestLogResponse logResponse = new TestLogResponse();
-        String msgToCheck = "onActivityResult did not find waiting request for RequestId";
+        String msgToCheck = "onActivityResult did not find the waiting request. ";
         logResponse.listenLogForMessageSegments(msgToCheck);
 
         // act

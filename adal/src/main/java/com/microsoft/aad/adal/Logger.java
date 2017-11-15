@@ -239,6 +239,10 @@ public class Logger {
      * @param message body of the log message
      */
     public static void d(String tag, String message) {
+        if (StringExtensions.isNullOrBlank(message)) {
+            return;
+        }
+
         Logger.getInstance().log(tag, message, null, LogLevel.Debug, null, null);
     }
 
