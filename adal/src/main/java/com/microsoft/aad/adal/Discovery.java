@@ -199,6 +199,12 @@ final class Discovery {
         mCorrelationId = requestCorrelationId;
     }
 
+    static URL constructAuthorityUrl(final URL originalAuthority, final String host) throws MalformedURLException {
+        final String path = originalAuthority.getPath().replaceFirst("/", "");
+        final Uri.Builder builder = new Uri.Builder().scheme(originalAuthority.getProtocol()).authority(host).appendPath(path);
+        return new URL(builder.build().toString());
+    }
+
     /**
      * initialize initial valid host list with known instances.
      */

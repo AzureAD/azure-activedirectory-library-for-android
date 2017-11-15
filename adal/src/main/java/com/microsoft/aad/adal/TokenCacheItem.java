@@ -284,7 +284,7 @@ public class TokenCacheItem implements Serializable {
      * @return the time the token get expired.
      */
     public Date getExpiresOn() {
-        return Utility.getImmutableDateObject(mExpiresOn);
+        return DateExtensions.createCopy(mExpiresOn);
     }
 
     /**
@@ -293,7 +293,7 @@ public class TokenCacheItem implements Serializable {
      * @param expiresOn the expire time.
      */
     public void setExpiresOn(final Date expiresOn) {
-        mExpiresOn = Utility.getImmutableDateObject(expiresOn);
+        mExpiresOn = DateExtensions.createCopy(expiresOn);
     }
 
     /**
@@ -374,7 +374,7 @@ public class TokenCacheItem implements Serializable {
      * @param extendedExpiresOn extended expired date.
      */
     public final void setExtendedExpiresOn(final Date extendedExpiresOn) {
-        mExtendedExpiresOn = Utility.getImmutableDateObject(extendedExpiresOn);
+        mExtendedExpiresOn = DateExtensions.createCopy(extendedExpiresOn);
     }
 
     /**
@@ -383,7 +383,7 @@ public class TokenCacheItem implements Serializable {
      * @return the extended expired date.
      */
     public final Date getExtendedExpiresOn() {
-        return Utility.getImmutableDateObject(mExtendedExpiresOn);
+        return DateExtensions.createCopy(mExtendedExpiresOn);
     }
 
     /**
