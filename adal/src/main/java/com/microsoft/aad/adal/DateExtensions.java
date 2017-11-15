@@ -30,17 +30,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 
-final class Utility {
+final class DateExtensions {
     /**
      * Private constructor to prevent the class from being initiated.
      */
-    private Utility() { }
+    private DateExtensions() { }
     
     /**
-     * Create an immutable object for the input Date object 
+     * Create a copy of a date
      * to avoid exposing the internal references.
      */
-    static Date getImmutableDateObject(final Date date) {
+    static Date createCopy(final Date date) {
         if (date != null) {
             return new Date(date.getTime());
         }
@@ -48,14 +48,4 @@ final class Utility {
         return date;
     }
 
-    static boolean isClaimsChallengePresent(final AuthenticationRequest request) {
-        // if developer pass claims down through extra qp, we should also skip cache.
-        return !StringExtensions.isNullOrBlank(request.getClaimsChallenge());
-    }
-
-    static URL constructAuthorityUrl(final URL originalAuthority, final String host) throws MalformedURLException {
-        final String path = originalAuthority.getPath().replaceFirst("/", "");
-        final Uri.Builder builder = new Uri.Builder().scheme(originalAuthority.getProtocol()).authority(host).appendPath(path);
-        return new URL(builder.build().toString());
-    }
 }

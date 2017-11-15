@@ -25,6 +25,8 @@ package com.microsoft.aad.adal;
 
 import android.support.annotation.Nullable;
 
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -160,6 +162,11 @@ class AuthenticationRequest implements Serializable {
         mResource = resource;
         mCorrelationId = correlationId;
         mIsExtendedLifetimeEnabled = isExtendedLifetimeEnabled;
+    }
+
+    public boolean isClaimsChallengePresent() {
+        // if developer pass claims down through extra qp, we should also skip cache.
+        return !StringExtensions.isNullOrBlank(this.getClaimsChallenge());
     }
 
     public String getAuthority() {
