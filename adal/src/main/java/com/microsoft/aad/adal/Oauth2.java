@@ -649,7 +649,7 @@ class Oauth2 {
                 List<String> listOfHeaders = webResponse.getResponseHeaders().get(
                         AuthenticationConstants.AAD.REQUEST_ID_HEADER);
                 if (listOfHeaders != null && listOfHeaders.size() > 0) {
-                    Logger.i(TAG + methodName, "Set request id header. ", "x-ms-request-id: " + listOfHeaders.get(0));
+                    Logger.v(TAG + methodName, "Set request id header. " + "x-ms-request-id: " + listOfHeaders.get(0));
                     httpEvent.setRequestIdHeader(listOfHeaders.get(0));
                 }
             }

@@ -98,9 +98,9 @@ final class AcquireTokenWithBrokerRequest {
             throw new AuthenticationException(ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED);
         }
 
-        Logger.v(TAG + methodName, "Calling activity. ", "Pid:" + android.os.Process.myPid()
+        Logger.v(TAG + methodName, "Calling activity. " + "Pid:" + android.os.Process.myPid()
                 + " tid:" + android.os.Process.myTid() + "uid:"
-                + android.os.Process.myUid(), null);
+                + android.os.Process.myUid());
         Telemetry.getInstance().stopEvent(brokerEvent.getTelemetryRequestId(), brokerEvent, EventStrings.BROKER_REQUEST_INTERACTIVE);
         activity.startActivityForResult(brokerIntent, AuthenticationConstants.UIRequest.BROWSER_FLOW);
 

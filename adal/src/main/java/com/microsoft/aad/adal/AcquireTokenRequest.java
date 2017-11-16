@@ -354,8 +354,8 @@ class AcquireTokenRequest {
                         ? "No result returned from acquireTokenSilent" : " ErrorCode:" + authenticationResult.getErrorCode();
                 // User does not want to launch activity
                 Logger.e(TAG + methodName,
-                        "Prompt is not allowed and failed to get token. ",
-                        authenticationRequest.getLogInfo() + " " + errorInfo,
+                        "Prompt is not allowed and failed to get token. " + errorInfo,
+                        authenticationRequest.getLogInfo(),
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED);
                 throw new AuthenticationException(
                         ADALError.AUTH_REFRESH_FAILED_PROMPT_NOT_ALLOWED, authenticationRequest.getLogInfo()
@@ -638,11 +638,11 @@ class AcquireTokenRequest {
                 final AuthenticationRequestState waitingRequest;
                 try {
                     waitingRequest = mAuthContext.getWaitingRequest(requestId);
-                    Logger.v(TAG + methodName, "Waiting request found. ", "RequestId:" + requestId, null);
+                    Logger.v(TAG + methodName, "Waiting request found. "+ "RequestId:" + requestId, "", null);
                 } catch (final AuthenticationException authenticationException) {
                     Logger.e(TAG + methodName,
-                            "Failed to find waiting request.",
-                            "RequestId:" + requestId,
+                            "Failed to find waiting request. " + "RequestId:" + requestId,
+                            "",
                             ADALError.ON_ACTIVITY_RESULT_INTENT_NULL);
                     return;
                 }
@@ -702,7 +702,9 @@ class AcquireTokenRequest {
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_CANCEL) {
                     // User cancelled the flow by clicking back button or
                     // activating another activity
-                    Logger.v(TAG + methodName, "User cancelled the flow. " + correlationInfo, " RequestId:" + requestId, null);
+                    Logger.v(TAG + methodName, "User cancelled the flow. "
+                            + "RequestId:" + requestId
+                            + " " + correlationInfo);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationCancelError(
                             "User cancelled the flow RequestId:" + requestId + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROKER_REQUEST_RESUME) {
@@ -731,8 +733,8 @@ class AcquireTokenRequest {
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_CODE);
                     String errMessage = extras
                             .getString(AuthenticationConstants.Browser.RESPONSE_ERROR_MESSAGE);
-                    Logger.v(TAG + methodName, "Error info:" + errCode + correlationInfo, errMessage + " for requestId: "
-                            + requestId, null);
+                    Logger.v(TAG + methodName, "Error info:" + errCode + " for requestId: "
+                            + requestId + " " + correlationInfo, errMessage, null);
                     waitingRequestOnError(waitingRequest, requestId, new AuthenticationException(
                             ADALError.SERVER_INVALID_REQUEST, errCode + " " + errMessage + correlationInfo));
                 } else if (resultCode == AuthenticationConstants.UIResponse.BROWSER_CODE_COMPLETE) {

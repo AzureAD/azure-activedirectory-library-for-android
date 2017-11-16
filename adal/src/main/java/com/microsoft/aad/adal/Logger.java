@@ -72,9 +72,8 @@ public class Logger {
      *
      * @param externalLogger The reference to the {@link ILogger} that can
      *                       output the logs to the designated places.
-     * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
-    public synchronized void setExternalLogger(ILogger externalLogger) throws IllegalStateException {
+    public synchronized void setExternalLogger(ILogger externalLogger) {
         mExternalLogger = externalLogger;
     }
 
@@ -176,7 +175,7 @@ public class Logger {
     }
 
     private static String addMoreInfo(String message) {
-        if (message != null) {
+        if (!StringExtensions.isNullOrBlank(message)) {
             return getUTCDateTimeAsString() + "-" + getInstance().mCorrelationId + "-" + message
                     + " ver:" + AuthenticationContext.getVersionName();
         }
@@ -204,7 +203,7 @@ public class Logger {
         logMessage.append(addMoreInfo(message));
 
         // Developer turns off PII logging, if the log message contains any PII, we shouldn't send it.
-        if (additionalMessage != null && mEnablePII) {
+        if (!StringExtensions.isNullOrBlank(additionalMessage) && mEnablePII) {
             logMessage.append(' ').append(additionalMessage);
         }
 
@@ -219,7 +218,7 @@ public class Logger {
 
         if (mExternalLogger != null) {
             try {
-                if (additionalMessage != null && mEnablePII)
+                if (!StringExtensions.isNullOrBlank(additionalMessage) && mEnablePII)
                 {
                     mExternalLogger.Log(tag, addMoreInfo(message), additionalMessage + (throwable == null ? "" : Log.getStackTraceString(throwable)), logLevel, errorCode);
                 } else {
@@ -347,7 +346,7 @@ public class Logger {
      * @param throwable Throwable
      */
     public static void e(String tag, String message, Throwable throwable) {
-        Logger.getInstance().log(tag, message, "", LogLevel.Error, null, throwable);
+        Logger.getInstance().log(tag, message, null, LogLevel.Error, null, throwable);
     }
 
     /**
