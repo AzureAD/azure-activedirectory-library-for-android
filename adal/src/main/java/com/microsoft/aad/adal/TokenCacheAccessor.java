@@ -24,10 +24,8 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

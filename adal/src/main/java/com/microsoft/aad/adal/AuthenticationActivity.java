@@ -222,8 +222,8 @@ public class AuthenticationActivity extends Activity {
         }
 
         // Create the broadcast receiver for cancel
-        Logger.v(TAG + methodName, "Init broadcastReceiver with request. " +
-                "RequestId:" + mAuthRequest.getRequestId(), mAuthRequest.getLogInfo(), null);
+        Logger.v(TAG + methodName, "Init broadcastReceiver with request. "
+                + "RequestId:" + mAuthRequest.getRequestId(), mAuthRequest.getLogInfo(), null);
         mReceiver = new ActivityBroadcastReceiver();
         mReceiver.mWaitingRequestId = mAuthRequest.getRequestId();
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
@@ -493,8 +493,8 @@ public class AuthenticationActivity extends Activity {
         } else {
             // set request id related to this response to send the delegateId
             Logger.v(TAG + methodName,
-                    "Set request id related to response. " +
-                    "REQUEST_ID for caller returned to:" + mAuthRequest.getRequestId());
+                    "Set request id related to response. "
+                            + "REQUEST_ID for caller returned to:" + mAuthRequest.getRequestId());
             data.putExtra(AuthenticationConstants.Browser.REQUEST_ID, mAuthRequest.getRequestId());
         }
 

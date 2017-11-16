@@ -163,17 +163,17 @@ abstract class BasicWebViewClient extends WebViewClient {
 
         final Uri uri = Uri.parse(url);
         if (uri.isOpaque()) {
-            Logger.v(TAG + methodName, "onPageStarted: Non-hierarchical loading uri.", "Url: " + url, null);
+            Logger.v(TAG + methodName, "onPageStarted: Non-hierarchical loading uri. ", "Url: " + url, null);
             return;
         }
 
         if (StringExtensions.isNullOrBlank(uri.getQueryParameter(
                 AuthenticationConstants.OAuth2.CODE))) {
             Logger.v(TAG + methodName, "Webview starts loading. ",
-                    "Host: " + uri.getHost() + "Path: " + uri.getPath() + "Full loading url is: " + url, null);
+                    " Host: " + uri.getHost() + " Path: " + uri.getPath() + " Full loading url is: " + url, null);
         } else {
             Logger.v(TAG + methodName, "Webview starts loading. ",
-                    "Host: " + uri.getHost() + "Path: " + uri.getPath()
+                    " Host: " + uri.getHost() + " Path: " + uri.getPath()
                     + " Auth code is returned for the loading url.", null);
         }
     }

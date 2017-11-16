@@ -638,7 +638,7 @@ class AcquireTokenRequest {
                 final AuthenticationRequestState waitingRequest;
                 try {
                     waitingRequest = mAuthContext.getWaitingRequest(requestId);
-                    Logger.v(TAG + methodName, "Waiting request found. "+ "RequestId:" + requestId, "", null);
+                    Logger.v(TAG + methodName, "Waiting request found. " + "RequestId:" + requestId);
                 } catch (final AuthenticationException authenticationException) {
                     Logger.e(TAG + methodName,
                             "Failed to find waiting request. " + "RequestId:" + requestId,

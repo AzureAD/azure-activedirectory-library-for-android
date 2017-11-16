@@ -31,8 +31,6 @@ import com.microsoft.aad.adal.Logger.LogLevel;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;

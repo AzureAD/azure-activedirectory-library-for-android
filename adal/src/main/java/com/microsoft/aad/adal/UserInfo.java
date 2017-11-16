@@ -71,7 +71,7 @@ public class UserInfo implements Serializable {
     }
 
     /**
-     * Constructor for {@lin UserInfo}.
+     * Constructor for {@link UserInfo}.
      * @param userid Unique user id for the userInfo.
      * @param givenName Given name for the userInfo.
      * @param familyName Family name for the userInfo.
