@@ -47,7 +47,6 @@ import android.os.Handler;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
-import android.util.Log;
 
 import junit.framework.Assert;
 
@@ -118,7 +117,7 @@ public class BrokerProxyTests {
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        Log.d(TAG, "mTestSignature is set");
+        Logger.d(TAG, "mTestSignature is set");
     }
 
     @After

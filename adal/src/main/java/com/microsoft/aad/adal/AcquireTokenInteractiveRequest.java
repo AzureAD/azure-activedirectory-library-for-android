@@ -55,6 +55,7 @@ final class AcquireTokenInteractiveRequest {
 
     void acquireToken(final IWindowComponent activity, final AuthenticationDialog dialog)
             throws AuthenticationException {
+        final String methodName = ":acquireToken";
         //Check if there is network connection
         HttpWebRequest.throwIfNetworkNotAvailable(mContext);
 
@@ -62,7 +63,7 @@ final class AcquireTokenInteractiveRequest {
         // force prompt, if this flag is set in the embedded flow, we need to update it to always. For embed
         // flow, force_prompt is the same as always.
         if (PromptBehavior.FORCE_PROMPT == mAuthRequest.getPrompt()) {
-            Logger.v(TAG, "FORCE_PROMPT is set for embedded flow, reset it as Always.");
+            Logger.v(TAG + methodName, "FORCE_PROMPT is set for embedded flow, reset it as Always.");
             mAuthRequest.setPrompt(PromptBehavior.Always);
         }
 
@@ -88,33 +89,32 @@ final class AcquireTokenInteractiveRequest {
      * @throws AuthenticationException
      */
     AuthenticationResult acquireTokenWithAuthCode(final String url) throws AuthenticationException {
-        Logger.v(TAG, "Start token acquisition with auth code.", mAuthRequest.getLogInfo(), null);
+        final String methodName = ":acquireTokenWithAuthCode";
+        Logger.v(TAG + methodName, "Start token acquisition with auth code.", mAuthRequest.getLogInfo(), null);
 
         final Oauth2 oauthRequest = new Oauth2(mAuthRequest, new WebRequestHandler());
         final AuthenticationResult result;
         try {
             result = oauthRequest.getToken(url);
-            Logger.v(TAG, "OnActivityResult processed the result. "
-                    + mAuthRequest.getLogInfo());
+            Logger.v(TAG + methodName, "OnActivityResult processed the result.");
         } catch (final IOException | AuthenticationException exc) {
-            final String msg = "Error in processing code to get token. "
-                    + mAuthRequest.getLogInfo() + getCorrelationInfo();
+            final String msg = "Error in processing code to get token. " + getCorrelationInfo();
             throw new AuthenticationException(
                     ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN,
                     msg, exc);
         }
 
         if (result == null) {
-            Logger.e(TAG, "Returned result with exchanging auth code for token is null", getCorrelationInfo(),
+            Logger.e(TAG + methodName, "Returned result with exchanging auth code for token is null" + getCorrelationInfo(), "",
                     ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN);
             throw new AuthenticationException(
                     ADALError.AUTHORIZATION_CODE_NOT_EXCHANGED_FOR_TOKEN, getCorrelationInfo());
         }
 
         if (!StringExtensions.isNullOrBlank(result.getErrorCode())) {
-            Logger.e(TAG, result.getErrorLogInfo(), null, ADALError.AUTH_FAILED);
+            Logger.e(TAG + methodName, " ErrorCode:" + result.getErrorCode(), " ErrorDescription:" + result.getErrorDescription(), ADALError.AUTH_FAILED);
             throw new AuthenticationException(ADALError.AUTH_FAILED,
-                    result.getErrorLogInfo());
+                    " ErrorCode:" + result.getErrorCode());
         }
 
         if (!StringExtensions.isNullOrBlank(result.getAccessToken()) && mTokenCacheAccessor != null) {
@@ -135,10 +135,11 @@ final class AcquireTokenInteractiveRequest {
      * @return True if intent is sent to start the activity, false otherwise.
      */
     private boolean startAuthenticationActivity(final IWindowComponent activity) {
+        final String methodName = ":startAuthenticationActivity";
         final Intent intent = getAuthenticationActivityIntent();
 
         if (!resolveIntent(intent)) {
-            Logger.e(TAG, "Intent is not resolved", "",
+            Logger.e(TAG + methodName, "Intent is not resolved", "",
                     ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED);
             return false;
         }
@@ -148,7 +149,7 @@ final class AcquireTokenInteractiveRequest {
             // when it is done
             activity.startActivityForResult(intent, AuthenticationConstants.UIRequest.BROWSER_FLOW);
         } catch (ActivityNotFoundException e) {
-            Logger.e(TAG, "Activity login is not found after resolving intent", "",
+            Logger.e(TAG + methodName, "Activity login is not found after resolving intent", "",
                     ADALError.DEVELOPER_ACTIVITY_IS_NOT_RESOLVED, e);
             return false;
         }

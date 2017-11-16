@@ -23,7 +23,6 @@
 package com.microsoft.aad.adal;
 
 import android.util.Base64;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -79,7 +78,7 @@ final class Util {
                                             final String clientId, final String userId,
                                             final String displayableId) {
         Calendar expiredTime = new GregorianCalendar();
-        Log.d("Test", "Time now:" + expiredTime.toString());
+        Logger.d("Test", "Time now:" + expiredTime.toString());
         expiredTime.add(Calendar.MINUTE, -TOKENS_EXPIRES_MINUTE);
         TokenCacheItem tokenCacheItem = new TokenCacheItem();
         tokenCacheItem.setAuthority(authority);

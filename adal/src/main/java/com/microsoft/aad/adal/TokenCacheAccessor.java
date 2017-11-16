@@ -24,10 +24,8 @@ package com.microsoft.aad.adal;
 
 import com.microsoft.aad.adal.AuthenticationResult.AuthenticationStatus;
 
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -74,6 +72,7 @@ class TokenCacheAccessor {
      */
     TokenCacheItem getATFromCache(final String resource, final String clientId, final String user) 
             throws AuthenticationException {
+        final String methodName = ":getATFromCache";
         final TokenCacheItem accessTokenItem;
         try {
             accessTokenItem = getRegularRefreshTokenCacheItem(resource, clientId, user);
@@ -82,7 +81,7 @@ class TokenCacheAccessor {
         }
 
         if (accessTokenItem == null) {
-            Logger.v(TAG, "No access token exists.");
+            Logger.v(TAG + methodName, "No access token exists.");
             return null;
         }
 
@@ -90,7 +89,7 @@ class TokenCacheAccessor {
         
         if (!StringExtensions.isNullOrBlank(accessTokenItem.getAccessToken())) {
             if (TokenCacheItem.isTokenExpired(accessTokenItem.getExpiresOn())) {
-                Logger.v(TAG, "Access token exists, but already expired.");
+                Logger.v(TAG + methodName, "Access token exists, but already expired.");
                 return null;
             }
             
@@ -175,6 +174,7 @@ class TokenCacheAccessor {
     }
 
     TokenCacheItem getStaleToken(AuthenticationRequest authRequest) throws AuthenticationException {
+        final String methodName = ":getStaleToken";
         final TokenCacheItem accessTokenItem;
 
         try {
@@ -189,11 +189,11 @@ class TokenCacheAccessor {
                 && accessTokenItem.getExtendedExpiresOn() != null
                 && !TokenCacheItem.isTokenExpired(accessTokenItem.getExtendedExpiresOn())) {
             throwIfMultipleATExisted(authRequest.getClientId(), authRequest.getResource(), authRequest.getUserFromRequest());
-            Logger.i(TAG, "The stale access token is returned.", "");
+            Logger.i(TAG + methodName, "The stale access token is returned.", "");
             return accessTokenItem;
         } 
         
-        Logger.i(TAG, "The stale access token is not found.", "");
+        Logger.i(TAG + methodName, "The stale access token is not found.", "");
         return null;
     }
 
@@ -204,13 +204,14 @@ class TokenCacheAccessor {
      */
     void updateCachedItemWithResult(final String resource, final String clientId, final AuthenticationResult result, 
             final TokenCacheItem cachedItem) throws AuthenticationException {
+        final String methodName = ":updateCachedItemWithResult";
         if (result == null) {
-            Logger.v(TAG, "AuthenticationResult is null, cannot update cache.");
+            Logger.v(TAG + methodName, "AuthenticationResult is null, cannot update cache.");
             throw new IllegalArgumentException("result");
         }
         
         if (result.getStatus() == AuthenticationStatus.Succeeded) {
-            Logger.v(TAG, "Save returned AuthenticationResult into cache.");
+            Logger.v(TAG + methodName, "Save returned AuthenticationResult into cache.");
             if (cachedItem != null && cachedItem.getUserInfo() != null && result.getUserInfo() == null) {
                 result.setUserInfo(cachedItem.getUserInfo());
                 result.setIdToken(cachedItem.getRawIdToken());
@@ -224,7 +225,7 @@ class TokenCacheAccessor {
             }
         } else if (AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT.equalsIgnoreCase(result.getErrorCode())) {
             // remove Item if oauth2_error is invalid_grant
-            Logger.v(TAG, "Received INVALID_GRANT error code, remove existing cache entry.");
+            Logger.v(TAG + methodName, "Received INVALID_GRANT error code, remove existing cache entry.");
             removeTokenCacheItem(cachedItem, resource);
         }
     }
@@ -262,6 +263,7 @@ class TokenCacheAccessor {
      */
     void removeTokenCacheItem(final TokenCacheItem tokenCacheItem, final String resource)
             throws AuthenticationException {
+        final String methodName = ":removeTokenCacheItem";
         final CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_DELETE);
         cacheEvent.setRequestId(mTelemetryRequestId);
         Telemetry.getInstance().startEvent(mTelemetryRequestId, EventStrings.TOKEN_CACHE_DELETE);
@@ -271,14 +273,14 @@ class TokenCacheAccessor {
         switch (tokenEntryType) {
         case REGULAR_TOKEN_ENTRY :
             cacheEvent.setTokenTypeRT(true);
-            Logger.v(TAG, "Regular RT was used to get access token, remove entries "
+            Logger.v(TAG + methodName, "Regular RT was used to get access token, remove entries "
                     + "for regular RT entries.");
             keys = getKeyListToRemoveForRT(tokenCacheItem);
             break;
         case MRRT_TOKEN_ENTRY :
             // We delete both MRRT and RT in this case.
             cacheEvent.setTokenTypeMRRT(true);
-            Logger.v(TAG, "MRRT was used to get access token, remove entries for both "
+            Logger.v(TAG + methodName, "MRRT was used to get access token, remove entries for both "
                     + "MRRT entries and regular RT entries.");
             keys = getKeyListToRemoveForMRRT(tokenCacheItem);
             
@@ -288,7 +290,7 @@ class TokenCacheAccessor {
             break;
         case FRT_TOKEN_ENTRY :
             cacheEvent.setTokenTypeFRT(true);
-            Logger.v(TAG, "FRT was used to get access token, remove entries for "
+            Logger.v(TAG + methodName, "FRT was used to get access token, remove entries for "
                     + "FRT entries.");
             keys = getKeyListToRemoveForFRT(tokenCacheItem);
             break;
@@ -338,8 +340,9 @@ class TokenCacheAccessor {
      * If the token is FRT, store three separate entries. 
      */
     private void setItemToCacheForUser(final String resource, final String clientId, final AuthenticationResult result, final String userId) throws MalformedURLException {
+        final String methodName = ":setItemToCacheForUser";
         logReturnedToken(result);
-        Logger.v(TAG, "Save regular token into cache.");
+        Logger.v(TAG + methodName, "Save regular token into cache.");
 
         final CacheEvent cacheEvent = new CacheEvent(EventStrings.TOKEN_CACHE_WRITE);
         cacheEvent.setRequestId(mTelemetryRequestId);
@@ -356,7 +359,7 @@ class TokenCacheAccessor {
 
         // Store separate entries for MRRT.  
         if (result.getIsMultiResourceRefreshToken()) {
-            Logger.v(TAG, "Save Multi Resource Refresh token to cache");
+            Logger.v(TAG + methodName, "Save Multi Resource Refresh token to cache.");
             mTokenCacheStore.setItem(CacheKey.createCacheKeyForMRRT(getAuthorityUrlWithPreferredCache(), clientId, userId),
                     TokenCacheItem.createMRRTTokenCacheItem(getAuthorityUrlWithPreferredCache(), clientId, result));
             cacheEvent.setTokenTypeMRRT(true);
@@ -364,7 +367,7 @@ class TokenCacheAccessor {
         
         // Store separate entries for FRT.
         if (!StringExtensions.isNullOrBlank(result.getFamilyClientId()) && !StringExtensions.isNullOrBlank(userId)) {
-            Logger.v(TAG, "Save Family Refresh token into cache");
+            Logger.v(TAG + methodName, "Save Family Refresh token into cache.");
             final TokenCacheItem familyTokenCacheItem = TokenCacheItem.createFRRTTokenCacheItem(getAuthorityUrlWithPreferredCache(), result);
             mTokenCacheStore.setItem(CacheKey.createCacheKeyForFRT(getAuthorityUrlWithPreferredCache(), result.getFamilyClientId(), userId), familyTokenCacheItem);
             cacheEvent.setTokenTypeFRT(true);
@@ -439,24 +442,8 @@ class TokenCacheAccessor {
      */
     private void logReturnedToken(final AuthenticationResult result) {
         if (result != null && result.getAccessToken() != null) {
-            String accessTokenHash = getTokenHash(result.getAccessToken());
-            String refreshTokenHash = getTokenHash(result.getRefreshToken());
-            Logger.v(TAG, String.format(
-                    "Access TokenID %s and Refresh TokenID %s returned.",
-                    accessTokenHash, refreshTokenHash));
+            Logger.i(TAG, "Access tokenID and refresh tokenID returned. ", null);
         }
-    }
-    
-    private String getTokenHash(String token) {
-        try {
-            return StringExtensions.createHash(token);
-        } catch (NoSuchAlgorithmException e) {
-            Logger.e(TAG, "Digest error", "", ADALError.DEVICE_NO_SUCH_ALGORITHM, e);
-        } catch (UnsupportedEncodingException e) {
-            Logger.e(TAG, "Digest error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
-        }
-
-        return "";
     }
 
     private CacheEvent startCacheTelemetryRequest(String tokenType) {

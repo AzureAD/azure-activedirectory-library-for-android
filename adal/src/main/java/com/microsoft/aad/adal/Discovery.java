@@ -213,6 +213,7 @@ final class Discovery {
     private void performInstanceDiscovery(final URL authorityUrl, final String trustedHost) throws AuthenticationException {
         // Look up authority cache again. since we only allow one authority validation request goes out at one time, in case the
         // map has already been filled in.
+        final String methodName = ":performInstanceDiscovery";
         if (AuthorityValidationMetadataCache.containsAuthorityHost(authorityUrl)) {
             return;
         }
@@ -236,7 +237,7 @@ final class Discovery {
             }
             result = AuthorityValidationMetadataCache.isAuthorityValidated(authorityUrl);
         } catch (final IOException | JSONException e) {
-            Logger.e(TAG, "Error when validating authority", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
+            Logger.e(TAG + methodName, "Error when validating authority. ", "", ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_URL, e);
             throw new AuthenticationException(ADALError.DEVELOPER_AUTHORITY_IS_NOT_VALID_INSTANCE, e.getMessage(), e);
         }
 
@@ -248,7 +249,7 @@ final class Discovery {
 
     private Map<String, String> sendRequest(final URL queryUrl) throws IOException, JSONException, AuthenticationException {
 
-        Logger.v(TAG, "Sending discovery request to:" + queryUrl);
+        Logger.v(TAG, "Sending discovery request to query url. ", "queryUrl: " + queryUrl, null);
         final Map<String, String> headers = new HashMap<>();
         headers.put(WebRequestHandler.HEADER_ACCEPT, WebRequestHandler.HEADER_ACCEPT_JSON);
 

@@ -125,6 +125,7 @@ class IdToken {
     }
 
     private Map<String, String> parseJWT(final String idtoken) throws AuthenticationException {
+        final String methodName = ":parseJWT";
         final String idbody = extractJWTBody(idtoken);
         // URL_SAFE: Encoder/decoder flag bit to use
         // "URL and filename safe" variant of Base64
@@ -136,11 +137,11 @@ class IdToken {
             final String decodedBody = new String(data, "UTF-8");
             return extractJsonObjects(decodedBody);
         } catch (UnsupportedEncodingException exception) {
-            Logger.e(TAG, "The encoding is not supported.", "", ADALError.ENCODING_IS_NOT_SUPPORTED, exception);
+            Logger.e(TAG + methodName, "The encoding is not supported.", "", ADALError.ENCODING_IS_NOT_SUPPORTED, exception);
             throw new AuthenticationException(ADALError.ENCODING_IS_NOT_SUPPORTED, exception.getMessage(), exception);
         } catch (JSONException exception) {
-            Logger.e(TAG, "Failed to parse the decoded body into JsonObject.", "", ADALError.JSON_PARSE_ERROR,
-                    exception);
+            Logger.e(TAG + methodName, "Failed to parse the decoded body into JsonObject.", "",
+                    ADALError.JSON_PARSE_ERROR, exception);
             throw new AuthenticationException(ADALError.JSON_PARSE_ERROR, exception.getMessage(), exception);
         }
     }

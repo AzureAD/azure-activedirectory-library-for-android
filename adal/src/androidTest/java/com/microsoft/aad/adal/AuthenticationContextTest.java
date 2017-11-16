@@ -37,7 +37,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.UiThreadTest;
 import android.util.Base64;
-import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -130,7 +129,7 @@ public final class AuthenticationContextTest {
     @Before
     @SuppressLint("PackageManagerGetSignatures")
     public void setUp() throws Exception {
-        Log.d(TAG, "setup key at settings");
+        Logger.d(TAG, "setup key at settings");
         System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
         if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
             // use same key for tests
@@ -270,10 +269,11 @@ public final class AuthenticationContextTest {
     @UiThreadTest
     public void testCorrelationIdInWebRequest() throws InterruptedException, IOException {
 
+        Logger.getInstance().setEnablePII(true);
         AuthorityValidationMetadataCache.clearAuthorityValidationCache();
         final int minSDKVersionForTest = 15;
         if (Build.VERSION.SDK_INT <= minSDKVersionForTest) {
-            Log.v(TAG,
+            Logger.v(TAG,
                     "Server is returning 401 status code without challenge. "
                             + "HttpUrlConnection does not return error stream for that in SDK 15. "
                             + "Without error stream, this test is useless.");
@@ -292,7 +292,7 @@ public final class AuthenticationContextTest {
                 VALID_AUTHORITY, false, mockCache);
 
         UUID requestCorrelationId = UUID.randomUUID();
-        Log.d(TAG, "test correlationId:" + requestCorrelationId.toString());
+        Logger.d(TAG, "test correlationId:" + requestCorrelationId.toString());
         final CountDownLatch signal = new CountDownLatch(1);
         MockAuthenticationCallback callback = new MockAuthenticationCallback(signal);
 
@@ -318,7 +318,7 @@ public final class AuthenticationContextTest {
         signal.await(CONTEXT_REQUEST_TIME_OUT, TimeUnit.MILLISECONDS);
 
         // Verify that web request send correct headers
-        Log.v(TAG, "Response msg:" + response.getMessage());
+        Logger.i(TAG, "Get response message. ", "Response msg:" + response.getMessage());
         assertNotNull("Server response isn't null ", response.getMessage());
         assertTrue("Server response has same correlationId",
                 response.getMessage().contains(requestCorrelationId.toString()));
@@ -2059,7 +2059,7 @@ public final class AuthenticationContextTest {
         Intent data = new Intent();
         data.putExtra("Test", "value");
         TestLogResponse logResponse = new TestLogResponse();
-        String msgToCheck = "onActivityResult did not find waiting request for RequestId";
+        String msgToCheck = "onActivityResult did not find the waiting request. ";
         logResponse.listenLogForMessageSegments(msgToCheck);
 
         // act
@@ -2697,7 +2697,7 @@ public final class AuthenticationContextTest {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         cache.removeAll();
         Calendar expiredTime = new GregorianCalendar();
-        Log.d("Test", "Time now:" + expiredTime.toString());
+        Logger.d("Test", "Time now:" + expiredTime.toString());
         final int expiryAdjustMins = -60;
         expiredTime.add(Calendar.MINUTE, expiryAdjustMins);
         TokenCacheItem refreshItem = new TokenCacheItem();
@@ -2737,7 +2737,7 @@ public final class AuthenticationContextTest {
         DefaultTokenCacheStore cache = new DefaultTokenCacheStore(InstrumentationRegistry.getContext());
         // Code response
         Calendar timeAhead = new GregorianCalendar();
-        Log.d("Test", "Time now:" + timeAhead.toString());
+        Logger.d("Test", "Time now:" + timeAhead.toString());
         timeAhead.add(Calendar.MINUTE, minutes);
         TokenCacheItem refreshItem = new TokenCacheItem();
         refreshItem.setAuthority(VALID_AUTHORITY);
@@ -2858,7 +2858,7 @@ public final class AuthenticationContextTest {
     private ITokenCacheStore addItemToCache(ITokenCacheStore cache, TestCacheItem newItem) {
         // Code response
         Calendar timeAhead = new GregorianCalendar();
-        Log.d(TAG, "addItemToCache Time now:" + timeAhead.toString());
+        Logger.d(TAG, "addItemToCache Time now:" + timeAhead.toString());
         timeAhead.add(Calendar.MINUTE, EXPIRES_ON_ADJUST_MINS);
         TokenCacheItem refreshItem = new TokenCacheItem();
         refreshItem.setAuthority(newItem.getAuthority());
@@ -2886,13 +2886,13 @@ public final class AuthenticationContextTest {
                     newItem.getAuthority(), newItem.getResource(), newItem.getClientId(), newItem.getDisplayId());
         }
 
-        Log.d(TAG, "Key with userId: " + keyUserId);
+        Logger.i(TAG, "Key with userId. ", "UserId: " + keyUserId);
         cache.setItem(keyUserId, refreshItem);
         TokenCacheItem item = cache.getItem(keyUserId);
         assertNotNull("item is in cache", item);
 
 
-        Log.d(TAG, "Key with upn: " + keyUpn);
+        Logger.i(TAG, "Key with upn. ", "UPN: " + keyUpn);
         cache.setItem(keyUpn, refreshItem);
         item = cache.getItem(keyUpn);
         assertNotNull("item is in cache", item);

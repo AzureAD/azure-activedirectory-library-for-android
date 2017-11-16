@@ -31,7 +31,6 @@ import android.content.pm.Signature;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Base64;
-import android.util.Log;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +56,7 @@ public class TelemetryTest {
 
     @Before
     public void setUp() throws Exception {
-        Log.d(TAG, "setup key at settings");
+        Logger.d(TAG, "setup key at settings");
         System.setProperty("dexmaker.dexcache", InstrumentationRegistry.getContext().getCacheDir().getPath());
     }
 

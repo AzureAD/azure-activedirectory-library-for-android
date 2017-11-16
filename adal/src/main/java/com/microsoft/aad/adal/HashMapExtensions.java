@@ -76,7 +76,7 @@ final class HashMapExtensions {
                         key = StringExtensions.urlFormDecode(elements[0].trim());
                         value = StringExtensions.urlFormDecode(elements[1].trim());
                     } catch (UnsupportedEncodingException e) {
-                        Logger.d(TAG, e.getMessage());
+                        Logger.i(TAG, ADALError.ENCODING_IS_NOT_SUPPORTED.getDescription(), e.getMessage(), null);
                     }
 
                     if (!StringExtensions.isNullOrBlank(key)

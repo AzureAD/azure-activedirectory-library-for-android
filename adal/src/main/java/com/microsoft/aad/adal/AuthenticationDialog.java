@@ -73,7 +73,7 @@ class AuthenticationDialog {
      * service. This will run with the handler.
      */
     public void show() {
-
+        final String methodName = ":show";
         mHandlerInView.post(new Runnable() {
 
             @Override
@@ -89,7 +89,7 @@ class AuthenticationDialog {
                         "com_microsoft_aad_adal_webView1", "id"));
                 if (mWebView == null) {
                     Logger.e(
-                            TAG,
+                            TAG + methodName,
                             "Expected resource name for webview is com_microsoft_aad_adal_webView1. It is not in your layout file",
                             "", ADALError.DEVELOPER_DIALOG_LAYOUT_INVALID);
                     Intent resultIntent = new Intent();
@@ -113,7 +113,7 @@ class AuthenticationDialog {
                 // Disable hardware acceleration in WebView if needed
                 if (!AuthenticationSettings.INSTANCE.getDisableWebViewHardwareAcceleration()) {
                     mWebView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
-                    Logger.d(TAG, "Hardware acceleration is disabled in WebView");
+                    Logger.d(TAG + methodName, "Hardware acceleration is disabled in WebView");
                 }
 
                 mWebView.getSettings().setJavaScriptEnabled(true);
@@ -122,7 +122,7 @@ class AuthenticationDialog {
                 mWebView.getSettings().setUserAgentString(
                         userAgent + AuthenticationConstants.Broker.CLIENT_TLS_NOT_SUPPORTED);
                 userAgent = mWebView.getSettings().getUserAgentString();
-                Logger.v(TAG, "UserAgent:" + userAgent);
+                Logger.v(TAG + methodName, "UserAgent:" + userAgent);
                 // Set focus to the view for touch event
                 mWebView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
@@ -155,7 +155,7 @@ class AuthenticationDialog {
                     });
 
                 } catch (UnsupportedEncodingException e) {
-                    Logger.e(TAG, "Encoding error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
+                    Logger.e(TAG + methodName, "Encoding error", "", ADALError.ENCODING_IS_NOT_SUPPORTED, e);
                 }
 
                 builder.setView(webviewInDialog).setCancelable(true);
@@ -167,7 +167,7 @@ class AuthenticationDialog {
                     }
                 });
                 mDialog = builder.create();
-                Logger.i(TAG, "Showing authenticationDialog", "");
+                Logger.i(TAG + methodName, "Showing authenticationDialog", "");
                 mDialog.show();
             }
         });

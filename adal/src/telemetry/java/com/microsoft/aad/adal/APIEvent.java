@@ -114,6 +114,7 @@ final class APIEvent extends DefaultEvent {
     }
 
     void setIdToken(final String rawIdToken) {
+        final String methodName = ":setIdToken";
         if (StringExtensions.isNullOrBlank(rawIdToken)) {
             return;
         }
@@ -132,15 +133,16 @@ final class APIEvent extends DefaultEvent {
             setProperty(EventStrings.TENANT_ID, StringExtensions.createHash(idToken.getTenantId()));
             setProperty(EventStrings.USER_ID, StringExtensions.createHash(userInfo.getDisplayableId()));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
-            Logger.i(TAG, "Skipping TENANT_ID and USER_ID", "");
+            Logger.i(TAG + methodName, "Skipping TENANT_ID and USER_ID", "");
         }
     }
 
     void setLoginHint(final String loginHint) {
+        final String methodName = ":setLoginHint";
         try {
             setProperty(EventStrings.LOGIN_HINT,  StringExtensions.createHash(loginHint));
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
-            Logger.i(TAG, "Skipping telemetry for LOGIN_HINT", "");
+            Logger.i(TAG + methodName, "Skipping telemetry for LOGIN_HINT", "");
         }
     }
 

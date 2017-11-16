@@ -30,7 +30,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.support.test.InstrumentationRegistry;
 import android.util.Base64;
-import android.util.Log;
 
 import junit.framework.Assert;
 
@@ -72,7 +71,7 @@ public class AndroidTestHelper {
         AuthenticationSettings.INSTANCE.setBrokerSignature(mTestTag);
         AuthenticationSettings.INSTANCE
                 .setBrokerPackageName(AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME);
-        Log.d(TAG, "mTestSignature is set");
+        Logger.d(TAG, "mTestSignature is set");
     }
 
     public void tearDown() throws Exception {
@@ -121,7 +120,7 @@ public class AndroidTestHelper {
      */
     public void testAsyncNoExceptionUIOption(final CountDownLatch signal, final Runnable testCode, boolean runOnUI) {
 
-        Log.d(getClass().getName(), "thread:" + android.os.Process.myTid());
+        Logger.d(TAG, "thread:" + android.os.Process.myTid());
 
         try {
             if (runOnUI) {
@@ -133,7 +132,7 @@ public class AndroidTestHelper {
                 testCode.run();
             }
         } catch (Throwable ex) {
-            Log.e(getClass().getName(), ex.getMessage());
+            Logger.e(TAG, ex.getMessage(), ex);
             assertFalse("not expected:" + ex.getMessage(), true);
             signal.countDown();
         }
@@ -147,12 +146,12 @@ public class AndroidTestHelper {
 
     public void testMultiThread(int activeThreads, final CountDownLatch signal, final Runnable runnable) {
 
-        Log.d(getClass().getName(), "thread:" + android.os.Process.myTid());
+        Logger.d(TAG, "thread:" + android.os.Process.myTid());
 
         Thread[] threads = new Thread[activeThreads];
 
         for (int i = 0; i < activeThreads; i++) {
-            Log.d(getClass().getName(), "Run shared cache test for thread:" + i);
+            Logger.d(TAG, "Run shared cache test for thread:" + i);
             threads[i] = new Thread(runnable);
             threads[i].start();
         }

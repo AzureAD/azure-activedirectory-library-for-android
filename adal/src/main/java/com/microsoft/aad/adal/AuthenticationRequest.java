@@ -195,8 +195,7 @@ class AuthenticationRequest implements Serializable {
     }
 
     public String getLogInfo() {
-        return String.format("Request authority:%s resource:%s clientid:%s", mAuthority, mResource,
-                mClientId);
+        return String.format("Request authority:%s clientid:%s", mAuthority, mClientId);
     }
 
     public PromptBehavior getPrompt() {

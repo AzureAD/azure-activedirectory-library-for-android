@@ -25,7 +25,6 @@ package com.microsoft.aad.adal;
 
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import com.microsoft.aad.adal.AuthenticationParameters.AuthenticationParamCallback;
 import com.microsoft.aad.adal.Logger.ILogger;
@@ -76,7 +75,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
     @Test
     public void testCreateFromResourceUrlInvalidFormat() throws IOException, JSONException {
-        Log.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
+        Logger.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
 
         //mock http response
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
@@ -125,7 +124,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
      */
     @Test
     public void testCreateFromResourceUrlPositive() throws IOException {
-        Log.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
+        Logger.d(TAG, "test:" + getClass().getName() + "thread:" + android.os.Process.myTid());
 
         final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
         HttpUrlConnectionFactory.setMockedHttpUrlConnection(mockedConnection);
@@ -145,7 +144,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
 
         assertNull("Exception is not null", testResponse.getException());
         assertNotNull("Check parameter", testResponse.getParam());
-        Log.d(TAG, "test:" + getClass().getName() + "authority:" + testResponse.getParam().getAuthority());
+        Logger.i(TAG, "test:" + getClass().getName(), "authority:" + testResponse.getParam().getAuthority());
         assertEquals("https://login.windows.net/test.onmicrosoft.com", testResponse.getParam()
                 .getAuthority().trim());
     }
@@ -368,7 +367,7 @@ public class AuthenticationParamsTests extends AndroidTestHelper {
             public void onCompleted(Exception exception, AuthenticationParameters param) {
                 testResponse.setParam(param);
                 testResponse.setException(exception);
-                Log.d(TAG, "test " + android.os.Process.myTid());
+                Logger.d(TAG, "test " + android.os.Process.myTid());
                 signal.countDown();
             }
         };

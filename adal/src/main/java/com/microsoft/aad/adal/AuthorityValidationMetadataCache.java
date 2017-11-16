@@ -72,6 +72,7 @@ final class AuthorityValidationMetadataCache {
     }
 
     static void processInstanceDiscoveryMetadata(final URL authorityUrl, final Map<String, String> discoveryResponse) throws JSONException {
+        final String methodName = ":processInstanceDiscoveryMetadata";
         final boolean isTenantDiscoveryEndpointReturned = discoveryResponse.containsKey(TENANT_DISCOVERY_ENDPOINT);
         final String metadata = discoveryResponse.get(META_DATA);
         final String authorityHost = authorityUrl.getHost().toLowerCase(Locale.US);
@@ -83,7 +84,7 @@ final class AuthorityValidationMetadataCache {
 
         // No metadata is returned, fill in the metadata with passed
         if (StringExtensions.isNullOrBlank(metadata)) {
-            Logger.v(TAG, "No metadata returned from instance discovery.");
+            Logger.v(TAG + methodName, "No metadata returned from instance discovery.");
             sAadAuthorityHostMetadata.put(authorityHost, new InstanceDiscoveryMetadata(authorityHost, authorityHost));
             return;
         }
