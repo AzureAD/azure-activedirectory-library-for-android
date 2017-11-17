@@ -47,9 +47,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * Store/Retrieve TokenCacheItem from private SharedPreferences.
- * SharedPreferences saves items when it is committed in an atomic operation.
- * One more retry is attempted in case there is a lock in commit.
+ * Store/Retrieve TokenCacheItem from SharedPreferencesFileManager.
+ * SharedPreferencesFileManager saves items when it is committed in an atomic operation.
  */
 public class DefaultTokenCacheStore implements ITokenCacheStore, ITokenStoreQuery {
 
