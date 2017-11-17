@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.aad.adal;
 
+import com.microsoft.identity.common.SharedPreferencesFileManager;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 
 import android.accounts.Account;
@@ -550,15 +551,12 @@ class BrokerProxy implements IBrokerProxy {
             return;
         }
 
-        SharedPreferences prefs = mContext.getSharedPreferences(KEY_SHARED_PREF_ACCOUNT_LIST, Activity.MODE_PRIVATE);
-        String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, "");
+        SharedPreferencesFileManager prefs = new SharedPreferencesFileManager(mContext, KEY_SHARED_PREF_ACCOUNT_LIST);
+        String accountList = prefs.getString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL);
+        accountList = null != accountList ? accountList : "";
         if (!accountList.contains(KEY_ACCOUNT_LIST_DELIM + accountName)) {
             accountList += KEY_ACCOUNT_LIST_DELIM + accountName;
-            Editor prefsEditor = prefs.edit();
-            prefsEditor.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
-
-            // apply will do Async disk write operation.
-            prefsEditor.apply();
+            prefs.putString(KEY_APP_ACCOUNTS_FOR_TOKEN_REMOVAL, accountList);
         }
     }
 
